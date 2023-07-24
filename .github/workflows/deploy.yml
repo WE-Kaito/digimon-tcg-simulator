@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: cgn-java-23-2-enrico.jar
+          name: digimon-tcg-sim.jar
           path: backend/target
 
       - name: Login to DockerHub
