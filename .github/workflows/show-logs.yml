@@ -1,0 +1,27 @@
+name: "Get Logs"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  get-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get logs from docker
+        uses: appleboy/ssh-action@master
+        with:
+          host: capstone-project.de
+          #Set App Name (replace "example" with "alpha"-"tango")
+          username: example
+          password: ${{ secrets.SSH_PASSWORD }}
+          #Set App Name (replace "example" with "alpha"-"tango")
+          script: |
+            sudo docker logs example
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v3
+        with:
+          #Set App Name (replace "example" with "alpha"-"tango")
+          url: http://example.capstone-project.de
+          max-attempts: 3
+          retry-delay: 5s
+          retry-all: true

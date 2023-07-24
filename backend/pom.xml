@@ -51,6 +51,7 @@
     </dependencies>
 
     <build>
+        <finalName>digimon-tcg-sim</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
