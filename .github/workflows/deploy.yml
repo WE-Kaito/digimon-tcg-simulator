@@ -94,8 +94,10 @@ jobs:
           #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
           #Set IP (replace "10.0.1.99" with your ip address)
           script: |
+            if docker ps -a | grep -q cgn-java-23-2-enrico; then
             sudo docker stop cgn-java-23-2-enrico
             sudo docker rm cgn-java-23-2-enrico
+            fi
             sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} sonkaito/digimon-tcg-sim:latest
             sleep 15s
             sudo docker logs cgn-java-23-2-enrico
