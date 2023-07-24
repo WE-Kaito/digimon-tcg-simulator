@@ -104,7 +104,7 @@ jobs:
         uses: jtalk/url-health-check-action@v3
         with:
           #Set App Name (replace "example" with "alpha"-"tango")
-          url: http://digimon-tcg-simulator.capstone-project.de
+          url: http://cgn-java-23-2-enrico.capstone-project.de
           max-attempts: 3
           retry-delay: 5s
           retry-all: true
