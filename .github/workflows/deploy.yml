@@ -76,7 +76,7 @@ jobs:
         with:
           push: true
           #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
-          tags: sonkaito/digimon-tcg-sim:latest
+          tags: sonkaito/digimon-tcg-sim.de-example-app:latest
           context: .
 
   deploy:
@@ -96,7 +96,7 @@ jobs:
           script: |
             sudo docker stop cgn-java-23-2-enrico
             sudo docker rm cgn-java-23-2-enrico
-            sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} bartfastiel/java-capstone-project.de-example-app:latest
+            sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} sonkaito/digimon-tcg-sim.de-example-app:latest
             sleep 15s
             sudo docker logs cgn-java-23-2-enrico
 
