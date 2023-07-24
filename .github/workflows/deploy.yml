@@ -50,8 +50,8 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: digimon-tcg-sim.jar
-          path: backend/target/digimon-tcg-sim.jar
+          name: app.jar
+          path: backend/target/app.jar
 
   push-to-docker-hub:
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: digimon-tcg-sim.jar
+          name: app.jar
           path: backend/target
 
       - name: Login to DockerHub
@@ -76,7 +76,7 @@ jobs:
         with:
           push: true
           #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
-          tags: sonkaito/digimon-tcg-sim.de-example-app:latest
+          tags: sonkaito/digimon-tcg-sim:latest
           context: .
 
   deploy:
@@ -87,23 +87,23 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: capstone-project.de
-          #Set App Name (replace "example" with "alpha"-"tango")
+          #Set App Name (replace "example" with your ssh user name)
           username: cgn-java-23-2-enrico
           password: ${{ secrets.SSH_PASSWORD }}
-          #Set App Name (replace "example" with "alpha"-"tango")
+          #Set App Name (replace "example" with your ssh user name)
           #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
-          #Set IP (replace "10.0.1.99" with "10.0.1.1"-"10.0.1.20")
+          #Set IP (replace "10.0.1.99" with your ip address)
           script: |
             sudo docker stop cgn-java-23-2-enrico
             sudo docker rm cgn-java-23-2-enrico
-            sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} sonkaito/digimon-tcg-sim.de-example-app:latest
+            sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.17 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} sonkaito/digimon-tcg-sim:latest
             sleep 15s
             sudo docker logs cgn-java-23-2-enrico
 
       - name: Check the deployed service URL
         uses: jtalk/url-health-check-action@v3
         with:
-          #Set App Name (replace "example" with "alpha"-"tango")
+          #Set App Name (replace "example" with your ssh user name)
           url: http://cgn-java-23-2-enrico.capstone-project.de
           max-attempts: 3
           retry-delay: 5s
