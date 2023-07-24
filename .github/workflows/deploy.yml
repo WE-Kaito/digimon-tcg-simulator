@@ -50,8 +50,8 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: digimon-tcg-sim.jar
-          path: backend/target/digimon-tcg-sim.jar
+          name: app.jar
+          path: backend/target/app.jar
 
   push-to-docker-hub:
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: digimon-tcg-sim.jar
+          name: app.jar
           path: backend/target
 
       - name: Login to DockerHub
@@ -75,7 +75,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          #Set dockerhub project
+          #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
           tags: sonkaito/digimon-tcg-sim:latest
           context: .
 
@@ -94,9 +94,9 @@ jobs:
           #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
           #Set IP (replace "10.0.1.99" with "10.0.1.1"-"10.0.1.20")
           script: |
-            sudo docker stop digimon-tcg-sim
-            sudo docker rm digimon-tcg-sim
-            sudo docker run --pull=always -env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach sonkaito/digimon-tcg-sim:latest
+            sudo docker stop cgn-java-23-2-enrico
+            sudo docker rm cgn-java-23-2-enrico
+            sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} bartfastiel/java-capstone-project.de-example-app:latest
             sleep 15s
             sudo docker logs cgn-java-23-2-enrico
 
@@ -104,7 +104,7 @@ jobs:
         uses: jtalk/url-health-check-action@v3
         with:
           #Set App Name (replace "example" with "alpha"-"tango")
-          url: http://digimon-tcg-simulator.capstone-project.de
+          url: http://example.capstone-project.de
           max-attempts: 3
           retry-delay: 5s
           retry-all: true
