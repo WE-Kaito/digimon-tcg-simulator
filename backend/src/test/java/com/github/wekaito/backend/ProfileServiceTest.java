@@ -1,6 +1,5 @@
 package com.github.wekaito.backend;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import java.util.Optional;
