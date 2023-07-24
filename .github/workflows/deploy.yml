@@ -50,8 +50,8 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: app.jar
-          path: backend/target/app.jar
+          name: digimon-tcg-sim.jar
+          path: backend/target/digimon-tcg-sim.jar
 
   push-to-docker-hub:
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: app.jar
+          name: digimon-tcg-sim.jar
           path: backend/target
 
       - name: Login to DockerHub
