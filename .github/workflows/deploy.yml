@@ -50,8 +50,8 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: digimon-tcg-capstone.jar
-          path: backend/target/digimon-tcg-capstone.jar
+          name: digimon-tcg-sim.jar
+          path: backend/target/digimon-tcg-sim.jar
 
   push-to-docker-hub:
     runs-on: ubuntu-latest
@@ -94,8 +94,8 @@ jobs:
           #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
           #Set IP (replace "10.0.1.99" with "10.0.1.1"-"10.0.1.20")
           script: |
-            sudo docker stop cgn-java-23-2-enrico
-            sudo docker rm cgn-java-23-2-enrico
+            sudo docker stop digimon-tcg-sim
+            sudo docker rm digimon-tcg-sim
             sudo docker run --pull=always -env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach sonkaito/digimon-tcg-sim:latest
             sleep 15s
             sudo docker logs cgn-java-23-2-enrico
