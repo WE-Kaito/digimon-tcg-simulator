@@ -4,8 +4,8 @@ ENV ENVIRONMENT=prod
 
 LABEL maintainer="WE-Kaito"
 
-ADD backend/target/digimon-tcg-sim.jar digimon-tcg-sim.jar
+ADD backend/target/app.jar app.jar
 
 EXPOSE 8080
 
-CMD [ "sh", "-c", "java -jar /digimon-tcg-sim.jar" ]
+CMD [ "sh", "-c", "java -jar /app.jar" ]
