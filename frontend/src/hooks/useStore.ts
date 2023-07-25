@@ -86,10 +86,8 @@ export const useStore = create<State>((set) => ({
                     );
                 }
 
-                console.log("filteredData: ",filteredData);
-
-
                 set({fetchedCards: filteredData});
+
             })
             .then(() => set({isLoading: false}));
 

@@ -20,7 +20,6 @@ export default function SearchForm() {
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         fetchCards(cardname, color, type, stage, attribute, digitype, dp, playcost, digivolutioncost, level);
-        console.log(cardname, color, type, stage, attribute, digitype, dp, playcost, digivolutioncost, level)
     }
 
     return (
