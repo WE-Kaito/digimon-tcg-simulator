@@ -1,10 +1,14 @@
 import styled from "styled-components";
 import {useState} from "react";
+import {useStore} from "../hooks/useStore.ts";
 
 export default function SearchForm() {
 
-    const [cardname, setCardname] = useState<string>('');
-    const [color, setColor] = useState<string>('');
+    const fetchCards = useStore(state => state.fetchCards);
+
+    const [cardname, setCardname] = useState<string | null>(null);
+    const [color, setColor] = useState<string | null>(null);
+    const [type, setType] = useState<string | null>(null);
     const [playcost, setPlaycost] = useState<number | null>(null);
     const [dp, setDp] = useState<number | null>(null);
     const [digivolutioncost, setDigivolutioncost] = useState<number | null>(null);
@@ -13,14 +17,20 @@ export default function SearchForm() {
     const [digitype, setDigitype] = useState<string | null>(null);
     const [attribute, setAttribute] = useState<string | null>(null);
 
-    return (
-        <StyledForm>
+    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        fetchCards(cardname, color, type, stage, attribute, digitype, dp, playcost, digivolutioncost, level);
+        console.log(cardname, color, type, stage, attribute, digitype, dp, playcost, digivolutioncost, level)
+    }
 
-            <CardNameInput placeholder={"Card Name"} value={cardname} onChange={(e) => {
+    return (
+        <StyledForm onSubmit={handleSubmit}>
+
+            <CardNameInput placeholder={"Card Name"} value={cardname ?? undefined} onChange={(e) => {
                 setCardname(e.target.value)
             }}/>
 
-            <ColorSelect value={color} onChange={(e) => {
+            <ColorSelect value={color ?? ""} onChange={(e) => {
                 setColor(e.target.value)
             }}>
                 <option value="">Color</option>
@@ -33,8 +43,18 @@ export default function SearchForm() {
                 <option value="White">⬜</option>
             </ColorSelect>
 
+            <TypeSelect value={type ?? "Type"} onChange={(e) => {
+                setType(e.target.value !== "Type" ? e.target.value : null)
+            }}>
+                <option>Type</option>
+                <option>Digimon</option>
+                <option>Digi-Egg</option>
+                <option>Option</option>
+                <option>Tamer</option>
+            </TypeSelect>
+
             <PlayCostSelect value={playcost ?? ""} onChange={(e) => {
-                setPlaycost(parseInt(e.target.value))
+                setPlaycost(e.target.value === "-1" ? null : parseInt(e.target.value))
             }}>
                 <option value={-1}>Play Cost</option>
                 <option value={0}>0</option>
@@ -301,7 +321,7 @@ const StyledForm = styled.form`
   grid-gap: 5px;
   grid-template-areas:
     "cardname cardname cardname color"
-    "playcost dp dp digivolutioncost"
+    "type dp playcost digivolutioncost"
     "level stage digitype digitype"
     "attribute submit submit submit";
   overflow: hidden;
@@ -327,6 +347,10 @@ const StyledInput = styled.input`
 
   &:focus {
     outline: none;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 0.64rem;
   }
 
   @media (min-width: 768px) {
@@ -358,6 +382,10 @@ const StyledSelect = styled.select`
 
   &:focus {
     outline: none;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 0.64rem;
   }
 
   @media (min-width: 768px) {
@@ -392,6 +420,10 @@ const DigitypeSelect = styled(StyledSelect)`
 
 const AttributeSelect = styled(StyledSelect)`
   grid-area: attribute;
+`;
+
+const TypeSelect = styled(StyledSelect)`
+    grid-area: type;
 `;
 
 const SubmitButton = styled.button`

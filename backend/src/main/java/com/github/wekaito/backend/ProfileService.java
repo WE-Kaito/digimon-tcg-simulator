@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +22,16 @@ public class ProfileService {
                     .build())
             .build();
 
-    Card[] fetchCards() {
+    Card[] fetchCards(Optional<String> name, Optional<String> color, Optional<String> type) {
         ResponseEntity<Card[]> response = webClient.get()
-                .uri("/search.php?sort=name&series=Digimon Card Game")
+                .uri(uriBuilder -> uriBuilder
+                        .path("/search.php")
+                        .queryParam("sort", "name")
+                        .queryParam("series", "Digimon Card Game")
+                        .queryParamIfPresent("n", name)
+                        .queryParamIfPresent("color", color)
+                        .queryParamIfPresent("type", type)
+                        .build())
                 .retrieve()
                 .toEntity(Card[].class)
                 .block();

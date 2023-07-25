@@ -35,9 +35,9 @@ class ProfileServiceTest {
 
         openMocks(this);
 
-        Card[] cards = profileService.fetchCards();
+        Card[] cards = profileService.fetchCards("Agumon".describeConstable(), "Red".describeConstable(), "Digimon".describeConstable());
 
         assertNotNull(cards);
-        assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class).hasSizeGreaterThan(200);
+        assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class);
     }
 }

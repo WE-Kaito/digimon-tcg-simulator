@@ -2,6 +2,7 @@ import styled from "styled-components";
 import Card from "./Card.tsx";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
+import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
 import gatchmon from "../assets/gatchmon.png";
 import {useStore} from "../hooks/useStore.ts";
 
@@ -12,14 +13,21 @@ export default function FetchedCards() {
 
     return (
         <FetchContainer><StyledFieldset>
-            {!isLoading ? cards.map((card) => (
+
+            {!isLoading ? cards?.map((card) => (
                     <Card key={card.cardnumber} card={card}/>
                 ))
-                :
-                <LoadingContainer><Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
+            :
+                <LoadingContainer>
+                    <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
                     <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
                 </LoadingContainer>
             }
+
+            {!isLoading && !cards && <LoadingContainer>
+                <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
+                <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+            </LoadingContainer>}
 
         </StyledFieldset></FetchContainer>
     );
@@ -32,7 +40,7 @@ const FetchContainer = styled.div`
   width: 97%;
   padding: 1.5%;
   border-radius: 5px;
-  max-height: 34vh;
+  height: 34vh;
 
 `;
 
