@@ -13,7 +13,6 @@ export default function FetchedCards() {
 
     return (
         <FetchContainer><StyledFieldset>
-
             {!isLoading ? cards?.map((card) => (
                     <Card key={card.cardnumber} card={card}/>
                 ))
