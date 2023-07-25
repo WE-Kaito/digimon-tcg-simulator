@@ -270,7 +270,7 @@ export default function SearchForm() {
                 <option>Xros Heart</option>
             </DigitypeSelect>
 
-            <AttributeSelect value={digitype ?? "Attr."} onChange={(e) => {
+            <AttributeSelect value={attribute ?? "Attr."} onChange={(e) => {
                 setAttribute(e.target.value !== "Attr." ? e.target.value : null);
             }}>
                 <option>Attr.</option>
