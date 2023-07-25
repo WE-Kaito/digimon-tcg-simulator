@@ -1,10 +1,10 @@
-import styled from "styled-components";
+import styled from '@emotion/styled';
 import {useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
 
 export default function SearchForm() {
 
-    const fetchCards = useStore(state => state.fetchCards);
+    const fetchCards = useStore((state) => state.fetchCards);
 
     const [cardname, setCardname] = useState<string | null>(null);
     const [color, setColor] = useState<string | null>(null);

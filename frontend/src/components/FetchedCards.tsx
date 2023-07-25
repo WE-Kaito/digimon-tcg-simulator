@@ -1,10 +1,11 @@
-import styled from "styled-components";
+import styled from '@emotion/styled';
 import Card from "./Card.tsx";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
 import gatchmon from "../assets/gatchmon.png";
 import {useStore} from "../hooks/useStore.ts";
+import {CardType} from "../utils/types.ts";
 
 export default function FetchedCards() {
 
@@ -13,7 +14,7 @@ export default function FetchedCards() {
 
     return (
         <FetchContainer><StyledFieldset>
-            {!isLoading ? cards?.map((card) => (
+            {!isLoading ? cards?.map((card: CardType) => (
                     <Card key={card.cardnumber} card={card}/>
                 ))
             :
