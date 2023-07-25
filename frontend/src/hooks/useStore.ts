@@ -16,12 +16,15 @@ type State = {
                  evolution_cost: number | null,
                  level: number | null,
     ) => void,
+    selectedCard: CardType | null,
+    selectCard: (card: CardType) => void,
 };
 
 export const useStore = create<State>((set) => ({
 
     fetchedCards: [],
     isLoading: false,
+    selectedCard: null,
 
     fetchCards: (name = null,
                  color = null,
@@ -92,4 +95,8 @@ export const useStore = create<State>((set) => ({
             .then(() => set({isLoading: false}));
 
     },
+
+    selectCard: (card: CardType) => {
+        set({selectedCard: card});
+    }
 }));
