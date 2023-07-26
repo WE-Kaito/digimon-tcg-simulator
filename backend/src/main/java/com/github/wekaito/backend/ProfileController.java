@@ -19,7 +19,8 @@ public class ProfileController {
     }
 
     @PostMapping("/cards")
-    public void addCard(@RequestBody Card[] deck) {
+    public void addDeck(@RequestBody Deck deck) {
         this.profileService.addDeck(deck);
     }
+
 }

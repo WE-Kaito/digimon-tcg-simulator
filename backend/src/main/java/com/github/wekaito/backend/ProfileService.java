@@ -13,6 +13,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProfileService {
 
+    private final DeckRepo deckRepo;
+
     private final WebClient webClient = WebClient.builder()
             .baseUrl("https://digimoncard.io/api-public")
             .exchangeStrategies(ExchangeStrategies.builder()
@@ -38,6 +40,7 @@ public class ProfileService {
         return Objects.requireNonNull(response).getBody();
     }
 
-    public void addDeck(Card[] deck) {
+    public void addDeck(Deck deck) {
+        this.deckRepo.save(deck);
     }
 }
