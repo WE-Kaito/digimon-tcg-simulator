@@ -16,7 +16,7 @@ public record Card(
         Optional<Integer> evolution_cost,
         Optional<Integer> level,
         Optional<String> maineffect,
-        Optional<String> sourceeffect
+        Optional<String> soureeffect
 
 ) {
 }

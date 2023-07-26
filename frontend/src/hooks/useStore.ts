@@ -1,27 +1,23 @@
 import {create} from "zustand";
-import {CardType} from "../utils/types.ts";
+import {CardType, FetchCards} from "../utils/types.ts";
 import axios from "axios";
 
 type State = {
     fetchedCards: CardType[],
     isLoading: boolean,
-    fetchCards: (name: string | null,
-                 color: string | null,
-                 type: string | null,
-                 stage: string | null,
-                 attribute: string | null,
-                 digi_type: string | null,
-                 dp: number | null,
-                 play_cost: number | null,
-                 evolution_cost: number | null,
-                 level: number | null,
-    ) => void,
+    fetchCards: FetchCards,
+    selectedCard: CardType | null,
+    selectCard: (card: CardType) => void,
+    hoverCard: CardType | null,
+    setHoverCard: (card: CardType | null) => void,
 };
 
 export const useStore = create<State>((set) => ({
 
     fetchedCards: [],
     isLoading: false,
+    selectedCard: null,
+    hoverCard: null,
 
     fetchCards: (name = null,
                  color = null,
@@ -92,4 +88,14 @@ export const useStore = create<State>((set) => ({
             .then(() => set({isLoading: false}));
 
     },
+
+    selectCard: (card: CardType) => {
+        set({selectedCard: card});
+        console.log(card);
+    },
+
+    setHoverCard: (card: CardType | null) => {
+        set({hoverCard: card});
+    }
+
 }));

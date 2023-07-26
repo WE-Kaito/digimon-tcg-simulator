@@ -1,9 +1,19 @@
 import {CardType} from "../utils/types.ts";
-import styled from "styled-components";
+import styled from '@emotion/styled';
+import {useStore} from "../hooks/useStore.ts";
 
 function Card({card}: { card: CardType }) {
+
+    const selectCard = useStore((state) => state.selectCard);
+    const setHoverCard = useStore((state) => state.setHoverCard);
+
+
     return (
-        <StyledImage alt={card.name +" "+ card.cardnumber} src={card.image_url}/>
+        <StyledImage onClick={() => selectCard(card)}
+                     onMouseEnter={() => setHoverCard(card)}
+                     onMouseLeave={() => setHoverCard(null)}
+                     alt={card.name + " " + card.cardnumber}
+                     src={card.image_url}/>
     );
 }
 
@@ -18,6 +28,11 @@ const StyledImage = styled.img`
   &:hover {
     filter: drop-shadow(0 0 1.5px ghostwhite);
     transform: scale(1.1);
+    cursor: pointer;
+  }
+
+  @media (max-width: 767px) {
+    max-height: 115px;
   }
 
   @media (min-width: 768px) {
