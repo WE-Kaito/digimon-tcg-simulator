@@ -37,4 +37,7 @@ public class ProfileService {
                 .block();
         return Objects.requireNonNull(response).getBody();
     }
+
+    public void addDeck(Card[] deck) {
+    }
 }

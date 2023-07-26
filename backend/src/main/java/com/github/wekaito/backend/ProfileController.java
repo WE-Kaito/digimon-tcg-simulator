@@ -17,4 +17,9 @@ public class ProfileController {
     public Card[] getCards(@RequestParam Optional<String> name, @RequestParam Optional<String> color, @RequestParam Optional<String> type) {
         return this.profileService.fetchCards(name, color, type);
     }
+
+    @PostMapping("/cards")
+    public void addCard(@RequestBody Card[] deck) {
+        this.profileService.addDeck(deck);
+    }
 }
