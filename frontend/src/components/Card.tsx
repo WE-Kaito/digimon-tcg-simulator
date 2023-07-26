@@ -28,6 +28,11 @@ const StyledImage = styled.img`
   &:hover {
     filter: drop-shadow(0 0 1.5px ghostwhite);
     transform: scale(1.1);
+    cursor: pointer;
+  }
+
+  @media (max-width: 767px) {
+    max-height: 115px;
   }
 
   @media (min-width: 768px) {

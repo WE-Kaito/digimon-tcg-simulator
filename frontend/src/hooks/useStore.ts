@@ -91,6 +91,7 @@ export const useStore = create<State>((set) => ({
 
     selectCard: (card: CardType) => {
         set({selectedCard: card});
+        console.log(card);
     },
 
     setHoverCard: (card: CardType | null) => {

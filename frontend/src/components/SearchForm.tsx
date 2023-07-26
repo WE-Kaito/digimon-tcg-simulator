@@ -30,7 +30,7 @@ export default function SearchForm() {
             }}/>
 
             <ColorSelect value={color ?? ""} onChange={(e) => {
-                setColor(e.target.value)
+                setColor(e.target.value !== "" ? e.target.value : null)
             }}>
                 <option value="">Color</option>
                 <option value="Red">🟥</option>
@@ -295,6 +295,7 @@ export default function SearchForm() {
                 <option>Attr.</option>
                 <option>Free</option>
                 <option>Variable</option>
+                <option>Unknown</option>
                 <option>Data</option>
                 <option>Virus</option>
                 <option>Vaccine</option>
@@ -327,7 +328,9 @@ const StyledForm = styled.form`
 
   @media (min-width: 768px) {
     grid-gap: 5px;
-    height: 13vh;
+    height: 11vh;
+    width: 484px;
+    transform: translateY(3px);
   }
 `;
 
@@ -348,11 +351,11 @@ const StyledInput = styled.input`
     outline: none;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 766px) {
     font-size: 0.64rem;
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 767px) {
     height: 20px;
   }
 `;

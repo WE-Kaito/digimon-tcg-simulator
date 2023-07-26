@@ -40,14 +40,14 @@ const FetchContainer = styled.div`
   width: 97%;
   padding: 1.5%;
   border-radius: 5px;
-  height: 34vh;
+  height: 35vh;
+  
 
 `;
 
 const StyledFieldset = styled.fieldset`
   color: #C5C5C5;
   height: 89.5%;
-  max-height: 300px;
   border-radius: 5px;
   margin-top: 2px;
   transform: translateX(0.5px);
@@ -59,8 +59,9 @@ const StyledFieldset = styled.fieldset`
   overflow: auto;
   scrollbar-width: thin;
 
-  @media (min-width: 768px) {
-    gap: 1.2vw;
+  @media (min-width: 767px) {
+    gap: 0.9vw;
+    height: 93%;
   }
 `;
 

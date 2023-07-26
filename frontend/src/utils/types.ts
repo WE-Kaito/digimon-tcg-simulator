@@ -13,7 +13,7 @@ export type CardType = {
     evolution_cost: number | null,
     level: number | null,
     maineffect: string | null,
-    sourceeffect: string | null,
+    soureeffect: string | null,
 
 }
 
