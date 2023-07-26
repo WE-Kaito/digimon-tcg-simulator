@@ -95,7 +95,7 @@ export default function CardDetails() {
               color:${strokeColor};
               font-size: ${longDigiType ? 12 : 18}px;
               @media (max-width: 766px) {
-                transform: scale(0.7) translateX(${longDigiType?-12:-12}px) translateY(${longDigiType ? -9 : 4}px);
+                transform: scale(0.7) translateX(-12px) translateY(${longDigiType ? -9 : 4}px);
                 line-height: 0.8;
               }
               @media (min-width: 767px) {
