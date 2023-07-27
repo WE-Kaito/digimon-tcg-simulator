@@ -12,7 +12,7 @@ export default function DetailsOutline() {
         <StyledSvg viewBox="0 0 162 238" fill="none" xmlns="http://www.w3.org/2000/svg">
             {window.innerWidth <= 766 && <>
                 <rect x="3.29309" y="3.43829" width="155.414" height="234.062" rx="4.5" stroke={strokeColor}
-                      stroke-linejoin="round"/>
+                      strokeLinejoin="round"/>
                 <line x1="2.79309" y1="38.6769" x2="158.276" y2="38.6769" stroke={strokeColor}/>
                 <line x1="3.72412" y1="76.8745" x2="158.276" y2="76.8745" stroke={strokeColor}/>
                 <line x1="3.72412" y1="114.093" x2="159.207" y2="114.093" stroke={strokeColor}/>
@@ -50,7 +50,7 @@ export default function DetailsOutline() {
 
             {window.innerWidth > 766 && <>
                 <rect x="9.12067" y="5.30246" width="481.759" height="383.198" rx="4.5" stroke={strokeColor}
-                      stroke-linejoin="round"/>
+                      strokeLinejoin="round"/>
                 <line x1="8.62067" y1="63.5329" x2="488.506" y2="63.5329" stroke={strokeColor}/>
                 <line x1="11.4943" y1="125.965" x2="488.506" y2="125.965" stroke={strokeColor}/>
                 <line x1="11.4943" y1="186.796" x2="491.379" y2="186.796" stroke={strokeColor}/>
