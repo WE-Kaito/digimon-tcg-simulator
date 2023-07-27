@@ -1,11 +1,13 @@
 import styled from '@emotion/styled';
-import Card from "./Card.tsx";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
 import gatchmon from "../assets/gatchmon.png";
 import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
+import {lazy, Suspense} from 'react';
+
+const CardComponent = lazy(() => import('./Card.tsx'));
 
 export default function FetchedCards() {
 
@@ -14,10 +16,11 @@ export default function FetchedCards() {
 
     return (
         <FetchContainer>
+            <Suspense fallback={<Lottie animationData={loadingAnimation} loop={true} style={{width: "150px"}}/>}>
             <StyledFieldset>
                 {!isLoading
                     ? cards?.map((card: CardTypeWithId) => (
-                        <Card key={card.cardnumber} card={card} location={"fetchedData"}/>
+                        <CardComponent key={card.cardnumber} card={card} location={"fetchedData"}/>
                     ))
                     : (
                         <LoadingContainer>
@@ -33,6 +36,7 @@ export default function FetchedCards() {
                     </LoadingContainer>
                 )}
             </StyledFieldset>
+            </Suspense>
         </FetchContainer>
     );
 }
