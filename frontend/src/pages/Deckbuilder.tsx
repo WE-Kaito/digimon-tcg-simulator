@@ -6,6 +6,7 @@ import SearchForm from "../components/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
+import { ToastContainer } from 'react-toastify';
 
 export default function Deckbuilder() {
 
@@ -23,6 +24,9 @@ export default function Deckbuilder() {
 
     return (
             <OuterContainer>
+
+                <ToastContainer />
+
                 <ContainerUpperLeftQuarter>
                     <DeckNameInput value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
                     <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}

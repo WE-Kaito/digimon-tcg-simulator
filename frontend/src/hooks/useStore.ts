@@ -2,6 +2,8 @@ import {create} from "zustand";
 import {CardType, CardTypeWithId, FetchCards} from "../utils/types.ts";
 import axios from "axios";
 import {uid} from "uid";
+import {toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -126,7 +128,7 @@ export const useStore = create<State>((set, get) => ({
         if (cardnumber === "BT5-109") return; // currently forbidden
 
         if (cardnumber === "BT11-061") {     // unique effect
-            set({deckCards: [cardToAddWithNewId,...get().deckCards]});
+            set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
             return;
         }
 
@@ -136,7 +138,7 @@ export const useStore = create<State>((set, get) => ({
 
         if (get().deckCards.filter((card) => card.cardnumber === cardnumber).length >= 4) return;
 
-        set({deckCards: [cardToAddWithNewId,...get().deckCards]});
+        set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
     },
 
     deleteFromDeck: (id) => {
@@ -147,15 +149,60 @@ export const useStore = create<State>((set, get) => ({
         const deckToSave = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: get().deckCards.map(({ id, ...rest }) => rest)
+            cards: get().deckCards.map(({id, ...rest}) => rest)
         }
 
-        if (deckToSave.cards.length !== 50 || name === "") return;
+        const notifySuccess = () => toast('✔️ Deck saved!', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+        });
+
+        const notifyLength = () => toast.error('Only full decks can be saved!', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+        });
+
+        const notifyName = () => toast.error('Please enter a name.', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+        });
+
+        if (deckToSave.cards.length !== 50) {
+            notifyLength();
+            return;}
+
+        if(name === ""){
+            notifyName();
+            return;
+        }
 
         axios
             .post("/api/profile/cards", deckToSave)
             .then((res) => res.data)
-            .catch(console.error);
+            .catch(console.error)
+            .then(() =>
+                notifySuccess() &&
+                setTimeout(function () {
+                    window.location.reload();
+                }, 3000));
     }
 
 }));
