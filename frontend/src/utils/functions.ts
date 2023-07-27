@@ -1,9 +1,9 @@
-import dataImage from '../assets/icons/data.png';
-import virusImage from '../assets/icons/virus.png';
-import vaccineImage from '../assets/icons/vaccine.png';
-import freeImage from '../assets/icons/free.png';
-import unknownImage from '../assets/icons/unknown.png';
-import variableImage from '../assets/icons/variable.png';
+import dataImage from '../assets/attribute_icons/data.png';
+import virusImage from '../assets/attribute_icons/virus.png';
+import vaccineImage from '../assets/attribute_icons/vaccine.png';
+import freeImage from '../assets/attribute_icons/free.png';
+import unknownImage from '../assets/attribute_icons/unknown.png';
+import variableImage from '../assets/attribute_icons/variable.png';
 import {CardType} from "./types.ts";
 
 

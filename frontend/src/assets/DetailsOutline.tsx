@@ -96,7 +96,7 @@ const StyledSvg = styled.svg`
     width: 500px;
     position: absolute;
     left: -171px;
-    transform: translateY(2px);
+    transform: translate(2px, 1px);
     overflow: visible;
   }
 `;

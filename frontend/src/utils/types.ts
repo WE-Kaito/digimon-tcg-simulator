@@ -17,6 +17,26 @@ export type CardType = {
 
 }
 
+export type CardTypeWithId = {
+
+    name: string,
+    type: string,
+    color: string,
+    image_url: string,
+    cardnumber: string,
+    stage: string | null,
+    attribute: string | null,
+    digi_type: string | null,
+    dp: number | null,
+    play_cost: number | null,
+    evolution_cost: number | null,
+    level: number | null,
+    maineffect: string | null,
+    soureeffect: string | null,
+    id: string
+
+}
+
 export type FetchCards = (name: string | null,
                           color: string | null,
                           type: string | null,
