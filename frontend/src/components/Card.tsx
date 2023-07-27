@@ -24,7 +24,7 @@ const StyledImage = styled.img`
   max-height: 150px;
   border-radius: 5px;
   filter: drop-shadow(0 0 1px #004567);
-
+  transition: transform 0.2s ease, filter 0.2s ease;
   &:hover {
     filter: drop-shadow(0 0 1.5px ghostwhite);
     transform: scale(1.1);

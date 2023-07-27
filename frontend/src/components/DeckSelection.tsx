@@ -3,8 +3,22 @@ import eggIcon from "../assets/cardtype_icons/egg.png";
 import digimonIcon from "../assets/cardtype_icons/gammamon.png";
 import tamerIcon from "../assets/cardtype_icons/tamer.png";
 import optionIcon from "../assets/cardtype_icons/option.png";
+import {useStore} from "../hooks/useStore.ts";
+import {CardType} from "../utils/types.ts";
+import Card from "./Card.tsx";
+import Lottie from "lottie-react";
+import loadingAnimation from "../assets/lotties/loading.json";
+import gatchmon from "../assets/gatchmon.png";
+import SimpleBar from "simplebar-react";
+import {css} from "@emotion/css";
 
 export default function DeckSelection() {
+
+    const isLoading = useStore((state) => state.isLoading);
+    const cards = useStore((state) => state.fetchedCards);
+    //TODO replace cards with deckCards
+
+
     return (
         <DeckContainer>
             <Stats>
@@ -30,11 +44,22 @@ export default function DeckSelection() {
             </Stats>
 
             <DeckList>
-                <legend>[06/50]</legend>
+                <legend>[ 06/50] </legend>
+
+                {!isLoading ? cards?.map((card: CardType) => (
+                        <Card key={card.cardnumber} card={card}/>
+                    ))
+                    :
+                    <div>
+                        <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
+                        <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+                    </div>
+                }
 
             </DeckList>
 
         </DeckContainer>
+
     );
 }
 
@@ -51,6 +76,10 @@ const DeckContainer = styled.div`
   display: flex;
   align-items: center;
   flex-direction: column;
+
+  @media (max-width: 766px) {
+    transform: translateY(-0.5px);
+  };
 `;
 
 const Stats = styled.div`
@@ -72,17 +101,36 @@ const StatContainer = styled.div`
 const StyledIcon = styled.img`
   width: 55px;
   @media (max-width: 766px) {
-    width: 30px;
+    width: 26px;
   };
 `;
 
 const StyledSpan = styled.span`
   font-size: 25px;
   font-family: 'AwsumSans', sans-serif;
+  @media (max-width: 766px) {
+    font-size: 10px;
+  };
 `;
 
 const DeckList = styled.fieldset`
   width: 90%;
   height: 82.25%;
+  max-height: 440px;
   border-radius: 5px;
+  font-family: 'AwsumSans', sans-serif;
+
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  gap: 11px;
+  overflow-y: scroll;
+
+
+  @media (max-width: 766px) {
+    width: 82%;
+    height: 84.5%;
+    font-size: 10px;
+  };
 `;
+
