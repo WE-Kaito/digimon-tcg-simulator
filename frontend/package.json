@@ -16,12 +16,17 @@
     "axios": "^1.4.0",
     "lottie-react": "^2.4.0",
     "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dnd-touch-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "simplebar-react": "^3.2.4",
+    "uid": "^2.0.2",
     "zustand": "^4.3.9"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
+    "@types/react-beautiful-dnd": "^13.1.4",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",

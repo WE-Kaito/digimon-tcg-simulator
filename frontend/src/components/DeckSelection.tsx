@@ -4,62 +4,78 @@ import digimonIcon from "../assets/cardtype_icons/gammamon.png";
 import tamerIcon from "../assets/cardtype_icons/tamer.png";
 import optionIcon from "../assets/cardtype_icons/option.png";
 import {useStore} from "../hooks/useStore.ts";
-import {CardType} from "../utils/types.ts";
+import {CardTypeWithId} from "../utils/types.ts";
 import Card from "./Card.tsx";
-import Lottie from "lottie-react";
-import loadingAnimation from "../assets/lotties/loading.json";
-import gatchmon from "../assets/gatchmon.png";
-import SimpleBar from "simplebar-react";
-import {css} from "@emotion/css";
+import {useDrop} from "react-dnd";
+
+type DraggedItem = {
+    id: string,
+    location: string,
+    cardnumber: string,
+    type: string
+}
 
 export default function DeckSelection() {
 
-    const isLoading = useStore((state) => state.isLoading);
-    const cards = useStore((state) => state.fetchedCards);
-    //TODO replace cards with deckCards
+    const deckCards = useStore((state) => state.deckCards);
+    const addCardToDeck = useStore((state) => state.addCardToDeck);
 
+    const digimonLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digimon").length;
+    const tamerLength = deckCards.filter((card: CardTypeWithId) => card.type === "Tamer").length;
+    const optionLength = deckCards.filter((card: CardTypeWithId) => card.type === "Option").length;
+    const eggLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digi-Egg").length;
+
+    const [{isOver}, drop] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location, cardnumber, type} = item;
+            addCardToDeck(id, location, cardnumber, type);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
 
     return (
-        <DeckContainer>
+        <DeckContainer ref={drop}>
+
             <Stats>
                 <StatContainer>
                     <StyledIcon src={digimonIcon} alt="Digimon: "/>
-                    <StyledSpan>22</StyledSpan>
+                    <StyledSpan>{digimonLength}</StyledSpan>
                 </StatContainer>
 
                 <StatContainer>
                     <StyledIcon src={tamerIcon} alt="Tamer: "/>
-                    <StyledSpan>22</StyledSpan>
+                    <StyledSpan>{tamerLength}</StyledSpan>
                 </StatContainer>
 
                 <StatContainer>
                     <StyledIcon src={optionIcon} alt="Option: "/>
-                    <StyledSpan>22</StyledSpan>
+                    <StyledSpan>{optionLength}</StyledSpan>
                 </StatContainer>
 
                 <StatContainer>
                     <StyledIcon src={eggIcon} alt="Egg: "/>
-                    <StyledSpan>5</StyledSpan>
+                    <StyledSpan>{eggLength}</StyledSpan>
                 </StatContainer>
             </Stats>
 
             <DeckList>
-                <legend>[ 06/50] </legend>
+                <legend>[ {deckCards.length}/50]</legend>
 
-                {!isLoading ? cards?.map((card: CardType) => (
-                        <Card key={card.cardnumber} card={card}/>
+                {deckCards?.length !== 0 ? deckCards.map((card: CardTypeWithId) => (
+                            <Card key={card.id} card={card} location={"deck"}/>
                     ))
                     :
-                    <div>
-                        <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
-                        <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
-                    </div>
+                    <span>
+                        DROP CARDS HERE
+                    </span>
                 }
 
             </DeckList>
 
         </DeckContainer>
-
     );
 }
 
@@ -133,4 +149,3 @@ const DeckList = styled.fieldset`
     font-size: 10px;
   };
 `;
-

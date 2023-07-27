@@ -5,7 +5,7 @@ import loadingAnimation from "../assets/lotties/loading.json";
 import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
 import gatchmon from "../assets/gatchmon.png";
 import {useStore} from "../hooks/useStore.ts";
-import {CardType} from "../utils/types.ts";
+import {CardTypeWithId} from "../utils/types.ts";
 
 export default function FetchedCards() {
 
@@ -13,23 +13,27 @@ export default function FetchedCards() {
     const cards = useStore((state) => state.fetchedCards);
 
     return (
-        <FetchContainer><StyledFieldset>
-            {!isLoading ? cards?.map((card: CardType) => (
-                    <Card key={card.cardnumber} card={card}/>
-                ))
-            :
-                <LoadingContainer>
-                    <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
-                    <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
-                </LoadingContainer>
-            }
+        <FetchContainer>
+            <StyledFieldset>
+                {!isLoading
+                    ? cards?.map((card: CardTypeWithId) => (
+                        <Card key={card.cardnumber} card={card} location={"fetchedData"}/>
+                    ))
+                    : (
+                        <LoadingContainer>
+                            <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
+                            <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+                        </LoadingContainer>
+                    )}
 
-            {!isLoading && !cards && <LoadingContainer>
-                <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
-                <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
-            </LoadingContainer>}
-
-        </StyledFieldset></FetchContainer>
+                {!isLoading && !cards && (
+                    <LoadingContainer>
+                        <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
+                        <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+                    </LoadingContainer>
+                )}
+            </StyledFieldset>
+        </FetchContainer>
     );
 }
 
@@ -40,7 +44,7 @@ const FetchContainer = styled.div`
   padding: 1.5%;
   border-radius: 5px;
   height: 35vh;
-  
+
 
 `;
 
