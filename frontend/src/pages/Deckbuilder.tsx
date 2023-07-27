@@ -113,6 +113,13 @@ const DeckNameInput = styled.input`
     border-radius: 5px;
   border: 2px solid #D32765;
   background: #1a1a1a;
+
+  @media (max-width: 766px) {
+    transform: translateY(-0.5px);
+    width: 175px;
+    border: 1px solid #D32765;
+    font-size: 18px;
+  };
 `;
 
 const SaveDeckButton = styled.button`
@@ -143,4 +150,10 @@ const SaveDeckButton = styled.button`
   &:focus {
     outline: none;
   }
+
+  @media (max-width: 766px) {
+    transform: translateY(-0.5px);
+    width: 95px;
+    font-size: 20px;
+  };
 `;

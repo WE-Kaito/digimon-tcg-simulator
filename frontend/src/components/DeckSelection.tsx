@@ -95,6 +95,7 @@ const DeckContainer = styled.div`
 
   @media (max-width: 766px) {
     transform: translateY(-0.5px);
+    max-height: 340px;
   };
 `;
 
@@ -144,8 +145,9 @@ const DeckList = styled.fieldset`
 
 
   @media (max-width: 766px) {
-    width: 82%;
+    width: 83.5%;
     height: 84.5%;
     font-size: 10px;
+    gap:9px;
   };
 `;
