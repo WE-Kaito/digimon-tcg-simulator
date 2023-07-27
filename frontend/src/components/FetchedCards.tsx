@@ -35,7 +35,6 @@ export default function FetchedCards() {
 
 const FetchContainer = styled.div`
 
-  grid-row-start: 2;
   background-color: rgba(18, 17, 17, 0.985);
   width: 97%;
   padding: 1.5%;

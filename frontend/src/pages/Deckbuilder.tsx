@@ -4,6 +4,7 @@ import {useStore} from "../hooks/useStore.ts";
 import FetchedCards from "../components/FetchedCards.tsx";
 import SearchForm from "../components/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
+import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 
 export default function Deckbuilder() {
@@ -29,6 +30,9 @@ export default function Deckbuilder() {
                 <CardDetails/>
             </ContainerUpperRightQuarter>
 
+            <ContainerBottomLeftQuarter>
+                <DeckSelection/>
+            </ContainerBottomLeftQuarter>
 
             <ContainerBottomRightQuarter>
                 <SearchForm/>
@@ -52,40 +56,40 @@ const OuterContainer = styled.div`
   max-height: 1000px;
 `;
 
+const Quarter = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  align-items: center;
+`;
 
-const ContainerBottomRightQuarter = styled.div`
+const ContainerBottomRightQuarter = styled(Quarter)`
   grid-column-start: 2;
   grid-row-start: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 1vh;
 `;
 
-const ContainerUpperLeftQuarter = styled.div`
+const ContainerUpperLeftQuarter = styled(Quarter)`
   grid-column-start: 1;
   grid-row-start: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1vh;
-
 `;
 
-const ContainerUpperRightQuarter = styled.div`
+const ContainerUpperRightQuarter = styled(Quarter)`
   grid-column-start: 2;
   grid-row-start: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1vh;
+`;
+
+const ContainerBottomLeftQuarter = styled(Quarter)`
+  grid-column-start: 1;
+  grid-row-start: 2;
 `;
 
 const CardImage = styled.img`
   width: 180px;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
+  transform: translateY(2px);
     @media (min-width: 767px) {
-    width: 290px;
+    width: 282px;
     }
 `;
 

@@ -36,6 +36,6 @@ const StyledImage = styled.img`
   }
 
   @media (min-width: 768px) {
-    width: 96px;
+    width: 95px;
   }
 `;
