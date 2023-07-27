@@ -7,7 +7,12 @@ import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
 import {lazy, Suspense} from 'react';
 
-const CardComponent = lazy(() => import('./Card.tsx'));
+const Card = lazy(() => import('./Card.tsx'));
+
+const Loading = () => <LoadingContainer>
+    <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
+    <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+</LoadingContainer>
 
 export default function FetchedCards() {
 
@@ -16,26 +21,25 @@ export default function FetchedCards() {
 
     return (
         <FetchContainer>
-            <Suspense fallback={<Lottie animationData={loadingAnimation} loop={true} style={{width: "150px"}}/>}>
-            <StyledFieldset>
-                {!isLoading
-                    ? cards?.map((card: CardTypeWithId) => (
-                        <CardComponent key={card.cardnumber} card={card} location={"fetchedData"}/>
-                    ))
-                    : (
+            <Suspense fallback={<Loading/>}>
+                <StyledFieldset>
+
+                    {!isLoading
+                        ? cards?.map((card: CardTypeWithId) => (
+                            <Card key={card.cardnumber} card={card} location={"fetchedData"}/>
+                        ))
+                        : (
+                            <Loading/>
+                        )}
+
+                    {!isLoading && !cards && (
                         <LoadingContainer>
-                            <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
+                            <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
                             <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
                         </LoadingContainer>
                     )}
 
-                {!isLoading && !cards && (
-                    <LoadingContainer>
-                        <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
-                        <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
-                    </LoadingContainer>
-                )}
-            </StyledFieldset>
+                </StyledFieldset>
             </Suspense>
         </FetchContainer>
     );
