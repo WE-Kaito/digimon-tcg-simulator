@@ -56,10 +56,15 @@ export default function MenuButton({ name, path }: { name: string, path: string 
 }
 
 const Wrapper = styled.div`
-
-
+  
   display: flex;
   justify-content: center;
+  max-width: 100vw;
+  @media (max-width: 766px) {
+    transform: scale(0.7);
+    
+  }
+
 
   div {
     display: flex;
@@ -95,10 +100,31 @@ const Wrapper = styled.div`
   }
 
   span {
+    width: 34vw;
     transform: skewX(15deg);
     color: navy;
     font-family: 'Montelgo Sans Serif', cursive;
     letter-spacing: 2px;
+    text-align: left;
+    
+    @media (max-width: 766px) {
+      font-size: 0.8em;
+      width: 60vw;
+    }
+
+    @media (min-width: 980px) {
+      width: 28vw;
+    }
+
+    @media (min-width: 1400px) {
+      width: 20vw;
+    }
+
+    @media (min-width: 1800px) {
+      width: 16vw;
+    }
+  ;
+
   }
 
   span:nth-child(2) {
