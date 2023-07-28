@@ -7,6 +7,7 @@ import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 import { ToastContainer } from 'react-toastify';
+import BackButton from "../components/BackButton.tsx";
 
 export default function Deckbuilder() {
 
@@ -34,9 +35,10 @@ export default function Deckbuilder() {
                 </ContainerUpperLeftQuarter>
 
                 <ContainerUpperRightQuarter>
-                        <div>
+                        <ButtonContainer>
                             <SaveDeckButton onClick={()=>saveDeck(deckName)}>SAVE</SaveDeckButton>
-                        </div>
+                            <BackButton/>
+                        </ButtonContainer>
                     <CardDetails/>
                 </ContainerUpperRightQuarter>
 
@@ -124,7 +126,7 @@ const DeckNameInput = styled.input`
 
 const SaveDeckButton = styled.button`
   height: 40px;
-  width: 275px;
+  width: 95%;
   padding: 0;
   padding-top: 5px;
   background: mediumaquamarine;
@@ -156,4 +158,15 @@ const SaveDeckButton = styled.button`
     width: 95px;
     font-size: 20px;
   };
+  
+`;
+
+
+const ButtonContainer = styled.div`
+  width: 100%;
+  display: flex;
+  padding-left: 1%;
+  gap: 2%;
+  padding-right: 1%;
+  justify-content: space-between;
 `;
