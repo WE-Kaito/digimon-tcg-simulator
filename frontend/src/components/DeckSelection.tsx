@@ -25,7 +25,7 @@ export default function DeckSelection() {
     const optionLength = deckCards.filter((card: CardTypeWithId) => card.type === "Option").length;
     const eggLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digi-Egg").length;
 
-    const [{isOver}, drop] = useDrop(() => ({
+    const [, drop] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location, cardnumber, type} = item;
