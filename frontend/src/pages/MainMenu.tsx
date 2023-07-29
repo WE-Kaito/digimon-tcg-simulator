@@ -32,7 +32,7 @@ const Headline = styled.h1`
   margin: 0;
   text-shadow: 2px 4px 1px #03060a;
   letter-spacing: 2px;
-  color: #ec831a;
+  color: #ff880d;
   -webkit-text-stroke: 2px navy;
   @media (max-width: 766px) {
     font-size: 45px;
@@ -46,7 +46,7 @@ const Headline2 = styled.h2`
   font-size: 54px;
   margin: 0;
   text-shadow: 1.5px 3px 1px #060e18;
-  color: #4a8ee7;
+  color: #1d7dfc;
   -webkit-text-stroke: 2px #0830b4;
 
   @media (max-width: 766px) {
