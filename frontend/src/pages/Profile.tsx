@@ -3,6 +3,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {useEffect} from "react";
 import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
+import {ToastContainer} from "react-toastify";
 
 
 export default function Profile() {
@@ -17,6 +18,7 @@ export default function Profile() {
 
     return (
         <Wrapper>
+            <ToastContainer/>
             <BackButton/>
             <h1>Profile</h1>
             {!isLoading &&

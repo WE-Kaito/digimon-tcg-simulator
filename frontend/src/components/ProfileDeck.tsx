@@ -114,6 +114,10 @@ const DeckName = styled.span`
 const DeckImage = styled.img`
 width: 75px;  
   grid-area: deck;
+  :hover {
+    cursor: pointer;
+  }
+  
 `;
 
 const BlackDeckImage = styled(DeckImage)`
@@ -138,8 +142,15 @@ const GreenDeckImage = styled(DeckImage)`
 
 const YellowDeckImage = styled(DeckImage)`
     filter: hue-rotate(162deg) saturate(180%) brightness(120%);
+  :hover {
+    filter: hue-rotate(162deg) saturate(180%) brightness(120%) drop-shadow(0 0 3px #fff)
+  }
 `;
 
 const RedDeckImage = styled(DeckImage)`
   filter: hue-rotate(120deg) saturate(130%);
+    :hover {
+    filter: hue-rotate(120deg) saturate(130%) drop-shadow(0 0 3px #fff)
+      
+    }
 `;

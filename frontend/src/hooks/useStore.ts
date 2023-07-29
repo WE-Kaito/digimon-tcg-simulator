@@ -3,7 +3,8 @@ import {CardType, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts"
 import axios from "axios";
 import {uid} from "uid";
 import 'react-toastify/dist/ReactToastify.css';
-import {notifyError, notifyLength, notifyName, notifySuccess, notifyUpdate} from "../utils/toasts.ts";
+import {notifyDelete, notifyError, notifyLength, notifyName, notifySuccess, notifyUpdate} from "../utils/toasts.ts";
+import {NavigateFunction} from "react-router-dom";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -24,6 +25,7 @@ type State = {
     fetchDecks: () => void,
     updateDeck: (id: string, name: string) => void,
     setDeckById: (id: string | undefined) => void,
+    deleteDeck: (id: string, navigate: NavigateFunction) => void,
 };
 
 
@@ -245,6 +247,23 @@ export const useStore = create<State>((set, get) => ({
                 set({statusOfDeckToEdit: data.deckStatus});
                 set({nameOfDeckToEdit: data.name});
                 set({isLoading: false});
+            });
+    },
+
+    deleteDeck: (id, navigate) => {
+
+        axios
+            .delete(`/api/profile/decks/${id}`)
+            .then((res) => res.data)
+            .catch((error) => {
+                console.error(error);
+                notifyError();
+                throw error;
+            })
+            .then(() => {
+                navigate("/profile");
+                set({deckCards: []});
+                notifyDelete();
             });
     }
 

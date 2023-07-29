@@ -37,4 +37,9 @@ public class ProfileController {
     public void updateDeck(@PathVariable String id, @RequestBody DeckWithoutId deckWithoutId) {
         this.profileService.updateDeck(id, deckWithoutId);
     }
+
+    @DeleteMapping("/decks/{id}")
+    public void deleteDeck(@PathVariable String id) {
+        this.profileService.deleteDeck(id);
+    }
 }

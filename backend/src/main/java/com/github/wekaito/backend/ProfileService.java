@@ -69,4 +69,8 @@ public class ProfileService {
     public Deck getDeckById(String id) {
         return this.deckRepo.findById(id).orElseThrow();
     }
+
+    public void deleteDeck(String id) {
+        this.deckRepo.deleteById(id);
+    }
 }

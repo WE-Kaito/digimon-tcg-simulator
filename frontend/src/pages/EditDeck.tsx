@@ -8,7 +8,7 @@ import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 import {ToastContainer} from 'react-toastify';
 import BackButton from "../components/BackButton.tsx";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {
     ContainerUpperLeftQuarter,
     DeckNameInput,
@@ -19,7 +19,6 @@ import {
     ContainerBottomLeftQuarter
 } from "./Deckbuilder.tsx";
 import {css} from "@emotion/css";
-import {Props} from "simplebar-react";
 
 export default function EditDeck() {
 
@@ -31,9 +30,12 @@ export default function EditDeck() {
 
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
+    const deleteDeck = useStore((state) => state.deleteDeck);
     const [deckName, setDeckName] = useState<string>("");
 
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         setDeckById(id);
@@ -57,8 +59,10 @@ export default function EditDeck() {
 
             <ContainerUpperRightQuarter>
                 <ButtonContainer>
-                    <UpdateDeckButton onClick={() => id && updateDeck(id, deckName)}>💾</UpdateDeckButton>
-                    <DeleteDeckButton isDeleting={isDeleting} onClick={()=> setIsDeleting(!isDeleting)}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>
+                    <UpdateDeckButton isDeleting={isDeleting} onClick={() => id && updateDeck(id, deckName)}>SAVE CHANGES</UpdateDeckButton>
+                    <DeleteDeckButton isDeleting={isDeleting} onClick={()=> {
+                        isDeleting && (id ? deleteDeck(id, navigate): null);
+                        setIsDeleting(!isDeleting)}}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>
                     <BackButton/>
                 </ButtonContainer>
                 <CardDetails/>
@@ -80,24 +84,25 @@ export default function EditDeck() {
 const ButtonContainer = styled.div`
   width: 100%;
   display: flex;
-  padding-left: 1%;
+  padding-left: 3%;
   gap: 2%;
-  padding-right: 1%;
+  padding-right: 3%;
   justify-content: space-between;
 `;
 
-const UpdateDeckButton = styled.button`
+const UpdateDeckButton = styled.button<ButtonProps>`
   height: 40px;
-  width: 40px;
+  width: ${props => props.isDeleting ? "200px" : "300px"};
   padding: 0;
   padding-top: 5px;
   background: mediumaquamarine;
   color: black;
-  font-size: 25px;
+  font-size: ${props => props.isDeleting ? "15px" : "23px"};
   font-weight: bold;
   text-align: center;
   font-family: 'Sansation', sans-serif;
   filter: drop-shadow(1px 2px 3px #060e18);
+  transition: all 0.3s ease;
 
   :hover {
     background: aquamarine;
@@ -121,10 +126,23 @@ type ButtonProps = {
 }
 
 const DeleteDeckButton = styled.button<ButtonProps>`
-background: crimson;
+  font-weight: bold;
+  max-height: 40px;
+background: ${props => props.isDeleting ? "ghostwhite" : "crimson"};
+  color: crimson;
   padding: 0;
-  width: ${props => props.isDeleting ? "200px" : "60px"};
+  width: ${props => props.isDeleting ? "40%" : "20%"};
   font-family: 'Sansation', sans-serif;
-    font-size: ${props => props.isDeleting ? "15px" : "25px"};
   transition: all 0.3s ease;
+
+  &:active {
+    border: none;
+    filter: none;
+    transform: translateY(1px);
+    box-shadow: inset 0 0 3px #000000;
+  }
+
+  &:focus {
+    outline: none;
+  }
 `;
