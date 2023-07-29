@@ -5,7 +5,10 @@ import styled from "@emotion/styled";
 export default function MainMenu() {
     return (
         <Wrapper>
-            <Headline>MAIN MENU</Headline>
+            <div>
+            <Headline>DIGIMON</Headline>
+                <Headline2>TCG Simulator</Headline2>
+            </div>
             <MenuButton name={"Find game"} path={"/"}/>
             <MenuButton name={"Deckbuilder"} path={"/deckbuilder"}/>
             <MenuButton name={"Profile"} path={"/profile"}/>
@@ -19,13 +22,34 @@ const Wrapper = styled.div`
   align-items: center;
   gap: 5vh;
   font-size: 19px;
+  transform: translateY(-7.5vh);
 `;
 
 const Headline = styled.h1`
-  font-family: 'Sansation', sans-serif;
+  font-family: 'Pixel Digivolve', sans-serif;
+  font-style: italic;
+  font-weight: bold;
   margin: 0;
-  
-    @media (max-width: 766px) {
-    font-size: 42px;
-    }
+  text-shadow: 2px 4px 1px #03060a;
+  letter-spacing: 2px;
+  color: #ec831a;
+  -webkit-text-stroke: 2px navy;
+  @media (max-width: 766px) {
+    font-size: 45px;
+  }
+`;
+
+const Headline2 = styled.h2`
+  font-family: 'Pixel Digivolve', sans-serif;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 54px;
+  margin: 0;
+  text-shadow: 1.5px 3px 1px #060e18;
+  color: #4a8ee7;
+  -webkit-text-stroke: 2px #0830b4;
+
+  @media (max-width: 766px) {
+    font-size: 35px;
+  }
 `;

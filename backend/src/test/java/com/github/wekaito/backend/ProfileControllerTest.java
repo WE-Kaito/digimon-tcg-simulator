@@ -11,8 +11,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -56,8 +54,9 @@ class ProfileControllerTest {
         assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class).hasSizeGreaterThan(200);
     }
 
-    @DirtiesContext
+
     @Test
+    @DirtiesContext
     void expectOk_whenAddDeck() throws Exception {
 
         Card[] cards = {exampleCard, exampleCard, exampleCard};
@@ -70,5 +69,20 @@ class ProfileControllerTest {
                 //THEN
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
+    }
+
+    @Test
+    void expectEmptyList_whenGetDecks() throws Exception {
+
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json("[]"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Deck[] decks = objectMapper.readValue(response, Deck[].class);
+
+        assertThat(decks).isInstanceOf(Deck[].class);
     }
 }

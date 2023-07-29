@@ -195,7 +195,7 @@ export const useStore = create<State>((set, get) => ({
         }
 
         axios
-            .post("/api/profile/cards", deckToSave)
+            .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
             .catch(console.error)
             .then(() =>
