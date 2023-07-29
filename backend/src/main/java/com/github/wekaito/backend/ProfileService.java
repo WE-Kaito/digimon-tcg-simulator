@@ -15,6 +15,8 @@ public class ProfileService {
 
     private final DeckRepo deckRepo;
 
+    private final IdService idService;
+
     private final WebClient webClient = WebClient.builder()
             .baseUrl("https://digimoncard.io/api-public")
             .exchangeStrategies(ExchangeStrategies.builder()
@@ -40,11 +42,27 @@ public class ProfileService {
         return Objects.requireNonNull(response).getBody();
     }
 
-    public void addDeck(Deck deck) {
-        this.deckRepo.save(deck);
+    public void addDeck(DeckWithoutId deckWithoutId) {
+        Deck deckToSave = new Deck(
+                idService.createId(),
+                deckWithoutId.name(),
+                deckWithoutId.cards(),
+                deckWithoutId.deckStatus()
+        );
+        this.deckRepo.save(deckToSave);
     }
 
     public Deck[] getDecks() {
         return this.deckRepo.findAll().toArray(new Deck[0]);
+    }
+
+    public void updateDeck(String id, DeckWithoutId deckWithoutId) {
+        Deck deckToSave = new Deck(
+                id,
+                deckWithoutId.name(),
+                deckWithoutId.cards(),
+                deckWithoutId.deckStatus()
+        );
+        this.deckRepo.save(deckToSave);
     }
 }

@@ -1,30 +1,33 @@
 package com.github.wekaito.backend;
 
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Arrays;
 import java.util.Objects;
 
 @Document("decks")
-public record Deck(String name, Card[] cards) {
+public record Deck(String id, String name, Card[] cards, DeckStatus deckStatus) {
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Deck deck = (Deck) o;
-        return Arrays.equals(cards, deck.cards) && Objects.equals(name, deck.name);
+        return Objects.equals(id, deck.id) &&
+                Objects.equals(name, deck.name) &&
+                Arrays.equals(cards, deck.cards) &&
+                deckStatus == deck.deckStatus;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, Arrays.hashCode(cards));
+        return Objects.hash(id, name, Arrays.hashCode(cards), deckStatus);
     }
 
     @Override
     public String toString() {
         StringBuilder jsonBuilder = new StringBuilder();
         jsonBuilder.append("{");
+        jsonBuilder.append("\"id\":\"").append(id).append("\",");
         jsonBuilder.append("\"name\":\"").append(name).append("\",");
         jsonBuilder.append("\"cards\":[");
         for (int i = 0; i < cards.length; i++) {
@@ -49,7 +52,8 @@ public record Deck(String name, Card[] cards) {
                 jsonBuilder.append(",");
             }
         }
-        jsonBuilder.append("]");
+        jsonBuilder.append("],");
+        jsonBuilder.append("\"deckStatus\":\"").append(deckStatus).append("\"");
         jsonBuilder.append("}");
         return jsonBuilder.toString();
     }

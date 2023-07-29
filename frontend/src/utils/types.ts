@@ -50,6 +50,8 @@ export type FetchCards = (
     level: number | null) => void;
 
 export type DeckType = {
+    id: string,
     name: string,
     cards: CardType[],
+    deckStatus: string,
 }

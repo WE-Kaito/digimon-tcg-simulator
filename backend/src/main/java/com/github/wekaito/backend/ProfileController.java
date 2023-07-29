@@ -19,12 +19,17 @@ public class ProfileController {
     }
 
     @PostMapping("/decks")
-    public void addDeck(@RequestBody Deck deck) {
-        this.profileService.addDeck(deck);
+    public void addDeck(@RequestBody DeckWithoutId deckWithoutId) {
+        this.profileService.addDeck(deckWithoutId);
     }
 
     @GetMapping("/decks")
     public Deck[] getDecks() {
         return this.profileService.getDecks();
+    }
+
+    @PutMapping("/decks/{id}")
+    public void updateDeck(@PathVariable String id, @RequestBody DeckWithoutId deckWithoutId) {
+        this.profileService.updateDeck(id, deckWithoutId);
     }
 }

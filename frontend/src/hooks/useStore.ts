@@ -4,6 +4,7 @@ import axios from "axios";
 import {uid} from "uid";
 import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {notifyLength, notifyName, notifySuccess} from "../utils/toasts.ts";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -20,6 +21,7 @@ type State = {
     deleteFromDeck: (id: string) => void,
     saveDeck: (name: string) => void,
     fetchDecks: () => void,
+    updateDeck: (id: string,name:string,cards: CardType[], status: string) => void,
 };
 
 export const useStore = create<State>((set, get) => ({
@@ -152,41 +154,10 @@ export const useStore = create<State>((set, get) => ({
         const deckToSave = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: get().deckCards.map(({id, ...rest}) => rest)
+            cards: get().deckCards.map(({id, ...rest}) => rest),
+
+            deckStatus: "INACTIVE"
         }
-
-        const notifySuccess = () => toast('✔️ Deck saved!', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
-
-        const notifyLength = () => toast.error('Only full decks can be saved!', {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
-
-        const notifyName = () => toast.error('Please enter a name.', {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
 
         if (deckToSave.cards.length !== 50) {
             notifyLength();
@@ -217,6 +188,26 @@ export const useStore = create<State>((set, get) => ({
             .then((data) => {
                 set({decks: data});
             }).finally(() => set({isLoading: false}));
+    },
+
+    updateDeck: (id, name, status) => {
+
+
+        const deckWithoutId = {
+            name: name,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            cards: get().deckCards.map(({id, ...rest}) => rest),
+            deckStatus: status
+        }
+
+        axios
+            .put(`/api/profile/decks/${id}`, deckWithoutId)
+            .then((res) => res.data)
+            .catch(console.error)
+            .then(() => {
+                notifySuccess();
+            });
     }
+
 
 }));

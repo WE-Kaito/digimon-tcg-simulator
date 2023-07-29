@@ -42,6 +42,10 @@ class ProfileControllerTest {
             null
     );
 
+    Card[] cards = {exampleCard, exampleCard, exampleCard};
+    Deck exampleDeck = new Deck("12345","New Deck", cards, DeckStatus.INACTIVE);
+    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards, DeckStatus.INACTIVE);
+
     @Test
     void expectArrayOfCards_whenGetCards() throws Exception {
 
@@ -61,14 +65,13 @@ class ProfileControllerTest {
     @DirtiesContext
     void expectOk_whenAddDeck() throws Exception {
 
-        Card[] cards = {exampleCard, exampleCard, exampleCard};
-        Deck exampleDeck = new Deck("New Deck", cards);
+        String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/api/profile/decks")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(exampleDeck.toString()))
-                //THEN
+                                .content(requestBody))
+                // THEN
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
     }
@@ -76,17 +79,18 @@ class ProfileControllerTest {
     @Test
     void expectPostedDeck_whenGetDecks() throws Exception {
 
-        Card[] cards = {exampleCard, exampleCard, exampleCard};
-        Deck exampleDeck = new Deck("New Deck", cards);
+        String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
 
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/profile/decks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(exampleDeck.toString()));
+                        .content(requestBody));
 
         String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().json(List.of(exampleDeck).toString()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].cards[0].name").value("Agumon"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].deckStatus").value("INACTIVE"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
