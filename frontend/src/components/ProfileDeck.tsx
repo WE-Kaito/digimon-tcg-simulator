@@ -24,7 +24,6 @@ function ColoredDeckImage(color:string | null) {
 }
 
 export default function ProfileDeck({deck}:{deck:DeckType}) {
-    const { name, cards } = deck;
 
     const findMostFrequentColor = (cards: CardType[]) => {
         // Create an object to store color occurrences
@@ -64,7 +63,7 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
         <Container>
             <DeckName>{deck.name}</DeckName>
             <ActiveButton>Active</ActiveButton>
-            {cards ?  ColoredDeckImage(findMostFrequentColor(cards)) : null}
+            {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards)) : null}
         </Container>
     );
 }
