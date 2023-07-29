@@ -26,10 +26,8 @@ function ColoredDeckImage(color:string | null) {
 export default function ProfileDeck({deck}:{deck:DeckType}) {
 
     const findMostFrequentColor = (cards: CardType[]) => {
-        // Create an object to store color occurrences
         const colorOccurrences = {};
 
-        // Loop through the cards and count occurrences of each color
         for (const element of cards) {
             const color = element.color;
             // @ts-ignore
@@ -42,7 +40,6 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
             }
         }
 
-        // Find the color with the maximum occurrences
         let mostFrequentColor = null;
         let maxOccurrences = 0;
 
