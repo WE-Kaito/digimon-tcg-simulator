@@ -28,6 +28,11 @@ public class ProfileController {
         return this.profileService.getDecks();
     }
 
+    @GetMapping("/decks/{id}")
+    public Deck getDeckById(@PathVariable String id) {
+        return this.profileService.getDeckById(id);
+    }
+
     @PutMapping("/decks/{id}")
     public void updateDeck(@PathVariable String id, @RequestBody DeckWithoutId deckWithoutId) {
         this.profileService.updateDeck(id, deckWithoutId);

@@ -11,6 +11,8 @@ type State = {
     selectedCard: CardTypeWithId | null,
     deckCards: CardTypeWithId[],
     decks: DeckType[],
+    statusOfDeckToEdit: string,
+    nameOfDeckToEdit: string,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -20,8 +22,10 @@ type State = {
     deleteFromDeck: (id: string) => void,
     saveDeck: (name: string) => void,
     fetchDecks: () => void,
-    updateDeck: (id: string,name:string,cards: CardType[], status: string) => void,
+    updateDeck: (id: string, name: string) => void,
+    setDeckById: (id: string | undefined) => void,
 };
+
 
 export const useStore = create<State>((set, get) => ({
 
@@ -31,17 +35,19 @@ export const useStore = create<State>((set, get) => ({
     hoverCard: null,
     deckCards: [],
     decks: [],
+    statusOfDeckToEdit: "",
+    nameOfDeckToEdit: "",
 
-    fetchCards: (name = null,
-                 color = null,
-                 type = null,
-                 stage = null,
-                 attribute = null,
-                 digi_type = null,
-                 dp = null,
-                 play_cost = null,
-                 evolution_cost = null,
-                 level = null
+    fetchCards: (name,
+                 color,
+                 type,
+                 stage,
+                 attribute,
+                 digi_type,
+                 dp,
+                 play_cost,
+                 evolution_cost,
+                 level
     ) => {
 
         const queryParams = {
@@ -160,9 +166,10 @@ export const useStore = create<State>((set, get) => ({
 
         if (deckToSave.cards.length !== 50) {
             notifyLength();
-            return;}
+            return;
+        }
 
-        if(name === ""){
+        if (name === "") {
             notifyName();
             return;
         }
@@ -170,7 +177,10 @@ export const useStore = create<State>((set, get) => ({
         axios
             .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
-            .catch( (error) => {console.error(error); throw error;})
+            .catch((error) => {
+                console.error(error);
+                throw error;
+            })
             .then(() =>
                 notifySuccess() &&
                 setTimeout(function () {
@@ -189,22 +199,52 @@ export const useStore = create<State>((set, get) => ({
             }).finally(() => set({isLoading: false}));
     },
 
-    updateDeck: (id, name, status) => {
+    updateDeck: (id, name) => {
 
 
         const deckWithoutId = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             cards: get().deckCards.map(({id, ...rest}) => rest),
-            deckStatus: status
+            deckStatus: get().statusOfDeckToEdit
         }
 
         axios
             .put(`/api/profile/decks/${id}`, deckWithoutId)
             .then((res) => res.data)
-            .catch((error) => {console.error(error); notifyError(); throw error;})
+            .catch((error) => {
+                console.error(error);
+                notifyError();
+                throw error;
+            })
             .then(() => {
                 notifyUpdate();
+            });
+    },
+
+    setDeckById: (id) => {
+
+        if (id === undefined) return;
+
+        set({isLoading: true});
+
+        get().fetchCards(null, null, null, null, null, null, null, null, null, null,);
+
+        axios
+            .get(`/api/profile/decks/${id}`)
+            .then((res) => res.data)
+            .catch(console.error)
+            .then((data) => {
+
+                const cardsWithId = data.cards.map((card: CardType) => ({
+                    ...card,
+                    id: uid(),
+                }));
+
+                set({deckCards: cardsWithId});
+                set({statusOfDeckToEdit: data.deckStatus});
+                set({nameOfDeckToEdit: data.name});
+                set({isLoading: false});
             });
     }
 

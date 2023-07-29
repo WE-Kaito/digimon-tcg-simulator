@@ -18,8 +18,7 @@ export default function Deckbuilder() {
     const [deckName, setDeckName] = useState<string>("New Deck");
 
     useEffect(() => {
-        // @ts-ignore
-        fetchCards();
+        fetchCards(null,null,null,null,null,null,null,null,null,null,);
     }, [fetchCards]);
 
 
@@ -55,7 +54,7 @@ export default function Deckbuilder() {
     );
 }
 
-const OuterContainer = styled.div`
+export const OuterContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -69,34 +68,34 @@ const OuterContainer = styled.div`
   max-height: 1000px;
 `;
 
-const Quarter = styled.div`
+export const Quarter = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1vh;
   align-items: center;
 `;
 
-const ContainerBottomRightQuarter = styled(Quarter)`
+export const ContainerBottomRightQuarter = styled(Quarter)`
   grid-column-start: 2;
   grid-row-start: 2;
 `;
 
-const ContainerUpperLeftQuarter = styled(Quarter)`
+export const ContainerUpperLeftQuarter = styled(Quarter)`
   grid-column-start: 1;
   grid-row-start: 1;
 `;
 
-const ContainerUpperRightQuarter = styled(Quarter)`
+export const ContainerUpperRightQuarter = styled(Quarter)`
   grid-column-start: 2;
   grid-row-start: 1;
 `;
 
-const ContainerBottomLeftQuarter = styled(Quarter)`
+export const ContainerBottomLeftQuarter = styled(Quarter)`
   grid-column-start: 1;
   grid-row-start: 2;
 `;
 
-const CardImage = styled.img`
+export const CardImage = styled.img`
   width: 180px;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
@@ -106,7 +105,7 @@ const CardImage = styled.img`
   }
 `;
 
-const DeckNameInput = styled.input`
+export const DeckNameInput = styled.input`
   height: 40px;
   width: 275px;
   text-align: center;

@@ -1,29 +1,37 @@
 import {CardType, DeckType} from "../utils/types.ts";
 import styled from "@emotion/styled";
 import deckBack from '../assets/deckBack.png';
+import {useNavigate} from "react-router-dom";
 
-function ColoredDeckImage(color:string | null) {
+function ColoredDeckImage(color:string | null, id: string) {
+
+    const navigate = useNavigate();
+    const navigateToDeck = () => {
+        navigate(`/update-deck/${id}`);
+    }
+
     switch (color) {
         case "Black":
-            return <BlackDeckImage src={deckBack}/>;
+            return <BlackDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "White":
-            return <WhiteDeckImage src={deckBack}/>;
+            return <WhiteDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Blue":
-            return <BlueDeckImage src={deckBack}/>;
+            return <BlueDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Green":
-            return <GreenDeckImage src={deckBack}/>;
+            return <GreenDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Purple":
-            return <PurpleDeckImage src={deckBack}/>;
+            return <PurpleDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Red":
-            return <RedDeckImage src={deckBack}/>;
+            return <RedDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Yellow":
-            return <YellowDeckImage src={deckBack}/>;
+            return <YellowDeckImage onClick={navigateToDeck} src={deckBack}/>;
         default:
-            return <DeckImage src={deckBack}/>;
+            return <DeckImage onClick={navigateToDeck} src={deckBack}/>;
     }
 }
 
 export default function ProfileDeck({deck}:{deck:DeckType}) {
+
 
     const findMostFrequentColor = (cards: CardType[]) => {
         const colorOccurrences = {};
@@ -60,7 +68,7 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
         <Container>
             <DeckName>{deck.name}</DeckName>
             <ActiveButton>Active</ActiveButton>
-            {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards)) : null}
+           {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards), deck.id) : null}
         </Container>
     );
 }

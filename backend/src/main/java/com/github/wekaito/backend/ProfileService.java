@@ -65,4 +65,8 @@ public class ProfileService {
         );
         this.deckRepo.save(deckToSave);
     }
+
+    public Deck getDeckById(String id) {
+        return this.deckRepo.findById(id).orElseThrow();
+    }
 }
