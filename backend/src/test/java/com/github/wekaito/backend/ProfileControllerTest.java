@@ -11,6 +11,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -72,11 +74,19 @@ class ProfileControllerTest {
     }
 
     @Test
-    void expectEmptyList_whenGetDecks() throws Exception {
+    void expectPostedDeck_whenGetDecks() throws Exception {
+
+        Card[] cards = {exampleCard, exampleCard, exampleCard};
+        Deck exampleDeck = new Deck("New Deck", cards);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/profile/decks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(exampleDeck.toString()));
 
         String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().json("[]"))
+                .andExpect(MockMvcResultMatchers.content().json(List.of(exampleDeck).toString()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

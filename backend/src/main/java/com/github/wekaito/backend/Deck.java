@@ -4,6 +4,9 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 @Document("decks")
 public record Deck(String name, Card[] cards) {
 
@@ -14,18 +17,14 @@ public record Deck(String name, Card[] cards) {
 
         Deck deck = (Deck) o;
 
-        return new EqualsBuilder()
-                .append(name, deck.name)
-                .append(cards, deck.cards)
-                .isEquals();
+        // Manually compare the fields of the Deck objects
+        return Arrays.equals(cards, deck.cards) && Objects.equals(name, deck.name);
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(name)
-                .append(cards)
-                .toHashCode();
+        // Manually calculate the hashCode based on the fields
+        return Objects.hash(name, cards);
     }
 
     @Override
