@@ -1,5 +1,6 @@
 package com.github.wekaito.backend;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class DeckController {
     }
 
     @PostMapping("/decks")
-    public String addDeck(@RequestBody DeckWithoutId deckWithoutId) {
+    public String addDeck(@RequestBody @Valid DeckWithoutId deckWithoutId) {
         if (deckWithoutId.color().equals("undefined") || deckWithoutId.decklist().get(0) == null) {
             return "There was an error while saving the deck.";
         }
@@ -39,7 +40,7 @@ public class DeckController {
     }
 
     @PutMapping("/decks/{id}")
-    public void updateDeck(@PathVariable String id, @RequestBody DeckWithoutId deckWithoutId) {
+    public void updateDeck(@PathVariable String id, @RequestBody @Valid DeckWithoutId deckWithoutId) {
         this.deckService.updateDeck(id, deckWithoutId);
     }
 

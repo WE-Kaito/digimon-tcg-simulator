@@ -327,7 +327,8 @@ export const useGame = create<State>((set, get) => ({
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
-        if (toState.length > 0 && toState[toState.length - 1].isTilted && to !== "myTamer" && to !== "opponentTamer") {
+
+        if (toState.length > 0 && toState[toState.length - 1].isTilted) {
             toState[toState.length - 1].isTilted = false;
             card.isTilted = true;
         } else {
@@ -343,7 +344,7 @@ export const useGame = create<State>((set, get) => ({
             set({mulliganAllowed: false});
         }
 
-        if (destroyTokenLocations.includes(to) && card.type === "Token") {
+        if (destroyTokenLocations.includes(to) && card.uniqueCardNumber === "Token") {
             if (to !== "myTrash") playTrashCardSfx();
             set({[from]: updatedFromState});
             return;
@@ -362,6 +363,8 @@ export const useGame = create<State>((set, get) => ({
         const locationCards = get()[cardToSendToDeck.location as keyof State] as CardTypeGame[];
         const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id);
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id);
+
+        if (topOrBottom === "Top" && card) card.isTilted = false;
 
         if(cardToSendToDeck.location === to){
             set ({
@@ -459,23 +462,26 @@ export const useGame = create<State>((set, get) => ({
     createToken: () => {
         if (!get().opponentReady) return;
         const token: CardTypeGame = {
+            uniqueCardNumber: "Token",
             name: "Token",
-            type: "Token",
-            color: "White",
-            image_url: tokenImage,
-            cardnumber: "",
-            stage: null,
+            imgUrl: tokenImage,
+            cardType: "Digimon",
+            color: ["Unknown"],
             attribute: "Unknown",
-            digi_type: null,
-            dp: null,
-            play_cost: null,
-            evolution_cost: null,
-            level: null,
-            maineffect: null,
-            soureeffect: null,
+            cardNumber: "",
+            stage: undefined,
+            digiType: undefined,
+            dp: undefined,
+            playCost: undefined,
+            level: undefined,
+            mainEffect: undefined,
+            inheritedEffect: undefined,
+            illustrator: "",
+            restriction_en: "",
+            restriction_jp: "",
             id: uid(),
             isTilted: false
-        }
+        };
         set((state) => {
             for (let i = 1; i <= 10; i++) {
                 const digiKey = `myDigi${i}` as keyof State;

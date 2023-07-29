@@ -142,7 +142,7 @@ export default function LoginPage() {
 
                 </StyledForm2>}
             </Wrapper>
-            <PatchnotesAndDisclaimer/>
+            {!registerPage && <PatchnotesAndDisclaimer/>}
         </>
     );
 }

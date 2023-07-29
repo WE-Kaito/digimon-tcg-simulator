@@ -26,7 +26,7 @@ import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import noiseBG from "../assets/noiseBG.png";
 import hackmonButton from "../assets/hackmon-chip.png";
-import CardDetails from "../components/CardDetails.tsx";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
@@ -824,7 +824,7 @@ export default function Game({user}: { user: string }) {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
-    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt" ]
+    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott" ]
 
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
@@ -926,7 +926,7 @@ export default function Game({user}: { user: string }) {
                            rel="noopener noreferrer">
                             <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                         </a>
-                        <a style={{position: "absolute", left: 32, top: 33}}
+                        <a
                            href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F" target="_blank"
                            rel="noopener noreferrer">
                             <span style={{color: "dodgerblue"}}>🛈 </span>Controls
@@ -1491,13 +1491,20 @@ const OpponentContainerSide = styled(MyContainerSide)`
 `;
 
 const InfoContainer = styled.div`
-  height: 1000px;
+  height: 980px;
   width: 500px;
-  overflow: hidden;
   display: grid;
-
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 0.1fr 1fr 1fr;
+    grid-template-areas: "info info info"
+                        "image image phase"  
+                          "details details details"; 
   align-items: center;
   padding: 10px;
+  
+  background: linear-gradient(to right, rgba(12,12,12, 0.25) 98.25%, transparent 100%);
+  border-bottom-left-radius: 15px;
+  border-top-left-radius: 15px;
 `;
 
 const FieldContainer = styled.div`
@@ -1509,35 +1516,42 @@ const Wrapper = styled.div<{ chatOpen: boolean }>`
   position: relative;
   height: 1000px;
   width: 1840px;
+  max-height: 1000px;
+  max-width: 1840px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
-  transform: translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
+  transform: translateX(${({chatOpen}) => chatOpen ? "-145px" : "-20px"});
   transition: transform 0.4s ease-in-out;
 
   @media (max-height: 1199px) {
-    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
+    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media (max-height: 1080px) {
-    transform: scale(0.885) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
+    transform: scale(0.87) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media (max-height: 900px) {
-    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
+    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
+  }
+  @media (max-height: 750px) {
+    transform: scale(0.55) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media (min-height: 1200px) {
-    transform: scale(1.15) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
+    transform: scale(1.15) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
+    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-170px" : "-20px"});
+    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-165px" : "-60px"});
   }
+  
+  @container
 `;
 
 const ChatSideBar = styled.div<{ chatOpen: boolean }>`
   position: absolute;
-  right: ${({chatOpen}) => chatOpen ? "-300px" : "-25px"};
+  right: ${({chatOpen}) => chatOpen ? "-290px" : "-25px"};
   top: 0;
   height: 100%;
   width: ${({chatOpen}) => chatOpen ? "330px" : "40px"};
@@ -1897,7 +1911,7 @@ const MulliganButton = styled.div`
   justify-content: center;
   align-items: center;
   font-family: Sansation, sans-serif;
-  text-shadow: 0px 0px 1px #111921;
+  text-shadow: 0 0 1px #111921;
   font-size: 1.4em;
   filter: drop-shadow(3px 3px 1px #131313);
   transition: all 0.05s ease;
@@ -2023,14 +2037,16 @@ const OppenentHandCard = styled.img`
 `;
 
 export const CardImage = styled.img`
-  width: 307px;
+  width: 100%;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
   outline: #0c0c0c solid 1px;
   transform: translateY(2px);
+  grid-area: image;
 `;
 
 const InfoSpan = styled.span`
+  grid-area: info;
   width: 100%;
   display: flex;
   justify-content: space-evenly;
@@ -2042,7 +2058,7 @@ const InfoSpan = styled.span`
     color: ghostwhite;
 
     &:hover {
-      color: dodgerblue;
+      color: #14d591;
       opacity: 1;
     }
   }
@@ -2122,11 +2138,15 @@ const BackGround = styled.div`
   align-items: center;
   width: 100vw;
   height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
   background: linear-gradient(253deg, #193131, #092d4b, #4a1f64);
   background-size: 300% 300%;
   -webkit-animation: Background 25s ease infinite;
   -moz-animation: Background 25s ease infinite;
   animation: Background 25s ease infinite;
+  
+  overflow: hidden!important;
 
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
     width: 310vw;
@@ -2134,38 +2154,39 @@ const BackGround = styled.div`
 
   @-webkit-keyframes Background {
     0% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
     50% {
       background-position: 100% 50%
     }
     100% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
   }
 
   @-moz-keyframes Background {
     0% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
     50% {
       background-position: 100% 50%
     }
     100% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
   }
 
   @keyframes Background {
     0% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
     50% {
       background-position: 100% 50%
     }
     100% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
+  }
 `;
 
 const BackGroundPattern = styled.div`
@@ -2175,7 +2196,6 @@ const BackGroundPattern = styled.div`
   width: 200vw;
   height: 200vh;
   background: transparent url(${noiseBG}) repeat 0 0;
-  background-repeat: repeat;
   animation: bg-animation .2s infinite;
   opacity: .4;
   z-index: 0;

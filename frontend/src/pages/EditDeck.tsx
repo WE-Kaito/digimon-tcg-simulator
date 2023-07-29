@@ -5,23 +5,20 @@ import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
-//import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {
     Wrapper,
-    ContainerUpperLeftQuarter,
     DeckNameInput,
     OuterContainer,
     CardImage,
-    ContainerUpperRightQuarter,
-    ContainerBottomRightQuarter,
-    ContainerBottomLeftQuarter, StyledSpanSaveDeck, DeckNameContainer
+    StyledSpanSaveDeck,
+    DeckNameContainer, DetailsContainer, ButtonContainer, CardImageContainer
 } from "./Deckbuilder.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
-import CardDetails from "../components/CardDetails.tsx";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
 
 export default function EditDeck() {
 
@@ -37,20 +34,12 @@ export default function EditDeck() {
     const [deckName, setDeckName] = useState<string>("");
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
     const navigate = useNavigate();
-    const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
 
     useEffect(() => {
         setDeckById(id);
         fetchCards();
-        filterCards("", "", "", "", "", "", "", null, null, null, "", "");
+        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false);
         setDeckName(nameOfDeckToEdit);
-        function handleResize() {
-            setShouldRender(window.innerWidth >= 1000);
-        }
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 
     const mobileSize = window.innerWidth < 500;
@@ -65,64 +54,49 @@ export default function EditDeck() {
 
     return (
         <Wrapper>
+            <div style={{position: "absolute"}}>
             <ParticlesBackground options={blueTriangles}/>
-        <OuterContainer>
+            </div>
+            <OuterContainer>
 
-            <DeckNameContainer>
-                <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
-            </DeckNameContainer>
+                <ButtonContainer>
+                    <UpdateDeckButton isDeleting={isDeleting}
+                                      onClick={() => id && updateDeck(id, deckName)}>
+                        <StyledSpanSaveDeck>
+                            SAVE {`${!mobileSize ? "CHANGES" : ""}`}
+                        </StyledSpanSaveDeck>
+                    </UpdateDeckButton>
+                    <DeleteDeckButton isDeleting={isDeleting} onClick={() => {
+                        if (isDeleting && id) deleteDeck(id, navigate);
+                        setIsDeleting(!isDeleting)
+                    }}>{getDeleteString()}</DeleteDeckButton>
+                    <BackButton/>
+                </ButtonContainer>
 
-            <ButtonContainer>
-                <UpdateDeckButton isDeleting={isDeleting}
-                                  onClick={() => id && updateDeck(id, deckName)}><StyledSpanSaveDeck>SAVE
-                    {`${!mobileSize ? "CHANGES" : ""}`}</StyledSpanSaveDeck></UpdateDeckButton>
-                <DeleteDeckButton isDeleting={isDeleting} onClick={() => {
-                    if (isDeleting && id) deleteDeck(id, navigate);
-                    setIsDeleting(!isDeleting)
-                }}>{getDeleteString()}</DeleteDeckButton>
-                <BackButton/>
-            </ButtonContainer>
+                <DeckImport deckName={deckName}/>
 
-            <ContainerUpperLeftQuarter>
+                <DeckNameContainer>
+                    <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
+                </DeckNameContainer>
+
+                <DeckSelection/>
+
+                <SearchForm/>
+
+                <FetchedCards/>
+
+                <DetailsContainer>
+                    <CardDetails/>
+                </DetailsContainer>
+
+                <CardImageContainer>
                 <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
                            alt={selectedCard?.name ?? "Card"}/>
-            </ContainerUpperLeftQuarter>
-
-            <ContainerUpperRightQuarter>
-                <CardDetails/>
-            </ContainerUpperRightQuarter>
-
-
-            <ContainerBottomLeftQuarter>
-                {shouldRender && <DeckImport/>}
-                <DeckSelection/>
-            </ContainerBottomLeftQuarter>
-
-            <ContainerBottomRightQuarter>
-                <SearchForm/>
-                <FetchedCards/>
-            </ContainerBottomRightQuarter>
-        </OuterContainer>
+                </CardImageContainer>
+            </OuterContainer>
         </Wrapper>
     );
 }
-
-const ButtonContainer = styled.div`
-  grid-area: buttons;
-  width: 100%;
-  max-width: 44.5vw;
-  display: flex;
-  padding-left: 3%;
-  gap: 2%;
-  padding-right: 3%;
-  justify-content: space-between;
-  @media (max-width: 600px) {
-    transform: scale(0.9) translateX(-3px);
-  }
-  @media (min-width: 767px) {
-    transform: translateY(12px);
-  }
-`;
 
 const UpdateDeckButton = styled.button<ButtonProps>`
   height: 40px;
@@ -137,11 +111,6 @@ const UpdateDeckButton = styled.button<ButtonProps>`
   font-family: 'Sansation', sans-serif;
   filter: drop-shadow(1px 2px 3px #060e18);
   transition: all 0.3s ease;
-
-  @media (max-width: 768px) and (max-height: 850px) {
-    font-size: ${props => props.isDeleting ? "15px" : "21px"};
-    width: ${props => props.isDeleting ? "60px" : "80px"};
-  }
 
   :hover {
     background: aquamarine;
@@ -167,6 +136,7 @@ type ButtonProps = {
 const DeleteDeckButton = styled.button<ButtonProps>`
   font-weight: bold;
   max-height: 40px;
+  min-width: 50px;
   font-size: 16px;
   background: ${props => props.isDeleting ? "ghostwhite" : "crimson"};
   color: crimson;

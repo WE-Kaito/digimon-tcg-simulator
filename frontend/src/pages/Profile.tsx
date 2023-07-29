@@ -82,17 +82,18 @@ const Container = styled.div`
   padding: 1px;
   border: 1px solid #1d7dfc;
   scrollbar-width: thin;
-  
-  &::-webkit-scrollbar {
+
+  ::-webkit-scrollbar {
     width: 3px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background-color: #C5C5C5;
-    -moz-border-radius-topright: 15px;
-    -moz-border-radius-bottomright: 15px;
+    background: rgba(139, 200, 255, 0.5);
+    border-radius: 3px;
   }
 
+  ::-webkit-scrollbar-thumb {
+    background: #1e77ea;
+    border-radius: 3px;
+  }
+  
   @media (min-width: 1000px) {
     width: 1032px;
     gap: 19px;
@@ -113,7 +114,7 @@ const Header = styled.div`
   justify-content: space-between;
   padding: 10px;
   margin-top: 20px;
-  margin-bottom: 140px;
+  margin-bottom: 70px;
   width: 1040px;
   @media (max-width: 1000px) {
     margin-bottom: 40px;

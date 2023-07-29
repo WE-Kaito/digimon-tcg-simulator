@@ -39,6 +39,8 @@ export type SearchCards = (
     name: string | null,
     cardType: string | null,
     color: string | null,
+    color2: string | null,
+    color3: string | null,
     attribute: string | null,
     cardNumber: string | null,
     stage: string | null,
@@ -46,8 +48,10 @@ export type SearchCards = (
     dp: number | null,
     playCost: number | null,
     level: number | null,
-    mainEffect: string | null,
-    inheritedEffect: string | null) => void;
+    illustrator: string | null,
+    effect: string | null,
+    ace: boolean
+) => void;
 
 export type DeckType = {
     id: string,

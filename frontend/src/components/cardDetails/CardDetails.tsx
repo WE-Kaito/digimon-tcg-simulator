@@ -1,14 +1,14 @@
 import styled from "@emotion/styled";
-import {useStore} from "../hooks/useStore.ts";
-import HighlightedKeyWords from "./cardDetails/HighlightedKeyWords.tsx";
+import {useStore} from "../../hooks/useStore.ts";
+import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
 import {useEffect, useState} from "react";
 
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
-import DetailsHeader from "./cardDetails/DetailsHeader.tsx";
-import EffectCard, {EffectText} from "./cardDetails/EffectCard.tsx";
+import DetailsHeader from "./DetailsHeader.tsx";
+import EffectCard, {EffectText} from "./EffectCard.tsx";
 import {Stack} from "@mui/material";
-import {getDnaColor} from "../utils/functions.ts";
-import {CardTypeGame, CardTypeWithId} from "../utils/types.ts";
+import {getDnaColor} from "../../utils/functions.ts";
+import {CardTypeGame, CardTypeWithId} from "../../utils/types.ts";
 import {useLocation} from "react-router-dom";
 
 const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama"];
@@ -23,6 +23,7 @@ export default function CardDetails() {
 
     // First Tab
     const name = hoverCard?.name ?? selectedCard?.name;
+    const isNameLong = Boolean(hoverCard ? (hoverCard.name?.length >= 30) : (selectedCard && (selectedCard?.name.length >= 30)));
     const cardType = hoverCard?.cardType ?? selectedCard?.cardType;
     const mainEffectText = hoverCard?.mainEffect ?? (!hoverCard ? (selectedCard?.mainEffect ?? "") : "");
     const inheritedEffectText = hoverCard?.inheritedEffect ?? (!hoverCard ? (selectedCard?.inheritedEffect ?? "") : "");
@@ -81,12 +82,12 @@ export default function CardDetails() {
 
     if (!selectedCard && !hoverCard) return <div style={{height: "100%"}}/>;
     return (
-        <Wrapper>
+        <Wrapper inGame={inGame}>
 
             <DetailsHeader/>
 
             <Tabs selectedItem={selectedTab} style={{position: "relative"}} onChange={setSelectedTab}>
-                <TabList style={{marginBottom: 0}}>
+                <TabList style={{marginBottom: 0, containerType: "inline-size", containerName: "tabs"}}>
                     <StyledTab selectedTab={selectedTab} item="effects">
                         <TabLabel1 tab="effects">Effects</TabLabel1>
                     </StyledTab>
@@ -96,7 +97,7 @@ export default function CardDetails() {
                 </TabList>
 
                 <TabPanel item="effects">
-                    <TabContainer inGame={inGame}>
+                    <TabContainer inGame={inGame} isNameLong={isNameLong}>
 
                         {dnaDigivolutionText && <EffectCard variant={"DNA Digivolution"}>
                             {highlightedDNADigivolution}
@@ -214,17 +215,33 @@ export default function CardDetails() {
     );
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{inGame: boolean}>`
   width: 100%;
-  height: 100%;
+  height: ${({inGame}) => inGame ? "100%" : "99%"};
   padding: 5px;
   border-radius: 5px;
+  grid-area: details;
+  margin-top: ${({inGame}) => inGame ? "15px" : "unset"};
+  transform: ${({inGame}) => inGame ? "translateX(-8px)" : "unset"};
+  overflow-y: ${({inGame}) => inGame ? "unset" : "scroll"};
+  
+  scrollbar-width: thin;
+  
+  ::-webkit-scrollbar {
+    background: rgba(240, 240, 240, 0.1);
+    width: 3px;
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(240, 240, 240, 0.4);
+    border-radius: 5px;
+  }
 `;
 
 const StyledTab = styled(Tab)<{ item: string, selectedTab: string }>`
   margin: 0;
   padding: 0;
-  width: 38.75%;
+  width: 39%;
   height: 0.5rem;
   position: relative;
   border: none !important;
@@ -234,6 +251,22 @@ const StyledTab = styled(Tab)<{ item: string, selectedTab: string }>`
   border-top-left-radius: ${({item}) => item === "details" ? "25px" : "5px"};
   transition: all 0.2s ease-in-out !important;
 
+  @container tabs (min-width: 521px) and (max-width: 535px) { width: 39.25%; }
+  @container tabs (min-width: 501px) and (max-width: 520px) { width: 39%; }
+  @container tabs (min-width: 486px) and (max-width: 500px) { width: 38.75%; }
+  @container tabs (min-width: 471px) and (max-width: 485px) { width: 38%; }
+  @container tabs (min-width: 451px) and (max-width: 470px) { width: 37.75%; }
+  @container tabs (min-width: 441px) and (max-width: 450px) { width: 37.50%; }
+  @container tabs (min-width: 431px) and (max-width: 441px) { width: 37.25%; }
+  @container tabs (min-width: 421px) and (max-width: 430px) { width: 36.75%; }
+  @container tabs (min-width: 411px) and (max-width: 420px) { width: 36.5%; }
+  @container tabs (min-width: 401px) and (max-width: 410px) { width: 35%; }
+  @container tabs (min-width: 381px) and (max-width: 400px) { width: 34.75%; }
+  @container tabs (min-width: 371px) and (max-width: 380px) { width: 34.5%; }
+  @container tabs (min-width: 361px) and (max-width: 370px) { width: 34.25%; }
+  @container tabs (min-width: 351px) and (max-width: 360px) { width: 34%; }
+  @container tabs (max-width: 350px) { width: 32.5%; }
+  
   &:hover {
     span {
       color: #156cd0;
@@ -256,17 +289,18 @@ const TabLabel2 = styled(TabLabel1)`
   right: 5px;
 `;
 
-const TabContainer = styled.div<{ inGame : boolean }>`
+const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
   width: 100%;
-  height: ${({inGame}) => inGame ? "100%" : "251px"};
+  height: ${({inGame, isNameLong}) => inGame ? (isNameLong ? "298px" : "327px") : ("100%")};
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   overflow-y: scroll;
   scrollbar-width: thin;
-  padding: 5px 0 5px 0;
+  padding: 5px 1px 5px 0;
   gap: 6px;
+  border-bottom-left-radius: ${({inGame}) => inGame ? "8px" : "unset"};
 
   ::-webkit-scrollbar {
     width: 5px;
@@ -279,7 +313,7 @@ const TabContainer = styled.div<{ inGame : boolean }>`
 
 const TabContainer2 = styled.div<{ inGame : boolean }>`
   width: 100%;
-  height: ${({inGame}) => inGame ? "100%" : "251px"};
+  height: ${({inGame}) => inGame ? "327px" : "251px"};
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

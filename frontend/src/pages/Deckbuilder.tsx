@@ -5,12 +5,11 @@ import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
-//import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
-import CardDetails from "../components/CardDetails.tsx";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
 
 export default function Deckbuilder() {
 
@@ -25,21 +24,11 @@ export default function Deckbuilder() {
     const decks = useStore((state) => state.decks);
     const fetchCards = useStore((state) => state.fetchCards);
     const fetchedCards = useStore((state) => state.fetchedCards);
-    const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
 
     useEffect(() => {
         clearDeck();
         fetchDecks();
-        filterCards("", "", "", "", "", "", "", null, null, null, "", "");
-
-        function handleResize() {
-            setShouldRender(window.innerWidth >= 1000);
-        }
-
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
+        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false);
     }, [clearDeck, fetchDecks, filterCards]);
 
     useEffect(() => {
@@ -48,12 +37,11 @@ export default function Deckbuilder() {
 
     return (
         <Wrapper>
-            <ParticlesBackground options={blueTriangles}/>
-            <OuterContainer>
+            <div style={{position: "absolute"}}>
                 <ParticlesBackground options={blueTriangles}/>
-                <DeckNameContainer>
-                    <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
-                </DeckNameContainer>
+            </div>
+            <OuterContainer>
+
                 <ButtonContainer>
                     <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={() => {
                         saveDeck(deckName)
@@ -61,28 +49,31 @@ export default function Deckbuilder() {
                     <BackButton/>
                 </ButtonContainer>
 
-                <ContainerUpperLeftQuarter>
-                    <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
-                               alt={selectedCard?.name ?? "Card"}/>
-                </ContainerUpperLeftQuarter>
+                <DeckImport deckName={deckName}/>
 
-                <ContainerUpperRightQuarter>
+                <DeckNameContainer>
+                    <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
+                </DeckNameContainer>
+
+                <DeckSelection/>
+
+                <SearchForm/>
+
+                <FetchedCards/>
+                <DetailsContainer>
                     <CardDetails/>
-                </ContainerUpperRightQuarter>
+                </DetailsContainer>
 
-                <ContainerBottomLeftQuarter>
-                    {shouldRender && <DeckImport/>}
-                    <DeckSelection/>
-                </ContainerBottomLeftQuarter>
+                <CardImageContainer >
+                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
+                           alt={selectedCard?.name ?? "Card"}/>
+                </CardImageContainer>
 
-                <ContainerBottomRightQuarter>
-                    <SearchForm/>
-                    <FetchedCards/>
-                </ContainerBottomRightQuarter>
             </OuterContainer>
         </Wrapper>
     );
 }
+
 export const Wrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -91,117 +82,70 @@ export const Wrapper = styled.div`
   height: 100vh;
   position: relative;
   transform: translateY(0);
-  overflow: hidden;
+  container-type: inline-size;
+  container-name: wrapper;
 `;
 
 export const OuterContainer = styled.div`
   position: absolute;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 0.1fr 1fr 1fr;
-  grid-template-areas: "deckname buttons"
-                        "cardimage carddetails"
-                        "deckselection searchform";
-  width: 98vw;
-  height: 98vh;
-  padding: 1vh 1vw 1vh 1vw;
-  max-width: 1000px;
-  max-height: 1000px;
-
-  @media (max-width: 700px) and (min-height: 800px) {
-    grid-template-rows: 1fr 1.5fr;
-  }
-
-  @media (max-width: 700px) and (min-height: 900px) {
-    grid-template-rows: 1fr 1.8fr;
-  }
-
-  @media (min-width: 767px) {
-    max-width: 1500px;
-  }
-
-  @media (min-width: 1000px) {
-    max-width: 1700px;
-    grid-template-rows: 0.1fr 1fr 1fr;
-    grid-template-columns: 3fr 1fr 1.5fr;
-    grid-template-areas: "deckselection deckname buttons"
-                        "deckselection cardimage carddetails"
-                        "deckselection searchform searchform";
-  }
-
-  @media (min-width: 2000px) {
-    max-height: 1100px;
-  }
-`;
-
-export const Quarter = styled.div`
   display: flex;
+  gap: 10px;
   flex-direction: column;
-  gap: 1vh;
   align-items: center;
-`;
+  justify-content: flex-start;
+  max-width: 1900px;
+  max-height: 1040px;
+  width: 99vw;
+  height: 98vh;
+  container-type: inline-size;
 
-export const ContainerBottomRightQuarter = styled(Quarter)`
-  grid-area: searchform;
-  @media (min-width: 767px) {
-    justify-content: flex-start;
-    transform: translateY(-2.5vh);
+  @media (max-width: 460px) {
+    overflow-y: scroll;
+    overflow-x: hidden;
   }
-`;
 
-export const ContainerUpperLeftQuarter = styled(Quarter)`
-  grid-area: cardimage;
-  @media (min-width: 1000px) {
-    margin-top: 20px;
-  }
-`;
-
-export const ContainerUpperRightQuarter = styled(Quarter)`
-  grid-area: carddetails;
-  @media (min-width: 1000px) {
-    margin-top: 20px;
-  }
-`;
-
-export const ContainerBottomLeftQuarter = styled(Quarter)`
-  grid-area: deckselection;
+@container(min-width: 450px) {
+  display: grid;
+  gap: unset;
+  grid-template-rows: 0.1fr 1fr 1fr 1fr 2fr;
+  grid-template-columns: 2.75fr 1fr 1.5fr;
+  grid-template-areas: " deckname buttons buttons"
+                        "import-export-area cardimage details"
+                        "deckselection cardimage details"
+                        "deckselection searchform searchform"
+                        "deckselection fetchedcards fetchedcards";
+}
 `;
 
 export const CardImage = styled.img`
-  width: 180px;
+  grid-area: cardimage;
+  max-width: 100%;
+  max-height: 100%;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
-  transform: translateY(2px);
-  @media (min-width: 767px) {
-    width: 282px;
-  }
+
+@container(max-width: 449px) {
+  max-width: 95%;
+}
 `;
 
 export const DeckNameInput = styled.input`
   height: 40px;
-  width: 275px;
+  width: 95%;
   text-align: center;
-  font-size: 25px;
-  font-family: 'Sansation', sans-serif;
+  font-size: 34px;
+  padding-top: 3px;
+  font-family: League Spartan, sans-serif;
   border-radius: 5px;
   border: 2px solid #D32765;
   background: #1a1a1a;
-  @media (max-width: 766px) {
-    transform: translateY(-0.5px);
-    width: 175px;
-    border: 1px solid #D32765;
-    font-size: 18px;
-  };
-  @media (min-width: 767px) {
-    transform: translateY(10px);
-  }
 `;
 
 const SaveDeckButton = styled.button<{ disabled: boolean }>`
   height: 40px;
   width: 95%;
   padding: 0;
-  padding-top: 3px;
+  padding-top: 2px;
   margin-left: 5px;
   background: ${(props) => props.disabled ? "grey" : "mediumaquamarine"};
   color: black;
@@ -209,7 +153,7 @@ const SaveDeckButton = styled.button<{ disabled: boolean }>`
   font-weight: bold;
   text-align: center;
   font-family: 'Sansation', sans-serif;
-  filter: drop-shadow(1px 2px 3px #060e18);
+  filter: drop-shadow(1px 2px 2px #346ab6);
 
   :hover {
     background: ${(props) => props.disabled ? "grey" : "aquamarine"};
@@ -227,42 +171,23 @@ const SaveDeckButton = styled.button<{ disabled: boolean }>`
     outline: none;
   }
 
-  @media (max-width: 766px) {
-    transform: translateY(-0.5px);
-    width: 95px;
-    font-size: 20px;
-  };
-
 `;
 
-const ButtonContainer = styled.div`
+export const ButtonContainer = styled.div`
   grid-area: buttons;
-  width: 100%;
+  width: 95%;
   display: flex;
-  padding-left: 1%;
   gap: 2%;
-  padding-right: 1%;
   justify-content: space-between;
-  @media (min-width: 767px) {
-    transform: translateY(12px);
-    position: relative;
-  }
 `;
 
 export const StyledSpanSaveDeck = styled.span`
-  font-family: 'Pixel Digivolve', sans-serif;
+  font-family: 'League Spartan', sans-serif;
   font-weight: bold;
-  font-size: 0.9em;
+  font-size: 1.1em;
   margin: 0;
   letter-spacing: 2px;
   color: #0e1625;
-  @media (max-width: 500px) {
-    font-size: 0.75em;
-    line-height: 15px;
-    position: absolute;
-    left: 4px;
-    top: 4px;
-  }
 `;
 
 export const DeckNameContainer = styled.div`
@@ -270,4 +195,42 @@ export const DeckNameContainer = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
+`;
+
+export const DetailsContainer = styled.div`
+  height: 100%;
+  width: 95%;
+  margin: 0 4% 0 1%;
+  scrollbar-width: thin;
+  grid-area: details;
+
+@container(min-width: 450px) {
+  transform: translateX(-7px);
+  padding-right: 12px;
+  overflow: hidden;
+  width: 100%;
+  margin: unset;
+}
+
+  &::-webkit-scrollbar {
+    background-color: rgba(9, 8, 8, 0.98);
+    border-radius: 2px;
+    width: 3px;
+  }
+
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(220, 220, 220, 0.25);
+    border-radius: 2px;
+  }
+`;
+
+export const CardImageContainer = styled.div`
+  grid-area: cardimage;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 5px;
 `;

@@ -13,6 +13,7 @@ export default function ChooseAvatar() {
 
     useEffect(() => {
         getAvatar();
+        if (!avatars.find((avatar) => avatar.name === avatarName)) setAvatar("AncientIrismon");
     }, [getAvatar, avatarName]);
 
     return (
@@ -50,7 +51,6 @@ const GridContainer = styled.div`
       gap: 2px;
       padding: 3px;
     }
-  
 `;
 
 const SpriteButton = styled.img<{chosen: boolean}>`

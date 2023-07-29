@@ -1,8 +1,29 @@
 import {useStore} from "../../hooks/useStore.ts";
-import {Divider, Stack} from "@mui/material";
+import {Divider, Stack, Tooltip, tooltipClasses, TooltipProps} from "@mui/material";
 import ColorSpan from "./ColorSpan.tsx";
 import styled from "@emotion/styled";
 import {getAttributeImage, getCardTypeImage} from "../../utils/functions.ts";
+import {styled as muiStyled} from "@mui/material/styles";
+import {indigo} from "@mui/material/colors";
+
+export function StyledDivider({translation}: { translation?: number }) {
+    return <Divider orientation="vertical"
+                    sx={{transform: `scaleY(0.75) translateY(${translation ?? 0}px)`, borderColor: "whitesmoke"}}
+                    flexItem/>;
+}
+
+const CustomTooltip = muiStyled(({className, ...props}: TooltipProps) => (
+    <Tooltip {...props} arrow classes={{popper: className}}/>
+))(() => ({
+    [`& .${tooltipClasses.arrow}`]: {color: indigo[500]},
+    [`& .${tooltipClasses.tooltip}`]: {backgroundColor: indigo[500]}
+}));
+
+function TooltipContent({explanation}: { explanation: string }) {
+    return (
+        <span style={{fontFamily: "League Spartan", color: "ghostwhite", fontSize: "1.2rem"}}>{explanation}</span>
+    )
+}
 
 export default function DetailsHeader() {
 
@@ -19,17 +40,37 @@ export default function DetailsHeader() {
     const aceIndex = aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = aceEffect ? aceEffect[aceIndex + 1] : null;
 
+    function getTooltipTitle(keyword: string, overflow?: string | null) {
+        if (keyword === "Overflow") {
+                return `As this card moves from the battle area or under a card to another area, lose ${overflow} memory.`;
+        }   else return keyword;
+    }
+
     return (
         <Wrapper>
             <FirstRowContainer aceEffect={!!aceEffect}>
                 <TypeStack>
-                    {!!cardType && <Icon width={30} alt={"cardType"} src={getCardTypeImage(cardType)}/>}
+                    {!!cardType &&
+                        <CustomTooltip title={<TooltipContent explanation={getTooltipTitle(cardType)}/>}>
+                            <Icon width={30} alt={"cardType"} src={getCardTypeImage(cardType)}/>
+                        </CustomTooltip>}
                 </TypeStack>
+
                 <ColorSpan/>
+
                 <TypeStack>
-                    {!!attribute && <Icon width={30} alt={"attribute"} src={getAttributeImage(attribute)}/>}
+                    {!!attribute &&
+                        <CustomTooltip title={<TooltipContent explanation={getTooltipTitle(attribute)}/>}>
+                            <Icon width={30} alt={"attribute"} src={getAttributeImage(attribute)}/>
+                        </CustomTooltip>}
                 </TypeStack>
-                {!!aceEffect && <TypeStack><AceSpan>ACE-{aceOverflow}</AceSpan></TypeStack>}
+
+                {!!aceEffect &&
+                    <CustomTooltip title={<TooltipContent explanation={getTooltipTitle("Overflow", aceOverflow)}/>}>
+                        <TypeStack>
+                            <AceSpan>ACE-{aceOverflow}</AceSpan>
+                        </TypeStack>
+                    </CustomTooltip>}
             </FirstRowContainer>
 
             <TypeStack p={0}>
@@ -38,7 +79,7 @@ export default function DetailsHeader() {
 
             <TypeStack direction="row"
                        spacing={2.5}
-                       divider={<Divider orientation="vertical" sx={{transform: "scaleY(0.75) translateY(1px)", borderColor: "whitesmoke"}} flexItem/>}
+                       divider={<StyledDivider/>}
             >
                 {digiTypes?.map((type: string) => <TypeSpan key={type}>{type}</TypeSpan>)}
             </TypeStack>
@@ -69,7 +110,7 @@ export const StyledSpan = styled.span`
   display: inline-block;
   font-family: League Spartan, sans-serif;
   font-weight: 400;
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
   transform: translateY(0.175rem);
   line-height: 1;
   color: whitesmoke;
@@ -108,7 +149,7 @@ const AceSpan = styled.span`
   transform: translateY(0.175rem);
 `;
 
-const NameSpan = styled.span<{ isLong: boolean}>`
+const NameSpan = styled.span<{ isLong: boolean }>`
   display: inline-block;
   font-family: League Spartan, sans-serif;
   font-weight: 400;

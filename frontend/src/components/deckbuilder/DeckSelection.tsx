@@ -180,10 +180,11 @@ const CountBox = styled.div`
 const DeckContainer = styled.div`
   background-color: rgba(40, 82, 67, 0.7);
   width: 97%;
+  height: 100%;
+  min-height: 340px;
   margin-left: 1.5%;
   margin-right: 1.5%;
   border-radius: 5px;
-  height: 92%;
   transform: translateY(3px);
   gap: 2px;
   margin-top: 5px;
@@ -191,40 +192,12 @@ const DeckContainer = styled.div`
   display: flex;
   align-items: center;
   flex-direction: column;
-
-  @media (max-width: 400px) and (min-height: 600px) {
-    height: 100%;
-    max-height: 51.5vh;
-  }
-
-  @media (max-width: 766px) {
-    transform: translateY(-0.5px);
-  };
-
-  @media (max-width: 700px) and (min-height: 800px) {
-    max-height: 477.5px;
-  }
-
-  @media (max-width: 700px) and (min-height: 840px) {
-    max-height: 492px;
-  }
-
-  @media (max-width: 700px) and (min-height: 900px) {
-    max-height: 580px;
-  }
-
-  @media (min-width: 767px) {
-    height: 94%;
-  }
-
-  @media (min-width: 1000px) {
-    height: 79.25%;
-    background-color: rgba(40, 82, 67, 0.7);
-  }
-
-  @media (min-width: 1500px) and (min-height: 1100px) {
-    height: 81.5%;
-    background-color: rgba(40, 82, 67, 0.7);
+  grid-area: deckselection;
+  container-type: inline-size;
+  container-name: deckcontainer;
+  
+  @container wrapper (max-width: 449px) {
+    margin-top: 0;
   }
 `;
 
@@ -249,16 +222,16 @@ const StatContainer = styled.div`
 
 const StyledIcon = styled.img`
   width: 55px;
-  @media (max-width: 766px) {
-    width: 26px;
+  @container (max-width: 450px) {
+    width: 35px;
   };
 `;
 
 const StyledSpan = styled.span`
   font-size: 25px;
   font-family: 'AwsumSans', sans-serif;
-  @media (max-width: 766px) {
-    font-size: 10px;
+  @container wrapper (max-width: 450px) {
+    font-size: 20px;
   };
 `;
 
@@ -272,8 +245,7 @@ const InnerDeckList = styled.div`
 
 const DeckList = styled.fieldset`
   width: 90%;
-  height: 82.25%;
-  max-height: 82.25%;
+  height: 85%;
   border-radius: 5px;
   font-family: 'AwsumSans', sans-serif;
   font-style: italic;
@@ -293,47 +265,25 @@ const DeckList = styled.fieldset`
     border-radius: 2px;
   }
 
-  @media (max-width: 766px) {
-    width: 83.5%;
-    font-size: 10px;
-    gap: 9px;
-    &::-webkit-scrollbar {
-      width: 3px;
-    }
-  };
+ @container wrapper(max-width: 449px) { 
+  margin-top: 0;
+  width: 91.5%;
 
-  @media (max-height: 765px) {
-    max-height: 85.5%;
-    height: 85.5%;
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  }
+  
+  @media (max-height: 1030px) {
+    height: 82%;
   }
 
-  @media (max-height: 668px) {
-    height: 84.75%;
-    max-height: 84.75%;
+  @media (max-height: 1030px) {
+    height: 82%;
   }
 
-  @media (max-width: 700px) and (min-height: 800px) {
-    height: 87%;
-    max-height: 87%;
-  }
-
-  @media (max-width: 700px) and (min-height: 900px) {
-    height: 90%;
-    max-height: 90%;
-  }
-
-  @media (min-width: 767px) {
-    height: 80%;
-    max-height: 80%;
-  }
-
-  @media (min-width: 1000px) {
-    height: 86.25%;
-    max-height: 86.25%;
-  }
-
-  @media (min-width: 2000px) {
-    transform: translateY(10px);
+  @media (max-height: 720px) {
+    height: 75%;
   }
 `;
 

@@ -164,9 +164,9 @@ export function getCardSize(location: string) {
         case "opponentTrash":
             return "105px";
         case "deck":
-            return "102px";
+            return "5.9vw";
         case "fetchedData":
-            return "110px";
+            return "105px";
         default:
             return "95px";
     }
@@ -295,7 +295,7 @@ export function getDnaColor(word: string): string {
     }
 }
 
-export function getAttributeImage(attribute: string) {
+export function getAttributeImage(attribute: string | null | undefined) {
     switch (attribute) {
         case 'Virus':
             return virusImage;
@@ -314,7 +314,7 @@ export function getAttributeImage(attribute: string) {
     }
 }
 
-export function getCardTypeImage(cardType: string) {
+export function getCardTypeImage(cardType: string | undefined) {
     switch (cardType) {
         case 'Digimon':
             return digimonImage;
@@ -327,4 +327,18 @@ export function getCardTypeImage(cardType: string) {
         case 'default':
             return;
     }
+}
+
+export function compareEffectText(searchText: string, card: CardTypeWithId) : boolean {
+    const text = searchText.toUpperCase();
+
+    const mainEffectMatch = card.mainEffect?.toUpperCase().includes(text) ?? false;
+    const inheritedEffectMatch = card.inheritedEffect?.toUpperCase().includes(text) ?? false;
+    const securityEffectMatch = card.securityEffect?.toUpperCase().includes(text) ?? false;
+    const digivolveEffectMatch = card.specialDigivolve?.toUpperCase().includes(text) ?? false;
+    const dnaEffectMatch = card.dnaDigivolve?.toUpperCase().includes(text) ?? false;
+    const burstEffectMatch = card.burstDigivolve?.toUpperCase().includes(text) ?? false;
+    const xrosEffectMatch = card.digiXros?.toUpperCase().includes(text) ?? false;
+
+    return mainEffectMatch || inheritedEffectMatch || securityEffectMatch || digivolveEffectMatch || dnaEffectMatch || burstEffectMatch || xrosEffectMatch;
 }

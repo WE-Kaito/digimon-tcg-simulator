@@ -157,7 +157,6 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
   width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
-  max-height: 150px;
   border-radius: 5px;
   transition: all 0.15s ease-out;
   cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
@@ -178,6 +177,9 @@ const StyledImage = styled.img<StyledImageProps>`
     70% {
       filter: drop-shadow(0 0 4px #ff2190) brightness(0.65) saturate(1.5);
     }
+  }
+  @media (min-width: 500px) {
+    min-width: 85px;
   }
 
   @media (min-width: 768px) {
