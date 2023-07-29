@@ -63,7 +63,7 @@ class ProfileControllerTest {
         Deck exampleDeck = new Deck("New Deck", cards);
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/api/profile/cards")
+                        MockMvcRequestBuilders.post("/api/profile/decks")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(exampleDeck.toString()))
                 //THEN

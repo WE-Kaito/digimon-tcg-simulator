@@ -2,25 +2,110 @@ import {CardType, DeckType} from "../utils/types.ts";
 import styled from "@emotion/styled";
 import deckBack from '../assets/deckBack.png';
 
+function ColoredDeckImage(color:string | null) {
+    switch (color) {
+        case "Black":
+            return <BlackDeckImage src={deckBack}/>;
+        case "White":
+            return <WhiteDeckImage src={deckBack}/>;
+        case "Blue":
+            return <BlueDeckImage src={deckBack}/>;
+        case "Green":
+            return <GreenDeckImage src={deckBack}/>;
+        case "Purple":
+            return <PurpleDeckImage src={deckBack}/>;
+        case "Red":
+            return <RedDeckImage src={deckBack}/>;
+        case "Yellow":
+            return <YellowDeckImage src={deckBack}/>;
+        default:
+            return <DeckImage src={deckBack}/>;
+    }
+}
+
 export default function ProfileDeck({deck}:{deck:DeckType}) {
+    const { name, cards } = deck;
+
+    const findMostFrequentColor = (cards: CardType[]) => {
+        // Create an object to store color occurrences
+        const colorOccurrences = {};
+
+        // Loop through the cards and count occurrences of each color
+        for (const element of cards) {
+            const color = element.color;
+            // @ts-ignore
+            if (colorOccurrences[color]) {
+                // @ts-ignore
+                colorOccurrences[color]++;
+            } else {
+                // @ts-ignore
+                colorOccurrences[color] = 1;
+            }
+        }
+
+        // Find the color with the maximum occurrences
+        let mostFrequentColor = null;
+        let maxOccurrences = 0;
+
+        for (const color in colorOccurrences) {
+            // @ts-ignore
+            if (colorOccurrences[color] > maxOccurrences) {
+                mostFrequentColor = color;
+                // @ts-ignore
+                maxOccurrences = colorOccurrences[color];
+            }
+        }
+
+        return mostFrequentColor;
+    };
+
+
     return (
         <Container>
-
-<DeckImage src={deckBack}/>
+            <DeckName>{deck.name}</DeckName>
+            <ActiveButton>Active</ActiveButton>
+            {cards ?  ColoredDeckImage(findMostFrequentColor(cards)) : null}
         </Container>
     );
 }
 
 const Container = styled.div`
-  width: 300px;
-  height: 200px;
+  width: 220px;
+  height: 105px;
 
+  padding: 8px;
   display: grid;
+  justify-content: center;
+  align-items: center;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
   grid-template-areas:'deck name name'
                         'deck button button';
+  background-color: rgba(255, 255, 255, 0.025);
+  border-radius: 10px;
+
+  @media (max-width: 500px) {
+    width: 160px;
+    padding: 6px;
+    margin: 6px;
+  }
+
 `;
+
+const ActiveButton = styled.button`
+  grid-area: button;
+  background: #a61515;
+  margin:10px;
+  @media (max-width: 500px) {
+    margin: 2px;
+  }
+`;
+
+const DeckName = styled.span`
+  grid-area: name;
+  font-family: 'Sansation', sans-serif;
+`;
+
 
 const DeckImage = styled.img`
 width: 75px;  
