@@ -2,9 +2,8 @@ import {create} from "zustand";
 import {CardType, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts";
 import axios from "axios";
 import {uid} from "uid";
-import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {notifyLength, notifyName, notifySuccess} from "../utils/toasts.ts";
+import {notifyError, notifyLength, notifyName, notifySuccess, notifyUpdate} from "../utils/toasts.ts";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -171,7 +170,7 @@ export const useStore = create<State>((set, get) => ({
         axios
             .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
-            .catch(console.error)
+            .catch( (error) => {console.error(error); throw error;})
             .then(() =>
                 notifySuccess() &&
                 setTimeout(function () {
@@ -203,9 +202,9 @@ export const useStore = create<State>((set, get) => ({
         axios
             .put(`/api/profile/decks/${id}`, deckWithoutId)
             .then((res) => res.data)
-            .catch(console.error)
+            .catch((error) => {console.error(error); notifyError(); throw error;})
             .then(() => {
-                notifySuccess();
+                notifyUpdate();
             });
     }
 
