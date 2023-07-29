@@ -14,13 +14,17 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @GetMapping("/cards")
-    public Card[] getCards(@RequestParam Optional<String> name, @RequestParam Optional<String> color, @RequestParam Optional<String> type) {
+    public Card[] fetchCards(@RequestParam Optional<String> name, @RequestParam Optional<String> color, @RequestParam Optional<String> type) {
         return this.profileService.fetchCards(name, color, type);
     }
 
-    @PostMapping("/cards")
+    @PostMapping("/decks")
     public void addDeck(@RequestBody Deck deck) {
         this.profileService.addDeck(deck);
     }
 
+    @GetMapping("/decks")
+    public Deck[] getDecks() {
+        return this.profileService.getDecks();
+    }
 }

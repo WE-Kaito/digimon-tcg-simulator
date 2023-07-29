@@ -3,9 +3,14 @@ package com.github.wekaito.backend;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.test.annotation.DirtiesContext;
+
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 class ProfileServiceTest {
@@ -45,7 +50,7 @@ class ProfileServiceTest {
         assertNotNull(cards);
         assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class);
     }
-
+    @DirtiesContext
     @Test
     void testAddDeck() {
         Card[] cards = {exampleCard};
@@ -55,4 +60,20 @@ class ProfileServiceTest {
 
         verify(deckRepo).save(sampleDeck);
     }
+
+    @Test
+    void testGetDecks() {
+        Card[] cards = {exampleCard};
+        Deck sampleDeck = new Deck("Test Deck", cards);
+        Deck[] decks = {sampleDeck};
+
+        profileService.addDeck(sampleDeck);
+        when(deckRepo.findAll()).thenReturn(List.of(decks));
+        Deck[] returnedDecks = profileService.getDecks();
+
+        assertNotNull(returnedDecks);
+        assertThat(returnedDecks).contains(sampleDeck).isInstanceOf(Deck[].class);
+    }
+
+
 }

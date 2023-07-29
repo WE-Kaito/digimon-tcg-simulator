@@ -17,5 +17,6 @@ public record Card(
         String soureeffect
 
 ) {
+
 }
 

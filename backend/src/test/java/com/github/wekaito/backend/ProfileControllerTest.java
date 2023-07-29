@@ -56,19 +56,43 @@ class ProfileControllerTest {
         assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class).hasSizeGreaterThan(200);
     }
 
-    @DirtiesContext
+
     @Test
+    @DirtiesContext
     void expectOk_whenAddDeck() throws Exception {
 
         Card[] cards = {exampleCard, exampleCard, exampleCard};
         Deck exampleDeck = new Deck("New Deck", cards);
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/api/profile/cards")
+                        MockMvcRequestBuilders.post("/api/profile/decks")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(exampleDeck.toString()))
                 //THEN
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
+    }
+
+    @Test
+    void expectPostedDeck_whenGetDecks() throws Exception {
+
+        Card[] cards = {exampleCard, exampleCard, exampleCard};
+        Deck exampleDeck = new Deck("New Deck", cards);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/profile/decks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(exampleDeck.toString()));
+
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(List.of(exampleDeck).toString()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Deck[] decks = objectMapper.readValue(response, Deck[].class);
+
+        assertThat(decks).isInstanceOf(Deck[].class);
     }
 }

@@ -1,8 +1,9 @@
 package com.github.wekaito.backend;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 @Document("decks")
 public record Deck(String name, Card[] cards) {
@@ -11,21 +12,13 @@ public record Deck(String name, Card[] cards) {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Deck deck = (Deck) o;
-
-        return new EqualsBuilder()
-                .append(name, deck.name)
-                .append(cards, deck.cards)
-                .isEquals();
+        return Arrays.equals(cards, deck.cards) && Objects.equals(name, deck.name);
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(name)
-                .append(cards)
-                .toHashCode();
+        return Objects.hash(name, Arrays.hashCode(cards));
     }
 
     @Override

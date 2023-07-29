@@ -43,4 +43,8 @@ public class ProfileService {
     public void addDeck(Deck deck) {
         this.deckRepo.save(deck);
     }
+
+    public Deck[] getDecks() {
+        return this.deckRepo.findAll().toArray(new Deck[0]);
+    }
 }

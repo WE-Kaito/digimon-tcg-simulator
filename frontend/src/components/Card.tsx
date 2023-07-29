@@ -39,7 +39,7 @@ const StyledImage = styled.img<StyledImageProps>`
   width: 69.5px;
   max-height: 150px;
   border-radius: 5px;
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition: all 0.15s ease-out;
   cursor: ${(props) => (props.location === "deck" ? "not-allowed" : "grab")};
   opacity: ${(props) => (props.isDragging ? 0.5 : 1)};
   filter: ${(props) => (props.isDragging ? "drop-shadow(0 0 3px #ff2190)" : "drop-shadow(0 0 1.5px #004567)")};

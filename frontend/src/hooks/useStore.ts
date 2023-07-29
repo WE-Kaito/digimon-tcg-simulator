@@ -1,5 +1,5 @@
 import {create} from "zustand";
-import {CardType, CardTypeWithId, FetchCards} from "../utils/types.ts";
+import {CardType, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts";
 import axios from "axios";
 import {uid} from "uid";
 import {toast} from 'react-toastify';
@@ -8,16 +8,18 @@ import 'react-toastify/dist/ReactToastify.css';
 type State = {
     fetchedCards: CardTypeWithId[],
     isLoading: boolean,
-    fetchCards: FetchCards,
     selectedCard: CardTypeWithId | null,
     deckCards: CardTypeWithId[],
+    decks: DeckType[],
 
+    fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
     hoverCard: CardTypeWithId | null,
     setHoverCard: (card: CardTypeWithId | null) => void,
     addCardToDeck: (id: string, location: string, cardnumber: string, type: string) => void,
     deleteFromDeck: (id: string) => void,
     saveDeck: (name: string) => void,
+    fetchDecks: () => void,
 };
 
 export const useStore = create<State>((set, get) => ({
@@ -27,6 +29,7 @@ export const useStore = create<State>((set, get) => ({
     selectedCard: null,
     hoverCard: null,
     deckCards: [],
+    decks: [],
 
     fetchCards: (name = null,
                  color = null,
@@ -195,7 +198,7 @@ export const useStore = create<State>((set, get) => ({
         }
 
         axios
-            .post("/api/profile/cards", deckToSave)
+            .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
             .catch(console.error)
             .then(() =>
@@ -203,6 +206,17 @@ export const useStore = create<State>((set, get) => ({
                 setTimeout(function () {
                     window.location.reload();
                 }, 3000));
+    },
+
+    fetchDecks: () => {
+        set({isLoading: true})
+        axios
+            .get("/api/profile/decks")
+            .then((res) => res.data)
+            .catch(console.error)
+            .then((data) => {
+                set({decks: data});
+            }).finally(() => set({isLoading: false}));
     }
 
 }));
