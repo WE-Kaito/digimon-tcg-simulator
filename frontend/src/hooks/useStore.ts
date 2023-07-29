@@ -226,9 +226,9 @@ export const useStore = create<State>((set, get) => ({
 
         if (id === undefined) return;
 
-        set({isLoading: true});
-
         get().fetchCards(null, null, null, null, null, null, null, null, null, null,);
+
+        set({isLoading: true});
 
         axios
             .get(`/api/profile/decks/${id}`)
