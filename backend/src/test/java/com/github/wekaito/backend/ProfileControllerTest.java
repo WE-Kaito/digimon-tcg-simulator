@@ -154,8 +154,7 @@ class ProfileControllerTest {
         String id = decks[0].id();
 
         mockMvc.perform(
-                MockMvcRequestBuilders.delete("/api/profile/decks/" + id)
-                        .contentType(MediaType.APPLICATION_JSON));
+                MockMvcRequestBuilders.delete("/api/profile/decks/" + id));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
