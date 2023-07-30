@@ -1,11 +1,13 @@
 package com.github.wekaito.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -14,9 +16,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(username = "testUser", password = "testPassWord1")
 class ProfileControllerTest {
 
     @Autowired
@@ -45,6 +49,25 @@ class ProfileControllerTest {
     Card[] cards = {exampleCard, exampleCard, exampleCard};
     DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards);
 
+    @BeforeEach
+    void setUp() throws Exception {
+
+        String testUserWithoutId = """
+                {
+                    "username": "testUser",
+                    "password": "testPassWord1"
+                }
+            """;
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testUserWithoutId)
+                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login")
+                .with(csrf())
+        ).andExpect(MockMvcResultMatchers.status().isOk());
+    }
     @Test
     void expectArrayOfCards_whenGetCards() throws Exception {
 
@@ -69,7 +92,8 @@ class ProfileControllerTest {
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/api/profile/decks")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBody))
+                                .content(requestBody)
+                                .with(csrf()))
                 // THEN
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
@@ -84,9 +108,10 @@ class ProfileControllerTest {
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/profile/decks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody));
+                        .content(requestBody)
+                        .with(csrf()));
 
-        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks").with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].cards[0].name").value("Agumon"))
@@ -108,9 +133,10 @@ class ProfileControllerTest {
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/profile/decks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody));
+                        .content(requestBody)
+                        .with(csrf()));
 
-        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks").with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].cards[0].name").value("Agumon"))
@@ -129,9 +155,10 @@ class ProfileControllerTest {
         mockMvc.perform(
                 MockMvcRequestBuilders.put("/api/profile/decks/" + id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody2));
+                        .content(requestBody2)
+                        .with(csrf()));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks").with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck2"));
     }
@@ -145,9 +172,10 @@ class ProfileControllerTest {
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/profile/decks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody));
+                        .content(requestBody)
+                        .with(csrf()));
 
-        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks").with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
@@ -157,9 +185,9 @@ class ProfileControllerTest {
         String id = decks[0].id();
 
         mockMvc.perform(
-                MockMvcRequestBuilders.delete("/api/profile/decks/" + id));
+                MockMvcRequestBuilders.delete("/api/profile/decks/" + id).with(csrf()));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks").with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
     }
