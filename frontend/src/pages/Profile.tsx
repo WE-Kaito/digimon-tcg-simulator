@@ -7,7 +7,7 @@ import {ToastContainer} from "react-toastify";
 import {Headline2} from "../components/Header.tsx";
 
 
-export default function Profile() {
+export default function Profile({user}: { user: string }) {
 
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
@@ -20,7 +20,7 @@ export default function Profile() {
     return (
         <Wrapper>
             <div style={{display: "flex", justifyContent:"space-between", padding: "10px"}}>
-                <Headline2 style={{transform: "translateY(-8px)"}}>User123</Headline2>
+                <Headline2 style={{transform: "translateY(-8px)"}}>{user}</Headline2>
                 <ToastContainer/>
                 <BackButton/>
             </div>

@@ -10,10 +10,12 @@ import MainMenu from "./pages/MainMenu.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
+import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 
 function App() {
 
     const me = useStore((state) => state.me);
+    const user = useStore((state) => state.user);
 
     useEffect(() => {
         me();
@@ -30,12 +32,16 @@ function App() {
     return (
         <DndProvider backend={isMobileDevice()}>
             <Routes>
+                <Route element={<ProtectedRoutes user={user}/>}>
+                    <Route path="/" element={<MainMenu/>}/>
+                    <Route path="/profile" element={<Profile user={user}/>}/>
+                    <Route path="/deckbuilder" element={<Deckbuilder/>}/>
+                    <Route path="/update-deck/:id" element={<EditDeck/>}/>
+                    <Route path="/*" element={<Navigate to="/"/>}/>
+                </Route>
+
                 <Route path="/login" element={<LoginPage/>}/>
-                <Route path="/" element={<MainMenu/>}/>
-                <Route path="/profile" element={<Profile/>}/>
-                <Route path="/deckbuilder" element={<Deckbuilder/>}/>
-                <Route path="/update-deck/:id" element={<EditDeck/>}/>
-                <Route path="/*" element={<Navigate to="/"/>}/>
+
             </Routes>
         </DndProvider>
     )
