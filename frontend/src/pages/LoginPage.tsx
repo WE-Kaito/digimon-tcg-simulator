@@ -48,7 +48,7 @@ export default function LoginPage() {
 
                 <div>
                     <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)} type="text" name="userName" placeholder="username"
-                                style={{backgroundColor: userName.length >= 5 ? "lightgreen" : "tomato"}}/>
+                                style={{backgroundColor: userNameReg.length >= 5 ? "lightgreen" : "tomato"}}/>
                     <br/>
                     <StyledSpan>at least 5 characters</StyledSpan>
                 </div>
