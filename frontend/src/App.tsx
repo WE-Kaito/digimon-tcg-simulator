@@ -7,8 +7,17 @@ import {HTML5Backend} from "react-dnd-html5-backend";
 import {Navigate, Route, Routes} from "react-router-dom";
 import Profile from "./pages/Profile.tsx";
 import MainMenu from "./pages/MainMenu.tsx";
+import LoginPage from "./pages/LoginPage.tsx";
+import {useStore} from "./hooks/useStore.ts";
+import {useEffect} from "react";
 
 function App() {
+
+    const me = useStore((state) => state.me);
+
+    useEffect(() => {
+        me();
+    }, [me])
 
     function isMobileDevice() {
         if (window.innerWidth <= 766) {
@@ -21,6 +30,7 @@ function App() {
     return (
         <DndProvider backend={isMobileDevice()}>
             <Routes>
+                <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/" element={<MainMenu/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/deckbuilder" element={<Deckbuilder/>}/>

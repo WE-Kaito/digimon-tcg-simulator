@@ -4,7 +4,7 @@ import {useEffect} from "react";
 import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {ToastContainer} from "react-toastify";
-import {Headline2} from "./MainMenu.tsx";
+import {Headline2} from "../components/Header.tsx";
 
 
 export default function Profile() {

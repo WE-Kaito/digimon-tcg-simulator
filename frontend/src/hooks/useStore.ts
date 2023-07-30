@@ -13,6 +13,7 @@ type State = {
     deckCards: CardTypeWithId[],
     decks: DeckType[],
     nameOfDeckToEdit: string,
+    user: string,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -26,6 +27,9 @@ type State = {
     setDeckById: (id: string | undefined) => void,
     deleteDeck: (id: string, navigate: NavigateFunction) => void,
     clearDeck: () => void,
+    login: (userName: string, password: string, navigate: NavigateFunction) => void,
+    me: () => void,
+    register: (userName:string, password: string, repeatedPassword: string, setPassword: (password:string) => void, setRepeatedPassword: (repeatedPassword:string) => void, setRegisterPage: (state: boolean) => void) => void
 };
 
 
@@ -38,6 +42,7 @@ export const useStore = create<State>((set, get) => ({
     deckCards: [],
     decks: [],
     nameOfDeckToEdit: "",
+    user: "",
 
     fetchCards: (name,
                  color,
@@ -266,6 +271,46 @@ export const useStore = create<State>((set, get) => ({
 
     clearDeck: () => {
         set({deckCards: []});
-    }
+    },
+
+    login: (userName: string, password: string, navigate: NavigateFunction) => {
+        axios.post("/api/user/login", null, {
+            auth: {
+                username: userName,
+                password: password
+            }
+        })
+            .then(response => {
+                set({user:response.data})
+                navigate("/")
+            })
+            .catch(console.error)
+    },
+
+    me: () => {
+        axios.get("/api/user/me")
+            .then(response => set({user:response.data}))
+    },
+
+    register: (userName, password, repeatedPassword, setPassword, setRepeatedPassword, setRegisterPage) => {
+        const newUserData = {
+            "username": `${userName}`,
+            "password": `${password}`
+        }
+
+        if (password === repeatedPassword) {
+
+            axios.post("/api/user/register", newUserData)
+                .then(response => {
+                    console.error(response)
+                    setRegisterPage(false);
+                })
+                .catch(console.error)
+
+        } else {
+            setPassword("");
+            setRepeatedPassword("");
+        }
+    },
 
 }));
