@@ -282,7 +282,8 @@ export const useStore = create<State>((set, get) => ({
         })
             .then(response => {
                 set({user:response.data})
-                navigate("/")
+                navigate("/");
+                window.location.reload();
             })
             .catch(console.error)
     },

@@ -25,84 +25,150 @@ export default function LoginPage() {
         login(userName, password, navigate);
     }
 
-    function handleSubmitRegistration(event: FormEvent<HTMLFormElement>){
+    function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         register(userNameReg, passwordReg, repeatedPassword, setPassword, setRepeatedPassword, setRegisterPage);
     }
 
+    function passWordColor() {
+        if (passwordReg === "") {
+            return "ghostwhite";
+        }
+        if (regex.test(passwordReg)) {
+            return "#6ed298";
+        } else {
+            return "#e17b88";
+        }
+    }
+
+    function repeatedPasswordColor() {
+        if (repeatedPassword === "") {
+            return "ghostwhite";
+        }
+        if (passwordReg === repeatedPassword) {
+            return "#6ed298";
+        } else {
+            return "#e17b88";
+        }
+    }
+
+    function userNameColor() {
+        if (userNameReg === "") {
+            return "ghostwhite";
+        }
+        if (userNameReg.length >= 5) {
+            return "#6ed298";
+        } else {
+            return "#e17b88";
+        }
+    }
+
     return (
-        <>
+        <Wrapper>
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)} type="text" name="userName"
                             placeholder="username"/>
 
-                <InputField value={password} onChange={(e) => setPassword(e.target.value)} type="password" name="password"
+                <InputField value={password} onChange={(e) => setPassword(e.target.value)} type="password"
+                            name="password"
                             placeholder="password"/>
 
-                <LoginPageButton type="submit">LOGIN</LoginPageButton>
-                <LoginPageButton style={{marginTop: "50px"}} type="button"
-                                 onClick={() => setRegisterPage(true)}>REGISTER</LoginPageButton>
+                <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
+                <RegisterButton style={{marginTop: "50px"}} type="button"
+                                onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
             </StyledForm>}
+
             {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
 
                 <div>
-                    <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)} type="text" name="userName" placeholder="username"
-                                style={{backgroundColor: userNameReg.length >= 5 ? "lightgreen" : "tomato"}}/>
+                    <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)} type="text"
+                                name="userName" placeholder="username"
+                                style={{backgroundColor: `${userNameColor()}`}}/>
                     <br/>
-                    <StyledSpan>at least 5 characters</StyledSpan>
+                    <StyledInfo>at least 5 characters</StyledInfo>
                 </div>
                 <div>
-                    <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)} type="password" name="password" placeholder="password"
-                                style={{backgroundColor: regex.test(passwordReg) ? "lightgreen" : "tomato"}}
+                    <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)} type="password"
+                                name="password" placeholder="password"
+                                style={{backgroundColor: `${passWordColor()}`}}
                     />
                     <br/>
-                    <StyledSpan>
-                        at least 6 characters,
+                    <StyledInfo>
+                        at least 6 characters;
                         <br/>
-                        must contain numbers and letters
-                    </StyledSpan>
+                        numbers and letters
+                    </StyledInfo>
                 </div>
-                <InputField value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)} type="password" name="RepeatPassword" placeholder="repeat password"
-                            style={{backgroundColor: passwordReg===repeatedPassword?"lightgreen":"tomato"}}/>
-                <div>
-                    <StyledLoginPageButton type="button" onClick={() => setRegisterPage(false)}>BACK</StyledLoginPageButton>
-                    <LoginPageButton type="submit">REGISTER</LoginPageButton>
+                <InputField value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
+                            type="password" name="RepeatPassword" placeholder="repeat password"
+                            style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
+                <div style={{marginTop: "50px"}}>
+                    <BackButton type="button"
+                                onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
+                    <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
                 </div>
 
             </StyledForm2>}
-        </>
+        </Wrapper>
     );
 }
 
+const Wrapper = styled.div`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 25%;
+`;
+
 export const LoginPageButton = styled.button`
   cursor: pointer;
-  width: 130px;
+  width: 160px;
   height: 50px;
   flex-shrink: 0;
-  border-radius: 5px;
-  border: 1px solid #000;
+  border-radius: 0;
   background: #D9D9D9;
-  box-shadow: 2px 4px 2px 0 rgba(0, 0, 0, 0.25);
-  font-family: Sansation, sans-serif;
+  font-family: Naston, sans-serif;
   font-size: 20px;
+  color: #0c0c0c;
+  box-shadow: 6px 12px 1px 0 rgb(0, 0, 0);
+  transition: all 0.15s ease;
 
   &:hover {
     background: lightgray;
+    transform: translateY(1px);
+    box-shadow: 4px 8px 1px 0 rgba(0, 0, 0, 0.9);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:active {
+    background: #f8f8f8;
+    transform: translateY(2px);
+    box-shadow: 2px 4px 1px 0 rgba(0, 0, 0, 0.8);
   }
 `;
 
 export const InputField = styled.input`
-  width: 240px;
-  height: 51px;
+  width: 280px;
+  height: 60px;
   flex-shrink: 0;
-  border-radius: 5px;
-  border: 1px solid #000;
-  background: #D9D9D9;
-  box-shadow: 2px 2px 3px 0px rgba(0, 0, 0, 0.25) inset;
-  font-family: Sansation, sans-serif;
-  font-size: 20px;
+  border: none;
+  color: #070707;
+  background: ghostwhite;
+  box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.25) inset;
+  font-family: 'Naston', sans-serif;
+  font-size: 26px;
   text-align: center;
+  margin-bottom: 3px;
+  transform: skewX(-15deg);
+
+  :focus {
+    outline: none;
+  }
 
 `;
 
@@ -126,12 +192,32 @@ const StyledForm2 = styled.form`
   justify-content: center;
 `;
 
-const StyledSpan = styled.span`
-font-family: var(--font1);
+const StyledInfo = styled.span`
+  font-family: 'Naston', sans-serif;
+  font-size: 15px;
 `;
 
-const StyledLoginPageButton = styled(LoginPageButton)`
-width: 90px;
-  margin-right: 22px;
-  background-color: darkgrey;
+const RegisterButton = styled(LoginPageButton)`
+  background-color: black;
+  color: ghostwhite;
+  border-right: 1px solid rgba(25, 25, 26, 0.55);
+  border-bottom: 1px solid rgba(25, 25, 26, 0.55);
+
+  &:hover {
+    background: #061025;
+  }
+
+  &:active {
+    background: #08183a;
+  }
+`;
+
+const BackButton = styled(RegisterButton)`
+  width: 110px;
+  margin-right: 45px;
+`;
+
+const ButtonSpan = styled.span`
+  font-family: 'Pixel Digivolve', sans-serif;
+  letter-spacing: 1px;
 `;
