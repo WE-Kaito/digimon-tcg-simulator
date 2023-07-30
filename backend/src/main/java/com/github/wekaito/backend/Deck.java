@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 @Document("decks")
-public record Deck(String id, String name, Card[] cards, DeckStatus deckStatus) {
+public record Deck(String id, String name, Card[] cards) {
 
     @Override
     public boolean equals(Object o) {
@@ -14,13 +14,12 @@ public record Deck(String id, String name, Card[] cards, DeckStatus deckStatus) 
         Deck deck = (Deck) o;
         return Objects.equals(id, deck.id) &&
                 Objects.equals(name, deck.name) &&
-                Arrays.equals(cards, deck.cards) &&
-                deckStatus == deck.deckStatus;
+                Arrays.equals(cards, deck.cards);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, Arrays.hashCode(cards), deckStatus);
+        return Objects.hash(id, name, Arrays.hashCode(cards));
     }
 
     @Override
@@ -53,7 +52,6 @@ public record Deck(String id, String name, Card[] cards, DeckStatus deckStatus) 
             }
         }
         jsonBuilder.append("],");
-        jsonBuilder.append("\"deckStatus\":\"").append(deckStatus).append("\"");
         jsonBuilder.append("}");
         return jsonBuilder.toString();
     }

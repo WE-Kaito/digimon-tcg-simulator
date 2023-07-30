@@ -16,10 +16,13 @@ export default function Deckbuilder() {
     const hoverCard = useStore((state) => state.hoverCard);
     const saveDeck = useStore((state) => state.saveDeck);
     const [deckName, setDeckName] = useState<string>("New Deck");
+    const clearDeck = useStore((state) => state.clearDeck);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     useEffect(() => {
+        clearDeck();
         fetchCards(null,null,null,null,null,null,null,null,null,null,);
-    }, [fetchCards]);
+    }, [clearDeck, fetchCards]);
 
 
     return (
@@ -35,7 +38,9 @@ export default function Deckbuilder() {
 
                 <ContainerUpperRightQuarter>
                         <ButtonContainer>
-                            <SaveDeckButton onClick={()=>saveDeck(deckName)}>SAVE</SaveDeckButton>
+                            <SaveDeckButton isSaving={isSaving} disabled={isSaving} onClick={()=>{
+                                setIsSaving(true);
+                                saveDeck(deckName)}}>SAVE</SaveDeckButton>
                             <BackButton/>
                         </ButtonContainer>
                     <CardDetails/>
@@ -123,12 +128,12 @@ export const DeckNameInput = styled.input`
   };
 `;
 
-const SaveDeckButton = styled.button`
+const SaveDeckButton = styled.button<{isSaving:boolean}>`
   height: 40px;
   width: 95%;
   padding: 0;
   padding-top: 5px;
-  background: mediumaquamarine;
+  background: ${(props) => props.isSaving ? "grey" : "mediumaquamarine"};
   color: black;
   font-size: 25px;
   font-weight: bold;
@@ -137,11 +142,11 @@ const SaveDeckButton = styled.button`
   filter: drop-shadow(1px 2px 3px #060e18);
   
   :hover {
-    background: aquamarine;
+    background: ${(props) => props.isSaving ? "grey" : "aquamarine"};
   }
 
   &:active {
-    background-color: aqua;
+    background-color: ${(props) => props.isSaving ? "grey" : "aquamarine"};
     border: none;
     filter: none;
     transform: translateY(1px);

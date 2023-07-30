@@ -46,8 +46,7 @@ public class ProfileService {
         Deck deckToSave = new Deck(
                 idService.createId(),
                 deckWithoutId.name(),
-                deckWithoutId.cards(),
-                deckWithoutId.deckStatus()
+                deckWithoutId.cards()
         );
         this.deckRepo.save(deckToSave);
     }
@@ -60,8 +59,7 @@ public class ProfileService {
         Deck deckToSave = new Deck(
                 id,
                 deckWithoutId.name(),
-                deckWithoutId.cards(),
-                deckWithoutId.deckStatus()
+                deckWithoutId.cards()
         );
         this.deckRepo.save(deckToSave);
     }

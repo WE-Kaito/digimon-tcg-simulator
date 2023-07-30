@@ -47,8 +47,8 @@ class ProfileServiceTest {
     );
 
     Card[] cards = {exampleCard, exampleCard, exampleCard};
-    Deck exampleDeck = new Deck("12345","New Deck", cards, DeckStatus.INACTIVE);
-    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards, DeckStatus.INACTIVE);
+    Deck exampleDeck = new Deck("12345","New Deck", cards);
+    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards);
     @Test
     void testFetchCards() {
         Card[] cards = profileService.fetchCards("Agumon".describeConstable(), "Red".describeConstable(), "Digimon".describeConstable());
@@ -76,6 +76,21 @@ class ProfileServiceTest {
 
         assertNotNull(returnedDecks);
         assertThat(returnedDecks).contains(exampleDeck).isInstanceOf(Deck[].class);
+    }
+
+    @Test
+    void testUpdateDeck() {
+        Deck exampleDeck = new Deck("12345","New Deck", cards);
+        when(deckRepo.findById("12345")).thenReturn(java.util.Optional.of(exampleDeck));
+        profileService.updateDeck("12345", exampleDeckWithoutId);
+
+        verify(deckRepo).save(exampleDeck);
+    }
+
+    @Test
+    void testDeleteDeck() {
+        profileService.deleteDeck("12345");
+        verify(deckRepo).deleteById("12345");
     }
 
 

@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 
 
 export default function MainMenu() {
+
     return (
         <Wrapper>
             <div>

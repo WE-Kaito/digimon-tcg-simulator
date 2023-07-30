@@ -12,7 +12,6 @@ type State = {
     selectedCard: CardTypeWithId | null,
     deckCards: CardTypeWithId[],
     decks: DeckType[],
-    statusOfDeckToEdit: string,
     nameOfDeckToEdit: string,
 
     fetchCards: FetchCards,
@@ -26,6 +25,7 @@ type State = {
     updateDeck: (id: string, name: string) => void,
     setDeckById: (id: string | undefined) => void,
     deleteDeck: (id: string, navigate: NavigateFunction) => void,
+    clearDeck: () => void,
 };
 
 
@@ -37,7 +37,6 @@ export const useStore = create<State>((set, get) => ({
     hoverCard: null,
     deckCards: [],
     decks: [],
-    statusOfDeckToEdit: "",
     nameOfDeckToEdit: "",
 
     fetchCards: (name,
@@ -207,8 +206,7 @@ export const useStore = create<State>((set, get) => ({
         const deckWithoutId = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: get().deckCards.map(({id, ...rest}) => rest),
-            deckStatus: get().statusOfDeckToEdit
+            cards: get().deckCards.map(({id, ...rest}) => rest)
         }
 
         axios
@@ -244,7 +242,6 @@ export const useStore = create<State>((set, get) => ({
                 }));
 
                 set({deckCards: cardsWithId});
-                set({statusOfDeckToEdit: data.deckStatus});
                 set({nameOfDeckToEdit: data.name});
                 set({isLoading: false});
             });
@@ -265,7 +262,10 @@ export const useStore = create<State>((set, get) => ({
                 set({deckCards: []});
                 notifyDelete();
             });
-    }
+    },
 
+    clearDeck: () => {
+        set({deckCards: []});
+    }
 
 }));

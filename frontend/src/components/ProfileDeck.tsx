@@ -122,22 +122,37 @@ width: 75px;
 
 const BlackDeckImage = styled(DeckImage)`
   filter:grayscale(100%) brightness(50%) contrast(200%);
+    :hover {
+    filter:grayscale(100%) brightness(50%) contrast(200%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const WhiteDeckImage = styled(DeckImage)`
     filter: saturate(0%) brightness(140%);
+    :hover {
+    filter: saturate(0%) brightness(140%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const PurpleDeckImage = styled(DeckImage)`
-    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%)
+    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%);
+    :hover {
+    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const BlueDeckImage = styled(DeckImage)`
     filter: hue-rotate(-5deg) brightness(110%) contrast(140%) saturate(180%);
+    :hover {
+    filter: hue-rotate(-5deg) brightness(110%) contrast(140%) saturate(180%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const GreenDeckImage = styled(DeckImage)`
     filter: hue-rotate(-90deg) saturate(120%) brightness(110%) contrast(100%);
+  :hover {
+    filter: hue-rotate(-90deg) saturate(120%) brightness(110%) contrast(100%) drop-shadow(0 0 3px #fff)
+  }
 `;
 
 const YellowDeckImage = styled(DeckImage)`
