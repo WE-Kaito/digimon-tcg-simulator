@@ -61,7 +61,7 @@ export default function EditDeck() {
                 <ButtonContainer>
                     <UpdateDeckButton isDeleting={isDeleting} onClick={() => id && updateDeck(id, deckName)}><StyledSpanSaveDeck>SAVE CHANGES</StyledSpanSaveDeck></UpdateDeckButton>
                     <DeleteDeckButton isDeleting={isDeleting} onClick={()=> {
-                        isDeleting && (id ? deleteDeck(id, navigate): null);
+                        if (isDeleting && id) deleteDeck(id, navigate);
                         setIsDeleting(!isDeleting)}}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>
                     <BackButton/>
                 </ButtonContainer>

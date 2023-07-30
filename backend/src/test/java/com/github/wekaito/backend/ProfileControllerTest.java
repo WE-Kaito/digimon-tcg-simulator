@@ -76,6 +76,7 @@ class ProfileControllerTest {
     }
 
     @Test
+    @DirtiesContext
     void expectPostedDeck_whenGetDecks() throws Exception {
 
         String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
@@ -99,6 +100,7 @@ class ProfileControllerTest {
     }
 
     @Test
+    @DirtiesContext
     void expectDeckName_whenUpdateDeck() throws Exception {
 
         String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
@@ -135,6 +137,7 @@ class ProfileControllerTest {
     }
 
     @Test
+    @DirtiesContext
     void expectEmptyList_whenDeleteDeck() throws Exception {
 
         String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
