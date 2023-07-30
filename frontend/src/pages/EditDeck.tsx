@@ -16,7 +16,7 @@ import {
     CardImage,
     ContainerUpperRightQuarter,
     ContainerBottomRightQuarter,
-    ContainerBottomLeftQuarter
+    ContainerBottomLeftQuarter, StyledSpanSaveDeck
 } from "./Deckbuilder.tsx";
 import {css} from "@emotion/css";
 
@@ -59,7 +59,7 @@ export default function EditDeck() {
 
             <ContainerUpperRightQuarter>
                 <ButtonContainer>
-                    <UpdateDeckButton isDeleting={isDeleting} onClick={() => id && updateDeck(id, deckName)}>SAVE CHANGES</UpdateDeckButton>
+                    <UpdateDeckButton isDeleting={isDeleting} onClick={() => id && updateDeck(id, deckName)}><StyledSpanSaveDeck>SAVE CHANGES</StyledSpanSaveDeck></UpdateDeckButton>
                     <DeleteDeckButton isDeleting={isDeleting} onClick={()=> {
                         isDeleting && (id ? deleteDeck(id, navigate): null);
                         setIsDeleting(!isDeleting)}}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>

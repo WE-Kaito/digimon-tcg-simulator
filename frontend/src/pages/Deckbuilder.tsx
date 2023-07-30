@@ -40,7 +40,7 @@ export default function Deckbuilder() {
                         <ButtonContainer>
                             <SaveDeckButton isSaving={isSaving} disabled={isSaving} onClick={()=>{
                                 setIsSaving(true);
-                                saveDeck(deckName)}}>SAVE</SaveDeckButton>
+                                saveDeck(deckName)}}><StyledSpanSaveDeck>SAVE</StyledSpanSaveDeck></SaveDeckButton>
                             <BackButton/>
                         </ButtonContainer>
                     <CardDetails/>
@@ -165,7 +165,6 @@ const SaveDeckButton = styled.button<{isSaving:boolean}>`
   
 `;
 
-
 const ButtonContainer = styled.div`
   width: 100%;
   display: flex;
@@ -173,4 +172,14 @@ const ButtonContainer = styled.div`
   gap: 2%;
   padding-right: 1%;
   justify-content: space-between;
+`;
+
+export const StyledSpanSaveDeck = styled.span`
+  font-family: 'Pixel Digivolve', sans-serif;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin: 0;
+  letter-spacing: 2px;
+  color: #0e1625;
+  margin-bottom: 10px;
 `;

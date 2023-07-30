@@ -4,6 +4,7 @@ import {useEffect} from "react";
 import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {ToastContainer} from "react-toastify";
+import {Headline2} from "./MainMenu.tsx";
 
 
 export default function Profile() {
@@ -18,29 +19,34 @@ export default function Profile() {
 
     return (
         <Wrapper>
-            <ToastContainer/>
-            <BackButton/>
-            <h1>Profile</h1>
+            <div style={{display: "flex", justifyContent:"space-between", padding: "10px"}}>
+                <Headline2 style={{transform: "translateY(-8px)"}}>User123</Headline2>
+                <ToastContainer/>
+                <BackButton/>
+            </div>
             {!isLoading &&
                 <Container>
                     {decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
-            </Container>}
+                </Container>}
         </Wrapper>
     );
 }
 
 const Wrapper = styled.div`
-
+display: flex;
+  height: 100vh;
+flex-direction: column;
+  justify-content: space-between;
 `;
 
 const Container = styled.div`
   display: flex;
-  flex-flow: row wrap;
-  justify-content: space-evenly;
-  align-items: center;
-
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
   background: #0e0e0e;
   border-radius: 10px;
   width: 100vw;
+  height: 410px;
   max-width: 1000px;
 `;
