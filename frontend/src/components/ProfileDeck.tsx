@@ -2,6 +2,7 @@ import {CardType, DeckType} from "../utils/types.ts";
 import styled from "@emotion/styled";
 import deckBack from '../assets/deckBack.png';
 import {useNavigate} from "react-router-dom";
+import {useStore} from "../hooks/useStore.ts";
 
 function ColoredDeckImage(color:string | null, id: string) {
 
@@ -31,6 +32,9 @@ function ColoredDeckImage(color:string | null, id: string) {
 }
 
 export default function ProfileDeck({deck}:{deck:DeckType}) {
+
+    const setActiveDeck = useStore(state => state.setActiveDeck);
+    const activeDeckId = useStore(state => state.activeDeckId);
 
 
     const findMostFrequentColor = (cards: CardType[]) => {
@@ -67,7 +71,10 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
     return (
         <Container>
             <DeckName>{deck.name}</DeckName>
-            <ActiveButton>Active</ActiveButton>
+            <ActiveButton style={{backgroundColor: deck.id === activeDeckId ? "lightcyan" : "crimson"}}
+            onClick={() => {
+                setActiveDeck(deck.id);
+            }}>Active</ActiveButton>
            {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards), deck.id) : null}
         </Container>
     );

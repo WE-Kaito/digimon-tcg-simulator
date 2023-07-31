@@ -31,8 +31,17 @@ public class MongoUserController {
 
     @PostMapping("/register")
     public String register(@Valid @RequestBody RegistrationUser registrationUser) {
-        mongoUserDetailsService.registerNewUser(registrationUser);
-        return "registered";
+        return mongoUserDetailsService.registerNewUser(registrationUser);
+    }
+
+    @PutMapping("/active-deck/{deckId}")
+    public void setActiveDeck(@PathVariable String deckId) {
+        mongoUserDetailsService.setActiveDeck(deckId);
+    }
+
+    @GetMapping("/active-deck")
+    public String getActiveDeck() {
+        return mongoUserDetailsService.getActiveDeck();
     }
 
 }

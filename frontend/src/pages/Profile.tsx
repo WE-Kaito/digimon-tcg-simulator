@@ -12,10 +12,13 @@ export default function Profile({user}: { user: string }) {
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
     const isLoading = useStore((state) => state.isLoading);
+    const getActiveDeck = useStore((state) => state.getActiveDeck);
+    const activeDeckId = useStore((state) => state.activeDeckId);
 
     useEffect(() => {
         fetchDecks();
-    }, [fetchDecks]);
+        getActiveDeck();
+    }, [fetchDecks, getActiveDeck, activeDeckId]);
 
     return (
         <Wrapper>

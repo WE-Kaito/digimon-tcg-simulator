@@ -64,3 +64,26 @@ export const notifyDelete = () => toast('✔️ Deck deleted!', {
     progress: undefined,
     theme: "light",
 });
+
+export const notifyAlreadyExists = () => toast.error("Username already exists!", {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: true,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "dark",
+});
+
+export const notifyRegistered = () => toast('✔️ Registered!', {
+    position: "top-right",
+    autoClose: 2000,
+    hideProgressBar: true,
+    closeOnClick: true,
+    pauseOnHover: false,
+    draggable: true,
+    progress: undefined,
+    theme: "dark",
+});
+

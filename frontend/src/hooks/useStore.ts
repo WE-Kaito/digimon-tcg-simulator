@@ -3,8 +3,17 @@ import {CardType, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts"
 import axios from "axios";
 import {uid} from "uid";
 import 'react-toastify/dist/ReactToastify.css';
-import {notifyDelete, notifyError, notifyLength, notifyName, notifySuccess, notifyUpdate} from "../utils/toasts.ts";
+import {
+    notifyAlreadyExists,
+    notifyDelete,
+    notifyError,
+    notifyLength,
+    notifyName, notifyRegistered,
+    notifySuccess,
+    notifyUpdate
+} from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
+import {toast} from "react-toastify";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -14,6 +23,7 @@ type State = {
     decks: DeckType[],
     nameOfDeckToEdit: string,
     user: string,
+    activeDeckId: string,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -29,7 +39,9 @@ type State = {
     clearDeck: () => void,
     login: (userName: string, password: string, navigate: NavigateFunction) => void,
     me: () => void,
-    register: (userName:string, password: string, repeatedPassword: string, setPassword: (password:string) => void, setRepeatedPassword: (repeatedPassword:string) => void, setRegisterPage: (state: boolean) => void) => void
+    register: (userName:string, password: string, repeatedPassword: string, setPassword: (password:string) => void, setRepeatedPassword: (repeatedPassword:string) => void, setRegisterPage: (state: boolean) => void) => void,
+    setActiveDeck: (deckId: string) => void,
+    getActiveDeck: () => void,
 };
 
 
@@ -43,6 +55,7 @@ export const useStore = create<State>((set, get) => ({
     decks: [],
     nameOfDeckToEdit: "",
     user: "",
+    activeDeckId: "",
 
     fetchCards: (name,
                  color,
@@ -305,13 +318,36 @@ export const useStore = create<State>((set, get) => ({
                 .then(response => {
                     console.error(response)
                     setRegisterPage(false);
+                    if (response.data === "Username already exists!") {
+                        notifyAlreadyExists();
+                    }
+                    if (response.data === "Successfully registered!") {
+                        notifyRegistered();
+                    }
                 })
-                .catch(console.error)
+                .catch((e) => {
+                    console.error(e);
+                });
 
         } else {
             setPassword("");
             setRepeatedPassword("");
         }
     },
+
+    setActiveDeck: (deckId) => {
+        set({isLoading: true})
+        axios.put(`/api/user/active-deck/${deckId}`, null)
+            .catch(console.error)
+            .finally(() => {
+                set({activeDeckId: deckId});
+                set({isLoading: false})});
+    },
+
+    getActiveDeck: () => {
+        axios.get("/api/user/active-deck")
+            .then(response => set({activeDeckId: response.data}))
+            .catch(console.error);
+    }
 
 }));

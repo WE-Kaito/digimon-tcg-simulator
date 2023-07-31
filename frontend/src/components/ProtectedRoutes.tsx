@@ -4,7 +4,7 @@ export default function ProtectedRoutes({user}: { user?: string }) {
 
     if (user === "") return "loading ...";
 
-    const isLoggedIn = user !== "";
+    const isLoggedIn = user !== "anonymousUser";
 
     return <>{isLoggedIn ? <Outlet/> : <Navigate to="/login"/>}</>;
 
