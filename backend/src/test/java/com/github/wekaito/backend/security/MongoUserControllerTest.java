@@ -25,9 +25,9 @@ class MongoUserControllerTest {
         // GIVEN that user is not logged in
         // WHEN
         mockMvc.perform(MockMvcRequestBuilders.get("/api/user/me"))
-            // THEN
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().string("anonymousUser"));
+                // THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("anonymousUser"));
     }
 
     @Test
@@ -36,9 +36,9 @@ class MongoUserControllerTest {
         // GIVEN that user is logged in
         // WHEN
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login").with(csrf()))
-            // THEN
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().string("testUser"));
+                // THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("testUser"));
     }
 
     @Test
@@ -47,9 +47,9 @@ class MongoUserControllerTest {
         // GIVEN that user is logged in
         // WHEN
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login").with(csrf()))
-            // THEN
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().string("testUser"));
+                // THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("testUser"));
     }
 
     @Test
@@ -59,27 +59,58 @@ class MongoUserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login").with(csrf()));
         //WHEN
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/logout").with(csrf()))
-            //THEN
-            .andExpect(MockMvcResultMatchers.status().isNoContent());
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
     void expectRegistration_whenRegisterUser() throws Exception {
         //GIVEN
         String testUserWithoutId = """
-                {
-                    "username": "themeTest",
-                    "password": "secretPass3"
-                }
-            """;
+                    {
+                        "username": "themeTest",
+                        "password": "secretPass3"
+                    }
+                """;
 
         //WHEN
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(testUserWithoutId)
+                        .with(csrf()))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("registered"));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", password = "testPassword")
+    void expectActiveDeck_AfterSetActiveDeck() throws Exception {
+
+        String testUserWithoutId = """
+                {
+                    "username": "testUser",
+                    "password": "testPassWord1"
+                }
+            """;
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(testUserWithoutId)
+                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login")
+                .with(csrf())
+        ).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/active-deck/12345")
                 .with(csrf()))
-            //THEN
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().string("registered"));
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/user/active-deck")
+                        .with(csrf()))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("12345"));
     }
 }
