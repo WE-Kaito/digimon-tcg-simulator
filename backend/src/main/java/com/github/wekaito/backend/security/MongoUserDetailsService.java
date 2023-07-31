@@ -21,6 +21,12 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     private final IdService idService = new IdService();
 
+    public MongoUser getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return mongoUserRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User" + username + "not found"));
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
@@ -38,7 +44,7 @@ public class MongoUserDetailsService implements UserDetailsService {
             return "Username already exists!";
         }
 
-        MongoUser newUser = new MongoUser(idService.createId() ,registrationUser.username(), encodedPassword, "");
+        MongoUser newUser = new MongoUser(idService.createId() ,registrationUser.username(), encodedPassword, "", "takato");
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";
@@ -51,23 +57,25 @@ public class MongoUserDetailsService implements UserDetailsService {
     }
 
     public void setActiveDeck(String deckId) {
-        String currentUserName = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        MongoUser mongoUser = mongoUserRepository.findByUsername(currentUserName).orElseThrow(() ->
-                new UsernameNotFoundException("User" + currentUserName + "not found"));
-
-        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), deckId);
-
+        MongoUser mongoUser = getCurrentUser();
+        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), deckId, mongoUser.avatarName());
         mongoUserRepository.save(updatedUser);
 
     }
 
     public String getActiveDeck() {
-        String currentUserName = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        MongoUser mongoUser = mongoUserRepository.findByUsername(currentUserName).orElseThrow(() ->
-                new UsernameNotFoundException("User" + currentUserName + "not found"));
-
+        MongoUser mongoUser = getCurrentUser();
         return mongoUser.activeDeckId();
+    }
+
+    public void setAvatar(String avatarName) {
+        MongoUser mongoUser = getCurrentUser();
+        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), mongoUser.activeDeckId(), avatarName);
+        mongoUserRepository.save(updatedUser);
+    }
+
+    public String getAvatar() {
+        MongoUser mongoUser = getCurrentUser();
+        return mongoUser.avatarName();
     }
 }

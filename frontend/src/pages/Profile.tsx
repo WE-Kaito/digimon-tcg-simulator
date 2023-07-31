@@ -5,6 +5,7 @@ import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {ToastContainer} from "react-toastify";
 import {Headline2} from "../components/Header.tsx";
+import ChooseAvatar from "../components/ChooseAvatar.tsx";
 
 
 export default function Profile({user}: { user: string }) {
@@ -25,15 +26,15 @@ export default function Profile({user}: { user: string }) {
 
     return (
         <Wrapper>
-            <div style={{display: "flex", justifyContent:"space-between", padding: "10px"}}>
+            <Header>
                 <Headline2 style={{transform: "translateY(-8px)"}}>{user}</Headline2>
                 <ToastContainer/>
                 <BackButton/>
-            </div>
-
-                <Container>
-                    {!isLoading && decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
-                </Container>
+            </Header>
+            <ChooseAvatar/>
+            <Container>
+                {!isLoading && decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
+            </Container>
         </Wrapper>
     );
 }
@@ -55,4 +56,15 @@ const Container = styled.div`
   width: 100vw;
   height: 410px;
   max-width: 1000px;
+`;
+
+const Header = styled.div`
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    margin-top: 5vh;
+  
+    @media (max-width: 766px) {
+      margin-top: 1.5vh;
+    }
 `;

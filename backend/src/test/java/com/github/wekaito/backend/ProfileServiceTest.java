@@ -55,7 +55,6 @@ class ProfileServiceTest {
     @DirtiesContext
     @Test
     void testAddDeck() {
-
         profileService.addDeck(exampleDeckWithoutId);
         verify(deckRepo).save(exampleDeck);
     }

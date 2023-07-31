@@ -47,6 +47,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/user/register").permitAll()
                                 .requestMatchers("/api/user/active-deck").authenticated()
                                 .requestMatchers("/api/user/active-deck/**").authenticated()
+                                .requestMatchers("/api/user/avatar").authenticated()
+                                .requestMatchers("/api/user/avatar/**").authenticated()
 
                                 .anyRequest().permitAll()
                 )

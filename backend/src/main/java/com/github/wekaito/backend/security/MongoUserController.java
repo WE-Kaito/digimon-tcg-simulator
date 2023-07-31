@@ -12,12 +12,10 @@ public class MongoUserController {
 
     private final MongoUserDetailsService mongoUserDetailsService;
 
-
     @GetMapping("/me")
     public String getUserInfo() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-
 
     @PostMapping("/login")
     public String login() {
@@ -42,6 +40,16 @@ public class MongoUserController {
     @GetMapping("/active-deck")
     public String getActiveDeck() {
         return mongoUserDetailsService.getActiveDeck();
+    }
+
+    @PutMapping("/avatar/{avatarName}")
+    public void setAvatar(@PathVariable String avatarName){
+        mongoUserDetailsService.setAvatar(avatarName);
+    }
+
+    @GetMapping("/avatar")
+    public String getAvatar() {
+        return mongoUserDetailsService.getAvatar();
     }
 
 }

@@ -68,7 +68,7 @@ class MongoUserControllerTest {
         //GIVEN
         String testUserWithoutId = """
                     {
-                        "username": "themeTest",
+                        "username": "newTestUser",
                         "password": "secretPass3"
                     }
                 """;
@@ -80,7 +80,7 @@ class MongoUserControllerTest {
                         .with(csrf()))
                 //THEN
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("registered"));
+                .andExpect(MockMvcResultMatchers.content().string("Successfully registered!"));
     }
 
     @Test
@@ -112,5 +112,36 @@ class MongoUserControllerTest {
                 //THEN
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("12345"));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", password = "testPassword")
+    void expectTestAvatar_AfterSetAvatar() throws Exception {
+
+        String testUserWithoutId = """
+                {
+                    "username": "testUser",
+                    "password": "testPassWord1"
+                }
+            """;
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testUserWithoutId)
+                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login")
+                .with(csrf())
+        ).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/avatar/test")
+                        .with(csrf()))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/user/avatar")
+                        .with(csrf()))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("test"));
     }
 }

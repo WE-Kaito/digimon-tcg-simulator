@@ -24,6 +24,7 @@ type State = {
     user: string,
     activeDeckId: string,
     isSaving: boolean,
+    avatarName: string,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -42,6 +43,8 @@ type State = {
     register: (userName: string, password: string, repeatedPassword: string, setPassword: (password: string) => void, setRepeatedPassword: (repeatedPassword: string) => void, setRegisterPage: (state: boolean) => void) => void,
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
+    setAvatar: (avatarName: string) => void,
+    getAvatar: () => void,
 };
 
 
@@ -57,6 +60,7 @@ export const useStore = create<State>((set, get) => ({
     user: "",
     activeDeckId: "",
     isSaving: false,
+    avatarName: "",
 
     fetchCards: (name,
                  color,
@@ -349,6 +353,20 @@ export const useStore = create<State>((set, get) => ({
     getActiveDeck: () => {
         axios.get("/api/user/active-deck")
             .then(response => set({activeDeckId: response.data}))
+            .catch(console.error);
+    },
+
+    setAvatar: (avatarName) => {
+        axios.put(`/api/user/avatar/${avatarName}`, null)
+            .catch(console.error)
+            .finally(() => {
+                set({avatarName: avatarName});
+            });
+    },
+
+    getAvatar: () => {
+        axios.get("/api/user/avatar")
+            .then(response => set({avatarName: response.data}))
             .catch(console.error);
     }
 
