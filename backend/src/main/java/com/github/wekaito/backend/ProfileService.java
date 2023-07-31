@@ -59,6 +59,7 @@ public class ProfileService {
     }
 
     public void updateDeck(String id, DeckWithoutId deckWithoutId) {
+        if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
         Deck deckToSave = new Deck(
                 id,
                 deckWithoutId.name(),
@@ -73,6 +74,7 @@ public class ProfileService {
     }
 
     public void deleteDeck(String id) {
+        if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
         this.deckRepo.deleteById(id);
     }
 }
