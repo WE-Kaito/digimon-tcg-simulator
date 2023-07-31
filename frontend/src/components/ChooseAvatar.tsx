@@ -55,93 +55,25 @@ export default function ChooseAvatar() {
         }
     }
 
-    function setNextAvatar(avatarName : string) {
-        switch (avatarName) {
-            case "takato":
-                setAvatar("aiba");
-                break;
-            case "aiba":
-                setAvatar("arata");
-                break;
-            case "arata":
-                setAvatar("eri");
-                break;
-            case "eri":
-                setAvatar("haru");
-                break;
-            case "haru":
-                setAvatar("hiro");
-                break;
-            case "hiro":
-                setAvatar("matt");
-                break;
-            case "matt":
-                setAvatar("minoru");
-                break;
-            case "minoru":
-                setAvatar("rina");
-                break;
-            case "rina":
-                setAvatar("saki");
-                break;
-            case "saki":
-                setAvatar("tai");
-                break;
-            case "tai":
-                setAvatar("takumi");
-                break;
-            case "takumi":
-                setAvatar("takato");
-                break;
-            default:
-                setAvatar("takato");
-                break;
-        }
+    const avatarNames = [
+        "takato", "aiba", "arata", "eri", "haru", "hiro",
+        "matt", "minoru", "rina", "saki", "tai", "takumi"
+    ];
+
+    function getAvatarIndex(avatarName: string) {
+        return avatarNames.indexOf(avatarName);
     }
 
-    function setPreviousAvatar(avatarName : string) {
+    function setNextAvatar(avatarName: string) {
+        const currentIndex = getAvatarIndex(avatarName);
+        const nextIndex = (currentIndex + 1) % avatarNames.length;
+        setAvatar(avatarNames[nextIndex]);
+    }
 
-        switch (avatarName) {
-            case "takato":
-                setAvatar("takumi");
-                break;
-            case "aiba":
-                setAvatar("takato");
-                break;
-            case "arata":
-                setAvatar("aiba");
-                break;
-            case "eri":
-                setAvatar("arata");
-                break;
-            case "haru":
-                setAvatar("eri");
-                break;
-            case "hiro":
-                setAvatar("haru");
-                break;
-            case "matt":
-                setAvatar("hiro");
-                break;
-            case "minoru":
-                setAvatar("matt");
-                break;
-            case "rina":
-                setAvatar("minoru");
-                break;
-            case "saki":
-                setAvatar("rina");
-                break;
-            case "tai":
-                setAvatar("saki");
-                break;
-            case "takumi":
-                setAvatar("tai");
-                break;
-            default:
-                setAvatar("takato");
-                break;
-        }
+    function setPreviousAvatar(avatarName: string) {
+        const currentIndex = getAvatarIndex(avatarName);
+        const previousIndex = (currentIndex - 1 + avatarNames.length) % avatarNames.length;
+        setAvatar(avatarNames[previousIndex]);
     }
 
     return (
