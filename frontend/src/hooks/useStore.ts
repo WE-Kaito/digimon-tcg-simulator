@@ -13,7 +13,6 @@ import {
     notifyUpdate
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
-import {toast} from "react-toastify";
 
 type State = {
     fetchedCards: CardTypeWithId[],
