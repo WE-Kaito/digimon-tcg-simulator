@@ -23,6 +23,7 @@ type State = {
     nameOfDeckToEdit: string,
     user: string,
     activeDeckId: string,
+    isSaving: boolean,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -55,6 +56,7 @@ export const useStore = create<State>((set, get) => ({
     nameOfDeckToEdit: "",
     user: "",
     activeDeckId: "",
+    isSaving: false,
 
     fetchCards: (name,
                  color,
@@ -174,6 +176,7 @@ export const useStore = create<State>((set, get) => ({
     },
 
     saveDeck: (name) => {
+        set({isSaving: true});
         const deckToSave = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -203,6 +206,7 @@ export const useStore = create<State>((set, get) => ({
                 notifySuccess() &&
                 setTimeout(function () {
                     window.location.reload();
+                    set({isSaving: false});
                 }, 3000));
     },
 

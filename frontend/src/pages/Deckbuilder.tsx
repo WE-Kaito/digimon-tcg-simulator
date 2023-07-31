@@ -17,7 +17,7 @@ export default function Deckbuilder() {
     const saveDeck = useStore((state) => state.saveDeck);
     const [deckName, setDeckName] = useState<string>("New Deck");
     const clearDeck = useStore((state) => state.clearDeck);
-    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const isSaving = useStore((state) => state.isSaving);
 
     useEffect(() => {
         clearDeck();
@@ -39,7 +39,6 @@ export default function Deckbuilder() {
                 <ContainerUpperRightQuarter>
                         <ButtonContainer>
                             <SaveDeckButton isSaving={isSaving} disabled={isSaving} onClick={()=>{
-                                setIsSaving(true);
                                 saveDeck(deckName)}}><StyledSpanSaveDeck>SAVE</StyledSpanSaveDeck></SaveDeckButton>
                             <BackButton/>
                         </ButtonContainer>

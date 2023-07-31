@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -54,8 +55,11 @@ public class ProfileService {
         this.deckRepo.save(deckToSave);
     }
 
-    public Deck[] getDecks() {
-        return this.deckRepo.findAll().toArray(new Deck[0]);
+    public List<Deck> getDecks() {
+        List<Deck> allDecks = deckRepo.findAll();
+
+        return allDecks.stream()
+                .filter(theme -> Objects.equals(theme.authorId(), userIdService.getCurrentUserId())).toList();
     }
 
     public void updateDeck(String id, DeckWithoutId deckWithoutId) {

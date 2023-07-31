@@ -110,6 +110,7 @@ const ActiveButton = styled.button`
   margin: 20px;
   @media (max-width: 500px) {
     margin: 2px;
+    transform: scale(0.725);
   }
 
   border-bottom: 1px solid #131313;

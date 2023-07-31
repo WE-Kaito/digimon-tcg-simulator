@@ -75,7 +75,7 @@ class ProfileServiceTest {
 
         profileService.addDeck(exampleDeckWithoutId);
         when(deckRepo.findAll()).thenReturn(List.of(decks));
-        Deck[] returnedDecks = profileService.getDecks();
+        List<Deck> returnedDecks = profileService.getDecks();
 
         assertNotNull(returnedDecks);
         assertThat(returnedDecks).contains(exampleDeck).isInstanceOf(Deck[].class);

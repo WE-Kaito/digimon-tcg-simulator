@@ -39,16 +39,16 @@ export default function Profile({user}: { user: string }) {
 }
 
 const Wrapper = styled.div`
-display: flex;
+  display: flex;
   height: 100vh;
-flex-direction: column;
+  flex-direction: column;
   justify-content: space-between;
 `;
 
 const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  gap: 1.5vw;
   align-items: flex-start;
   background: #0e0e0e;
   border-radius: 10px;
