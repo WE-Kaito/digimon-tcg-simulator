@@ -59,7 +59,7 @@ public class ProfileService {
         List<Deck> allDecks = deckRepo.findAll();
 
         return allDecks.stream()
-                .filter(theme -> Objects.equals(theme.authorId(), userIdService.getCurrentUserId())).toList();
+                .filter(deck -> Objects.equals(deck.authorId(), userIdService.getCurrentUserId())).toList();
     }
 
     public void updateDeck(String id, DeckWithoutId deckWithoutId) {
