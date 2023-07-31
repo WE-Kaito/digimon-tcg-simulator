@@ -2,7 +2,7 @@ Digimon TCG Simulator
 ---
 ### neuefische educational capstone project
 
-As a fan of the Digimon franchise and [it's card game](https://world.digimoncard.com/). My goal is to build a simulator close to some fanmade Yu-Gi-Oh games.
+As a fan of the Digimon franchise and [it's card game](https://world.digimoncard.com/), my goal is to build a simulator close to some fanmade Yu-Gi-Oh games.
 
 Current state:
 Fully functional deckbuilder using the [Digimon TCG API](https://documenter.getpostman.com/view/14059948/TzecB4fH), drag & drop with responsive design. Edit your decks and set your active deck and avatar on the profile page.
