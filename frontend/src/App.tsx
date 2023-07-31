@@ -1,5 +1,6 @@
 import './App.css'
 import Deckbuilder from "./pages/Deckbuilder.tsx";
+import EditDeck from "./pages/EditDeck.tsx";
 import {DndProvider} from "react-dnd";
 import {TouchBackend} from "react-dnd-touch-backend";
 import {HTML5Backend} from "react-dnd-html5-backend";
@@ -21,9 +22,10 @@ function App() {
         <DndProvider backend={isMobileDevice()}>
             <Routes>
                 <Route path="/" element={<MainMenu/>}/>
-                <Route path="profile" element={<Profile/>}/>
-                <Route path="/*" element={<Navigate to="/"/>}/>
+                <Route path="/profile" element={<Profile/>}/>
                 <Route path="/deckbuilder" element={<Deckbuilder/>}/>
+                <Route path="/update-deck/:id" element={<EditDeck/>}/>
+                <Route path="/*" element={<Navigate to="/"/>}/>
             </Routes>
         </DndProvider>
     )

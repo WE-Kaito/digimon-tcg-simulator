@@ -20,10 +20,13 @@ class ProfileServiceTest {
     @Mock
     private DeckRepo deckRepo;
 
+    @Mock
+    private IdService idService;
+
     @BeforeEach
     void setUp() {
         openMocks(this);
-        profileService = new ProfileService(deckRepo);
+        profileService = new ProfileService(deckRepo, idService);
     }
 
     Card exampleCard = new Card(
@@ -43,6 +46,9 @@ class ProfileServiceTest {
             null
     );
 
+    Card[] cards = {exampleCard, exampleCard, exampleCard};
+    Deck exampleDeck = new Deck("12345","New Deck", cards);
+    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards);
     @Test
     void testFetchCards() {
         Card[] cards = profileService.fetchCards("Agumon".describeConstable(), "Red".describeConstable(), "Digimon".describeConstable());
@@ -53,26 +59,38 @@ class ProfileServiceTest {
     @DirtiesContext
     @Test
     void testAddDeck() {
-        Card[] cards = {exampleCard};
-        Deck sampleDeck = new Deck("Test Deck", cards);
+        when(idService.createId()).thenReturn("12345");
 
-        profileService.addDeck(sampleDeck);
+        profileService.addDeck(exampleDeckWithoutId);
 
-        verify(deckRepo).save(sampleDeck);
+        verify(deckRepo).save(exampleDeck);
     }
 
     @Test
     void testGetDecks() {
-        Card[] cards = {exampleCard};
-        Deck sampleDeck = new Deck("Test Deck", cards);
-        Deck[] decks = {sampleDeck};
+        Deck[] decks = {exampleDeck};
 
-        profileService.addDeck(sampleDeck);
+        profileService.addDeck(exampleDeckWithoutId);
         when(deckRepo.findAll()).thenReturn(List.of(decks));
         Deck[] returnedDecks = profileService.getDecks();
 
         assertNotNull(returnedDecks);
-        assertThat(returnedDecks).contains(sampleDeck).isInstanceOf(Deck[].class);
+        assertThat(returnedDecks).contains(exampleDeck).isInstanceOf(Deck[].class);
+    }
+
+    @Test
+    void testUpdateDeck() {
+        Deck exampleDeck = new Deck("12345","New Deck", cards);
+        when(deckRepo.findById("12345")).thenReturn(java.util.Optional.of(exampleDeck));
+        profileService.updateDeck("12345", exampleDeckWithoutId);
+
+        verify(deckRepo).save(exampleDeck);
+    }
+
+    @Test
+    void testDeleteDeck() {
+        profileService.deleteDeck("12345");
+        verify(deckRepo).deleteById("12345");
     }
 
 

@@ -2,8 +2,9 @@ import {create} from "zustand";
 import {CardType, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts";
 import axios from "axios";
 import {uid} from "uid";
-import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {notifyDelete, notifyError, notifyLength, notifyName, notifySuccess, notifyUpdate} from "../utils/toasts.ts";
+import {NavigateFunction} from "react-router-dom";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -11,6 +12,7 @@ type State = {
     selectedCard: CardTypeWithId | null,
     deckCards: CardTypeWithId[],
     decks: DeckType[],
+    nameOfDeckToEdit: string,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -20,7 +22,12 @@ type State = {
     deleteFromDeck: (id: string) => void,
     saveDeck: (name: string) => void,
     fetchDecks: () => void,
+    updateDeck: (id: string, name: string) => void,
+    setDeckById: (id: string | undefined) => void,
+    deleteDeck: (id: string, navigate: NavigateFunction) => void,
+    clearDeck: () => void,
 };
+
 
 export const useStore = create<State>((set, get) => ({
 
@@ -30,17 +37,18 @@ export const useStore = create<State>((set, get) => ({
     hoverCard: null,
     deckCards: [],
     decks: [],
+    nameOfDeckToEdit: "",
 
-    fetchCards: (name = null,
-                 color = null,
-                 type = null,
-                 stage = null,
-                 attribute = null,
-                 digi_type = null,
-                 dp = null,
-                 play_cost = null,
-                 evolution_cost = null,
-                 level = null
+    fetchCards: (name,
+                 color,
+                 type,
+                 stage,
+                 attribute,
+                 digi_type,
+                 dp,
+                 play_cost,
+                 evolution_cost,
+                 level
     ) => {
 
         const queryParams = {
@@ -152,47 +160,17 @@ export const useStore = create<State>((set, get) => ({
         const deckToSave = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: get().deckCards.map(({id, ...rest}) => rest)
+            cards: get().deckCards.map(({id, ...rest}) => rest),
+
+            deckStatus: "INACTIVE"
         }
-
-        const notifySuccess = () => toast('✔️ Deck saved!', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
-
-        const notifyLength = () => toast.error('Only full decks can be saved!', {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
-
-        const notifyName = () => toast.error('Please enter a name.', {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
 
         if (deckToSave.cards.length !== 50) {
             notifyLength();
-            return;}
+            return;
+        }
 
-        if(name === ""){
+        if (name === "") {
             notifyName();
             return;
         }
@@ -200,7 +178,10 @@ export const useStore = create<State>((set, get) => ({
         axios
             .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
-            .catch(console.error)
+            .catch((error) => {
+                console.error(error);
+                throw error;
+            })
             .then(() =>
                 notifySuccess() &&
                 setTimeout(function () {
@@ -217,6 +198,74 @@ export const useStore = create<State>((set, get) => ({
             .then((data) => {
                 set({decks: data});
             }).finally(() => set({isLoading: false}));
+    },
+
+    updateDeck: (id, name) => {
+
+
+        const deckWithoutId = {
+            name: name,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            cards: get().deckCards.map(({id, ...rest}) => rest)
+        }
+
+        axios
+            .put(`/api/profile/decks/${id}`, deckWithoutId)
+            .then((res) => res.data)
+            .catch((error) => {
+                console.error(error);
+                notifyError();
+                throw error;
+            })
+            .then(() => {
+                notifyUpdate();
+            });
+    },
+
+    setDeckById: (id) => {
+
+        if (id === undefined) return;
+
+        get().fetchCards(null, null, null, null, null, null, null, null, null, null,);
+
+        set({isLoading: true});
+
+        axios
+            .get(`/api/profile/decks/${id}`)
+            .then((res) => res.data)
+            .catch(console.error)
+            .then((data) => {
+
+                const cardsWithId = data.cards.map((card: CardType) => ({
+                    ...card,
+                    id: uid(),
+                }));
+
+                set({deckCards: cardsWithId});
+                set({nameOfDeckToEdit: data.name});
+                set({isLoading: false});
+            });
+    },
+
+    deleteDeck: (id, navigate) => {
+
+        axios
+            .delete(`/api/profile/decks/${id}`)
+            .then((res) => res.data)
+            .catch((error) => {
+                console.error(error);
+                notifyError();
+                throw error;
+            })
+            .then(() => {
+                navigate("/profile");
+                set({deckCards: []});
+                notifyDelete();
+            });
+    },
+
+    clearDeck: () => {
+        set({deckCards: []});
     }
 
 }));

@@ -16,11 +16,13 @@ export default function Deckbuilder() {
     const hoverCard = useStore((state) => state.hoverCard);
     const saveDeck = useStore((state) => state.saveDeck);
     const [deckName, setDeckName] = useState<string>("New Deck");
+    const clearDeck = useStore((state) => state.clearDeck);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     useEffect(() => {
-        // @ts-ignore
-        fetchCards();
-    }, [fetchCards]);
+        clearDeck();
+        fetchCards(null,null,null,null,null,null,null,null,null,null,);
+    }, [clearDeck, fetchCards]);
 
 
     return (
@@ -36,7 +38,9 @@ export default function Deckbuilder() {
 
                 <ContainerUpperRightQuarter>
                         <ButtonContainer>
-                            <SaveDeckButton onClick={()=>saveDeck(deckName)}>SAVE</SaveDeckButton>
+                            <SaveDeckButton isSaving={isSaving} disabled={isSaving} onClick={()=>{
+                                setIsSaving(true);
+                                saveDeck(deckName)}}><StyledSpanSaveDeck>SAVE</StyledSpanSaveDeck></SaveDeckButton>
                             <BackButton/>
                         </ButtonContainer>
                     <CardDetails/>
@@ -55,7 +59,7 @@ export default function Deckbuilder() {
     );
 }
 
-const OuterContainer = styled.div`
+export const OuterContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -69,34 +73,34 @@ const OuterContainer = styled.div`
   max-height: 1000px;
 `;
 
-const Quarter = styled.div`
+export const Quarter = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1vh;
   align-items: center;
 `;
 
-const ContainerBottomRightQuarter = styled(Quarter)`
+export const ContainerBottomRightQuarter = styled(Quarter)`
   grid-column-start: 2;
   grid-row-start: 2;
 `;
 
-const ContainerUpperLeftQuarter = styled(Quarter)`
+export const ContainerUpperLeftQuarter = styled(Quarter)`
   grid-column-start: 1;
   grid-row-start: 1;
 `;
 
-const ContainerUpperRightQuarter = styled(Quarter)`
+export const ContainerUpperRightQuarter = styled(Quarter)`
   grid-column-start: 2;
   grid-row-start: 1;
 `;
 
-const ContainerBottomLeftQuarter = styled(Quarter)`
+export const ContainerBottomLeftQuarter = styled(Quarter)`
   grid-column-start: 1;
   grid-row-start: 2;
 `;
 
-const CardImage = styled.img`
+export const CardImage = styled.img`
   width: 180px;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
@@ -106,7 +110,7 @@ const CardImage = styled.img`
   }
 `;
 
-const DeckNameInput = styled.input`
+export const DeckNameInput = styled.input`
   height: 40px;
   width: 275px;
   text-align: center;
@@ -124,12 +128,12 @@ const DeckNameInput = styled.input`
   };
 `;
 
-const SaveDeckButton = styled.button`
+const SaveDeckButton = styled.button<{isSaving:boolean}>`
   height: 40px;
   width: 95%;
   padding: 0;
   padding-top: 5px;
-  background: mediumaquamarine;
+  background: ${(props) => props.isSaving ? "grey" : "mediumaquamarine"};
   color: black;
   font-size: 25px;
   font-weight: bold;
@@ -138,11 +142,11 @@ const SaveDeckButton = styled.button`
   filter: drop-shadow(1px 2px 3px #060e18);
   
   :hover {
-    background: aquamarine;
+    background: ${(props) => props.isSaving ? "grey" : "aquamarine"};
   }
 
   &:active {
-    background-color: aqua;
+    background-color: ${(props) => props.isSaving ? "grey" : "aquamarine"};
     border: none;
     filter: none;
     transform: translateY(1px);
@@ -161,7 +165,6 @@ const SaveDeckButton = styled.button`
   
 `;
 
-
 const ButtonContainer = styled.div`
   width: 100%;
   display: flex;
@@ -169,4 +172,14 @@ const ButtonContainer = styled.div`
   gap: 2%;
   padding-right: 1%;
   justify-content: space-between;
+`;
+
+export const StyledSpanSaveDeck = styled.span`
+  font-family: 'Pixel Digivolve', sans-serif;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin: 0;
+  letter-spacing: 2px;
+  color: #0e1625;
+  margin-bottom: 10px;
 `;

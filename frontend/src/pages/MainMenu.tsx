@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 
 
 export default function MainMenu() {
+
     return (
         <Wrapper>
             <div>
@@ -39,7 +40,7 @@ const Headline = styled.h1`
   }
 `;
 
-const Headline2 = styled.h2`
+export const Headline2 = styled.h2`
   font-family: 'Pixel Digivolve', sans-serif;
   font-style: italic;
   font-weight: bold;

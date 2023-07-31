@@ -42,6 +42,9 @@ class ProfileControllerTest {
             null
     );
 
+    Card[] cards = {exampleCard, exampleCard, exampleCard};
+    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards);
+
     @Test
     void expectArrayOfCards_whenGetCards() throws Exception {
 
@@ -61,32 +64,32 @@ class ProfileControllerTest {
     @DirtiesContext
     void expectOk_whenAddDeck() throws Exception {
 
-        Card[] cards = {exampleCard, exampleCard, exampleCard};
-        Deck exampleDeck = new Deck("New Deck", cards);
+        String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/api/profile/decks")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(exampleDeck.toString()))
-                //THEN
+                                .content(requestBody))
+                // THEN
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
     }
 
     @Test
+    @DirtiesContext
     void expectPostedDeck_whenGetDecks() throws Exception {
 
-        Card[] cards = {exampleCard, exampleCard, exampleCard};
-        Deck exampleDeck = new Deck("New Deck", cards);
+        String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
 
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/profile/decks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(exampleDeck.toString()));
+                        .content(requestBody));
 
         String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().json(List.of(exampleDeck).toString()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].cards[0].name").value("Agumon"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -94,5 +97,70 @@ class ProfileControllerTest {
         Deck[] decks = objectMapper.readValue(response, Deck[].class);
 
         assertThat(decks).isInstanceOf(Deck[].class);
+    }
+
+    @Test
+    @DirtiesContext
+    void expectDeckName_whenUpdateDeck() throws Exception {
+
+        String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/profile/decks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody));
+
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].cards[0].name").value("Agumon"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Deck[] decks = objectMapper.readValue(response, Deck[].class);
+
+
+        String id = decks[0].id();
+
+        Deck exampleDeck = new Deck(id,"New Deck2", cards);
+        String requestBody2 = objectMapper.writeValueAsString(exampleDeck);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.put("/api/profile/decks/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody2));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck2"));
+    }
+
+    @Test
+    @DirtiesContext
+    void expectEmptyList_whenDeleteDeck() throws Exception {
+
+        String requestBody = objectMapper.writeValueAsString(exampleDeckWithoutId);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/profile/decks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody));
+
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Deck[] decks = objectMapper.readValue(response, Deck[].class);
+        String id = decks[0].id();
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.delete("/api/profile/decks/" + id));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
     }
 }

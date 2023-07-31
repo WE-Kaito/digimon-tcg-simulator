@@ -1,29 +1,37 @@
 import {CardType, DeckType} from "../utils/types.ts";
 import styled from "@emotion/styled";
 import deckBack from '../assets/deckBack.png';
+import {useNavigate} from "react-router-dom";
 
-function ColoredDeckImage(color:string | null) {
+function ColoredDeckImage(color:string | null, id: string) {
+
+    const navigate = useNavigate();
+    const navigateToDeck = () => {
+        navigate(`/update-deck/${id}`);
+    }
+
     switch (color) {
         case "Black":
-            return <BlackDeckImage src={deckBack}/>;
+            return <BlackDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "White":
-            return <WhiteDeckImage src={deckBack}/>;
+            return <WhiteDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Blue":
-            return <BlueDeckImage src={deckBack}/>;
+            return <BlueDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Green":
-            return <GreenDeckImage src={deckBack}/>;
+            return <GreenDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Purple":
-            return <PurpleDeckImage src={deckBack}/>;
+            return <PurpleDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Red":
-            return <RedDeckImage src={deckBack}/>;
+            return <RedDeckImage onClick={navigateToDeck} src={deckBack}/>;
         case "Yellow":
-            return <YellowDeckImage src={deckBack}/>;
+            return <YellowDeckImage onClick={navigateToDeck} src={deckBack}/>;
         default:
-            return <DeckImage src={deckBack}/>;
+            return <DeckImage onClick={navigateToDeck} src={deckBack}/>;
     }
 }
 
 export default function ProfileDeck({deck}:{deck:DeckType}) {
+
 
     const findMostFrequentColor = (cards: CardType[]) => {
         const colorOccurrences = {};
@@ -60,7 +68,7 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
         <Container>
             <DeckName>{deck.name}</DeckName>
             <ActiveButton>Active</ActiveButton>
-            {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards)) : null}
+           {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards), deck.id) : null}
         </Container>
     );
 }
@@ -106,32 +114,58 @@ const DeckName = styled.span`
 const DeckImage = styled.img`
 width: 75px;  
   grid-area: deck;
+  :hover {
+    cursor: pointer;
+  }
+  
 `;
 
 const BlackDeckImage = styled(DeckImage)`
   filter:grayscale(100%) brightness(50%) contrast(200%);
+    :hover {
+    filter:grayscale(100%) brightness(50%) contrast(200%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const WhiteDeckImage = styled(DeckImage)`
     filter: saturate(0%) brightness(140%);
+    :hover {
+    filter: saturate(0%) brightness(140%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const PurpleDeckImage = styled(DeckImage)`
-    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%)
+    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%);
+    :hover {
+    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const BlueDeckImage = styled(DeckImage)`
     filter: hue-rotate(-5deg) brightness(110%) contrast(140%) saturate(180%);
+    :hover {
+    filter: hue-rotate(-5deg) brightness(110%) contrast(140%) saturate(180%) drop-shadow(0 0 3px #fff)
+    }
 `;
 
 const GreenDeckImage = styled(DeckImage)`
     filter: hue-rotate(-90deg) saturate(120%) brightness(110%) contrast(100%);
+  :hover {
+    filter: hue-rotate(-90deg) saturate(120%) brightness(110%) contrast(100%) drop-shadow(0 0 3px #fff)
+  }
 `;
 
 const YellowDeckImage = styled(DeckImage)`
     filter: hue-rotate(162deg) saturate(180%) brightness(120%);
+  :hover {
+    filter: hue-rotate(162deg) saturate(180%) brightness(120%) drop-shadow(0 0 3px #fff)
+  }
 `;
 
 const RedDeckImage = styled(DeckImage)`
   filter: hue-rotate(120deg) saturate(130%);
+    :hover {
+    filter: hue-rotate(120deg) saturate(130%) drop-shadow(0 0 3px #fff)
+      
+    }
 `;
