@@ -23,10 +23,13 @@ class ProfileServiceTest {
     @Mock
     private IdService idService;
 
+    @Mock
+    private UserIdService userIdService;
+
     @BeforeEach
     void setUp() {
         openMocks(this);
-        profileService = new ProfileService(deckRepo, idService);
+        profileService = new ProfileService(deckRepo, idService, userIdService);
     }
 
     Card exampleCard = new Card(
@@ -47,7 +50,7 @@ class ProfileServiceTest {
     );
 
     Card[] cards = {exampleCard, exampleCard, exampleCard};
-    Deck exampleDeck = new Deck("12345","New Deck", cards);
+    Deck exampleDeck = new Deck("12345","New Deck", cards, "authorId");
     DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards);
     @Test
     void testFetchCards() {
@@ -80,7 +83,7 @@ class ProfileServiceTest {
 
     @Test
     void testUpdateDeck() {
-        Deck exampleDeck = new Deck("12345","New Deck", cards);
+        Deck exampleDeck = new Deck("12345","New Deck", cards, "authorId");
         when(deckRepo.findById("12345")).thenReturn(java.util.Optional.of(exampleDeck));
         profileService.updateDeck("12345", exampleDeckWithoutId);
 

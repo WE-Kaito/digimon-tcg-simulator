@@ -17,8 +17,11 @@ export default function Profile({user}: { user: string }) {
 
     useEffect(() => {
         fetchDecks();
+    }, [fetchDecks]);
+
+    useEffect(() => {
         getActiveDeck();
-    }, [fetchDecks, getActiveDeck, activeDeckId]);
+    }, [getActiveDeck, activeDeckId]);
 
     return (
         <Wrapper>
@@ -27,10 +30,10 @@ export default function Profile({user}: { user: string }) {
                 <ToastContainer/>
                 <BackButton/>
             </div>
-            {!isLoading &&
+
                 <Container>
-                    {decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
-                </Container>}
+                    {!isLoading && decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
+                </Container>
         </Wrapper>
     );
 }

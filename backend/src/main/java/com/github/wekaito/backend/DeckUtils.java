@@ -6,12 +6,12 @@ import java.util.stream.Collectors;
 
 public class DeckUtils {
 
-    public static String deckToString(String id, String name, Card[] cards) {
+    public static String deckToString(String id, String name, Card[] cards, String authorId) {
         String cardsJson = Arrays.stream(cards)
                 .map(card -> cardToString(card))
                 .collect(Collectors.joining(","));
 
-        return "{\"id\":\"" + id + "\",\"name\":\"" + name + "\",\"cards\":[" + cardsJson + "]}";
+        return "{\"id\":\"" + id + "\",\"name\":\"" + name + "\",\"cards\":[" + cardsJson + "],\"authorId\":\"" + authorId + "\"}";
     }
 
     public static String deckWithoutIdToString(String name, Card[] cards) {
@@ -32,7 +32,7 @@ public class DeckUtils {
     }
 
     public static int hashCode(Deck deck) {
-        return Objects.hash(deck.id(), deck.name(), Arrays.hashCode(deck.cards()));
+        return Objects.hash(deck.id(), deck.name(), Arrays.hashCode(deck.cards()), deck.authorId());
     }
 
     public static int hashCode(DeckWithoutId deckWithoutId) {
@@ -45,7 +45,8 @@ public class DeckUtils {
 
         return Objects.equals(deck1.id(), deck2.id()) &&
                 Objects.equals(deck1.name(), deck2.name()) &&
-                Arrays.equals(deck1.cards(), deck2.cards());
+                Arrays.equals(deck1.cards(), deck2.cards()) &&
+                Objects.equals(deck1.authorId(), deck2.authorId());
     }
 
     public static boolean areDecksWithoutIdEqual(DeckWithoutId deck1, DeckWithoutId deck2) {

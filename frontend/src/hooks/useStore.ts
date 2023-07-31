@@ -38,7 +38,7 @@ type State = {
     clearDeck: () => void,
     login: (userName: string, password: string, navigate: NavigateFunction) => void,
     me: () => void,
-    register: (userName:string, password: string, repeatedPassword: string, setPassword: (password:string) => void, setRepeatedPassword: (repeatedPassword:string) => void, setRegisterPage: (state: boolean) => void) => void,
+    register: (userName: string, password: string, repeatedPassword: string, setPassword: (password: string) => void, setRepeatedPassword: (repeatedPassword: string) => void, setRegisterPage: (state: boolean) => void) => void,
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
 };
@@ -293,7 +293,7 @@ export const useStore = create<State>((set, get) => ({
             }
         })
             .then(response => {
-                set({user:response.data})
+                set({user: response.data})
                 navigate("/");
                 window.location.reload();
             })
@@ -302,7 +302,7 @@ export const useStore = create<State>((set, get) => ({
 
     me: () => {
         axios.get("/api/user/me")
-            .then(response => set({user:response.data}))
+            .then(response => set({user: response.data}))
     },
 
     register: (userName, password, repeatedPassword, setPassword, setRepeatedPassword, setRegisterPage) => {
@@ -335,12 +335,11 @@ export const useStore = create<State>((set, get) => ({
     },
 
     setActiveDeck: (deckId) => {
-        set({isLoading: true})
         axios.put(`/api/user/active-deck/${deckId}`, null)
             .catch(console.error)
             .finally(() => {
                 set({activeDeckId: deckId});
-                set({isLoading: false})});
+            });
     },
 
     getActiveDeck: () => {
