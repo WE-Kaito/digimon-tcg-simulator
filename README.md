@@ -19,7 +19,7 @@ Fully functional deckbuilder using the [Digimon TCG API](https://documenter.getp
 
 - **Deployment:** GitHub Actions for CI/CD, Docker
 
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-frontend)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=we-kaito_digimon-tcg-simulator-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-backend)
 
 
  <sub>
