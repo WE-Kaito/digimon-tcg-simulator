@@ -3,6 +3,7 @@ package com.github.wekaito.backend;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -24,7 +25,7 @@ public class ProfileController {
     }
 
     @GetMapping("/decks")
-    public Deck[] getDecks() {
+    public List<Deck> getDecks() {
         return this.profileService.getDecks();
     }
 

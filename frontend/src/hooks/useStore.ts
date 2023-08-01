@@ -3,7 +3,15 @@ import {CardType, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts"
 import axios from "axios";
 import {uid} from "uid";
 import 'react-toastify/dist/ReactToastify.css';
-import {notifyDelete, notifyError, notifyLength, notifyName, notifySuccess, notifyUpdate} from "../utils/toasts.ts";
+import {
+    notifyAlreadyExists,
+    notifyDelete,
+    notifyError,
+    notifyLength,
+    notifyName, notifyRegistered,
+    notifySuccess,
+    notifyUpdate
+} from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
 
 type State = {
@@ -14,6 +22,9 @@ type State = {
     decks: DeckType[],
     nameOfDeckToEdit: string,
     user: string,
+    activeDeckId: string,
+    isSaving: boolean,
+    avatarName: string,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -29,7 +40,11 @@ type State = {
     clearDeck: () => void,
     login: (userName: string, password: string, navigate: NavigateFunction) => void,
     me: () => void,
-    register: (userName:string, password: string, repeatedPassword: string, setPassword: (password:string) => void, setRepeatedPassword: (repeatedPassword:string) => void, setRegisterPage: (state: boolean) => void) => void
+    register: (userName: string, password: string, repeatedPassword: string, setPassword: (password: string) => void, setRepeatedPassword: (repeatedPassword: string) => void, setRegisterPage: (state: boolean) => void) => void,
+    setActiveDeck: (deckId: string) => void,
+    getActiveDeck: () => void,
+    setAvatar: (avatarName: string) => void,
+    getAvatar: () => void,
 };
 
 
@@ -43,6 +58,9 @@ export const useStore = create<State>((set, get) => ({
     decks: [],
     nameOfDeckToEdit: "",
     user: "",
+    activeDeckId: "",
+    isSaving: false,
+    avatarName: "",
 
     fetchCards: (name,
                  color,
@@ -162,6 +180,7 @@ export const useStore = create<State>((set, get) => ({
     },
 
     saveDeck: (name) => {
+        set({isSaving: true});
         const deckToSave = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -191,6 +210,7 @@ export const useStore = create<State>((set, get) => ({
                 notifySuccess() &&
                 setTimeout(function () {
                     window.location.reload();
+                    set({isSaving: false});
                 }, 3000));
     },
 
@@ -281,7 +301,7 @@ export const useStore = create<State>((set, get) => ({
             }
         })
             .then(response => {
-                set({user:response.data})
+                set({user: response.data})
                 navigate("/");
                 window.location.reload();
             })
@@ -290,7 +310,7 @@ export const useStore = create<State>((set, get) => ({
 
     me: () => {
         axios.get("/api/user/me")
-            .then(response => set({user:response.data}))
+            .then(response => set({user: response.data}))
     },
 
     register: (userName, password, repeatedPassword, setPassword, setRepeatedPassword, setRegisterPage) => {
@@ -305,13 +325,49 @@ export const useStore = create<State>((set, get) => ({
                 .then(response => {
                     console.error(response)
                     setRegisterPage(false);
+                    if (response.data === "Username already exists!") {
+                        notifyAlreadyExists();
+                    }
+                    if (response.data === "Successfully registered!") {
+                        notifyRegistered();
+                    }
                 })
-                .catch(console.error)
+                .catch((e) => {
+                    console.error(e);
+                });
 
         } else {
             setPassword("");
             setRepeatedPassword("");
         }
     },
+
+    setActiveDeck: (deckId) => {
+        axios.put(`/api/user/active-deck/${deckId}`, null)
+            .catch(console.error)
+            .finally(() => {
+                set({activeDeckId: deckId});
+            });
+    },
+
+    getActiveDeck: () => {
+        axios.get("/api/user/active-deck")
+            .then(response => set({activeDeckId: response.data}))
+            .catch(console.error);
+    },
+
+    setAvatar: (avatarName) => {
+        axios.put(`/api/user/avatar/${avatarName}`, null)
+            .catch(console.error)
+            .finally(() => {
+                set({avatarName: avatarName});
+            });
+    },
+
+    getAvatar: () => {
+        axios.get("/api/user/avatar")
+            .then(response => set({avatarName: response.data}))
+            .catch(console.error);
+    }
 
 }));

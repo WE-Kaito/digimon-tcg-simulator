@@ -5,6 +5,7 @@ import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {ToastContainer} from "react-toastify";
 import {Headline2} from "../components/Header.tsx";
+import ChooseAvatar from "../components/ChooseAvatar.tsx";
 
 
 export default function Profile({user}: { user: string }) {
@@ -12,41 +13,58 @@ export default function Profile({user}: { user: string }) {
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
     const isLoading = useStore((state) => state.isLoading);
+    const getActiveDeck = useStore((state) => state.getActiveDeck);
+    const activeDeckId = useStore((state) => state.activeDeckId);
 
     useEffect(() => {
         fetchDecks();
     }, [fetchDecks]);
 
+    useEffect(() => {
+        getActiveDeck();
+    }, [getActiveDeck, activeDeckId]);
+
     return (
         <Wrapper>
-            <div style={{display: "flex", justifyContent:"space-between", padding: "10px"}}>
+            <Header>
                 <Headline2 style={{transform: "translateY(-8px)"}}>{user}</Headline2>
                 <ToastContainer/>
                 <BackButton/>
-            </div>
-            {!isLoading &&
-                <Container>
-                    {decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
-                </Container>}
+            </Header>
+            <ChooseAvatar/>
+            <Container>
+                {!isLoading && decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
+            </Container>
         </Wrapper>
     );
 }
 
 const Wrapper = styled.div`
-display: flex;
+  display: flex;
   height: 100vh;
-flex-direction: column;
+  flex-direction: column;
   justify-content: space-between;
 `;
 
 const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  gap: 1.5vw;
   align-items: flex-start;
   background: #0e0e0e;
   border-radius: 10px;
   width: 100vw;
   height: 410px;
   max-width: 1000px;
+`;
+
+const Header = styled.div`
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    margin-top: 5vh;
+  
+    @media (max-width: 766px) {
+      margin-top: 1.5vh;
+    }
 `;

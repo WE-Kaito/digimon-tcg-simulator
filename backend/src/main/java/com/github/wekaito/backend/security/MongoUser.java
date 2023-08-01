@@ -9,7 +9,7 @@ public record MongoUser(
         String id,
         String username,
         String password,
-
-        String activeDeckId
+        String activeDeckId,
+        String avatarName
 ) {
 }

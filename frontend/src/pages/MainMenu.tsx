@@ -11,6 +11,7 @@ export default function MainMenu() {
             <MenuButton name={"Find game"} path={"/"}/>
             <MenuButton name={"Deckbuilder"} path={"/deckbuilder"}/>
             <MenuButton name={"Profile"} path={"/profile"}/>
+            <MenuButton name={"LOGOUT"} path={"/login"}/>
         </Wrapper>
     );
 }
@@ -22,5 +23,6 @@ const Wrapper = styled.div`
   gap: 5vh;
   font-size: 19px;
   transform: translateY(-7.5vh);
+  margin-top: 15.5vh;
 `;
 

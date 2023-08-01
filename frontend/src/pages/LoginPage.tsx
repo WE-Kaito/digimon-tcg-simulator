@@ -3,6 +3,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
+import {ToastContainer} from "react-toastify";
 
 
 export default function LoginPage() {
@@ -28,6 +29,9 @@ export default function LoginPage() {
     function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         register(userNameReg, passwordReg, repeatedPassword, setPassword, setRepeatedPassword, setRegisterPage);
+        setPasswordReg("");
+        setRepeatedPassword("");
+        setUserNameReg("");
     }
 
     function passWordColor() {
@@ -65,6 +69,7 @@ export default function LoginPage() {
 
     return (
         <Wrapper>
+            <ToastContainer/>
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)} type="text" name="userName"
@@ -103,11 +108,11 @@ export default function LoginPage() {
                 <InputField value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
                             type="password" name="RepeatPassword" placeholder="repeat password"
                             style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
-                <div style={{marginTop: "50px"}}>
+                <ButtonContainer>
                     <BackButton type="button"
                                 onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
                     <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
-                </div>
+                </ButtonContainer>
 
             </StyledForm2>}
         </Wrapper>
@@ -119,7 +124,7 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding-top: 25%;
+  padding-top: 10vh;
 `;
 
 export const LoginPageButton = styled.button`
@@ -180,6 +185,9 @@ const StyledForm = styled.form`
   gap: 40px;
   align-items: center;
   justify-content: center;
+  @media (max-width: 767px) {
+    gap: 20px;
+  }
 `;
 
 const StyledForm2 = styled.form`
@@ -190,6 +198,11 @@ const StyledForm2 = styled.form`
   gap: 40px;
   align-items: center;
   justify-content: center;
+  
+  @media (max-width: 767px) {
+    gap: 20px;
+    margin-top: 35px;
+  }
 `;
 
 const StyledInfo = styled.span`
@@ -220,4 +233,12 @@ const BackButton = styled(RegisterButton)`
 const ButtonSpan = styled.span`
   font-family: 'Pixel Digivolve', sans-serif;
   letter-spacing: 1px;
+`;
+
+const ButtonContainer = styled.div`
+margin-top: 50px;
+  @media (max-width: 767px) {
+    margin-top: 32px;
+  }
+
 `;

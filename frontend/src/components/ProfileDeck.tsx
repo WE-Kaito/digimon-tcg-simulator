@@ -2,6 +2,7 @@ import {CardType, DeckType} from "../utils/types.ts";
 import styled from "@emotion/styled";
 import deckBack from '../assets/deckBack.png';
 import {useNavigate} from "react-router-dom";
+import {useStore} from "../hooks/useStore.ts";
 
 function ColoredDeckImage(color:string | null, id: string) {
 
@@ -31,6 +32,9 @@ function ColoredDeckImage(color:string | null, id: string) {
 }
 
 export default function ProfileDeck({deck}:{deck:DeckType}) {
+
+    const setActiveDeck = useStore(state => state.setActiveDeck);
+    const activeDeckId = useStore(state => state.activeDeckId);
 
 
     const findMostFrequentColor = (cards: CardType[]) => {
@@ -63,11 +67,15 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
         return mostFrequentColor;
     };
 
+    const isActiveDeck = deck.id === activeDeckId;
 
     return (
         <Container>
             <DeckName>{deck.name}</DeckName>
-            <ActiveButton>Active</ActiveButton>
+            <ActiveButton style={{backgroundColor: isActiveDeck ? "lightcyan" : "black", color: isActiveDeck ? "black" : "white"}}
+            onClick={() => {
+                setActiveDeck(deck.id);
+            }}>Active</ActiveButton>
            {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards), deck.id) : null}
         </Container>
     );
@@ -98,10 +106,41 @@ const Container = styled.div`
 
 const ActiveButton = styled.button`
   grid-area: button;
-  background: #a61515;
-  margin:10px;
+  padding: 0;
+  margin: 20px;
   @media (max-width: 500px) {
     margin: 2px;
+    transform: scale(0.725);
+  }
+
+  border-bottom: 1px solid #131313;
+  border-right: 1px solid #131313;
+
+  cursor: pointer;
+  width: 100px;
+  height: 40px;
+  border-radius: 0;
+  background: #D9D9D9;
+  font-family: Pixel Digivolve, sans-serif;
+  font-size: 22px;
+  color: #0c0c0c;
+  box-shadow: 6px 12px 1px 0 rgb(0, 0, 0);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: lightgray;
+    transform: translateY(1px);
+    box-shadow: 4px 8px 1px 0 rgba(0, 0, 0, 0.9);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:active {
+    background: #f8f8f8;
+    transform: translateY(2px);
+    box-shadow: 2px 4px 1px 0 rgba(0, 0, 0, 0.8);
   }
 `;
 

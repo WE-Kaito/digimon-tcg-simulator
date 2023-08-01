@@ -21,6 +21,7 @@ const Headline = styled.h1`
   -webkit-text-stroke: 2px navy;
   @media (max-width: 766px) {
     font-size: 45px;
+    margin-left: 12px;
   }
 `;
 
@@ -36,5 +37,6 @@ export const Headline2 = styled.h2`
 
   @media (max-width: 766px) {
     font-size: 35px;
+    margin-left: 12px;
   }
 `;

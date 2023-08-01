@@ -3,7 +3,7 @@ package com.github.wekaito.backend;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document("decks")
-public record Deck(String id, String name, Card[] cards) {
+public record Deck(String id, String name, Card[] cards, String authorId) {
 
     @Override
     public boolean equals(Object o) {
@@ -20,6 +20,6 @@ public record Deck(String id, String name, Card[] cards) {
 
     @Override
     public String toString() {
-        return DeckUtils.deckToString(id, name, cards);
+        return DeckUtils.deckToString(id, name, cards, authorId);
     }
 }

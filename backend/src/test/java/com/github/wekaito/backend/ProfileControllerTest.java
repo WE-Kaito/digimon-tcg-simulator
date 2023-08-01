@@ -147,7 +147,7 @@ class ProfileControllerTest {
 
         String id = decks[0].id();
 
-        Deck exampleDeck = new Deck(id,"New Deck2", cards);
+        Deck exampleDeck = new Deck(id,"New Deck2", cards, "authorId");
         String requestBody2 = objectMapper.writeValueAsString(exampleDeck);
 
         mockMvc.perform(
