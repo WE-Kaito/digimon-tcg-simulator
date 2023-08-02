@@ -1,18 +1,32 @@
 import BackButton from "../components/BackButton.tsx";
 import useWebSocket from "react-use-websocket";
-import {useState} from "react";
+import {FormEvent, useState} from "react";
 import {Headline2} from "../components/Header.tsx";
 import {ToastContainer} from "react-toastify";
 import styled from "@emotion/styled";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
+    const [messages, setMessages] = useState<string[]>([]);
+    const [message, setMessage] = useState<string>("");
 
     const websocket = useWebSocket("ws://localhost:8080/api/ws/chat", {
         onMessage: (event) => {
-            setUsernames(event.data.split(", "));
+            if (event.data.startsWith("CHAT_MESSAGE:")) {
+                setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+            } else {
+                setUsernames(event.data.split(", "));
+            }
         },
     });
+
+    function handleSubmit (e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        if (message !== "") {
+            websocket.sendMessage(message);
+            setMessage("");
+        }
+    }
 
     return (
         <Wrapper>
@@ -29,10 +43,31 @@ export default function Lobby({user}: { user: string }) {
 
             <Container>
                 <UserList>
-                {usernames.length > 1 ?
-                    usernames.map((username) => (username !== user && <User key={username}>{username}</User>))
-                    : <span style={{fontFamily: "'Pixel Digivolve', sans-serif"}}>Currently nobody here...</span>}
+                    {usernames.length > 1 ?
+                        usernames.map((username) => (username !== user && <User key={username}>{username}</User>))
+                        : <span style={{fontFamily: "'Pixel Digivolve', sans-serif"}}>Currently nobody here...</span>}
                 </UserList>
+                <Chat>
+                    <History>
+                        {messages.map((message) => {
+                            const colonIndex = message.indexOf(":");
+                            if (colonIndex !== -1) {
+                                const name = message.substring(0, colonIndex);
+                                const content = message.substring(colonIndex + 1);
+                                return (
+                                    <div style={{display: "flex"}} key={message}>
+                                        <StyledSpan><span>{name}</span>:{content}</StyledSpan>
+                                    </div>
+                                );
+                            }
+                            return <div key={message}>{message}</div>;
+                        })}
+                    </History>
+                    <InputContainer onSubmit={handleSubmit}>
+                    <StyledInput value={message} placeholder="..." onChange={(e) => setMessage(e.target.value)}></StyledInput>
+                    <StyledButton>SEND</StyledButton>
+                    </InputContainer>
+                </Chat>
             </Container>
         </Wrapper>
     );
@@ -94,14 +129,16 @@ const ConnectionSpanRed = styled(ConnectionSpanGreen)`
 
 const Container = styled.div`
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   margin-top: 5vh;
   width: 97.75vw;
   height: 85%;
   max-width: 1000px;
   background: #101a3d;
   border: 4px solid #0c6fc9;
+  border-radius: 2px;
   box-shadow: inset 0 0 5px #0c6fc9;
   @media (min-width: 1000px) {
     border-top-right-radius: 15px;
@@ -121,6 +158,7 @@ const UserList = styled.div`
   gap: 16px;
   box-shadow: inset 0px -20px 10px #101a3d;
   overflow-y: scroll;
+
   ::-webkit-scrollbar {
     opacity: 0;
   }
@@ -134,6 +172,7 @@ const User = styled.span`
   font-family: Pixel Digivolve, sans-serif;
   text-align: left;
   padding-left: 4vw;
+  padding-bottom: 1vh;
   text-overflow: clip;
   font-size: 3.8vh;
   border: 3px solid #cc6601;
@@ -142,10 +181,103 @@ const User = styled.span`
   @media (min-width: 1000px) {
     border-width: 3px;
   }
-  
+
   @media (max-width: 500px) {
     font-size: 3vh;
     height: 12%;
   }
+
+`;
+
+const Chat = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: black;
+  border: 5px solid white;
+  border-radius: 2px;
+  box-shadow: inset 0 0 3px ghostwhite;
+  filter: drop-shadow(0 0 3px ghostwhite);
+
+  padding: 25px;
+  width: 84.5%;
+  height: 50%;
   
+  @media (max-width: 500px) {
+    border: 3px solid white;
+    padding: 4vw;
+    width: 89%;
+  }
+`;
+
+const History = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+
+`;
+
+const StyledSpan = styled.span`
+
+  font-family: Cousine, sans-serif;
+  text-align: left;
+  
+  span {
+    color: #cc6601;
+    font-weight: bold;
+  }
+
+`;
+
+const StyledInput = styled.input`
+  width: 90%;
+  padding-left: 10px;
+  overflow-y: clip;
+  height: 30px;
+  font-family: Cousine, sans-serif;
+  border: none;
+  font-size: 1.05em;
+  background: papayawhip;
+  color: #1a1a1a;
+`;
+
+const InputContainer = styled.form`
+  width: 100%;
+  height: 100%;
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+`;
+
+const StyledButton = styled.button`
+  padding: 0;
+  cursor: pointer;
+  width: 100px;
+  margin-left: 20px;
+  height: 32px;
+  border-radius: 0;
+  background: #cc6601;
+  font-family: Pixel Digivolve, sans-serif;
+  font-size: 24px;
+  color: #0e0e0e;
+  box-shadow: 2px 2px 2px 0 #262626;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #e5862c;
+    color: black;
+    transform: translateY(1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:active {
+    background: #a3da31;
+    transform: translateY(2px);
+  }
 `;

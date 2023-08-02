@@ -55,4 +55,16 @@ public class ChatService extends TextWebSocketHandler {
             }
         }
     }
+
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        String payload = message.getPayload();
+
+        TextMessage textMessage = new TextMessage("CHAT_MESSAGE:" + username + ": " + payload);
+
+        for (WebSocketSession webSocketSession : activeSessions) {
+                webSocketSession.sendMessage(textMessage);
+        }
+    }
 }
