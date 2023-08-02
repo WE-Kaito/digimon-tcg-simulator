@@ -1,6 +1,5 @@
 package com.github.wekaito.backend.websocket;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.annotation.DirtiesContext;
@@ -8,6 +7,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,7 +38,7 @@ class ChatServiceTest {
 
     @Test
     @DirtiesContext
-    void testConnection() {
+    void testConnection() throws IOException {
         chatService.afterConnectionEstablished(session1);
 
         Set<WebSocketSession> activeSessions = new HashSet<>();
@@ -71,5 +71,25 @@ class ChatServiceTest {
             // broadcastConnectedUsernames() is called in afterConnectionEstablished()
             verify(session, times(1)).sendMessage(message);
         }
+    }
+
+    @Test
+    @DirtiesContext
+    void testHandleTextMessage() throws Exception {
+        TextMessage incomingMessage1 = new TextMessage("Hello!");
+        TextMessage incomingMessage2 = new TextMessage("Test message.");
+
+        chatService.afterConnectionEstablished(session1);
+        chatService.afterConnectionEstablished(session2);
+
+        chatService.handleTextMessage(session1, incomingMessage1);
+        chatService.handleTextMessage(session2, incomingMessage2);
+
+        TextMessage outgoingMessage1 = new TextMessage("CHAT_MESSAGE:testUser1: Hello!");
+        TextMessage outgoingMessage2 = new TextMessage("CHAT_MESSAGE:testUser2: Test message.");
+
+        verify(session1, times(1)).sendMessage(outgoingMessage1);
+        verify(session2, times(1)).sendMessage(outgoingMessage2);
+        verify(session3, never()).sendMessage(any());
     }
 }

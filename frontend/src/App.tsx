@@ -12,7 +12,6 @@ import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
-
 function App() {
 
     const me = useStore((state) => state.me);
@@ -21,10 +20,30 @@ function App() {
     const location = useLocation();
 
     useEffect(() => {
-        // Update the background image based on the page
         const body = document.body;
-        if (location.pathname === "/login") {
-            body.style.backgroundImage = "none";
+
+        switch (location.pathname) {
+            case "/":
+                body.className = "main-background";
+                break;
+            case "/profile":
+                body.className = "main-background";
+                break;
+            case "/deckbuilder":
+                body.className = "main-background";
+                break;
+            case "/update-deck":
+                body.className = "main-background";
+                break;
+            case "/login":
+                body.className = "login-background";
+                break;
+            case "/lobby":
+                body.className = "lobby-background";
+                break;
+            default:
+                body.className = "main-background";
+                break;
         }
     }, [location.pathname]);
 

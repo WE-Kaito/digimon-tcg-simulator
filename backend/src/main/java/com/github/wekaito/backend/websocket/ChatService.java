@@ -26,7 +26,7 @@ public class ChatService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
+    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         activeSessions.add(session);
         connectedUsernames.add(username);
@@ -35,7 +35,7 @@ public class ChatService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         activeSessions.remove(session);
         connectedUsernames.remove(username);
@@ -43,16 +43,24 @@ public class ChatService extends TextWebSocketHandler {
         broadcastConnectedUsernames();
     }
 
-    void broadcastConnectedUsernames() {
+    void broadcastConnectedUsernames() throws IOException  {
         String userListMessage = String.join(", ", connectedUsernames);
         TextMessage message = new TextMessage(userListMessage);
 
         for (WebSocketSession session : activeSessions) {
-            try {
                 session.sendMessage(message);
-            } catch (IOException e) {
-                e.getCause();
-            }
+        }
+    }
+
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        String payload = message.getPayload();
+
+        TextMessage textMessage = new TextMessage("CHAT_MESSAGE:" + username + ": " + payload);
+
+        for (WebSocketSession webSocketSession : activeSessions) {
+                webSocketSession.sendMessage(textMessage);
         }
     }
 }

@@ -34,6 +34,19 @@ body {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
+  transition: background-image 0.3s;
+}
+
+.main-background {
+  background-image: url("./assets/background.jpg");
+}
+
+.lobby-background {
+  background-image: url("./assets/lobbybg.jpg");
+}
+
+.login-background {
+  background-image: none;
 }
 
 h1 {
