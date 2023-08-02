@@ -36,24 +36,18 @@ class ChatServiceTest {
         return session;
     }
 
-    @AfterEach
-    void tearDown() {
-        chatService = null;
-    }
-
     @Test
     @DirtiesContext
     void testConnection() {
-        WebSocketSession session = createMockSession("testUser");
-        chatService.afterConnectionEstablished(session);
+        chatService.afterConnectionEstablished(session1);
 
         Set<WebSocketSession> activeSessions = new HashSet<>();
-        activeSessions.add(session);
+        activeSessions.add(session1);
 
         assertThat(chatService.getActiveSessions()).isEqualTo(activeSessions);
-        assertThat(chatService.getConnectedUsernames()).contains("testUser");
+        assertThat(chatService.getConnectedUsernames()).contains("testUser1");
 
-        chatService.afterConnectionClosed(session, CloseStatus.NORMAL);
+        chatService.afterConnectionClosed(session1, CloseStatus.NORMAL);
         assertThat(chatService.getActiveSessions()).isEmpty();
         assertThat(chatService.getConnectedUsernames()).isEmpty();
     }
