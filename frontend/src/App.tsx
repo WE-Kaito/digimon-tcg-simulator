@@ -21,14 +21,29 @@ function App() {
 
     useEffect(() => {
         const body = document.body;
-        if (location.pathname === ("/" || "/profile" || "/deckbuilder" || "/update-deck")) {
-            body.className = "main-background";
-        }
-        if (location.pathname === "/login") {
-            body.className = "login-background";
-        }
-        if (location.pathname === "/lobby") {
-            body.className = "lobby-background";
+
+        switch (location.pathname) {
+            case "/":
+                body.className = "main-background";
+                break;
+            case "/profile":
+                body.className = "main-background";
+                break;
+            case "/deckbuilder":
+                body.className = "main-background";
+                break;
+            case "/update-deck":
+                body.className = "main-background";
+                break;
+            case "/login":
+                body.className = "login-background";
+                break;
+            case "/lobby":
+                body.className = "lobby-background";
+                break;
+            default:
+                body.className = "main-background";
+                break;
         }
     }, [location.pathname]);
 
