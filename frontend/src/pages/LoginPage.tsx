@@ -68,7 +68,7 @@ export default function LoginPage() {
     }
 
     return (
-        <Wrapper>
+        <Wrapper className="login-background">
             <ToastContainer/>
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
@@ -123,7 +123,7 @@ const Wrapper = styled.div`
   height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   padding-top: 10vh;
 `;
 

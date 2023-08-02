@@ -1,6 +1,6 @@
 import BackButton from "../components/BackButton.tsx";
 import useWebSocket from "react-use-websocket";
-import {FormEvent, useState} from "react";
+import {FormEvent, useEffect, useRef, useState} from "react";
 import {Headline2} from "../components/Header.tsx";
 import {ToastContainer} from "react-toastify";
 import styled from "@emotion/styled";
@@ -9,6 +9,13 @@ export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
     const [messages, setMessages] = useState<string[]>([]);
     const [message, setMessage] = useState<string>("");
+    const historyRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (historyRef.current) {
+            historyRef.current.scrollTop = historyRef.current.scrollHeight;
+        }
+    }, [messages]);
 
     const websocket = useWebSocket("ws://localhost:8080/api/ws/chat", {
         onMessage: (event) => {
@@ -45,10 +52,10 @@ export default function Lobby({user}: { user: string }) {
                 <UserList>
                     {usernames.length > 1 ?
                         usernames.map((username) => (username !== user && <User key={username}>{username}</User>))
-                        : <span style={{fontFamily: "'Pixel Digivolve', sans-serif"}}>Currently nobody here...</span>}
+                        : <span style={{fontFamily: "'Pixel Digivolve', sans-serif", fontSize:20}}>Currently nobody here...</span>}
                 </UserList>
                 <Chat>
-                    <History>
+                    <History ref={historyRef}>
                         {messages.map((message) => {
                             const colonIndex = message.indexOf(":");
                             if (colonIndex !== -1) {
@@ -78,6 +85,7 @@ const Wrapper = styled.div`
   height: 100vh;
   flex-direction: column;
   align-items: center;
+  max-height: 100vh;
 `;
 
 const Header = styled.div`
@@ -136,10 +144,7 @@ const Container = styled.div`
   width: 97.75vw;
   height: 85%;
   max-width: 1000px;
-  background: #101a3d;
-  border: 4px solid #0c6fc9;
-  border-radius: 2px;
-  box-shadow: inset 0 0 5px #0c6fc9;
+  
   @media (min-width: 1000px) {
     border-top-right-radius: 15px;
     border-top-left-radius: 15px;
@@ -156,7 +161,6 @@ const UserList = styled.div`
   align-items: center;
   justify-content: flex-start;
   gap: 16px;
-  box-shadow: inset 0px -20px 10px #101a3d;
   overflow-y: scroll;
 
   ::-webkit-scrollbar {
@@ -175,9 +179,9 @@ const User = styled.span`
   padding-bottom: 1vh;
   text-overflow: clip;
   font-size: 3.8vh;
-  border: 3px solid #cc6601;
-  box-shadow: inset 0 0 5px #cc6601;
-  filter: drop-shadow(0 0 4px #cc6601);
+  border: 3px solid #dcb415;
+  box-shadow: inset 0 0 5px #dcb415;
+  filter: drop-shadow(0 0 4px #dcb415);
   @media (min-width: 1000px) {
     border-width: 3px;
   }
@@ -215,17 +219,28 @@ const History = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  height: 1000%;
+  max-height: 400px;
+  width: 100%;
+  overflow-y: scroll;
 
+  ::-webkit-scrollbar {
+    background: #1e1f10 ;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: papayawhip ;
+  }
 `;
 
 const StyledSpan = styled.span`
 
   font-family: Cousine, sans-serif;
   text-align: left;
-  
+
   span {
-    color: #cc6601;
+    color: #dcb415;
     font-weight: bold;
   }
 
@@ -259,7 +274,7 @@ const StyledButton = styled.button`
   margin-left: 20px;
   height: 32px;
   border-radius: 0;
-  background: #cc6601;
+  background: #dcb415;
   font-family: Pixel Digivolve, sans-serif;
   font-size: 24px;
   color: #0e0e0e;
@@ -267,7 +282,7 @@ const StyledButton = styled.button`
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: #e5862c;
+    background-color: #fccb0b;
     color: black;
     transform: translateY(1px);
   }

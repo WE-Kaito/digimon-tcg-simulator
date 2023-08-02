@@ -36,6 +36,18 @@ body {
   background-position: center;
 }
 
+.main-background {
+  background-image: url("./assets/background.jpg");
+}
+
+.lobby-background {
+  background-image: url("./assets/lobbybg.jpg");
+}
+
+.login-background {
+  background-image: none;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;

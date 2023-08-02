@@ -12,6 +12,7 @@ import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
+import lobbybg from "";
 
 function App() {
 
@@ -23,8 +24,14 @@ function App() {
     useEffect(() => {
         // Update the background image based on the page
         const body = document.body;
+        if (location.pathname === ("/" || "/profile" || "/deckbuilder" || "/update-deck")) {
+            body.className = "main-background";
+        }
         if (location.pathname === "/login") {
-            body.style.backgroundImage = "none";
+            body.className = "login-background";
+        }
+        if (location.pathname === "/lobby") {
+            body.className = "lobby-background";
         }
     }, [location.pathname]);
 
