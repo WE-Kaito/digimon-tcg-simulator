@@ -34,6 +34,7 @@ export const Headline2 = styled.h2`
   text-shadow: 1.5px 3px 1px #060e18;
   color: #1d7dfc;
   -webkit-text-stroke: 2px #0830b4;
+  position: relative;
 
   @media (max-width: 766px) {
     font-size: 35px;

@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage.tsx";
 import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
+import Lobby from "./pages/Lobby.tsx";
 
 function App() {
 
@@ -47,6 +48,7 @@ function App() {
                     <Route path="/profile" element={<Profile user={user}/>}/>
                     <Route path="/deckbuilder" element={<Deckbuilder/>}/>
                     <Route path="/update-deck/:id" element={<EditDeck/>}/>
+                    <Route path="/lobby" element={<Lobby user={user}/>}/>
                     <Route path="/*" element={<Navigate to="/"/>}/>
                 </Route>
 

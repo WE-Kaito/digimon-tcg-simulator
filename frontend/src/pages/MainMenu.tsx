@@ -8,7 +8,7 @@ export default function MainMenu() {
     return (
         <Wrapper>
             <Header/>
-            <MenuButton name={"Find game"} path={"/"}/>
+            <MenuButton name={"Find game"} path={"/lobby"}/>
             <MenuButton name={"Deckbuilder"} path={"/deckbuilder"}/>
             <MenuButton name={"Profile"} path={"/profile"}/>
             <MenuButton name={"LOGOUT"} path={"/login"}/>
