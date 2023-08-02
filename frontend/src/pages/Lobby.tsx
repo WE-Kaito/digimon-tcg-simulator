@@ -56,7 +56,6 @@ export default function Lobby({user}: { user: string }) {
                 </UserList>
 
                 <Chat>
-                    <div className="animated-border-box-glow"></div>
                     <History ref={historyRef}>
                         {messages.map((message) => {
                             const colonIndex = message.indexOf(":");
