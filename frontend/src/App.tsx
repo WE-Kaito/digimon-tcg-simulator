@@ -12,8 +12,6 @@ import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
-import lobbybg from "";
-
 function App() {
 
     const me = useStore((state) => state.me);
@@ -22,7 +20,6 @@ function App() {
     const location = useLocation();
 
     useEffect(() => {
-        // Update the background image based on the page
         const body = document.body;
         if (location.pathname === ("/" || "/profile" || "/deckbuilder" || "/update-deck")) {
             body.className = "main-background";

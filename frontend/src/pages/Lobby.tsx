@@ -54,7 +54,9 @@ export default function Lobby({user}: { user: string }) {
                         usernames.map((username) => (username !== user && <User key={username}>{username}</User>))
                         : <span style={{fontFamily: "'Pixel Digivolve', sans-serif", fontSize:20}}>Currently nobody here...</span>}
                 </UserList>
+
                 <Chat>
+                    <div className="animated-border-box-glow"></div>
                     <History ref={historyRef}>
                         {messages.map((message) => {
                             const colonIndex = message.indexOf(":");
@@ -75,6 +77,7 @@ export default function Lobby({user}: { user: string }) {
                     <StyledButton>SEND</StyledButton>
                     </InputContainer>
                 </Chat>
+
             </Container>
         </Wrapper>
     );
@@ -201,9 +204,8 @@ const Chat = styled.div`
   background: black;
   border: 5px solid white;
   border-radius: 2px;
-  box-shadow: inset 0 0 3px ghostwhite;
+  box-shadow: inset 0 0 3px white;
   filter: drop-shadow(0 0 3px ghostwhite);
-
   padding: 25px;
   width: 84.5%;
   height: 50%;
@@ -240,6 +242,7 @@ const StyledSpan = styled.span`
 
   font-family: Cousine, sans-serif;
   text-align: left;
+  color: papayawhip;
 
   span {
     color: #e1b70f;
@@ -259,6 +262,12 @@ const StyledInput = styled.input`
   font-size: 1.05em;
   background: papayawhip;
   color: #1a1a1a;
+  :focus {
+    outline: none;
+    filter: drop-shadow(0 0 2px white);
+    background: ghostwhite;
+    border-radius: 2px;
+  }
 `;
 
 const InputContainer = styled.form`

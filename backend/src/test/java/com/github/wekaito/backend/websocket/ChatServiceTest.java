@@ -7,6 +7,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,7 +38,7 @@ class ChatServiceTest {
 
     @Test
     @DirtiesContext
-    void testConnection() {
+    void testConnection() throws IOException {
         chatService.afterConnectionEstablished(session1);
 
         Set<WebSocketSession> activeSessions = new HashSet<>();
