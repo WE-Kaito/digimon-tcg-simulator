@@ -211,7 +211,9 @@ const Chat = styled.div`
   @media (max-width: 500px) {
     border: 3px solid white;
     padding: 4vw;
-    width: 89%;
+    width: 92%;
+    height: 52%;
+    transform:translateY(0.7vh);
   }
 `;
 
@@ -240,7 +242,8 @@ const StyledSpan = styled.span`
   text-align: left;
 
   span {
-    color: #dcb415;
+    color: #e1b70f;
+    text-shadow: 0 0 1px #ffd11e;
     font-weight: bold;
   }
 
