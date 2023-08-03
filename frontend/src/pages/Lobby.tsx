@@ -16,6 +16,8 @@ export default function Lobby({user}: { user: string }) {
     const [invitationSent, setInvitationSent] = useState<boolean>(false);
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
+    const currentHost = window.location.hostname;
+    const websocketURL = `ws://${currentHost}:8080/api/ws/chat`;
 
     useEffect(() => {
         if (historyRef.current) {
@@ -23,7 +25,7 @@ export default function Lobby({user}: { user: string }) {
         }
     }, [messages]);
 
-    const websocket = useWebSocket("wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat", {
+    const websocket = useWebSocket(websocketURL, {
         onMessage: (event) => {
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
