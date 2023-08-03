@@ -52,6 +52,12 @@ public class ChatService extends TextWebSocketHandler {
         }
     }
 
+    WebSocketSession getInvitedSession(String invitedUsername){
+        return activeSessions.stream()
+                .filter(s -> invitedUsername.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                .findFirst().orElse(null);
+    }
+
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
@@ -62,9 +68,7 @@ public class ChatService extends TextWebSocketHandler {
             String invitedUsername = payload.substring(payload.indexOf(":") + 1).trim();
 
             if (connectedUsernames.contains(invitedUsername)) {
-                WebSocketSession invitedSession = activeSessions.stream()
-                        .filter(s -> invitedUsername.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
-                        .findFirst().orElse(null);
+                WebSocketSession invitedSession = getInvitedSession(invitedUsername);
                 if (invitedSession != null) {
                     invitedSession.sendMessage(new TextMessage("[INVITATION]:" + username));
                 }
@@ -79,9 +83,7 @@ public class ChatService extends TextWebSocketHandler {
         if (payload.startsWith("/abortInvite:")) {
 
             String invitedUsername = payload.substring(payload.indexOf(":") + 1).trim();
-            WebSocketSession invitedSession = activeSessions.stream()
-                    .filter(s -> invitedUsername.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
-                    .findFirst().orElse(null);
+            WebSocketSession invitedSession = getInvitedSession(invitedUsername);
 
             if (invitedSession != null) {
                 invitedSession.sendMessage(new TextMessage("[INVITATION_ABORTED]"));
