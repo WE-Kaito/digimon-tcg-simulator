@@ -23,7 +23,7 @@ export default function Lobby({user}: { user: string }) {
         }
     }, [messages]);
 
-    const websocket = useWebSocket("ws://localhost:8080/api/ws/chat", {
+    const websocket = useWebSocket("ws://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat", {
         onMessage: (event) => {
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
