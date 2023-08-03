@@ -2,6 +2,7 @@ package com.github.wekaito.backend.websocket;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -75,7 +76,7 @@ class ChatServiceTest {
 
     @Test
     @DirtiesContext
-    void testHandleTextMessage() throws Exception {
+    void testHandleTextMessage_ChatMessage() throws Exception {
         TextMessage incomingMessage1 = new TextMessage("Hello!");
         TextMessage incomingMessage2 = new TextMessage("Test message.");
 
@@ -85,11 +86,45 @@ class ChatServiceTest {
         chatService.handleTextMessage(session1, incomingMessage1);
         chatService.handleTextMessage(session2, incomingMessage2);
 
-        TextMessage outgoingMessage1 = new TextMessage("CHAT_MESSAGE:testUser1: Hello!");
-        TextMessage outgoingMessage2 = new TextMessage("CHAT_MESSAGE:testUser2: Test message.");
+        TextMessage outgoingMessage1 = new TextMessage("[CHAT_MESSAGE]:testUser1: Hello!");
+        TextMessage outgoingMessage2 = new TextMessage("[CHAT_MESSAGE]:testUser2: Test message.");
 
         verify(session1, times(1)).sendMessage(outgoingMessage1);
         verify(session2, times(1)).sendMessage(outgoingMessage2);
         verify(session3, never()).sendMessage(any());
     }
+
+    @Test
+    void testInviteUser() throws IOException {
+        // GIVEN
+        chatService.afterConnectionEstablished(session1);
+        chatService.afterConnectionEstablished(session2);
+        TextMessage message = new TextMessage("/invite:testUser2");
+        TextMessage messageReceived = new TextMessage("[INVITATION]:testUser1");
+
+        // WHEN
+        chatService.handleTextMessage(session1, message);
+        chatService.handleTextMessage(session1, message);
+
+        // THEN
+        assertThat(chatService.getConnectedUsernames()).isEmpty();
+        verify(session2, times(1)).sendMessage(messageReceived);
+    }
+
+    @Test
+    void testAbortInvitation() throws IOException {
+        // GIVEN
+        chatService.afterConnectionEstablished(session1);
+        chatService.afterConnectionEstablished(session2);
+        TextMessage message = new TextMessage("/abortInvite:testUser1");
+        TextMessage messageReceived = new TextMessage("[INVITATION_ABORTED]");
+
+        // WHEN
+        chatService.handleTextMessage(session2, message);
+
+        // THEN
+        assertThat(chatService.getConnectedUsernames()).contains("testUser1").contains("testUser2");
+        verify(session1, times(1)).sendMessage(messageReceived);
+    }
 }
+
