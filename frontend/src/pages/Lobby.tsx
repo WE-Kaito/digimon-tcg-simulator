@@ -17,7 +17,7 @@ export default function Lobby({user}: { user: string }) {
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
     const currentHost = window.location.hostname;
-    const websocketURL = `ws://${currentHost}:8080/api/ws/chat`;
+    const websocketURL = `ws://${currentHost}:80/api/ws/chat`;
 
     useEffect(() => {
         if (historyRef.current) {
