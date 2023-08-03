@@ -4,12 +4,18 @@ import {FormEvent, useEffect, useRef, useState} from "react";
 import {Headline2} from "../components/Header.tsx";
 import {ToastContainer} from "react-toastify";
 import styled from "@emotion/styled";
+import Lottie from "lottie-react";
+import loadingAnimation from "../assets/lotties/loading.json";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
     const [messages, setMessages] = useState<string[]>([]);
     const [message, setMessage] = useState<string>("");
     const historyRef = useRef<HTMLDivElement>(null);
+    const [pendingInvitation, setPendingInvitation] = useState<boolean>(false);
+    const [invitationSent, setInvitationSent] = useState<boolean>(false);
+    const [inviteFrom, setInviteFrom] = useState<string>("");
+    const [inviteTo, setInviteTo] = useState<string>("");
 
     useEffect(() => {
         if (historyRef.current) {
@@ -19,7 +25,22 @@ export default function Lobby({user}: { user: string }) {
 
     const websocket = useWebSocket("ws://localhost:8080/api/ws/chat", {
         onMessage: (event) => {
-            if (event.data.startsWith("CHAT_MESSAGE:")) {
+            if (event.data.startsWith("[INVITATION]")) {
+                if (pendingInvitation) return;
+
+                setPendingInvitation(true);
+                setInviteFrom(event.data.substring(event.data.indexOf(":") + 1));
+                setInviteTo("");
+                return;
+            }
+
+            if (event.data.startsWith("[INVITATION_ABORTED]")) {
+                setInvitationSent(false);
+                setPendingInvitation(false);
+                return;
+            }
+
+            if (event.data.startsWith("[CHAT_MESSAGE]")) {
                 setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
             } else {
                 setUsernames(event.data.split(", "));
@@ -27,20 +48,54 @@ export default function Lobby({user}: { user: string }) {
         },
     });
 
-    function handleSubmit (e: FormEvent<HTMLFormElement>) {
+    function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        if (message !== "") {
+        if ((message !== "") && (message !== "/invite:" + user) && (!message.startsWith("/abortInvite"))) {
             websocket.sendMessage(message);
             setMessage("");
         }
     }
 
+    function handleInvite(invitedUsername: string){
+        setInvitationSent(true);
+        setInviteTo(invitedUsername);
+        const invitationMessage = `/invite:` + invitedUsername;
+        websocket.sendMessage(invitationMessage);
+    }
+
+    function handleAbortInvite(isSender: boolean){
+        setInvitationSent(false);
+        setPendingInvitation(false);
+        const abortMessage = `/abortInvite:` + (isSender ? inviteTo : inviteFrom);
+        websocket.sendMessage(abortMessage);
+    }
+
     return (
         <Wrapper>
+            {pendingInvitation &&
+                <InvitationMoodle>
+                    <span>Invitation from {inviteFrom}</span>
+                    <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
+                        <AcceptButton>ACCEPT</AcceptButton>
+                        {//TODO button should navigate to game page, where a new variable ws connection is used and
+                            //TODO send a message to trigger the same for waiting player
+                        }
+                        <DeclineButton onClick={() => handleAbortInvite(false)}>DECLINE</DeclineButton>
+                    </div>
+                </InvitationMoodle>}
+
+            {invitationSent &&
+                <InvitationMoodle style={{gap: 12}}>
+                    <span>Waiting for answer from {inviteTo} ...</span>
+                    <Lottie animationData={loadingAnimation} loop={true} style={{width: "60px"}}/>
+                    <DeclineButton onClick={() => handleAbortInvite(true)} style={{margin: 0}}>ABORT</DeclineButton>
+                </InvitationMoodle>}
+
             <ToastContainer/>
             {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
             {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
             {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
+
             <Header>
                 <Headline2 style={{transform: "translateY(20px)", gridColumnStart: 2}}>
                     Lobby
@@ -51,8 +106,12 @@ export default function Lobby({user}: { user: string }) {
             <Container>
                 <UserList>
                     {usernames.length > 1 ?
-                        usernames.map((username) => (username !== user && <User key={username}>{username}</User>))
-                        : <span style={{fontFamily: "'Pixel Digivolve', sans-serif", fontSize:20}}>Currently nobody here...</span>}
+                        usernames.map((username) => (!pendingInvitation && !invitationSent && username !== user &&
+                            <User key={username}>
+                                {username}
+                                <InviteButton onClick={() => handleInvite(username)}>INVITE</InviteButton>
+                            </User>))
+                        : <span style={{fontFamily: "'Pixel Digivolve', sans-serif", fontSize: 20}}>Currently nobody here...</span>}
                 </UserList>
 
                 <Chat>
@@ -72,11 +131,11 @@ export default function Lobby({user}: { user: string }) {
                         })}
                     </History>
                     <InputContainer onSubmit={handleSubmit}>
-                    <StyledInput value={message} placeholder="..." onChange={(e) => setMessage(e.target.value)}></StyledInput>
-                    <StyledButton>SEND</StyledButton>
+                        <StyledInput value={message} placeholder="..."
+                                     onChange={(e) => setMessage(e.target.value)}></StyledInput>
+                        <StyledButton>SEND</StyledButton>
                     </InputContainer>
                 </Chat>
-
             </Container>
         </Wrapper>
     );
@@ -146,7 +205,7 @@ const Container = styled.div`
   width: 97.75vw;
   height: 85%;
   max-width: 1000px;
-  
+
   @media (min-width: 1000px) {
     border-top-right-radius: 15px;
     border-top-left-radius: 15px;
@@ -165,32 +224,52 @@ const UserList = styled.div`
   gap: 16px;
   overflow-y: scroll;
 
+  @media (max-width: 500px) {
+    gap: 8px;
+  }
+
   ::-webkit-scrollbar {
     opacity: 0;
   }
 `;
 
 const User = styled.span`
-  width: 85%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 80%;
   height: 14%;
   color: ghostwhite;
   background: black;
-  font-family: Pixel Digivolve, sans-serif;
+  font-family: Amiga Forever Pro2, sans-serif;
   text-align: left;
   padding-left: 4vw;
-  padding-bottom: 1vh;
+  padding-top: 0.55vh;
+  padding-right: 4vw;
   text-overflow: clip;
-  font-size: 3.8vh;
+  font-size: 3.2vh;
   border: 3px solid #dcb415;
   box-shadow: inset 0 0 5px #dcb415;
   filter: drop-shadow(0 0 4px #dcb415);
   @media (min-width: 1000px) {
     border-width: 3px;
+    padding-right: 3vw;
+    padding-left: 3vw;
+  }
+
+  @media (min-width: 2000px) {
+    padding-right: 2vw;
+    padding-left: 2vw;
   }
 
   @media (max-width: 500px) {
     font-size: 3vh;
     height: 12%;
+    width: 87%;
+    padding-right: 2vw;
+    box-shadow: inset 0 0 3px #dcb415;
+    filter: drop-shadow(0 0 2px #dcb415);
   }
 
 `;
@@ -208,13 +287,13 @@ const Chat = styled.div`
   padding: 25px;
   width: 84.5%;
   height: 50%;
-  
+
   @media (max-width: 500px) {
     border: 3px solid white;
     padding: 4vw;
     width: 92%;
     height: 52%;
-    transform:translateY(0.7vh);
+    transform: translateY(0.7vh);
   }
 `;
 
@@ -229,11 +308,11 @@ const History = styled.div`
   overflow-y: scroll;
 
   ::-webkit-scrollbar {
-    background: #1e1f10 ;
+    background: #1e1f10;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: papayawhip ;
+    background: papayawhip;
   }
 `;
 
@@ -261,6 +340,7 @@ const StyledInput = styled.input`
   font-size: 1.05em;
   background: papayawhip;
   color: #1a1a1a;
+
   :focus {
     outline: none;
     filter: drop-shadow(0 0 2px white);
@@ -305,5 +385,69 @@ const StyledButton = styled.button`
   &:active {
     background: #a3da31;
     transform: translateY(2px);
+  }
+`;
+
+const InviteButton = styled(StyledButton)`
+  margin-bottom: 5px;
+  @media (max-width: 500px) {
+    font-size: 17px;
+    height: 22px;
+    width: 70px;
+    margin-bottom: 2.5px;
+  }
+`;
+
+const InvitationMoodle = styled.div`
+  position: absolute;
+  top: 25%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 20px 40px 10px;
+
+  width: 16vw;
+  height: 12vh;
+  background: black;
+  z-index: 10;
+  border: 3px solid #dcb415;
+  box-shadow: inset 0 0 5px #dcb415;
+  filter: drop-shadow(0 0 4px #dcb415);
+
+  @media (max-width: 500px) {
+    top: 18%;
+    border: 3px solid #dcb415;
+    padding: 20px 40px 20px 5px;
+    width: 60%;
+    height: 120px;
+    transform: translateY(0.7vh);
+  }
+`;
+
+const AcceptButton = styled(StyledButton)`
+  background: #289a78;
+  font-size: 20px;
+
+  &:hover {
+    background-color: #22c768;
+  }
+
+  &:active {
+    background: #64e7a1;
+  }
+`;
+
+const DeclineButton = styled(StyledButton)`
+  background: #9d1d33;
+  font-size: 20px;
+
+  &:hover {
+    background-color: #b72311;
+  }
+
+  &:active {
+    background: #e12909;
   }
 `;

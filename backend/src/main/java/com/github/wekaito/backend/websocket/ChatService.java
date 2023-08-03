@@ -43,12 +43,12 @@ public class ChatService extends TextWebSocketHandler {
         broadcastConnectedUsernames();
     }
 
-    void broadcastConnectedUsernames() throws IOException  {
+    void broadcastConnectedUsernames() throws IOException {
         String userListMessage = String.join(", ", connectedUsernames);
         TextMessage message = new TextMessage(userListMessage);
 
         for (WebSocketSession session : activeSessions) {
-                session.sendMessage(message);
+            session.sendMessage(message);
         }
     }
 
@@ -57,10 +57,46 @@ public class ChatService extends TextWebSocketHandler {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String payload = message.getPayload();
 
-        TextMessage textMessage = new TextMessage("CHAT_MESSAGE:" + username + ": " + payload);
+        if (payload.startsWith("/invite:")) {
+
+            String invitedUsername = payload.substring(payload.indexOf(":") + 1).trim();
+
+            if (connectedUsernames.contains(invitedUsername)) {
+                WebSocketSession invitedSession = activeSessions.stream()
+                        .filter(s -> invitedUsername.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                        .findFirst().orElse(null);
+                if (invitedSession != null) {
+                    invitedSession.sendMessage(new TextMessage("[INVITATION]:" + username));
+                }
+
+                connectedUsernames.remove(username);
+                connectedUsernames.remove(invitedUsername);
+                broadcastConnectedUsernames();
+            }
+            return;
+        }
+
+        if (payload.startsWith("/abortInvite:")) {
+
+            String invitedUsername = payload.substring(payload.indexOf(":") + 1).trim();
+            WebSocketSession invitedSession = activeSessions.stream()
+                    .filter(s -> invitedUsername.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                    .findFirst().orElse(null);
+
+            if (invitedSession != null) {
+                invitedSession.sendMessage(new TextMessage("[INVITATION_ABORTED]"));
+            }
+
+            connectedUsernames.add(username);
+            connectedUsernames.add(invitedUsername);
+            broadcastConnectedUsernames();
+            return;
+        }
+
+        TextMessage textMessage = new TextMessage("[CHAT_MESSAGE]:" + username + ": " + payload);
 
         for (WebSocketSession webSocketSession : activeSessions) {
-                webSocketSession.sendMessage(textMessage);
+            webSocketSession.sendMessage(textMessage);
         }
     }
 }
