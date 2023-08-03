@@ -17,8 +17,12 @@ export default function Lobby({user}: { user: string }) {
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
     const currentHost = window.location.hostname;
-    const websocketURL = `ws://${currentHost}:80/api/ws/chat`;
+    const currentPort = window.location.port;
+    const port = currentPort === "5173" ? "8080" : "80";
+    const websocketURL = `ws://${currentHost}:${port}/api/ws/chat`;
 
+    console.log("websocketURL: " + websocketURL)
+    console.log("currentPort: " + currentPort)
     useEffect(() => {
         if (historyRef.current) {
             historyRef.current.scrollTop = historyRef.current.scrollHeight;
