@@ -104,6 +104,7 @@ class ChatServiceTest {
 
         // WHEN
         chatService.handleTextMessage(session1, message);
+        chatService.handleTextMessage(session1, message);
 
         // THEN
         assertThat(chatService.getConnectedUsernames()).isEmpty();
