@@ -18,8 +18,8 @@ export default function Lobby({user}: { user: string }) {
     const [inviteTo, setInviteTo] = useState<string>("");
     const currentHost = window.location.hostname;
     const currentPort = window.location.port;
-    const port = currentPort === "5173" ? "8080" : "80";
-    const websocketURL = `ws://${currentHost}:${port}/api/ws/chat`;
+    const port = currentPort === "5173" ? "8080" : "443";
+    const websocketURL = `wss://${currentHost}:${port}/api/ws/chat`;
 
     console.log("websocketURL: " + websocketURL)
     console.log("currentPort: " + currentPort)
