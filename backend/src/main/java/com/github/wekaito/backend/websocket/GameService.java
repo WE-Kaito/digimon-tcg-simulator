@@ -38,37 +38,41 @@ public class GameService extends TextWebSocketHandler {
 
         if (payload.startsWith("/startGame:")) {
             String gameId = parts[1].trim();
-            Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
-            gameRoom.add(session);
+            setUpGame(session, gameId);
+            return;
+        }
 
-            String user1 = gameId.split("_")[0];
-            String user2 = gameId.split("_")[1];
-
-            Card[] deck1 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
-            Card[] deck2 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
-
-            String avatar1 = mongoUserDetailsService.getAvatar(user1);
-            String avatar2 = mongoUserDetailsService.getAvatar(user2);
-
-            Player player1 = new Player(user1, avatar1, deck1);
-            Player player2 = new Player(user2, avatar2, deck2);
-
-            Player[] players = {player1, player2};
-            String playersJson = new ObjectMapper().writeValueAsString(players);
-            TextMessage textMessage = new TextMessage("[START_GAME]:" + playersJson);
-
-            session.sendMessage(textMessage);
-
-        } else {
-            String gameId = parts[0];
-            Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
-            if (gameRoom != null) {
-                TextMessage textMessage = new TextMessage(payload);
-                for (WebSocketSession webSocketSession : gameRoom) {
-                    webSocketSession.sendMessage(textMessage);
-                }
+        String gameId = parts[0];
+        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+        if (gameRoom != null) {
+            TextMessage textMessage = new TextMessage(payload);
+            for (WebSocketSession webSocketSession : gameRoom) {
+                webSocketSession.sendMessage(textMessage);
             }
         }
+    }
+
+    void setUpGame(WebSocketSession session, String gameId) throws IOException{
+        Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
+        gameRoom.add(session);
+
+        String user1 = gameId.split("_")[0];
+        String user2 = gameId.split("_")[1];
+
+        Card[] deck1 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
+        Card[] deck2 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
+
+        String avatar1 = mongoUserDetailsService.getAvatar(user1);
+        String avatar2 = mongoUserDetailsService.getAvatar(user2);
+
+        Player player1 = new Player(user1, avatar1, deck1);
+        Player player2 = new Player(user2, avatar2, deck2);
+
+        Player[] players = {player1, player2};
+        String playersJson = new ObjectMapper().writeValueAsString(players);
+        TextMessage textMessage = new TextMessage("[START_GAME]:" + playersJson);
+
+        session.sendMessage(textMessage);
     }
 
 }

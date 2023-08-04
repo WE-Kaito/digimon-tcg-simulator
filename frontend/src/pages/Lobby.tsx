@@ -16,25 +16,15 @@ export default function Lobby({user}: { user: string }) {
     const historyRef = useRef<HTMLDivElement>(null);
     const [pendingInvitation, setPendingInvitation] = useState<boolean>(false);
     const [invitationSent, setInvitationSent] = useState<boolean>(false);
-
-    const gameId = useStore((state) => state.gameId);
-    const setGameId = useStore((state) => state.setGameId);
-
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
 
+    const setGameId = useStore((state) => state.setGameId);
+
     const navigate = useNavigate();
 
-    const currentHost = window.location.hostname;
     const currentPort = window.location.port;
-    const port = currentPort === "5173" ? ":8080" : "";
-    const websocketURL = `ws://${currentHost}${port}/api/ws/chat`;
-
-    useEffect(() => {
-        if (historyRef.current) {
-            historyRef.current.scrollTop = historyRef.current.scrollHeight;
-        }
-    }, [messages]);
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat";
 
     const websocket = useWebSocket(websocketURL, {
         onMessage: (event) => {
@@ -72,6 +62,12 @@ export default function Lobby({user}: { user: string }) {
             }
         },
     });
+
+    useEffect(() => {
+        if (historyRef.current) {
+            historyRef.current.scrollTop = historyRef.current.scrollHeight;
+        }
+    }, [messages]);
 
     function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();

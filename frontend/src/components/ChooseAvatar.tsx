@@ -1,18 +1,7 @@
-import takatoImage from "../assets/profile_pictures/takato.jpg";
-import aibaImage from "../assets/profile_pictures/aiba.jpg";
-import arataImage from "../assets/profile_pictures/arata.jpg";
-import eriImage from "../assets/profile_pictures/eri.jpg";
-import haruImage from "../assets/profile_pictures/haru.jpg";
-import hiroImage from "../assets/profile_pictures/hiro.jpg";
-import mattImage from "../assets/profile_pictures/matt.jpg";
-import minoruImage from "../assets/profile_pictures/minoru.jpg";
-import rinaImage from "../assets/profile_pictures/rina.jpg";
-import sakiImage from "../assets/profile_pictures/saki.jpg";
-import taiImage from "../assets/profile_pictures/tai.jpg";
-import takumiImage from "../assets/profile_pictures/takumi.jpg";
 import {useEffect} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import styled from "@emotion/styled";
+import {profilePicture} from "../utils/functions.ts";
 
 export default function ChooseAvatar() {
 
@@ -23,37 +12,6 @@ export default function ChooseAvatar() {
     useEffect(() => {
         getAvatar();
     }, [getAvatar, avatarName]);
-
-    function profilePicture(avatarName : string) {
-        switch (avatarName) {
-            case "takato":
-                return takatoImage;
-            case "aiba":
-                return aibaImage;
-            case "arata":
-                return arataImage;
-            case "eri":
-                return eriImage;
-            case "haru":
-                return haruImage;
-            case "hiro":
-                return hiroImage;
-            case "matt":
-                return mattImage;
-            case "minoru":
-                return minoruImage;
-            case "rina":
-                return rinaImage;
-            case "saki":
-                return sakiImage;
-            case "tai":
-                return taiImage;
-            case "takumi":
-                return takumiImage;
-            default:
-                return takatoImage;
-        }
-    }
 
     const avatarNames = [
         "takato", "aiba", "arata", "eri", "haru", "hiro",
