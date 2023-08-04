@@ -25,6 +25,7 @@ type State = {
     activeDeckId: string,
     isSaving: boolean,
     avatarName: string,
+    gameId: string,
 
     fetchCards: FetchCards,
     selectCard: (card: CardTypeWithId) => void,
@@ -45,6 +46,7 @@ type State = {
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
     getAvatar: () => void,
+    setGameId: (gameId: string) => void,
 };
 
 
@@ -61,6 +63,7 @@ export const useStore = create<State>((set, get) => ({
     activeDeckId: "",
     isSaving: false,
     avatarName: "",
+    gameId: "",
 
     fetchCards: (name,
                  color,
@@ -368,6 +371,10 @@ export const useStore = create<State>((set, get) => ({
         axios.get("/api/user/avatar")
             .then(response => set({avatarName: response.data}))
             .catch(console.error);
+    },
+
+    setGameId: (gameId) => {
+        set({gameId: gameId});
     }
 
 }));

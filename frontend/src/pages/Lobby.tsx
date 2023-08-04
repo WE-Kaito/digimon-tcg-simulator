@@ -6,6 +6,8 @@ import {ToastContainer} from "react-toastify";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
+import {useNavigate} from "react-router-dom";
+import {useStore} from "../hooks/useStore.ts";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -14,8 +16,19 @@ export default function Lobby({user}: { user: string }) {
     const historyRef = useRef<HTMLDivElement>(null);
     const [pendingInvitation, setPendingInvitation] = useState<boolean>(false);
     const [invitationSent, setInvitationSent] = useState<boolean>(false);
+
+    const gameId = useStore((state) => state.gameId);
+    const setGameId = useStore((state) => state.setGameId);
+
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
+
+    const navigate = useNavigate();
+
+    const currentHost = window.location.hostname;
+    const currentPort = window.location.port;
+    const port = currentPort === "5173" ? ":8080" : "";
+    const websocketURL = `ws://${currentHost}${port}/api/ws/chat`;
 
     useEffect(() => {
         if (historyRef.current) {
@@ -23,7 +36,7 @@ export default function Lobby({user}: { user: string }) {
         }
     }, [messages]);
 
-    const websocket = useWebSocket("ws://localhost:8080/api/ws/chat", {
+    const websocket = useWebSocket(websocketURL, {
         onMessage: (event) => {
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
@@ -40,6 +53,18 @@ export default function Lobby({user}: { user: string }) {
                 return;
             }
 
+            if (event.data.startsWith("[INVITATION_ACCEPTED]")) {
+                const acceptedFrom: string = event.data.substring(event.data.indexOf(":") + 1);
+                if (acceptedFrom === inviteTo) {
+                    const newGameID = user + "_" + acceptedFrom;
+                    setGameId(newGameID);
+                    setTimeout(() => {
+                        navigate(`../game/${newGameID}`);
+                    }, 500);
+                }
+                return;
+            }
+
             if (event.data.startsWith("[CHAT_MESSAGE]")) {
                 setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
             } else {
@@ -50,25 +75,39 @@ export default function Lobby({user}: { user: string }) {
 
     function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        if ((message !== "") && (message !== "/invite:" + user) && (!message.startsWith("/abortInvite"))) {
+
+        if ((message !== "") && (message !== "/invite:" + user)
+            && (!message.startsWith("/abortInvite") && !message.startsWith("/acceptInvite"))) {
+
             websocket.sendMessage(message);
             setMessage("");
         }
     }
 
-    function handleInvite(invitedUsername: string){
+    function handleInvite(invitedUsername: string) {
         setInvitationSent(true);
         setInviteTo(invitedUsername);
         const invitationMessage = `/invite:` + invitedUsername;
         websocket.sendMessage(invitationMessage);
     }
 
-    function handleAbortInvite(isSender: boolean){
+    function handleAbortInvite(isSender: boolean) {
         setInvitationSent(false);
         setPendingInvitation(false);
         const abortMessage = `/abortInvite:` + (isSender ? inviteTo : inviteFrom);
         websocket.sendMessage(abortMessage);
     }
+
+    function handleAcceptInvite() {
+        websocket.sendMessage(`/acceptInvite:` + inviteFrom);
+        const newGameId = inviteFrom + "_" + user;
+        setGameId(newGameId);
+        console.log("gameId: " + newGameId);
+        setTimeout(() => {
+            navigate(`/game/${newGameId}`);
+        }, 1000);
+    }
+
 
     return (
         <Wrapper>
@@ -76,10 +115,7 @@ export default function Lobby({user}: { user: string }) {
                 <InvitationMoodle>
                     <span>Invitation from {inviteFrom}</span>
                     <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
-                        <AcceptButton>ACCEPT</AcceptButton>
-                        {//TODO button should navigate to game page, where a new variable ws connection is used and
-                            //TODO send a message to trigger the same for waiting player
-                        }
+                        <AcceptButton onClick={handleAcceptInvite}>ACCEPT</AcceptButton>
                         <DeclineButton onClick={() => handleAbortInvite(false)}>DECLINE</DeclineButton>
                     </div>
                 </InvitationMoodle>}

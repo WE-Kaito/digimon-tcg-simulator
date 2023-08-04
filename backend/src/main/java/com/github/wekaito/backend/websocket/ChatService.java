@@ -95,6 +95,20 @@ public class ChatService extends TextWebSocketHandler {
             return;
         }
 
+        if (payload.startsWith("/acceptInvite:")) {
+            String invitingUsername = payload.substring(payload.indexOf(":") + 1).trim();
+            WebSocketSession invitingSession = getInvitedSession(invitingUsername);
+
+            if (invitingSession != null) {
+                invitingSession.sendMessage(new TextMessage("[INVITATION_ACCEPTED]:"+username));
+            }
+
+            connectedUsernames.add(username);
+            connectedUsernames.add(invitingUsername);
+            broadcastConnectedUsernames();
+            return;
+        }
+
         TextMessage textMessage = new TextMessage("[CHAT_MESSAGE]:" + username + ": " + payload);
 
         for (WebSocketSession webSocketSession : activeSessions) {
