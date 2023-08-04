@@ -21,8 +21,6 @@ export default function Lobby({user}: { user: string }) {
     const port = currentPort === "5173" ? ":8080" : "";
     const websocketURL = `ws://${currentHost}${port}/api/ws/chat`;
 
-    console.log("websocketURL: " + websocketURL)
-    console.log("currentPort: " + currentPort)
     useEffect(() => {
         if (historyRef.current) {
             historyRef.current.scrollTop = historyRef.current.scrollHeight;
