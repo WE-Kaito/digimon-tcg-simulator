@@ -48,11 +48,7 @@ public class GameService extends TextWebSocketHandler {
                             .findFirst().orElse(null);
 
                     if (opponentSession != null && opponentSession.isOpen()) {
-                        try {
-                            opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
-                        } catch (IOException ex) {
-                            // Handle exception if needed
-                        }
+                        opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
                     }
                     break;
                 }
@@ -66,8 +62,6 @@ public class GameService extends TextWebSocketHandler {
 
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
-
-
 
 
     @Override
