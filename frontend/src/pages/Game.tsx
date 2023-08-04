@@ -20,6 +20,7 @@ export default function Game({user}: { user: string }) {
     const [surrenderOpen, setSurrenderOpen] = useState(false);
     const [timerOpen, setTimerOpen] = useState(false);
     const [timer, setTimer] = useState(5);
+    const [opponentLeft, setOpponentLeft] = useState(false);
 
     const websocket = useWebSocket("ws://localhost:8080/api/ws/game", {
 
@@ -35,18 +36,36 @@ export default function Game({user}: { user: string }) {
                 const me = players.filter((player: Player) => player.username === user)[0];
                 const opponent = players.filter((player: Player) => player.username !== user)[0]
                 setUpGame(me, opponent);
-            } else {
-                console.log("Received message: " + event.data);
+            }
+
+            if (event.data.startsWith("[SURRENDER]")) {
+                startTimer();
+            }
+
+            if (event.data.startsWith("[PLAYER_LEFT]")) {
+                setOpponentLeft(true);
+                startTimer();
             }
         }
     });
 
     useEffect(() => {
+        setOpponentLeft(false);
+        setTimer(5);
+        setTimerOpen(false);
+        setSurrenderOpen(false);
+        }, []);
+
+    useEffect(() => {
         if (timer === 0) navigate("/lobby");
-    }, [timer]);
+    }, [timer, navigate]);
 
     function handleSurrender() {
-        websocket.sendMessage(`${gameId}:/surrender:${user}`);
+        websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
+        startTimer();
+    }
+
+    function startTimer() {
         setTimerOpen(true);
         for (let i = 5; i > 0; i--) {
             setTimeout(() => {
@@ -57,7 +76,7 @@ export default function Game({user}: { user: string }) {
 
     return (
         <>
-            {surrenderOpen &&
+            {(surrenderOpen || timerOpen) &&
                 <SurrenderMoodle>
                     {!timerOpen ?
                         (<>
@@ -70,7 +89,7 @@ export default function Game({user}: { user: string }) {
                         </>)
                         :
                         (<>
-                            <SurrenderSpan>You surrendered. GAME ENDING...</SurrenderSpan>
+                            <SurrenderSpan>{surrenderOpen ? "You surrendered." : `${opponentLeft ? "Opponent left." : "You win!"}`} GAME ENDING...</SurrenderSpan>
                             <SurrenderSpan style={{fontFamily:"Awsumsans, sans-serif"}}>{timer}</SurrenderSpan>
                         </>)
                     }

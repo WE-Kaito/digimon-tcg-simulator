@@ -1,4 +1,5 @@
 package com.github.wekaito.backend.websocket;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.Deck;
@@ -24,12 +25,50 @@ public class GameService extends TextWebSocketHandler {
     private final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session){
+    public void afterConnectionEstablished(WebSocketSession session) {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status){
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        Set<WebSocketSession> gameRoom = gameRooms.values().stream()
+                .filter(s -> s.stream().anyMatch(s1 -> username.equals(Objects.requireNonNull(s1.getPrincipal()).getName())))
+                .findFirst().orElse(null);
+
+        if (gameRoom == null) return;
+
+        WebSocketSession opponentSession = null;
+        Iterator<WebSocketSession> iterator = gameRoom.iterator();
+        while (iterator.hasNext()) {
+            WebSocketSession webSocketSession = iterator.next();
+            if (webSocketSession != null) {
+                if (webSocketSession.getPrincipal().getName().equals(username)) {
+                    opponentSession = gameRoom.stream()
+                            .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                            .findFirst().orElse(null);
+
+                    if (opponentSession != null && opponentSession.isOpen()) {
+                        try {
+                            opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
+                        } catch (IOException ex) {
+                            // Handle exception if needed
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        gameRoom.remove(session);
+        if (opponentSession != null) {
+            gameRoom.remove(opponentSession);
+        }
+
+        gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
+
+
+
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
@@ -43,16 +82,23 @@ public class GameService extends TextWebSocketHandler {
         }
 
         String gameId = parts[0];
+        String command = parts[1];
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
-        if (gameRoom != null) {
-            TextMessage textMessage = new TextMessage(payload);
-            for (WebSocketSession webSocketSession : gameRoom) {
-                webSocketSession.sendMessage(textMessage);
-            }
+        if (gameRoom == null) return;
+
+        if (command.startsWith("/surrender:")) {
+            handleSurrender(session, gameRoom, command);
+            return;
+        }
+
+        TextMessage textMessage = new TextMessage(payload);
+        for (WebSocketSession webSocketSession : gameRoom) {
+            webSocketSession.sendMessage(textMessage);
         }
     }
 
-    void setUpGame(WebSocketSession session, String gameId) throws IOException{
+
+    void setUpGame(WebSocketSession session, String gameId) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
 
@@ -73,6 +119,22 @@ public class GameService extends TextWebSocketHandler {
         TextMessage textMessage = new TextMessage("[START_GAME]:" + playersJson);
 
         session.sendMessage(textMessage);
+    }
+
+    void handleSurrender(WebSocketSession session, Set<WebSocketSession> gameRoom, String command) throws IOException {
+        String opponentName = command.split(":")[1].trim();
+        WebSocketSession opponentSession = gameRoom.stream()
+                .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                .findFirst().orElse(null);
+
+        if (opponentSession != null && opponentSession.isOpen()) {
+            opponentSession.sendMessage(new TextMessage("[SURRENDER]"));
+        }
+
+        gameRoom.remove(session);
+        gameRoom.remove(opponentSession);
+
+        gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
 }
