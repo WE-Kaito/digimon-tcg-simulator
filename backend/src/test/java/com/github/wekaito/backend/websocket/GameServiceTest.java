@@ -73,6 +73,14 @@ class GameServiceTest {
     }
 
     @Test
+    void testStartGameMessage() throws IOException {
+        // WHEN
+        gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1_testUser2"));
+        // THEN
+        verify(session1, times(1)).sendMessage(any());
+    }
+
+    @Test
     void testGameSetup() throws IOException {
         // GIVEN
         Player player1 = new Player(username1, "takato", exampleDeck.cards());
