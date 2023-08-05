@@ -52,9 +52,9 @@ public class ChatService extends TextWebSocketHandler {
         }
     }
 
-    WebSocketSession getInvitedSession(String invitedUsername){
+    WebSocketSession getSessionByUsername(String username){
         return activeSessions.stream()
-                .filter(s -> invitedUsername.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                .filter(s -> username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
     }
 
@@ -68,7 +68,7 @@ public class ChatService extends TextWebSocketHandler {
             String invitedUsername = payload.substring(payload.indexOf(":") + 1).trim();
 
             if (connectedUsernames.contains(invitedUsername)) {
-                WebSocketSession invitedSession = getInvitedSession(invitedUsername);
+                WebSocketSession invitedSession = getSessionByUsername(invitedUsername);
                 if (invitedSession != null) {
                     invitedSession.sendMessage(new TextMessage("[INVITATION]:" + username));
                 }
@@ -83,7 +83,7 @@ public class ChatService extends TextWebSocketHandler {
         if (payload.startsWith("/abortInvite:")) {
 
             String invitedUsername = payload.substring(payload.indexOf(":") + 1).trim();
-            WebSocketSession invitedSession = getInvitedSession(invitedUsername);
+            WebSocketSession invitedSession = getSessionByUsername(invitedUsername);
 
             if (invitedSession != null) {
                 invitedSession.sendMessage(new TextMessage("[INVITATION_ABORTED]"));
@@ -97,7 +97,7 @@ public class ChatService extends TextWebSocketHandler {
 
         if (payload.startsWith("/acceptInvite:")) {
             String invitingUsername = payload.substring(payload.indexOf(":") + 1).trim();
-            WebSocketSession invitingSession = getInvitedSession(invitingUsername);
+            WebSocketSession invitingSession = getSessionByUsername(invitingUsername);
 
             if (invitingSession != null) {
                 invitingSession.sendMessage(new TextMessage("[INVITATION_ACCEPTED]:"+username));
