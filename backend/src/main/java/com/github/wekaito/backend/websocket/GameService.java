@@ -2,7 +2,6 @@ package com.github.wekaito.backend.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.Card;
-import com.github.wekaito.backend.Deck;
 import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,10 @@ public class GameService extends TextWebSocketHandler {
 
     private final ProfileService profileService;
     private final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
+
+    public Map<String, Set<WebSocketSession>> getGameRooms() {
+        return gameRooms;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -82,12 +85,6 @@ public class GameService extends TextWebSocketHandler {
 
         if (command.startsWith("/surrender:")) {
             handleSurrender(session, gameRoom, command);
-            return;
-        }
-
-        TextMessage textMessage = new TextMessage(payload);
-        for (WebSocketSession webSocketSession : gameRoom) {
-            webSocketSession.sendMessage(textMessage);
         }
     }
 
