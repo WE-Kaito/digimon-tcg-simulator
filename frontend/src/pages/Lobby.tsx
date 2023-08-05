@@ -18,14 +18,13 @@ export default function Lobby({user}: { user: string }) {
     const [invitationSent, setInvitationSent] = useState<boolean>(false);
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
+    const currentPort = window.location.port;
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat";
 
     const setGameId = useStore((state) => state.setGameId);
 
     const navigate = useNavigate();
-
-    const currentPort = window.location.port;
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat";
-
+  
     const websocket = useWebSocket(websocketURL, {
         onMessage: (event) => {
             if (event.data.startsWith("[INVITATION]")) {
