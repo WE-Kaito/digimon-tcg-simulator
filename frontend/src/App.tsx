@@ -69,7 +69,7 @@ function App() {
                     <Route path="/deckbuilder" element={<Deckbuilder/>}/>
                     <Route path="/update-deck/:id" element={<EditDeck/>}/>
                     <Route path="/lobby" element={<Lobby user={user}/>}/>
-                    <Route path="/game/:id" element={<Game user={user}/>}/>
+                    <Route path="/game" element={<Game user={user}/>}/>
                     <Route path="/*" element={<Navigate to="/"/>}/>
                 </Route>
 

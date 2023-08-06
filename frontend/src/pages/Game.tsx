@@ -9,6 +9,9 @@ import styled from "@emotion/styled";
 
 export default function Game({user}: { user: string }) {
 
+    const currentPort = window.location.port;
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat";
+
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
     const navigate = useNavigate();
@@ -22,7 +25,7 @@ export default function Game({user}: { user: string }) {
     const [timer, setTimer] = useState(5);
     const [opponentLeft, setOpponentLeft] = useState(false);
 
-    const websocket = useWebSocket("ws://localhost:8080/api/ws/game", {
+    const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
             websocket.sendMessage("/startGame:" + gameId);
@@ -34,7 +37,7 @@ export default function Game({user}: { user: string }) {
                 const playersJson = event.data.substring("[START_GAME]:".length);
                 const players = JSON.parse(playersJson);
                 const me = players.filter((player: Player) => player.username === user)[0];
-                const opponent = players.filter((player: Player) => player.username !== user)[0]
+                const opponent = players.filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
             }
 

@@ -99,7 +99,7 @@ export default function Lobby({user}: { user: string }) {
         setGameId(newGameId);
         console.log("gameId: " + newGameId);
         setTimeout(() => {
-            navigate(`/game/${newGameId}`);
+            navigate(`/game`);
         }, 1000);
     }
 

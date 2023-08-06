@@ -29,6 +29,7 @@ public class GameService extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
+        // do nothing
     }
 
     @Override
@@ -41,20 +42,16 @@ public class GameService extends TextWebSocketHandler {
         if (gameRoom == null) return;
 
         WebSocketSession opponentSession = null;
-        Iterator<WebSocketSession> iterator = gameRoom.iterator();
-        while (iterator.hasNext()) {
-            WebSocketSession webSocketSession = iterator.next();
-            if (webSocketSession != null) {
-                if (Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals(username)) {
-                    opponentSession = gameRoom.stream()
-                            .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
-                            .findFirst().orElse(null);
+        for (WebSocketSession webSocketSession : gameRoom) {
+            if (webSocketSession != null && Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals(username)) {
+                opponentSession = gameRoom.stream()
+                        .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                        .findFirst().orElse(null);
 
-                    if (opponentSession != null && opponentSession.isOpen()) {
-                        opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
-                    }
-                    break;
+                if (opponentSession != null && opponentSession.isOpen()) {
+                    opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
                 }
+                break;
             }
         }
 
