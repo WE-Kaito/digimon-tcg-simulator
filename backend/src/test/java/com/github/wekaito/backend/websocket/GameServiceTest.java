@@ -75,6 +75,7 @@ class GameServiceTest {
     @Test
     void testStartGameMessage() throws IOException {
         // WHEN
+        gameService.afterConnectionEstablished(session1);
         gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1_testUser2"));
         // THEN
         verify(session1, times(1)).sendMessage(any());
@@ -107,11 +108,11 @@ class GameServiceTest {
         gameService.getGameRooms().put(gameId, gameRoom);
 
         // WHEN
-        gameService.handleSurrender(session1, gameRoom, "/surrender:" + username2);
+        gameService.handleTextMessage(session2, new TextMessage(gameId + ":/surrender:" + username1));
 
         // THEN
         assertThat(gameService.getGameRooms()).isEmpty();
-        verify(session2, times(1)).sendMessage(expectedMessage);
+        verify(session1, times(1)).sendMessage(expectedMessage);
     }
 
     @Test
@@ -129,6 +130,14 @@ class GameServiceTest {
         // THEN
         verify(session2, times(1)).sendMessage(expectedMessage);
         assertThat(gameService.getGameRooms()).isEmpty();
+    }
+
+    @Test
+    void expectReturn_whenGameRoomDoesNotExist() throws IOException {
+        // WHEN
+        gameService.handleTextMessage(session1, new TextMessage("wrongId" + ":/surrender:" + username1));
+        // THEN
+        verify(session1, times(0)).sendMessage(any());
     }
 
 }
