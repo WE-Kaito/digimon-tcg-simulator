@@ -45,7 +45,7 @@ public class GameService extends TextWebSocketHandler {
         while (iterator.hasNext()) {
             WebSocketSession webSocketSession = iterator.next();
             if (webSocketSession != null) {
-                if (webSocketSession.getPrincipal().getName().equals(username)) {
+                if (Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals(username)) {
                     opponentSession = gameRoom.stream()
                             .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                             .findFirst().orElse(null);
