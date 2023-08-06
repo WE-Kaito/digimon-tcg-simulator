@@ -101,3 +101,71 @@ export default function Game({user}: { user: string }) {
     );
 }
 
+const MyContainerMain = styled.div`
+  height: 450px;
+  width: 1005px;
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  grid-template-rows: repeat(1.2fr, 1fr);
+  grid-template-areas: "digi1 digi1 digi2 digi2 digi3 digi3 digi4 digi4 digi5 digi5 trash trash deck deck"
+                        "delay delay tamer tamer tamer hand hand hand hand hand hand player player player";
+`;
+
+const OpponentContainerMain = styled.div`
+  height: 450px;
+  width: 1005px;
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  grid-template-rows: repeat(1fr, 1.2fr);
+  grid-template-areas: "player player player hand hand hand hand hand hand tamer tamer tamer delay delay"
+                        "deck deck trash trash digi5 digi5 digi4 digi4 digi3 digi3 digi2 digi2 digi1 digi1";
+`;
+
+const MyContainerSide = styled.div`
+  height: 450px;
+  width: 285px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr 1.5fr;
+  grid-template-areas: "security-stack security-stack"
+                        "egg-deck breed";
+`;
+
+const OpponentContainerSide = styled.div`
+  height: 450px;
+  width: 285px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1.5fr 1fr;
+  grid-template-areas: "egg-deck breed"
+                        "security-stack security-stack";
+`;
+
+const EnergyBarContainer = styled.div`
+  height: 100px;
+  width: 1005px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const InfoContainer = styled.div`
+  height: 1000px;
+  width: 310px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const FieldContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const Wrapper = styled.div`
+  height: 1000px;
+  width: 1600px;
+  display: flex;
+  background: rgba(47, 45, 45, 0.45);
+`;
