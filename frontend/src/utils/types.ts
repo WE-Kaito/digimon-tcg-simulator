@@ -55,3 +55,9 @@ export type DeckType = {
     cards: CardType[],
     deckStatus: string,
 }
+
+export type Player = {
+    username: string,
+    avatarName: string,
+    deck: CardType[]
+}

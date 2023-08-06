@@ -12,10 +12,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
     private final ChatService chatService;
+    private final GameService gameService;
 
-@Override
+    @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatService, "/api/ws/chat")
+                .setAllowedOrigins("*");
+        registry.addHandler(gameService, "/api/ws/game")
                 .setAllowedOrigins("*");
     }
 

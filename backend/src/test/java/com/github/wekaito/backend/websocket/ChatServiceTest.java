@@ -2,7 +2,6 @@ package com.github.wekaito.backend.websocket;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -22,6 +21,12 @@ class ChatServiceTest {
     private WebSocketSession session2;
     private WebSocketSession session3;
 
+    private WebSocketSession createMockSession(String username) {
+        WebSocketSession session = mock(WebSocketSession.class);
+        when(session.getPrincipal()).thenReturn(() -> username);
+        return session;
+    }
+
     @BeforeEach
     void setUp() {
         chatService = new ChatService();
@@ -29,12 +34,6 @@ class ChatServiceTest {
         session1 = createMockSession("testUser1");
         session2 = createMockSession("testUser2");
         session3 = createMockSession("testUser3");
-    }
-
-    private WebSocketSession createMockSession(String username) {
-        WebSocketSession session = mock(WebSocketSession.class);
-        when(session.getPrincipal()).thenReturn(() -> username);
-        return session;
     }
 
     @Test
@@ -126,5 +125,19 @@ class ChatServiceTest {
         assertThat(chatService.getConnectedUsernames()).contains("testUser1").contains("testUser2");
         verify(session1, times(1)).sendMessage(messageReceived);
     }
-}
 
+    @Test
+    void testAcceptInvite() throws IOException {
+        // GIVEN
+        chatService.afterConnectionEstablished(session1);
+        chatService.afterConnectionEstablished(session2);
+        TextMessage message = new TextMessage("/acceptInvite:testUser1");
+        TextMessage expectedMessage = new TextMessage("[INVITATION_ACCEPTED]:testUser2");
+
+        // WHEN
+        chatService.handleTextMessage(session2, message);
+
+        // THEN
+        verify(session1, times(1)).sendMessage(expectedMessage);
+    }
+}

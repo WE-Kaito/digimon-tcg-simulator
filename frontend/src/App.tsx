@@ -12,6 +12,7 @@ import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
+import Game from "./pages/Game.tsx";
 function App() {
 
     const me = useStore((state) => state.me);
@@ -68,6 +69,7 @@ function App() {
                     <Route path="/deckbuilder" element={<Deckbuilder/>}/>
                     <Route path="/update-deck/:id" element={<EditDeck/>}/>
                     <Route path="/lobby" element={<Lobby user={user}/>}/>
+                    <Route path="/game" element={<Game user={user}/>}/>
                     <Route path="/*" element={<Navigate to="/"/>}/>
                 </Route>
 

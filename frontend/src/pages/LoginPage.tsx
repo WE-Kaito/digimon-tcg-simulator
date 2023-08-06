@@ -134,7 +134,7 @@ export const LoginPageButton = styled.button`
   flex-shrink: 0;
   border-radius: 0;
   background: #D9D9D9;
-  font-family: Naston, sans-serif;
+  font-family: Pixel Digivolve, sans-serif;
   font-size: 20px;
   color: #0c0c0c;
   box-shadow: 6px 12px 1px 0 rgb(0, 0, 0);

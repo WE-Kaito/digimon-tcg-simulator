@@ -68,6 +68,12 @@ public class MongoUserDetailsService implements UserDetailsService {
         return mongoUser.activeDeckId();
     }
 
+    public String getActiveDeck(String username) {
+        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User" + username + "not found"));
+        return mongoUser.activeDeckId();
+    }
+
     public void setAvatar(String avatarName) {
         MongoUser mongoUser = getCurrentUser();
         MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), mongoUser.activeDeckId(), avatarName);
@@ -76,6 +82,12 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     public String getAvatar() {
         MongoUser mongoUser = getCurrentUser();
+        return mongoUser.avatarName();
+    }
+
+    public String getAvatar(String username) {
+        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User" + username + "not found"));
         return mongoUser.avatarName();
     }
 }
