@@ -48,7 +48,7 @@ export default function Lobby({user}: { user: string }) {
                     const newGameID = user + "_" + acceptedFrom;
                     setGameId(newGameID);
                     setTimeout(() => {
-                        navigate(`../game/${newGameID}`);
+                        navigate(`../game`);
                     }, 500);
                 }
                 return;
