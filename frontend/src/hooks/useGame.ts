@@ -26,6 +26,14 @@ export const useGame = create<State>((set) => ({
 
     setUpGame: (me, opponent) => {
 
+        function shuffleDeck(deck: CardTypeWithId[]) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1)); // Generate a random index
+                [deck[i], deck[j]] = [deck[j], deck[i]]; // Swap elements
+            }
+            return deck;
+        }
+
         const meDeck = me.deck;
         const opponentDeck = opponent.deck;
         const meDeckWithIds = meDeck.map((card) => {
@@ -37,10 +45,10 @@ export const useGame = create<State>((set) => ({
 
         set({
             myAvatar: me.avatarName,
-            myDeck: meDeckWithIds,
+            myDeck: shuffleDeck(meDeckWithIds),
             opponentName: opponent.username,
             opponentAvatar: opponent.avatarName,
-            opponentDeck: opponentDeckWithIds
+            opponentDeck: shuffleDeck(opponentDeckWithIds)
         });
 
     }

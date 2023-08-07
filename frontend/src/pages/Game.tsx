@@ -80,23 +80,40 @@ export default function Game({user}: { user: string }) {
 
     return (
         <>
-        {(surrenderOpen || timerOpen) &&
-            <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
-                             setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
-                             handleSurrender={handleSurrender}/>}
+            {(surrenderOpen || timerOpen) &&
+                <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
+                                 setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
+                                 handleSurrender={handleSurrender}/>}
 
-        <h1>Game</h1>
+            <Wrapper>
+                <InfoContainer></InfoContainer>
 
-        <div style={{display: "flex", flexDirection: "column"}}>
-            <span>{opponentName}</span>
-            <img alt="opponent" src={profilePicture(opponentAvatar)}/>
-        </div>
-        <h2>VS.</h2>
-        <div style={{display: "flex", flexDirection: "column"}}>
-            <span>{user}</span>
-            <img alt="me" src={profilePicture(myAvatar)} onClick={() => setSurrenderOpen(!surrenderOpen)}
-                 style={{cursor: "pointer"}}/>
-        </div>
+                <FieldContainer>
+                    <div style={{display: "flex"}}>
+                        <OpponentContainerMain>
+                            <div style={{display: "flex", flexDirection: "column", gridArea: "player"}}>
+                                <img alt="opponent" src={profilePicture(opponentAvatar)}/>
+                                <span>{opponentName}</span>
+                            </div>
+                        </OpponentContainerMain>
+                        <OpponentContainerSide></OpponentContainerSide>
+                    </div>
+
+                    <EnergyBarContainer></EnergyBarContainer>
+
+                    <div style={{display: "flex"}}>
+                        <MyContainerSide></MyContainerSide>
+                        <MyContainerMain>
+                            <div style={{display: "flex", flexDirection: "column", gridArea: "player"}}>
+                                <span>{user}</span>
+                                <img alt="me" src={profilePicture(myAvatar)}
+                                     onClick={() => setSurrenderOpen(!surrenderOpen)}
+                                     style={{cursor: "pointer"}}/>
+                            </div>
+                        </MyContainerMain>
+                    </div>
+                </FieldContainer>
+            </Wrapper>
         </>
     );
 }
@@ -106,7 +123,7 @@ const MyContainerMain = styled.div`
   width: 1005px;
   display: grid;
   grid-template-columns: repeat(14, 1fr);
-  grid-template-rows: repeat(1.2fr, 1fr);
+  grid-template-rows: 1.2fr 1fr;
   grid-template-areas: "digi1 digi1 digi2 digi2 digi3 digi3 digi4 digi4 digi5 digi5 trash trash deck deck"
                         "delay delay tamer tamer tamer hand hand hand hand hand hand player player player";
 `;
@@ -116,7 +133,7 @@ const OpponentContainerMain = styled.div`
   width: 1005px;
   display: grid;
   grid-template-columns: repeat(14, 1fr);
-  grid-template-rows: repeat(1fr, 1.2fr);
+  grid-template-rows: 1fr 1.2fr;
   grid-template-areas: "player player player hand hand hand hand hand hand tamer tamer tamer delay delay"
                         "deck deck trash trash digi5 digi5 digi4 digi4 digi3 digi3 digi2 digi2 digi1 digi1";
 `;
@@ -160,7 +177,7 @@ const InfoContainer = styled.div`
 
 const FieldContainer = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 `;
 
 const Wrapper = styled.div`
@@ -168,4 +185,20 @@ const Wrapper = styled.div`
   width: 1600px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
+  
+
+  @media (max-height: 1199px) {
+    transform: scale(1);
+  }
+  
+  @media (max-height: 1080px) {
+    transform: scale(0.9);
+  }
+  @media (max-height: 900px) {
+    transform: scale(0.7);
+  }
+
+  @media (min-height: 1200px) {
+    transform: scale(1.5);
+  }
 `;

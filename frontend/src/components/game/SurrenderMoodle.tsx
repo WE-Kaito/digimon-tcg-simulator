@@ -32,6 +32,7 @@ export default function SurrenderMoodle({timer, timerOpen, surrenderOpen, setSur
 }
 
 const Container = styled.div`
+  z-index: 100;
   position: absolute;
   width: 560px;
   height: 200px;
