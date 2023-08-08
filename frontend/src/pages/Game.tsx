@@ -1,7 +1,7 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
-import {Player} from "../utils/types.ts";
+import {GameDistribution, Player} from "../utils/types.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {profilePicture} from "../utils/functions.ts";
 import {useEffect, useState} from "react";
@@ -16,6 +16,7 @@ export default function Game({user}: { user: string }) {
 
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
+    const distributeCards = useGame((state) => state.distributeCards);
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
@@ -25,6 +26,37 @@ export default function Game({user}: { user: string }) {
     const [timerOpen, setTimerOpen] = useState<boolean>(false);
     const [timer, setTimer] = useState<number>(5);
     const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
+
+    const memory = useGame((state) => state.memory);
+    const myHand = useGame((state) => state.myHand);
+    const myDeckField = useGame((state) => state.myDeckField);
+    const myEggDeck = useGame((state) => state.myEggDeck);
+    const myTrash = useGame((state) => state.myTrash);
+    const mySecurity = useGame((state) => state.mySecurity);
+    const myTamer = useGame((state) => state.myTamer);
+
+    const myDigi1 = useGame((state) => state.myDigi1);
+    const myDigi2 = useGame((state) => state.myDigi2);
+    const myDigi3 = useGame((state) => state.myDigi3);
+    const myDigi4 = useGame((state) => state.myDigi4);
+    const myDigi5 = useGame((state) => state.myDigi5);
+    const myBreedingArea = useGame((state) => state.myBreedingArea);
+
+    const opponentHand = useGame((state) => state.opponentHand);
+    const opponentDeckField = useGame((state) => state.opponentDeckField);
+    const opponentEggDeck = useGame((state) => state.opponentEggDeck);
+    const opponentTrash = useGame((state) => state.opponentTrash);
+    const opponentSecurity = useGame((state) => state.opponentSecurity);
+    const opponentTamer = useGame((state) => state.opponentTamer);
+
+    const opponentDigi1 = useGame((state) => state.opponentDigi1);
+    const opponentDigi2 = useGame((state) => state.opponentDigi2);
+    const opponentDigi3 = useGame((state) => state.opponentDigi3);
+    const opponentDigi4 = useGame((state) => state.opponentDigi4);
+    const opponentDigi5 = useGame((state) => state.opponentDigi5);
+    const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
+
+const isLoading = useGame((state) => state.isLoading);
 
     const websocket = useWebSocket(websocketURL, {
 
@@ -42,9 +74,14 @@ export default function Game({user}: { user: string }) {
                 setUpGame(me, opponent);
             }
 
-            if (event.data === "[SURRENDER]") {
-                startTimer();
+            if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
+                const newGame: GameDistribution = JSON.parse(event.data.substring("[DISTRIBUTE_CARDS]:".length));
+                distributeCards(user, newGame, gameId);
+                console.log(newGame.memory);
+                console.log(newGame.player1Hand);
             }
+
+            (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
                 setOpponentLeft(true);
@@ -58,6 +95,7 @@ export default function Game({user}: { user: string }) {
         setTimer(5);
         setTimerOpen(false);
         setSurrenderOpen(false);
+        console.log(gameId);
     }, []);
 
     useEffect(() => {
@@ -78,6 +116,11 @@ export default function Game({user}: { user: string }) {
         }
     }
 
+    if (isLoading) return "loading...";
+
+    console.log("memory", memory);
+
+
     return (
         <>
             {(surrenderOpen || timerOpen) &&
@@ -86,7 +129,7 @@ export default function Game({user}: { user: string }) {
                                  handleSurrender={handleSurrender}/>}
 
             <Wrapper>
-                <InfoContainer></InfoContainer>
+                <InfoContainer><span></span></InfoContainer>
 
                 <FieldContainer>
                     <div style={{display: "flex"}}>
@@ -185,12 +228,12 @@ const Wrapper = styled.div`
   width: 1600px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
-  
+
 
   @media (max-height: 1199px) {
     transform: scale(1);
   }
-  
+
   @media (max-height: 1080px) {
     transform: scale(0.9);
   }

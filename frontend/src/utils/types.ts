@@ -58,6 +58,37 @@ export type DeckType = {
 
 export type Player = {
     username: string,
-    avatarName: string,
-    deck: CardType[]
+    avatarName: string
+}
+
+export type GameDistribution = {
+    memory: number,
+
+    player1Hand: CardTypeWithId[],
+    player1DeckField: CardTypeWithId[],
+    player1EggDeck: CardTypeWithId[],
+    player1Trash: CardTypeWithId[],
+    player1Security: CardTypeWithId[],
+    player1Tamer: CardTypeWithId[],
+
+    player1Digi1: CardTypeWithId[],
+    player1Digi2: CardTypeWithId[],
+    player1Digi3: CardTypeWithId[],
+    player1Digi4: CardTypeWithId[],
+    player1Digi5: CardTypeWithId[],
+    player1BreedingArea: CardTypeWithId[],
+
+    player2Hand: CardTypeWithId[],
+    player2DeckField: CardTypeWithId[],
+    player2EggDeck: CardTypeWithId[],
+    player2Trash: CardTypeWithId[],
+    player2Security: CardTypeWithId[],
+    player2Tamer: CardTypeWithId[],
+
+    player2Digi1: CardTypeWithId[],
+    player2Digi2: CardTypeWithId[],
+    player2Digi3: CardTypeWithId[],
+    player2Digi4: CardTypeWithId[],
+    player2Digi5: CardTypeWithId[],
+    player2BreedingArea: CardTypeWithId[]
 }

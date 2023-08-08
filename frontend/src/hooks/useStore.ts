@@ -45,7 +45,7 @@ type State = {
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
-    getAvatar: () => void,
+    getAvatar: () => string,
     setGameId: (gameId: string) => void,
 };
 
@@ -370,6 +370,8 @@ export const useStore = create<State>((set, get) => ({
         axios.get("/api/user/avatar")
             .then(response => set({avatarName: response.data}))
             .catch(console.error);
+
+        return get().avatarName;
     },
 
     setGameId: (gameId) => {

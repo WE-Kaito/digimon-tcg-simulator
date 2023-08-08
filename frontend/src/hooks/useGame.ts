@@ -1,56 +1,186 @@
 import {create} from "zustand";
-import {CardTypeWithId, Player} from "../utils/types.ts";
+import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
 import 'react-toastify/dist/ReactToastify.css';
-import {uid} from "uid";
 
 type State = {
-    myAvatar: string,
-    myDeck: CardTypeWithId[],
+    isLoading: boolean,
+    memory: number,
 
+    myAvatar: string,
     opponentName: string,
     opponentAvatar: string,
-    opponentDeck: CardTypeWithId[],
 
+    myHand: CardTypeWithId[],
+    myDeckField: CardTypeWithId[],
+    myEggDeck: CardTypeWithId[],
+    myTrash: CardTypeWithId[],
+    mySecurity: CardTypeWithId[],
+    myTamer: CardTypeWithId[],
+
+    myDigi1: CardTypeWithId[],
+    myDigi2: CardTypeWithId[],
+    myDigi3: CardTypeWithId[],
+    myDigi4: CardTypeWithId[],
+    myDigi5: CardTypeWithId[],
+    myBreedingArea: CardTypeWithId[],
+
+    opponentHand: CardTypeWithId[],
+    opponentDeckField: CardTypeWithId[],
+    opponentEggDeck: CardTypeWithId[],
+    opponentTrash: CardTypeWithId[],
+    opponentSecurity: CardTypeWithId[],
+    opponentTamer: CardTypeWithId[],
+
+    opponentDigi1: CardTypeWithId[],
+    opponentDigi2: CardTypeWithId[],
+    opponentDigi3: CardTypeWithId[],
+    opponentDigi4: CardTypeWithId[],
+    opponentDigi5: CardTypeWithId[],
+    opponentBreedingArea: CardTypeWithId[],
+
+    setLoading: () => void,
     setUpGame: (me: Player, opponent: Player) => void;
+    distributeCards: (user: string, game: GameDistribution, gameId: string) => void;
 };
 
 
-export const useGame = create<State>((set) => ({
+export const useGame = create<State>((set, get) => ({
+
+    isLoading: false,
 
     myAvatar: "",
-    myDeck: [],
-
     opponentName: "",
     opponentAvatar: "",
-    opponentDeck: [],
+
+    memory: 0,
+
+    myHand: [],
+    myDeckField: [],
+    myEggDeck: [],
+    myTrash: [],
+    mySecurity: [],
+    myTamer: [],
+
+    myDigi1: [],
+    myDigi2: [],
+    myDigi3: [],
+    myDigi4: [],
+    myDigi5: [],
+    myBreedingArea: [],
+
+    opponentHand: [],
+    opponentDeckField: [],
+    opponentEggDeck: [],
+    opponentTrash: [],
+    opponentSecurity: [],
+    opponentTamer: [],
+
+    opponentDigi1: [],
+    opponentDigi2: [],
+    opponentDigi3: [],
+    opponentDigi4: [],
+    opponentDigi5: [],
+    opponentBreedingArea: [],
+
+    setLoading: () => set({isLoading: !get().isLoading}),
 
     setUpGame: (me, opponent) => {
-
-        function shuffleDeck(deck: CardTypeWithId[]) {
-            for (let i = deck.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1)); // Generate a random index
-                [deck[i], deck[j]] = [deck[j], deck[i]]; // Swap elements
-            }
-            return deck;
-        }
-
-        const meDeck = me.deck;
-        const opponentDeck = opponent.deck;
-        const meDeckWithIds = meDeck.map((card) => {
-            return {...card, id: uid()};
-        });
-        const opponentDeckWithIds = opponentDeck.map((card) => {
-            return {...card, id: uid()};
-        });
-
         set({
             myAvatar: me.avatarName,
-            myDeck: shuffleDeck(meDeckWithIds),
             opponentName: opponent.username,
-            opponentAvatar: opponent.avatarName,
-            opponentDeck: shuffleDeck(opponentDeckWithIds)
+            opponentAvatar: opponent.avatarName
         });
+    },
 
+    distributeCards: (user, game, gameId) => {
+        get().setLoading();
+        const player1 = gameId.split("_")[0];
+
+        const {memory,
+            player1Hand,
+            player1DeckField,
+            player1EggDeck,
+            player1Trash,
+            player1Security,
+            player1Tamer,
+            player1Digi1,
+            player1Digi2,
+            player1Digi3,
+            player1Digi4,
+            player1Digi5,
+            player1BreedingArea,
+            player2Hand,
+            player2DeckField,
+            player2EggDeck,
+            player2Trash,
+            player2Security,
+            player2Tamer,
+            player2Digi1,
+            player2Digi2,
+            player2Digi3,
+            player2Digi4,
+            player2Digi5,
+            player2BreedingArea
+        } = game;
+
+        set ({memory: memory});
+
+        if (user === player1) {
+            set({
+                myHand: game.player1Hand,
+                myDeckField: game.player1DeckField,
+                myEggDeck: game.player1EggDeck,
+                myTrash: game.player1Trash,
+                mySecurity: game.player1Security,
+                myTamer: game.player1Tamer,
+                myDigi1: game.player1Digi1,
+                myDigi2: game.player1Digi2,
+                myDigi3: game.player1Digi3,
+                myDigi4: game.player1Digi4,
+                myDigi5: game.player1Digi5,
+                myBreedingArea: game.player1BreedingArea,
+                opponentHand: game.player2Hand,
+                opponentDeckField: game.player2DeckField,
+                opponentEggDeck: game.player2EggDeck,
+                opponentTrash: game.player2Trash,
+                opponentSecurity: game.player2Security,
+                opponentTamer: game.player2Tamer,
+                opponentDigi1: game.player2Digi1,
+                opponentDigi2: game.player2Digi2,
+                opponentDigi3: game.player2Digi3,
+                opponentDigi4: game.player2Digi4,
+                opponentDigi5: game.player2Digi5,
+                opponentBreedingArea: game.player2BreedingArea,
+            });
+        } else {
+            set({
+                myHand: game.player2Hand,
+                myDeckField: game.player2DeckField,
+                myEggDeck: game.player2EggDeck,
+                myTrash: game.player2Trash,
+                mySecurity: game.player2Security,
+                myTamer: game.player2Tamer,
+                myDigi1: game.player2Digi1,
+                myDigi2: game.player2Digi2,
+                myDigi3: game.player2Digi3,
+                myDigi4: game.player2Digi4,
+                myDigi5: game.player2Digi5,
+                myBreedingArea: game.player2BreedingArea,
+                opponentHand: game.player1Hand,
+                opponentDeckField: game.player1DeckField,
+                opponentEggDeck: game.player1EggDeck,
+                opponentTrash: game.player1Trash,
+                opponentSecurity: game.player1Security,
+                opponentTamer: game.player1Tamer,
+                opponentDigi1: game.player1Digi1,
+                opponentDigi2: game.player1Digi2,
+                opponentDigi3: game.player1Digi3,
+                opponentDigi4: game.player1Digi4,
+                opponentDigi5: game.player1Digi5,
+                opponentBreedingArea: game.player1BreedingArea,
+            });
+        }
+        get().setLoading();
     }
 
 }));

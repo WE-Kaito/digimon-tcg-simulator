@@ -3,6 +3,7 @@ package com.github.wekaito.backend.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.Deck;
+import com.github.wekaito.backend.IdService;
 import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,8 @@ class GameServiceTest {
     private MongoUserDetailsService mongoUserDetailsService;
     @Mock
     private ProfileService profileService;
+    @Mock
+    private IdService idService;
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
@@ -60,7 +63,7 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
-        gameService = new GameService(mongoUserDetailsService, profileService);
+        gameService = new GameService(mongoUserDetailsService, profileService, idService);
         session1 = createMockSession(username1);
         session2 = createMockSession(username2);
 
@@ -84,8 +87,8 @@ class GameServiceTest {
     @Test
     void testGameSetup() throws IOException {
         // GIVEN
-        Player player1 = new Player(username1, "takato", exampleDeck.cards());
-        Player player2 = new Player(username2, "tai", exampleDeck2.cards());
+        Player player1 = new Player(username1, "takato");
+        Player player2 = new Player(username2, "tai");
         Player[] players = {player1, player2};
         String playersJson = new ObjectMapper().writeValueAsString(players);
         TextMessage expectedMessage = new TextMessage( "[START_GAME]:" + playersJson);
