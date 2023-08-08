@@ -3,7 +3,6 @@ import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
 import 'react-toastify/dist/ReactToastify.css';
 
 type State = {
-    isLoading: boolean,
     memory: number,
 
     myAvatar: string,
@@ -38,13 +37,12 @@ type State = {
     opponentDigi5: CardTypeWithId[],
     opponentBreedingArea: CardTypeWithId[],
 
-    setLoading: () => void,
     setUpGame: (me: Player, opponent: Player) => void;
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void;
 };
 
 
-export const useGame = create<State>((set, get) => ({
+export const useGame = create<State>((set) => ({
 
     isLoading: false,
 
@@ -82,8 +80,6 @@ export const useGame = create<State>((set, get) => ({
     opponentDigi5: [],
     opponentBreedingArea: [],
 
-    setLoading: () => set({isLoading: !get().isLoading}),
-
     setUpGame: (me, opponent) => {
         set({
             myAvatar: me.avatarName,
@@ -93,37 +89,10 @@ export const useGame = create<State>((set, get) => ({
     },
 
     distributeCards: (user, game, gameId) => {
-        get().setLoading();
+
         const player1 = gameId.split("_")[0];
 
-        const {memory,
-            player1Hand,
-            player1DeckField,
-            player1EggDeck,
-            player1Trash,
-            player1Security,
-            player1Tamer,
-            player1Digi1,
-            player1Digi2,
-            player1Digi3,
-            player1Digi4,
-            player1Digi5,
-            player1BreedingArea,
-            player2Hand,
-            player2DeckField,
-            player2EggDeck,
-            player2Trash,
-            player2Security,
-            player2Tamer,
-            player2Digi1,
-            player2Digi2,
-            player2Digi3,
-            player2Digi4,
-            player2Digi5,
-            player2BreedingArea
-        } = game;
-
-        set ({memory: memory});
+        set ({memory: game.memory});
 
         if (user === player1) {
             set({
@@ -180,7 +149,6 @@ export const useGame = create<State>((set, get) => ({
                 opponentBreedingArea: game.player1BreedingArea,
             });
         }
-        get().setLoading();
     }
 
 }));

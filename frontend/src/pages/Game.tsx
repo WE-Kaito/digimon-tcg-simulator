@@ -56,8 +56,6 @@ export default function Game({user}: { user: string }) {
     const opponentDigi5 = useGame((state) => state.opponentDigi5);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
-const isLoading = useGame((state) => state.isLoading);
-
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
@@ -77,8 +75,6 @@ const isLoading = useGame((state) => state.isLoading);
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const newGame: GameDistribution = JSON.parse(event.data.substring("[DISTRIBUTE_CARDS]:".length));
                 distributeCards(user, newGame, gameId);
-                console.log(newGame.memory);
-                console.log(newGame.player1Hand);
             }
 
             (event.data === "[SURRENDER]") && startTimer();
@@ -95,7 +91,6 @@ const isLoading = useGame((state) => state.isLoading);
         setTimer(5);
         setTimerOpen(false);
         setSurrenderOpen(false);
-        console.log(gameId);
     }, []);
 
     useEffect(() => {
@@ -116,11 +111,6 @@ const isLoading = useGame((state) => state.isLoading);
         }
     }
 
-    if (isLoading) return "loading...";
-
-    console.log("memory", memory);
-
-
     return (
         <>
             {(surrenderOpen || timerOpen) &&
@@ -134,10 +124,10 @@ const isLoading = useGame((state) => state.isLoading);
                 <FieldContainer>
                     <div style={{display: "flex"}}>
                         <OpponentContainerMain>
-                            <div style={{display: "flex", flexDirection: "column", gridArea: "player"}}>
-                                <img alt="opponent" src={profilePicture(opponentAvatar)}/>
-                                <span>{opponentName}</span>
-                            </div>
+                            <PlayerContainer>
+                                <img alt="opponent" src={profilePicture(opponentAvatar)} style={{width:"160px", border:"#0c0c0c solid 2px"}}/>
+                                <UserName>{opponentName}</UserName>
+                            </PlayerContainer>
                         </OpponentContainerMain>
                         <OpponentContainerSide></OpponentContainerSide>
                     </div>
@@ -147,12 +137,11 @@ const isLoading = useGame((state) => state.isLoading);
                     <div style={{display: "flex"}}>
                         <MyContainerSide></MyContainerSide>
                         <MyContainerMain>
-                            <div style={{display: "flex", flexDirection: "column", gridArea: "player"}}>
-                                <span>{user}</span>
-                                <img alt="me" src={profilePicture(myAvatar)}
-                                     onClick={() => setSurrenderOpen(!surrenderOpen)}
-                                     style={{cursor: "pointer"}}/>
-                            </div>
+                            <PlayerContainer>
+                                <UserName>{user}</UserName>
+                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
+                                     onClick={() => setSurrenderOpen(!surrenderOpen)}/>
+                            </PlayerContainer>
                         </MyContainerMain>
                     </div>
                 </FieldContainer>
@@ -244,4 +233,30 @@ const Wrapper = styled.div`
   @media (min-height: 1200px) {
     transform: scale(1.5);
   }
+`;
+
+const PlayerContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  grid-area: player;
+  align-items: center;
+  justify-content: center;
+`;
+
+const PlayerImage = styled.img`
+  cursor: pointer;
+  width: 160px;
+  border: #0c0c0c solid 2px;
+
+  &:hover {
+    filter: drop-shadow(0 0 2px #eceaea);
+    border: #eceaea solid 2px;
+  }
+`;
+
+const UserName = styled.span`
+  font-size: 20px;
+  align-self: flex-start;
+  margin-left: 27px;
+  font-family: 'Cousine', sans-serif;
 `;
