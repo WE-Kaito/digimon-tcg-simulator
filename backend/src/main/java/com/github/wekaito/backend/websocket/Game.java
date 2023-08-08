@@ -32,7 +32,10 @@ public record Game(
         GameCard[] player2Digi3,
         GameCard[] player2Digi4,
         GameCard[] player2Digi5,
-        GameCard[] player2BreedingArea
+        GameCard[] player2BreedingArea,
+
+        GameCard[] player1Delay,
+        GameCard[] player2Delay
 ) {
     @Override
     public boolean equals(Object o) {
@@ -63,7 +66,9 @@ public record Game(
                 Arrays.deepEquals(player2Digi3, game.player2Digi3) &&
                 Arrays.deepEquals(player2Digi4, game.player2Digi4) &&
                 Arrays.deepEquals(player2Digi5, game.player2Digi5) &&
-                Arrays.deepEquals(player2BreedingArea, game.player2BreedingArea);
+                Arrays.deepEquals(player2BreedingArea, game.player2BreedingArea) &&
+                Arrays.deepEquals(player1Delay, game.player1Delay) &&
+                Arrays.deepEquals(player2Delay, game.player2Delay);
     }
 
     @Override
@@ -93,7 +98,9 @@ public record Game(
                 Arrays.hashCode(player2Digi3),
                 Arrays.hashCode(player2Digi4),
                 Arrays.hashCode(player2Digi5),
-                Arrays.hashCode(player2BreedingArea)
+                Arrays.hashCode(player2BreedingArea),
+                Arrays.hashCode(player1Delay),
+                Arrays.hashCode(player2Delay)
         );
     }
 
@@ -125,6 +132,8 @@ public record Game(
                 ", player2Digi4='" + Arrays.toString(player2Digi4) +'\'' +
                 ", player2Digi5='" + Arrays.toString(player2Digi5) +'\'' +
                 ", player2BreedingArea='" + Arrays.toString(player2BreedingArea) +'\'' +
+                ", player1Delay='" + Arrays.toString(player1Delay) +'\'' +
+                ", player2Delay='" + Arrays.toString(player2Delay) +'\'' +
                 '}';
     }
 }

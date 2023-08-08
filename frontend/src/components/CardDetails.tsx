@@ -6,14 +6,19 @@ import {getBackgroundColor, getAttributeImage, getStrokeColor} from "../utils/fu
 import {useEffect, useState} from "react";
 import SimpleBar from "simplebar-react";
 import 'simplebar-react/dist/simplebar.min.css';
+import {useLocation} from "react-router-dom";
 
 export default function CardDetails() {
+
+    const location = useLocation();
+    const inGame = location.pathname === "/game";
 
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
     const currentAttr = hoverCard ? hoverCard.attribute : (selectedCard?.attribute || null)
     const currentDigiType = hoverCard ? hoverCard.digi_type : selectedCard?.digi_type;
     const longDigiType = currentDigiType && (currentDigiType?.length >= 14);
+    const longName = hoverCard ? (hoverCard.name?.length >= 14) : (selectedCard && (selectedCard?.name.length >= 14));
     const strokeColor = getStrokeColor(hoverCard, selectedCard);
     const mainEffectText = hoverCard ? (hoverCard.maineffect ?? "") : (selectedCard?.maineffect ?? "");
     const soureEffectText = hoverCard ? (hoverCard.soureeffect ?? "") : (selectedCard?.soureeffect ?? "");
@@ -63,35 +68,35 @@ export default function CardDetails() {
     }
 
     return (
-        <Container color={hoverCard?.color || selectedCard?.color || "default"}>
+        <Container inGame={inGame} color={hoverCard?.color || selectedCard?.color || "default"}>
             <DetailsOutline/>
-            <Name className={css`color:${strokeColor}`}>
+            <Name longName={longName} inGame={inGame} className={css`color:${strokeColor};`}>
                 {hoverCard?.name || selectedCard?.name || null}
             </Name>
 
-            {currentAttr && <Type src={getAttributeImage(currentAttr)} alt={currentAttr}/>}
+            {currentAttr && <Type inGame={inGame} src={getAttributeImage(currentAttr)} alt={currentAttr}/>}
 
-            <PlayCost className={css`color:${strokeColor}`}>
+            <PlayCost inGame={inGame} className={css`color:${strokeColor}`}>
                 {hoverCard ? hoverCard.play_cost : (selectedCard?.play_cost || null)}
             </PlayCost>
 
-            <DP className={css`color:${strokeColor}`}>
+            <DP inGame={inGame} className={css`color:${strokeColor}`}>
                 {hoverCard ? hoverCard.dp : (selectedCard?.dp || null)}
             </DP>
 
-            <DigivCost className={css`color:${strokeColor}`}>
+            <DigivCost inGame={inGame} className={css`color:${strokeColor}`}>
                 {hoverCard ? hoverCard.evolution_cost : (selectedCard?.evolution_cost || null)}
             </DigivCost>
 
-            <Level className={css`color:${strokeColor}`}>
+            <Level inGame={inGame} className={css`color:${strokeColor}`}>
                 {hoverCard ? hoverCard.level : (selectedCard?.level || null)}
             </Level>
 
-            <Stage className={css`color:${strokeColor}`}>
+            <Stage inGame={inGame} className={css`color:${strokeColor}`}>
                 {hoverCard ? hoverCard.stage : (selectedCard?.stage || null)}
             </Stage>
 
-            <DigiType className={css`
+            <DigiType inGame={inGame} className={css`
               color:${strokeColor};
               font-size: ${longDigiType ? 12 : 18}px;
               @media (max-width: 766px) {
@@ -100,7 +105,7 @@ export default function CardDetails() {
               }
               @media (min-width: 767px) {
                 transform: translateX(-50%) translateY(${longDigiType ? 9 : 2}px);
-                font-size: ${longDigiType ? 12 : 21}px;
+                font-size: ${longDigiType ? `${inGame?8:12}` : `${inGame?16:21}`}px;
               }
             `}>
                 {currentDigiType || null}
@@ -108,6 +113,7 @@ export default function CardDetails() {
 
 
             <MainEffect
+                inGame={inGame}
                 className={css`color:${strokeColor}`}
             >
                 <SimpleBar
@@ -120,14 +126,15 @@ export default function CardDetails() {
                     display: none;
                   }
                   @media (min-width: 767px) {
-                    width: 475px;
-                    height: 85px;
+                    width: ${inGame ? "290px" : "475px"};
+                    height: ${inGame ? "100px" : "85px"};
                   }
                 `}> {highlightedMainEffect}</SimpleBar>
             </MainEffect>
 
 
             <SoureEffect
+                inGame={inGame}
                 className={css`color:${strokeColor}`}
             >
                 <SimpleBar
@@ -140,8 +147,8 @@ export default function CardDetails() {
                     display: none;
                   }
                   @media (min-width: 767px) {
-                    width: 475px;
-                    height: 85px;
+                    width: ${inGame ? "290px" : "475px"};
+                    height: ${inGame ? "100px" : "85px"};
                   }
                 `}> {highlightedSoureEffect}</SimpleBar>
             </SoureEffect>
@@ -152,6 +159,7 @@ export default function CardDetails() {
 
 type ContainerProps = {
     color: string
+    inGame: boolean
 }
 
 const Container = styled.div<ContainerProps>`
@@ -159,26 +167,26 @@ const Container = styled.div<ContainerProps>`
   margin-top: 8px;
   position: relative;
   width: 166px;
-  height: 244px;
+  height: ${({inGame}) => inGame ? 500 : 244}px;
   border-radius: 5px;
   padding-top: 3px;
+  max-width: 100%;
 
   background: ${({color}) => getBackgroundColor(color)};
 
   @media (min-width: 767px) {
     width: 500px;
-    height: 398px;
+    height: ${({inGame}) => inGame ? 465 : 398}px;
     margin-top: 0;
   }
 `
 const StyledSpan = styled.span`
   position: absolute;
   font-family: 'Cousine', sans-serif;
-
 `;
 
-const Name = styled(StyledSpan)`
-  top: 11px;
+const Name = styled(StyledSpan)<{inGame:boolean, longName:boolean|null}>`
+  top: ${({longName}) => longName ? 6 : 11}px;
   left: 13px;
   font-size: 13px;
   max-width: 102px;
@@ -187,69 +195,69 @@ const Name = styled(StyledSpan)`
   overflow-y: hidden;
 
   @media (min-width: 767px) {
-    max-width: 306px;
+    max-width: ${({inGame}) => inGame ? 200 : 306}px;
     overflow-x: hidden;
-    font-size: 24px;
-    left: 182px;
-    transform: translateX(-50%) translateY(14px);
-    max-height: 40px;
+    font-size: ${({longName}) => longName ? 17 : 24}px;
+    left: ${({inGame}) => inGame ? 10 : 182}px;
+    transform: ${({inGame}) => inGame ? "translateY(8px)" : "translateX(-50%) translateY(14px)"};
+    max-height: ${({inGame}) => inGame ? 50 : 40}px;
   }
 `;
 
-const Type = styled.img`
+const Type = styled.img<{inGame:boolean}>`
   position: absolute;
   width: 33px;
   right: 11px;
   top: 7px;
   @media (min-width: 767px) {
     width: 50px;
-    right: 60px;
-    top: 16px
+    right: ${({inGame}) => inGame ? 20 : 60}px;
+    top: ${({inGame}) => inGame ? 10 : 16}px;
   }
 `;
 
-const PlayCost = styled(StyledSpan)`
+const PlayCost = styled(StyledSpan)<{inGame:boolean}>`
   left: 19px;
   top: 53px;
   @media (min-width: 767px) {
-    left: 70px;
-    top: 90px;
+    left: ${({inGame}) => inGame ? 35 : 70}px;
+    top: ${({inGame}) => inGame ? 100 : 90}px;
     font-size: 22px;
   }
 `;
 
-const DP = styled(StyledSpan)`
+const DP = styled(StyledSpan)<{inGame:boolean}>`
   left: 62px;
   top: 53px;
   @media (min-width: 767px) {
-    left: 224px;
-    top: 90px;
+    left: ${({inGame}) => inGame ? 132 : 224}px;
+    top: ${({inGame}) => inGame ? 100 : 90}px;
     font-size: 22px;
   }
 `;
 
-const DigivCost = styled(StyledSpan)`
+const DigivCost = styled(StyledSpan)<{inGame:boolean}>`
   left: 133px;
   top: 53px;
   @media (min-width: 767px) {
-    left: 410px;
-    top: 90px;
+    left: ${({inGame}) => inGame ? 258 : 410}px;
+    top: ${({inGame}) => inGame ? 100 : 90}px;
     font-size: 22px;
   }
 
 `;
 
-const Level = styled(StyledSpan)`
+const Level = styled(StyledSpan)<{inGame:boolean}>`
   left: 19px;
   top: 92px;
   @media (min-width: 767px) {
-    left: 70px;
-    top: 150px;
+    left: ${({inGame}) => inGame ? 35 : 70}px;
+    top: ${({inGame}) => inGame ? 175 : 150}px;
     font-size: 22px;
   }
 `;
 
-const Stage = styled(StyledSpan)`
+const Stage = styled(StyledSpan)<{inGame:boolean}>`
   left: 53.5px;
   top: 92px;
   font-size: 13px;
@@ -260,31 +268,31 @@ const Stage = styled(StyledSpan)`
   }
 
   @media (min-width: 767px) {
-    left: 232px;
+    left: ${({inGame}) => inGame ? 142 : 232}px;
     transform: translateX(-50%);
-    top: 150px;
-    font-size: 21px;
+    top: ${({inGame}) => inGame ? 178 : 150}px;
+    font-size: ${({inGame}) => inGame ? 16 : 21}px;
   }
 `;
 
-const DigiType = styled(StyledSpan)`
+const DigiType = styled(StyledSpan)<{inGame:boolean}>`
   left: 107px;
   top: 92px;
   @media (min-width: 767px) {
-    left: 402px;
+    left: ${({inGame}) => inGame ? 255 : 402}px;
     width: 300px;
-    top: 150px;
+    top: ${({inGame}) => inGame ? 178 : 150}px;
   }
 `;
 
-const StyledParagraph = styled.p`
+const StyledParagraph = styled.p<{inGame:boolean}>`
   position: absolute;
   padding-top: 3px;
   font-family: 'Cousine', sans-serif;
   font-size: 12px;
   line-height: 0.95;
   top: 110px;
-  left: 14px;
+  left: ${({inGame}) => inGame ? 8 : 14}px;
   text-align: left;
   max-width: 80px;
   max-height: 49px;
@@ -309,20 +317,20 @@ const StyledParagraph = styled.p`
     max-width: 470px;
     font-size: 13px;
     line-height: 1;
-    top: 190px;
+    top: ${({inGame}) => inGame ? 229 : 190}px;
     
   }
 
 `;
 
-const MainEffect = styled(StyledParagraph)`
+const MainEffect = styled(StyledParagraph)<{inGame:boolean}>`
 
 `;
 
-const SoureEffect = styled(StyledParagraph)`
+const SoureEffect = styled(StyledParagraph)<{inGame:boolean}>`
   top: 173px;
 
   @media (min-width: 767px) {
-    top: 292.5px;
+    top: ${({inGame}) => inGame ? 355 :  292.5}px;
   }
 `;

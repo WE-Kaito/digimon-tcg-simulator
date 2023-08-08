@@ -1,16 +1,18 @@
 import styled from "@emotion/styled";
 import {useStore} from "../hooks/useStore.ts";
 import {getStrokeColor} from "../utils/functions.ts";
+import {useLocation} from "react-router-dom";
 
 export default function DetailsOutline() {
 
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
     const strokeColor = getStrokeColor(hoverCard, selectedCard);
-
+    const location = useLocation();
+    const inGame = location.pathname === "/game";
     return (
-        <StyledSvg viewBox="0 0 162 238" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {window.innerWidth <= 766 && <>
+        <StyledSvg inGame={inGame} viewBox="0 0 162 238" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {((inGame)||(window.innerWidth <= 766)) && <>
                 <rect x="3.29309" y="3.43829" width="155.414" height="234.062" rx="4.5" stroke={strokeColor}
                       strokeLinejoin="round"/>
                 <line x1="2.79309" y1="38.6769" x2="158.276" y2="38.6769" stroke={strokeColor}/>
@@ -48,7 +50,7 @@ export default function DetailsOutline() {
                     fill={strokeColor}/>
             </>}
 
-            {window.innerWidth > 766 && <>
+            {(!inGame) && (window.innerWidth > 766) && <>
                 <rect x="9.12067" y="5.30246" width="481.759" height="383.198" rx="4.5" stroke={strokeColor}
                       strokeLinejoin="round"/>
                 <line x1="8.62067" y1="63.5329" x2="488.506" y2="63.5329" stroke={strokeColor}/>
@@ -88,15 +90,16 @@ export default function DetailsOutline() {
     );
 }
 
-const StyledSvg = styled.svg`
+const StyledSvg = styled.svg<{ inGame: boolean }>`
   width: 162px;
   height: 238px;
 
   @media (min-width: 767px) {
     width: 500px;
     position: absolute;
-    left: -171px;
-    transform: translate(2px, 1px);
+    left: ${({inGame}) => (inGame ? "-97px" : "-171px")};
+    top: ${({inGame}) => (inGame ? "111px" : null)};
+    transform: translate(2px, 1px) ${({inGame}) => (inGame ? "scale(2)" : "scale(1)")};
     overflow: visible;
   }
 `;

@@ -131,7 +131,7 @@ public class GameService extends TextWebSocketHandler {
         newDeck2.subList(0, Math.min(5, newDeck2.size())).clear();
 
         GameCard[] empty = new GameCard[0];
-        Game newGame = new Game(0, player1Hand, newDeck1.toArray(GameCard[]::new), player1EggDeck, empty, player1Security, empty, empty, empty, empty, empty, empty, empty, player2Hand, newDeck2.toArray(GameCard[]::new), player2EggDeck, empty, player2Security, empty, empty, empty, empty, empty, empty, empty);
+        Game newGame = new Game(0, player1Hand, newDeck1.toArray(GameCard[]::new), player1EggDeck, empty, player1Security, empty, empty, empty, empty, empty, empty, empty, player2Hand, newDeck2.toArray(GameCard[]::new), player2EggDeck, empty, player2Security, empty, empty, empty, empty, empty, empty, empty, empty, empty);
         ObjectMapper objectMapper = new ObjectMapper();
         String newGameJson = objectMapper.writeValueAsString(newGame);
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);

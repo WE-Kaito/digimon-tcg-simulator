@@ -15,6 +15,7 @@ type State = {
     myTrash: CardTypeWithId[],
     mySecurity: CardTypeWithId[],
     myTamer: CardTypeWithId[],
+    myDelay: CardTypeWithId[],
 
     myDigi1: CardTypeWithId[],
     myDigi2: CardTypeWithId[],
@@ -29,6 +30,7 @@ type State = {
     opponentTrash: CardTypeWithId[],
     opponentSecurity: CardTypeWithId[],
     opponentTamer: CardTypeWithId[],
+    opponentDelay: CardTypeWithId[],
 
     opponentDigi1: CardTypeWithId[],
     opponentDigi2: CardTypeWithId[],
@@ -58,6 +60,7 @@ export const useGame = create<State>((set) => ({
     myTrash: [],
     mySecurity: [],
     myTamer: [],
+    myDelay: [],
 
     myDigi1: [],
     myDigi2: [],
@@ -72,6 +75,7 @@ export const useGame = create<State>((set) => ({
     opponentTrash: [],
     opponentSecurity: [],
     opponentTamer: [],
+    opponentDelay: [],
 
     opponentDigi1: [],
     opponentDigi2: [],
@@ -102,6 +106,7 @@ export const useGame = create<State>((set) => ({
                 myTrash: game.player1Trash,
                 mySecurity: game.player1Security,
                 myTamer: game.player1Tamer,
+                myDelay: game.player1Delay,
                 myDigi1: game.player1Digi1,
                 myDigi2: game.player1Digi2,
                 myDigi3: game.player1Digi3,
@@ -114,6 +119,7 @@ export const useGame = create<State>((set) => ({
                 opponentTrash: game.player2Trash,
                 opponentSecurity: game.player2Security,
                 opponentTamer: game.player2Tamer,
+                opponentDelay: game.player2Delay,
                 opponentDigi1: game.player2Digi1,
                 opponentDigi2: game.player2Digi2,
                 opponentDigi3: game.player2Digi3,
@@ -129,6 +135,7 @@ export const useGame = create<State>((set) => ({
                 myTrash: game.player2Trash,
                 mySecurity: game.player2Security,
                 myTamer: game.player2Tamer,
+                myDelay: game.player2Delay,
                 myDigi1: game.player2Digi1,
                 myDigi2: game.player2Digi2,
                 myDigi3: game.player2Digi3,
@@ -141,6 +148,7 @@ export const useGame = create<State>((set) => ({
                 opponentTrash: game.player1Trash,
                 opponentSecurity: game.player1Security,
                 opponentTamer: game.player1Tamer,
+                opponentDelay: game.player1Delay,
                 opponentDigi1: game.player1Digi1,
                 opponentDigi2: game.player1Digi2,
                 opponentDigi3: game.player1Digi3,

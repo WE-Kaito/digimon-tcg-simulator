@@ -70,6 +70,7 @@ export type GameDistribution = {
     player1Trash: CardTypeWithId[],
     player1Security: CardTypeWithId[],
     player1Tamer: CardTypeWithId[],
+    player1Delay: CardTypeWithId[],
 
     player1Digi1: CardTypeWithId[],
     player1Digi2: CardTypeWithId[],
@@ -84,6 +85,7 @@ export type GameDistribution = {
     player2Trash: CardTypeWithId[],
     player2Security: CardTypeWithId[],
     player2Tamer: CardTypeWithId[],
+    player2Delay: CardTypeWithId[],
 
     player2Digi1: CardTypeWithId[],
     player2Digi2: CardTypeWithId[],

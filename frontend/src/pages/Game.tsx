@@ -7,6 +7,13 @@ import {profilePicture} from "../utils/functions.ts";
 import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderMoodle from "../components/game/SurrenderMoodle.tsx";
+import deckBack from "../assets/deckBack.png";
+import eggBack from "../assets/eggBack.jpg";
+import mySecurityStack from "../assets/mySecurityStack.png";
+import opponentSecurityStack from "../assets/opponentSecurityStack.png";
+import Card from "../components/Card.tsx";
+import cardBack from "../assets/cardBack.jpg";
+import CardDetails from "../components/CardDetails.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -34,6 +41,7 @@ export default function Game({user}: { user: string }) {
     const myTrash = useGame((state) => state.myTrash);
     const mySecurity = useGame((state) => state.mySecurity);
     const myTamer = useGame((state) => state.myTamer);
+    const myDelay = useGame((state) => state.myDelay);
 
     const myDigi1 = useGame((state) => state.myDigi1);
     const myDigi2 = useGame((state) => state.myDigi2);
@@ -48,6 +56,7 @@ export default function Game({user}: { user: string }) {
     const opponentTrash = useGame((state) => state.opponentTrash);
     const opponentSecurity = useGame((state) => state.opponentSecurity);
     const opponentTamer = useGame((state) => state.opponentTamer);
+    const opponentDelay = useGame((state) => state.opponentDelay);
 
     const opponentDigi1 = useGame((state) => state.opponentDigi1);
     const opponentDigi2 = useGame((state) => state.opponentDigi2);
@@ -87,13 +96,6 @@ export default function Game({user}: { user: string }) {
     });
 
     useEffect(() => {
-        setOpponentLeft(false);
-        setTimer(5);
-        setTimerOpen(false);
-        setSurrenderOpen(false);
-    }, []);
-
-    useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
 
@@ -119,29 +121,121 @@ export default function Game({user}: { user: string }) {
                                  handleSurrender={handleSurrender}/>}
 
             <Wrapper>
-                <InfoContainer><span></span></InfoContainer>
+                <InfoContainer>
+                    <span></span>
+                <CardDetails/>
+                </InfoContainer>
 
                 <FieldContainer>
                     <div style={{display: "flex"}}>
                         <OpponentContainerMain>
+
                             <PlayerContainer>
-                                <img alt="opponent" src={profilePicture(opponentAvatar)} style={{width:"160px", border:"#0c0c0c solid 2px"}}/>
+                                <img alt="opponent" src={profilePicture(opponentAvatar)}
+                                     style={{width: "160px", border: "#0c0c0c solid 2px"}}/>
                                 <UserName>{opponentName}</UserName>
                             </PlayerContainer>
+
+                            <OpponentDeckContainer>
+                                <Deck alt="deck" src={deckBack}/>
+                            </OpponentDeckContainer>
+
+                            <OpponentTrashContainer>
+                                {opponentTrash.length === 0 &&
+                                    <div style={{background: "black", width: "105px", height: "146px"}}>Trash</div>}
+                            </OpponentTrashContainer>
+
+                            <BattleArea1></BattleArea1>
+                            <BattleArea2></BattleArea2>
+                            <BattleArea3></BattleArea3>
+                            <BattleArea4></BattleArea4>
+                            <BattleArea5></BattleArea5>
+
+                            <DelayAreaContainer style={{marginTop: "1px"}}>
+                                {opponentDelay.length === 0 && <span>Delay</span>}
+                            </DelayAreaContainer>
+
+                            <TamerAreaContainer>
+                                {myTamer.length === 0 && <span>Tamers</span>}
+                            </TamerAreaContainer>
+
+                            <OpponentHand>
+                                {opponentHand.map((card) => <OppenentHandCard alt="card" key={card.id}
+                                                                              src={cardBack}/>)}
+                            </OpponentHand>
+
                         </OpponentContainerMain>
-                        <OpponentContainerSide></OpponentContainerSide>
+
+                        <OpponentContainerSide>
+                            <EggDeckContainer>
+                                {opponentEggDeck.length !== 0 && <EggDeck alt="egg-deck" src={eggBack}/>}
+                            </EggDeckContainer>
+
+                            <SecurityStackContainer>
+                                <OpponentSecuritySpan>{opponentSecurity.length}</OpponentSecuritySpan>
+                                <img alt="security-stack" src={opponentSecurityStack}/>
+                            </SecurityStackContainer>
+
+                            <BreedingAreaContainer>
+                                {opponentBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
+                            </BreedingAreaContainer>
+
+                        </OpponentContainerSide>
                     </div>
 
                     <EnergyBarContainer></EnergyBarContainer>
 
                     <div style={{display: "flex"}}>
-                        <MyContainerSide></MyContainerSide>
+                        <MyContainerSide>
+                            <EggDeckContainer>
+                                {myEggDeck.length !== 0 && <EggDeck alt="egg-deck" src={eggBack}/>}
+                            </EggDeckContainer>
+
+                            <SecurityStackContainer>
+                                <MySecuritySpan>{mySecurity.length}</MySecuritySpan>
+                                <img alt="security-stack" src={mySecurityStack}/>
+                            </SecurityStackContainer>
+
+                            <BreedingAreaContainer>
+                                {myBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
+                            </BreedingAreaContainer>
+                        </MyContainerSide>
+
                         <MyContainerMain>
+
                             <PlayerContainer>
                                 <UserName>{user}</UserName>
                                 <PlayerImage alt="me" src={profilePicture(myAvatar)}
-                                     onClick={() => setSurrenderOpen(!surrenderOpen)}/>
+                                             onClick={() => setSurrenderOpen(!surrenderOpen)}/>
                             </PlayerContainer>
+
+                            <DeckContainer>
+                                <Deck alt="deck" src={deckBack}/>
+                            </DeckContainer>
+
+                            <TrashContainer>
+                                {myTrash.length === 0 &&
+                                    <div style={{background: "black", width: "105px", height: "146px"}}>Trash</div>}
+                            </TrashContainer>
+
+                            <BattleArea1></BattleArea1>
+                            <BattleArea2></BattleArea2>
+                            <BattleArea3></BattleArea3>
+                            <BattleArea4></BattleArea4>
+                            <BattleArea5></BattleArea5>
+
+                            <DelayAreaContainer style={{marginBottom: "1px"}}>
+                                {myDelay.length === 0 && <span>Delay</span>}
+                            </DelayAreaContainer>
+
+                            <TamerAreaContainer>
+                                {myTamer.length === 0 && <span>Tamers</span>}
+                            </TamerAreaContainer>
+
+                            <MyHand>
+                                {myHand.map((card) => <Card key={card.id} card={card} location={"myHand"}/>)}
+                            </MyHand>
+
                         </MyContainerMain>
                     </div>
                 </FieldContainer>
@@ -186,7 +280,7 @@ const OpponentContainerSide = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: 1.5fr 1fr;
-  grid-template-areas: "egg-deck breed"
+  grid-template-areas: "breed egg-deck"
                         "security-stack security-stack";
 `;
 
@@ -202,7 +296,7 @@ const InfoContainer = styled.div`
   height: 1000px;
   width: 310px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
 `;
@@ -235,6 +329,8 @@ const Wrapper = styled.div`
   }
 `;
 
+// Player
+
 const PlayerContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -247,6 +343,7 @@ const PlayerImage = styled.img`
   cursor: pointer;
   width: 160px;
   border: #0c0c0c solid 2px;
+  transition: all 0.1s ease;
 
   &:hover {
     filter: drop-shadow(0 0 2px #eceaea);
@@ -259,4 +356,156 @@ const UserName = styled.span`
   align-self: flex-start;
   margin-left: 27px;
   font-family: 'Cousine', sans-serif;
+`;
+
+// Fields
+
+const DeckContainer = styled.div`
+  grid-area: deck;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  padding: 0 0 10px 10px;
+`;
+
+const OpponentDeckContainer = styled.div`
+  grid-area: deck;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 10px 10px 0 0;
+`;
+
+const Deck = styled.img`
+  width: 105px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+
+  &:hover {
+    filter: drop-shadow(0 0 1px #eceaea);
+  }
+`;
+
+const EggDeck = styled(Deck)`
+  &:hover {
+    filter: drop-shadow(0 0 2px #00121f);
+  }
+`;
+
+const TrashContainer = styled.div`
+  grid-area: trash;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 10px 10px 0 0;
+`;
+
+const OpponentTrashContainer = styled.div`
+  grid-area: trash;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  padding: 0 0 10px 10px;
+`;
+
+const EggDeckContainer = styled.div`
+  grid-area: egg-deck;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0 10px 10px;
+`;
+
+const SecurityStackContainer = styled.div`
+  cursor: pointer;
+  position: relative;
+  grid-area: security-stack;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const MySecuritySpan = styled.span`
+  position: absolute;
+  z-index: 5;
+  font-family: Awsumsans, sans-serif;
+  font-size: 35px;
+  color: #0c0c0c;
+  text-shadow: #0e6cc7 1px 1px 1px;
+  left: 175px;
+`;
+
+const OpponentSecuritySpan = styled(MySecuritySpan)`
+  text-shadow: #c70e3f 1px 1px 1px;
+  left: 90px;
+`;
+
+const BattleAreaContainer = styled.div`
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  outline: rgba(255, 255, 255, 0.5) solid 1px;
+`;
+
+const BattleArea1 = styled(BattleAreaContainer)`
+  grid-area: digi1;`;
+
+const BattleArea2 = styled(BattleAreaContainer)`
+  grid-area: digi2;`;
+
+const BattleArea3 = styled(BattleAreaContainer)`
+  grid-area: digi3;`;
+
+const BattleArea4 = styled(BattleAreaContainer)`
+  grid-area: digi4;`;
+
+const BattleArea5 = styled(BattleAreaContainer)`
+  grid-area: digi5;`;
+
+const BreedingAreaContainer = styled(BattleAreaContainer)`
+  margin: 1px;
+  grid-area: breed;
+`;
+
+const DelayAreaContainer = styled(BattleAreaContainer)`
+  grid-area: delay;
+`;
+
+const TamerAreaContainer = styled(BattleAreaContainer)`
+  margin: 1px 0 1px 0;
+  grid-area: tamer;
+  flex-direction: row;
+`;
+
+const MyHand = styled.div`
+  grid-area: hand;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: scroll;
+`;
+
+const OpponentHand = styled.div`
+  grid-area: hand;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: scroll;
+`;
+
+const OppenentHandCard = styled.img`
+  width: 69.5px;
+  max-height: 150px;
+  border-radius: 5px;
+
+  @media (max-width: 767px) {
+    max-height: 115px;
+  }
+
+  @media (min-width: 768px) {
+    width: 95px;
+  }
 `;
