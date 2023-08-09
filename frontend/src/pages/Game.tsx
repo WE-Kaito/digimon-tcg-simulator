@@ -37,35 +37,35 @@ export default function Game({user}: { user: string }) {
     const [timer, setTimer] = useState<number>(5);
     const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
 
-    const memory = useGame((state) => state.memory);
+    //const memory = useGame((state) => state.memory);
     const myHand = useGame((state) => state.myHand);
-    const myDeckField = useGame((state) => state.myDeckField);
+    //const myDeckField = useGame((state) => state.myDeckField);
     const myEggDeck = useGame((state) => state.myEggDeck);
     const myTrash = useGame((state) => state.myTrash);
     const mySecurity = useGame((state) => state.mySecurity);
     const myTamer = useGame((state) => state.myTamer);
     const myDelay = useGame((state) => state.myDelay);
 
-    const myDigi1 = useGame((state) => state.myDigi1);
-    const myDigi2 = useGame((state) => state.myDigi2);
+    //const myDigi1 = useGame((state) => state.myDigi1);
+    //const myDigi2 = useGame((state) => state.myDigi2);
     const myDigi3 = useGame((state) => state.myDigi3);
-    const myDigi4 = useGame((state) => state.myDigi4);
-    const myDigi5 = useGame((state) => state.myDigi5);
+    //const myDigi4 = useGame((state) => state.myDigi4);
+    //const myDigi5 = useGame((state) => state.myDigi5);
     const myBreedingArea = useGame((state) => state.myBreedingArea);
 
     const opponentHand = useGame((state) => state.opponentHand);
-    const opponentDeckField = useGame((state) => state.opponentDeckField);
+    //const opponentDeckField = useGame((state) => state.opponentDeckField);
     const opponentEggDeck = useGame((state) => state.opponentEggDeck);
     const opponentTrash = useGame((state) => state.opponentTrash);
     const opponentSecurity = useGame((state) => state.opponentSecurity);
     const opponentTamer = useGame((state) => state.opponentTamer);
     const opponentDelay = useGame((state) => state.opponentDelay);
 
-    const opponentDigi1 = useGame((state) => state.opponentDigi1);
-    const opponentDigi2 = useGame((state) => state.opponentDigi2);
+    //const opponentDigi1 = useGame((state) => state.opponentDigi1);
+    //const opponentDigi2 = useGame((state) => state.opponentDigi2);
     const opponentDigi3 = useGame((state) => state.opponentDigi3);
-    const opponentDigi4 = useGame((state) => state.opponentDigi4);
-    const opponentDigi5 = useGame((state) => state.opponentDigi5);
+    //const opponentDigi4 = useGame((state) => state.opponentDigi4);
+    //const opponentDigi5 = useGame((state) => state.opponentDigi5);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
     const websocket = useWebSocket(websocketURL, {
@@ -176,10 +176,10 @@ export default function Game({user}: { user: string }) {
                             </TamerAreaContainer>
 
                             <HandContainer>
-                                <HandCards cardCount={opponentHand.length}>
-                                    {opponentHand.map((card, index) => <li key={card.id} style={{'--card-index': index}}><OppenentHandCard alt="card"
+                                <HandCards>
+                                    {opponentHand.map((card, index) => <HandListItem  cardCount={opponentHand.length} cardIndex={index} key={card.id}><OppenentHandCard alt="card"
                                                                                                     src={cardBack}/>
-                                    </li>)}
+                                    </HandListItem>)}
                                 </HandCards>
 
                             </HandContainer>
@@ -254,9 +254,9 @@ export default function Game({user}: { user: string }) {
                             </TamerAreaContainer>
 
                             <HandContainer>
-                                <HandCards cardCount={myHand.length}>
-                                    {myHand.map((card, index) => <li key={card.id} style={{'--card-index': index}}><Card
-                                        card={card} location={"myHand"}/></li>)}
+                                <HandCards>
+                                    {myHand.map((card, index) => <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}><Card
+                                        card={card} location={"myHand"}/></HandListItem>)}
                                 </HandCards>
                             </HandContainer>
 
@@ -517,7 +517,7 @@ const HandContainer = styled.div`
   padding: 5px;
 `;
 
-const HandCards = styled.ul<{ cardCount: number }>`
+const HandCards = styled.ul`
   padding: 5px;
   display: flex;
   justify-content: center;
@@ -528,21 +528,21 @@ const HandCards = styled.ul<{ cardCount: number }>`
   list-style-type: none;
   position: relative;
   clear: both;
-
-  li {
-    position: absolute;
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
-    float: left;
-    left: 5px;
-    transform: translateX(calc((var(--card-index) * 400px) / ${({cardCount}) => cardCount}));
-    //TODO: improve this after drawing cards
-    &:hover {
-      z-index: 100;
-    }
-  }
 `;
+
+const HandListItem = styled.li<{cardCount: number, cardIndex: number}>`
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  float: left;
+  left: 5px;
+  transform: translateX(calc((cardIndex * 400px) / ${({cardCount}) => cardCount}));
+  //TODO: improve this after drawing cards
+  &:hover {
+    z-index: 100;
+  }
+    `;
 
 const OppenentHandCard = styled.img`
   width: 69.5px;
