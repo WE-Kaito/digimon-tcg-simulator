@@ -1,8 +1,5 @@
 package com.github.wekaito.backend.websocket;
 
-import com.github.wekaito.backend.Card;
-import java.util.Arrays;
-
 public record Player(String username, String avatarName) {
 
     @Override

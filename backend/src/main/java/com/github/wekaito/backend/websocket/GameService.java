@@ -169,7 +169,6 @@ public class GameService extends TextWebSocketHandler {
 
         if (opponentSession != null && opponentSession.isOpen()) {
             opponentSession.sendMessage(new TextMessage("[SURRENDER]"));
-            System.out.println("Surrender");
         }
 
         gameRoom.remove(session);
