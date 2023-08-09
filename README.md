@@ -14,7 +14,7 @@ Features:
 - [x] Resposive Design (Game page excluded).
 - [ ] Manual simulation of the Game (~22.08)
 
-Try it on https://cgn-java-23-2-enrico.capstone-project.de/. Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personalized deployment.
+Try it on https://cgn-java-23-2-enrico.capstone-project.de/. Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
   
 ![Login](https://cdn.discordapp.com/attachments/1044771748303884288/1135661456906530877/image.png) ![MainMenu](https://cdn.discordapp.com/attachments/1044771748303884288/1135661720774377662/image.png) ![Deckbuilder](https://cdn.discordapp.com/attachments/1044771748303884288/1135663067301171261/image.png) ![Profile](https://cdn.discordapp.com/attachments/1044771748303884288/1135664253295149127/image.png)
 ![Lobby](https://cdn.discordapp.com/attachments/1044771748303884288/1138686209800028211/image.png)
