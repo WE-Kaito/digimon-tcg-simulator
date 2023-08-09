@@ -5,7 +5,7 @@ This is a graduation project for the [neuefische](https://www.neuefische.de/en) 
 As a fan of the Digimon franchise and [its card game](https://world.digimoncard.com/), this was a great opportunity to create something I and hopefully other fans will enjoy.
 Reviews are very welcome!
 
-Features:
+**Features**:
 - [x] Register with a unique username + password to use the App.
 - [x] Deckbuilder using [digimoncard.io's API](https://documenter.getpostman.com/view/14059948/TzecB4fH).
 - [x] Drag and drop Cards. 
@@ -14,11 +14,9 @@ Features:
 - [x] Resposive Design (Game page excluded).
 - [ ] Manual simulation of the Game (~22.08)
 
-Try it on https://cgn-java-23-2-enrico.capstone-project.de/. Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
-  
-![Login](https://cdn.discordapp.com/attachments/1044771748303884288/1135661456906530877/image.png) ![MainMenu](https://cdn.discordapp.com/attachments/1044771748303884288/1135661720774377662/image.png) ![Deckbuilder](https://cdn.discordapp.com/attachments/1044771748303884288/1135663067301171261/image.png) ![Profile](https://cdn.discordapp.com/attachments/1044771748303884288/1135664253295149127/image.png)
-![Lobby](https://cdn.discordapp.com/attachments/1044771748303884288/1138686209800028211/image.png)
-![Game](https://cdn.discordapp.com/attachments/1044771748303884288/1138686775494201384/image.png)
+**Try it on https://cgn-java-23-2-enrico.capstone-project.de/.** 
+
+Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
 
 **Used Technologies, Frameworks, and Libraries:**
 
@@ -31,6 +29,11 @@ Try it on https://cgn-java-23-2-enrico.capstone-project.de/. Currently available
 - **Deployment:** GitHub Actions for CI/CD, Docker
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=we-kaito_digimon-tcg-simulator-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-backend)
+  
+![Login](https://cdn.discordapp.com/attachments/1044771748303884288/1135661456906530877/image.png) ![MainMenu](https://cdn.discordapp.com/attachments/1044771748303884288/1135661720774377662/image.png) ![Deckbuilder](https://cdn.discordapp.com/attachments/1044771748303884288/1135663067301171261/image.png) ![Profile](https://cdn.discordapp.com/attachments/1044771748303884288/1135664253295149127/image.png)
+![Lobby](https://cdn.discordapp.com/attachments/1044771748303884288/1138686209800028211/image.png)
+![Game](https://cdn.discordapp.com/attachments/1044771748303884288/1138686775494201384/image.png)
+
 
 
  <sub>
