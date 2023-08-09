@@ -33,7 +33,7 @@ type State = {
     setHoverCard: (card: CardTypeWithId | null) => void,
     addCardToDeck: (id: string, location: string, cardnumber: string, type: string) => void,
     deleteFromDeck: (id: string) => void,
-    saveDeck: (name: string) => void,
+    saveDeck: (name: string, navigate: NavigateFunction) => void,
     fetchDecks: () => void,
     updateDeck: (id: string, name: string) => void,
     setDeckById: (id: string | undefined) => void,
@@ -45,7 +45,7 @@ type State = {
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
-    getAvatar: () => void,
+    getAvatar: () => string,
     setGameId: (gameId: string) => void,
 };
 
@@ -182,7 +182,7 @@ export const useStore = create<State>((set, get) => ({
         set({deckCards: get().deckCards.filter((card) => card.id !== id)});
     },
 
-    saveDeck: (name) => {
+    saveDeck: (name, navigate) => {
         set({isSaving: true});
         const deckToSave = {
             name: name,
@@ -212,7 +212,7 @@ export const useStore = create<State>((set, get) => ({
             .then(() =>
                 notifySuccess() &&
                 setTimeout(function () {
-                    window.location.reload();
+                    navigate("/deckbuilder");
                     set({isSaving: false});
                 }, 3000));
     },
@@ -306,7 +306,6 @@ export const useStore = create<State>((set, get) => ({
             .then(response => {
                 set({user: response.data})
                 navigate("/");
-                window.location.reload();
             })
             .catch(console.error)
     },
@@ -371,6 +370,8 @@ export const useStore = create<State>((set, get) => ({
         axios.get("/api/user/avatar")
             .then(response => set({avatarName: response.data}))
             .catch(console.error);
+
+        return get().avatarName;
     },
 
     setGameId: (gameId) => {

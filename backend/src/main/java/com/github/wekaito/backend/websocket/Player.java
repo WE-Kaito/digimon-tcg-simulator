@@ -1,9 +1,6 @@
 package com.github.wekaito.backend.websocket;
 
-import com.github.wekaito.backend.Card;
-import java.util.Arrays;
-
-public record Player(String username, String avatarName, Card[] deck) {
+public record Player(String username, String avatarName) {
 
     @Override
     public boolean equals(Object o) {
@@ -11,15 +8,13 @@ public record Player(String username, String avatarName, Card[] deck) {
         if (o == null || getClass() != o.getClass()) return false;
         Player player = (Player) o;
         return username.equals(player.username) &&
-                avatarName.equals(player.avatarName) &&
-                Arrays.equals(deck, player.deck);
+                avatarName.equals(player.avatarName);
     }
 
     @Override
     public int hashCode() {
         int result = username.hashCode();
         result = 31 * result + avatarName.hashCode();
-        result = 31 * result + Arrays.hashCode(deck);
         return result;
     }
 
@@ -28,7 +23,6 @@ public record Player(String username, String avatarName, Card[] deck) {
         return "Player{" +
                 "username='" + username + '\'' +
                 ", avatarName='" + avatarName + '\'' +
-                ", deck=" + Arrays.toString(deck) +
                 '}';
     }
 }

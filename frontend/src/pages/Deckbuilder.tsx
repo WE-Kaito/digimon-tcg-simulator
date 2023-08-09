@@ -8,6 +8,7 @@ import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 import { ToastContainer } from 'react-toastify';
 import BackButton from "../components/BackButton.tsx";
+import {useNavigate} from "react-router-dom";
 
 export default function Deckbuilder() {
 
@@ -18,6 +19,7 @@ export default function Deckbuilder() {
     const [deckName, setDeckName] = useState<string>("New Deck");
     const clearDeck = useStore((state) => state.clearDeck);
     const isSaving = useStore((state) => state.isSaving);
+    const navigate = useNavigate();
 
     useEffect(() => {
         clearDeck();
@@ -39,7 +41,7 @@ export default function Deckbuilder() {
                 <ContainerUpperRightQuarter>
                         <ButtonContainer>
                             <SaveDeckButton isSaving={isSaving} disabled={isSaving} onClick={()=>{
-                                saveDeck(deckName)}}><StyledSpanSaveDeck>SAVE</StyledSpanSaveDeck></SaveDeckButton>
+                                saveDeck(deckName, navigate)}}><StyledSpanSaveDeck>SAVE</StyledSpanSaveDeck></SaveDeckButton>
                             <BackButton/>
                         </ButtonContainer>
                     <CardDetails/>
