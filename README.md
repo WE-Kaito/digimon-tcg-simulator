@@ -1,7 +1,7 @@
 Digimon TCG Simulator
 ---
 
-This is a graduation project for the [neuefische](https://www.neuefische.de/en) java/full-stack bootcamp with a 4 week time frame.
+This is a graduation project for the [neuefische](https://www.neuefische.de/en) java/full-stack bootcamp with a 4 week time frame.  
 As a fan of the Digimon franchise and [its card game](https://world.digimoncard.com/), this was a great opportunity to create something I and hopefully other fans will enjoy.
 Reviews are very welcome!
 
@@ -14,8 +14,7 @@ Reviews are very welcome!
 - [x] Resposive Design (Game page excluded).
 - [ ] Manual simulation of the Game (~22.08)
 
-**Try it on https://cgn-java-23-2-enrico.capstone-project.de/.** 
-
+**Try it on https://cgn-java-23-2-enrico.capstone-project.de/.**  
 Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
 
 **Used Technologies, Frameworks, and Libraries:**
