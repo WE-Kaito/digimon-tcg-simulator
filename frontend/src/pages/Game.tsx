@@ -117,7 +117,8 @@ export default function Game({user}: { user: string }) {
     }
 
     return (
-        <>
+        <BackGround>
+            <BackGroundPattern/>
             {(surrenderOpen || timerOpen) &&
                 <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
                                  setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
@@ -128,11 +129,11 @@ export default function Game({user}: { user: string }) {
                     <InfoSpan>
                         <a href="https://world.digimoncard.com/rule/pdf/manual.pdf?070723" target="_blank"
                            rel="noopener noreferrer">
-                            <span style={{color:"dodgerblue"}}>🛈 </span>Manual
+                            <span style={{color: "dodgerblue"}}>🛈 </span>Manual
                         </a>
                         <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
                            rel="noopener noreferrer">
-                            <span style={{color:"dodgerblue"}}>🛈 </span>Rulings
+                            <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                         </a>
                     </InfoSpan>
                     <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
@@ -160,7 +161,9 @@ export default function Game({user}: { user: string }) {
 
                             <BattleArea1></BattleArea1>
                             <BattleArea2></BattleArea2>
-                            <BattleArea3></BattleArea3>
+                            <BattleArea3>
+                                {opponentDigi3.length === 0 && <span>Battle Area</span>}
+                            </BattleArea3>
                             <BattleArea4></BattleArea4>
                             <BattleArea5></BattleArea5>
 
@@ -172,10 +175,14 @@ export default function Game({user}: { user: string }) {
                                 {opponentTamer.length === 0 && <span>Tamers</span>}
                             </TamerAreaContainer>
 
-                            <OpponentHand>
-                                {opponentHand.map((card) => <OppenentHandCard alt="card" key={card.id}
-                                                                              src={cardBack}/>)}
-                            </OpponentHand>
+                            <HandContainer>
+                                <HandCards cardCount={opponentHand.length}>
+                                    {opponentHand.map((card, index) => <li key={card.id} style={{'--card-index': index}}><OppenentHandCard alt="card"
+                                                                                                    src={cardBack}/>
+                                    </li>)}
+                                </HandCards>
+
+                            </HandContainer>
 
                         </OpponentContainerMain>
 
@@ -232,7 +239,9 @@ export default function Game({user}: { user: string }) {
 
                             <BattleArea1></BattleArea1>
                             <BattleArea2></BattleArea2>
-                            <BattleArea3></BattleArea3>
+                            <BattleArea3>
+                                {myDigi3.length === 0 && <span>Battle Area</span>}
+                            </BattleArea3>
                             <BattleArea4></BattleArea4>
                             <BattleArea5></BattleArea5>
 
@@ -244,15 +253,18 @@ export default function Game({user}: { user: string }) {
                                 {myTamer.length === 0 && <span>Tamers</span>}
                             </TamerAreaContainer>
 
-                            <MyHand>
-                                {myHand.map((card) => <Card key={card.id} card={card} location={"myHand"}/>)}
-                            </MyHand>
+                            <HandContainer>
+                                <HandCards cardCount={myHand.length}>
+                                    {myHand.map((card, index) => <li key={card.id} style={{'--card-index': index}}><Card
+                                        card={card} location={"myHand"}/></li>)}
+                                </HandCards>
+                            </HandContainer>
 
                         </MyContainerMain>
                     </div>
                 </FieldContainer>
             </Wrapper>
-        </>
+        </BackGround>
     );
 }
 
@@ -494,20 +506,42 @@ const TamerAreaContainer = styled(BattleAreaContainer)`
   flex-direction: row;
 `;
 
-const MyHand = styled.div`
+const HandContainer = styled.div`
   grid-area: hand;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow-x: scroll;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  padding: 5px;
 `;
 
-const OpponentHand = styled.div`
-  grid-area: hand;
+const HandCards = styled.ul<{ cardCount: number }>`
+  padding: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow-x: scroll;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  list-style-type: none;
+  position: relative;
+  clear: both;
+
+  li {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    float: left;
+    left: 5px;
+    transform: translateX(calc((var(--card-index) * 400px) / ${({cardCount}) => cardCount}));
+    //TODO: improve this after drawing cards
+    &:hover {
+      z-index: 100;
+    }
+  }
 `;
 
 const OppenentHandCard = styled.img`
@@ -557,4 +591,101 @@ const TrashPlaceholder = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const BackGround = styled.div`
+  display: flex;
+  z-index: -10;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(253deg, #193131, #092d4b, #4a1f64);
+  background-size: 300% 300%;
+  -webkit-animation: Background 25s ease infinite;
+  -moz-animation: Background 25s ease infinite;
+  animation: Background 25s ease infinite;
+
+  @-webkit-keyframes Background {
+    0% {
+      background-position: 0% 50%
+    }
+    50% {
+      background-position: 100% 50%
+    }
+    100% {
+      background-position: 0% 50%
+    }
+  }
+
+  @-moz-keyframes Background {
+    0% {
+      background-position: 0% 50%
+    }
+    50% {
+      background-position: 100% 50%
+    }
+    100% {
+      background-position: 0% 50%
+    }
+  }
+
+  @keyframes Background {
+    0% {
+      background-position: 0% 50%
+    }
+    50% {
+      background-position: 100% 50%
+    }
+    100% {
+      background-position: 0% 50%
+    }
+`;
+
+const BackGroundPattern = styled.div`
+  position: fixed;
+  top: -50vh;
+  left: -50vw;
+  width: 200vw;
+  height: 200vh;
+  background: transparent url('http://assets.iceable.com/img/noise-transparent.png') repeat 0 0;
+  background-repeat: repeat;
+  animation: bg-animation .2s infinite;
+  opacity: .4;
+  z-index: 0;
+  @keyframes bg-animation {
+    0% {
+      transform: translate(0, 0)
+    }
+    10% {
+      transform: translate(-1%, -1%)
+    }
+    20% {
+      transform: translate(-2%, 1%)
+    }
+    30% {
+      transform: translate(1%, -2%)
+    }
+    40% {
+      transform: translate(-1%, 3%)
+    }
+    50% {
+      transform: translate(-2%, 1%)
+    }
+    60% {
+      transform: translate(3%, 0)
+    }
+    70% {
+      transform: translate(0, 2%)
+    }
+    80% {
+      transform: translate(-3%, 0)
+    }
+    90% {
+      transform: translate(2%, 1%)
+    }
+    100% {
+      transform: translate(1%, 0)
+    }
+  }
 `;
