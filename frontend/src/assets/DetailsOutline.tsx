@@ -99,7 +99,7 @@ const StyledSvg = styled.svg<{ inGame: boolean }>`
     position: absolute;
     left: ${({inGame}) => (inGame ? "-97px" : "-171px")};
     top: ${({inGame}) => (inGame ? "111px" : null)};
-    transform: translate(2px, 1px) ${({inGame}) => (inGame ? "scale(2)" : "scale(1)")};
+    transform:${({inGame}) => (inGame ? "translate(1px, -1px) scale(1.985)" : "translate(2px, 1px) scale(1)")};
     overflow: visible;
   }
 `;

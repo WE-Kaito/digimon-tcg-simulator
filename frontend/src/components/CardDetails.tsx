@@ -148,7 +148,7 @@ export default function CardDetails() {
                   }
                   @media (min-width: 767px) {
                     width: ${inGame ? "290px" : "475px"};
-                    height: ${inGame ? "100px" : "85px"};
+                    height: ${inGame ? "94px" : "85px"};
                   }
                 `}> {highlightedSoureEffect}</SimpleBar>
             </SoureEffect>
@@ -168,7 +168,7 @@ const Container = styled.div<ContainerProps>`
   position: relative;
   width: 166px;
   height: ${({inGame}) => inGame ? 500 : 244}px;
-  border-radius: 5px;
+  border-radius: ${({inGame}) => inGame ? 12 : 5}px;
   padding-top: 3px;
   max-width: 100%;
 
@@ -176,7 +176,7 @@ const Container = styled.div<ContainerProps>`
 
   @media (min-width: 767px) {
     width: 500px;
-    height: ${({inGame}) => inGame ? 465 : 398}px;
+    height: ${({inGame}) => inGame ? 462 : 398}px;
     margin-top: 0;
   }
 `
@@ -331,6 +331,6 @@ const SoureEffect = styled(StyledParagraph)<{inGame:boolean}>`
   top: 173px;
 
   @media (min-width: 767px) {
-    top: ${({inGame}) => inGame ? 355 :  292.5}px;
+    top: ${({inGame}) => inGame ? 353:  292.5}px;
   }
 `;

@@ -21,6 +21,9 @@ export default function Game({user}: { user: string }) {
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat";
     const navigate = useNavigate();
 
+    const selectedCard = useStore((state) => state.selectedCard);
+    const hoverCard = useStore((state) => state.hoverCard);
+
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
@@ -122,8 +125,19 @@ export default function Game({user}: { user: string }) {
 
             <Wrapper>
                 <InfoContainer>
-                    <span></span>
-                <CardDetails/>
+                    <InfoSpan>
+                        <a href="https://world.digimoncard.com/rule/pdf/manual.pdf?070723" target="_blank"
+                           rel="noopener noreferrer">
+                            <span style={{color:"dodgerblue"}}>🛈 </span>Manual
+                        </a>
+                        <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
+                           rel="noopener noreferrer">
+                            <span style={{color:"dodgerblue"}}>🛈 </span>Rulings
+                        </a>
+                    </InfoSpan>
+                    <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
+                               alt={selectedCard?.name ?? "Card"}/>
+                    <CardDetails/>
                 </InfoContainer>
 
                 <FieldContainer>
@@ -137,12 +151,11 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <OpponentDeckContainer>
-                                <Deck alt="deck" src={deckBack}/>
+                                <img alt="deck" src={deckBack} width="105px"/>
                             </OpponentDeckContainer>
 
                             <OpponentTrashContainer>
-                                {opponentTrash.length === 0 &&
-                                    <div style={{background: "black", width: "105px", height: "146px"}}>Trash</div>}
+                                {opponentTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
                             </OpponentTrashContainer>
 
                             <BattleArea1></BattleArea1>
@@ -156,7 +169,7 @@ export default function Game({user}: { user: string }) {
                             </DelayAreaContainer>
 
                             <TamerAreaContainer>
-                                {myTamer.length === 0 && <span>Tamers</span>}
+                                {opponentTamer.length === 0 && <span>Tamers</span>}
                             </TamerAreaContainer>
 
                             <OpponentHand>
@@ -168,7 +181,7 @@ export default function Game({user}: { user: string }) {
 
                         <OpponentContainerSide>
                             <EggDeckContainer>
-                                {opponentEggDeck.length !== 0 && <EggDeck alt="egg-deck" src={eggBack}/>}
+                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"/>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer>
@@ -214,8 +227,7 @@ export default function Game({user}: { user: string }) {
                             </DeckContainer>
 
                             <TrashContainer>
-                                {myTrash.length === 0 &&
-                                    <div style={{background: "black", width: "105px", height: "146px"}}>Trash</div>}
+                                {myTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
                             </TrashContainer>
 
                             <BattleArea1></BattleArea1>
@@ -295,6 +307,7 @@ const EnergyBarContainer = styled.div`
 const InfoContainer = styled.div`
   height: 1000px;
   width: 310px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -311,7 +324,7 @@ const Wrapper = styled.div`
   width: 1600px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
-
+  border-radius: 15px;
 
   @media (max-height: 1199px) {
     transform: scale(1);
@@ -389,7 +402,8 @@ const Deck = styled.img`
 
 const EggDeck = styled(Deck)`
   &:hover {
-    filter: drop-shadow(0 0 2px #00121f);
+    filter: drop-shadow(0 0 3px #dd33e8);
+    outline: #dd33e8 solid 1px;
   }
 `;
 
@@ -508,4 +522,39 @@ const OppenentHandCard = styled.img`
   @media (min-width: 768px) {
     width: 95px;
   }
+`;
+
+export const CardImage = styled.img`
+  width: 307px;
+  border-radius: 10px;
+  filter: drop-shadow(0 0 3px #060e18);
+  outline: #0c0c0c solid 1px;
+  transform: translateY(2px);
+`;
+
+const InfoSpan = styled.span`
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  font-family: Cuisine, sans-serif;
+  font-size: 24px;
+
+  a {
+    color: ghostwhite;
+
+    &:hover {
+      color: dodgerblue;
+    }
+  }
+`;
+
+const TrashPlaceholder = styled.div`
+  width: 105px;
+  height: 146px;
+  border-radius: 5px;
+  border: #0c0c0c solid 2px;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
