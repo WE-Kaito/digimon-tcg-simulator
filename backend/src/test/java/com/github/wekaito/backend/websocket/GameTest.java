@@ -3,10 +3,10 @@ package com.github.wekaito.backend.websocket;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GameTest {
+class GameTest {
 
     @Test
-    public void testEqualsAndHashCode() {
+    void testEqualsAndHashCode() {
         GameCard[] cards = new GameCard[0];
         Game game1 = new Game(
                 10, cards, cards, cards, cards, cards, cards,
@@ -28,7 +28,7 @@ public class GameTest {
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         GameCard[] cards = new GameCard[0];
         Game game = new Game(
                 123, cards, cards, cards, cards, cards, cards,

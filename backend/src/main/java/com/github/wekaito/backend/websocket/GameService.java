@@ -13,6 +13,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.*;
 
 @Service
@@ -143,11 +144,11 @@ public class GameService extends TextWebSocketHandler {
     }
 
     List<GameCard> createGameDeck(Card[] deck) {
-        Random rand = new Random();
+        SecureRandom secureRand = new SecureRandom();
         List<GameCard> gameDeck = new ArrayList<>();
 
         for (int i = deck.length - 1; i > 0; i--) {
-            int j = rand.nextInt(i + 1);
+            int j = secureRand.nextInt(i + 1);
             Card temp = deck[i];
             deck[i] = deck[j];
             deck[j] = temp;
