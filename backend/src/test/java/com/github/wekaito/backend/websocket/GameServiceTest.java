@@ -81,7 +81,7 @@ class GameServiceTest {
         gameService.afterConnectionEstablished(session1);
         gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1_testUser2"));
         // THEN
-        verify(session1, times(1)).sendMessage(any());
+        verify(session1, times(2)).sendMessage(any());
     }
 
     @Test

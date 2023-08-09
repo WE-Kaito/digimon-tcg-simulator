@@ -34,7 +34,7 @@ class PlayerTest {
     @Test
     void testNotEquals() {
         Player player1 = new Player("testUser1", "avatar1.png");
-        Player player2 = new Player("testUser1", "avatar1.png");
+        Player player2 = new Player("testUser1", "avatar2.png");
 
         assertNotEquals(player1, player2);
     }
@@ -50,7 +50,7 @@ class PlayerTest {
     @Test
     void testNotEqualsHashCode() {
         Player player1 = new Player("testUser1", "avatar1.png");
-        Player player2 = new Player("testUser1", "avatar1.png");
+        Player player2 = new Player("testUser1", "avatar2.png");
 
         assertNotEquals(player1.hashCode(), player2.hashCode());
     }
