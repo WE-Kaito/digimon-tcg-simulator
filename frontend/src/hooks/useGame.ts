@@ -1,6 +1,7 @@
 import {create} from "zustand";
 import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
 import 'react-toastify/dist/ReactToastify.css';
+import {WebSocketHook} from "react-use-websocket/dist/lib/types";
 
 type State = {
     memory: number,
@@ -42,10 +43,11 @@ type State = {
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
+    sendUpdatedGame: (websocket: WebSocketHook<any>, gameId: string, user: string) => void,
 };
 
 
-export const useGame = create<State>((set) => ({
+export const useGame = create<State>((set, get) => ({
 
     isLoading: false,
 
@@ -97,7 +99,7 @@ export const useGame = create<State>((set) => ({
 
         const player1 = gameId.split("_")[0];
 
-        set ({memory: game.memory});
+        set({memory: game.memory});
 
         if (user === player1) {
             set({
@@ -177,6 +179,75 @@ export const useGame = create<State>((set) => ({
                 [to]: updatedToState
             };
         });
+    },
+
+    sendUpdatedGame: (websocket, gameId, user) => {
+
+        const player1 = gameId.split("_")[0];
+        let updatedGame: GameDistribution;
+
+        if (user === player1) {
+            updatedGame = {
+                memory: get().memory,
+                player1Hand: get().myHand,
+                player1DeckField: get().myDeckField,
+                player1EggDeck: get().myEggDeck,
+                player1Trash: get().myTrash,
+                player1Security: get().mySecurity,
+                player1Tamer: get().myTamer,
+                player1Delay: get().myDelay,
+                player1Digi1: get().myDigi1,
+                player1Digi2: get().myDigi2,
+                player1Digi3: get().myDigi3,
+                player1Digi4: get().myDigi4,
+                player1Digi5: get().myDigi5,
+                player1BreedingArea: get().myBreedingArea,
+                player2Hand: get().opponentHand,
+                player2DeckField: get().opponentDeckField,
+                player2EggDeck: get().opponentEggDeck,
+                player2Trash: get().opponentTrash,
+                player2Security: get().opponentSecurity,
+                player2Tamer: get().opponentTamer,
+                player2Delay: get().opponentDelay,
+                player2Digi1: get().opponentDigi1,
+                player2Digi2: get().opponentDigi2,
+                player2Digi3: get().opponentDigi3,
+                player2Digi4: get().opponentDigi4,
+                player2Digi5: get().opponentDigi5,
+                player2BreedingArea: get().opponentBreedingArea
+            };
+        } else {
+            updatedGame = {
+                memory: get().memory,
+                player1Hand: get().opponentHand,
+                player1DeckField: get().opponentDeckField,
+                player1EggDeck: get().opponentEggDeck,
+                player1Trash: get().opponentTrash,
+                player1Security: get().opponentSecurity,
+                player1Tamer: get().opponentTamer,
+                player1Delay: get().opponentDelay,
+                player1Digi1: get().opponentDigi1,
+                player1Digi2: get().opponentDigi2,
+                player1Digi3: get().opponentDigi3,
+                player1Digi4: get().opponentDigi4,
+                player1Digi5: get().opponentDigi5,
+                player1BreedingArea: get().opponentBreedingArea,
+                player2Hand: get().myHand,
+                player2DeckField: get().myDeckField,
+                player2EggDeck: get().myEggDeck,
+                player2Trash: get().myTrash,
+                player2Security: get().mySecurity,
+                player2Tamer: get().myTamer,
+                player2Delay: get().myDelay,
+                player2Digi1: get().myDigi1,
+                player2Digi2: get().myDigi2,
+                player2Digi3: get().myDigi3,
+                player2Digi4: get().myDigi4,
+                player2Digi5: get().myDigi5,
+                player2BreedingArea: get().myBreedingArea
+            };
+        }
+        websocket.sendMessage(gameId+":/updateGame:"+JSON.stringify(updatedGame));
     }
 
 

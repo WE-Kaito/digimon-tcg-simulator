@@ -28,6 +28,7 @@ export default function Game({user}: { user: string }) {
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
+    const sendUpdatedGame = useGame((state) => state.sendUpdatedGame);
 
     const moveCard = useGame((state) => state.moveCard);
 
@@ -157,8 +158,8 @@ export default function Game({user}: { user: string }) {
     }));
 
     useEffect(() => {
-        // TODO: useGame.sendUpdateToServer(websocket, gameId);
-    }, [memory, myHand, myDeckField, myEggDeck, myTrash, mySecurity, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myBreedingArea, opponentHand, opponentDeckField, opponentEggDeck, opponentTrash, opponentSecurity, opponentTamer, opponentDelay, opponentDigi1, opponentDigi2, opponentDigi3, opponentDigi4, opponentDigi5, opponentBreedingArea]);
+        sendUpdatedGame(websocket, gameId, user);
+    }, [memory, myHand, myDeckField, myEggDeck, myTrash, mySecurity, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myBreedingArea]);
 
     useEffect(() => {
         if (timer === 0) navigate("/lobby");
