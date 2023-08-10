@@ -39,8 +39,9 @@ type State = {
     opponentDigi5: CardTypeWithId[],
     opponentBreedingArea: CardTypeWithId[],
 
-    setUpGame: (me: Player, opponent: Player) => void;
-    distributeCards: (user: string, game: GameDistribution, gameId: string) => void;
+    setUpGame: (me: Player, opponent: Player) => void,
+    distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
+    moveCard: (cardId: string, from: string, to: string) => void,
 };
 
 
@@ -157,6 +158,26 @@ export const useGame = create<State>((set) => ({
                 opponentBreedingArea: game.player1BreedingArea,
             });
         }
+    },
+
+    moveCard: (cardId, from, to) => {
+        if (from === to) return;
+        set(state => {
+            const fromState = state[from as keyof State] as CardTypeWithId[];
+            const toState = state[to as keyof State] as CardTypeWithId[];
+            const cardIndex = fromState.findIndex(card => card.id === cardId);
+            if (cardIndex === -1) return state;
+            const card = fromState[cardIndex];
+            const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
+            const updatedToState = [...toState, card];
+
+            return {
+                ...state,
+                [from]: updatedFromState,
+                [to]: updatedToState
+            };
+        });
     }
+
 
 }));

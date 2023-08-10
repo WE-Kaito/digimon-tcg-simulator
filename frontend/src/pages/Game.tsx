@@ -1,7 +1,7 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
-import {GameDistribution, Player} from "../utils/types.ts";
+import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {profilePicture} from "../utils/functions.ts";
 import {useEffect, useState} from "react";
@@ -14,6 +14,7 @@ import opponentSecurityStack from "../assets/opponentSecurityStack.png";
 import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import CardDetails from "../components/CardDetails.tsx";
+import {useDrop} from "react-dnd";
 
 export default function Game({user}: { user: string }) {
 
@@ -28,6 +29,8 @@ export default function Game({user}: { user: string }) {
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
 
+    const moveCard = useGame((state) => state.moveCard);
+
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
     const opponentName = useGame((state) => state.opponentName);
@@ -37,35 +40,35 @@ export default function Game({user}: { user: string }) {
     const [timer, setTimer] = useState<number>(5);
     const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
 
-    //const memory = useGame((state) => state.memory);
+    const memory = useGame((state) => state.memory);
     const myHand = useGame((state) => state.myHand);
-    //const myDeckField = useGame((state) => state.myDeckField);
+    const myDeckField = useGame((state) => state.myDeckField);
     const myEggDeck = useGame((state) => state.myEggDeck);
     const myTrash = useGame((state) => state.myTrash);
     const mySecurity = useGame((state) => state.mySecurity);
     const myTamer = useGame((state) => state.myTamer);
     const myDelay = useGame((state) => state.myDelay);
 
-    //const myDigi1 = useGame((state) => state.myDigi1);
-    //const myDigi2 = useGame((state) => state.myDigi2);
+    const myDigi1 = useGame((state) => state.myDigi1);
+    const myDigi2 = useGame((state) => state.myDigi2);
     const myDigi3 = useGame((state) => state.myDigi3);
-    //const myDigi4 = useGame((state) => state.myDigi4);
-    //const myDigi5 = useGame((state) => state.myDigi5);
+    const myDigi4 = useGame((state) => state.myDigi4);
+    const myDigi5 = useGame((state) => state.myDigi5);
     const myBreedingArea = useGame((state) => state.myBreedingArea);
 
     const opponentHand = useGame((state) => state.opponentHand);
-    //const opponentDeckField = useGame((state) => state.opponentDeckField);
+    const opponentDeckField = useGame((state) => state.opponentDeckField);
     const opponentEggDeck = useGame((state) => state.opponentEggDeck);
     const opponentTrash = useGame((state) => state.opponentTrash);
     const opponentSecurity = useGame((state) => state.opponentSecurity);
     const opponentTamer = useGame((state) => state.opponentTamer);
     const opponentDelay = useGame((state) => state.opponentDelay);
 
-    //const opponentDigi1 = useGame((state) => state.opponentDigi1);
-    //const opponentDigi2 = useGame((state) => state.opponentDigi2);
+    const opponentDigi1 = useGame((state) => state.opponentDigi1);
+    const opponentDigi2 = useGame((state) => state.opponentDigi2);
     const opponentDigi3 = useGame((state) => state.opponentDigi3);
-    //const opponentDigi4 = useGame((state) => state.opponentDigi4);
-    //const opponentDigi5 = useGame((state) => state.opponentDigi5);
+    const opponentDigi4 = useGame((state) => state.opponentDigi4);
+    const opponentDigi5 = useGame((state) => state.opponentDigi5);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
     const websocket = useWebSocket(websocketURL, {
@@ -92,11 +95,70 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-                setOpponentLeft(true);
-                startTimer();
+                // setOpponentLeft(true);
+                // startTimer();
             }
         }
     });
+
+    const [, dropToDigi1] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi1');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi2] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi2');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi3] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi3');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi4] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi4');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi5] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi5');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    useEffect(() => {
+        // TODO: useGame.sendUpdateToServer(websocket, gameId);
+    }, [memory, myHand, myDeckField, myEggDeck, myTrash, mySecurity, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myBreedingArea, opponentHand, opponentDeckField, opponentEggDeck, opponentTrash, opponentSecurity, opponentTamer, opponentDelay, opponentDigi1, opponentDigi2, opponentDigi3, opponentDigi4, opponentDigi5, opponentBreedingArea]);
 
     useEffect(() => {
         if (timer === 0) navigate("/lobby");
@@ -177,8 +239,11 @@ export default function Game({user}: { user: string }) {
 
                             <HandContainer>
                                 <HandCards>
-                                    {opponentHand.map((card, index) => <HandListItem  cardCount={opponentHand.length} cardIndex={index} key={card.id}><OppenentHandCard alt="card"
-                                                                                                    src={cardBack}/>
+                                    {opponentHand.map((card, index) => <HandListItem cardCount={opponentHand.length}
+                                                                                     cardIndex={index}
+                                                                                     key={card.id}><OppenentHandCard
+                                        alt="card"
+                                        src={cardBack}/>
                                     </HandListItem>)}
                                 </HandCards>
 
@@ -237,13 +302,22 @@ export default function Game({user}: { user: string }) {
                                 {myTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
                             </TrashContainer>
 
-                            <BattleArea1></BattleArea1>
-                            <BattleArea2></BattleArea2>
-                            <BattleArea3>
+                            <BattleArea1 ref={dropToDigi1}>
+                                {myDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"myDigi1"} /></CardContainer>)}
+                            </BattleArea1>
+                            <BattleArea2 ref={dropToDigi2}>
+                                {myDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"myDigi2"} /></CardContainer>)}
+                            </BattleArea2>
+                            <BattleArea3 ref={dropToDigi3}>
                                 {myDigi3.length === 0 && <span>Battle Area</span>}
+                                {myDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"myDigi3"} /></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea4></BattleArea4>
-                            <BattleArea5></BattleArea5>
+                            <BattleArea4 ref={dropToDigi4}>
+                                {myDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"myDigi4"} /></CardContainer>)}
+                            </BattleArea4>
+                            <BattleArea5 ref={dropToDigi5}>
+                                {myDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"myDigi5"} /></CardContainer>)}
+                            </BattleArea5>
 
                             <DelayAreaContainer style={{marginBottom: "1px"}}>
                                 {myDelay.length === 0 && <span>Delay</span>}
@@ -255,7 +329,8 @@ export default function Game({user}: { user: string }) {
 
                             <HandContainer>
                                 <HandCards>
-                                    {myHand.map((card, index) => <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}><Card
+                                    {myHand.map((card, index) => <HandListItem cardCount={myHand.length}
+                                                                               cardIndex={index} key={card.id}><Card
                                         card={card} location={"myHand"}/></HandListItem>)}
                                 </HandCards>
                             </HandContainer>
@@ -467,7 +542,15 @@ const OpponentSecuritySpan = styled(MySecuritySpan)`
   left: 90px;
 `;
 
+const CardContainer = styled.div<{cardIndex: number}>`
+  position: absolute;
+  bottom: ${props => (props.cardIndex * 20) + 5}px;
+`;
+
 const BattleAreaContainer = styled.div`
+  position: relative;
+  height: 100%;
+  max-height: 100%;
   border-radius: 2px;
   display: flex;
   flex-direction: column;
@@ -530,19 +613,19 @@ const HandCards = styled.ul`
   clear: both;
 `;
 
-const HandListItem = styled.li<{cardCount: number, cardIndex: number}>`
+const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   position: absolute;
   margin: 0;
   padding: 0;
   list-style-type: none;
   float: left;
   left: 5px;
-  transform: translateX(calc((cardIndex * 400px) / ${({cardCount}) => cardCount}));
+  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount}));
   //TODO: improve this after drawing cards
   &:hover {
     z-index: 100;
   }
-    `;
+`;
 
 const OppenentHandCard = styled.img`
   width: 69.5px;

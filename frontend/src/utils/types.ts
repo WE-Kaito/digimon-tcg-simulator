@@ -94,3 +94,10 @@ export type GameDistribution = {
     player2Digi5: CardTypeWithId[],
     player2BreedingArea: CardTypeWithId[]
 }
+
+export type DraggedItem = {
+    id: string,
+    location: string,
+    cardnumber: string,
+    type: string
+}
