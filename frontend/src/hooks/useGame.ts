@@ -1,7 +1,6 @@
 import {create} from "zustand";
 import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
 import 'react-toastify/dist/ReactToastify.css';
-import {WebSocketHook} from "react-use-websocket/dist/lib/types";
 
 type State = {
     memory: number,
@@ -43,7 +42,7 @@ type State = {
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
-    sendUpdatedGame: (websocket: WebSocketHook<any>, gameId: string, user: string) => void,
+    getUpdatedGame: (gameId: string, user: string) => string,
 };
 
 
@@ -181,7 +180,7 @@ export const useGame = create<State>((set, get) => ({
         });
     },
 
-    sendUpdatedGame: (websocket, gameId, user) => {
+    getUpdatedGame: (gameId, user) => {
 
         const player1 = gameId.split("_")[0];
         let updatedGame: GameDistribution;
@@ -247,7 +246,7 @@ export const useGame = create<State>((set, get) => ({
                 player2BreedingArea: get().myBreedingArea
             };
         }
-        websocket.sendMessage(gameId+":/updateGame:"+JSON.stringify(updatedGame));
+        return JSON.stringify(updatedGame);
     }
 
 

@@ -33,6 +33,8 @@ class GameServiceTest {
     private ProfileService profileService;
     @Mock
     private IdService idService;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
@@ -63,7 +65,7 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
-        gameService = new GameService(mongoUserDetailsService, profileService, idService);
+        gameService = new GameService(mongoUserDetailsService, profileService, idService, objectMapper);
         session1 = createMockSession(username1);
         session2 = createMockSession(username2);
 

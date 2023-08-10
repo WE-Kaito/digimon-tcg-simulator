@@ -27,6 +27,8 @@ public class GameService extends TextWebSocketHandler {
     private final IdService idService;
     private final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
 
+    private final ObjectMapper objectMapper;
+
     public Map<String, Set<WebSocketSession>> getGameRooms() {
         return gameRooms;
     }
@@ -72,6 +74,7 @@ public class GameService extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         String payload = message.getPayload();
         String[] parts = payload.split(":", 2);
+        System.out.println("payload: " + payload);
 
         if (payload.startsWith("/startGame:")) {
             String gameId = parts[1].trim();
@@ -84,6 +87,10 @@ public class GameService extends TextWebSocketHandler {
         String command = parts[1];
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
         if (gameRoom == null) return;
+        if (command.startsWith("/updateGame:")) {
+            System.out.println("updateGame reveiced");
+            synchronizeGame(session, gameRoom, command);
+        }
         if (command.startsWith("/surrender:")) {
             handleSurrender(session, gameRoom, command);
         }
@@ -133,7 +140,6 @@ public class GameService extends TextWebSocketHandler {
 
         GameCard[] empty = new GameCard[0];
         Game newGame = new Game(0, player1Hand, newDeck1.toArray(GameCard[]::new), player1EggDeck, empty, player1Security, empty, empty, empty, empty, empty, empty, empty, player2Hand, newDeck2.toArray(GameCard[]::new), player2EggDeck, empty, player2Security, empty, empty, empty, empty, empty, empty, empty, empty, empty);
-        ObjectMapper objectMapper = new ObjectMapper();
         String newGameJson = objectMapper.writeValueAsString(newGame);
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
@@ -178,4 +184,16 @@ public class GameService extends TextWebSocketHandler {
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
+    void synchronizeGame(WebSocketSession session, Set<WebSocketSession> gameRoom, String command) throws IOException {
+        String gameStateString = command.split(":")[1].trim();
+        // Game gameState = objectMapper.readValue(gameStateString, Game.class);
+        if (gameRoom == null) return;
+        System.out.println("Sending game state from " + Objects.requireNonNull(session.getPrincipal()).getName());
+        for (WebSocketSession s : gameRoom) {
+            if (s.isOpen() && !s.getPrincipal().getName().equals(Objects.requireNonNull(session.getPrincipal()).getName())) {
+                s.sendMessage(new TextMessage("[DISTRIBUTE_CARDS]:" + gameStateString));
+                System.out.println("Sent game state to " + s.getPrincipal().getName()+" with values: " + gameStateString);
+            }
+        }
+    }
 }

@@ -28,7 +28,7 @@ export default function Game({user}: { user: string }) {
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
-    const sendUpdatedGame = useGame((state) => state.sendUpdatedGame);
+    const getUpdatedGame = useGame((state) => state.getUpdatedGame);
 
     const moveCard = useGame((state) => state.moveCard);
 
@@ -102,11 +102,18 @@ export default function Game({user}: { user: string }) {
         }
     });
 
+    function sendUpdate() {
+        const updatedGame: string = getUpdatedGame(gameId, user);
+        websocket.sendMessage(`${gameId}:/updateGame:${updatedGame}`);
+        console.log("update sent for "+gameId);
+    }
+
     const [, dropToDigi1] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
             moveCard(id, location, 'myDigi1');
+            sendUpdate();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -118,6 +125,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location} = item;
             moveCard(id, location, 'myDigi2');
+            sendUpdate();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -156,10 +164,6 @@ export default function Game({user}: { user: string }) {
             isOver: !!monitor.isOver(),
         }),
     }));
-
-    useEffect(() => {
-        sendUpdatedGame(websocket, gameId, user);
-    }, [memory, myHand, myDeckField, myEggDeck, myTrash, mySecurity, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myBreedingArea]);
 
     useEffect(() => {
         if (timer === 0) navigate("/lobby");
@@ -222,13 +226,22 @@ export default function Game({user}: { user: string }) {
                                 {opponentTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
                             </OpponentTrashContainer>
 
-                            <BattleArea1></BattleArea1>
-                            <BattleArea2></BattleArea2>
+                            <BattleArea1>
+                                {opponentDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
+                            </BattleArea1>
+                            <BattleArea2>
+                                {opponentDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
+                            </BattleArea2>
                             <BattleArea3>
                                 {opponentDigi3.length === 0 && <span>Battle Area</span>}
+                                {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea4></BattleArea4>
-                            <BattleArea5></BattleArea5>
+                            <BattleArea4>
+                                {opponentDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
+                            </BattleArea4>
+                            <BattleArea5>
+                                {opponentDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
+                            </BattleArea5>
 
                             <DelayAreaContainer style={{marginTop: "1px"}}>
                                 {opponentDelay.length === 0 && <span>Delay</span>}
