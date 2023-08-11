@@ -102,11 +102,23 @@ export default function Game({user}: { user: string }) {
         }
     });
 
+    function chunkString(str: string, size: number): string[] {
+        const chunks = [];
+        for (let i = 0; i < str.length; i += size) {
+            chunks.push(str.substring(i, i + size));
+        }
+        return chunks;
+    }
+
     function sendUpdate() {
         const updatedGame: string = getUpdatedGame(gameId, user);
-        websocket.sendMessage(`${gameId}:/updateGame:${updatedGame}`);
-        console.log("update sent for "+gameId);
+        const chunks = chunkString(updatedGame, 1000);
+
+        for (const chunk of chunks) {
+            websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
+        }
     }
+
 
     const [, dropToDigi1] = useDrop(() => ({
         accept: "card",
@@ -137,6 +149,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location} = item;
             moveCard(id, location, 'myDigi3');
+            sendUpdate();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -148,6 +161,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location} = item;
             moveCard(id, location, 'myDigi4');
+            sendUpdate();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -159,6 +173,19 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location} = item;
             moveCard(id, location, 'myDigi5');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToHand] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myHand');
+            sendUpdate();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -226,22 +253,22 @@ export default function Game({user}: { user: string }) {
                                 {opponentTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
                             </OpponentTrashContainer>
 
+                            <BattleArea5>
+                                {opponentDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi5"} /></CardContainer>)}
+                            </BattleArea5>
+                            <BattleArea4>
+                                {opponentDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi4"} /></CardContainer>)}
+                            </BattleArea4>
+                            <BattleArea3>
+                                {opponentDigi3.length === 0 && <span>Battle Area</span>}
+                                {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi3"} /></CardContainer>)}
+                            </BattleArea3>
+                            <BattleArea2>
+                                {opponentDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi2"} /></CardContainer>)}
+                            </BattleArea2>
                             <BattleArea1>
                                 {opponentDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
                             </BattleArea1>
-                            <BattleArea2>
-                                {opponentDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
-                            </BattleArea2>
-                            <BattleArea3>
-                                {opponentDigi3.length === 0 && <span>Battle Area</span>}
-                                {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
-                            </BattleArea3>
-                            <BattleArea4>
-                                {opponentDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
-                            </BattleArea4>
-                            <BattleArea5>
-                                {opponentDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentDigi1"} /></CardContainer>)}
-                            </BattleArea5>
 
                             <DelayAreaContainer style={{marginTop: "1px"}}>
                                 {opponentDelay.length === 0 && <span>Delay</span>}
@@ -341,7 +368,7 @@ export default function Game({user}: { user: string }) {
                                 {myTamer.length === 0 && <span>Tamers</span>}
                             </TamerAreaContainer>
 
-                            <HandContainer>
+                            <HandContainer ref={dropToHand}>
                                 <HandCards>
                                     {myHand.map((card, index) => <HandListItem cardCount={myHand.length}
                                                                                cardIndex={index} key={card.id}><Card

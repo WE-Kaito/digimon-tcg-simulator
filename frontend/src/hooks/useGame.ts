@@ -1,6 +1,5 @@
 import {create} from "zustand";
 import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
-import 'react-toastify/dist/ReactToastify.css';
 
 type State = {
     memory: number,
@@ -90,7 +89,35 @@ export const useGame = create<State>((set, get) => ({
         set({
             myAvatar: me.avatarName,
             opponentName: opponent.username,
-            opponentAvatar: opponent.avatarName
+            opponentAvatar: opponent.avatarName,
+
+            memory: 0,
+            myHand: [],
+            myDeckField: [],
+            myEggDeck: [],
+            myTrash: [],
+            mySecurity: [],
+            myTamer: [],
+            myDelay: [],
+            myDigi1: [],
+            myDigi2: [],
+            myDigi3: [],
+            myDigi4: [],
+            myDigi5: [],
+            myBreedingArea: [],
+            opponentHand: [],
+            opponentDeckField: [],
+            opponentEggDeck: [],
+            opponentTrash: [],
+            opponentSecurity: [],
+            opponentTamer: [],
+            opponentDelay: [],
+            opponentDigi1: [],
+            opponentDigi2: [],
+            opponentDigi3: [],
+            opponentDigi4: [],
+            opponentDigi5: [],
+            opponentBreedingArea: [],
         });
     },
 
@@ -162,7 +189,14 @@ export const useGame = create<State>((set, get) => ({
     },
 
     moveCard: (cardId, from, to) => {
+
+        const opponentFields = ["opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity", "opponentTamer",
+            "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentBreedingArea"];
+        for (const zone of opponentFields) {
+            if (from === zone) return;
+        }
         if (from === to) return;
+
         set(state => {
             const fromState = state[from as keyof State] as CardTypeWithId[];
             const toState = state[to as keyof State] as CardTypeWithId[];
