@@ -16,6 +16,7 @@ import cardBack from "../assets/cardBack.jpg";
 import CardDetails from "../components/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
+import EggDeckMoodle from "../components/game/EggDeckMoodle.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -45,8 +46,7 @@ export default function Game({user}: { user: string }) {
     const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
     const [deckMoodle, setDeckMoodle] = useState<boolean>(false);
     const [eggDeckMoodle, setEggDeckMoodle] = useState<boolean>(false);
-    const [cardToSendToDeck, setCardToSendToDeck] = useState<{id:string, location:string}>({id:"",location:""});
-    const [cardToSendToEggDeck, setCardToSendToEggDeck] = useState<{id:string, location:string}>({id:"",location:""});
+    const [cardToSend, setCardToSend] = useState<{id:string, location:string}>({id:"",location:""});
 
     const memory = useGame((state) => state.memory);
     const myHand = useGame((state) => state.myHand);
@@ -239,8 +239,20 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            setCardToSendToDeck({id, location});
+            setCardToSend({id, location});
             setDeckMoodle(true);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToEggDeck] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            setCardToSend({id, location});
+            setEggDeckMoodle(true);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -250,6 +262,11 @@ export default function Game({user}: { user: string }) {
     useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
+
+    useEffect(() => {
+        setDeckMoodle(false);
+        setEggDeckMoodle(false);
+    }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5]);
 
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
@@ -367,6 +384,10 @@ export default function Game({user}: { user: string }) {
 
                         <OpponentContainerSide>
                             <EggDeckContainer>
+                                {opponentEggDeck.length !== 0 &&
+                                    <div style={{width: "100%", display: "flex",
+                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
+                                    }}>{opponentEggDeck.length}</div>}
                                 {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"/>}
                             </EggDeckContainer>
 
@@ -389,9 +410,15 @@ export default function Game({user}: { user: string }) {
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
-                            <EggDeckContainer>
-                                {myEggDeck.length !== 0 && <EggDeck alt="egg-deck" src={eggBack}
-                                                                    onClick={() => drawCardFromEggDeck(sendUpdate)}/>}
+                            <EggDeckContainer ref={dropToEggDeck}>
+                                {eggDeckMoodle && <EggDeckMoodle sendUpdate={sendUpdate} setDeckMoodle={setDeckMoodle} cardToSendToEggDeck={cardToSend}/>}
+                                {myEggDeck.length !== 0 &&
+                                    <EggDeck alt="egg-deck" src={eggBack}
+                                             onClick={() => {drawCardFromEggDeck(); sendUpdate();}}/>}
+                                {myEggDeck.length !== 0 &&
+                                    <div style={{width: "100%", display: "flex",
+                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
+                                }}>{myEggDeck.length}</div>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer>
@@ -416,7 +443,7 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <DeckContainer>
-                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} setDeckMoodle={setDeckMoodle} cardToSendToDeck={cardToSendToDeck}/>}
+                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} setDeckMoodle={setDeckMoodle} cardToSendToDeck={cardToSend}/>}
                                 <div style={{
                                     width: "100%",
                                     display: "flex",
@@ -424,7 +451,7 @@ export default function Game({user}: { user: string }) {
                                     transform: "translateX(-14px)",
                                     fontFamily: "Awsumsans, sans-serif"
                                 }}>{myDeckField.length}</div>
-                                <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => drawCardFromDeck(sendUpdate)}/>
+                                <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {drawCardFromDeck(); sendUpdate();}}/>
                             </DeckContainer>
 
                             <TrashContainer>
@@ -657,8 +684,10 @@ const OpponentTrashContainer = styled.div`
 `;
 
 const EggDeckContainer = styled.div`
+  position: relative;
   grid-area: egg-deck;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 0 0 10px 10px;

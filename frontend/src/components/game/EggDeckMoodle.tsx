@@ -3,17 +3,17 @@ import {Dispatch, SetStateAction} from "react";
 import {useGame} from "../../hooks/useGame.ts";
 
 type DeckMoodleProps = {
-    cardToSendToDeck: {id: string, location:string},
+    cardToSendToEggDeck: {id: string, location:string},
     setDeckMoodle: Dispatch<SetStateAction<boolean>>,
     sendUpdate: () => void
 }
 
-export default function DeckMoodle({cardToSendToDeck, setDeckMoodle, sendUpdate} : DeckMoodleProps) {
+export default function EggDeckMoodle({cardToSendToEggDeck, setDeckMoodle, sendUpdate} : DeckMoodleProps) {
 
-    const sendCardToDeck = useGame((state) => state.sendCardToDeck);
+    const sendCardToEggDeck = useGame((state) => state.sendCardToEggDeck);
 
     const handleClick = (topOrBottom: "top" | "bottom") => {
-        sendCardToDeck(topOrBottom, cardToSendToDeck);
+        sendCardToEggDeck(topOrBottom, cardToSendToEggDeck);
         setDeckMoodle(false);
         sendUpdate();
     }
@@ -30,8 +30,8 @@ const Container = styled.div`
   width: 100px;
   height: 50px;
   position: absolute;
-  top: 39px;
-  left:12px;
+  top: -12px;
+  left: 24px;
   background: none;
   display: flex;
   overflow: hidden;

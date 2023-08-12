@@ -42,12 +42,13 @@ type State = {
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getUpdatedGame: (gameId: string, user: string) => string,
-    drawCardFromDeck: (sendUpdate: () => void) => void,
-    drawCardFromEggDeck: (sendUpdate: () => void) => void,
-    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {
-        id: string,
-        location: string
-    }, sendUpdate: () => void) => void,
+    drawCardFromDeck: () => void,
+    drawCardFromEggDeck: () => void,
+
+    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
+    sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
+    sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
+    sendCardToTrash: (cardToSendToTrash: {id: string, location: string}) => void,
 };
 
 
@@ -287,7 +288,7 @@ export const useGame = create<State>((set, get) => ({
         return JSON.stringify(updatedGame);
     },
 
-    drawCardFromDeck: (sendUpdate) => {
+    drawCardFromDeck: () => {
         set(state => {
             const deck = state.myDeckField;
             const hand = state.myHand;
@@ -295,7 +296,6 @@ export const useGame = create<State>((set, get) => ({
             const card = deck[0];
             const updatedDeck = deck.slice(1);
             const updatedHand = [...hand, card];
-            sendUpdate();
             return {
                 ...state,
                 myDeckField: updatedDeck,
@@ -304,7 +304,7 @@ export const useGame = create<State>((set, get) => ({
         });
     },
 
-    drawCardFromEggDeck: (sendUpdate) => {
+    drawCardFromEggDeck: () => {
 
         set(state => {
             if (state.myBreedingArea.length !== 0) return state;
@@ -313,7 +313,6 @@ export const useGame = create<State>((set, get) => ({
             const card = eggDeck[0];
             const updatedDeck = eggDeck.slice(1);
             const updatedBreedingArea = [card];
-            sendUpdate();
             return {
                 ...state,
                 myEggDeck: updatedDeck,
@@ -322,21 +321,62 @@ export const useGame = create<State>((set, get) => ({
         });
     },
 
-    sendCardToDeck: (topOrBottom, cardToSendToDeck, sendUpdate) => {
+    sendCardToDeck: (topOrBottom, cardToSendToDeck) => {
         // @ts-ignore
         set(state => {
             // @ts-ignore
             const locationCards = state[cardToSendToDeck.location];
             const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
             const updatedDeck = topOrBottom === "top" ? [card, ...get().myDeckField] : [...get().myDeckField, card];
-
             return {
                 ...state,
                 [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
                 myDeckField: updatedDeck
             }
         })
-        sendUpdate();
     },
 
+    sendCardToEggDeck: (topOrBottom, cardToSendToDeck) => {
+        // @ts-ignore
+        set(state => {
+            // @ts-ignore
+            const locationCards = state[cardToSendToDeck.location];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
+            const updatedDeck = topOrBottom === "top" ? [card, ...get().myEggDeck] : [...get().myEggDeck, card];
+            return {
+                ...state,
+                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
+                myEggDeck: updatedDeck
+            }
+        })
+    },
+
+    sendCardToTrash: (cardToSendToTrash) => {
+        // @ts-ignore
+        set(state => {
+            // @ts-ignore
+            const locationCards = state[cardToSendToTrash.location];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToTrash.id);
+            return {
+                ...state,
+                [cardToSendToTrash.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToTrash.id),
+                myTrash: [card, ...get().myTrash]
+            }
+        })
+    },
+
+    sendCardToSecurity: (topOrBottom, cardToSendToSecurity) => {
+        // @ts-ignore
+        set(state => {
+            // @ts-ignore
+            const locationCards = state[cardToSendToSecurity.location];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToSecurity.id);
+            const updatedSecurity = topOrBottom === "top" ? [card, ...get().mySecurity] : [...get().mySecurity, card];
+            return {
+                ...state,
+                [cardToSendToSecurity.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToSecurity.id),
+                mySecurity: updatedSecurity
+            }
+        })
+    }
 }));
