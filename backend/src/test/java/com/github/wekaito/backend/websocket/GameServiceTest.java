@@ -78,7 +78,7 @@ class GameServiceTest {
     }
 
     @Test
-    void testStartGameMessage() throws IOException {
+    void testStartGameMessage() throws IOException, InterruptedException {
         // WHEN
         gameService.afterConnectionEstablished(session1);
         gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1_testUser2"));
@@ -104,7 +104,7 @@ class GameServiceTest {
     }
 
     @Test
-    void testSurrender() throws IOException {
+    void testSurrender() throws IOException, InterruptedException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[SURRENDER]");
         Set<WebSocketSession> gameRoom = new HashSet<>();
@@ -138,7 +138,7 @@ class GameServiceTest {
     }
 
     @Test
-    void expectReturn_whenGameRoomDoesNotExist() throws IOException {
+    void expectReturn_whenGameRoomDoesNotExist() throws IOException, InterruptedException {
         // WHEN
         gameService.handleTextMessage(session1, new TextMessage("wrongId" + ":/surrender:" + username1));
         // THEN
