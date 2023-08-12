@@ -42,6 +42,8 @@ type State = {
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getUpdatedGame: (gameId: string, user: string) => string,
+    drawCardFromDeck: (sendUpdate: () => void) => void,
+    drawCardFromEggDeck: (sendUpdate: () => void) => void,
 };
 
 
@@ -281,6 +283,41 @@ export const useGame = create<State>((set, get) => ({
             };
         }
         return JSON.stringify(updatedGame);
+    },
+
+    drawCardFromDeck: (sendUpdate) => {
+        set(state => {
+            const deck = state.myDeckField;
+            const hand = state.myHand;
+            if (deck.length === 0) return state;
+            const card = deck[0];
+            const updatedDeck = deck.slice(1);
+            const updatedHand = [...hand, card];
+            sendUpdate();
+            return {
+                ...state,
+                myDeckField: updatedDeck,
+                myHand: updatedHand
+            };
+        });
+    },
+
+    drawCardFromEggDeck: (sendUpdate) => {
+
+        set(state => {
+            if (state.myBreedingArea.length !== 0) return state;
+            const eggDeck = state.myEggDeck;
+            if (eggDeck.length === 0) return state;
+            const card = eggDeck[0];
+            const updatedDeck = eggDeck.slice(1);
+            const updatedBreedingArea = [card];
+            sendUpdate();
+            return {
+                ...state,
+                myEggDeck: updatedDeck,
+                myBreedingArea: updatedBreedingArea
+            };
+        });
     }
 
 

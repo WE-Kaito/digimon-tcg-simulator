@@ -29,6 +29,8 @@ export default function Game({user}: { user: string }) {
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
+    const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
+    const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
 
     const moveCard = useGame((state) => state.moveCard);
 
@@ -192,6 +194,42 @@ export default function Game({user}: { user: string }) {
         }),
     }));
 
+    const [, dropToBreedingArea] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myBreedingArea');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToTamer] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myTamer');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDelay] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDelay');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
     useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
@@ -247,9 +285,11 @@ export default function Game({user}: { user: string }) {
 
                             <OpponentDeckContainer>
                                 <img alt="deck" src={deckBack} width="105px"/>
+                                <div style={{width:"100%", display:"flex", justifyContent:"center", transform:"translateX(15px)", fontFamily: "Awsumsans, sans-serif"}}>{opponentDeckField.length}</div>
                             </OpponentDeckContainer>
 
                             <OpponentTrashContainer>
+                                <div style={{width:"100%", display:"flex", justifyContent:"center", transform:"translateX(-9px)", fontFamily: "Awsumsans, sans-serif"}}>{opponentTrash.length}</div>
                                 {opponentTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
                             </OpponentTrashContainer>
 
@@ -287,7 +327,6 @@ export default function Game({user}: { user: string }) {
                                         src={cardBack}/>
                                     </HandListItem>)}
                                 </HandCards>
-
                             </HandContainer>
 
                         </OpponentContainerMain>
@@ -303,6 +342,7 @@ export default function Game({user}: { user: string }) {
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer>
+                                {opponentBreedingArea.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"opponentBreedingArea"} /></CardContainer>)}
                                 {opponentBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
                             </BreedingAreaContainer>
 
@@ -314,7 +354,7 @@ export default function Game({user}: { user: string }) {
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
                             <EggDeckContainer>
-                                {myEggDeck.length !== 0 && <EggDeck alt="egg-deck" src={eggBack}/>}
+                                {myEggDeck.length !== 0 && <EggDeck alt="egg-deck" src={eggBack} onClick={() => drawCardFromEggDeck(sendUpdate)}/>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer>
@@ -322,7 +362,8 @@ export default function Game({user}: { user: string }) {
                                 <img alt="security-stack" src={mySecurityStack}/>
                             </SecurityStackContainer>
 
-                            <BreedingAreaContainer>
+                            <BreedingAreaContainer ref={dropToBreedingArea}>
+                                {myBreedingArea.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"myBreedingArea"} /></CardContainer>)}
                                 {myBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
                             </BreedingAreaContainer>
                         </MyContainerSide>
@@ -336,11 +377,13 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <DeckContainer>
-                                <Deck alt="deck" src={deckBack}/>
+                                <div style={{width:"100%", display:"flex", justifyContent:"center", transform:"translateX(-14px)", fontFamily: "Awsumsans, sans-serif"}}>{myDeckField.length}</div>
+                                <Deck alt="deck" src={deckBack} onClick={() => drawCardFromDeck(sendUpdate)}/>
                             </DeckContainer>
 
                             <TrashContainer>
                                 {myTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
+                                <div style={{width:"100%", display:"flex", justifyContent:"center", transform:"translateX(12px)", fontFamily: "Awsumsans, sans-serif"}}>{myTrash.length}</div>
                             </TrashContainer>
 
                             <BattleArea1 ref={dropToDigi1}>
@@ -360,11 +403,13 @@ export default function Game({user}: { user: string }) {
                                 {myDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}><Card card={card} location={"myDigi5"} /></CardContainer>)}
                             </BattleArea5>
 
-                            <DelayAreaContainer style={{marginBottom: "1px"}}>
+                            <DelayAreaContainer ref={dropToDelay} style={{marginBottom: "1px"}}>
+                                {myDelay.map((card, index) => <DelayCardContainer key={card.id} cardIndex={index}><Card card={card} location={"myDelay"} /></DelayCardContainer>)}
                                 {myDelay.length === 0 && <span>Delay</span>}
                             </DelayAreaContainer>
 
-                            <TamerAreaContainer>
+                            <TamerAreaContainer ref={dropToTamer}>
+                                {myTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}><Card card={card} location={"myTamer"} /></TamerCardContainer>)}
                                 {myTamer.length === 0 && <span>Tamers</span>}
                             </TamerAreaContainer>
 
@@ -470,8 +515,6 @@ const Wrapper = styled.div`
   }
 `;
 
-// Player
-
 const PlayerContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -499,21 +542,21 @@ const UserName = styled.span`
   font-family: 'Cousine', sans-serif;
 `;
 
-// Fields
-
 const DeckContainer = styled.div`
   grid-area: deck;
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
   padding: 0 0 10px 10px;
 `;
 
 const OpponentDeckContainer = styled.div`
   grid-area: deck;
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
   padding: 10px 10px 0 0;
 `;
 
@@ -538,16 +581,18 @@ const EggDeck = styled(Deck)`
 const TrashContainer = styled.div`
   grid-area: trash;
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
   padding: 10px 10px 0 0;
 `;
 
 const OpponentTrashContainer = styled.div`
   grid-area: trash;
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
   padding: 0 0 10px 10px;
 `;
 
@@ -586,6 +631,16 @@ const OpponentSecuritySpan = styled(MySecuritySpan)`
 const CardContainer = styled.div<{cardIndex: number}>`
   position: absolute;
   bottom: ${props => (props.cardIndex * 20) + 5}px;
+`;
+
+const TamerCardContainer = styled.div<{cardIndex: number}>`
+  position: absolute;
+  left: ${props => (props.cardIndex * 37) + 5}px;
+`;
+
+const DelayCardContainer = styled.div<{cardIndex: number}>`
+  position: absolute;
+  bottom: ${props => (props.cardIndex * 35) + 10}px;
 `;
 
 const BattleAreaContainer = styled.div`
