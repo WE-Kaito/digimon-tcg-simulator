@@ -145,4 +145,18 @@ class GameServiceTest {
         verify(session1, times(0)).sendMessage(any());
     }
 
+    @Test
+    void testProcessGameChunks() throws IOException, InterruptedException {
+        // GIVEN
+        TextMessage expectedMessage = new TextMessage("[DISTRIBUTE_CARDS]:{test}");
+        TextMessage updateFromClient = new TextMessage(gameId + ":/updateGame:{test}");
+        Set<WebSocketSession> gameRoom = new HashSet<>();
+        gameRoom.add(session1);
+        gameRoom.add(session2);
+        gameService.getGameRooms().put(gameId, gameRoom);
+        // WHEN
+        gameService.handleTextMessage(session1, updateFromClient);
+        // THEN
+        verify(session2, times(1)).sendMessage(expectedMessage);
+    }
 }
