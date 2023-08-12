@@ -44,12 +44,14 @@ type State = {
     getUpdatedGame: (gameId: string, user: string) => string,
     drawCardFromDeck: (sendUpdate: () => void) => void,
     drawCardFromEggDeck: (sendUpdate: () => void) => void,
+    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {
+        id: string,
+        location: string
+    }, sendUpdate: () => void) => void,
 };
 
 
 export const useGame = create<State>((set, get) => ({
-
-    isLoading: false,
 
     myAvatar: "",
     opponentName: "",
@@ -318,7 +320,23 @@ export const useGame = create<State>((set, get) => ({
                 myBreedingArea: updatedBreedingArea
             };
         });
-    }
+    },
 
+    sendCardToDeck: (topOrBottom, cardToSendToDeck, sendUpdate) => {
+        // @ts-ignore
+        set(state => {
+            // @ts-ignore
+            const locationCards = state[cardToSendToDeck.location];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
+            const updatedDeck = topOrBottom === "top" ? [card, ...get().myDeckField] : [...get().myDeckField, card];
+
+            return {
+                ...state,
+                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
+                myDeckField: updatedDeck
+            }
+        })
+        sendUpdate();
+    },
 
 }));
