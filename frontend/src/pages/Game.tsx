@@ -107,8 +107,8 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-                setOpponentLeft(true);
-                startTimer();
+               // setOpponentLeft(true);
+               // startTimer();
             }
         }
     });
@@ -405,7 +405,7 @@ export default function Game({user}: { user: string }) {
                             </TamerAreaContainer>
 
                             <HandContainer>
-                                <HandCards>
+                                <HandCards style={{transform:`translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
                                                       key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
@@ -538,7 +538,7 @@ export default function Game({user}: { user: string }) {
                             </TamerAreaContainer>
 
                             <HandContainer ref={dropToHand}>
-                                <HandCards>
+                                <HandCards style={{transform:`translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
                                             <Card card={card} location={"myHand"}/></HandListItem>)}
@@ -881,7 +881,7 @@ const HandContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   height: 100%;
   padding: 5px;
