@@ -23,7 +23,7 @@ export default function DeckMoodle({cardToSendToDeck, sendUpdate} : DeckMoodlePr
     );
 }
 
-const Container = styled.div`
+export const Container = styled.div`
   width: 100px;
   height: 50px;
   position: absolute;
@@ -34,7 +34,7 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
-const StyledButton = styled.button`
+export const StyledButton = styled.button`
   width: 50px;
   z-index: 100;
   background: none;
@@ -43,7 +43,7 @@ const StyledButton = styled.button`
 
 
 
-const StyledSpan = styled.span`
+export const StyledSpan = styled.span`
   font-size: 80px;
   position: absolute;
   transform: translate(-37px, -50px) rotate(-90deg);
@@ -53,6 +53,6 @@ const StyledSpan = styled.span`
   }
 `;
 
-const StyledSpan2 = styled(StyledSpan)`
+export const StyledSpan2 = styled(StyledSpan)`
   transform: translate(-2px, -50px) rotate(90deg);
 `;
