@@ -54,6 +54,6 @@ const StyledImage = styled.img<StyledImageProps>`
   }
 
   @media (min-width: 768px) {
-    width: 95px;
+    width: ${(props) => ((props.location === "myTrash" || props.location === "opponentTrash") ? "105px" : "95px")};
   }
 `;

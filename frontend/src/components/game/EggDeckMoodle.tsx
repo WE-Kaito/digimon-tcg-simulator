@@ -1,20 +1,17 @@
 import styled from "@emotion/styled";
-import {Dispatch, SetStateAction} from "react";
 import {useGame} from "../../hooks/useGame.ts";
 
 type DeckMoodleProps = {
     cardToSendToEggDeck: {id: string, location:string},
-    setDeckMoodle: Dispatch<SetStateAction<boolean>>,
     sendUpdate: () => void
 }
 
-export default function EggDeckMoodle({cardToSendToEggDeck, setDeckMoodle, sendUpdate} : DeckMoodleProps) {
+export default function EggDeckMoodle({cardToSendToEggDeck, sendUpdate} : DeckMoodleProps) {
 
     const sendCardToEggDeck = useGame((state) => state.sendCardToEggDeck);
 
     const handleClick = (topOrBottom: "top" | "bottom") => {
         sendCardToEggDeck(topOrBottom, cardToSendToEggDeck);
-        setDeckMoodle(false);
         sendUpdate();
     }
 

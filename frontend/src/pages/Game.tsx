@@ -17,6 +17,7 @@ import CardDetails from "../components/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import EggDeckMoodle from "../components/game/EggDeckMoodle.tsx";
+import SecurityMoodle from "../components/game/SecurityMoodle.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -46,6 +47,7 @@ export default function Game({user}: { user: string }) {
     const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
     const [deckMoodle, setDeckMoodle] = useState<boolean>(false);
     const [eggDeckMoodle, setEggDeckMoodle] = useState<boolean>(false);
+    const [securityMoodle, setSetSecurityMoodle] = useState<boolean>(false);
     const [cardToSend, setCardToSend] = useState<{id:string, location:string}>({id:"",location:""});
 
     const memory = useGame((state) => state.memory);
@@ -241,6 +243,8 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             setCardToSend({id, location});
             setDeckMoodle(true);
+            setSetSecurityMoodle(false);
+            setEggDeckMoodle(false);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -253,6 +257,34 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             setCardToSend({id, location});
             setEggDeckMoodle(true);
+            setDeckMoodle(false);
+            setSetSecurityMoodle(false);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToSecurity] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            setCardToSend({id, location});
+            setSetSecurityMoodle(true);
+            setDeckMoodle(false);
+            setEggDeckMoodle(false);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToTrash] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myTrash');
+            sendUpdate();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -266,6 +298,7 @@ export default function Game({user}: { user: string }) {
     useEffect(() => {
         setDeckMoodle(false);
         setEggDeckMoodle(false);
+        setSetSecurityMoodle(false);
     }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5]);
 
     function handleSurrender() {
@@ -336,7 +369,8 @@ export default function Game({user}: { user: string }) {
                                     transform: "translateX(-9px)",
                                     fontFamily: "Awsumsans, sans-serif"
                                 }}>{opponentTrash.length}</div>
-                                {opponentTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
+                                {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
+                                    : <Card card={opponentTrash[opponentTrash.length - 1]} location={"opponentTrash"}/>}
                             </OpponentTrashContainer>
 
                             <BattleArea5>
@@ -411,7 +445,7 @@ export default function Game({user}: { user: string }) {
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
                             <EggDeckContainer ref={dropToEggDeck}>
-                                {eggDeckMoodle && <EggDeckMoodle sendUpdate={sendUpdate} setDeckMoodle={setDeckMoodle} cardToSendToEggDeck={cardToSend}/>}
+                                {eggDeckMoodle && <EggDeckMoodle sendUpdate={sendUpdate} cardToSendToEggDeck={cardToSend}/>}
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {drawCardFromEggDeck(); sendUpdate();}}/>}
@@ -421,7 +455,8 @@ export default function Game({user}: { user: string }) {
                                 }}>{myEggDeck.length}</div>}
                             </EggDeckContainer>
 
-                            <SecurityStackContainer>
+                            <SecurityStackContainer ref={dropToSecurity}>
+                                {securityMoodle && <SecurityMoodle sendUpdate={sendUpdate} cardToSendToSecurity={cardToSend}/>}
                                 <MySecuritySpan>{mySecurity.length}</MySecuritySpan>
                                 <img alt="security-stack" src={mySecurityStack}/>
                             </SecurityStackContainer>
@@ -443,7 +478,7 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <DeckContainer>
-                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} setDeckMoodle={setDeckMoodle} cardToSendToDeck={cardToSend}/>}
+                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} cardToSendToDeck={cardToSend}/>}
                                 <div style={{
                                     width: "100%",
                                     display: "flex",
@@ -454,8 +489,9 @@ export default function Game({user}: { user: string }) {
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {drawCardFromDeck(); sendUpdate();}}/>
                             </DeckContainer>
 
-                            <TrashContainer>
-                                {myTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
+                            <TrashContainer ref={dropToTrash}>
+                                {myTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
+                                : <Card card={myTrash[myTrash.length - 1]} location={"myTrash"}/>}
                                 <div style={{
                                     width: "100%",
                                     display: "flex",

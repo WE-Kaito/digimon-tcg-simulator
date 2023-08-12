@@ -48,7 +48,6 @@ type State = {
     sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
-    sendCardToTrash: (cardToSendToTrash: {id: string, location: string}) => void,
 };
 
 
@@ -324,8 +323,7 @@ export const useGame = create<State>((set, get) => ({
     sendCardToDeck: (topOrBottom, cardToSendToDeck) => {
         // @ts-ignore
         set(state => {
-            // @ts-ignore
-            const locationCards = state[cardToSendToDeck.location];
+            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
             const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
             const updatedDeck = topOrBottom === "top" ? [card, ...get().myDeckField] : [...get().myDeckField, card];
             return {
@@ -339,8 +337,7 @@ export const useGame = create<State>((set, get) => ({
     sendCardToEggDeck: (topOrBottom, cardToSendToDeck) => {
         // @ts-ignore
         set(state => {
-            // @ts-ignore
-            const locationCards = state[cardToSendToDeck.location];
+            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
             const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
             const updatedDeck = topOrBottom === "top" ? [card, ...get().myEggDeck] : [...get().myEggDeck, card];
             return {
@@ -351,25 +348,10 @@ export const useGame = create<State>((set, get) => ({
         })
     },
 
-    sendCardToTrash: (cardToSendToTrash) => {
-        // @ts-ignore
-        set(state => {
-            // @ts-ignore
-            const locationCards = state[cardToSendToTrash.location];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToTrash.id);
-            return {
-                ...state,
-                [cardToSendToTrash.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToTrash.id),
-                myTrash: [card, ...get().myTrash]
-            }
-        })
-    },
-
     sendCardToSecurity: (topOrBottom, cardToSendToSecurity) => {
-        // @ts-ignore
+         // @ts-ignore
         set(state => {
-            // @ts-ignore
-            const locationCards = state[cardToSendToSecurity.location];
+            const locationCards = state[cardToSendToSecurity.location as keyof State] as CardTypeWithId[];
             const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToSecurity.id);
             const updatedSecurity = topOrBottom === "top" ? [card, ...get().mySecurity] : [...get().mySecurity, card];
             return {

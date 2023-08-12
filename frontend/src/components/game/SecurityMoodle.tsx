@@ -2,16 +2,16 @@ import styled from "@emotion/styled";
 import {useGame} from "../../hooks/useGame.ts";
 
 type DeckMoodleProps = {
-    cardToSendToDeck: {id: string, location:string},
+    cardToSendToSecurity: {id: string, location:string},
     sendUpdate: () => void
 }
 
-export default function DeckMoodle({cardToSendToDeck, sendUpdate} : DeckMoodleProps) {
+export default function SecurityMoodle({cardToSendToSecurity, sendUpdate} : DeckMoodleProps) {
 
-    const sendCardToDeck = useGame((state) => state.sendCardToDeck);
+    const sendCardToSecurity = useGame((state) => state.sendCardToSecurity);
 
     const handleClick = (topOrBottom: "top" | "bottom") => {
-        sendCardToDeck(topOrBottom, cardToSendToDeck);
+        sendCardToSecurity(topOrBottom, cardToSendToSecurity);
         sendUpdate();
     }
 
@@ -27,8 +27,8 @@ const Container = styled.div`
   width: 100px;
   height: 50px;
   position: absolute;
-  top: 35px;
-  left:11px;
+  top: -18px;
+  left: 134px;
   background: none;
   display: flex;
   overflow: hidden;
