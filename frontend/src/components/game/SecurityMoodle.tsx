@@ -28,7 +28,7 @@ const Container = styled.div`
   height: 50px;
   position: absolute;
   top: -18px;
-  left: 134px;
+  left: 90px;
   background: none;
   display: flex;
   overflow: hidden;
