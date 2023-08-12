@@ -198,7 +198,7 @@ public class GameService extends TextWebSocketHandler {
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
-    private Map<String, StringBuilder> gameChunks = new HashMap<>();
+    private final Map<String, StringBuilder> gameChunks = new HashMap<>();
 
     void processGameChunks(String gameId, WebSocketSession session, String command, Set<WebSocketSession> gameRoom) throws IOException {
         String chunk = command.substring("/updateGame:".length());
@@ -214,7 +214,7 @@ public class GameService extends TextWebSocketHandler {
     void synchronizeGame(WebSocketSession session, Set<WebSocketSession> gameRoom, String fullGameJson) throws IOException {
         if (gameRoom == null) return;
         for (WebSocketSession s : gameRoom) {
-            if (s.isOpen() && !s.getPrincipal().getName().equals(Objects.requireNonNull(session.getPrincipal()).getName())) {
+            if (s.isOpen() && !Objects.requireNonNull(s.getPrincipal()).getName().equals(Objects.requireNonNull(session.getPrincipal()).getName())) {
                 s.sendMessage(new TextMessage("[DISTRIBUTE_CARDS]:" + fullGameJson));
             }
         }
