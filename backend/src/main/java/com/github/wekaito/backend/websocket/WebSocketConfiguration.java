@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.*;
 @Configuration
 @EnableWebSocket
 @RequiredArgsConstructor
-public class WebSocketConfiguration implements WebSocketConfigurer, WebSocketMessageBrokerConfigurer {
+public class WebSocketConfiguration implements WebSocketConfigurer {
 
     private final ChatService chatService;
     private final GameService gameService;
@@ -18,10 +18,5 @@ public class WebSocketConfiguration implements WebSocketConfigurer, WebSocketMes
                 .setAllowedOrigins("*");
         registry.addHandler(gameService, "/api/ws/game")
                 .setAllowedOrigins("*");
-    }
-
-    @Override
-    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
-        registry.setMessageSizeLimit(150 * 1024); // Set max message size to 150 KB
     }
 }
