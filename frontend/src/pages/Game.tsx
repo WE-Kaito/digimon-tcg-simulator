@@ -18,6 +18,7 @@ import EggDeckMoodle from "../components/game/EggDeckMoodle.tsx";
 import SecurityMoodle from "../components/game/SecurityMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import Lottie from "lottie-react";
+import {Fade} from "react-awesome-reveal";
 
 export default function Game({user}: { user: string }) {
 
@@ -376,32 +377,36 @@ export default function Game({user}: { user: string }) {
 
                             <BattleArea5>
                                 {opponentDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"opponentDigi5"}/></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi5"}/></Fade></CardContainer>)}
                             </BattleArea5>
                             <BattleArea4>
                                 {opponentDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"opponentDigi4"}/></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi4"}/></Fade></CardContainer>)}
                             </BattleArea4>
                             <BattleArea3>
                                 {opponentDigi3.length === 0 && <span>Battle Area</span>}
                                 {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"opponentDigi3"}/></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi3"}/></Fade></CardContainer>)}
                             </BattleArea3>
                             <BattleArea2>
                                 {opponentDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"opponentDigi2"}/></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi2"}/></Fade></CardContainer>)}
                             </BattleArea2>
                             <BattleArea1>
                                 {opponentDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"opponentDigi1"}/></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi1"}/></Fade></CardContainer>)}
                             </BattleArea1>
 
                             <DelayAreaContainer style={{marginTop: "1px"}}>
                                 {opponentDelay.length === 0 && <span>Delay</span>}
+                                {opponentDelay.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDelay"}/></Fade></CardContainer>)}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer>
                                 {opponentTamer.length === 0 && <span>Tamers</span>}
+                                {opponentTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"left"}><Card card={card} location={"opponentTamer"}/></Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
                             <HandContainer>
@@ -433,8 +438,8 @@ export default function Game({user}: { user: string }) {
 
                             <BreedingAreaContainer>
                                 {opponentBreedingArea.map((card, index) =>
-                                    <CardContainer key={card.id} cardIndex={index}><Card
-                                        card={card} location={"opponentBreedingArea"}/></CardContainer>)}
+                                    <CardContainer key={card.id} cardIndex={index}><Fade direction={"down"}><Card
+                                        card={card} location={"opponentBreedingArea"}/></Fade></CardContainer>)}
                                 {opponentBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
                             </BreedingAreaContainer>
 
