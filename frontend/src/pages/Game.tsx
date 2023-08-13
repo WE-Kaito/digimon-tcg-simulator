@@ -19,6 +19,7 @@ import SecurityMoodle from "../components/game/SecurityMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import Lottie from "lottie-react";
 import {Fade} from "react-awesome-reveal";
+import MemoryBar from "../components/game/MemoryBar.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -109,8 +110,8 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-               setOpponentLeft(true);
-               startTimer();
+               //setOpponentLeft(true);
+               //startTimer();
             }
         }
     });
@@ -447,7 +448,7 @@ export default function Game({user}: { user: string }) {
                         </OpponentContainerSide>
                     </div>
 
-                    <EnergyBarContainer></EnergyBarContainer>
+                    <MemoryBar sendUpdate={sendUpdate}/>
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
@@ -599,14 +600,6 @@ const OpponentContainerSide = styled.div`
   grid-template-rows: 1.5fr 1fr;
   grid-template-areas: "breed egg-deck"
                         "security-stack security-stack";
-`;
-
-const EnergyBarContainer = styled.div`
-  height: 100px;
-  width: 1005px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 `;
 
 const InfoContainer = styled.div`

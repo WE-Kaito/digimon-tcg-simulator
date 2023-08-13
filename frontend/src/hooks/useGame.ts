@@ -52,7 +52,8 @@ type State = {
     sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
-    sendDeckCardToSecurity: () => void;
+    sendDeckCardToSecurity: () => void,
+    setMemory: (memory: number) => void,
 };
 
 
@@ -400,5 +401,15 @@ export const useGame = create<State>((set, get) => ({
                 mySecurity: updatedSecurity
             };
         });
+    },
+
+    setMemory: (memory: number) => {
+        set(state => {
+            return {
+                ...state,
+                myMemory: memory,
+                opponentMemory: -memory
+            }
+        })
     }
 }));
