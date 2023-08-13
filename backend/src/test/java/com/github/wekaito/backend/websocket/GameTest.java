@@ -22,9 +22,19 @@ class GameTest {
                 cards, cards, cards, cards, cards, cards,
                 cards, cards
         );
+        Game game3 = new Game(
+                5, -5, cards, cards, cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards,
+                cards, cards
+        );
 
         assertEquals(game1, game2);
+        assertNotEquals(game1, game3);
+        assertNotEquals(null, game1);
         assertEquals(game1.hashCode(), game2.hashCode());
+        assertNotEquals(game1.hashCode(), game3.hashCode());
     }
 
     @Test
