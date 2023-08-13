@@ -55,7 +55,6 @@ export default function Game({user}: { user: string }) {
     const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
 
-    //const memory = useGame((state) => state.memory);
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
     const myEggDeck = useGame((state) => state.myEggDeck);
@@ -110,8 +109,8 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-               //setOpponentLeft(true);
-               //startTimer();
+               setOpponentLeft(true);
+               startTimer();
             }
         }
     });
