@@ -4,7 +4,11 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public record Game(
-        int memory,
+        int player1Memory,
+        int player2Memory,
+
+        GameCard[] player1Reveal,
+        GameCard[] player2Reveal,
 
         GameCard[] player1Hand,
         GameCard[] player1DeckField,
@@ -42,7 +46,10 @@ public record Game(
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Game game = (Game) o;
-        return memory == game.memory &&
+        return player1Memory == game.player1Memory &&
+                player2Memory == game.player2Memory &&
+                Arrays.deepEquals(player1Reveal, game.player1Reveal) &&
+                Arrays.deepEquals(player2Reveal, game.player2Reveal) &&
                 Arrays.deepEquals(player1Hand, game.player1Hand) &&
                 Arrays.deepEquals(player1DeckField, game.player1DeckField) &&
                 Arrays.deepEquals(player1EggDeck, game.player1EggDeck) &&
@@ -74,7 +81,10 @@ public record Game(
     @Override
     public int hashCode() {
         return Objects.hash(
-                memory,
+                player1Memory,
+                player2Memory,
+                Arrays.hashCode(player1Reveal),
+                Arrays.hashCode(player2Reveal),
                 Arrays.hashCode(player1Hand),
                 Arrays.hashCode(player1DeckField),
                 Arrays.hashCode(player1EggDeck),
@@ -107,7 +117,10 @@ public record Game(
     @Override
     public String toString() {
         return "Game{" +
-                "memory='" + memory +'\'' +
+                "player1Memory='" + player1Memory +'\'' +
+                ", player2Memory='" + player2Memory +'\'' +
+                ", player1Reveal='" + Arrays.toString(player1Reveal) +'\'' +
+                ", player2Reveal='" + Arrays.toString(player2Reveal) +'\'' +
                 ", player1Hand='" + Arrays.toString(player1Hand) +'\'' +
                 ", player1DeckField='" + Arrays.toString(player1DeckField) +'\'' +
                 ", player1EggDeck='" + Arrays.toString(player1EggDeck) +'\'' +
