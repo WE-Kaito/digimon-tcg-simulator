@@ -35,6 +35,7 @@ export default function Game({user}: { user: string }) {
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
     const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
     const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
+    const sendDeckCardToSecurity = useGame((state) => state.sendDeckCardToSecurity);
 
     const moveCard = useGame((state) => state.moveCard);
 
@@ -497,6 +498,8 @@ export default function Game({user}: { user: string }) {
                                     drawCardFromDeck();
                                     sendUpdate();
                                 }}/>
+                                <button style={{position:"absolute", left:-62, zIndex:10, padding:0, width:"55px", height:"30px"}}
+                                    onClick={() => {sendDeckCardToSecurity(); sendUpdate();}}>⛊️+1</button>
                             </DeckContainer>
 
                             <TrashContainer ref={dropToTrash}>

@@ -48,6 +48,7 @@ type State = {
     sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
+    sendDeckCardToSecurity: () => void;
 };
 
 
@@ -360,5 +361,21 @@ export const useGame = create<State>((set, get) => ({
                 mySecurity: updatedSecurity
             }
         })
+    },
+
+    sendDeckCardToSecurity: () => {
+        set(state => {
+            const deck = state.myDeckField;
+            const security = state.mySecurity;
+            if (deck.length === 0) return state;
+            const card = deck[0];
+            const updatedDeck = deck.slice(1);
+            const updatedSecurity = [...security, card];
+            return {
+                ...state,
+                myDeckField: updatedDeck,
+                mySecurity: updatedSecurity
+            };
+        });
     }
 }));
