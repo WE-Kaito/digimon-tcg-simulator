@@ -27,6 +27,8 @@ public class GameService extends TextWebSocketHandler {
     private final IdService idService;
     private final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
 
+    private final ObjectMapper objectMapper;
+
     public Map<String, Set<WebSocketSession>> getGameRooms() {
         return gameRooms;
     }
@@ -69,13 +71,14 @@ public class GameService extends TextWebSocketHandler {
 
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException, InterruptedException {
         String payload = message.getPayload();
         String[] parts = payload.split(":", 2);
 
         if (payload.startsWith("/startGame:")) {
             String gameId = parts[1].trim();
             setUpGame(session, gameId);
+            Thread.sleep(600);
             distributeCards(gameId);
             return;
         }
@@ -83,10 +86,12 @@ public class GameService extends TextWebSocketHandler {
         String gameId = parts[0];
         String command = parts[1];
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+
         if (gameRoom == null) return;
-        if (command.startsWith("/surrender:")) {
-            handleSurrender(session, gameRoom, command);
-        }
+
+        if (command.startsWith("/updateGame:")) processGameChunks(gameId, session, command, gameRoom);
+
+        if (command.startsWith("/surrender:")) handleSurrender(session, gameRoom, command);
     }
 
 
@@ -119,21 +124,35 @@ public class GameService extends TextWebSocketHandler {
         List<GameCard> newDeck1 = createGameDeck(deck1);
         List<GameCard> newDeck2 = createGameDeck(deck2);
 
-        GameCard[] player1EggDeck = newDeck1.stream().filter(card -> card.type().equals("Digi-Egg")).toArray(GameCard[]::new);
-        GameCard[] player1Security = newDeck1.stream().limit(5).toArray(GameCard[]::new);
-        newDeck1.subList(0, Math.min(5, newDeck1.size())).clear();
-        GameCard[] player1Hand = newDeck1.stream().limit(5).toArray(GameCard[]::new);
-        newDeck1.subList(0, Math.min(5, newDeck1.size())).clear();
+        List<GameCard> player1EggDeck = newDeck1.stream()
+                .filter(card -> card.type().equals("Digi-Egg")).toList();
+        newDeck1.removeAll(player1EggDeck);
 
-        GameCard[] player2EggDeck = newDeck2.stream().filter(card -> card.type().equals("Digi-Egg")).toArray(GameCard[]::new);
-        GameCard[] player2Security = newDeck2.stream().limit(5).toArray(GameCard[]::new);
-        newDeck2.subList(0, Math.min(5, newDeck2.size())).clear();
-        GameCard[] player2Hand = newDeck2.stream().limit(5).toArray(GameCard[]::new);
-        newDeck2.subList(0, Math.min(5, newDeck2.size())).clear();
+        List<GameCard> player1Security = newDeck1.stream()
+                .limit(5).toList();
+        newDeck1.removeAll(player1Security);
 
+        List<GameCard> player1Hand = newDeck1.stream()
+                .limit(5).toList();
+        newDeck1.removeAll(player1Hand);
+
+        List<GameCard> player2EggDeck = newDeck2.stream()
+                .filter(card -> card.type().equals("Digi-Egg")).toList();
+        newDeck2.removeAll(player2EggDeck);
+
+        List<GameCard> player2Security = newDeck2.stream()
+                .limit(5).toList();
+        newDeck2.removeAll(player2Security);
+
+        List<GameCard> player2Hand = newDeck2.stream()
+                .limit(5).toList();
+        newDeck2.removeAll(player2Hand);
+
+        GameCard[] player1Deck = newDeck1.toArray(new GameCard[0]);
+        GameCard[] player2Deck = newDeck2.toArray(new GameCard[0]);
         GameCard[] empty = new GameCard[0];
-        Game newGame = new Game(0, player1Hand, newDeck1.toArray(GameCard[]::new), player1EggDeck, empty, player1Security, empty, empty, empty, empty, empty, empty, empty, player2Hand, newDeck2.toArray(GameCard[]::new), player2EggDeck, empty, player2Security, empty, empty, empty, empty, empty, empty, empty, empty, empty);
-        ObjectMapper objectMapper = new ObjectMapper();
+
+        Game newGame = new Game(0, player1Hand.toArray(new GameCard[0]), player1Deck, player1EggDeck.toArray(new GameCard[0]), empty, player1Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, player2Hand.toArray(new GameCard[0]), player2Deck, player2EggDeck.toArray(new GameCard[0]), empty, player2Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, empty, empty);
         String newGameJson = objectMapper.writeValueAsString(newGame);
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
@@ -142,6 +161,7 @@ public class GameService extends TextWebSocketHandler {
             s.sendMessage(new TextMessage("[DISTRIBUTE_CARDS]:" + newGameJson));
         }
     }
+
 
     List<GameCard> createGameDeck(Card[] deck) {
         SecureRandom secureRand = new SecureRandom();
@@ -178,4 +198,25 @@ public class GameService extends TextWebSocketHandler {
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
+    private final Map<String, StringBuilder> gameChunks = new HashMap<>();
+
+    void processGameChunks(String gameId, WebSocketSession session, String command, Set<WebSocketSession> gameRoom) throws IOException {
+        String chunk = command.substring("/updateGame:".length());
+        gameChunks.putIfAbsent(gameId, new StringBuilder());
+        gameChunks.get(gameId).append(chunk);
+
+        if (chunk.length() < 1000 && chunk.endsWith("}")) {
+            String fullGameJson = gameChunks.get(gameId).toString();
+            gameChunks.remove(gameId);
+            synchronizeGame(session, gameRoom, fullGameJson);
+        }
+    }
+    void synchronizeGame(WebSocketSession session, Set<WebSocketSession> gameRoom, String fullGameJson) throws IOException {
+        if (gameRoom == null) return;
+        for (WebSocketSession s : gameRoom) {
+            if (s.isOpen() && !Objects.requireNonNull(s.getPrincipal()).getName().equals(Objects.requireNonNull(session.getPrincipal()).getName())) {
+                s.sendMessage(new TextMessage("[DISTRIBUTE_CARDS]:" + fullGameJson));
+            }
+        }
+    }
 }

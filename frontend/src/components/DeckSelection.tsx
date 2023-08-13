@@ -4,16 +4,9 @@ import digimonIcon from "../assets/cardtype_icons/gammamon.png";
 import tamerIcon from "../assets/cardtype_icons/tamer.png";
 import optionIcon from "../assets/cardtype_icons/option.png";
 import {useStore} from "../hooks/useStore.ts";
-import {CardTypeWithId} from "../utils/types.ts";
+import {CardTypeWithId, DraggedItem} from "../utils/types.ts";
 import Card from "./Card.tsx";
 import {useDrop} from "react-dnd";
-
-type DraggedItem = {
-    id: string,
-    location: string,
-    cardnumber: string,
-    type: string
-}
 
 export default function DeckSelection() {
 

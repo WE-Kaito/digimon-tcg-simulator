@@ -1,7 +1,7 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
-import {GameDistribution, Player} from "../utils/types.ts";
+import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {profilePicture} from "../utils/functions.ts";
 import {useEffect, useState} from "react";
@@ -9,11 +9,16 @@ import styled from "@emotion/styled";
 import SurrenderMoodle from "../components/game/SurrenderMoodle.tsx";
 import deckBack from "../assets/deckBack.png";
 import eggBack from "../assets/eggBack.jpg";
-import mySecurityStack from "../assets/mySecurityStack.png";
-import opponentSecurityStack from "../assets/opponentSecurityStack.png";
 import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import CardDetails from "../components/CardDetails.tsx";
+import {useDrop} from "react-dnd";
+import DeckMoodle from "../components/game/DeckMoodle.tsx";
+import EggDeckMoodle from "../components/game/EggDeckMoodle.tsx";
+import SecurityMoodle from "../components/game/SecurityMoodle.tsx";
+import mySecurityAnimation from "../assets/lotties/mySecurity.json";
+import Lottie from "lottie-react";
+import {Fade} from "react-awesome-reveal";
 
 export default function Game({user}: { user: string }) {
 
@@ -27,6 +32,12 @@ export default function Game({user}: { user: string }) {
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
+    const getUpdatedGame = useGame((state) => state.getUpdatedGame);
+    const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
+    const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
+    const sendDeckCardToSecurity = useGame((state) => state.sendDeckCardToSecurity);
+
+    const moveCard = useGame((state) => state.moveCard);
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
@@ -36,36 +47,42 @@ export default function Game({user}: { user: string }) {
     const [timerOpen, setTimerOpen] = useState<boolean>(false);
     const [timer, setTimer] = useState<number>(5);
     const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
+    const [deckMoodle, setDeckMoodle] = useState<boolean>(false);
+    const [eggDeckMoodle, setEggDeckMoodle] = useState<boolean>(false);
+    const [securityMoodle, setSetSecurityMoodle] = useState<boolean>(false);
+    const [cardToSend, setCardToSend] = useState<{ id: string, location: string }>({id: "", location: ""});
+    const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
+    const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
 
     //const memory = useGame((state) => state.memory);
     const myHand = useGame((state) => state.myHand);
-    //const myDeckField = useGame((state) => state.myDeckField);
+    const myDeckField = useGame((state) => state.myDeckField);
     const myEggDeck = useGame((state) => state.myEggDeck);
     const myTrash = useGame((state) => state.myTrash);
     const mySecurity = useGame((state) => state.mySecurity);
     const myTamer = useGame((state) => state.myTamer);
     const myDelay = useGame((state) => state.myDelay);
 
-    //const myDigi1 = useGame((state) => state.myDigi1);
-    //const myDigi2 = useGame((state) => state.myDigi2);
+    const myDigi1 = useGame((state) => state.myDigi1);
+    const myDigi2 = useGame((state) => state.myDigi2);
     const myDigi3 = useGame((state) => state.myDigi3);
-    //const myDigi4 = useGame((state) => state.myDigi4);
-    //const myDigi5 = useGame((state) => state.myDigi5);
+    const myDigi4 = useGame((state) => state.myDigi4);
+    const myDigi5 = useGame((state) => state.myDigi5);
     const myBreedingArea = useGame((state) => state.myBreedingArea);
 
     const opponentHand = useGame((state) => state.opponentHand);
-    //const opponentDeckField = useGame((state) => state.opponentDeckField);
+    const opponentDeckField = useGame((state) => state.opponentDeckField);
     const opponentEggDeck = useGame((state) => state.opponentEggDeck);
     const opponentTrash = useGame((state) => state.opponentTrash);
     const opponentSecurity = useGame((state) => state.opponentSecurity);
     const opponentTamer = useGame((state) => state.opponentTamer);
     const opponentDelay = useGame((state) => state.opponentDelay);
 
-    //const opponentDigi1 = useGame((state) => state.opponentDigi1);
-    //const opponentDigi2 = useGame((state) => state.opponentDigi2);
+    const opponentDigi1 = useGame((state) => state.opponentDigi1);
+    const opponentDigi2 = useGame((state) => state.opponentDigi2);
     const opponentDigi3 = useGame((state) => state.opponentDigi3);
-    //const opponentDigi4 = useGame((state) => state.opponentDigi4);
-    //const opponentDigi5 = useGame((state) => state.opponentDigi5);
+    const opponentDigi4 = useGame((state) => state.opponentDigi4);
+    const opponentDigi5 = useGame((state) => state.opponentDigi5);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
     const websocket = useWebSocket(websocketURL, {
@@ -92,15 +109,201 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-                setOpponentLeft(true);
-                startTimer();
+               setOpponentLeft(true);
+               startTimer();
             }
         }
     });
 
+    function chunkString(str: string, size: number): string[] {
+        const chunks = [];
+        for (let i = 0; i < str.length; i += size) {
+            chunks.push(str.substring(i, i + size));
+        }
+        return chunks;
+    }
+
+    function sendUpdate() {
+        const updatedGame: string = getUpdatedGame(gameId, user);
+        const chunks = chunkString(updatedGame, 1000);
+
+        for (const chunk of chunks) {
+            websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
+        }
+    }
+
+
+    const [, dropToDigi1] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi1');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi2] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi2');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi3] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi3');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi4] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi4');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi5] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDigi5');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToHand] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myHand');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToBreedingArea] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myBreedingArea');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToTamer] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myTamer');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDelay] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myDelay');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDeck] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            setCardToSend({id, location});
+            setDeckMoodle(true);
+            setSetSecurityMoodle(false);
+            setEggDeckMoodle(false);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToEggDeck] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            setCardToSend({id, location});
+            setEggDeckMoodle(true);
+            setDeckMoodle(false);
+            setSetSecurityMoodle(false);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToSecurity] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            setCardToSend({id, location});
+            setSetSecurityMoodle(true);
+            setDeckMoodle(false);
+            setEggDeckMoodle(false);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToTrash] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            moveCard(id, location, 'myTrash');
+            sendUpdate();
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
     useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
+
+    useEffect(() => {
+        setDeckMoodle(false);
+        setEggDeckMoodle(false);
+        setSetSecurityMoodle(false);
+    }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5]);
 
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
@@ -141,6 +344,14 @@ export default function Game({user}: { user: string }) {
                     <CardDetails/>
                 </InfoContainer>
 
+                {trashMoodle && <TrashView>
+                    {myTrash.map((card) => <Card key={card.id} card={card} location="myTrash"/>)}
+                </TrashView>}
+
+                {opponentTrashMoodle && <TrashView>
+                    {opponentTrash.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
+                </TrashView>}
+
                 <FieldContainer>
                     <div style={{display: "flex"}}>
                         <OpponentContainerMain>
@@ -153,50 +364,83 @@ export default function Game({user}: { user: string }) {
 
                             <OpponentDeckContainer>
                                 <img alt="deck" src={deckBack} width="105px"/>
+                                <TrashSpan style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
                             </OpponentDeckContainer>
 
                             <OpponentTrashContainer>
-                                {opponentTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
+                                <TrashSpan style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
+                                <OpponentOpenTrashButton opponentTrashMoodle={opponentTrashMoodle} onClick={() =>
+                                {setOpponentTrashMoodle(!opponentTrashMoodle); setTrashMoodle(false);}}>
+                                    {opponentTrashMoodle ? "Close" : "Show"}</OpponentOpenTrashButton>
+                                {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
+                                    : <Card card={opponentTrash[opponentTrash.length - 1]} location={"opponentTrash"}/>}
                             </OpponentTrashContainer>
 
-                            <BattleArea1></BattleArea1>
-                            <BattleArea2></BattleArea2>
+                            <BattleArea5>
+                                {opponentDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi5"}/></Fade></CardContainer>)}
+                            </BattleArea5>
+                            <BattleArea4>
+                                {opponentDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi4"}/></Fade></CardContainer>)}
+                            </BattleArea4>
                             <BattleArea3>
                                 {opponentDigi3.length === 0 && <span>Battle Area</span>}
+                                {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi3"}/></Fade></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea4></BattleArea4>
-                            <BattleArea5></BattleArea5>
+                            <BattleArea2>
+                                {opponentDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi2"}/></Fade></CardContainer>)}
+                            </BattleArea2>
+                            <BattleArea1>
+                                {opponentDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi1"}/></Fade></CardContainer>)}
+                            </BattleArea1>
 
                             <DelayAreaContainer style={{marginTop: "1px"}}>
                                 {opponentDelay.length === 0 && <span>Delay</span>}
+                                {opponentDelay.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}><Card card={card} location={"opponentDelay"}/></Fade></CardContainer>)}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer>
                                 {opponentTamer.length === 0 && <span>Tamers</span>}
+                                {opponentTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"left"}><Card card={card} location={"opponentTamer"}/></Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
                             <HandContainer>
-                                <HandCards>
-                                    {opponentHand.map((card, index) => <HandListItem  cardCount={opponentHand.length} cardIndex={index} key={card.id}><OppenentHandCard alt="card"
-                                                                                                    src={cardBack}/>
-                                    </HandListItem>)}
+                                <HandCards style={{transform:`translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
+                                    {opponentHand.map((card, index) =>
+                                        <HandListItem cardCount={opponentHand.length} cardIndex={index}
+                                                      key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
+                                        </HandListItem>)}
                                 </HandCards>
-
                             </HandContainer>
 
                         </OpponentContainerMain>
 
                         <OpponentContainerSide>
                             <EggDeckContainer>
+                                {opponentEggDeck.length !== 0 &&
+                                    <div style={{
+                                        width: "100%", display: "flex",
+                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
+                                    }}>{opponentEggDeck.length}</div>}
                                 {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"/>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer>
                                 <OpponentSecuritySpan>{opponentSecurity.length}</OpponentSecuritySpan>
-                                <img alt="security-stack" src={opponentSecurityStack}/>
+                                <Lottie animationData={mySecurityAnimation} loop={true}
+                                        style={{width: "160px"}}/>
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer>
+                                {opponentBreedingArea.map((card, index) =>
+                                    <CardContainer key={card.id} cardIndex={index}><Fade direction={"down"}><Card
+                                        card={card} location={"opponentBreedingArea"}/></Fade></CardContainer>)}
                                 {opponentBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
                             </BreedingAreaContainer>
 
@@ -207,16 +451,34 @@ export default function Game({user}: { user: string }) {
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
-                            <EggDeckContainer>
-                                {myEggDeck.length !== 0 && <EggDeck alt="egg-deck" src={eggBack}/>}
+                            <EggDeckContainer ref={dropToEggDeck}>
+                                {eggDeckMoodle &&
+                                    <EggDeckMoodle sendUpdate={sendUpdate} cardToSendToEggDeck={cardToSend}/>}
+                                {myEggDeck.length !== 0 &&
+                                    <EggDeck alt="egg-deck" src={eggBack}
+                                             onClick={() => {
+                                                 drawCardFromEggDeck();
+                                                 sendUpdate();
+                                             }}/>}
+                                {myEggDeck.length !== 0 &&
+                                    <div style={{
+                                        width: "100%", display: "flex",
+                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
+                                    }}>{myEggDeck.length}</div>}
                             </EggDeckContainer>
 
-                            <SecurityStackContainer>
+                            <SecurityStackContainer ref={dropToSecurity}>
+                                {securityMoodle &&
+                                    <SecurityMoodle sendUpdate={sendUpdate} cardToSendToSecurity={cardToSend}/>}
                                 <MySecuritySpan>{mySecurity.length}</MySecuritySpan>
-                                <img alt="security-stack" src={mySecurityStack}/>
+                                <Lottie animationData={mySecurityAnimation} loop={true}
+                                        style={{width: "160px"}}/>
                             </SecurityStackContainer>
 
-                            <BreedingAreaContainer>
+                            <BreedingAreaContainer ref={dropToBreedingArea}>
+                                {myBreedingArea.map((card, index) =>
+                                    <CardContainer key={card.id} cardIndex={index}>
+                                        <Card card={card} location={"myBreedingArea"}/></CardContainer>)}
                                 {myBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
                             </BreedingAreaContainer>
                         </MyContainerSide>
@@ -230,33 +492,64 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <DeckContainer>
-                                <Deck alt="deck" src={deckBack}/>
+                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} cardToSendToDeck={cardToSend}/>}
+                                <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
+                                <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
+                                    drawCardFromDeck();
+                                    sendUpdate();
+                                }}/>
+                                <button style={{position:"absolute", left:-62, zIndex:10, padding:0, width:"55px", height:"30px"}}
+                                    onClick={() => {sendDeckCardToSecurity(); sendUpdate();}}>⛊️+1</button>
                             </DeckContainer>
 
-                            <TrashContainer>
-                                {myTrash.length === 0 && <TrashPlaceholder>Trash</TrashPlaceholder>}
+                            <TrashContainer ref={dropToTrash}>
+                                {myTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
+                                    : <Card card={myTrash[myTrash.length - 1]} location={"myTrash"}/>}
+                                <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
+                                <OpenTrashButton trashMoodle={trashMoodle} onClick={() =>
+                                {setTrashMoodle(!trashMoodle); setOpponentTrashMoodle(false);}}>
+                                    {trashMoodle ? "Close" : "Show"}</OpenTrashButton>
                             </TrashContainer>
 
-                            <BattleArea1></BattleArea1>
-                            <BattleArea2></BattleArea2>
-                            <BattleArea3>
+                            <BattleArea1 ref={dropToDigi1}>
+                                {myDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Card card={card} location={"myDigi1"}/></CardContainer>)}
+                            </BattleArea1>
+                            <BattleArea2 ref={dropToDigi2}>
+                                {myDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Card card={card} location={"myDigi2"}/></CardContainer>)}
+                            </BattleArea2>
+                            <BattleArea3 ref={dropToDigi3}>
                                 {myDigi3.length === 0 && <span>Battle Area</span>}
+                                {myDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Card card={card} location={"myDigi3"}/></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea4></BattleArea4>
-                            <BattleArea5></BattleArea5>
+                            <BattleArea4 ref={dropToDigi4}>
+                                {myDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Card card={card} location={"myDigi4"}/></CardContainer>)}
+                            </BattleArea4>
+                            <BattleArea5 ref={dropToDigi5}>
+                                {myDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                    <Card card={card} location={"myDigi5"}/></CardContainer>)}
+                            </BattleArea5>
 
-                            <DelayAreaContainer style={{marginBottom: "1px"}}>
+                            <DelayAreaContainer ref={dropToDelay} style={{marginBottom: "1px"}}>
+                                {myDelay.map((card, index) => <DelayCardContainer key={card.id} cardIndex={index}>
+                                    <Card card={card} location={"myDelay"}/></DelayCardContainer>)}
                                 {myDelay.length === 0 && <span>Delay</span>}
                             </DelayAreaContainer>
 
-                            <TamerAreaContainer>
+                            <TamerAreaContainer ref={dropToTamer}>
+                                {myTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <Card card={card} location={"myTamer"}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <span>Tamers</span>}
                             </TamerAreaContainer>
 
-                            <HandContainer>
-                                <HandCards>
-                                    {myHand.map((card, index) => <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}><Card
-                                        card={card} location={"myHand"}/></HandListItem>)}
+                            <HandContainer ref={dropToHand}>
+                                <HandCards style={{transform:`translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
+                                    {myHand.map((card, index) =>
+                                        <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
+                                            <Card card={card} location={"myHand"}/></HandListItem>)}
                                 </HandCards>
                             </HandContainer>
 
@@ -354,8 +647,6 @@ const Wrapper = styled.div`
   }
 `;
 
-// Player
-
 const PlayerContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -383,21 +674,22 @@ const UserName = styled.span`
   font-family: 'Cousine', sans-serif;
 `;
 
-// Fields
-
 const DeckContainer = styled.div`
+  position: relative;
   grid-area: deck;
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
   padding: 0 0 10px 10px;
 `;
 
 const OpponentDeckContainer = styled.div`
   grid-area: deck;
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
   padding: 10px 10px 0 0;
 `;
 
@@ -422,22 +714,28 @@ const EggDeck = styled(Deck)`
 const TrashContainer = styled.div`
   grid-area: trash;
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  position: relative;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
   padding: 10px 10px 0 0;
 `;
 
 const OpponentTrashContainer = styled.div`
   grid-area: trash;
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
+  position: relative;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
   padding: 0 0 10px 10px;
 `;
 
 const EggDeckContainer = styled.div`
+  position: relative;
   grid-area: egg-deck;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 0 0 10px 10px;
@@ -457,23 +755,103 @@ const MySecuritySpan = styled.span`
   z-index: 5;
   font-family: Awsumsans, sans-serif;
   font-size: 35px;
-  color: #0c0c0c;
-  text-shadow: #0e6cc7 1px 1px 1px;
-  left: 175px;
+  color: #5ba2cb;
+  text-shadow: #111921 1px 1px 1px;
+  left: 133px;
 `;
 
 const OpponentSecuritySpan = styled(MySecuritySpan)`
-  text-shadow: #c70e3f 1px 1px 1px;
-  left: 90px;
+  color: #cb6377;
+`;
+
+const CardContainer = styled.div<{ cardIndex: number }>`
+  position: absolute;
+  bottom: ${props => (props.cardIndex * 20) + 5}px;
+`;
+
+const TamerCardContainer = styled.div<{ cardIndex: number }>`
+  position: absolute;
+  left: ${props => (props.cardIndex * 37) + 5}px;
+`;
+
+const DelayCardContainer = styled.div<{ cardIndex: number }>`
+  position: absolute;
+  bottom: ${props => (props.cardIndex * 35) + 10}px;
 `;
 
 const BattleAreaContainer = styled.div`
+  position: relative;
+  height: 100%;
+  max-height: 100%;
   border-radius: 2px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   outline: rgba(255, 255, 255, 0.5) solid 1px;
+`;
+
+const TrashView = styled.div`
+  background: rgba(2, 1, 1, 0.95);
+  position: absolute;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 15px;
+  padding: 10px;
+  width: 706px;
+  height: 420px;
+  overflow-y: scroll;
+  z-index: 150;
+  border-radius: 10px;
+  border: 2px solid crimson;
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.5);
+
+  left: 60.5%;
+  top: 27%;
+  transform: translate(-50%, -50%);
+
+  ::-webkit-scrollbar {
+    visibility: hidden;
+    width: 0;
+  }
+`;
+
+const OpenTrashButton = styled.button<{ trashMoodle: boolean }>`
+  padding: 0;
+  position: absolute;
+  top: 12px;
+  border-radius: 0px;
+  border: 1px solid #0c0c0c;
+  right: -60px;
+  width: 60px;
+  height: 25px;
+  font-family: 'montelgo-sans-serif', sans-serif;
+  text-shadow: #2c2c2c 0px 0px 1px;
+  color: ${props => props.trashMoodle ? 'white' : 'black'};
+  background: ${props => props.trashMoodle ? 'linear-gradient(to top, crimson, tomato)' : 'linear-gradient(to top, #b7b6b6, #e5e2e2)'};
+`;
+
+const OpponentOpenTrashButton = styled.button<{ opponentTrashMoodle: boolean }>`
+  top: 208px;
+  left: -60px;
+  padding: 0;
+  position: absolute;
+  border-radius: 0px;
+  border: 1px solid #0c0c0c;
+  right: -60px;
+  width: 60px;
+  height: 25px;
+  font-family: 'montelgo-sans-serif', sans-serif;
+  text-shadow: #2c2c2c 0px 0px 1px;
+  color: ${props => props.opponentTrashMoodle ? 'white' : 'black'};
+  background: ${props => props.opponentTrashMoodle ? 'linear-gradient(to top, crimson, tomato)' : 'linear-gradient(to top, #b7b6b6, #e5e2e2)'};
+`;
+
+const TrashSpan = styled.span`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-family: Awsumsans, sans-serif;
 `;
 
 const BattleArea1 = styled(BattleAreaContainer)`
@@ -511,7 +889,7 @@ const HandContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   height: 100%;
   padding: 5px;
@@ -530,19 +908,19 @@ const HandCards = styled.ul`
   clear: both;
 `;
 
-const HandListItem = styled.li<{cardCount: number, cardIndex: number}>`
+const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   position: absolute;
   margin: 0;
   padding: 0;
   list-style-type: none;
   float: left;
   left: 5px;
-  transform: translateX(calc((cardIndex * 400px) / ${({cardCount}) => cardCount}));
+  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount}));
   //TODO: improve this after drawing cards
   &:hover {
     z-index: 100;
   }
-    `;
+`;
 
 const OppenentHandCard = styled.img`
   width: 69.5px;

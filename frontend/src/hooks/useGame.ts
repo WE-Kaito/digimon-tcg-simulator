@@ -1,6 +1,5 @@
 import {create} from "zustand";
 import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
-import 'react-toastify/dist/ReactToastify.css';
 
 type State = {
     memory: number,
@@ -39,14 +38,21 @@ type State = {
     opponentDigi5: CardTypeWithId[],
     opponentBreedingArea: CardTypeWithId[],
 
-    setUpGame: (me: Player, opponent: Player) => void;
-    distributeCards: (user: string, game: GameDistribution, gameId: string) => void;
+    setUpGame: (me: Player, opponent: Player) => void,
+    distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
+    moveCard: (cardId: string, from: string, to: string) => void,
+    getUpdatedGame: (gameId: string, user: string) => string,
+    drawCardFromDeck: () => void,
+    drawCardFromEggDeck: () => void,
+
+    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
+    sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
+    sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
+    sendDeckCardToSecurity: () => void;
 };
 
 
-export const useGame = create<State>((set) => ({
-
-    isLoading: false,
+export const useGame = create<State>((set, get) => ({
 
     myAvatar: "",
     opponentName: "",
@@ -88,7 +94,35 @@ export const useGame = create<State>((set) => ({
         set({
             myAvatar: me.avatarName,
             opponentName: opponent.username,
-            opponentAvatar: opponent.avatarName
+            opponentAvatar: opponent.avatarName,
+
+            memory: 0,
+            myHand: [],
+            myDeckField: [],
+            myEggDeck: [],
+            myTrash: [],
+            mySecurity: [],
+            myTamer: [],
+            myDelay: [],
+            myDigi1: [],
+            myDigi2: [],
+            myDigi3: [],
+            myDigi4: [],
+            myDigi5: [],
+            myBreedingArea: [],
+            opponentHand: [],
+            opponentDeckField: [],
+            opponentEggDeck: [],
+            opponentTrash: [],
+            opponentSecurity: [],
+            opponentTamer: [],
+            opponentDelay: [],
+            opponentDigi1: [],
+            opponentDigi2: [],
+            opponentDigi3: [],
+            opponentDigi4: [],
+            opponentDigi5: [],
+            opponentBreedingArea: [],
         });
     },
 
@@ -96,7 +130,7 @@ export const useGame = create<State>((set) => ({
 
         const player1 = gameId.split("_")[0];
 
-        set ({memory: game.memory});
+        set({memory: game.memory});
 
         if (user === player1) {
             set({
@@ -157,6 +191,191 @@ export const useGame = create<State>((set) => ({
                 opponentBreedingArea: game.player1BreedingArea,
             });
         }
-    }
+    },
 
+    moveCard: (cardId, from, to) => {
+
+        const opponentFields = ["opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity", "opponentTamer",
+            "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentBreedingArea"];
+        for (const zone of opponentFields) {
+            if (from === zone) return;
+        }
+        if (from === to) return;
+
+        set(state => {
+            const fromState = state[from as keyof State] as CardTypeWithId[];
+            const toState = state[to as keyof State] as CardTypeWithId[];
+            const cardIndex = fromState.findIndex(card => card.id === cardId);
+            if (cardIndex === -1) return state;
+            const card = fromState[cardIndex];
+            const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
+            const updatedToState = [...toState, card];
+
+            return {
+                ...state,
+                [from]: updatedFromState,
+                [to]: updatedToState
+            };
+        });
+    },
+
+    getUpdatedGame: (gameId, user) => {
+
+        const player1 = gameId.split("_")[0];
+        let updatedGame: GameDistribution;
+
+        if (user === player1) {
+            updatedGame = {
+                memory: get().memory,
+                player1Hand: get().myHand,
+                player1DeckField: get().myDeckField,
+                player1EggDeck: get().myEggDeck,
+                player1Trash: get().myTrash,
+                player1Security: get().mySecurity,
+                player1Tamer: get().myTamer,
+                player1Delay: get().myDelay,
+                player1Digi1: get().myDigi1,
+                player1Digi2: get().myDigi2,
+                player1Digi3: get().myDigi3,
+                player1Digi4: get().myDigi4,
+                player1Digi5: get().myDigi5,
+                player1BreedingArea: get().myBreedingArea,
+                player2Hand: get().opponentHand,
+                player2DeckField: get().opponentDeckField,
+                player2EggDeck: get().opponentEggDeck,
+                player2Trash: get().opponentTrash,
+                player2Security: get().opponentSecurity,
+                player2Tamer: get().opponentTamer,
+                player2Delay: get().opponentDelay,
+                player2Digi1: get().opponentDigi1,
+                player2Digi2: get().opponentDigi2,
+                player2Digi3: get().opponentDigi3,
+                player2Digi4: get().opponentDigi4,
+                player2Digi5: get().opponentDigi5,
+                player2BreedingArea: get().opponentBreedingArea
+            };
+        } else {
+            updatedGame = {
+                memory: get().memory,
+                player1Hand: get().opponentHand,
+                player1DeckField: get().opponentDeckField,
+                player1EggDeck: get().opponentEggDeck,
+                player1Trash: get().opponentTrash,
+                player1Security: get().opponentSecurity,
+                player1Tamer: get().opponentTamer,
+                player1Delay: get().opponentDelay,
+                player1Digi1: get().opponentDigi1,
+                player1Digi2: get().opponentDigi2,
+                player1Digi3: get().opponentDigi3,
+                player1Digi4: get().opponentDigi4,
+                player1Digi5: get().opponentDigi5,
+                player1BreedingArea: get().opponentBreedingArea,
+                player2Hand: get().myHand,
+                player2DeckField: get().myDeckField,
+                player2EggDeck: get().myEggDeck,
+                player2Trash: get().myTrash,
+                player2Security: get().mySecurity,
+                player2Tamer: get().myTamer,
+                player2Delay: get().myDelay,
+                player2Digi1: get().myDigi1,
+                player2Digi2: get().myDigi2,
+                player2Digi3: get().myDigi3,
+                player2Digi4: get().myDigi4,
+                player2Digi5: get().myDigi5,
+                player2BreedingArea: get().myBreedingArea
+            };
+        }
+        return JSON.stringify(updatedGame);
+    },
+
+    drawCardFromDeck: () => {
+        set(state => {
+            const deck = state.myDeckField;
+            const hand = state.myHand;
+            if (deck.length === 0) return state;
+            const card = deck[0];
+            const updatedDeck = deck.slice(1);
+            const updatedHand = [...hand, card];
+            return {
+                ...state,
+                myDeckField: updatedDeck,
+                myHand: updatedHand
+            };
+        });
+    },
+
+    drawCardFromEggDeck: () => {
+
+        set(state => {
+            if (state.myBreedingArea.length !== 0) return state;
+            const eggDeck = state.myEggDeck;
+            if (eggDeck.length === 0) return state;
+            const card = eggDeck[0];
+            const updatedDeck = eggDeck.slice(1);
+            const updatedBreedingArea = [card];
+            return {
+                ...state,
+                myEggDeck: updatedDeck,
+                myBreedingArea: updatedBreedingArea
+            };
+        });
+    },
+
+    sendCardToDeck: (topOrBottom, cardToSendToDeck) => {
+        // @ts-ignore
+        set(state => {
+            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
+            const updatedDeck = topOrBottom === "top" ? [card, ...get().myDeckField] : [...get().myDeckField, card];
+            return {
+                ...state,
+                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
+                myDeckField: updatedDeck
+            }
+        })
+    },
+
+    sendCardToEggDeck: (topOrBottom, cardToSendToDeck) => {
+        // @ts-ignore
+        set(state => {
+            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
+            const updatedDeck = topOrBottom === "top" ? [card, ...get().myEggDeck] : [...get().myEggDeck, card];
+            return {
+                ...state,
+                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
+                myEggDeck: updatedDeck
+            }
+        })
+    },
+
+    sendCardToSecurity: (topOrBottom, cardToSendToSecurity) => {
+         // @ts-ignore
+        set(state => {
+            const locationCards = state[cardToSendToSecurity.location as keyof State] as CardTypeWithId[];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToSecurity.id);
+            const updatedSecurity = topOrBottom === "top" ? [card, ...get().mySecurity] : [...get().mySecurity, card];
+            return {
+                ...state,
+                [cardToSendToSecurity.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToSecurity.id),
+                mySecurity: updatedSecurity
+            }
+        })
+    },
+
+    sendDeckCardToSecurity: () => {
+        set(state => {
+            const deck = state.myDeckField;
+            const security = state.mySecurity;
+            if (deck.length === 0) return state;
+            const card = deck[0];
+            const updatedDeck = deck.slice(1);
+            const updatedSecurity = [...security, card];
+            return {
+                ...state,
+                myDeckField: updatedDeck,
+                mySecurity: updatedSecurity
+            };
+        });
+    }
 }));

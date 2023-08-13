@@ -33,6 +33,8 @@ class GameServiceTest {
     private ProfileService profileService;
     @Mock
     private IdService idService;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
@@ -63,7 +65,7 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
-        gameService = new GameService(mongoUserDetailsService, profileService, idService);
+        gameService = new GameService(mongoUserDetailsService, profileService, idService, objectMapper);
         session1 = createMockSession(username1);
         session2 = createMockSession(username2);
 
@@ -76,7 +78,7 @@ class GameServiceTest {
     }
 
     @Test
-    void testStartGameMessage() throws IOException {
+    void testStartGameMessage() throws IOException, InterruptedException {
         // WHEN
         gameService.afterConnectionEstablished(session1);
         gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1_testUser2"));
@@ -102,7 +104,7 @@ class GameServiceTest {
     }
 
     @Test
-    void testSurrender() throws IOException {
+    void testSurrender() throws IOException, InterruptedException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[SURRENDER]");
         Set<WebSocketSession> gameRoom = new HashSet<>();
@@ -136,11 +138,25 @@ class GameServiceTest {
     }
 
     @Test
-    void expectReturn_whenGameRoomDoesNotExist() throws IOException {
+    void expectReturn_whenGameRoomDoesNotExist() throws IOException, InterruptedException {
         // WHEN
         gameService.handleTextMessage(session1, new TextMessage("wrongId" + ":/surrender:" + username1));
         // THEN
         verify(session1, times(0)).sendMessage(any());
     }
 
+    @Test
+    void testProcessGameChunks() throws IOException, InterruptedException {
+        // GIVEN
+        TextMessage expectedMessage = new TextMessage("[DISTRIBUTE_CARDS]:{test}");
+        TextMessage updateFromClient = new TextMessage(gameId + ":/updateGame:{test}");
+        Set<WebSocketSession> gameRoom = new HashSet<>();
+        gameRoom.add(session1);
+        gameRoom.add(session2);
+        gameService.getGameRooms().put(gameId, gameRoom);
+        // WHEN
+        gameService.handleTextMessage(session1, updateFromClient);
+        // THEN
+        verify(session2, times(1)).sendMessage(expectedMessage);
+    }
 }
