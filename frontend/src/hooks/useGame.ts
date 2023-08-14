@@ -2,11 +2,12 @@ import {create} from "zustand";
 import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
 
 type State = {
-    memory: number,
-
     myAvatar: string,
     opponentName: string,
     opponentAvatar: string,
+
+    myMemory: number,
+    myReveal: CardTypeWithId[],
 
     myHand: CardTypeWithId[],
     myDeckField: CardTypeWithId[],
@@ -22,6 +23,9 @@ type State = {
     myDigi4: CardTypeWithId[],
     myDigi5: CardTypeWithId[],
     myBreedingArea: CardTypeWithId[],
+
+    opponentMemory: number,
+    opponentReveal: CardTypeWithId[],
 
     opponentHand: CardTypeWithId[],
     opponentDeckField: CardTypeWithId[],
@@ -48,7 +52,8 @@ type State = {
     sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
-    sendDeckCardToSecurity: () => void;
+    sendDeckCardToSecurity: () => void,
+    setMemory: (memory: number) => void,
 };
 
 
@@ -58,7 +63,8 @@ export const useGame = create<State>((set, get) => ({
     opponentName: "",
     opponentAvatar: "",
 
-    memory: 0,
+    myMemory: 0,
+    myReveal: [],
 
     myHand: [],
     myDeckField: [],
@@ -74,6 +80,9 @@ export const useGame = create<State>((set, get) => ({
     myDigi4: [],
     myDigi5: [],
     myBreedingArea: [],
+
+    opponentMemory: 0,
+    opponentReveal: [],
 
     opponentHand: [],
     opponentDeckField: [],
@@ -96,7 +105,8 @@ export const useGame = create<State>((set, get) => ({
             opponentName: opponent.username,
             opponentAvatar: opponent.avatarName,
 
-            memory: 0,
+            myMemory: 0,
+            myReveal: [],
             myHand: [],
             myDeckField: [],
             myEggDeck: [],
@@ -110,6 +120,8 @@ export const useGame = create<State>((set, get) => ({
             myDigi4: [],
             myDigi5: [],
             myBreedingArea: [],
+            opponentMemory: 0,
+            opponentReveal: [],
             opponentHand: [],
             opponentDeckField: [],
             opponentEggDeck: [],
@@ -130,10 +142,10 @@ export const useGame = create<State>((set, get) => ({
 
         const player1 = gameId.split("_")[0];
 
-        set({memory: game.memory});
-
         if (user === player1) {
             set({
+                myMemory: game.player1Memory,
+                myReveal: game.player1Reveal,
                 myHand: game.player1Hand,
                 myDeckField: game.player1DeckField,
                 myEggDeck: game.player1EggDeck,
@@ -147,6 +159,8 @@ export const useGame = create<State>((set, get) => ({
                 myDigi4: game.player1Digi4,
                 myDigi5: game.player1Digi5,
                 myBreedingArea: game.player1BreedingArea,
+                opponentMemory: game.player2Memory,
+                opponentReveal: game.player2Reveal,
                 opponentHand: game.player2Hand,
                 opponentDeckField: game.player2DeckField,
                 opponentEggDeck: game.player2EggDeck,
@@ -163,6 +177,8 @@ export const useGame = create<State>((set, get) => ({
             });
         } else {
             set({
+                myMemory: game.player2Memory,
+                myReveal: game.player2Reveal,
                 myHand: game.player2Hand,
                 myDeckField: game.player2DeckField,
                 myEggDeck: game.player2EggDeck,
@@ -176,6 +192,8 @@ export const useGame = create<State>((set, get) => ({
                 myDigi4: game.player2Digi4,
                 myDigi5: game.player2Digi5,
                 myBreedingArea: game.player2BreedingArea,
+                opponentMemory: game.player1Memory,
+                opponentReveal: game.player1Reveal,
                 opponentHand: game.player1Hand,
                 opponentDeckField: game.player1DeckField,
                 opponentEggDeck: game.player1EggDeck,
@@ -195,7 +213,7 @@ export const useGame = create<State>((set, get) => ({
 
     moveCard: (cardId, from, to) => {
 
-        const opponentFields = ["opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity", "opponentTamer",
+        const opponentFields = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity", "opponentTamer",
             "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentBreedingArea"];
         for (const zone of opponentFields) {
             if (from === zone) return;
@@ -226,7 +244,8 @@ export const useGame = create<State>((set, get) => ({
 
         if (user === player1) {
             updatedGame = {
-                memory: get().memory,
+                player1Memory: get().myMemory,
+                player1Reveal: get().myReveal,
                 player1Hand: get().myHand,
                 player1DeckField: get().myDeckField,
                 player1EggDeck: get().myEggDeck,
@@ -240,6 +259,8 @@ export const useGame = create<State>((set, get) => ({
                 player1Digi4: get().myDigi4,
                 player1Digi5: get().myDigi5,
                 player1BreedingArea: get().myBreedingArea,
+                player2Memory: get().opponentMemory,
+                player2Reveal: get().opponentReveal,
                 player2Hand: get().opponentHand,
                 player2DeckField: get().opponentDeckField,
                 player2EggDeck: get().opponentEggDeck,
@@ -256,7 +277,8 @@ export const useGame = create<State>((set, get) => ({
             };
         } else {
             updatedGame = {
-                memory: get().memory,
+                player1Memory: get().opponentMemory,
+                player1Reveal: get().opponentReveal,
                 player1Hand: get().opponentHand,
                 player1DeckField: get().opponentDeckField,
                 player1EggDeck: get().opponentEggDeck,
@@ -270,6 +292,8 @@ export const useGame = create<State>((set, get) => ({
                 player1Digi4: get().opponentDigi4,
                 player1Digi5: get().opponentDigi5,
                 player1BreedingArea: get().opponentBreedingArea,
+                player2Memory: get().myMemory,
+                player2Reveal: get().myReveal,
                 player2Hand: get().myHand,
                 player2DeckField: get().myDeckField,
                 player2EggDeck: get().myEggDeck,
@@ -377,5 +401,15 @@ export const useGame = create<State>((set, get) => ({
                 mySecurity: updatedSecurity
             };
         });
+    },
+
+    setMemory: (memory: number) => {
+        set(state => {
+            return {
+                ...state,
+                myMemory: memory,
+                opponentMemory: -memory
+            }
+        })
     }
 }));

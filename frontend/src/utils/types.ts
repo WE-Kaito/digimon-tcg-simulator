@@ -62,7 +62,11 @@ export type Player = {
 }
 
 export type GameDistribution = {
-    memory: number,
+    player1Memory: number,
+    player2Memory: number,
+
+    player1Reveal: CardTypeWithId[],
+    player2Reveal: CardTypeWithId[],
 
     player1Hand: CardTypeWithId[],
     player1DeckField: CardTypeWithId[],

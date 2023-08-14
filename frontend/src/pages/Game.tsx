@@ -19,6 +19,7 @@ import SecurityMoodle from "../components/game/SecurityMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import Lottie from "lottie-react";
 import {Fade} from "react-awesome-reveal";
+import MemoryBar from "../components/game/MemoryBar.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -54,7 +55,6 @@ export default function Game({user}: { user: string }) {
     const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
 
-    //const memory = useGame((state) => state.memory);
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
     const myEggDeck = useGame((state) => state.myEggDeck);
@@ -447,7 +447,7 @@ export default function Game({user}: { user: string }) {
                         </OpponentContainerSide>
                     </div>
 
-                    <EnergyBarContainer></EnergyBarContainer>
+                    <MemoryBar sendUpdate={sendUpdate}/>
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
@@ -599,14 +599,6 @@ const OpponentContainerSide = styled.div`
   grid-template-rows: 1.5fr 1fr;
   grid-template-areas: "breed egg-deck"
                         "security-stack security-stack";
-`;
-
-const EnergyBarContainer = styled.div`
-  height: 100px;
-  width: 1005px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 `;
 
 const InfoContainer = styled.div`

@@ -78,6 +78,4 @@ class ProfileServiceTest {
         profileService.deleteDeck(exampleDeck.id());
         verify(deckRepo).deleteById(exampleDeck.id());
     }
-
-
 }

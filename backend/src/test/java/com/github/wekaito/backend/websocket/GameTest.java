@@ -9,14 +9,21 @@ class GameTest {
     void testEqualsAndHashCode() {
         GameCard[] cards = new GameCard[0];
         Game game1 = new Game(
-                10, cards, cards, cards, cards, cards, cards,
+                10, -10, cards, cards, cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards
         );
         Game game2 = new Game(
-                10, cards, cards, cards, cards, cards, cards,
+                10, -10, cards, cards, cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards,
+                cards, cards
+        );
+        Game game3 = new Game(
+                5, -5, cards, cards, cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
@@ -24,21 +31,27 @@ class GameTest {
         );
 
         assertEquals(game1, game2);
+        assertNotEquals(game1, game3);
+        assertNotEquals(null, game1);
         assertEquals(game1.hashCode(), game2.hashCode());
+        assertNotEquals(game1.hashCode(), game3.hashCode());
     }
 
     @Test
     void testToString() {
         GameCard[] cards = new GameCard[0];
         Game game = new Game(
-                123, cards, cards, cards, cards, cards, cards,
+                5, -5, cards, cards, cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards
         );
         String expectedString = "Game{" +
-                "memory='123'," +
+                "player1Memory='5'," +
+                " player2Memory='-5'," +
+                " player1Reveal='[]'," +
+                " player2Reveal='[]'," +
                 " player1Hand='[]'," +
                 " player1DeckField='[]'," +
                 " player1EggDeck='[]'," +
