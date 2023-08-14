@@ -33,7 +33,7 @@ type State = {
     setHoverCard: (card: CardTypeWithId | null) => void,
     addCardToDeck: (id: string, location: string, cardnumber: string, type: string) => void,
     deleteFromDeck: (id: string) => void,
-    saveDeck: (name: string, navigate: NavigateFunction) => void,
+    saveDeck: (name: string) => void,
     fetchDecks: () => void,
     updateDeck: (id: string, name: string) => void,
     setDeckById: (id: string | undefined) => void,
@@ -160,7 +160,10 @@ export const useStore = create<State>((set, get) => ({
             "P-008", "P-025"
         ];
 
-        if (location !== "fetchedData" || get().deckCards.length >= 50) return;
+        const eggCardLength = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
+        const filteredLength = get().deckCards.length - eggCardLength; // 50 deck-cards & max 5 eggs
+
+        if (location !== "fetchedData" || filteredLength >= 50) return;
 
         if (cardnumber === "BT5-109") return; // currently forbidden
 
@@ -182,17 +185,11 @@ export const useStore = create<State>((set, get) => ({
         set({deckCards: get().deckCards.filter((card) => card.id !== id)});
     },
 
-    saveDeck: (name, navigate) => {
-        set({isSaving: true});
-        const deckToSave = {
-            name: name,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: get().deckCards.map(({id, ...rest}) => rest),
+    saveDeck: (name) => {
+        const eggCardLength = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
+        const filteredLength = get().deckCards.length - eggCardLength;
 
-            deckStatus: "INACTIVE"
-        }
-
-        if (deckToSave.cards.length !== 50) {
+        if (filteredLength !== 50) {
             notifyLength();
             return;
         }
@@ -200,6 +197,15 @@ export const useStore = create<State>((set, get) => ({
         if (name === "") {
             notifyName();
             return;
+        }
+
+        set({isSaving: true});
+        const deckToSave = {
+            name: name,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            cards: get().deckCards.map(({id, ...rest}) => rest),
+
+            deckStatus: "INACTIVE"
         }
 
         axios
@@ -212,7 +218,7 @@ export const useStore = create<State>((set, get) => ({
             .then(() =>
                 notifySuccess() &&
                 setTimeout(function () {
-                    navigate("/deckbuilder");
+                    window.location.reload();
                     set({isSaving: false});
                 }, 3000));
     },

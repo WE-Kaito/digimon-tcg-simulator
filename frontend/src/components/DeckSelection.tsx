@@ -55,7 +55,7 @@ export default function DeckSelection() {
             </Stats>
 
             <DeckList>
-                <legend>[ {deckCards.length}/50]</legend>
+                <legend>[ {deckCards.length - eggLength}/50]</legend>
 
                 {deckCards?.length !== 0 ? deckCards.map((card: CardTypeWithId) => (
                             <Card key={card.id} card={card} location={"deck"}/>
