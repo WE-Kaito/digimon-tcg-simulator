@@ -18,7 +18,7 @@ import EggDeckMoodle from "../components/game/EggDeckMoodle.tsx";
 import SecurityMoodle from "../components/game/SecurityMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import Lottie from "lottie-react";
-import {Fade} from "react-awesome-reveal";
+import {Fade, Flip} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 
 export default function Game({user}: { user: string }) {
@@ -37,6 +37,7 @@ export default function Game({user}: { user: string }) {
     const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
     const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
     const sendDeckCardToSecurity = useGame((state) => state.sendDeckCardToSecurity);
+    const sendDeckCardToReveal = useGame((state) => state.sendDeckCardToReveal);
 
     const moveCard = useGame((state) => state.moveCard);
 
@@ -62,6 +63,7 @@ export default function Game({user}: { user: string }) {
     const mySecurity = useGame((state) => state.mySecurity);
     const myTamer = useGame((state) => state.myTamer);
     const myDelay = useGame((state) => state.myDelay);
+    const myReveal = useGame((state) => state.myReveal);
 
     const myDigi1 = useGame((state) => state.myDigi1);
     const myDigi2 = useGame((state) => state.myDigi2);
@@ -77,6 +79,7 @@ export default function Game({user}: { user: string }) {
     const opponentSecurity = useGame((state) => state.opponentSecurity);
     const opponentTamer = useGame((state) => state.opponentTamer);
     const opponentDelay = useGame((state) => state.opponentDelay);
+    const opponentReveal = useGame((state) => state.opponentReveal);
 
     const opponentDigi1 = useGame((state) => state.opponentDigi1);
     const opponentDigi2 = useGame((state) => state.opponentDigi2);
@@ -328,6 +331,13 @@ export default function Game({user}: { user: string }) {
                                  handleSurrender={handleSurrender}/>}
 
             <Wrapper>
+                {myReveal.length > 0 && <RevealContainer>
+                    {myReveal?.map((card) => <Flip><Card key={card.id} card={card} location="myReveal"/></Flip>)}
+                </RevealContainer>}
+                {opponentReveal.length > 0 && <RevealContainer>
+                    {opponentReveal?.map((card) => <Flip><Card key={card.id} card={card} location="opponentReveal"/></Flip>)}
+                </RevealContainer>}
+
                 <InfoContainer>
                     <InfoSpan>
                         <a href="https://world.digimoncard.com/rule/pdf/manual.pdf?070723" target="_blank"
@@ -498,8 +508,12 @@ export default function Game({user}: { user: string }) {
                                     drawCardFromDeck();
                                     sendUpdate();
                                 }}/>
-                                <button style={{position:"absolute", left:-62, zIndex:10, padding:0, width:"55px", height:"30px"}}
+                                <button style={{position:"absolute", left:-115, zIndex:10, padding:0, width:"55px", height:"30px"}}
                                     onClick={() => {sendDeckCardToSecurity(); sendUpdate();}}>⛊️+1</button>
+                                <button style={{position:"absolute", left:-52, zIndex:10, padding:0, width:"55px", height:"30px"}}
+                                        onClick={() => {sendDeckCardToReveal(); sendUpdate();}}
+                                        disabled={opponentReveal.length > 0}
+                                ><span style={{filter: "saturation(0)"}}>👁️</span>+1</button>
                             </DeckContainer>
 
                             <TrashContainer ref={dropToTrash}>
@@ -617,6 +631,7 @@ const FieldContainer = styled.div`
 `;
 
 const Wrapper = styled.div`
+  position: relative;
   height: 1000px;
   width: 1600px;
   display: flex;
@@ -961,6 +976,20 @@ const TrashPlaceholder = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const RevealContainer = styled.div`
+  position: absolute;
+  width: 600px;
+  height: 130px;
+  left: 660px;
+  top: 435px;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap:5px;
+  transform: scale(2);
 `;
 
 const BackGround = styled.div`

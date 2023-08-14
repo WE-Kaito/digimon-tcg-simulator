@@ -53,6 +53,7 @@ type State = {
     sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
     sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
     sendDeckCardToSecurity: () => void,
+    sendDeckCardToReveal: () => void,
     setMemory: (memory: number) => void,
 };
 
@@ -399,6 +400,22 @@ export const useGame = create<State>((set, get) => ({
                 ...state,
                 myDeckField: updatedDeck,
                 mySecurity: updatedSecurity
+            };
+        });
+    },
+
+    sendDeckCardToReveal: () => {
+        set(state => {
+            const deck = state.myDeckField;
+            const reveal = state.myReveal;
+            if (deck.length === 0) return state;
+            const card = deck[0];
+            const updatedDeck = deck.slice(1);
+            const updatedReveal = [...reveal, card];
+            return {
+                ...state,
+                myDeckField: updatedDeck,
+                myReveal: updatedReveal
             };
         });
     },
