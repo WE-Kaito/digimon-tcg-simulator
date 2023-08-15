@@ -500,7 +500,7 @@ export default function Game({user}: { user: string }) {
                                     if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                     sendUpdate();
                                 }}>{mySecurity.length}</MySecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px", cursor:"default"}}/>
+                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px"}}/>
                                 {!securityContentMoodle ?
                                     <SendButton style={{left: 20, top: 20, background: "none"}}
                                                 onClick={() => setSecurityContentMoodle(true)}>🔎</SendButton>
@@ -785,7 +785,6 @@ const EggDeckContainer = styled.div`
 `;
 
 const SecurityStackContainer = styled.div`
-  cursor: pointer;
   position: relative;
   grid-area: security-stack;
   display: flex;
@@ -804,6 +803,7 @@ const SecuritySpan = styled.span`
 `;
 
 const MySecuritySpan = styled(SecuritySpan)`
+  cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
 
@@ -811,7 +811,7 @@ const MySecuritySpan = styled(SecuritySpan)`
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
     font-size: 42px;
     color: #f9f9f9;
-    transform: translateX(-1px);
+    transform: translate(-2px, -1px);
   }
 `;
 
