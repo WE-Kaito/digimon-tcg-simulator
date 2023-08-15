@@ -14,8 +14,6 @@ import cardBack from "../assets/cardBack.jpg";
 import CardDetails from "../components/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
-import EggDeckMoodle from "../components/game/EggDeckMoodle.tsx";
-import SecurityMoodle from "../components/game/SecurityMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import Lottie from "lottie-react";
 import {Fade, Flip} from "react-awesome-reveal";
@@ -36,8 +34,6 @@ export default function Game({user}: { user: string }) {
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
     const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
     const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
-    const sendDeckCardToSecurity = useGame((state) => state.sendDeckCardToSecurity);
-    const sendDeckCardToReveal = useGame((state) => state.sendDeckCardToReveal);
 
     const moveCard = useGame((state) => state.moveCard);
 
@@ -332,10 +328,10 @@ export default function Game({user}: { user: string }) {
 
             <Wrapper>
                 {myReveal.length > 0 && <RevealContainer>
-                    {myReveal?.map((card) => <Flip><Card key={card.id} card={card} location="myReveal"/></Flip>)}
+                    {myReveal?.map((card) => <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
                 {opponentReveal.length > 0 && <RevealContainer>
-                    {opponentReveal?.map((card) => <Flip><Card key={card.id} card={card} location="opponentReveal"/></Flip>)}
+                    {opponentReveal?.map((card) => <Flip key={card.id}><Card card={card} location="opponentReveal"/></Flip>)}
                 </RevealContainer>}
 
                 <InfoContainer>
@@ -463,7 +459,7 @@ export default function Game({user}: { user: string }) {
                         <MyContainerSide>
                             <EggDeckContainer ref={dropToEggDeck}>
                                 {eggDeckMoodle &&
-                                    <EggDeckMoodle sendUpdate={sendUpdate} cardToSendToEggDeck={cardToSend}/>}
+                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}/>}
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
@@ -479,7 +475,7 @@ export default function Game({user}: { user: string }) {
 
                             <SecurityStackContainer ref={dropToSecurity}>
                                 {securityMoodle &&
-                                    <SecurityMoodle sendUpdate={sendUpdate} cardToSendToSecurity={cardToSend}/>}
+                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}/>}
                                 <MySecuritySpan>{mySecurity.length}</MySecuritySpan>
                                 <Lottie animationData={mySecurityAnimation} loop={true}
                                         style={{width: "160px"}}/>
@@ -502,16 +498,16 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <DeckContainer>
-                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} cardToSendToDeck={cardToSend}/>}
+                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
                                     drawCardFromDeck();
                                     sendUpdate();
                                 }}/>
                                 <button style={{position:"absolute", left:-115, zIndex:10, padding:0, width:"55px", height:"30px"}}
-                                    onClick={() => {sendDeckCardToSecurity(); sendUpdate();}}>⛊️+1</button>
+                                    onClick={() => {moveCard(myDeckField[0].id,"myDeckField", "mySecurity"); sendUpdate();}}>⛊️+1</button>
                                 <button style={{position:"absolute", left:-52, zIndex:10, padding:0, width:"55px", height:"30px"}}
-                                        onClick={() => {sendDeckCardToReveal(); sendUpdate();}}
+                                        onClick={() => {moveCard(myDeckField[0].id,"myDeckField", "myReveal"); sendUpdate();}}
                                         disabled={opponentReveal.length > 0}
                                 ><span style={{filter: "saturation(0)"}}>👁️</span>+1</button>
                             </DeckContainer>

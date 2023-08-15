@@ -2,33 +2,34 @@ import styled from "@emotion/styled";
 import {useGame} from "../../hooks/useGame.ts";
 
 type DeckMoodleProps = {
-    cardToSendToDeck: {id: string, location:string},
-    sendUpdate: () => void
+    cardToSend: {id: string, location:string},
+    sendUpdate: () => void,
+    to: string
 }
 
-export default function DeckMoodle({cardToSendToDeck, sendUpdate} : DeckMoodleProps) {
+export default function DeckMoodle({cardToSend, sendUpdate, to} : DeckMoodleProps) {
 
     const sendCardToDeck = useGame((state) => state.sendCardToDeck);
 
     const handleClick = (topOrBottom: "top" | "bottom") => {
-        sendCardToDeck(topOrBottom, cardToSendToDeck);
+        sendCardToDeck(topOrBottom, cardToSend, to);
         sendUpdate();
     }
 
     return (
-        <Container>
+        <Container to={to}>
             <StyledButton onClick={() => handleClick("top")}><StyledSpan>»</StyledSpan></StyledButton>
             <StyledButton onClick={() => handleClick("bottom")}><StyledSpan2>»</StyledSpan2></StyledButton>
         </Container>
     );
 }
 
-export const Container = styled.div`
+export const Container = styled.div<{to: string}>`
   width: 100px;
   height: 50px;
   position: absolute;
-  top: 35px;
-  left:11px;
+  top: ${props => getTop(props.to)};
+  left: ${props => getLeft(props.to)};
   background: none;
   display: flex;
   overflow: hidden;
@@ -40,8 +41,6 @@ export const StyledButton = styled.button`
   background: none;
   border:none;
 `;
-
-
 
 export const StyledSpan = styled.span`
   font-size: 80px;
@@ -56,3 +55,26 @@ export const StyledSpan = styled.span`
 export const StyledSpan2 = styled(StyledSpan)`
   transform: translate(-2px, -50px) rotate(90deg);
 `;
+
+
+function getTop(to: string) {
+    switch (to) {
+        case "myDeckField":
+            return "35px";
+        case "myEggDeck":
+            return "-12px";
+        case "mySecurity":
+            return "-18px";
+    }
+}
+
+function getLeft(to: string) {
+    switch (to) {
+        case "myDeckField":
+            return "11px";
+        case "myEggDeck":
+            return "24px";
+        case "mySecurity":
+            return "90px";
+    }
+}

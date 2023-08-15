@@ -49,11 +49,7 @@ type State = {
     drawCardFromDeck: () => void,
     drawCardFromEggDeck: () => void,
 
-    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
-    sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
-    sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
-    sendDeckCardToSecurity: () => void,
-    sendDeckCardToReveal: () => void,
+    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: {id: string, location: string}, to: string) => void,
     setMemory: (memory: number) => void,
 };
 
@@ -330,7 +326,6 @@ export const useGame = create<State>((set, get) => ({
     },
 
     drawCardFromEggDeck: () => {
-
         set(state => {
             if (state.myBreedingArea.length !== 0) return state;
             const eggDeck = state.myEggDeck;
@@ -346,78 +341,18 @@ export const useGame = create<State>((set, get) => ({
         });
     },
 
-    sendCardToDeck: (topOrBottom, cardToSendToDeck) => {
-        // @ts-ignore
+    sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
         set(state => {
             const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
-            const updatedDeck = topOrBottom === "top" ? [card, ...get().myDeckField] : [...get().myDeckField, card];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id)
+            const toDeck = state[to as keyof State] as CardTypeWithId[];
+            const updatedDeck = topOrBottom === "top" ? [card, ...toDeck] : [...toDeck, card];
             return {
                 ...state,
                 [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
-                myDeckField: updatedDeck
+                [to]: updatedDeck
             }
         })
-    },
-
-    sendCardToEggDeck: (topOrBottom, cardToSendToDeck) => {
-        // @ts-ignore
-        set(state => {
-            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
-            const updatedDeck = topOrBottom === "top" ? [card, ...get().myEggDeck] : [...get().myEggDeck, card];
-            return {
-                ...state,
-                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
-                myEggDeck: updatedDeck
-            }
-        })
-    },
-
-    sendCardToSecurity: (topOrBottom, cardToSendToSecurity) => {
-         // @ts-ignore
-        set(state => {
-            const locationCards = state[cardToSendToSecurity.location as keyof State] as CardTypeWithId[];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToSecurity.id);
-            const updatedSecurity = topOrBottom === "top" ? [card, ...get().mySecurity] : [...get().mySecurity, card];
-            return {
-                ...state,
-                [cardToSendToSecurity.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToSecurity.id),
-                mySecurity: updatedSecurity
-            }
-        })
-    },
-
-    sendDeckCardToSecurity: () => {
-        set(state => {
-            const deck = state.myDeckField;
-            const security = state.mySecurity;
-            if (deck.length === 0) return state;
-            const card = deck[0];
-            const updatedDeck = deck.slice(1);
-            const updatedSecurity = [...security, card];
-            return {
-                ...state,
-                myDeckField: updatedDeck,
-                mySecurity: updatedSecurity
-            };
-        });
-    },
-
-    sendDeckCardToReveal: () => {
-        set(state => {
-            const deck = state.myDeckField;
-            const reveal = state.myReveal;
-            if (deck.length === 0) return state;
-            const card = deck[0];
-            const updatedDeck = deck.slice(1);
-            const updatedReveal = [...reveal, card];
-            return {
-                ...state,
-                myDeckField: updatedDeck,
-                myReveal: updatedReveal
-            };
-        });
     },
 
     setMemory: (memory: number) => {
