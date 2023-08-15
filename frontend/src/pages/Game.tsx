@@ -15,6 +15,7 @@ import CardDetails from "../components/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
+import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import Lottie from "lottie-react";
 import {Fade, Flip} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
@@ -457,7 +458,7 @@ export default function Game({user}: { user: string }) {
 
                             <SecurityStackContainer>
                                 <SecuritySpan>{opponentSecurity.length}</SecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true}
+                                <Lottie animationData={opponentSecurityAnimation} loop={true}
                                         style={{width: "160px"}}/>
                             </SecurityStackContainer>
 
