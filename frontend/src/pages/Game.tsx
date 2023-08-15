@@ -396,7 +396,8 @@ export default function Game({user}: { user: string }) {
                                     : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].image_url} alt={"opponentTrash"}
                                                       onClick={() => {
                                                           setOpponentTrashMoodle(!opponentTrashMoodle);
-                                                          setTrashMoodle(false);}}/>}
+                                                          setTrashMoodle(false);}}
+                                                      title="Open opponents trash"/>}
                             </OpponentTrashContainer>
 
                             <BattleArea5>
@@ -509,10 +510,12 @@ export default function Game({user}: { user: string }) {
                                 }}>{mySecurity.length}</MySecuritySpan>
                                 <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px"}}/>
                                 {!securityContentMoodle ?
-                                    <SendButton style={{left: 20, top: 20, background: "none"}}
+                                    <SendButton title="Open Security Stack"
+                                                style={{left: 20, top: 20, background: "none"}}
                                                 onClick={() => setSecurityContentMoodle(true)}>🔎</SendButton>
                                     :
-                                    <SendButton style={{left: 20, top: 20, background: "none"}}
+                                    <SendButton title="Close and shuffle Security Stack"
+                                                style={{left: 20, top: 20, background: "none"}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(false);
                                                     shuffleSecurity();
@@ -533,7 +536,8 @@ export default function Game({user}: { user: string }) {
                             <PlayerContainer>
                                 <UserName>{user}</UserName>
                                 <PlayerImage alt="me" src={profilePicture(myAvatar)}
-                                             onClick={() => setSurrenderOpen(!surrenderOpen)}/>
+                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
+                                             title="Surrender"/>
                             </PlayerContainer>
 
                             <DeckContainer>
@@ -544,12 +548,12 @@ export default function Game({user}: { user: string }) {
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
                                     drawCardFromDeck();
                                     sendUpdate();
-                                }}/>
-                                <SendButton style={{left: -115}} onClick={() => {
+                                }} />
+                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}} onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
                                     sendUpdate();
                                 }}>⛊️+1</SendButton>
-                                <SendButton onClick={() => {
+                                <SendButton title="Reveal the top card of your deck" onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myReveal");
                                     sendUpdate();
                                 }}
@@ -561,7 +565,8 @@ export default function Game({user}: { user: string }) {
                                     : <TrashCardImage src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
-                                                          setOpponentTrashMoodle(false);}}/>}
+                                                          setOpponentTrashMoodle(false);}}
+                                                      title="Open your trash"/>}
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
                             </TrashContainer>
 
@@ -691,7 +696,7 @@ const Wrapper = styled.div`
   }
 
   @media (min-height: 1200px) {
-    transform: scale(1.5);
+    transform: scale(1.2);
   }
 `;
 
@@ -905,6 +910,7 @@ const SendButton = styled.button`
   height: 30px;
   z-index: 10;
   padding: 0;
+  border-radius: 5px;
 `;
 
 const BattleArea1 = styled(BattleAreaContainer)`
@@ -1028,6 +1034,7 @@ const TrashPlaceholder = styled.div`
   justify-content: center;
   align-items: center;
   color:  rgba(220, 220, 220, 0.8);
+  font-family: Naston, sans-serif;
 `;
 
 const TrashCardImage = styled.img`
