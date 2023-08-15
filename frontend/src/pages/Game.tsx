@@ -112,8 +112,8 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-                setOpponentLeft(true);
-                startTimer();
+                //setOpponentLeft(true);
+                //startTimer();
             }
         }
     });
@@ -306,6 +306,12 @@ export default function Game({user}: { user: string }) {
         setDeckMoodle(false);
         setEggDeckMoodle(false);
         setSetSecurityMoodle(false);
+        if (opponentTrash.length === 0) {
+            setOpponentTrashMoodle(false);
+        }
+        if (myTrash.length === 0) {
+            setTrashMoodle(false);
+        }
     }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5]);
 
     function handleSurrender() {
@@ -386,13 +392,11 @@ export default function Game({user}: { user: string }) {
 
                             <OpponentTrashContainer>
                                 <TrashSpan style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
-                                <OpponentOpenTrashButton opponentTrashMoodle={opponentTrashMoodle} onClick={() => {
-                                    setOpponentTrashMoodle(!opponentTrashMoodle);
-                                    setTrashMoodle(false);
-                                }}>
-                                    {opponentTrashMoodle ? "Close" : "Show"}</OpponentOpenTrashButton>
                                 {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
-                                    : <Card card={opponentTrash[opponentTrash.length - 1]} location={"opponentTrash"}/>}
+                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].image_url} alt={"opponentTrash"}
+                                                      onClick={() => {
+                                                          setOpponentTrashMoodle(!opponentTrashMoodle);
+                                                          setTrashMoodle(false);}}/>}
                             </OpponentTrashContainer>
 
                             <BattleArea5>
@@ -406,7 +410,7 @@ export default function Game({user}: { user: string }) {
                                                                    location={"opponentDigi4"}/></Fade></CardContainer>)}
                             </BattleArea4>
                             <BattleArea3>
-                                {opponentDigi3.length === 0 && <span>Battle Area</span>}
+                                {opponentDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
                                                                    location={"opponentDigi3"}/></Fade></CardContainer>)}
@@ -422,15 +426,15 @@ export default function Game({user}: { user: string }) {
                                                                    location={"opponentDigi1"}/></Fade></CardContainer>)}
                             </BattleArea1>
 
-                            <DelayAreaContainer style={{marginTop: "1px"}}>
-                                {opponentDelay.length === 0 && <span>Delay</span>}
+                            <DelayAreaContainer style={{marginTop: "1px", height:"205px"}}>
+                                {opponentDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
                                 {opponentDelay.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
                                                                    location={"opponentDelay"}/></Fade></CardContainer>)}
                             </DelayAreaContainer>
 
-                            <TamerAreaContainer>
-                                {opponentTamer.length === 0 && <span>Tamers</span>}
+                            <TamerAreaContainer style={{height:"205px"}}>
+                                {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                                 {opponentTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
                                     <Fade direction={"left"}><Card card={card}
                                                                    location={"opponentTamer"}/></Fade></TamerCardContainer>)}
@@ -468,7 +472,7 @@ export default function Game({user}: { user: string }) {
                                 {opponentBreedingArea.map((card, index) =>
                                     <CardContainer key={card.id} cardIndex={index}><Fade direction={"down"}><Card
                                         card={card} location={"opponentBreedingArea"}/></Fade></CardContainer>)}
-                                {opponentBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
+                                {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
 
                         </OpponentContainerSide>
@@ -520,7 +524,7 @@ export default function Game({user}: { user: string }) {
                                 {myBreedingArea.map((card, index) =>
                                     <CardContainer key={card.id} cardIndex={index}>
                                         <Card card={card} location={"myBreedingArea"}/></CardContainer>)}
-                                {myBreedingArea.length === 0 && <span>Breeding<br/>Area</span>}
+                                {myBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
                         </MyContainerSide>
 
@@ -554,13 +558,11 @@ export default function Game({user}: { user: string }) {
 
                             <TrashContainer ref={dropToTrash}>
                                 {myTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
-                                    : <Card card={myTrash[myTrash.length - 1]} location={"myTrash"}/>}
+                                    : <TrashCardImage src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
+                                                      onClick={() => {
+                                                          setTrashMoodle(!trashMoodle);
+                                                          setOpponentTrashMoodle(false);}}/>}
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
-                                <OpenTrashButton trashMoodle={trashMoodle} onClick={() => {
-                                    setTrashMoodle(!trashMoodle);
-                                    setOpponentTrashMoodle(false);
-                                }}>
-                                    {trashMoodle ? "Close" : "Show"}</OpenTrashButton>
                             </TrashContainer>
 
                             <BattleArea1 ref={dropToDigi1}>
@@ -572,7 +574,7 @@ export default function Game({user}: { user: string }) {
                                     <Card card={card} location={"myDigi2"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
                             <BattleArea3 ref={dropToDigi3}>
-                                {myDigi3.length === 0 && <span>Battle Area</span>}
+                                {myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {myDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi3"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
@@ -585,16 +587,16 @@ export default function Game({user}: { user: string }) {
                                     <Card card={card} location={"myDigi5"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea5>
 
-                            <DelayAreaContainer ref={dropToDelay} style={{marginBottom: "1px"}}>
+                            <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
                                 {myDelay.map((card, index) => <DelayCardContainer key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDelay"}/></DelayCardContainer>)}
-                                {myDelay.length === 0 && <span>Delay</span>}
+                                {myDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer ref={dropToTamer}>
                                 {myTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myTamer"}/></TamerCardContainer>)}
-                                {myTamer.length === 0 && <span>Tamers</span>}
+                                {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                             </TamerAreaContainer>
 
                             <HandContainer ref={dropToHand}>
@@ -842,7 +844,7 @@ const BattleAreaContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  outline: rgba(255, 255, 255, 0.5) solid 1px;
+  outline: rgba(119, 145, 197, 0.6) solid 1px;
 `;
 
 const TrashView = styled.div`
@@ -888,37 +890,6 @@ const SecurityView = styled.div`
   left: 57%;
   top: 62%;
   transform: translate(-50%, -50%);
-`;
-
-const OpenTrashButton = styled.button<{ trashMoodle: boolean }>`
-  padding: 0;
-  position: absolute;
-  top: 12px;
-  border-radius: 0px;
-  border: 1px solid #0c0c0c;
-  right: -60px;
-  width: 60px;
-  height: 25px;
-  font-family: 'montelgo-sans-serif', sans-serif;
-  text-shadow: #2c2c2c 0px 0px 1px;
-  color: ${props => props.trashMoodle ? 'white' : 'black'};
-  background: ${props => props.trashMoodle ? 'linear-gradient(to top, crimson, tomato)' : 'linear-gradient(to top, #b7b6b6, #e5e2e2)'};
-`;
-
-const OpponentOpenTrashButton = styled.button<{ opponentTrashMoodle: boolean }>`
-  top: 208px;
-  left: -60px;
-  padding: 0;
-  position: absolute;
-  border-radius: 0px;
-  border: 1px solid #0c0c0c;
-  right: -60px;
-  width: 60px;
-  height: 25px;
-  font-family: 'montelgo-sans-serif', sans-serif;
-  text-shadow: #2c2c2c 0px 0px 1px;
-  color: ${props => props.opponentTrashMoodle ? 'white' : 'black'};
-  background: ${props => props.opponentTrashMoodle ? 'linear-gradient(to top, crimson, tomato)' : 'linear-gradient(to top, #b7b6b6, #e5e2e2)'};
 `;
 
 const TrashSpan = styled.span`
@@ -1042,6 +1013,11 @@ const InfoSpan = styled.span`
   }
 `;
 
+const FieldSpan = styled.span`
+  color: rgba(119, 145, 197, 0.8);
+  font-family: Naston, sans-serif;
+`;
+
 const TrashPlaceholder = styled.div`
   width: 105px;
   height: 146px;
@@ -1051,6 +1027,19 @@ const TrashPlaceholder = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  color:  rgba(220, 220, 220, 0.8);
+`;
+
+const TrashCardImage = styled.img`
+  width: 105px;
+  border-radius: 5px;
+  cursor: pointer;
+  filter: drop-shadow(1px 1px 2px #060e18);
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    filter: drop-shadow(0px 0px 3px #af0c3d) brightness(1.1) saturate(1.2);
+  }
 `;
 
 const RevealContainer = styled.div`

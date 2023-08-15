@@ -31,9 +31,9 @@ export default function Card({card, location, sendUpdate}: CardProps) {
     function handleClick() {
         if (location === "deck") {
             deleteFromDeck(card.id);
-        } else if (tiltable) {
-            (selectedCard === card) ? tiltCard(card.id, location) : selectCard(card);
-            if (sendUpdate) sendUpdate();
+        } else {
+            (tiltable && selectedCard === card) ? tiltCard(card.id, location) : selectCard(card);
+            if (tiltable && sendUpdate) sendUpdate();
         }
     }
 

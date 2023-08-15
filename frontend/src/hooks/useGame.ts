@@ -217,7 +217,20 @@ export const useGame = create<State>((set, get) => ({
         for (const zone of opponentFields) {
             if (from === zone) return;
         }
-        if (from === to) return;
+        if (from === to) {
+            if (from === "myHand" && to === "myHand") {
+                set(state => {
+                    const fromState = state[from as keyof State] as CardTypeGame[];
+                    const card = fromState.find(card => card.id === cardId);
+                    if (!card) return state;
+                    const updatedFromState = fromState.filter(card => card.id !== cardId);
+                    return {
+                        [from]: [...updatedFromState, card]
+                    };
+                });
+            }
+            return;
+        }
 
         set(state => {
             const fromState = state[from as keyof State] as CardTypeGame[];
