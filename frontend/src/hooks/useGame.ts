@@ -49,8 +49,9 @@ type State = {
     drawCardFromDeck: () => void,
     drawCardFromEggDeck: () => void,
 
-    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: {id: string, location: string}, to: string) => void,
+    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
+    shuffleSecurity: () => void,
 };
 
 
@@ -227,7 +228,6 @@ export const useGame = create<State>((set, get) => ({
             const updatedToState = [...toState, card];
 
             return {
-                ...state,
                 [from]: updatedFromState,
                 [to]: updatedToState
             };
@@ -318,7 +318,6 @@ export const useGame = create<State>((set, get) => ({
             const updatedDeck = deck.slice(1);
             const updatedHand = [...hand, card];
             return {
-                ...state,
                 myDeckField: updatedDeck,
                 myHand: updatedHand
             };
@@ -334,7 +333,6 @@ export const useGame = create<State>((set, get) => ({
             const updatedDeck = eggDeck.slice(1);
             const updatedBreedingArea = [card];
             return {
-                ...state,
                 myEggDeck: updatedDeck,
                 myBreedingArea: updatedBreedingArea
             };
@@ -348,7 +346,6 @@ export const useGame = create<State>((set, get) => ({
             const toDeck = state[to as keyof State] as CardTypeWithId[];
             const updatedDeck = topOrBottom === "top" ? [card, ...toDeck] : [...toDeck, card];
             return {
-                ...state,
                 [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
                 [to]: updatedDeck
             }
@@ -356,11 +353,21 @@ export const useGame = create<State>((set, get) => ({
     },
 
     setMemory: (memory: number) => {
+        set({
+            myMemory: memory,
+            opponentMemory: -memory
+        })
+    },
+
+    shuffleSecurity: () => {
         set(state => {
+            const security = state.mySecurity;
+            for (let i = security.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [security[i], security[j]] = [security[j], security[i]];
+            }
             return {
-                ...state,
-                myMemory: memory,
-                opponentMemory: -memory
+                mySecurity: security
             }
         })
     }

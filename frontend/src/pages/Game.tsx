@@ -34,6 +34,7 @@ export default function Game({user}: { user: string }) {
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
     const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
     const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
+    const shuffleSecurity = useGame((state) => state.shuffleSecurity);
 
     const moveCard = useGame((state) => state.moveCard);
 
@@ -455,7 +456,7 @@ export default function Game({user}: { user: string }) {
                             </EggDeckContainer>
 
                             <SecurityStackContainer>
-                                <OpponentSecuritySpan>{opponentSecurity.length}</OpponentSecuritySpan>
+                                <SecuritySpan>{opponentSecurity.length}</SecuritySpan>
                                 <Lottie animationData={mySecurityAnimation} loop={true}
                                         style={{width: "160px"}}/>
                             </SecurityStackContainer>
@@ -495,20 +496,21 @@ export default function Game({user}: { user: string }) {
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityContentMoodle}/>}
-                                <MySecuritySpan>{mySecurity.length}</MySecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px"}}
-                                        onClick={() => {
-                                            if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                            sendUpdate();
-                                        }}/>
+                                <MySecuritySpan onClick={() => {
+                                    if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+                                    sendUpdate();
+                                }}>{mySecurity.length}</MySecuritySpan>
+                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px", cursor:"default"}}/>
                                 {!securityContentMoodle ?
                                     <SendButton style={{left: 20, top: 20, background: "none"}}
                                                 onClick={() => setSecurityContentMoodle(true)}>🔎</SendButton>
                                     :
                                     <SendButton style={{left: 20, top: 20, background: "none"}}
-                                                onClick={() => setSecurityContentMoodle(false)}
-
-                                    >🔄</SendButton>}
+                                                onClick={() => {
+                                                    setSecurityContentMoodle(false);
+                                                    shuffleSecurity();
+                                                    sendUpdate();
+                                    }}>🔄</SendButton>}
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
@@ -791,18 +793,26 @@ const SecurityStackContainer = styled.div`
   align-items: center;
 `;
 
-const MySecuritySpan = styled.span`
+const SecuritySpan = styled.span`
   position: absolute;
   z-index: 5;
   font-family: Awsumsans, sans-serif;
   font-size: 35px;
-  color: #5ba2cb;
+  color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
   left: 133px;
 `;
 
-const OpponentSecuritySpan = styled(MySecuritySpan)`
-  color: #cb6377;
+const MySecuritySpan = styled(SecuritySpan)`
+  color: #5ba2cb;
+  transition: all 0.15s ease;
+
+  &:hover {
+    filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
+    font-size: 42px;
+    color: #f9f9f9;
+    transform: translateX(-1px);
+  }
 `;
 
 const CardContainer = styled.div<{ cardIndex: number }>`
