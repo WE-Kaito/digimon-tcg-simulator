@@ -1,5 +1,5 @@
 import {create} from "zustand";
-import {CardType, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts";
+import {CardType, CardTypeGame, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts";
 import axios from "axios";
 import {uid} from "uid";
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,7 +17,7 @@ import {NavigateFunction} from "react-router-dom";
 type State = {
     fetchedCards: CardTypeWithId[],
     isLoading: boolean,
-    selectedCard: CardTypeWithId | null,
+    selectedCard: CardTypeWithId | CardTypeGame | null,
     deckCards: CardTypeWithId[],
     decks: DeckType[],
     nameOfDeckToEdit: string,
@@ -28,7 +28,7 @@ type State = {
     gameId: string,
 
     fetchCards: FetchCards,
-    selectCard: (card: CardTypeWithId) => void,
+    selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
     hoverCard: CardTypeWithId | null,
     setHoverCard: (card: CardTypeWithId | null) => void,
     addCardToDeck: (id: string, location: string, cardnumber: string, type: string) => void,
@@ -130,7 +130,7 @@ export const useStore = create<State>((set, get) => ({
 
                 filteredData = filteredData.map((card: CardType) => ({
                     ...card,
-                    id: uid(),
+                    id: uid()
                 }));
 
                 set({fetchedCards: filteredData});
@@ -140,7 +140,7 @@ export const useStore = create<State>((set, get) => ({
 
     },
 
-    selectCard: (card: CardTypeWithId) => {
+    selectCard: (card) => {
         set({selectedCard: card});
         console.log(card);
     },

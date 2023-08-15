@@ -27,6 +27,7 @@ export default function Game({user}: { user: string }) {
     const navigate = useNavigate();
 
     const selectedCard = useStore((state) => state.selectedCard);
+    const selectCard = useStore((state) => state.selectCard);
     const hoverCard = useStore((state) => state.hoverCard);
 
     const gameId = useStore((state) => state.gameId);
@@ -349,7 +350,8 @@ export default function Game({user}: { user: string }) {
                             <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                         </a>
                     </InfoSpan>
-                    <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
+                    <CardImage onClick={() => selectCard(null)}
+                               src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
                                alt={selectedCard?.name ?? "Card"}/>
                     <CardDetails/>
                 </InfoContainer>
@@ -511,7 +513,7 @@ export default function Game({user}: { user: string }) {
                                                     setSecurityContentMoodle(false);
                                                     shuffleSecurity();
                                                     sendUpdate();
-                                    }}>🔄</SendButton>}
+                                                }}>🔄</SendButton>}
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
@@ -563,24 +565,24 @@ export default function Game({user}: { user: string }) {
 
                             <BattleArea1 ref={dropToDigi1}>
                                 {myDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi1"}/></CardContainer>)}
+                                    <Card card={card} location={"myDigi1"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea1>
                             <BattleArea2 ref={dropToDigi2}>
                                 {myDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi2"}/></CardContainer>)}
+                                    <Card card={card} location={"myDigi2"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
                             <BattleArea3 ref={dropToDigi3}>
                                 {myDigi3.length === 0 && <span>Battle Area</span>}
                                 {myDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi3"}/></CardContainer>)}
+                                    <Card card={card} location={"myDigi3"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
                             <BattleArea4 ref={dropToDigi4}>
                                 {myDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi4"}/></CardContainer>)}
+                                    <Card card={card} location={"myDigi4"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea4>
                             <BattleArea5 ref={dropToDigi5}>
                                 {myDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi5"}/></CardContainer>)}
+                                    <Card card={card} location={"myDigi5"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea5>
 
                             <DelayAreaContainer ref={dropToDelay} style={{marginBottom: "1px"}}>

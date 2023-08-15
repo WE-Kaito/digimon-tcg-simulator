@@ -1,38 +1,60 @@
-import { CardTypeWithId } from "../utils/types.ts";
+import {CardTypeGame, CardTypeWithId} from "../utils/types.ts";
 import styled from '@emotion/styled';
-import { useStore } from "../hooks/useStore.ts";
-import { useDrag } from "react-dnd";
+import {useStore} from "../hooks/useStore.ts";
+import {useDrag} from "react-dnd";
+import {useGame} from "../hooks/useGame.ts";
 
-export default function Card({ card, location }: { card: CardTypeWithId, location: string }) {
+type CardProps = {
+    card: CardTypeWithId | CardTypeGame ,
+    location: string,
+    sendUpdate?: () => void
+}
+
+export default function Card({card, location, sendUpdate}: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
+    const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
     const deleteFromDeck = useStore((state) => state.deleteFromDeck);
+    const tiltCard = useGame((state) => state.tiltCard);
 
-    const [{ isDragging }, drag] = useDrag(() => ({
+    const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
-        item: { id: card.id, location: location, cardnumber: card.cardnumber, type: card.type },
+        item: {id: card.id, location: location, cardnumber: card.cardnumber, type: card.type},
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
     }));
 
+    const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5"];
+    const tiltable = tiltLocations.includes(location);
+
+    function handleClick() {
+        if (location === "deck") {
+            deleteFromDeck(card.id);
+        } else if (tiltable) {
+            (selectedCard === card) ? tiltCard(card.id, location) : selectCard(card);
+            if (sendUpdate) sendUpdate();
+        }
+    }
+
     return (
         <StyledImage
             ref={drag}
-            onClick={() => location === "deck" ? deleteFromDeck(card.id) : selectCard(card)}
+            onClick={handleClick}
             onMouseEnter={() => setHoverCard(card)}
             onMouseLeave={() => setHoverCard(null)}
             alt={card.name + " " + card.cardnumber}
             src={card.image_url}
             isDragging={isDragging}
             location={location}
-        />
-    );
+            isTilted={(card as CardTypeGame)?.isTilted ?? false}
+        />)
 }
 
 type StyledImageProps = {
     isDragging: boolean,
     location: string
+    isTilted: boolean
 }
 
 const StyledImage = styled.img<StyledImageProps>`
@@ -40,13 +62,24 @@ const StyledImage = styled.img<StyledImageProps>`
   max-height: 150px;
   border-radius: 5px;
   transition: all 0.15s ease-out;
-  cursor: ${(props) => (props.location === "deck" ? "not-allowed" : "grab")};
-  opacity: ${(props) => (props.isDragging ? 0.5 : 1)};
-  filter: ${(props) => (props.isDragging ? "drop-shadow(0 0 3px #ff2190)" : "drop-shadow(0 0 1.5px #004567)")};
+  cursor: ${({location}) => (location === "deck" ? "not-allowed" : "grab")};
+  opacity: ${({isDragging}) => (isDragging ? 0.5 : 1)};
+  filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190)" : "drop-shadow(0 0 1.5px #004567)")};
+  transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
+  animation: ${({isTilted}) => (isTilted ? "pulsate 5s ease-in-out infinite" : "")};
 
   &:hover {
-    filter: drop-shadow(0 0 1.5px ghostwhite);
-    transform: scale(1.1);
+    filter: drop-shadow(0 0 1.5px ghostwhite) ${({isTilted}) => (isTilted ? "brightness(0.5)" : "")};
+    transform: scale(1.1) ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
+  }
+
+  @keyframes pulsate {
+    0%, 40%, 100% {
+      filter: drop-shadow(0 0 0px #004567) brightness(0.65) saturate(0.8);
+    }
+    70% {
+      filter: drop-shadow(0 0 4px #ff2190) brightness(0.65) saturate(1.5);
+    }
   }
 
   @media (max-width: 767px) {
