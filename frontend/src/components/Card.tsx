@@ -36,7 +36,6 @@ type StyledImageProps = {
 }
 
 const StyledImage = styled.img<StyledImageProps>`
-  background: #0c0c0c;
   width: 69.5px;
   max-height: 150px;
   border-radius: 5px;
