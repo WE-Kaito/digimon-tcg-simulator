@@ -1009,12 +1009,14 @@ const InfoSpan = styled.span`
   justify-content: space-evenly;
   font-family: Cuisine, sans-serif;
   font-size: 24px;
+  opacity: 0.7;
 
   a {
     color: ghostwhite;
 
     &:hover {
       color: dodgerblue;
+      opacity: 1;
     }
   }
 `;
