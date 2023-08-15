@@ -31,7 +31,8 @@ Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will atten
   
 ![Login](https://cdn.discordapp.com/attachments/1044771748303884288/1135661456906530877/image.png) ![MainMenu](https://cdn.discordapp.com/attachments/1044771748303884288/1135661720774377662/image.png) ![Deckbuilder](https://cdn.discordapp.com/attachments/1044771748303884288/1135663067301171261/image.png) ![Profile](https://cdn.discordapp.com/attachments/1044771748303884288/1135664253295149127/image.png)
 ![Lobby](https://cdn.discordapp.com/attachments/1044771748303884288/1138686209800028211/image.png)
-![Game](https://cdn.discordapp.com/attachments/1044771748303884288/1140089147634221056/image.png)
+![Game](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/7534eaa3-92fb-4624-8871-1a6386fcb8b1)
+
 
 
 
