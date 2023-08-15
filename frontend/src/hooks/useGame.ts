@@ -49,11 +49,9 @@ type State = {
     drawCardFromDeck: () => void,
     drawCardFromEggDeck: () => void,
 
-    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
-    sendCardToEggDeck: (topOrBottom: "top" | "bottom", cardToSendToDeck: {id: string, location: string}) => void,
-    sendCardToSecurity: (topOrBottom: "top" | "bottom", cardToSendToSecurity: {id: string, location: string}) => void,
-    sendDeckCardToSecurity: () => void,
+    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
+    shuffleSecurity: () => void,
 };
 
 
@@ -230,7 +228,6 @@ export const useGame = create<State>((set, get) => ({
             const updatedToState = [...toState, card];
 
             return {
-                ...state,
                 [from]: updatedFromState,
                 [to]: updatedToState
             };
@@ -321,7 +318,6 @@ export const useGame = create<State>((set, get) => ({
             const updatedDeck = deck.slice(1);
             const updatedHand = [...hand, card];
             return {
-                ...state,
                 myDeckField: updatedDeck,
                 myHand: updatedHand
             };
@@ -329,7 +325,6 @@ export const useGame = create<State>((set, get) => ({
     },
 
     drawCardFromEggDeck: () => {
-
         set(state => {
             if (state.myBreedingArea.length !== 0) return state;
             const eggDeck = state.myEggDeck;
@@ -338,77 +333,43 @@ export const useGame = create<State>((set, get) => ({
             const updatedDeck = eggDeck.slice(1);
             const updatedBreedingArea = [card];
             return {
-                ...state,
                 myEggDeck: updatedDeck,
                 myBreedingArea: updatedBreedingArea
             };
         });
     },
 
-    sendCardToDeck: (topOrBottom, cardToSendToDeck) => {
-        // @ts-ignore
+    sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
         set(state => {
             const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
-            const updatedDeck = topOrBottom === "top" ? [card, ...get().myDeckField] : [...get().myDeckField, card];
+            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id)
+            const toDeck = state[to as keyof State] as CardTypeWithId[];
+            const updatedDeck = topOrBottom === "top" ? [card, ...toDeck] : [...toDeck, card];
             return {
-                ...state,
                 [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
-                myDeckField: updatedDeck
+                [to]: updatedDeck
             }
         })
-    },
-
-    sendCardToEggDeck: (topOrBottom, cardToSendToDeck) => {
-        // @ts-ignore
-        set(state => {
-            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id);
-            const updatedDeck = topOrBottom === "top" ? [card, ...get().myEggDeck] : [...get().myEggDeck, card];
-            return {
-                ...state,
-                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
-                myEggDeck: updatedDeck
-            }
-        })
-    },
-
-    sendCardToSecurity: (topOrBottom, cardToSendToSecurity) => {
-         // @ts-ignore
-        set(state => {
-            const locationCards = state[cardToSendToSecurity.location as keyof State] as CardTypeWithId[];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToSecurity.id);
-            const updatedSecurity = topOrBottom === "top" ? [card, ...get().mySecurity] : [...get().mySecurity, card];
-            return {
-                ...state,
-                [cardToSendToSecurity.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToSecurity.id),
-                mySecurity: updatedSecurity
-            }
-        })
-    },
-
-    sendDeckCardToSecurity: () => {
-        set(state => {
-            const deck = state.myDeckField;
-            const security = state.mySecurity;
-            if (deck.length === 0) return state;
-            const card = deck[0];
-            const updatedDeck = deck.slice(1);
-            const updatedSecurity = [...security, card];
-            return {
-                ...state,
-                myDeckField: updatedDeck,
-                mySecurity: updatedSecurity
-            };
-        });
     },
 
     setMemory: (memory: number) => {
+        set({
+            myMemory: memory,
+            opponentMemory: -memory
+        })
+    },
+
+    shuffleSecurity: () => {
         set(state => {
+            const security = state.mySecurity;
+            const cryptoArray = new Uint32Array(security.length);
+            crypto.getRandomValues(cryptoArray);
+            for (let i = security.length - 1; i > 0; i--) {
+                const j = cryptoArray[i] % (i + 1);
+                [security[i], security[j]] = [security[j], security[i]];
+            }
             return {
-                ...state,
-                myMemory: memory,
-                opponentMemory: -memory
+                mySecurity: security
             }
         })
     }
