@@ -362,8 +362,10 @@ export const useGame = create<State>((set, get) => ({
     shuffleSecurity: () => {
         set(state => {
             const security = state.mySecurity;
+            const cryptoArray = new Uint32Array(security.length);
+            crypto.getRandomValues(cryptoArray);
             for (let i = security.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                const j = cryptoArray[i] % (i + 1);
                 [security[i], security[j]] = [security[j], security[i]];
             }
             return {

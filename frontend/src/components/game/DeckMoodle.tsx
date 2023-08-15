@@ -58,7 +58,6 @@ export const StyledSpan2 = styled(StyledSpan)`
   transform: translate(-2px, -50px) rotate(90deg);
 `;
 
-
 function getTop(to: string) {
     switch (to) {
         case "myDeckField":
