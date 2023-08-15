@@ -4,16 +4,18 @@ import {useGame} from "../../hooks/useGame.ts";
 type DeckMoodleProps = {
     cardToSend: {id: string, location:string},
     sendUpdate: () => void,
-    to: string
+    to: string,
+    setMoodle: (isOpen: boolean) => void
 }
 
-export default function DeckMoodle({cardToSend, sendUpdate, to} : DeckMoodleProps) {
+export default function DeckMoodle({cardToSend, sendUpdate, to, setMoodle} : DeckMoodleProps) {
 
     const sendCardToDeck = useGame((state) => state.sendCardToDeck);
 
     const handleClick = (topOrBottom: "top" | "bottom") => {
         sendCardToDeck(topOrBottom, cardToSend, to);
         sendUpdate();
+        setMoodle(false);
     }
 
     return (

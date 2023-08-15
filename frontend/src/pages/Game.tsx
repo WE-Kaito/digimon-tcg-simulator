@@ -51,6 +51,7 @@ export default function Game({user}: { user: string }) {
     const [cardToSend, setCardToSend] = useState<{ id: string, location: string }>({id: "", location: ""});
     const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
+    const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -108,8 +109,8 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-               setOpponentLeft(true);
-               startTimer();
+                //setOpponentLeft(true);
+                //startTimer();
             }
         }
     });
@@ -331,7 +332,8 @@ export default function Game({user}: { user: string }) {
                     {myReveal?.map((card) => <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
                 {opponentReveal.length > 0 && <RevealContainer>
-                    {opponentReveal?.map((card) => <Flip key={card.id}><Card card={card} location="opponentReveal"/></Flip>)}
+                    {opponentReveal?.map((card) => <Flip key={card.id}><Card card={card}
+                                                                             location="opponentReveal"/></Flip>)}
                 </RevealContainer>}
 
                 <InfoContainer>
@@ -358,6 +360,10 @@ export default function Game({user}: { user: string }) {
                     {opponentTrash.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
                 </TrashView>}
 
+                {securityContentMoodle && <SecurityView>
+                    {mySecurity.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
+                </SecurityView>}
+
                 <FieldContainer>
                     <div style={{display: "flex"}}>
                         <OpponentContainerMain>
@@ -370,13 +376,16 @@ export default function Game({user}: { user: string }) {
 
                             <OpponentDeckContainer>
                                 <img alt="deck" src={deckBack} width="105px"/>
-                                <TrashSpan style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
+                                <TrashSpan
+                                    style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
                             </OpponentDeckContainer>
 
                             <OpponentTrashContainer>
                                 <TrashSpan style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
-                                <OpponentOpenTrashButton opponentTrashMoodle={opponentTrashMoodle} onClick={() =>
-                                {setOpponentTrashMoodle(!opponentTrashMoodle); setTrashMoodle(false);}}>
+                                <OpponentOpenTrashButton opponentTrashMoodle={opponentTrashMoodle} onClick={() => {
+                                    setOpponentTrashMoodle(!opponentTrashMoodle);
+                                    setTrashMoodle(false);
+                                }}>
                                     {opponentTrashMoodle ? "Close" : "Show"}</OpponentOpenTrashButton>
                                 {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
                                     : <Card card={opponentTrash[opponentTrash.length - 1]} location={"opponentTrash"}/>}
@@ -384,40 +393,48 @@ export default function Game({user}: { user: string }) {
 
                             <BattleArea5>
                                 {opponentDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi5"}/></Fade></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card}
+                                                                   location={"opponentDigi5"}/></Fade></CardContainer>)}
                             </BattleArea5>
                             <BattleArea4>
                                 {opponentDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi4"}/></Fade></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card}
+                                                                   location={"opponentDigi4"}/></Fade></CardContainer>)}
                             </BattleArea4>
                             <BattleArea3>
                                 {opponentDigi3.length === 0 && <span>Battle Area</span>}
                                 {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi3"}/></Fade></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card}
+                                                                   location={"opponentDigi3"}/></Fade></CardContainer>)}
                             </BattleArea3>
                             <BattleArea2>
                                 {opponentDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi2"}/></Fade></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card}
+                                                                   location={"opponentDigi2"}/></Fade></CardContainer>)}
                             </BattleArea2>
                             <BattleArea1>
                                 {opponentDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card} location={"opponentDigi1"}/></Fade></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card}
+                                                                   location={"opponentDigi1"}/></Fade></CardContainer>)}
                             </BattleArea1>
 
                             <DelayAreaContainer style={{marginTop: "1px"}}>
                                 {opponentDelay.length === 0 && <span>Delay</span>}
                                 {opponentDelay.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card} location={"opponentDelay"}/></Fade></CardContainer>)}
+                                    <Fade direction={"down"}><Card card={card}
+                                                                   location={"opponentDelay"}/></Fade></CardContainer>)}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer>
                                 {opponentTamer.length === 0 && <span>Tamers</span>}
                                 {opponentTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"left"}><Card card={card} location={"opponentTamer"}/></Fade></TamerCardContainer>)}
+                                    <Fade direction={"left"}><Card card={card}
+                                                                   location={"opponentTamer"}/></Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
                             <HandContainer>
-                                <HandCards style={{transform:`translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
+                                <HandCards
+                                    style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
                                                       key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
@@ -459,7 +476,8 @@ export default function Game({user}: { user: string }) {
                         <MyContainerSide>
                             <EggDeckContainer ref={dropToEggDeck}>
                                 {eggDeckMoodle &&
-                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}/>}
+                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
+                                                setMoodle={setEggDeckMoodle}/>}
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
@@ -475,10 +493,22 @@ export default function Game({user}: { user: string }) {
 
                             <SecurityStackContainer ref={dropToSecurity}>
                                 {securityMoodle &&
-                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}/>}
+                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
+                                                setMoodle={setSecurityContentMoodle}/>}
                                 <MySecuritySpan>{mySecurity.length}</MySecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true}
-                                        style={{width: "160px"}}/>
+                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px"}}
+                                        onClick={() => {
+                                            if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+                                            sendUpdate();
+                                        }}/>
+                                {!securityContentMoodle ?
+                                    <SendButton style={{left: 20, top: 20, background: "none"}}
+                                                onClick={() => setSecurityContentMoodle(true)}>🔎</SendButton>
+                                    :
+                                    <SendButton style={{left: 20, top: 20, background: "none"}}
+                                                onClick={() => setSecurityContentMoodle(false)}
+
+                                    >🔄</SendButton>}
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
@@ -498,26 +528,33 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <DeckContainer>
-                                {deckMoodle && <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}/>}
+                                {deckMoodle &&
+                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}
+                                                setMoodle={setDeckMoodle}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
                                     drawCardFromDeck();
                                     sendUpdate();
                                 }}/>
-                                <button style={{position:"absolute", left:-115, zIndex:10, padding:0, width:"55px", height:"30px"}}
-                                    onClick={() => {moveCard(myDeckField[0].id,"myDeckField", "mySecurity"); sendUpdate();}}>⛊️+1</button>
-                                <button style={{position:"absolute", left:-52, zIndex:10, padding:0, width:"55px", height:"30px"}}
-                                        onClick={() => {moveCard(myDeckField[0].id,"myDeckField", "myReveal"); sendUpdate();}}
-                                        disabled={opponentReveal.length > 0}
-                                ><span style={{filter: "saturation(0)"}}>👁️</span>+1</button>
+                                <SendButton style={{left: -115}} onClick={() => {
+                                    moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
+                                    sendUpdate();
+                                }}>⛊️+1</SendButton>
+                                <SendButton onClick={() => {
+                                    moveCard(myDeckField[0].id, "myDeckField", "myReveal");
+                                    sendUpdate();
+                                }}
+                                            disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
                             </DeckContainer>
 
                             <TrashContainer ref={dropToTrash}>
                                 {myTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
                                     : <Card card={myTrash[myTrash.length - 1]} location={"myTrash"}/>}
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
-                                <OpenTrashButton trashMoodle={trashMoodle} onClick={() =>
-                                {setTrashMoodle(!trashMoodle); setOpponentTrashMoodle(false);}}>
+                                <OpenTrashButton trashMoodle={trashMoodle} onClick={() => {
+                                    setTrashMoodle(!trashMoodle);
+                                    setOpponentTrashMoodle(false);
+                                }}>
                                     {trashMoodle ? "Close" : "Show"}</OpenTrashButton>
                             </TrashContainer>
 
@@ -556,7 +593,8 @@ export default function Game({user}: { user: string }) {
                             </TamerAreaContainer>
 
                             <HandContainer ref={dropToHand}>
-                                <HandCards style={{transform:`translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
+                                <HandCards
+                                    style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
                                             <Card card={card} location={"myHand"}/></HandListItem>)}
@@ -819,6 +857,26 @@ const TrashView = styled.div`
   }
 `;
 
+const SecurityView = styled.div`
+  background: rgba(2, 1, 1, 0.95);
+  position: absolute;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 15px;
+  padding: 10px;
+  width: 706px;
+  height: 151px;
+  overflow: hidden;
+  z-index: 150;
+  border-radius: 10px;
+  border: 2px solid #1482dc;
+  box-shadow: 2px 4px 12px rgba(33, 222, 250, 0.5);
+
+  left: 57%;
+  top: 62%;
+  transform: translate(-50%, -50%);
+`;
+
 const OpenTrashButton = styled.button<{ trashMoodle: boolean }>`
   padding: 0;
   position: absolute;
@@ -855,6 +913,14 @@ const TrashSpan = styled.span`
   display: flex;
   justify-content: center;
   font-family: Awsumsans, sans-serif;
+`;
+
+const SendButton = styled.button`
+  position: absolute;
+  width: 55px;
+  height: 30px;
+  z-index: 10;
+  padding: 0;
 `;
 
 const BattleArea1 = styled(BattleAreaContainer)`
@@ -984,7 +1050,7 @@ const RevealContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  gap:5px;
+  gap: 5px;
   transform: scale(2);
 `;
 
