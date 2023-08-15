@@ -110,8 +110,8 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-                //setOpponentLeft(true);
-                //startTimer();
+                setOpponentLeft(true);
+                startTimer();
             }
         }
     });
