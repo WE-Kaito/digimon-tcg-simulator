@@ -87,3 +87,9 @@ export const notifyRegistered = () => toast('✔️ Registered!', {
     theme: "dark",
 });
 
+export const notifySecurityView = () => toast.warning('Opponent opened Security!', {
+    position: "bottom-center",
+    autoClose: 5000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});

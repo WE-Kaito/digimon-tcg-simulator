@@ -35,6 +35,7 @@ export const Container = styled.div<{to: string}>`
   background: none;
   display: flex;
   overflow: hidden;
+  z-index: 500;
 `;
 
 export const StyledButton = styled.button`
