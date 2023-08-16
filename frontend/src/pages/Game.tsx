@@ -394,59 +394,72 @@ export default function Game({user}: { user: string }) {
                             <OpponentTrashContainer>
                                 <TrashSpan style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
                                 {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
-                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].image_url} alt={"opponentTrash"}
+                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].image_url}
+                                                      alt={"opponentTrash"}
                                                       onClick={() => {
                                                           setOpponentTrashMoodle(!opponentTrashMoodle);
-                                                          setTrashMoodle(false);}}
+                                                          setTrashMoodle(false);
+                                                      }}
                                                       title="Open opponents trash"/>}
                             </OpponentTrashContainer>
 
                             <BattleArea5>
                                 {opponentDigi5.map((card, index) =>
                                     <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}>
-                                        <Card card={card} location={"opponentDigi5"}/>
-                                    </Fade></CardContainer>)}
+                                        <Fade direction={"down"}>
+                                            <Card card={card} location={"opponentDigi5"}/>
+                                        </Fade></CardContainer>)}
                             </BattleArea5>
                             <BattleArea4>
-                                {opponentDigi4.map((card, index) => <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card}
-                                                                   location={"opponentDigi4"}/></Fade></CardContainer>)}
+                                {opponentDigi4.map((card, index) =>
+                                    <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index}>
+                                        <Fade direction={"down"}>
+                                            <Card card={card} location={"opponentDigi4"}/>
+                                        </Fade></CardContainer>)}
                             </BattleArea4>
                             <BattleArea3>
                                 {opponentDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {opponentDigi3.map((card, index) => <CardContainer cardCount={opponentDigi3.length} key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card}
-                                                                   location={"opponentDigi3"}/></Fade></CardContainer>)}
+                                {opponentDigi3.map((card, index) =>
+                                    <CardContainer cardCount={opponentDigi3.length} key={card.id} cardIndex={index}>
+                                        <Fade direction={"down"}>
+                                            <Card card={card} location={"opponentDigi3"}/>
+                                        </Fade></CardContainer>)}
                             </BattleArea3>
                             <BattleArea2>
-                                {opponentDigi2.map((card, index) => <CardContainer cardCount={opponentDigi2.length} key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card}
-                                                                   location={"opponentDigi2"}/></Fade></CardContainer>)}
+                                {opponentDigi2.map((card, index) =>
+                                    <CardContainer cardCount={opponentDigi2.length} key={card.id} cardIndex={index}>
+                                        <Fade direction={"down"}><Card card={card}
+                                                                       location={"opponentDigi2"}/></Fade></CardContainer>)}
                             </BattleArea2>
                             <BattleArea1>
-                                {opponentDigi1.map((card, index) => <CardContainer  cardCount={opponentDigi1.length} key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card}
-                                                                   location={"opponentDigi1"}/></Fade></CardContainer>)}
+                                {opponentDigi1.map((card, index) =>
+                                    <CardContainer cardCount={opponentDigi1.length} key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}>
+                                        <Card card={card} location={"opponentDigi1"}/>
+                                    </Fade></CardContainer>)}
                             </BattleArea1>
 
-                            <DelayAreaContainer style={{marginTop: "1px", height:"205px"}}>
+                            <DelayAreaContainer style={{marginTop: "1px", height: "205px"}}>
                                 {opponentDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
-                                {opponentDelay.map((card, index) => <DelayCardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card}
-                                                                   location={"opponentDelay"}/></Fade></DelayCardContainer>)}
+                                {opponentDelay.map((card, index) =>
+                                    <DelayCardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}>
+                                        <Card card={card} location={"opponentDelay"}/>
+                                    </Fade></DelayCardContainer>)}
                             </DelayAreaContainer>
 
-                            <TamerAreaContainer style={{height:"205px"}}>
+                            <TamerAreaContainer style={{height: "205px"}}>
                                 {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
-                                {opponentTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"left"}><Card card={card}
-                                                                   location={"opponentTamer"}/></Fade></TamerCardContainer>)}
+                                {opponentTamer.map((card, index) =>
+                                    <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <Fade direction={"left"}>
+                                        <Card card={card} location={"opponentTamer"}/>
+                                    </Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
                             <OpponentHandContainer>
                                 <HandCards cardCount={opponentHand.length}
-                                    style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
+                                           style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
                                                       key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
@@ -463,7 +476,8 @@ export default function Game({user}: { user: string }) {
                                         width: "100%", display: "flex",
                                         justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
                                     }}>{opponentEggDeck.length}</div>}
-                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px" style={{transform:"rotate(180deg)"}}/>}
+                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
+                                                                      style={{transform: "rotate(180deg)"}}/>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer>
@@ -474,7 +488,8 @@ export default function Game({user}: { user: string }) {
 
                             <BreedingAreaContainer>
                                 {opponentBreedingArea.map((card, index) =>
-                                    <CardContainer  cardCount={opponentBreedingArea.length} key={card.id} cardIndex={index}><Fade direction={"down"}><Card
+                                    <CardContainer cardCount={opponentBreedingArea.length} key={card.id}
+                                                   cardIndex={index}><Fade direction={"down"}><Card
                                         card={card} location={"opponentBreedingArea"}/></Fade></CardContainer>)}
                                 {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
@@ -551,11 +566,12 @@ export default function Game({user}: { user: string }) {
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
                                     drawCardFromDeck();
                                     sendUpdate();
-                                }} />
-                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}} onClick={() => {
-                                    moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
-                                    sendUpdate();
-                                }}>⛊️+1</SendButton>
+                                }}/>
+                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
+                                            onClick={() => {
+                                                moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
+                                                sendUpdate();
+                                            }}>⛊️+1</SendButton>
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myReveal");
                                     sendUpdate();
@@ -568,48 +584,56 @@ export default function Game({user}: { user: string }) {
                                     : <TrashCardImage src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
-                                                          setOpponentTrashMoodle(false);}}
+                                                          setOpponentTrashMoodle(false);
+                                                      }}
                                                       title="Open your trash"/>}
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
                             </TrashContainer>
 
                             <BattleArea1 ref={dropToDigi1}>
-                                {myDigi1.map((card, index) => <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index}>
+                                {myDigi1.map((card, index) =>
+                                    <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi1"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea1>
                             <BattleArea2 ref={dropToDigi2}>
-                                {myDigi2.map((card, index) => <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index}>
+                                {myDigi2.map((card, index) =>
+                                    <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi2"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
                             <BattleArea3 ref={dropToDigi3}>
                                 {myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {myDigi3.map((card, index) => <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index}>
+                                {myDigi3.map((card, index) =>
+                                    <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi3"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
                             <BattleArea4 ref={dropToDigi4}>
-                                {myDigi4.map((card, index) => <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index}>
+                                {myDigi4.map((card, index) =>
+                                    <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi4"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea4>
                             <BattleArea5 ref={dropToDigi5}>
-                                {myDigi5.map((card, index) => <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index}>
+                                {myDigi5.map((card, index) =>
+                                    <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi5"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea5>
 
                             <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
-                                {myDelay.map((card, index) => <DelayCardContainer key={card.id} cardIndex={index}>
+                                {myDelay.map((card, index) =>
+                                    <DelayCardContainer key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDelay"}/></DelayCardContainer>)}
                                 {myDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer ref={dropToTamer}>
-                                {myTamer.map((card, index) => <TamerCardContainer key={card.id} cardIndex={index}>
+                                {myTamer.map((card, index) =>
+                                    <TamerCardContainer key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myTamer"}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                             </TamerAreaContainer>
 
                             <HandContainer ref={dropToHand}>
                                 <HandCards cardCount={myHand.length}
-                                    style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
+                                           style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
                                             <Card card={card} location={"myHand"}/></HandListItem>)}
@@ -958,7 +982,7 @@ const HandContainer = styled.div`
 `;
 
 const OpponentHandContainer = styled(HandContainer)`
-transform: rotate(180deg) translate(30px, -5px);  
+  transform: rotate(180deg) translate(30px, -5px);
   z-index: 1;
 `;
 
@@ -983,9 +1007,14 @@ const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   float: left;
   left: 5px;
   transition: all 0.2s ease;
-  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount})) 
-  translateY(${({cardCount, cardIndex}) => calculateCardOffset(cardCount, cardIndex)})
-  rotate(${({cardCount, cardIndex}) => calculateCardRotation(cardCount, cardIndex)});
+  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount})) translateY(${({
+                                                                                                                       cardCount,
+                                                                                                                       cardIndex
+                                                                                                                     }) => calculateCardOffset(cardCount, cardIndex)}) rotate(${({
+                                                                                                                                                                                   cardCount,
+                                                                                                                                                                                   cardIndex
+                                                                                                                                                                                 }) => calculateCardRotation(cardCount, cardIndex)});
+
   &:hover {
     z-index: 100;
   }
@@ -1045,7 +1074,7 @@ const TrashPlaceholder = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color:  rgba(220, 220, 220, 0.8);
+  color: rgba(220, 220, 220, 0.8);
   font-family: Naston, sans-serif;
 `;
 
