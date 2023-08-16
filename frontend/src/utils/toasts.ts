@@ -93,3 +93,10 @@ export const notifySecurityView = () => toast.warning('Opponent opened Security 
     hideProgressBar: false,
     pauseOnHover: false,
 });
+
+export const notifyRequestedRestart = () => toast.success('Sent restart request!', {
+    position: "bottom-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});

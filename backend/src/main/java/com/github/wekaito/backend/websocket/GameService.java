@@ -93,15 +93,20 @@ public class GameService extends TextWebSocketHandler {
 
         if (command.startsWith("/surrender:")) handleSurrender(session, gameRoom, command);
 
-        if (command.startsWith("/openedSecurity:")) {
-            String opponentName = command.split(":")[1].trim();
-            WebSocketSession opponentSession = gameRoom.stream()
-                    .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
-                    .findFirst().orElse(null);
+        if (command.startsWith("/restartRequest:")) sendMessageToOpponent(gameRoom, command, "[RESTART]");
 
-            if (opponentSession != null && opponentSession.isOpen()) {
-                opponentSession.sendMessage(new TextMessage("[SECURITY_VIEWED]"));
-            }
+        if (command.startsWith("/openedSecurity:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_VIEWED]");
+
+        if (command.startsWith("/restartAccepted:")) distributeCards(gameId);
+    }
+
+    void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String command, String message) throws IOException {
+        String opponentName = command.split(":")[1].trim();
+        WebSocketSession opponentSession = gameRoom.stream()
+                .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
+                .findFirst().orElse(null);
+        if (opponentSession != null && opponentSession.isOpen()) {
+            opponentSession.sendMessage(new TextMessage(message));
         }
     }
 

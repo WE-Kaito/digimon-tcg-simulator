@@ -21,7 +21,7 @@ import Lottie from "lottie-react";
 import {Fade, Flip} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
-import {notifySecurityView} from "../utils/toasts.ts";
+import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 
 export default function Game({user}: { user: string }) {
 
@@ -139,7 +139,6 @@ export default function Game({user}: { user: string }) {
             websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
         }
     }
-
 
     const [, dropToDigi1] = useDrop(() => ({
         accept: "card",
@@ -324,11 +323,6 @@ export default function Game({user}: { user: string }) {
         startTimer();
     }
 
-    function sendRestartRequest() {
-        websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
-        setRestartRequest(true);
-    }
-
     function startTimer() {
         setTimerOpen(true);
         for (let i = 5; i > 0; i--) {
@@ -393,6 +387,10 @@ export default function Game({user}: { user: string }) {
                             <PlayerContainer>
                                 <img alt="opponent" src={profilePicture(opponentAvatar)}
                                      style={{width: "160px", border: "#0c0c0c solid 2px", cursor: "pointer"}}
+                                     onClick={() => {
+                                         websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
+                                         notifyRequestedRestart();
+                                     }}
                                 />
                                 <UserName>{opponentName}</UserName>
                             </PlayerContainer>
@@ -544,7 +542,8 @@ export default function Game({user}: { user: string }) {
                                                 style={{left: 20, top: 20, background: "none"}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(true);
-                                                    websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);}}
+                                                    websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
+                                                }}
                                     >🔎</SendButton>
                                     :
                                     <SendButton title="Close and shuffle Security Stack"
