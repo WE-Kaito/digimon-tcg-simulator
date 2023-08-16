@@ -58,6 +58,7 @@ const MemoryButton = styled.button<{myMemory: number, value: number}>`
   height: 40px;
   padding: 0;
   transition: all 0.2s ease;
+  z-index: 200;
 
   display: flex;
   justify-content: center;

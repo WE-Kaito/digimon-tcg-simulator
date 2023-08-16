@@ -1,5 +1,5 @@
 import {create} from "zustand";
-import {CardTypeWithId, GameDistribution, Player} from "../utils/types.ts";
+import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
 
 type State = {
     myAvatar: string,
@@ -7,40 +7,40 @@ type State = {
     opponentAvatar: string,
 
     myMemory: number,
-    myReveal: CardTypeWithId[],
+    myReveal: CardTypeGame[],
 
-    myHand: CardTypeWithId[],
-    myDeckField: CardTypeWithId[],
-    myEggDeck: CardTypeWithId[],
-    myTrash: CardTypeWithId[],
-    mySecurity: CardTypeWithId[],
-    myTamer: CardTypeWithId[],
-    myDelay: CardTypeWithId[],
+    myHand: CardTypeGame[],
+    myDeckField: CardTypeGame[],
+    myEggDeck: CardTypeGame[],
+    myTrash: CardTypeGame[],
+    mySecurity: CardTypeGame[],
+    myTamer: CardTypeGame[],
+    myDelay: CardTypeGame[],
 
-    myDigi1: CardTypeWithId[],
-    myDigi2: CardTypeWithId[],
-    myDigi3: CardTypeWithId[],
-    myDigi4: CardTypeWithId[],
-    myDigi5: CardTypeWithId[],
-    myBreedingArea: CardTypeWithId[],
+    myDigi1: CardTypeGame[],
+    myDigi2: CardTypeGame[],
+    myDigi3: CardTypeGame[],
+    myDigi4: CardTypeGame[],
+    myDigi5: CardTypeGame[],
+    myBreedingArea: CardTypeGame[],
 
     opponentMemory: number,
-    opponentReveal: CardTypeWithId[],
+    opponentReveal: CardTypeGame[],
 
-    opponentHand: CardTypeWithId[],
-    opponentDeckField: CardTypeWithId[],
-    opponentEggDeck: CardTypeWithId[],
-    opponentTrash: CardTypeWithId[],
-    opponentSecurity: CardTypeWithId[],
-    opponentTamer: CardTypeWithId[],
-    opponentDelay: CardTypeWithId[],
+    opponentHand: CardTypeGame[],
+    opponentDeckField: CardTypeGame[],
+    opponentEggDeck: CardTypeGame[],
+    opponentTrash: CardTypeGame[],
+    opponentSecurity: CardTypeGame[],
+    opponentTamer: CardTypeGame[],
+    opponentDelay: CardTypeGame[],
 
-    opponentDigi1: CardTypeWithId[],
-    opponentDigi2: CardTypeWithId[],
-    opponentDigi3: CardTypeWithId[],
-    opponentDigi4: CardTypeWithId[],
-    opponentDigi5: CardTypeWithId[],
-    opponentBreedingArea: CardTypeWithId[],
+    opponentDigi1: CardTypeGame[],
+    opponentDigi2: CardTypeGame[],
+    opponentDigi3: CardTypeGame[],
+    opponentDigi4: CardTypeGame[],
+    opponentDigi5: CardTypeGame[],
+    opponentBreedingArea: CardTypeGame[],
 
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
@@ -52,6 +52,7 @@ type State = {
     sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
     shuffleSecurity: () => void,
+    tiltCard: (cardId: string, location: string) => void,
 };
 
 
@@ -216,14 +217,28 @@ export const useGame = create<State>((set, get) => ({
         for (const zone of opponentFields) {
             if (from === zone) return;
         }
-        if (from === to) return;
+        if (from === to) {
+            if (from === "myHand" && to === "myHand") {
+                set(state => {
+                    const fromState = state[from as keyof State] as CardTypeGame[];
+                    const card = fromState.find(card => card.id === cardId);
+                    if (!card) return state;
+                    const updatedFromState = fromState.filter(card => card.id !== cardId);
+                    return {
+                        [from]: [...updatedFromState, card]
+                    };
+                });
+            }
+            return;
+        }
 
         set(state => {
-            const fromState = state[from as keyof State] as CardTypeWithId[];
-            const toState = state[to as keyof State] as CardTypeWithId[];
+            const fromState = state[from as keyof State] as CardTypeGame[];
+            const toState = state[to as keyof State] as CardTypeGame[];
             const cardIndex = fromState.findIndex(card => card.id === cardId);
             if (cardIndex === -1) return state;
             const card = fromState[cardIndex];
+            card.isTilted = false;
             const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
             const updatedToState = [...toState, card];
 
@@ -341,12 +356,12 @@ export const useGame = create<State>((set, get) => ({
 
     sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
         set(state => {
-            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeWithId[];
-            const card = locationCards.find((card: CardTypeWithId) => card.id === cardToSendToDeck.id)
-            const toDeck = state[to as keyof State] as CardTypeWithId[];
+            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
+            const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id)
+            const toDeck = state[to as keyof State] as CardTypeGame[];
             const updatedDeck = topOrBottom === "top" ? [card, ...toDeck] : [...toDeck, card];
             return {
-                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeWithId) => card.id !== cardToSendToDeck.id),
+                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id),
                 [to]: updatedDeck
             }
         })
@@ -370,6 +385,21 @@ export const useGame = create<State>((set, get) => ({
             }
             return {
                 mySecurity: security
+            }
+        })
+    },
+
+    tiltCard: (cardId, location) => {
+        set(state => {
+            const locationCards = state[location as keyof State] as CardTypeGame[];
+            const card = locationCards.find((card: CardTypeGame) => card.id === cardId);
+            const newLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId)
+            if (card) {
+                card.isTilted = !card.isTilted;
+                newLocationCards.push(card);
+            }
+            return {
+                [location]: newLocationCards
             }
         })
     }
