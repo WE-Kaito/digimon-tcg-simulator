@@ -116,6 +116,7 @@ export function profilePicture(avatarName: string) {
 export function calculateCardRotation(handCardLength: number, index: number) {
     const middleIndex = Math.floor(handCardLength / 2);
     let value = ((index - middleIndex) / 2);
+    if (handCardLength <= 6) value *= 2;
     if (handCardLength > 10) value = ((index - middleIndex) / 3.5);
     if (handCardLength > 15) value = ((index - middleIndex) / 4);
     if (handCardLength > 20) value = ((index - middleIndex) / 5.5);
@@ -124,7 +125,6 @@ export function calculateCardRotation(handCardLength: number, index: number) {
 }
 
 export function calculateCardOffset(handCardLength: number, index: number) {
-
     const middleIndex = Math.floor(handCardLength / 2);
     const middleValue = 0;
     let endValue = handCardLength + 5 + (handCardLength / 3) * 2;

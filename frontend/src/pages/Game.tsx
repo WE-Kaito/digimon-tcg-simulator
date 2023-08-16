@@ -442,15 +442,15 @@ export default function Game({user}: { user: string }) {
                                                                    location={"opponentTamer"}/></Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
-                            <HandContainer>
-                                <HandCards
+                            <OpponentHandContainer>
+                                <HandCards cardCount={opponentHand.length}
                                     style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
                                                       key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
                                         </HandListItem>)}
                                 </HandCards>
-                            </HandContainer>
+                            </OpponentHandContainer>
 
                         </OpponentContainerMain>
 
@@ -953,6 +953,10 @@ const HandContainer = styled.div`
   width: 100%;
   height: 100%;
   padding: 5px;
+`;
+
+const OpponentHandContainer = styled(HandContainer)`
+transform: rotate(180deg) translate(30px, -5px);  
 `;
 
 const HandCards = styled.ul<{ cardCount: number }>`
