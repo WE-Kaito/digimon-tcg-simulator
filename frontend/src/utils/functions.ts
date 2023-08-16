@@ -145,7 +145,7 @@ export function topCardInfo(card: CardTypeGame, location:string, locationCards: 
     const locationsWithInfo = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "myBreedingArea", "opponentBreedingArea"];
     if (!locationsWithInfo.find((l => l === location))) return undefined;
 
-    let effectInfo = "";
+    let effectInfo = "Inherited effects: \n";
     locationCards.forEach((card, index) => {
         if (index === locationCards.length -1) return;
         if (card.soureeffect === null) return;
