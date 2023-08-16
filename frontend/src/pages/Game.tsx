@@ -2,9 +2,8 @@ import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
 import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
-import {calculateCardRotation, calculateCardOffset} from "../utils/functions.ts";
+import {profilePicture, calculateCardRotation, calculateCardOffset} from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
-import {profilePicture} from "../utils/functions.ts";
 import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderMoodle from "../components/game/SurrenderMoodle.tsx";
@@ -114,8 +113,8 @@ export default function Game({user}: { user: string }) {
             (event.data === "[SURRENDER]") && startTimer();
 
             if (event.data === "[PLAYER_LEFT]") {
-                //setOpponentLeft(true);
-                //startTimer();
+                setOpponentLeft(true);
+                startTimer();
             }
         }
     });
