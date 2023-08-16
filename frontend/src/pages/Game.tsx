@@ -2,6 +2,7 @@ import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
 import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
+import {calculateCardRotation, calculateCardOffset} from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {profilePicture} from "../utils/functions.ts";
 import {useEffect, useState} from "react";
@@ -605,7 +606,7 @@ export default function Game({user}: { user: string }) {
                             </TamerAreaContainer>
 
                             <HandContainer ref={dropToHand}>
-                                <HandCards
+                                <HandCards cardCount={myHand.length}
                                     style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
@@ -954,7 +955,7 @@ const HandContainer = styled.div`
   padding: 5px;
 `;
 
-const HandCards = styled.ul`
+const HandCards = styled.ul<{ cardCount: number }>`
   padding: 5px;
   display: flex;
   justify-content: center;
@@ -974,8 +975,10 @@ const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   list-style-type: none;
   float: left;
   left: 5px;
-  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount}));
-  //TODO: improve this after drawing cards
+  transition: all 0.2s ease;
+  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount})) 
+  translateY(${({cardCount, cardIndex}) => calculateCardOffset(cardCount, cardIndex)})
+  rotate(${({cardCount, cardIndex}) => calculateCardRotation(cardCount, cardIndex)});
   &:hover {
     z-index: 100;
   }

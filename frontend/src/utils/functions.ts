@@ -60,7 +60,7 @@ export function getAttributeImage(attribute: string) {
 
 export function getStrokeColor(hoverCard: CardType | null, selectedCard: CardType | null) {
     if (hoverCard) {
-        switch(hoverCard.color) {
+        switch (hoverCard.color) {
             case 'White':
                 return "#070707";
             case 'Yellow':
@@ -70,7 +70,7 @@ export function getStrokeColor(hoverCard: CardType | null, selectedCard: CardTyp
         }
     }
     if (selectedCard) {
-        switch(selectedCard.color) {
+        switch (selectedCard.color) {
             case 'White':
                 return "#070707";
             case 'Yellow':
@@ -82,7 +82,7 @@ export function getStrokeColor(hoverCard: CardType | null, selectedCard: CardTyp
     return "#C5C5C5";
 }
 
-export function profilePicture(avatarName : string) {
+export function profilePicture(avatarName: string) {
     switch (avatarName) {
         case "takato":
             return takatoImage;
@@ -111,4 +111,29 @@ export function profilePicture(avatarName : string) {
         default:
             return takatoImage;
     }
+}
+
+export function calculateCardRotation(handCardLength: number, index: number) {
+    const middleIndex = Math.floor(handCardLength / 2);
+    let value = ((index - middleIndex) / 2);
+    if (handCardLength > 10) value = ((index - middleIndex) / 3.5);
+    if (handCardLength > 15) value = ((index - middleIndex) / 4);
+    if (handCardLength > 20) value = ((index - middleIndex) / 5.5);
+    if (handCardLength > 25) value = ((index - middleIndex) / 8);
+    return value * handCardLength + "deg";
+}
+
+export function calculateCardOffset(handCardLength: number, index: number) {
+
+    const middleIndex = Math.floor(handCardLength / 2);
+    const middleValue = 0;
+    let endValue = handCardLength + 5 + (handCardLength / 3) * 2;
+    if (handCardLength > 5) {
+        if (index === 0 || index === handCardLength - 1) endValue += (handCardLength / 3) * 3;
+        if (index === 1 || index === handCardLength - 2) endValue += (handCardLength / 3) * 1.9;
+        if (index === 2 || index === handCardLength - 3) endValue += (handCardLength / 3) * 1.5;
+    }
+    const distanceToMiddle = Math.abs(index - middleIndex);
+    const offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
+    return index === middleIndex ? offset + 5 + "px" : offset + "px";
 }
