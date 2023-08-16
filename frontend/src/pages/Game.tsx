@@ -9,6 +9,7 @@ import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderMoodle from "../components/game/SurrenderMoodle.tsx";
 import deckBack from "../assets/deckBack.png";
+import deckBackOpponent from "../assets/deckBackOpponent.png";
 import eggBack from "../assets/eggBack.jpg";
 import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
@@ -386,7 +387,7 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <OpponentDeckContainer>
-                                <img alt="deck" src={deckBack} width="105px"/>
+                                <img alt="deck" src={deckBackOpponent} width="105px"/>
                                 <TrashSpan
                                     style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
                             </OpponentDeckContainer>
@@ -402,37 +403,37 @@ export default function Game({user}: { user: string }) {
                             </OpponentTrashContainer>
 
                             <BattleArea5>
-                                {opponentDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {opponentDigi5.map((card, index) => <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
                                                                    location={"opponentDigi5"}/></Fade></CardContainer>)}
                             </BattleArea5>
                             <BattleArea4>
-                                {opponentDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {opponentDigi4.map((card, index) => <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
                                                                    location={"opponentDigi4"}/></Fade></CardContainer>)}
                             </BattleArea4>
                             <BattleArea3>
                                 {opponentDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {opponentDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {opponentDigi3.map((card, index) => <CardContainer cardCount={opponentDigi3.length} key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
                                                                    location={"opponentDigi3"}/></Fade></CardContainer>)}
                             </BattleArea3>
                             <BattleArea2>
-                                {opponentDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {opponentDigi2.map((card, index) => <CardContainer cardCount={opponentDigi2.length} key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
                                                                    location={"opponentDigi2"}/></Fade></CardContainer>)}
                             </BattleArea2>
                             <BattleArea1>
-                                {opponentDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {opponentDigi1.map((card, index) => <CardContainer  cardCount={opponentDigi1.length} key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
                                                                    location={"opponentDigi1"}/></Fade></CardContainer>)}
                             </BattleArea1>
 
                             <DelayAreaContainer style={{marginTop: "1px", height:"205px"}}>
                                 {opponentDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
-                                {opponentDelay.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {opponentDelay.map((card, index) => <DelayCardContainer key={card.id} cardIndex={index}>
                                     <Fade direction={"down"}><Card card={card}
-                                                                   location={"opponentDelay"}/></Fade></CardContainer>)}
+                                                                   location={"opponentDelay"}/></Fade></DelayCardContainer>)}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer style={{height:"205px"}}>
@@ -461,7 +462,7 @@ export default function Game({user}: { user: string }) {
                                         width: "100%", display: "flex",
                                         justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
                                     }}>{opponentEggDeck.length}</div>}
-                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"/>}
+                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px" style={{transform:"rotate(180deg)"}}/>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer>
@@ -472,7 +473,7 @@ export default function Game({user}: { user: string }) {
 
                             <BreedingAreaContainer>
                                 {opponentBreedingArea.map((card, index) =>
-                                    <CardContainer key={card.id} cardIndex={index}><Fade direction={"down"}><Card
+                                    <CardContainer  cardCount={opponentBreedingArea.length} key={card.id} cardIndex={index}><Fade direction={"down"}><Card
                                         card={card} location={"opponentBreedingArea"}/></Fade></CardContainer>)}
                                 {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
@@ -526,7 +527,7 @@ export default function Game({user}: { user: string }) {
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
                                 {myBreedingArea.map((card, index) =>
-                                    <CardContainer key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={myBreedingArea.length} key={card.id} cardIndex={index}>
                                         <Card card={card} location={"myBreedingArea"}/></CardContainer>)}
                                 {myBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
@@ -572,24 +573,24 @@ export default function Game({user}: { user: string }) {
                             </TrashContainer>
 
                             <BattleArea1 ref={dropToDigi1}>
-                                {myDigi1.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {myDigi1.map((card, index) => <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi1"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea1>
                             <BattleArea2 ref={dropToDigi2}>
-                                {myDigi2.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {myDigi2.map((card, index) => <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi2"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
                             <BattleArea3 ref={dropToDigi3}>
                                 {myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {myDigi3.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {myDigi3.map((card, index) => <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi3"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
                             <BattleArea4 ref={dropToDigi4}>
-                                {myDigi4.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {myDigi4.map((card, index) => <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi4"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea4>
                             <BattleArea5 ref={dropToDigi5}>
-                                {myDigi5.map((card, index) => <CardContainer key={card.id} cardIndex={index}>
+                                {myDigi5.map((card, index) => <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index}>
                                     <Card card={card} location={"myDigi5"} sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea5>
 
@@ -826,9 +827,10 @@ const MySecuritySpan = styled(SecuritySpan)`
   }
 `;
 
-const CardContainer = styled.div<{ cardIndex: number }>`
+const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
   position: absolute;
-  bottom: ${props => (props.cardIndex * 20) + 5}px;
+  bottom: ${({cardIndex}) => cardIndex > 5 ? ((cardIndex - 6) * 20) + 5 : (cardIndex * 20) + 5}px;
+  left: ${({cardIndex, cardCount}) => cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "auto"};
 `;
 
 const TamerCardContainer = styled.div<{ cardIndex: number }>`
@@ -844,7 +846,6 @@ const DelayCardContainer = styled.div<{ cardIndex: number }>`
 const BattleAreaContainer = styled.div`
   position: relative;
   height: 100%;
-  max-height: 100%;
   border-radius: 2px;
   display: flex;
   flex-direction: column;
@@ -957,6 +958,7 @@ const HandContainer = styled.div`
 
 const OpponentHandContainer = styled(HandContainer)`
 transform: rotate(180deg) translate(30px, -5px);  
+  z-index: 1;
 `;
 
 const HandCards = styled.ul<{ cardCount: number }>`
@@ -1064,7 +1066,7 @@ const RevealContainer = styled.div`
   height: 130px;
   left: 660px;
   top: 435px;
-  z-index: 100;
+  z-index: 300;
   display: flex;
   justify-content: center;
   align-items: center;

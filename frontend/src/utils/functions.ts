@@ -129,12 +129,14 @@ export function calculateCardOffset(handCardLength: number, index: number) {
     const middleValue = 0;
     let endValue = handCardLength + 5 + (handCardLength / 3) * 2;
     if (handCardLength > 5) {
-        if (index === 0 || index === handCardLength - 1) endValue += (handCardLength / 3) * 3;
+        if (index === 0 || index === handCardLength - 1) endValue += (handCardLength / 3) * 3.25;
         if (index === 1 || index === handCardLength - 2) endValue += (handCardLength / 3) * 1.9;
         if (index === 2 || index === handCardLength - 3) endValue += (handCardLength / 3) * 1.5;
+        if (index === 3 || index === handCardLength - 4) endValue += (handCardLength / 3) * 1.25;
+        if (index === 4 || index === handCardLength - 5) endValue += (handCardLength / 3) * 1.1;
     }
     if (handCardLength <= 3) return "0px";
     const distanceToMiddle = Math.abs(index - middleIndex);
     const offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
-    return index === middleIndex ? offset + 5 + "px" : offset + "px";
+    return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 8 + "px" : offset + "px";
 }
