@@ -522,7 +522,7 @@ export default function Game({user}: { user: string }) {
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityContentMoodle}/>}
-                                <MySecuritySpan onClick={() => {
+                                <MySecuritySpan cardCount={mySecurity.length} onClick={() => {
                                     if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                     sendUpdate();
                                 }}>{mySecurity.length}</MySecuritySpan>
@@ -839,16 +839,17 @@ const SecuritySpan = styled.span`
   left: 133px;
 `;
 
-const MySecuritySpan = styled(SecuritySpan)`
+const MySecuritySpan = styled(SecuritySpan)<{cardCount: number}>`
   cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
-
+  transform: translateX(${({cardCount}) => cardCount === 1 ? 4 : 0}px);
+  
   &:hover {
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
     font-size: 42px;
     color: #f9f9f9;
-    transform: translate(-2px, -1px);
+    transform: translate(${({cardCount})=> cardCount === 1 ? 4 : -2}px, -1px);
   }
 `;
 
