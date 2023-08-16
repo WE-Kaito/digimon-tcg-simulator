@@ -97,7 +97,7 @@ public class GameService extends TextWebSocketHandler {
 
         if (command.startsWith("/openedSecurity:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_VIEWED]");
 
-        if (command.startsWith("/restartAccepted:")) distributeCards(gameId);
+        if (command.startsWith("/restartAccepted")) distributeCards(gameId);
     }
 
     void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String command, String message) throws IOException {

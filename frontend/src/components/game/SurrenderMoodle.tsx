@@ -11,7 +11,7 @@ type Props = {
 
 export default function SurrenderMoodle({timer, timerOpen, surrenderOpen, setSurrenderOpen, opponentLeft, handleSurrender} : Props) {
     return (
-        <Container>
+        <SurrenderMoodleContainer>
             {!timerOpen ?
                 (<>
                     <SurrenderSpan>Do you really want to surrender?</SurrenderSpan>
@@ -27,11 +27,11 @@ export default function SurrenderMoodle({timer, timerOpen, surrenderOpen, setSur
                     <SurrenderSpan style={{fontFamily:"Awsumsans, sans-serif"}}>{timer}</SurrenderSpan>
                 </>)
             }
-        </Container>
+        </SurrenderMoodleContainer>
     );
 }
 
-const Container = styled.div`
+export const SurrenderMoodleContainer = styled.div`
   z-index: 100;
   position: absolute;
   width: 560px;
@@ -49,13 +49,13 @@ const Container = styled.div`
   transform: translate(-50%, -50%);
 `;
 
-const SurrenderSpan = styled.span`
+export const SurrenderSpan = styled.span`
   font-family: Pixel Digivolve, sans-serif;
   font-size: 24px;
   text-shadow: black 2px 4px 2px;
 `;
 
-const CancelSurrenderButton = styled.button`
+export const CancelSurrenderButton = styled.button`
   cursor: pointer;
   width: 160px;
   height: 50px;
@@ -85,7 +85,7 @@ const CancelSurrenderButton = styled.button`
   }
 `;
 
-const SurrenderButton = styled(CancelSurrenderButton)`
+export const SurrenderButton = styled(CancelSurrenderButton)`
   background-color: #c03427;
 
   &:hover {

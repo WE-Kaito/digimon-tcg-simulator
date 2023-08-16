@@ -2,7 +2,7 @@ import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
 import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
-import {profilePicture, calculateCardRotation, calculateCardOffset} from "../utils/functions.ts";
+import {profilePicture, calculateCardRotation, calculateCardOffsetY, calculateCardOffsetX} from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
@@ -22,6 +22,7 @@ import {Fade, Flip} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
+import RestartMoodle from "../components/game/RestartMoodle.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -58,6 +59,7 @@ export default function Game({user}: { user: string }) {
     const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
     const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
+    const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -112,13 +114,24 @@ export default function Game({user}: { user: string }) {
                 distributeCards(user, newGame, gameId);
             }
 
-            if (event.data === "[SURRENDER]") startTimer();
-
-            if (event.data === "[SECURITY_VIEWED]") notifySecurityView();
-
-            if (event.data === "[PLAYER_LEFT]") {
-                setOpponentLeft(true);
-                startTimer();
+            switch (event.data) {
+                case "[SURRENDER]": {
+                    startTimer();
+                    break;
+                }
+                case "[SECURITY_VIEWED]": {
+                    notifySecurityView();
+                    break;
+                }
+                case "[PLAYER_LEFT]": {
+                    //setOpponentLeft(true);
+                    //startTimer();
+                    break;
+                }
+                case ("[RESTART]"): {
+                    setRestartMoodle(true);
+                    break;
+                }
             }
         }
     });
@@ -323,6 +336,11 @@ export default function Game({user}: { user: string }) {
         startTimer();
     }
 
+    function acceptRestart() {
+        setRestartMoodle(false);
+        websocket.sendMessage(`${gameId}:/restartAccepted`);
+    }
+
     function startTimer() {
         setTimerOpen(true);
         for (let i = 5; i > 0; i--) {
@@ -339,7 +357,7 @@ export default function Game({user}: { user: string }) {
                 <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
                                  setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
                                  handleSurrender={handleSurrender}/>}
-
+            {restartMoodle && <RestartMoodle setRestartMoodle={setRestartMoodle} sendAcceptRestart={acceptRestart}/>}
             <Wrapper>
                 <StyledToastContainer/>
 
@@ -385,12 +403,11 @@ export default function Game({user}: { user: string }) {
                         <OpponentContainerMain>
 
                             <PlayerContainer>
-                                <img alt="opponent" src={profilePicture(opponentAvatar)}
-                                     style={{width: "160px", border: "#0c0c0c solid 2px", cursor: "pointer"}}
-                                     onClick={() => {
-                                         websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
-                                         notifyRequestedRestart();
-                                     }}
+                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)}
+                                             onClick={() => {
+                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
+                                                 notifyRequestedRestart();
+                                             }}
                                 />
                                 <UserName>{opponentName}</UserName>
                             </PlayerContainer>
@@ -1027,14 +1044,9 @@ const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   float: left;
   left: 5px;
   transition: all 0.2s ease;
-  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount})) translateY(${({
-                                                                                                                       cardCount,
-                                                                                                                       cardIndex
-                                                                                                                     }) => calculateCardOffset(cardCount, cardIndex)}) rotate(${({
-                                                                                                                                                                                   cardCount,
-                                                                                                                                                                                   cardIndex
-                                                                                                                                                                                 }) => calculateCardRotation(cardCount, cardIndex)});
-
+  transform: translateX(${({cardCount, cardIndex}) => calculateCardOffsetX(cardCount, cardIndex)}) 
+              translateY(${({cardCount, cardIndex}) => calculateCardOffsetY(cardCount, cardIndex)}) 
+              rotate(${({cardCount, cardIndex}) => calculateCardRotation(cardCount, cardIndex)});
   &:hover {
     z-index: 100;
   }
