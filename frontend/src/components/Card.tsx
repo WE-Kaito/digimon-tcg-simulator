@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
+import {topCardInfo} from "../utils/functions.ts";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame ,
@@ -16,6 +17,7 @@ export default function Card({card, location, sendUpdate}: CardProps) {
     const setHoverCard = useStore((state) => state.setHoverCard);
     const deleteFromDeck = useStore((state) => state.deleteFromDeck);
     const tiltCard = useGame((state) => state.tiltCard);
+    const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
@@ -48,6 +50,7 @@ export default function Card({card, location, sendUpdate}: CardProps) {
             isDragging={isDragging}
             location={location}
             isTilted={(card as CardTypeGame)?.isTilted ?? false}
+            title={topCardInfo(card as CardTypeGame, location, locationCards)}
         />)
 }
 

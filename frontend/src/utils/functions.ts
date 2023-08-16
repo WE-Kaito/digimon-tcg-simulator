@@ -4,7 +4,7 @@ import vaccineImage from '../assets/attribute_icons/vaccine.png';
 import freeImage from '../assets/attribute_icons/free.png';
 import unknownImage from '../assets/attribute_icons/unknown.png';
 import variableImage from '../assets/attribute_icons/variable.png';
-import {CardType} from "./types.ts";
+import {CardType, CardTypeGame} from "./types.ts";
 import takatoImage from "../assets/profile_pictures/takato.jpg";
 import aibaImage from "../assets/profile_pictures/aiba.jpg";
 import arataImage from "../assets/profile_pictures/arata.jpg";
@@ -139,4 +139,18 @@ export function calculateCardOffset(handCardLength: number, index: number) {
     const distanceToMiddle = Math.abs(index - middleIndex);
     const offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
     return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 8 + "px" : offset + "px";
+}
+
+export function topCardInfo(card: CardTypeGame, location:string, locationCards: CardTypeGame[]){
+    const locationsWithInfo = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "myBreedingArea", "opponentBreedingArea"];
+    if (!locationsWithInfo.find((l => l === location))) return undefined;
+
+    let effectInfo = "";
+    locationCards.forEach((card, index) => {
+        if (index === locationCards.length -1) return;
+        if (card.soureeffect === null) return;
+        effectInfo += "• " + card.soureeffect + "\n";
+    });
+
+    return card === locationCards[locationCards.length -1] ? effectInfo : undefined;
 }

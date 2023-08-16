@@ -402,9 +402,11 @@ export default function Game({user}: { user: string }) {
                             </OpponentTrashContainer>
 
                             <BattleArea5>
-                                {opponentDigi5.map((card, index) => <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}><Card card={card}
-                                                                   location={"opponentDigi5"}/></Fade></CardContainer>)}
+                                {opponentDigi5.map((card, index) =>
+                                    <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index}>
+                                    <Fade direction={"down"}>
+                                        <Card card={card} location={"opponentDigi5"}/>
+                                    </Fade></CardContainer>)}
                             </BattleArea5>
                             <BattleArea4>
                                 {opponentDigi4.map((card, index) => <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index}>
