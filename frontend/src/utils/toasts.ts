@@ -96,7 +96,7 @@ export const notifySecurityView = () => toast.warning('Opponent opened Security 
 
 export const notifyRequestedRestart = () => toast.success('Sent restart request!', {
     position: "bottom-center",
-    autoClose: 3000,
+    autoClose: 1200,
     hideProgressBar: false,
     pauseOnHover: false,
 });

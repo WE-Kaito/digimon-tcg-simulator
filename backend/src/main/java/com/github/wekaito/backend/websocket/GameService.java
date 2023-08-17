@@ -29,6 +29,8 @@ public class GameService extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper;
 
+    private final SecureRandom secureRand = new SecureRandom();
+
     public Map<String, Set<WebSocketSession>> getGameRooms() {
         return gameRooms;
     }
@@ -96,8 +98,6 @@ public class GameService extends TextWebSocketHandler {
         if (command.startsWith("/restartRequest:")) sendMessageToOpponent(gameRoom, command, "[RESTART]");
 
         if (command.startsWith("/openedSecurity:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_VIEWED]");
-
-        if (command.startsWith("/restartAccepted")) distributeCards(gameId);
     }
 
     void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String command, String message) throws IOException {
@@ -130,9 +130,17 @@ public class GameService extends TextWebSocketHandler {
         session.sendMessage(textMessage);
     }
 
-    void distributeCards(String gameId) throws IOException {
+    void distributeCards(String gameId) throws IOException, InterruptedException {
+        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
         String user1 = gameId.split("_")[0];
         String user2 = gameId.split("_")[1];
+
+        String[] names = {user1, user2};
+        int index = secureRand.nextInt(names.length);
+        for (WebSocketSession s : gameRoom) {
+            s.sendMessage(new TextMessage("[STARTING_PLAYER]:" + names[index]));
+        }
+        Thread.sleep(3800);
 
         Card[] deck1 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
         Card[] deck2 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
@@ -170,9 +178,7 @@ public class GameService extends TextWebSocketHandler {
 
         Game newGame = new Game(0, 0, empty, empty, player1Hand.toArray(new GameCard[0]), player1Deck, player1EggDeck.toArray(new GameCard[0]), empty, player1Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, player2Hand.toArray(new GameCard[0]), player2Deck, player2EggDeck.toArray(new GameCard[0]), empty, player2Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, empty, empty);
         String newGameJson = objectMapper.writeValueAsString(newGame);
-        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
-        if (gameRoom == null) return;
         for (WebSocketSession s : gameRoom) {
             s.sendMessage(new TextMessage("[DISTRIBUTE_CARDS]:" + newGameJson));
         }
@@ -180,7 +186,6 @@ public class GameService extends TextWebSocketHandler {
 
 
     List<GameCard> createGameDeck(Card[] deck) {
-        SecureRandom secureRand = new SecureRandom();
         List<GameCard> gameDeck = new ArrayList<>();
 
         for (int i = deck.length - 1; i > 0; i--) {

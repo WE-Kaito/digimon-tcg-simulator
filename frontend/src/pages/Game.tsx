@@ -18,7 +18,7 @@ import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import Lottie from "lottie-react";
-import {Fade, Flip} from "react-awesome-reveal";
+import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
@@ -60,6 +60,9 @@ export default function Game({user}: { user: string }) {
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
     const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
     const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
+    const [startingPlayer, setStartingPlayer] = useState<string>("");
+    const [showStartingPlayer, setShowStartingPlayer] = useState<boolean>(false);
+    const [memoryBarLoading, setMemoryBarLoading] = useState<boolean>(true);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -97,6 +100,7 @@ export default function Game({user}: { user: string }) {
 
         onOpen: () => {
             websocket.sendMessage("/startGame:" + gameId);
+            console.log(gameId);
         },
 
         onMessage: (event) => {
@@ -114,6 +118,16 @@ export default function Game({user}: { user: string }) {
                 distributeCards(user, newGame, gameId);
             }
 
+            if (event.data.startsWith("[STARTING_PLAYER]:")) {
+                setMemoryBarLoading(true);
+                setStartingPlayer(event.data.substring("[STARTING_PLAYER]:".length));
+                setShowStartingPlayer(true);
+                setTimeout(() => {
+                    setShowStartingPlayer(false);
+                    setMemoryBarLoading(false);
+                }, 5000);
+            }
+
             switch (event.data) {
                 case "[SURRENDER]": {
                     startTimer();
@@ -124,8 +138,8 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case "[PLAYER_LEFT]": {
-                    //setOpponentLeft(true);
-                    //startTimer();
+                    setOpponentLeft(true);
+                    startTimer();
                     break;
                 }
                 case ("[RESTART]"): {
@@ -338,7 +352,7 @@ export default function Game({user}: { user: string }) {
 
     function acceptRestart() {
         setRestartMoodle(false);
-        websocket.sendMessage(`${gameId}:/restartAccepted`);
+        websocket.sendMessage("/startGame:" + gameId);
     }
 
     function startTimer() {
@@ -358,9 +372,9 @@ export default function Game({user}: { user: string }) {
                                  setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
                                  handleSurrender={handleSurrender}/>}
             {restartMoodle && <RestartMoodle setRestartMoodle={setRestartMoodle} sendAcceptRestart={acceptRestart}/>}
+            {showStartingPlayer && <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"45%", transform:"translateX(-50%)"}}><StartingName>1st: {startingPlayer}</StartingName></Fade>}
             <Wrapper>
                 <StyledToastContainer/>
-
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) => <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
@@ -524,7 +538,7 @@ export default function Game({user}: { user: string }) {
                         </OpponentContainerSide>
                     </div>
 
-                    <MemoryBar sendUpdate={sendUpdate}/>
+                    {memoryBarLoading ? <div style={{height:"100px"}}/> : <Zoom><MemoryBar sendUpdate={sendUpdate}/></Zoom>}
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
@@ -1134,6 +1148,17 @@ const RevealContainer = styled.div`
   align-items: center;
   gap: 5px;
   transform: scale(2);
+`;
+
+const StartingName = styled.span`
+  font-family: Sansation, sans-serif;
+  font-size: 124px;
+  color: ghostwhite;
+  text-outline: #114ce1 3px;
+  text-shadow: 0 0 8px #2764ff;
+  text-transform: uppercase;
+  z-index: 10000 !important;
+  filter: saturate(2) brightness(2);
 `;
 
 const BackGround = styled.div`
