@@ -174,4 +174,16 @@ class GameServiceTest {
         verify(session2, times(1)).sendMessage(expectedMessage);
     }
 
+    @Test
+    void testHandleAttack() throws IOException, InterruptedException {
+        // GIVEN
+        TextMessage expectedMessage = new TextMessage("[ATTACK]:opponentDigi1:myDigi1");
+        TextMessage attackMessage = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentDigi1");
+        putPlayersToGameRoom();
+        // WHEN
+        gameService.handleTextMessage(session1, attackMessage);
+        // THEN
+        verify(session2, times(1)).sendMessage(expectedMessage);
+    }
+
 }

@@ -242,42 +242,48 @@ public class GameService extends TextWebSocketHandler {
         String[] parts = command.split(":", 4);
         String from = parts[2];
         String to = parts[3];
-        sendMessageToOpponent(gameRoom, command, "[ATTACK]:" + getFrom(from) + ":" + getTo(to));
+        sendMessageToOpponent(gameRoom, command, "[ATTACK]:" + getPosition(from) + ":" + getPosition(to));
     }
 
-    private String getFrom(String from) {
-        String newFrom = "";
-        switch (from) {
+    private String getPosition(String fromTo) {
+        String newPos = "";
+        switch (fromTo) {
             case "myDigi1":
-                newFrom += "opponentDigi1"; break;
+                newPos += "opponentDigi1";
+                break;
             case "myDigi2":
-                newFrom += "opponentDigi2"; break;
+                newPos += "opponentDigi2";
+                break;
             case "myDigi3":
-                newFrom += "opponentDigi3"; break;
+                newPos += "opponentDigi3";
+                break;
             case "myDigi4":
-                newFrom += "opponentDigi4"; break;
+                newPos += "opponentDigi4";
+                break;
             case "myDigi5":
-                newFrom += "opponentDigi5"; break;
-        }
-        return newFrom;
-    }
-
-    private String getTo(String to) {
-        String newTo = "";
-        switch (to) {
+                newPos += "opponentDigi5";
+                break;
             case "opponentDigi1":
-                newTo += "myDigi1"; break;
+                newPos += "myDigi1";
+                break;
             case "opponentDigi2":
-                newTo += "myDigi2"; break;
+                newPos += "myDigi2";
+                break;
             case "opponentDigi3":
-                newTo += "myDigi3"; break;
+                newPos += "myDigi3";
+                break;
             case "opponentDigi4":
-                newTo += "myDigi4"; break;
+                newPos += "myDigi4";
+                break;
             case "opponentDigi5":
-                newTo += "myDigi5"; break;
+                newPos += "myDigi5";
+                break;
             case "opponentSecurity":
-                newTo += "mySecurity"; break;
+                newPos += "mySecurity";
+                break;
+            default:
+                break;
         }
-        return newTo;
+        return newPos;
     }
 }
