@@ -177,13 +177,34 @@ class GameServiceTest {
     @Test
     void testHandleAttack() throws IOException, InterruptedException {
         // GIVEN
-        TextMessage expectedMessage = new TextMessage("[ATTACK]:opponentDigi1:myDigi1");
-        TextMessage attackMessage = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentDigi1");
+        TextMessage expectedMessage1 = new TextMessage("[ATTACK]:opponentDigi1:myDigi1");
+        TextMessage attackMessage1 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentDigi1");
+        TextMessage expectedMessage2 = new TextMessage("[ATTACK]:opponentDigi2:myDigi2");
+        TextMessage attackMessage2 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi2:opponentDigi2");
+        TextMessage expectedMessage3 = new TextMessage("[ATTACK]:opponentDigi3:myDigi3");
+        TextMessage attackMessage3 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi3:opponentDigi3");
+        TextMessage expectedMessage4 = new TextMessage("[ATTACK]:opponentDigi4:myDigi4");
+        TextMessage attackMessage4 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi4:opponentDigi4");
+        TextMessage expectedMessage5 = new TextMessage("[ATTACK]:opponentDigi5:myDigi5");
+        TextMessage attackMessage5 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi5:opponentDigi5");
+        TextMessage expectedMessage6 = new TextMessage("[ATTACK]:opponentDigi1:mySecurity");
+        TextMessage attackMessage6 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentSecurity");
+
         putPlayersToGameRoom();
         // WHEN
-        gameService.handleTextMessage(session1, attackMessage);
+        gameService.handleTextMessage(session1, attackMessage1);
+        gameService.handleTextMessage(session1, attackMessage2);
+        gameService.handleTextMessage(session1, attackMessage3);
+        gameService.handleTextMessage(session1, attackMessage4);
+        gameService.handleTextMessage(session1, attackMessage5);
+        gameService.handleTextMessage(session1, attackMessage6);
         // THEN
-        verify(session2, times(1)).sendMessage(expectedMessage);
+        verify(session2, times(1)).sendMessage(expectedMessage1);
+        verify(session2, times(1)).sendMessage(expectedMessage2);
+        verify(session2, times(1)).sendMessage(expectedMessage3);
+        verify(session2, times(1)).sendMessage(expectedMessage4);
+        verify(session2, times(1)).sendMessage(expectedMessage5);
+        verify(session2, times(1)).sendMessage(expectedMessage6);
     }
 
 }

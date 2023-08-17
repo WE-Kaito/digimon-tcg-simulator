@@ -31,6 +31,21 @@ public class GameService extends TextWebSocketHandler {
 
     private final SecureRandom secureRand = new SecureRandom();
 
+    private final Map<String, String> positionMap = new HashMap<>();
+    {
+        positionMap.put("myDigi1", "opponentDigi1");
+        positionMap.put("myDigi2", "opponentDigi2");
+        positionMap.put("myDigi3", "opponentDigi3");
+        positionMap.put("myDigi4", "opponentDigi4");
+        positionMap.put("myDigi5", "opponentDigi5");
+        positionMap.put("opponentDigi1", "myDigi1");
+        positionMap.put("opponentDigi2", "myDigi2");
+        positionMap.put("opponentDigi3", "myDigi3");
+        positionMap.put("opponentDigi4", "myDigi4");
+        positionMap.put("opponentDigi5", "myDigi5");
+        positionMap.put("opponentSecurity", "mySecurity");
+    }
+
     public Map<String, Set<WebSocketSession>> getGameRooms() {
         return gameRooms;
     }
@@ -238,6 +253,7 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
+
     void handleAttack(Set<WebSocketSession> gameRoom, String command) throws IOException {
         String[] parts = command.split(":", 4);
         String from = parts[2];
@@ -246,44 +262,6 @@ public class GameService extends TextWebSocketHandler {
     }
 
     private String getPosition(String fromTo) {
-        String newPos = "";
-        switch (fromTo) {
-            case "myDigi1":
-                newPos += "opponentDigi1";
-                break;
-            case "myDigi2":
-                newPos += "opponentDigi2";
-                break;
-            case "myDigi3":
-                newPos += "opponentDigi3";
-                break;
-            case "myDigi4":
-                newPos += "opponentDigi4";
-                break;
-            case "myDigi5":
-                newPos += "opponentDigi5";
-                break;
-            case "opponentDigi1":
-                newPos += "myDigi1";
-                break;
-            case "opponentDigi2":
-                newPos += "myDigi2";
-                break;
-            case "opponentDigi3":
-                newPos += "myDigi3";
-                break;
-            case "opponentDigi4":
-                newPos += "myDigi4";
-                break;
-            case "opponentDigi5":
-                newPos += "myDigi5";
-                break;
-            case "opponentSecurity":
-                newPos += "mySecurity";
-                break;
-            default:
-                break;
-        }
-        return newPos;
+        return positionMap.getOrDefault(fromTo, "");
     }
 }
