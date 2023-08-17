@@ -23,6 +23,7 @@ import MemoryBar from "../components/game/MemoryBar.tsx";
 import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import RestartMoodle from "../components/game/RestartMoodle.tsx";
+import AttackArrows from "../components/game/AttackArrows.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -63,6 +64,9 @@ export default function Game({user}: { user: string }) {
     const [startingPlayer, setStartingPlayer] = useState<string>("");
     const [showStartingPlayer, setShowStartingPlayer] = useState<boolean>(false);
     const [memoryBarLoading, setMemoryBarLoading] = useState<boolean>(true);
+    const [showAttackArrow, setShowAttackArrow] = useState<boolean>(false);
+    const [arrowFrom, setArrowFrom] = useState<string>("");
+    const [arrowTo, setArrowTo] = useState<string>("");
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -138,8 +142,8 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case "[PLAYER_LEFT]": {
-                    setOpponentLeft(true);
-                    startTimer();
+                    //setOpponentLeft(true);
+                    //startTimer();
                     break;
                 }
                 case ("[RESTART]"): {
@@ -329,6 +333,114 @@ export default function Game({user}: { user: string }) {
         }),
     }));
 
+    const [, dropToOpponentDigi1] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {location} = item;
+            setArrowFrom(location);
+            setArrowTo('opponentDigi1');
+            setShowAttackArrow(true);
+            setTimeout(() => {
+                setShowAttackArrow(false);
+                setArrowFrom('');
+                setArrowTo('');
+            }, 3500);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToOpponentDigi2] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {location} = item;
+            setArrowFrom(location);
+            setArrowTo('opponentDigi2');
+            setShowAttackArrow(true);
+            setTimeout(() => {
+                setShowAttackArrow(false);
+                setArrowFrom('');
+                setArrowTo('');
+            }, 3500);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToOpponentDigi3] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {location} = item;
+            setArrowFrom(location);
+            setArrowTo('opponentDigi3');
+            setShowAttackArrow(true);
+            setTimeout(() => {
+                setShowAttackArrow(false);
+                setArrowFrom('');
+                setArrowTo('');
+            }, 3500);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToOpponentDigi4] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {location} = item;
+            setArrowFrom(location);
+            setArrowTo('opponentDigi4');
+            setShowAttackArrow(true);
+            setTimeout(() => {
+                setShowAttackArrow(false);
+                setArrowFrom('');
+                setArrowTo('');
+            }, 3500);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToOpponentDigi5] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {location} = item;
+            setArrowFrom(location);
+            setArrowTo('opponentDigi5');
+            setShowAttackArrow(true);
+            setTimeout(() => {
+                setShowAttackArrow(false);
+                setArrowFrom('');
+                setArrowTo('');
+            }, 3500);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToOpponentSecurity] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {location} = item;
+            setArrowFrom(location);
+            setArrowTo('opponentSecurity');
+            setShowAttackArrow(true);
+            setTimeout(() => {
+                setShowAttackArrow(false);
+                setArrowFrom('');
+                setArrowTo('');
+            }, 3500);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
     useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
@@ -366,6 +478,7 @@ export default function Game({user}: { user: string }) {
 
     return (
         <BackGround>
+            {showAttackArrow && <AttackArrows fromOpponent={false} from={arrowFrom} to={arrowTo}/>}
             <BackGroundPattern/>
             {(surrenderOpen || timerOpen) &&
                 <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
@@ -444,37 +557,37 @@ export default function Game({user}: { user: string }) {
                                                       title="Open opponents trash"/>}
                             </OpponentTrashContainer>
 
-                            <BattleArea5>
+                            <BattleArea5 ref={dropToOpponentDigi5}>
                                 {opponentDigi5.map((card, index) =>
-                                    <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index} id={index === opponentDigi5.length -1 ? "opponentDigi5" : ""}>
                                         <Fade direction={"down"}>
                                             <Card card={card} location={"opponentDigi5"}/>
                                         </Fade></CardContainer>)}
                             </BattleArea5>
-                            <BattleArea4>
+                            <BattleArea4 ref={dropToOpponentDigi4}>
                                 {opponentDigi4.map((card, index) =>
-                                    <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index} id={index === opponentDigi4.length -1 ? "opponentDigi4" : ""}>
                                         <Fade direction={"down"}>
                                             <Card card={card} location={"opponentDigi4"}/>
                                         </Fade></CardContainer>)}
                             </BattleArea4>
-                            <BattleArea3>
+                            <BattleArea3 ref={dropToOpponentDigi3}>
                                 {opponentDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {opponentDigi3.map((card, index) =>
-                                    <CardContainer cardCount={opponentDigi3.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={opponentDigi3.length} key={card.id} cardIndex={index} id={index === opponentDigi3.length -1 ? "opponentDigi3" : ""}>
                                         <Fade direction={"down"}>
                                             <Card card={card} location={"opponentDigi3"}/>
                                         </Fade></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea2>
+                            <BattleArea2 ref={dropToOpponentDigi2}>
                                 {opponentDigi2.map((card, index) =>
-                                    <CardContainer cardCount={opponentDigi2.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={opponentDigi2.length} key={card.id} cardIndex={index} id={index === opponentDigi2.length -1 ? "opponentDigi2" : ""}>
                                         <Fade direction={"down"}><Card card={card}
                                                                        location={"opponentDigi2"}/></Fade></CardContainer>)}
                             </BattleArea2>
-                            <BattleArea1>
+                            <BattleArea1 ref={dropToOpponentDigi1}>
                                 {opponentDigi1.map((card, index) =>
-                                    <CardContainer cardCount={opponentDigi1.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={opponentDigi1.length} key={card.id} cardIndex={index} id={index === opponentDigi1.length -1 ? "opponentDigi1" : ""}>
                                         <Fade direction={"down"}>
                                             <Card card={card} location={"opponentDigi1"}/>
                                         </Fade></CardContainer>)}
@@ -521,8 +634,8 @@ export default function Game({user}: { user: string }) {
                                                                       style={{transform: "rotate(180deg)"}}/>}
                             </EggDeckContainer>
 
-                            <SecurityStackContainer>
-                                <SecuritySpan>{opponentSecurity.length}</SecuritySpan>
+                            <SecurityStackContainer ref={dropToOpponentSecurity}>
+                                <SecuritySpan id="opponentSecurity">{opponentSecurity.length}</SecuritySpan>
                                 <Lottie animationData={opponentSecurityAnimation} loop={true}
                                         style={{width: "160px"}}/>
                             </SecurityStackContainer>
@@ -563,7 +676,7 @@ export default function Game({user}: { user: string }) {
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityContentMoodle}/>}
-                                <MySecuritySpan cardCount={mySecurity.length} onClick={() => {
+                                <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
                                     if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                     sendUpdate();
                                 }}>{mySecurity.length}</MySecuritySpan>
@@ -637,32 +750,32 @@ export default function Game({user}: { user: string }) {
 
                             <BattleArea1 ref={dropToDigi1}>
                                 {myDigi1.map((card, index) =>
-                                    <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index} id={index === myDigi1.length -1 ? "myDigi1" : ""}>
                                         <Card card={card} location={"myDigi1"}
                                               sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea1>
                             <BattleArea2 ref={dropToDigi2}>
                                 {myDigi2.map((card, index) =>
-                                    <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index} id={index === myDigi2.length -1 ? "myDigi2" : ""}>
                                         <Card card={card} location={"myDigi2"}
                                               sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
                             <BattleArea3 ref={dropToDigi3}>
                                 {myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {myDigi3.map((card, index) =>
-                                    <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index} id={index === myDigi3.length -1 ? "myDigi3" : ""}>
                                         <Card card={card} location={"myDigi3"}
                                               sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
                             <BattleArea4 ref={dropToDigi4}>
                                 {myDigi4.map((card, index) =>
-                                    <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index} id={index === myDigi4.length -1 ? "myDigi4" : ""}>
                                         <Card card={card} location={"myDigi4"}
                                               sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea4>
                             <BattleArea5 ref={dropToDigi5}>
                                 {myDigi5.map((card, index) =>
-                                    <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index}>
+                                    <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index} id={index === myDigi5.length -1 ? "myDigi5" : ""}>
                                         <Card card={card} location={"myDigi5"}
                                               sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea5>
