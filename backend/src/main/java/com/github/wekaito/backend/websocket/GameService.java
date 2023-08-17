@@ -5,6 +5,7 @@ import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.IdService;
 import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
@@ -31,19 +32,23 @@ public class GameService extends TextWebSocketHandler {
 
     private final SecureRandom secureRand = new SecureRandom();
 
-    private final Map<String, String> positionMap = new HashMap<>();
-    {
-        positionMap.put("myDigi1", "opponentDigi1");
-        positionMap.put("myDigi2", "opponentDigi2");
-        positionMap.put("myDigi3", "opponentDigi3");
-        positionMap.put("myDigi4", "opponentDigi4");
-        positionMap.put("myDigi5", "opponentDigi5");
-        positionMap.put("opponentDigi1", "myDigi1");
-        positionMap.put("opponentDigi2", "myDigi2");
-        positionMap.put("opponentDigi3", "myDigi3");
-        positionMap.put("opponentDigi4", "myDigi4");
-        positionMap.put("opponentDigi5", "myDigi5");
-        positionMap.put("opponentSecurity", "mySecurity");
+    @Getter
+    private final Map<String, String> positionMap = initializePositionMap();
+
+    private Map<String, String> initializePositionMap() {
+        Map<String, String> map = new HashMap<>();
+        map.put("myDigi1", "opponentDigi1");
+        map.put("myDigi2", "opponentDigi2");
+        map.put("myDigi3", "opponentDigi3");
+        map.put("myDigi4", "opponentDigi4");
+        map.put("myDigi5", "opponentDigi5");
+        map.put("opponentDigi1", "myDigi1");
+        map.put("opponentDigi2", "myDigi2");
+        map.put("opponentDigi3", "myDigi3");
+        map.put("opponentDigi4", "myDigi4");
+        map.put("opponentDigi5", "myDigi5");
+        map.put("opponentSecurity", "mySecurity");
+        return map;
     }
 
     public Map<String, Set<WebSocketSession>> getGameRooms() {
