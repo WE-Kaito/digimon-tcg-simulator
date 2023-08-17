@@ -2,7 +2,7 @@ import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
 import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
-import {profilePicture, calculateCardRotation, calculateCardOffset} from "../utils/functions.ts";
+import {profilePicture, calculateCardRotation, calculateCardOffsetY, calculateCardOffsetX} from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
@@ -18,8 +18,11 @@ import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import Lottie from "lottie-react";
-import {Fade, Flip} from "react-awesome-reveal";
+import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
+import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
+import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
+import RestartMoodle from "../components/game/RestartMoodle.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -56,6 +59,10 @@ export default function Game({user}: { user: string }) {
     const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
     const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
+    const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
+    const [startingPlayer, setStartingPlayer] = useState<string>("");
+    const [showStartingPlayer, setShowStartingPlayer] = useState<boolean>(false);
+    const [memoryBarLoading, setMemoryBarLoading] = useState<boolean>(true);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -93,6 +100,7 @@ export default function Game({user}: { user: string }) {
 
         onOpen: () => {
             websocket.sendMessage("/startGame:" + gameId);
+            console.log(gameId);
         },
 
         onMessage: (event) => {
@@ -110,11 +118,34 @@ export default function Game({user}: { user: string }) {
                 distributeCards(user, newGame, gameId);
             }
 
-            (event.data === "[SURRENDER]") && startTimer();
+            if (event.data.startsWith("[STARTING_PLAYER]:")) {
+                setMemoryBarLoading(true);
+                setStartingPlayer(event.data.substring("[STARTING_PLAYER]:".length));
+                setShowStartingPlayer(true);
+                setTimeout(() => {
+                    setShowStartingPlayer(false);
+                    setMemoryBarLoading(false);
+                }, 5000);
+            }
 
-            if (event.data === "[PLAYER_LEFT]") {
-                setOpponentLeft(true);
-                startTimer();
+            switch (event.data) {
+                case "[SURRENDER]": {
+                    startTimer();
+                    break;
+                }
+                case "[SECURITY_VIEWED]": {
+                    notifySecurityView();
+                    break;
+                }
+                case "[PLAYER_LEFT]": {
+                    setOpponentLeft(true);
+                    startTimer();
+                    break;
+                }
+                case ("[RESTART]"): {
+                    setRestartMoodle(true);
+                    break;
+                }
             }
         }
     });
@@ -135,7 +166,6 @@ export default function Game({user}: { user: string }) {
             websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
         }
     }
-
 
     const [, dropToDigi1] = useDrop(() => ({
         accept: "card",
@@ -320,6 +350,11 @@ export default function Game({user}: { user: string }) {
         startTimer();
     }
 
+    function acceptRestart() {
+        setRestartMoodle(false);
+        websocket.sendMessage("/startGame:" + gameId);
+    }
+
     function startTimer() {
         setTimerOpen(true);
         for (let i = 5; i > 0; i--) {
@@ -336,8 +371,10 @@ export default function Game({user}: { user: string }) {
                 <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
                                  setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
                                  handleSurrender={handleSurrender}/>}
-
+            {restartMoodle && <RestartMoodle setRestartMoodle={setRestartMoodle} sendAcceptRestart={acceptRestart}/>}
+            {showStartingPlayer && <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"45%", transform:"translateX(-50%)"}}><StartingName>1st: {startingPlayer}</StartingName></Fade>}
             <Wrapper>
+                <StyledToastContainer/>
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) => <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
@@ -380,8 +417,12 @@ export default function Game({user}: { user: string }) {
                         <OpponentContainerMain>
 
                             <PlayerContainer>
-                                <img alt="opponent" src={profilePicture(opponentAvatar)}
-                                     style={{width: "160px", border: "#0c0c0c solid 2px"}}/>
+                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)}
+                                             onClick={() => {
+                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
+                                                 notifyRequestedRestart();
+                                             }}
+                                />
                                 <UserName>{opponentName}</UserName>
                             </PlayerContainer>
 
@@ -434,27 +475,27 @@ export default function Game({user}: { user: string }) {
                             <BattleArea1>
                                 {opponentDigi1.map((card, index) =>
                                     <CardContainer cardCount={opponentDigi1.length} key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}>
-                                        <Card card={card} location={"opponentDigi1"}/>
-                                    </Fade></CardContainer>)}
+                                        <Fade direction={"down"}>
+                                            <Card card={card} location={"opponentDigi1"}/>
+                                        </Fade></CardContainer>)}
                             </BattleArea1>
 
                             <DelayAreaContainer style={{marginTop: "1px", height: "205px"}}>
                                 {opponentDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
                                 {opponentDelay.map((card, index) =>
                                     <DelayCardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"down"}>
-                                        <Card card={card} location={"opponentDelay"}/>
-                                    </Fade></DelayCardContainer>)}
+                                        <Fade direction={"down"}>
+                                            <Card card={card} location={"opponentDelay"}/>
+                                        </Fade></DelayCardContainer>)}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer style={{height: "205px"}}>
                                 {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                                 {opponentTamer.map((card, index) =>
                                     <TamerCardContainer key={card.id} cardIndex={index}>
-                                    <Fade direction={"left"}>
-                                        <Card card={card} location={"opponentTamer"}/>
-                                    </Fade></TamerCardContainer>)}
+                                        <Fade direction={"left"}>
+                                            <Card card={card} location={"opponentTamer"}/>
+                                        </Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
                             <OpponentHandContainer>
@@ -497,7 +538,7 @@ export default function Game({user}: { user: string }) {
                         </OpponentContainerSide>
                     </div>
 
-                    <MemoryBar sendUpdate={sendUpdate}/>
+                    {memoryBarLoading ? <div style={{height:"100px"}}/> : <Zoom><MemoryBar sendUpdate={sendUpdate}/></Zoom>}
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
@@ -530,7 +571,11 @@ export default function Game({user}: { user: string }) {
                                 {!securityContentMoodle ?
                                     <SendButton title="Open Security Stack"
                                                 style={{left: 20, top: 20, background: "none"}}
-                                                onClick={() => setSecurityContentMoodle(true)}>🔎</SendButton>
+                                                onClick={() => {
+                                                    setSecurityContentMoodle(true);
+                                                    websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
+                                                }}
+                                    >🔎</SendButton>
                                     :
                                     <SendButton title="Close and shuffle Security Stack"
                                                 style={{left: 20, top: 20, background: "none"}}
@@ -593,41 +638,46 @@ export default function Game({user}: { user: string }) {
                             <BattleArea1 ref={dropToDigi1}>
                                 {myDigi1.map((card, index) =>
                                     <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi1"} sendUpdate={sendUpdate}/></CardContainer>)}
+                                        <Card card={card} location={"myDigi1"}
+                                              sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea1>
                             <BattleArea2 ref={dropToDigi2}>
                                 {myDigi2.map((card, index) =>
                                     <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi2"} sendUpdate={sendUpdate}/></CardContainer>)}
+                                        <Card card={card} location={"myDigi2"}
+                                              sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
                             <BattleArea3 ref={dropToDigi3}>
                                 {myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {myDigi3.map((card, index) =>
                                     <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi3"} sendUpdate={sendUpdate}/></CardContainer>)}
+                                        <Card card={card} location={"myDigi3"}
+                                              sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
                             <BattleArea4 ref={dropToDigi4}>
                                 {myDigi4.map((card, index) =>
                                     <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi4"} sendUpdate={sendUpdate}/></CardContainer>)}
+                                        <Card card={card} location={"myDigi4"}
+                                              sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea4>
                             <BattleArea5 ref={dropToDigi5}>
                                 {myDigi5.map((card, index) =>
                                     <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDigi5"} sendUpdate={sendUpdate}/></CardContainer>)}
+                                        <Card card={card} location={"myDigi5"}
+                                              sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea5>
 
                             <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
                                 {myDelay.map((card, index) =>
                                     <DelayCardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myDelay"}/></DelayCardContainer>)}
+                                        <Card card={card} location={"myDelay"}/></DelayCardContainer>)}
                                 {myDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
                             </DelayAreaContainer>
 
                             <TamerAreaContainer ref={dropToTamer}>
                                 {myTamer.map((card, index) =>
                                     <TamerCardContainer key={card.id} cardIndex={index}>
-                                    <Card card={card} location={"myTamer"}/></TamerCardContainer>)}
+                                        <Card card={card} location={"myTamer"}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                             </TamerAreaContainer>
 
@@ -839,17 +889,17 @@ const SecuritySpan = styled.span`
   left: 133px;
 `;
 
-const MySecuritySpan = styled(SecuritySpan)<{cardCount: number}>`
+const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
   cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
   transform: translateX(${({cardCount}) => cardCount === 1 ? 4 : 0}px);
-  
+
   &:hover {
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
     font-size: 42px;
     color: #f9f9f9;
-    transform: translate(${({cardCount})=> cardCount === 1 ? 4 : -2}px, -1px);
+    transform: translate(${({cardCount}) => cardCount === 1 ? 4 : -2}px, -1px);
   }
 `;
 
@@ -1008,14 +1058,9 @@ const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   float: left;
   left: 5px;
   transition: all 0.2s ease;
-  transform: translateX(calc((${({cardIndex}) => cardIndex} * 400px) / ${({cardCount}) => cardCount})) translateY(${({
-                                                                                                                       cardCount,
-                                                                                                                       cardIndex
-                                                                                                                     }) => calculateCardOffset(cardCount, cardIndex)}) rotate(${({
-                                                                                                                                                                                   cardCount,
-                                                                                                                                                                                   cardIndex
-                                                                                                                                                                                 }) => calculateCardRotation(cardCount, cardIndex)});
-
+  transform: translateX(${({cardCount, cardIndex}) => calculateCardOffsetX(cardCount, cardIndex)}) 
+              translateY(${({cardCount, cardIndex}) => calculateCardOffsetY(cardCount, cardIndex)}) 
+              rotate(${({cardCount, cardIndex}) => calculateCardRotation(cardCount, cardIndex)});
   &:hover {
     z-index: 100;
   }
@@ -1103,6 +1148,17 @@ const RevealContainer = styled.div`
   align-items: center;
   gap: 5px;
   transform: scale(2);
+`;
+
+const StartingName = styled.span`
+  font-family: Sansation, sans-serif;
+  font-size: 124px;
+  color: ghostwhite;
+  text-outline: #114ce1 3px;
+  text-shadow: 0 0 8px #2764ff;
+  text-transform: uppercase;
+  z-index: 10000 !important;
+  filter: saturate(2) brightness(2);
 `;
 
 const BackGround = styled.div`

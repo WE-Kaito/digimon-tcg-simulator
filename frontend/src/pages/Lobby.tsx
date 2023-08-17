@@ -47,9 +47,7 @@ export default function Lobby({user}: { user: string }) {
                 if (acceptedFrom === inviteTo) {
                     const newGameID = user + "_" + acceptedFrom;
                     setGameId(newGameID);
-                    setTimeout(() => {
-                        navigate(`../game`);
-                    }, 500);
+                    navigate(`../game`);
                 }
                 return;
             }
@@ -98,9 +96,7 @@ export default function Lobby({user}: { user: string }) {
         const newGameId = inviteFrom + "_" + user;
         setGameId(newGameId);
         console.log("gameId: " + newGameId);
-        setTimeout(() => {
-            navigate(`/game`);
-        }, 1000);
+        navigate(`/game`);
     }
 
 

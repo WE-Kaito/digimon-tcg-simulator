@@ -87,3 +87,16 @@ export const notifyRegistered = () => toast('✔️ Registered!', {
     theme: "dark",
 });
 
+export const notifySecurityView = () => toast.warning('Opponent opened Security Stack!', {
+    position: "bottom-center",
+    autoClose: 5000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
+
+export const notifyRequestedRestart = () => toast.success('Sent restart request!', {
+    position: "bottom-center",
+    autoClose: 1200,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
