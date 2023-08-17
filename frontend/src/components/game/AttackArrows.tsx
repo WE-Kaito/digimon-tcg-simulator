@@ -44,7 +44,6 @@ position: relative;
     stroke-width: 10px;
   }
   
-
   @keyframes arrow-pulsate {
     0%,
     100% {

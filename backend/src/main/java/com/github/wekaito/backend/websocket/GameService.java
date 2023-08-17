@@ -49,25 +49,21 @@ public class GameService extends TextWebSocketHandler {
 
         if (gameRoom == null) return;
 
-        WebSocketSession opponentSession = null;
         for (WebSocketSession webSocketSession : gameRoom) {
             if (webSocketSession != null && Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals(username)) {
-                opponentSession = gameRoom.stream()
+                WebSocketSession opponentSession = gameRoom.stream()
                         .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                         .findFirst().orElse(null);
 
                 if (opponentSession != null && opponentSession.isOpen()) {
                     opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
                 }
+                gameRoom.remove(opponentSession);
                 break;
             }
         }
 
         gameRoom.remove(session);
-        if (opponentSession != null) {
-            gameRoom.remove(opponentSession);
-        }
-
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
@@ -98,6 +94,8 @@ public class GameService extends TextWebSocketHandler {
         if (command.startsWith("/restartRequest:")) sendMessageToOpponent(gameRoom, command, "[RESTART]");
 
         if (command.startsWith("/openedSecurity:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_VIEWED]");
+
+        if (command.startsWith("/attack:")) handleAttack(gameRoom, command);
     }
 
     void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String command, String message) throws IOException {
@@ -109,7 +107,6 @@ public class GameService extends TextWebSocketHandler {
             opponentSession.sendMessage(new TextMessage(message));
         }
     }
-
 
     void setUpGame(WebSocketSession session, String gameId) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
@@ -140,7 +137,7 @@ public class GameService extends TextWebSocketHandler {
         for (WebSocketSession s : gameRoom) {
             s.sendMessage(new TextMessage("[STARTING_PLAYER]:" + names[index]));
         }
-        Thread.sleep(3800);
+        Thread.sleep(3600);
 
         Card[] deck1 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
         Card[] deck2 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
@@ -239,5 +236,48 @@ public class GameService extends TextWebSocketHandler {
                 s.sendMessage(new TextMessage("[DISTRIBUTE_CARDS]:" + fullGameJson));
             }
         }
+    }
+
+    void handleAttack(Set<WebSocketSession> gameRoom, String command) throws IOException {
+        String[] parts = command.split(":", 4);
+        String from = parts[2];
+        String to = parts[3];
+        sendMessageToOpponent(gameRoom, command, "[ATTACK]:" + getFrom(from) + ":" + getTo(to));
+    }
+
+    private String getFrom(String from) {
+        String newFrom = "";
+        switch (from) {
+            case "myDigi1":
+                newFrom += "opponentDigi1"; break;
+            case "myDigi2":
+                newFrom += "opponentDigi2"; break;
+            case "myDigi3":
+                newFrom += "opponentDigi3"; break;
+            case "myDigi4":
+                newFrom += "opponentDigi4"; break;
+            case "myDigi5":
+                newFrom += "opponentDigi5"; break;
+        }
+        return newFrom;
+    }
+
+    private String getTo(String to) {
+        String newTo = "";
+        switch (to) {
+            case "opponentDigi1":
+                newTo += "myDigi1"; break;
+            case "opponentDigi2":
+                newTo += "myDigi2"; break;
+            case "opponentDigi3":
+                newTo += "myDigi3"; break;
+            case "opponentDigi4":
+                newTo += "myDigi4"; break;
+            case "opponentDigi5":
+                newTo += "myDigi5"; break;
+            case "opponentSecurity":
+                newTo += "mySecurity"; break;
+        }
+        return newTo;
     }
 }

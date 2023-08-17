@@ -67,6 +67,7 @@ export default function Game({user}: { user: string }) {
     const [showAttackArrow, setShowAttackArrow] = useState<boolean>(false);
     const [arrowFrom, setArrowFrom] = useState<string>("");
     const [arrowTo, setArrowTo] = useState<string>("");
+    const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -104,7 +105,6 @@ export default function Game({user}: { user: string }) {
 
         onOpen: () => {
             websocket.sendMessage("/startGame:" + gameId);
-            console.log(gameId);
         },
 
         onMessage: (event) => {
@@ -132,6 +132,15 @@ export default function Game({user}: { user: string }) {
                 }, 5000);
             }
 
+            if (event.data.startsWith("[ATTACK]:")) {
+                const parts = event.data.substring("[ATTACK]:".length).split(":");
+                setArrowFrom(parts[0]);
+                setArrowTo(parts[1]);
+                setAttackFromOpponent(true);
+                setShowAttackArrow(true);
+                endAttackAnimation();
+            }
+
             switch (event.data) {
                 case "[SURRENDER]": {
                     startTimer();
@@ -142,8 +151,8 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case "[PLAYER_LEFT]": {
-                    //setOpponentLeft(true);
-                    //startTimer();
+                    setOpponentLeft(true);
+                    startTimer();
                     break;
                 }
                 case ("[RESTART]"): {
@@ -153,6 +162,15 @@ export default function Game({user}: { user: string }) {
             }
         }
     });
+
+    function endAttackAnimation() {
+        setTimeout(() => {
+            setShowAttackArrow(false);
+            setArrowFrom('');
+            setArrowTo('');
+            setAttackFromOpponent(false);
+        }, 3500);
+    }
 
     function chunkString(str: string, size: number): string[] {
         const chunks = [];
@@ -340,11 +358,8 @@ export default function Game({user}: { user: string }) {
             setArrowFrom(location);
             setArrowTo('opponentDigi1');
             setShowAttackArrow(true);
-            setTimeout(() => {
-                setShowAttackArrow(false);
-                setArrowFrom('');
-                setArrowTo('');
-            }, 3500);
+            websocket.sendMessage(gameId + ":/attack:"+ opponentName+ ":" + location + ":opponentDigi1");
+            endAttackAnimation();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -358,11 +373,8 @@ export default function Game({user}: { user: string }) {
             setArrowFrom(location);
             setArrowTo('opponentDigi2');
             setShowAttackArrow(true);
-            setTimeout(() => {
-                setShowAttackArrow(false);
-                setArrowFrom('');
-                setArrowTo('');
-            }, 3500);
+            websocket.sendMessage(gameId + ":/attack:"+ opponentName+ ":" + location + ":opponentDigi2");
+            endAttackAnimation();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -375,12 +387,9 @@ export default function Game({user}: { user: string }) {
             const {location} = item;
             setArrowFrom(location);
             setArrowTo('opponentDigi3');
+            websocket.sendMessage(gameId + ":/attack:"+ opponentName+ ":" + location + ":opponentDigi3");
             setShowAttackArrow(true);
-            setTimeout(() => {
-                setShowAttackArrow(false);
-                setArrowFrom('');
-                setArrowTo('');
-            }, 3500);
+            endAttackAnimation();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -393,12 +402,9 @@ export default function Game({user}: { user: string }) {
             const {location} = item;
             setArrowFrom(location);
             setArrowTo('opponentDigi4');
+            websocket.sendMessage(gameId + ":/attack:"+ opponentName+ ":" + location + ":opponentDigi4");
             setShowAttackArrow(true);
-            setTimeout(() => {
-                setShowAttackArrow(false);
-                setArrowFrom('');
-                setArrowTo('');
-            }, 3500);
+            endAttackAnimation();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -412,11 +418,8 @@ export default function Game({user}: { user: string }) {
             setArrowFrom(location);
             setArrowTo('opponentDigi5');
             setShowAttackArrow(true);
-            setTimeout(() => {
-                setShowAttackArrow(false);
-                setArrowFrom('');
-                setArrowTo('');
-            }, 3500);
+            websocket.sendMessage(gameId + ":/attack:"+ opponentName+ ":" + location + ":opponentDigi5");
+            endAttackAnimation();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -430,11 +433,8 @@ export default function Game({user}: { user: string }) {
             setArrowFrom(location);
             setArrowTo('opponentSecurity');
             setShowAttackArrow(true);
-            setTimeout(() => {
-                setShowAttackArrow(false);
-                setArrowFrom('');
-                setArrowTo('');
-            }, 3500);
+            websocket.sendMessage(gameId + ":/attack:"+ opponentName+ ":" + location + ":opponentSecurity");
+            endAttackAnimation();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -478,7 +478,7 @@ export default function Game({user}: { user: string }) {
 
     return (
         <BackGround>
-            {showAttackArrow && <AttackArrows fromOpponent={false} from={arrowFrom} to={arrowTo}/>}
+            {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
             <BackGroundPattern/>
             {(surrenderOpen || timerOpen) &&
                 <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
