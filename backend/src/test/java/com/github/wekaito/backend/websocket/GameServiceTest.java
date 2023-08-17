@@ -63,6 +63,13 @@ class GameServiceTest {
         return session;
     }
 
+    private void putPlayersToGameRoom() {
+        Set<WebSocketSession> gameRoom = new HashSet<>();
+        gameRoom.add(session1);
+        gameRoom.add(session2);
+        gameService.getGameRooms().put(gameId, gameRoom);
+    }
+
     @BeforeEach
     void setUp() {
         gameService = new GameService(mongoUserDetailsService, profileService, idService, objectMapper);
@@ -167,10 +174,4 @@ class GameServiceTest {
         verify(session2, times(1)).sendMessage(expectedMessage);
     }
 
-    void putPlayersToGameRoom() {
-        Set<WebSocketSession> gameRoom = new HashSet<>();
-        gameRoom.add(session1);
-        gameRoom.add(session2);
-        gameService.getGameRooms().put(gameId, gameRoom);
-    }
 }
