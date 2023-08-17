@@ -485,7 +485,7 @@ export default function Game({user}: { user: string }) {
                                  setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
                                  handleSurrender={handleSurrender}/>}
             {restartMoodle && <RestartMoodle setRestartMoodle={setRestartMoodle} sendAcceptRestart={acceptRestart}/>}
-            {showStartingPlayer && <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"45%", transform:"translateX(-50%)"}}><StartingName>1st: {startingPlayer}</StartingName></Fade>}
+            {showStartingPlayer && <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"42%", transform:"translateX(-50%)"}}><StartingName>1st: {startingPlayer}</StartingName></Fade>}
             <Wrapper>
                 <StyledToastContainer/>
                 {myReveal.length > 0 && <RevealContainer>
