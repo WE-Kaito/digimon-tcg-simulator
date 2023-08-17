@@ -93,7 +93,7 @@ class GameServiceTest {
         Player player2 = new Player(username2, "tai");
         Player[] players = {player1, player2};
         String playersJson = new ObjectMapper().writeValueAsString(players);
-        TextMessage expectedMessage = new TextMessage( "[START_GAME]:" + playersJson);
+        TextMessage expectedMessage = new TextMessage("[START_GAME]:" + playersJson);
         // WHEN
         gameService.setUpGame(session1, gameId);
         gameService.setUpGame(session2, gameId);
@@ -107,10 +107,7 @@ class GameServiceTest {
     void testSurrender() throws IOException, InterruptedException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[SURRENDER]");
-        Set<WebSocketSession> gameRoom = new HashSet<>();
-        gameRoom.add(session1);
-        gameRoom.add(session2);
-        gameService.getGameRooms().put(gameId, gameRoom);
+        putPlayersToGameRoom();
 
         // WHEN
         gameService.handleTextMessage(session2, new TextMessage(gameId + ":/surrender:" + username1));
@@ -121,13 +118,26 @@ class GameServiceTest {
     }
 
     @Test
+    void testSendMessageToOpponent() throws IOException, InterruptedException {
+        //Given
+        TextMessage expectedMessage1 = new TextMessage("[RESTART]");
+        TextMessage expectedMessage2 = new TextMessage("[SECURITY_VIEWED]");
+        putPlayersToGameRoom();
+        // WHEN
+        gameService.handleTextMessage(session2, new TextMessage(gameId + ":/restartRequest:" + username1));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/openedSecurity:" + username2));
+
+        // THEN
+        verify(session1, times(1)).sendMessage(expectedMessage1);
+        verify(session2, times(1)).sendMessage(expectedMessage2);
+
+    }
+
+    @Test
     void testPlayerLeaves() throws IOException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[PLAYER_LEFT]");
-        Set<WebSocketSession> gameRoom = new HashSet<>();
-        gameRoom.add(session1);
-        gameRoom.add(session2);
-        gameService.getGameRooms().put(gameId, gameRoom);
+        putPlayersToGameRoom();
 
         // WHEN
         gameService.afterConnectionClosed(session1, CloseStatus.NORMAL);
@@ -150,13 +160,17 @@ class GameServiceTest {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[DISTRIBUTE_CARDS]:{test}");
         TextMessage updateFromClient = new TextMessage(gameId + ":/updateGame:{test}");
-        Set<WebSocketSession> gameRoom = new HashSet<>();
-        gameRoom.add(session1);
-        gameRoom.add(session2);
-        gameService.getGameRooms().put(gameId, gameRoom);
+        putPlayersToGameRoom();
         // WHEN
         gameService.handleTextMessage(session1, updateFromClient);
         // THEN
         verify(session2, times(1)).sendMessage(expectedMessage);
+    }
+
+    void putPlayersToGameRoom() {
+        Set<WebSocketSession> gameRoom = new HashSet<>();
+        gameRoom.add(session1);
+        gameRoom.add(session2);
+        gameService.getGameRooms().put(gameId, gameRoom);
     }
 }
