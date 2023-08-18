@@ -5,6 +5,7 @@ import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.IdService;
 import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
@@ -31,6 +32,25 @@ public class GameService extends TextWebSocketHandler {
 
     private final SecureRandom secureRand = new SecureRandom();
 
+    @Getter
+    private final Map<String, String> positionMap = initializePositionMap();
+
+    private Map<String, String> initializePositionMap() {
+        Map<String, String> map = new HashMap<>();
+        map.put("myDigi1", "opponentDigi1");
+        map.put("myDigi2", "opponentDigi2");
+        map.put("myDigi3", "opponentDigi3");
+        map.put("myDigi4", "opponentDigi4");
+        map.put("myDigi5", "opponentDigi5");
+        map.put("opponentDigi1", "myDigi1");
+        map.put("opponentDigi2", "myDigi2");
+        map.put("opponentDigi3", "myDigi3");
+        map.put("opponentDigi4", "myDigi4");
+        map.put("opponentDigi5", "myDigi5");
+        map.put("opponentSecurity", "mySecurity");
+        return map;
+    }
+
     public Map<String, Set<WebSocketSession>> getGameRooms() {
         return gameRooms;
     }
@@ -49,25 +69,21 @@ public class GameService extends TextWebSocketHandler {
 
         if (gameRoom == null) return;
 
-        WebSocketSession opponentSession = null;
         for (WebSocketSession webSocketSession : gameRoom) {
             if (webSocketSession != null && Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals(username)) {
-                opponentSession = gameRoom.stream()
+                WebSocketSession opponentSession = gameRoom.stream()
                         .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                         .findFirst().orElse(null);
 
                 if (opponentSession != null && opponentSession.isOpen()) {
                     opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
                 }
+                gameRoom.remove(opponentSession);
                 break;
             }
         }
 
         gameRoom.remove(session);
-        if (opponentSession != null) {
-            gameRoom.remove(opponentSession);
-        }
-
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
@@ -98,6 +114,8 @@ public class GameService extends TextWebSocketHandler {
         if (command.startsWith("/restartRequest:")) sendMessageToOpponent(gameRoom, command, "[RESTART]");
 
         if (command.startsWith("/openedSecurity:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_VIEWED]");
+
+        if (command.startsWith("/attack:")) handleAttack(gameRoom, command);
     }
 
     void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String command, String message) throws IOException {
@@ -109,7 +127,6 @@ public class GameService extends TextWebSocketHandler {
             opponentSession.sendMessage(new TextMessage(message));
         }
     }
-
 
     void setUpGame(WebSocketSession session, String gameId) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
@@ -140,7 +157,7 @@ public class GameService extends TextWebSocketHandler {
         for (WebSocketSession s : gameRoom) {
             s.sendMessage(new TextMessage("[STARTING_PLAYER]:" + names[index]));
         }
-        Thread.sleep(3800);
+        Thread.sleep(3600);
 
         Card[] deck1 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
         Card[] deck2 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
@@ -239,5 +256,17 @@ public class GameService extends TextWebSocketHandler {
                 s.sendMessage(new TextMessage("[DISTRIBUTE_CARDS]:" + fullGameJson));
             }
         }
+    }
+
+
+    void handleAttack(Set<WebSocketSession> gameRoom, String command) throws IOException {
+        String[] parts = command.split(":", 4);
+        String from = parts[2];
+        String to = parts[3];
+        sendMessageToOpponent(gameRoom, command, "[ATTACK]:" + getPosition(from) + ":" + getPosition(to));
+    }
+
+    private String getPosition(String fromTo) {
+        return positionMap.getOrDefault(fromTo, "");
     }
 }

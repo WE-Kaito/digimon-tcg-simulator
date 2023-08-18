@@ -140,7 +140,7 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
     }
     const distanceToMiddle = Math.abs(index - middleIndex);
     const offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
-    return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 8 + "px" : offset + "px";
+    return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 10 - handCardLength/3 + handCardLength/10 + "px" : offset + "px";
 }
 
 export function calculateCardOffsetX(handCardLength: number, index: number) {
