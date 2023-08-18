@@ -1,5 +1,6 @@
 package com.github.wekaito.backend.websocket;
 
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -11,19 +12,12 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+@Getter
 @Service
 public class ChatService extends TextWebSocketHandler {
 
     private final Set<WebSocketSession> activeSessions = new HashSet<>();
     private final Set<String> connectedUsernames = new HashSet<>();
-
-    public Set<WebSocketSession> getActiveSessions() {
-        return activeSessions;
-    }
-
-    public Set<String> getConnectedUsernames() {
-        return connectedUsernames;
-    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {

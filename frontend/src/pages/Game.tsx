@@ -140,7 +140,7 @@ export default function Game({user}: { user: string }) {
                 playStartSfx();
                 setTimeout(() => {
                     playDrawCardSfx();
-                }, 3400);
+                }, 3800);
                 setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
@@ -201,7 +201,9 @@ export default function Game({user}: { user: string }) {
         const chunks = chunkString(updatedGame, 1000);
 
         for (const chunk of chunks) {
-            websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
+            setTimeout(() => {
+                websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
+            }, 10);
         }
     }
 

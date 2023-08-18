@@ -94,7 +94,7 @@ class GameServiceTest {
     }
 
     @Test
-    void testGameSetup() throws IOException {
+    void testGameSetup() throws IOException, InterruptedException {
         // GIVEN
         Player player1 = new Player(username1, "takato");
         Player player2 = new Player(username2, "tai");
