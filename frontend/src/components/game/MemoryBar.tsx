@@ -1,6 +1,7 @@
 import {useGame} from "../../hooks/useGame.ts";
 import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
+import {playButtonClickSfx} from "../../utils/sound.ts";
 
 export default function MemoryBar({sendUpdate}:{sendUpdate: () => void}) {
 
@@ -10,6 +11,7 @@ export default function MemoryBar({sendUpdate}:{sendUpdate: () => void}) {
     function handleClick(memory: number) {
         setMemory(memory);
         sendUpdate();
+        playButtonClickSfx();
     }
 
     return (

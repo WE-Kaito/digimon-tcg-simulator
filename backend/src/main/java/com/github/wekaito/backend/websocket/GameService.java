@@ -5,6 +5,7 @@ import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.IdService;
 import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -61,7 +62,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
+    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         Set<WebSocketSession> gameRoom = gameRooms.values().stream()
                 .filter(s -> s.stream().anyMatch(s1 -> username.equals(Objects.requireNonNull(s1.getPrincipal()).getName())))

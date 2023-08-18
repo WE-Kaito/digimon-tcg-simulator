@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import {useGame} from "../../hooks/useGame.ts";
+import {playDrawCardSfx} from "../../utils/sound.ts";
 
 type DeckMoodleProps = {
     cardToSend: {id: string, location:string},
@@ -16,6 +17,7 @@ export default function DeckMoodle({cardToSend, sendUpdate, to, setMoodle} : Dec
         sendCardToDeck(topOrBottom, cardToSend, to);
         sendUpdate();
         setMoodle(false);
+        playDrawCardSfx();
     }
 
     return (

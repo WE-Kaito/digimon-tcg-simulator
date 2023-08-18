@@ -24,6 +24,17 @@ import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import RestartMoodle from "../components/game/RestartMoodle.tsx";
 import AttackArrows from "../components/game/AttackArrows.tsx";
+import {
+    playAttackSfx,
+    playDrawCardSfx,
+    playCardToHandSfx,
+    playRevealCardSfx,
+    playPlaceCardSfx,
+    playTrashCardSfx,
+    playStartSfx,
+    playSecurityRevealSfx, playShuffleDeckSfx
+} from "../utils/sound.ts";
+
 
 export default function Game({user}: { user: string }) {
 
@@ -126,10 +137,14 @@ export default function Game({user}: { user: string }) {
                 setMemoryBarLoading(true);
                 setStartingPlayer(event.data.substring("[STARTING_PLAYER]:".length));
                 setShowStartingPlayer(true);
+                playStartSfx();
+                setTimeout(() => {
+                    playDrawCardSfx();
+                }, 3400);
                 setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
-                }, 5000);
+                }, 4500);
             }
 
             if (event.data.startsWith("[ATTACK]:")) {
@@ -164,6 +179,7 @@ export default function Game({user}: { user: string }) {
     });
 
     function endAttackAnimation() {
+        playAttackSfx();
         setTimeout(() => {
             setShowAttackArrow(false);
             setArrowFrom('');
@@ -195,6 +211,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myDigi1');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -207,6 +224,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myDigi2');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -219,6 +237,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myDigi3');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -231,6 +250,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myDigi4');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -243,6 +263,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myDigi5');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -255,6 +276,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myHand');
             sendUpdate();
+            playCardToHandSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -267,6 +289,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myBreedingArea');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -279,6 +302,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myTamer');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -291,6 +315,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myDelay');
             sendUpdate();
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -345,6 +370,7 @@ export default function Game({user}: { user: string }) {
             const {id, location} = item;
             moveCard(id, location, 'myTrash');
             sendUpdate();
+            playTrashCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -492,7 +518,7 @@ export default function Game({user}: { user: string }) {
                     {myReveal?.map((card) => <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
                 {opponentReveal.length > 0 && <RevealContainer>
-                    {opponentReveal?.map((card) => <Flip key={card.id}><Card card={card}
+                    {opponentReveal?.map((card) =>  <Flip key={card.id}><Card card={card}
                                                                              location="opponentReveal"/></Flip>)}
                 </RevealContainer>}
 
@@ -664,6 +690,7 @@ export default function Game({user}: { user: string }) {
                                              onClick={() => {
                                                  drawCardFromEggDeck();
                                                  sendUpdate();
+                                                 playDrawCardSfx();
                                              }}/>}
                                 {myEggDeck.length !== 0 &&
                                     <div style={{
@@ -679,6 +706,7 @@ export default function Game({user}: { user: string }) {
                                 <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
                                     if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                     sendUpdate();
+                                    playSecurityRevealSfx();
                                 }}>{mySecurity.length}</MySecuritySpan>
                                 <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px"}}/>
                                 {!securityContentMoodle ?
@@ -696,6 +724,7 @@ export default function Game({user}: { user: string }) {
                                                     setSecurityContentMoodle(false);
                                                     shuffleSecurity();
                                                     sendUpdate();
+                                                    playShuffleDeckSfx();
                                                 }}>🔄</SendButton>}
                             </SecurityStackContainer>
 
@@ -724,6 +753,7 @@ export default function Game({user}: { user: string }) {
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
                                     drawCardFromDeck();
                                     sendUpdate();
+                                    playDrawCardSfx();
                                 }}/>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
@@ -733,6 +763,7 @@ export default function Game({user}: { user: string }) {
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myReveal");
                                     sendUpdate();
+                                    playRevealCardSfx();
                                 }}
                                             disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
                             </DeckContainer>

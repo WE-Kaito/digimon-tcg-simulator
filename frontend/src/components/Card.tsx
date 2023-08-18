@@ -4,9 +4,10 @@ import {useStore} from "../hooks/useStore.ts";
 import {useDrag} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {topCardInfo} from "../utils/functions.ts";
+import {playSuspendSfx} from "../utils/sound.ts";
 
 type CardProps = {
-    card: CardTypeWithId | CardTypeGame ,
+    card: CardTypeWithId | CardTypeGame,
     location: string,
     sendUpdate?: () => void
 }
@@ -34,7 +35,12 @@ export default function Card({card, location, sendUpdate}: CardProps) {
         if (location === "deck") {
             deleteFromDeck(card.id);
         } else {
-            (tiltable && selectedCard === card) ? tiltCard(card.id, location) : selectCard(card);
+            if (tiltable && selectedCard === card) {
+                playSuspendSfx();
+                tiltCard(card.id, location);
+            } else {
+                selectCard(card);
+            }
             if (tiltable && sendUpdate) sendUpdate();
         }
     }
