@@ -139,8 +139,9 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
         if (index === 4 || index === handCardLength - 5) endValue += (handCardLength / 3) * 1.1;
     }
     const distanceToMiddle = Math.abs(index - middleIndex);
-    const offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
-    return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 10 - handCardLength/3 + handCardLength/10 + "px" : offset + "px";
+    let offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
+    if (index === middleIndex && handCardLength % 2 === 0) offset -= (2 + handCardLength / 6);
+    return (index === middleIndex|| index === 0 && handCardLength == 6) ? offset + 10 - handCardLength/3 + handCardLength/10 + "px" : offset + "px";
 }
 
 export function calculateCardOffsetX(handCardLength: number, index: number) {
