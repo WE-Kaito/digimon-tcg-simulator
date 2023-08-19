@@ -43,15 +43,21 @@ Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will atten
    
 This is a fan-made project and is not affiliated with or endorsed by Bandai Co., Ltd. or any official Digimon franchise entities. 
    
-   The Digimon name, characters,and all related materials are the property of Bandai Co., Ltd. and its respective owners.
+The Digimon name, characters,and all related materials are the property of Bandai Co., Ltd. and its respective owners.
 
-The purpose of this project is to celebrate and pay tribute to the Digimon franchise and its fan community. It is a non-commercial, not-for-profit endeavor created by fans for fans.
+The purpose of this project is to celebrate and pay tribute to the Digimon franchise and its fan community. 
 
-All materials used in this project, including but not limited to artwork, music, and other media, are either created by us or used with permission from the respective creators. 
+It is a non-commercial, not-for-profit endeavor created by fans for fans.
+
+All materials used in this project, including but not limited to artwork, music, and other media, 
+
+are either created by us or used with permission from the respective creators. 
 
 Any copyrighted material used here is for fan appreciation and entertainment purposes only.
 
-By accessing or using this fan project, you acknowledge and agree that it is an unofficial fan-made work and not an official part of the Digimon franchise.
+By accessing or using this fan project, you acknowledge and agree that it is an unofficial 
 
-If you are the owner of any copyrighted material used in this project and wish to have it removed, please contact us, and we will promptly comply with your request.
+fan-made work and not an official part of the Digimon franchise.
+
+If you are the owner of any copyrighted material used in this project and wish to have it removed, please contact me, and I will promptly comply with your request.
 </sub>
