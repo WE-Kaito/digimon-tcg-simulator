@@ -8,11 +8,11 @@ Reviews are very welcome!
 **Features**:
 - [x] Register with a unique username + password to use the App.
 - [x] Deckbuilder using [digimoncard.io's API](https://documenter.getpostman.com/view/14059948/TzecB4fH).
-- [x] Drag and drop Cards. 
-- [x] Edit your Decks and set your avatar and active deck on the profile page.
-- [x] Chat with other Players and invite your friends in the Lobby.
-- [x] Resposive Design (Game page excluded).
-- [X] Manual simulation of the Game with Audio and Animations
+- [x] Drag and drop cards. 
+- [x] Edit your decks and set your avatar and active deck on the profile page.
+- [x] Chat with other players and invite your friends in the Lobby.
+- [x] Resposive design (Game page excluded).
+- [X] Manual simulation of the *Digimon Card Game* with audio and animations
 
 **Try it on https://cgn-java-23-2-enrico.capstone-project.de/.**  
 Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
