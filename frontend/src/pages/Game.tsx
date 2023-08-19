@@ -508,14 +508,18 @@ export default function Game({user}: { user: string }) {
                                  handleSurrender={handleSurrender}/>}
             {restartMoodle && <RestartMoodle setRestartMoodle={setRestartMoodle} sendAcceptRestart={acceptRestart}/>}
             {showStartingPlayer && <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"42%", transform:"translateX(-50%)"}}><StartingName>1st: {startingPlayer}</StartingName></Fade>}
+
             <Wrapper>
+
                 <StyledToastContainer/>
+
                 {myReveal.length > 0 && <RevealContainer>
-                    {myReveal?.map((card) => <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
+                    {myReveal?.map((card) =>
+                        <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
                 {opponentReveal.length > 0 && <RevealContainer>
-                    {opponentReveal?.map((card) =>  <Flip key={card.id}><Card card={card}
-                                                                             location="opponentReveal"/></Flip>)}
+                    {opponentReveal?.map((card) =>
+                        <Flip key={card.id}><Card card={card} location="opponentReveal"/></Flip>)}
                 </RevealContainer>}
 
                 <InfoContainer>

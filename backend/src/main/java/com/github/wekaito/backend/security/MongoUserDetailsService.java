@@ -60,7 +60,6 @@ public class MongoUserDetailsService implements UserDetailsService {
         MongoUser mongoUser = getCurrentUser();
         MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), deckId, mongoUser.avatarName());
         mongoUserRepository.save(updatedUser);
-
     }
 
     public String getActiveDeck() {

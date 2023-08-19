@@ -27,7 +27,6 @@ class ChatServiceTest {
     private MongoUserDetailsService mongoUserDetailsService;
     @Mock
     private ProfileService profileService;
-
     @InjectMocks
     private ChatService chatService;
     private WebSocketSession session1;

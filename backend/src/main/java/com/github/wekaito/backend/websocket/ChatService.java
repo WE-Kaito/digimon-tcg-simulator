@@ -1,6 +1,5 @@
 package com.github.wekaito.backend.websocket;
 
-import com.github.wekaito.backend.Deck;
 import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import lombok.Getter;
@@ -13,7 +12,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -32,13 +30,11 @@ public class ChatService extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
-        if (mongoUserDetailsService.getActiveDeck(username).equals("")){
-            List<Deck> decks = profileService.getDecks();
-            if (decks.isEmpty()){
-                session.sendMessage(new TextMessage("[NO_DECK_FOUND]"));
-                return;
-            }
-            mongoUserDetailsService.setActiveDeck(decks.get(0).id());
+        String activeDeck = mongoUserDetailsService.getActiveDeck(username);
+
+        if (activeDeck.equals("") || profileService.getDeckById(activeDeck) == null){
+            session.sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
+            return;
         }
 
         activeSessions.add(session);
