@@ -4,7 +4,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {useDrag} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {topCardInfo} from "../utils/functions.ts";
-import {playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
+import {playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -35,6 +35,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     function handleClick() {
         if (location === "deck") {
             deleteFromDeck(card.id);
+            playTrashCardSfx();
         } else {
             if (tiltable && sendSfx && selectedCard === card) {
                 tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);

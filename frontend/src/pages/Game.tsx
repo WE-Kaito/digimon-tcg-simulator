@@ -2,7 +2,13 @@ import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
 import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
-import {profilePicture, calculateCardRotation, calculateCardOffsetY, calculateCardOffsetX} from "../utils/functions.ts";
+import {
+    profilePicture,
+    calculateCardRotation,
+    calculateCardOffsetY,
+    calculateCardOffsetX,
+    getOpponentSfx
+} from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
@@ -34,10 +40,7 @@ import {
     playStartSfx,
     playSecurityRevealSfx,
     playShuffleDeckSfx,
-    playOpponentPlaceCardSfx,
-    playSuspendSfx,
-    playUnsuspendSfx,
-    playLoadMemorybarSfx, playButtonClickSfx
+    playLoadMemorybarSfx
 } from "../utils/sound.ts";
 
 
@@ -180,41 +183,8 @@ export default function Game({user}: { user: string }) {
                     setRestartMoodle(true);
                     break;
                 }
-                case ("[REVEAL_SFX]"): {
-                    playRevealCardSfx();
-                    break;
-                }
-                case ("[SECURITY_REVEAL_SFX]"): {
-                    playSecurityRevealSfx();
-                    break;
-                }
-                case ("[PLACE_CARD_SFX]"): {
-                    playOpponentPlaceCardSfx();
-                    break;
-                }
-                case ("[DRAW_CARD_SFX]"): {
-                    playDrawCardSfx();
-                    break;
-                }
-                case ("[SUSPEND_CARD_SFX]"): {
-                    playSuspendSfx();
-                    break;
-                }
-                case ("[UNSUSPEND_CARD_SFX]"): {
-                    playUnsuspendSfx();
-                    break;
-                }
-                case ("[BUTTON_CLICK_SFX]"): {
-                    playButtonClickSfx();
-                    break;
-                }
-                case ("[TRASH_CARD_SFX]"): {
-                    playTrashCardSfx();
-                    break;
-                }
-                case ("[SHUFFLE_DECK_SFX]"): {
-                    playShuffleDeckSfx();
-                    break;
+                default: {
+                    getOpponentSfx(event.data);
                 }
             }
         }

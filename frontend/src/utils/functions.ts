@@ -17,6 +17,14 @@ import rinaImage from "../assets/profile_pictures/rina.jpg";
 import sakiImage from "../assets/profile_pictures/saki.jpg";
 import taiImage from "../assets/profile_pictures/tai.jpg";
 import takumiImage from "../assets/profile_pictures/takumi.jpg";
+import {
+    playButtonClickSfx,
+    playDrawCardSfx,
+    playOpponentPlaceCardSfx,
+    playRevealCardSfx,
+    playSecurityRevealSfx, playShuffleDeckSfx,
+    playSuspendSfx, playTrashCardSfx, playUnsuspendSfx
+} from "./sound.ts";
 
 export function getBackgroundColor(color: string) {
     switch (color) {
@@ -163,4 +171,45 @@ export function topCardInfo(card: CardTypeGame, location:string, locationCards: 
     });
 
     return card === locationCards[locationCards.length -1] ? effectInfo : undefined;
+}
+
+export function getOpponentSfx(command: string) {
+    switch(command){
+        case ("[REVEAL_SFX]"): {
+            playRevealCardSfx();
+            break;
+        }
+        case ("[SECURITY_REVEAL_SFX]"): {
+            playSecurityRevealSfx();
+            break;
+        }
+        case ("[PLACE_CARD_SFX]"): {
+            playOpponentPlaceCardSfx();
+            break;
+        }
+        case ("[DRAW_CARD_SFX]"): {
+            playDrawCardSfx();
+            break;
+        }
+        case ("[SUSPEND_CARD_SFX]"): {
+            playSuspendSfx();
+            break;
+        }
+        case ("[UNSUSPEND_CARD_SFX]"): {
+            playUnsuspendSfx();
+            break;
+        }
+        case ("[BUTTON_CLICK_SFX]"): {
+            playButtonClickSfx();
+            break;
+        }
+        case ("[TRASH_CARD_SFX]"): {
+            playTrashCardSfx();
+            break;
+        }
+        case ("[SHUFFLE_DECK_SFX]"): {
+            playShuffleDeckSfx();
+            break;
+        }
+    }
 }

@@ -7,6 +7,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId, DraggedItem} from "../utils/types.ts";
 import Card from "./Card.tsx";
 import {useDrop} from "react-dnd";
+import {playPlaceCardSfx} from "../utils/sound.ts";
 
 export default function DeckSelection() {
 
@@ -23,6 +24,7 @@ export default function DeckSelection() {
         drop: (item: DraggedItem) => {
             const {id, location, cardnumber, type} = item;
             addCardToDeck(id, location, cardnumber, type);
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
