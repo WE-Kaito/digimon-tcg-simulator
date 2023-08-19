@@ -12,7 +12,7 @@ Reviews are very welcome!
 - [x] Edit your Decks and set your avatar and active deck on the profile page.
 - [x] Chat with other Players and invite your friends in the Lobby.
 - [x] Resposive Design (Game page excluded).
-- [ ] Manual simulation of the Game (~22.08)
+- [X] Manual simulation of the Game with Audio and Animations
 
 **Try it on https://cgn-java-23-2-enrico.capstone-project.de/.**  
 Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
@@ -38,6 +38,8 @@ Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will atten
 
  <sub>
   🚧 Disclaimer 🚧
+
+---
    
 This is a fan-made project and is not affiliated with or endorsed by Bandai Co., Ltd. or any official Digimon franchise entities. 
    
