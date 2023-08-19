@@ -48,10 +48,6 @@ The purpose of this project is to celebrate and pay tribute to the Digimon franc
 
 It is a non-commercial, not-for-profit endeavor created by fans for fans.
 
-All materials used in this project, including but not limited to artwork, music, and other media, 
-
-are either created by us or used with permission from the respective creators. 
-
 Any copyrighted material used here is for fan appreciation and entertainment purposes only.
 
 By accessing or using this fan project, you acknowledge and agree that it is an unofficial 
