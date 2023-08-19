@@ -129,15 +129,41 @@ class GameServiceTest {
         //Given
         TextMessage expectedMessage1 = new TextMessage("[RESTART]");
         TextMessage expectedMessage2 = new TextMessage("[SECURITY_VIEWED]");
+        TextMessage expectedMessage3 = new TextMessage("[REVEAL_SFX]");
+        TextMessage expectedMessage4 = new TextMessage("[SECURITY_REVEAL_SFX]");
+        TextMessage expectedMessage5 = new TextMessage("[PLACE_CARD_SFX]");
+        TextMessage expectedMessage6 = new TextMessage("[DRAW_CARD_SFX]");
+        TextMessage expectedMessage7 = new TextMessage("[SUSPEND_CARD_SFX]");
+        TextMessage expectedMessage8 = new TextMessage("[UNSUSPEND_CARD_SFX]");
+        TextMessage expectedMessage9 = new TextMessage("[BUTTON_CLICK_SFX]");
+        TextMessage expectedMessage10 = new TextMessage("[TRASH_CARD_SFX]");
+        TextMessage expectedMessage11 = new TextMessage("[SHUFFLE_DECK_SFX]");
         putPlayersToGameRoom();
         // WHEN
-        gameService.handleTextMessage(session2, new TextMessage(gameId + ":/restartRequest:" + username1));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/restartRequest:" + username2));
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/openedSecurity:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playRevealSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playSecurityRevealSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playPlaceCardSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playDrawCardSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playSuspendCardSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playUnsuspendCardSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playButtonClickSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playTrashCardSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playShuffleDeckSfx:" + username2));
 
         // THEN
-        verify(session1, times(1)).sendMessage(expectedMessage1);
+        verify(session2, times(1)).sendMessage(expectedMessage1);
         verify(session2, times(1)).sendMessage(expectedMessage2);
-
+        verify(session2, times(1)).sendMessage(expectedMessage3);
+        verify(session2, times(1)).sendMessage(expectedMessage4);
+        verify(session2, times(1)).sendMessage(expectedMessage5);
+        verify(session2, times(1)).sendMessage(expectedMessage6);
+        verify(session2, times(1)).sendMessage(expectedMessage7);
+        verify(session2, times(1)).sendMessage(expectedMessage8);
+        verify(session2, times(1)).sendMessage(expectedMessage9);
+        verify(session2, times(1)).sendMessage(expectedMessage10);
+        verify(session2, times(1)).sendMessage(expectedMessage11);
     }
 
     @Test
