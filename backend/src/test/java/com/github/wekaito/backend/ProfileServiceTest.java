@@ -74,7 +74,8 @@ class ProfileServiceTest {
         verify(deckRepo).save(exampleDeck);
 
         when(deckRepo.existsById(exampleDeck.id())).thenReturn(false);
-        assertThrows(IllegalArgumentException.class, () -> profileService.updateDeck(exampleDeck.id(), exampleDeckWithoutId));
+        String id = exampleDeck.id();
+        assertThrows(IllegalArgumentException.class, () -> profileService.updateDeck(id, exampleDeckWithoutId));
     }
 
     @Test
@@ -83,7 +84,8 @@ class ProfileServiceTest {
         verify(deckRepo).deleteById(exampleDeck.id());
 
         when(deckRepo.existsById(exampleDeck.id())).thenReturn(false);
-        assertThrows(IllegalArgumentException.class, () -> profileService.deleteDeck(exampleDeck.id()));
+        String id = exampleDeck.id();
+        assertThrows(IllegalArgumentException.class, () -> profileService.deleteDeck(id));
     }
 
     @Test
