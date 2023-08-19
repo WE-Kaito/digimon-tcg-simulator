@@ -4,15 +4,16 @@ import {useStore} from "../hooks/useStore.ts";
 import {useDrag} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {topCardInfo} from "../utils/functions.ts";
-import {playSuspendSfx} from "../utils/sound.ts";
+import {playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
     location: string,
     sendUpdate?: () => void
+    sendSfx?: (sfx: string) => void
 }
 
-export default function Card({card, location, sendUpdate}: CardProps) {
+export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -28,16 +29,15 @@ export default function Card({card, location, sendUpdate}: CardProps) {
         }),
     }));
 
-    const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5"];
+    const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myTamer"];
     const tiltable = tiltLocations.includes(location);
 
     function handleClick() {
         if (location === "deck") {
             deleteFromDeck(card.id);
         } else {
-            if (tiltable && selectedCard === card) {
-                playSuspendSfx();
-                tiltCard(card.id, location);
+            if (tiltable && sendSfx && selectedCard === card) {
+                tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
             } else {
                 selectCard(card);
             }

@@ -9,6 +9,9 @@ import startSfx from "../assets/sounds/start-whoosh.mp3";
 import securityRevealSfx from "../assets/sounds/security-reveal.mp3";
 import shuffleDeckSfx from "../assets/sounds/shuffle-deck.mp3";
 import suspendSfx from "../assets/sounds/suspend.mp3";
+import unsuspendSfx from "../assets/sounds/unsuspend.mp3";
+import opponentPlaceCardSfx from "../assets/sounds/opponent-place-card.mp3";
+import loaadMemorybarSfx from "../assets/sounds/load-memorybar.mp3";
 
 export function playDrawCardSfx() {
     const audio = new Audio(drawCardSfx);
@@ -72,6 +75,26 @@ export function playShuffleDeckSfx() {
 
 export function playSuspendSfx() {
     const audio = new Audio(suspendSfx);
-    audio.volume = 0.8;
+    audio.volume = 1;
+    audio.play();
+}
+
+export function playUnsuspendSfx() {
+    const audio = new Audio(unsuspendSfx);
+    audio.volume = 0.25;
+    audio.play();
+}
+
+export function playOpponentPlaceCardSfx() {
+    const audio = new Audio(opponentPlaceCardSfx);
+    audio.volume = 0.7;
+    setTimeout(() => {
+        audio.play();
+    }, 100);
+}
+
+export const playLoadMemorybarSfx = () => {
+    const audio = new Audio(loaadMemorybarSfx);
+    audio.volume = 0.7;
     audio.play();
 }

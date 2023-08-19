@@ -106,28 +106,35 @@ public class GameService extends TextWebSocketHandler {
 
         if (gameRoom == null) return;
 
-        if (command.startsWith("/updateGame:")) processGameChunks(gameId, session, command, gameRoom);
-
         if (command.startsWith("/surrender:")) {
             sendMessageToOpponent(gameRoom, command, "[SURRENDER]");
             gameRooms.entrySet().removeIf(entry -> entry.getValue().equals(gameRoom));
         }
 
-        if (command.startsWith("/restartRequest:")) sendMessageToOpponent(gameRoom, command, "[RESTART]");
-
-        if (command.startsWith("/openedSecurity:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_VIEWED]");
+        if (command.startsWith("/updateGame:")) processGameChunks(gameId, session, command, gameRoom);
 
         if (command.startsWith("/attack:")) handleAttack(gameRoom, command);
+
+        if (command.startsWith("/restartRequest:")) sendMessageToOpponent(gameRoom, command, "[RESTART]");
+        if (command.startsWith("/openedSecurity:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_VIEWED]");
+        if (command.startsWith("/playRevealSfx:")) sendMessageToOpponent(gameRoom, command, "[REVEAL_SFX]");
+        if (command.startsWith("/playSecurityRevealSfx:")) sendMessageToOpponent(gameRoom, command, "[SECURITY_REVEAL_SFX]");
+        if (command.startsWith("/playPlaceCardSfx:")) sendMessageToOpponent(gameRoom, command, "[PLACE_CARD_SFX]");
+        if (command.startsWith("/playDrawCardSfx:")) sendMessageToOpponent(gameRoom, command, "[DRAW_CARD_SFX]");
+        if (command.startsWith("/playSuspendCardSfx:")) sendMessageToOpponent(gameRoom, command, "[SUSPEND_CARD_SFX]");
+        if (command.startsWith("/playUnsuspendCardSfx:")) sendMessageToOpponent(gameRoom, command, "[UNSUSPEND_CARD_SFX]");
+        if (command.startsWith("/playButtonClickSfx:")) sendMessageToOpponent(gameRoom, command, "[BUTTON_CLICK_SFX]");
+        if (command.startsWith("/playTrashCardSfx:")) sendMessageToOpponent(gameRoom, command, "[TRASH_CARD_SFX]");
+        if (command.startsWith("/playShuffleDeckSfx:")) sendMessageToOpponent(gameRoom, command, "[SHUFFLE_DECK_SFX]");
     }
 
     void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String command, String message) throws IOException {
+        if (command.split(":").length < 2) return;
         String opponentName = command.split(":")[1].trim();
         WebSocketSession opponentSession = gameRoom.stream()
                 .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
-        if (opponentSession != null && opponentSession.isOpen()) {
-            opponentSession.sendMessage(new TextMessage(message));
-        }
+        if (opponentSession != null) sendTextMessage(opponentSession, message);
     }
 
     synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
@@ -248,6 +255,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     void handleAttack(Set<WebSocketSession> gameRoom, String command) throws IOException {
+        if (command.split(":", 4).length < 4) return;
         String[] parts = command.split(":", 4);
         String from = parts[2];
         String to = parts[3];
