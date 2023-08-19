@@ -59,5 +59,7 @@ By accessing or using this fan project, you acknowledge and agree that it is an 
 
 fan-made work and not an official part of the Digimon franchise.
 
-If you are the owner of any copyrighted material used in this project and wish to have it removed, please contact me, and I will promptly comply with your request.
+If you are the owner of any copyrighted material used in this project and wish to have it removed, 
+
+please contact me, and I will promptly comply with your request.
 </sub>
