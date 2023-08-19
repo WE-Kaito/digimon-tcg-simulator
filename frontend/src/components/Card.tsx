@@ -92,11 +92,20 @@ const StyledImage = styled.img<StyledImageProps>`
     }
   }
 
+
   @media (max-width: 767px) {
     max-height: 115px;
   }
 
   @media (min-width: 768px) {
     width: ${(props) => ((props.location === "myTrash" || props.location === "opponentTrash") ? "105px" : "95px")};
+  }
+
+  @media (max-width: 700px) and (min-height: 800px) {
+    width: 80px;
+  }
+
+  @media (max-width: 390px) and (min-height: 800px) {
+    width: 68.5px;
   }
 `;

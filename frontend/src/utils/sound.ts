@@ -46,7 +46,7 @@ export function playPlaceCardSfx() {
 
 export function playTrashCardSfx() {
     const audio = new Audio(trashCardSfx);
-    audio.volume = 0.8;
+    audio.volume = 1;
     audio.play();
 }
 
@@ -102,6 +102,6 @@ export const playLoadMemorybarSfx = () => {
 
 export const playButtonHoverSfx = () => {
     const audio = new Audio(buttonHoverSfx);
-    audio.volume = 1;
+    audio.volume = 0.9;
     audio.play();
 }
