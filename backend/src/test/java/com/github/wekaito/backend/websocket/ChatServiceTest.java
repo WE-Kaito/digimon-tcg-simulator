@@ -1,5 +1,7 @@
 package com.github.wekaito.backend.websocket;
 
+import com.github.wekaito.backend.Card;
+import com.github.wekaito.backend.Deck;
 import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +35,14 @@ class ChatServiceTest {
     private WebSocketSession session2;
     private WebSocketSession session3;
 
+    Card exampleCard = new Card("Agumon", "Digimon", "Red", "img", "BT1-010", "Rookie", "Vaccine",
+            "Reptile", 2000, 3, 0, 3,
+            "main effect text", null);
+
+    Card[] cards = {exampleCard, exampleCard, exampleCard};
+
+    Deck exampleDeck = new Deck("12345", "New Deck", cards, "authorId");
+
     private WebSocketSession createMockSession(String username) {
         WebSocketSession session = mock(WebSocketSession.class);
         when(session.getPrincipal()).thenReturn(() -> username);
@@ -48,6 +58,23 @@ class ChatServiceTest {
         session3 = createMockSession("testUser3");
 
         when(mongoUserDetailsService.getActiveDeck(any())).thenReturn("12345");
+        when(profileService.getDeckById("12345")).thenReturn(exampleDeck);
+    }
+
+    @Test
+    @DirtiesContext
+    void testNoDeck_whenNoActiveDeck() throws IOException {
+        when(mongoUserDetailsService.getActiveDeck(any())).thenReturn("");
+        chatService.afterConnectionEstablished(session1);
+        verify(session1).sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
+    }
+
+    @Test
+    @DirtiesContext
+    void testNoDeck_whenDeckDoesNotExist() throws IOException {
+        when(profileService.getDeckById("12345")).thenReturn(null);
+        chatService.afterConnectionEstablished(session1);
+        verify(session1).sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
     }
 
     @Test
