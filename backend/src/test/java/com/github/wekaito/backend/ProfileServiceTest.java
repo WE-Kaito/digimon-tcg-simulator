@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -71,11 +72,27 @@ class ProfileServiceTest {
     void testUpdateDeck() {
         profileService.updateDeck(exampleDeck.id(), exampleDeckWithoutId);
         verify(deckRepo).save(exampleDeck);
+
+        when(deckRepo.existsById(exampleDeck.id())).thenReturn(false);
+        assertThrows(IllegalArgumentException.class, () -> profileService.updateDeck(exampleDeck.id(), exampleDeckWithoutId));
     }
 
     @Test
     void testDeleteDeck() {
         profileService.deleteDeck(exampleDeck.id());
         verify(deckRepo).deleteById(exampleDeck.id());
+
+        when(deckRepo.existsById(exampleDeck.id())).thenReturn(false);
+        assertThrows(IllegalArgumentException.class, () -> profileService.deleteDeck(exampleDeck.id()));
     }
+
+    @Test
+    void testGetDeckById() {
+        profileService.getDeckById(exampleDeck.id());
+        verify(deckRepo).findById(exampleDeck.id());
+
+        when(deckRepo.findById(exampleDeck.id())).thenReturn(Optional.empty());
+        assertNull(profileService.getDeckById(exampleDeck.id()));
+    }
+
 }
