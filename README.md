@@ -17,17 +17,23 @@ Reviews are very welcome!
 **Try it on https://cgn-java-23-2-enrico.capstone-project.de/.**  
 Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
 
+---
+
 **Used Technologies, Frameworks, and Libraries:**
 
 - **Frontend:** React with Vite, Axios, Zustand, Emotion, react-dnd, react-use-websocket
 
-- **Backend:** Spring Boot with Spring WebFlux, WebSocket, MongoDB
+- - **Other libraries:** react-router-dom, react-awesome-reveal, react-arrows, lottie-react, react-toastify
+
+- **Backend:** Spring Boot with Spring WebFlux, WebSocket, Security + MongoDB
 
 - **Testing:** JUnit, AssertJ, Mockito, MockMvc, Flapdoodle (for integration tests)
 
 - **Deployment:** GitHub Actions for CI/CD, Docker
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=we-kaito_digimon-tcg-simulator-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-backend)
+
+---
 
 ![Game](https://cdn.discordapp.com/attachments/1044771748303884288/1141219676819554355/image.png)
 ![Login](https://cdn.discordapp.com/attachments/1044771748303884288/1135661456906530877/image.png) ![MainMenu](https://cdn.discordapp.com/attachments/1044771748303884288/1135661720774377662/image.png) ![Deckbuilder](https://cdn.discordapp.com/attachments/1044771748303884288/1135663067301171261/image.png) ![Profile](https://cdn.discordapp.com/attachments/1044771748303884288/1135664253295149127/image.png)
