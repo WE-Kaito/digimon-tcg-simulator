@@ -37,9 +37,9 @@ Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will atten
 
 
  <sub>
-  🚧 Disclaimer 🚧
-
 ---
+
+  🚧 **Disclaimer** 🚧
    
 This is a fan-made project and is not affiliated with or endorsed by Bandai Co., Ltd. or any official Digimon franchise entities. 
    
