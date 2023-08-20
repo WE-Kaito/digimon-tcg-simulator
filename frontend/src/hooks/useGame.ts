@@ -216,6 +216,8 @@ export const useGame = create<State>((set, get) => ({
 
     moveCard: (cardId, from, to) => {
 
+        if (!cardId || !from || !to) return;
+
         const opponentFields = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity", "opponentTamer",
             "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentBreedingArea"];
         for (const zone of opponentFields) {
