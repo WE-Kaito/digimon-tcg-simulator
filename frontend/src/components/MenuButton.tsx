@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {useStore} from "../hooks/useStore.ts";
+import {playButtonClickSfx, playButtonHoverSfx} from "../utils/sound.ts";
 
 export default function MenuButton({ name, path }: { name: string, path: string }) {
 
@@ -9,6 +10,8 @@ export default function MenuButton({ name, path }: { name: string, path: string 
     const me = useStore((state) => state.me);
 
     function handleClick() {
+
+        playButtonClickSfx();
 
         if (name !== "LOGOUT") {
             navigate(path);
@@ -23,7 +26,7 @@ export default function MenuButton({ name, path }: { name: string, path: string 
 
     return (
         <Wrapper name={name}>
-            <div onClick={handleClick} style={{ background: name === "LOGOUT" ? "crimson" : "#d8a413"}}>
+            <div onClick={handleClick} onMouseEnter={playButtonHoverSfx} style={{ background: name === "LOGOUT" ? "crimson" : "#d8a413"}}>
         <span
             style={{
                 transform: "translateY(0px)",

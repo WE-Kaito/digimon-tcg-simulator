@@ -25,4 +25,11 @@ export const StyledToastContainer = styled(ToastContainer)`
       background-color: #3fe577;
     }
   }
+
+  .Toastify__toast--error {
+    color: crimson;
+    .Toastify__progress-bar {
+      background-color: crimson;
+    }
+  }
 `;

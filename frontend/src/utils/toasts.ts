@@ -100,3 +100,17 @@ export const notifyRequestedRestart = () => toast.success('Sent restart request!
     hideProgressBar: false,
     pauseOnHover: false,
 });
+
+export const notifyMissingDeck = () => toast.error('Please create a deck first!', {
+    position: "bottom-center",
+    autoClose: 2500,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
+
+export const notifyNoActiveDeck = () => toast.error('Please activate a deck first!', {
+    position: "bottom-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});

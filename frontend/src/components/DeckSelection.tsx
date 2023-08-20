@@ -7,6 +7,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId, DraggedItem} from "../utils/types.ts";
 import Card from "./Card.tsx";
 import {useDrop} from "react-dnd";
+import {playPlaceCardSfx} from "../utils/sound.ts";
 
 export default function DeckSelection() {
 
@@ -23,6 +24,7 @@ export default function DeckSelection() {
         drop: (item: DraggedItem) => {
             const {id, location, cardnumber, type} = item;
             addCardToDeck(id, location, cardnumber, type);
+            playPlaceCardSfx();
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -88,8 +90,19 @@ const DeckContainer = styled.div`
 
   @media (max-width: 766px) {
     transform: translateY(-0.5px);
-    max-height: 340px;
   };
+
+  @media (max-width: 700px) and (min-height: 800px) {
+    max-height: 477.5px;
+  }
+
+  @media (max-width: 700px) and (min-height: 840px) {
+    max-height: 492px;
+  }
+
+  @media (max-width: 700px) and (min-height: 900px) {
+    max-height: 580px;
+  }
 `;
 
 const Stats = styled.div`
@@ -126,7 +139,7 @@ const StyledSpan = styled.span`
 const DeckList = styled.fieldset`
   width: 90%;
   height: 82.25%;
-  max-height: 440px;
+  max-height: 82.25%;
   border-radius: 5px;
   font-family: 'AwsumSans', sans-serif;
 
@@ -135,12 +148,31 @@ const DeckList = styled.fieldset`
   justify-content: flex-start;
   gap: 11px;
   overflow-y: scroll;
-
-
+  
   @media (max-width: 766px) {
     width: 83.5%;
-    height: 84.5%;
     font-size: 10px;
     gap:9px;
   };
+
+  @media (max-height: 765px) {
+    max-height: 85.5%;
+    height: 85.5%;
+  }
+
+  @media (max-height: 668px) {
+    height: 84.75%;
+    max-height: 84.75%;
+  }
+
+  @media (max-width: 700px) and (min-height: 800px) {
+    height: 87%;
+    max-height: 87%;
+  }
+
+  @media (max-width: 700px) and (min-height: 900px) {
+    height: 90%;
+    max-height: 90%;
+  }
+
 `;

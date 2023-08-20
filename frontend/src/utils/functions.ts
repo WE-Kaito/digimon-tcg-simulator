@@ -17,6 +17,14 @@ import rinaImage from "../assets/profile_pictures/rina.jpg";
 import sakiImage from "../assets/profile_pictures/saki.jpg";
 import taiImage from "../assets/profile_pictures/tai.jpg";
 import takumiImage from "../assets/profile_pictures/takumi.jpg";
+import {
+    playButtonClickSfx,
+    playDrawCardSfx,
+    playOpponentPlaceCardSfx,
+    playRevealCardSfx,
+    playSecurityRevealSfx, playShuffleDeckSfx,
+    playSuspendSfx, playTrashCardSfx, playUnsuspendSfx
+} from "./sound.ts";
 
 export function getBackgroundColor(color: string) {
     switch (color) {
@@ -139,8 +147,9 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
         if (index === 4 || index === handCardLength - 5) endValue += (handCardLength / 3) * 1.1;
     }
     const distanceToMiddle = Math.abs(index - middleIndex);
-    const offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
-    return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 10 - handCardLength/3 + handCardLength/10 + "px" : offset + "px";
+    let offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
+    if (index === middleIndex && handCardLength % 2 === 0) offset -= (2 + handCardLength / 6);
+    return (index === middleIndex|| index === 0 && handCardLength == 6) ? offset + 10 - handCardLength/3 + handCardLength/10 + "px" : offset + "px";
 }
 
 export function calculateCardOffsetX(handCardLength: number, index: number) {
@@ -162,4 +171,45 @@ export function topCardInfo(card: CardTypeGame, location:string, locationCards: 
     });
 
     return card === locationCards[locationCards.length -1] ? effectInfo : undefined;
+}
+
+export function getOpponentSfx(command: string) {
+    switch(command){
+        case ("[REVEAL_SFX]"): {
+            playRevealCardSfx();
+            break;
+        }
+        case ("[SECURITY_REVEAL_SFX]"): {
+            playSecurityRevealSfx();
+            break;
+        }
+        case ("[PLACE_CARD_SFX]"): {
+            playOpponentPlaceCardSfx();
+            break;
+        }
+        case ("[DRAW_CARD_SFX]"): {
+            playDrawCardSfx();
+            break;
+        }
+        case ("[SUSPEND_CARD_SFX]"): {
+            playSuspendSfx();
+            break;
+        }
+        case ("[UNSUSPEND_CARD_SFX]"): {
+            playUnsuspendSfx();
+            break;
+        }
+        case ("[BUTTON_CLICK_SFX]"): {
+            playButtonClickSfx();
+            break;
+        }
+        case ("[TRASH_CARD_SFX]"): {
+            playTrashCardSfx();
+            break;
+        }
+        case ("[SHUFFLE_DECK_SFX]"): {
+            playShuffleDeckSfx();
+            break;
+        }
+    }
 }

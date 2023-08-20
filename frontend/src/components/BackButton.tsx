@@ -1,9 +1,16 @@
 import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
+import {playButtonClickSfx} from "../utils/sound.ts";
 
 export default function BackButton() {
     const navigate = useNavigate();
-    return <StyledButton onClick={ () => navigate("/")}><StyledSpan>back</StyledSpan>
+
+    function handleClick() {
+        navigate("/");
+        playButtonClickSfx();
+    }
+
+    return <StyledButton onClick={handleClick}><StyledSpan>back</StyledSpan>
     </StyledButton>
 }
 

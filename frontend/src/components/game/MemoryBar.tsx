@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
 import {playButtonClickSfx} from "../../utils/sound.ts";
 
-export default function MemoryBar({sendUpdate}:{sendUpdate: () => void}) {
+export default function MemoryBar({sendUpdate, sendSfx}:{sendUpdate: () => void, sendSfx: (sfx: string) => void}) {
 
     const myMemory = useGame(state => state.myMemory);
     const setMemory = useGame(state => state.setMemory);
@@ -12,6 +12,7 @@ export default function MemoryBar({sendUpdate}:{sendUpdate: () => void}) {
         setMemory(memory);
         sendUpdate();
         playButtonClickSfx();
+        sendSfx("playButtonClickSfx");
     }
 
     return (

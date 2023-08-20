@@ -52,7 +52,11 @@ type State = {
     sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
     shuffleSecurity: () => void,
-    tiltCard: (cardId: string, location: string) => void,
+    tiltCard: (cardId: string,
+               location: string,
+               playSuspendSfx: () => void,
+               playUnsuspendSfx: () => void,
+               sendSfx: (sfx: string) => void ) => void,
 };
 
 
@@ -355,6 +359,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
+        if (cardToSendToDeck.location === to) return;
         set(state => {
             const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
             const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id)
@@ -389,10 +394,12 @@ export const useGame = create<State>((set, get) => ({
         })
     },
 
-    tiltCard: (cardId, location) => {
+    tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx, sendSfx) => {
         set(state => {
             const locationCards = state[location as keyof State] as CardTypeGame[];
             const card = locationCards.find((card: CardTypeGame) => card.id === cardId);
+            card?.isTilted ? playUnsuspendSfx() : playSuspendSfx();
+            card?.isTilted ? sendSfx("playUnsuspendCardSfx") : sendSfx("playSuspendCardSfx");
             const newLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId)
             if (card) {
                 card.isTilted = !card.isTilted;

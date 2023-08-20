@@ -1,5 +1,9 @@
 package com.github.wekaito.backend.websocket;
 
+import com.github.wekaito.backend.ProfileService;
+import com.github.wekaito.backend.security.MongoUserDetailsService;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -11,23 +15,28 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+@Getter
 @Service
+@RequiredArgsConstructor
 public class ChatService extends TextWebSocketHandler {
 
-    private final Set<WebSocketSession> activeSessions = new HashSet<>();
-    private final Set<String> connectedUsernames = new HashSet<>();
+    private final MongoUserDetailsService mongoUserDetailsService;
+    private final ProfileService profileService;
 
-    public Set<WebSocketSession> getActiveSessions() {
-        return activeSessions;
-    }
-
-    public Set<String> getConnectedUsernames() {
-        return connectedUsernames;
-    }
+    private Set<WebSocketSession> activeSessions = new HashSet<>();
+    private Set<String> connectedUsernames = new HashSet<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
+
+        String activeDeck = mongoUserDetailsService.getActiveDeck(username);
+
+        if (activeDeck.equals("") || profileService.getDeckById(activeDeck) == null){
+            session.sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
+            return;
+        }
+
         activeSessions.add(session);
         connectedUsernames.add(username);
 

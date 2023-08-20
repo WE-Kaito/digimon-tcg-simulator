@@ -70,6 +70,14 @@ export const OuterContainer = styled.div`
   padding: 1vh 1vw 1vh 1vw;
   max-width: 1000px;
   max-height: 1000px;
+  
+  @media (max-width: 700px) and (min-height: 800px) {
+    grid-template-rows: 1fr 1.5fr;
+  }
+
+  @media (max-width: 700px) and (min-height: 900px) {
+    grid-template-rows: 1fr 1.8fr;
+  }
 `;
 
 export const Quarter = styled.div`
@@ -132,6 +140,7 @@ const SaveDeckButton = styled.button<{isSaving:boolean}>`
   width: 95%;
   padding: 0;
   padding-top: 5px;
+  margin-left: 5px;
   background: ${(props) => props.isSaving ? "grey" : "mediumaquamarine"};
   color: black;
   font-size: 25px;

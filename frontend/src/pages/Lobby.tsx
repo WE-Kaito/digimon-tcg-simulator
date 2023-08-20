@@ -2,12 +2,13 @@ import BackButton from "../components/BackButton.tsx";
 import useWebSocket from "react-use-websocket";
 import {FormEvent, useEffect, useRef, useState} from "react";
 import {Headline2} from "../components/Header.tsx";
-import {ToastContainer} from "react-toastify";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../hooks/useStore.ts";
+import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
+import {notifyNoActiveDeck} from "../utils/toasts.ts";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -24,7 +25,7 @@ export default function Lobby({user}: { user: string }) {
     const setGameId = useStore((state) => state.setGameId);
 
     const navigate = useNavigate();
-  
+
     const websocket = useWebSocket(websocketURL, {
         onMessage: (event) => {
             if (event.data.startsWith("[INVITATION]")) {
@@ -52,9 +53,16 @@ export default function Lobby({user}: { user: string }) {
                 return;
             }
 
+            if (event.data === "[NO_ACTIVE_DECK]") {
+                notifyNoActiveDeck();
+                setTimeout(() => navigate("/"), 3100);
+            }
+
             if (event.data.startsWith("[CHAT_MESSAGE]")) {
                 setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
-            } else {
+            }
+
+            else {
                 setUsernames(event.data.split(", "));
             }
         },
@@ -102,6 +110,7 @@ export default function Lobby({user}: { user: string }) {
 
     return (
         <Wrapper>
+
             {pendingInvitation &&
                 <InvitationMoodle>
                     <span>Invitation from {inviteFrom}</span>
@@ -118,7 +127,7 @@ export default function Lobby({user}: { user: string }) {
                     <DeclineButton onClick={() => handleAbortInvite(true)} style={{margin: 0}}>ABORT</DeclineButton>
                 </InvitationMoodle>}
 
-            <ToastContainer/>
+            <StyledToastContainer/>
             {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
             {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
             {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}

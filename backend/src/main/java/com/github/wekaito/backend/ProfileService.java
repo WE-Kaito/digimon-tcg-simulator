@@ -74,7 +74,8 @@ public class ProfileService {
     }
 
     public Deck getDeckById(String id) {
-        return this.deckRepo.findById(id).orElseThrow();
+        Optional<Deck> optionalDeck = this.deckRepo.findById(id);
+        return optionalDeck.orElse(null);
     }
 
     public void deleteDeck(String id) {

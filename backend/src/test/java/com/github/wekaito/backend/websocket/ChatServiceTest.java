@@ -1,8 +1,16 @@
 package com.github.wekaito.backend.websocket;
 
+import com.github.wekaito.backend.Card;
+import com.github.wekaito.backend.Deck;
+import com.github.wekaito.backend.ProfileService;
+import com.github.wekaito.backend.security.MongoUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -14,12 +22,26 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(SpringExtension.class)
 class ChatServiceTest {
 
+    @Mock
+    private MongoUserDetailsService mongoUserDetailsService;
+    @Mock
+    private ProfileService profileService;
+    @InjectMocks
     private ChatService chatService;
     private WebSocketSession session1;
     private WebSocketSession session2;
     private WebSocketSession session3;
+
+    Card exampleCard = new Card("Agumon", "Digimon", "Red", "img", "BT1-010", "Rookie", "Vaccine",
+            "Reptile", 2000, 3, 0, 3,
+            "main effect text", null);
+
+    Card[] cards = {exampleCard, exampleCard, exampleCard};
+
+    Deck exampleDeck = new Deck("12345", "New Deck", cards, "authorId");
 
     private WebSocketSession createMockSession(String username) {
         WebSocketSession session = mock(WebSocketSession.class);
@@ -29,11 +51,30 @@ class ChatServiceTest {
 
     @BeforeEach
     void setUp() {
-        chatService = new ChatService();
+        chatService = new ChatService(mongoUserDetailsService, profileService);
 
         session1 = createMockSession("testUser1");
         session2 = createMockSession("testUser2");
         session3 = createMockSession("testUser3");
+
+        when(mongoUserDetailsService.getActiveDeck(any())).thenReturn("12345");
+        when(profileService.getDeckById("12345")).thenReturn(exampleDeck);
+    }
+
+    @Test
+    @DirtiesContext
+    void testNoDeck_whenNoActiveDeck() throws IOException {
+        when(mongoUserDetailsService.getActiveDeck(any())).thenReturn("");
+        chatService.afterConnectionEstablished(session1);
+        verify(session1).sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
+    }
+
+    @Test
+    @DirtiesContext
+    void testNoDeck_whenDeckDoesNotExist() throws IOException {
+        when(profileService.getDeckById("12345")).thenReturn(null);
+        chatService.afterConnectionEstablished(session1);
+        verify(session1).sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
     }
 
     @Test
