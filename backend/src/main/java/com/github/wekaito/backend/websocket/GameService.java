@@ -77,7 +77,6 @@ public class GameService extends TextWebSocketHandler {
                 if (opponentSession != null && opponentSession.isOpen()) {
                     opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
                 }
-                gameRoom.remove(opponentSession);
                 break;
             }
         }
@@ -114,10 +113,8 @@ public class GameService extends TextWebSocketHandler {
             String[] roomMessageParts = roomMessage.split(":", 2);
             String command = roomMessageParts[0];
             String opponentName = roomMessageParts[1];
+            if (command.equals("/reconnect")) gameRoom.add(session);
             sendMessageToOpponent(gameRoom, opponentName, convertCommand(command));
-            if (command.equals("/surrender")) {
-                gameRooms.entrySet().removeIf(entry -> entry.getValue().equals(gameRoom));
-            }
         }
     }
 
@@ -147,6 +144,8 @@ public class GameService extends TextWebSocketHandler {
                 return "[TRASH_CARD_SFX]";
             case "/playShuffleDeckSfx":
                 return "[SHUFFLE_DECK_SFX]";
+            case "/reconnect":
+                return "[SEND_UPDATE]";
             default:
                 return "";
         }

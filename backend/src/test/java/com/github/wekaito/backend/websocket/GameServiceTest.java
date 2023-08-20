@@ -120,7 +120,6 @@ class GameServiceTest {
         gameService.handleTextMessage(session2, new TextMessage(gameId + ":/surrender:" + username1));
 
         // THEN
-        assertThat(gameService.getGameRooms()).isEmpty();
         verify(session1, times(1)).sendMessage(expectedMessage);
     }
 

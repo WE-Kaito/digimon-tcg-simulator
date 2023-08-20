@@ -87,6 +87,7 @@ export default function Game({user}: { user: string }) {
     const [arrowFrom, setArrowFrom] = useState<string>("");
     const [arrowTo, setArrowTo] = useState<string>("");
     const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
+    const [gameHasStarted, setGameHasStarted] = useState<boolean>(false);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -123,7 +124,14 @@ export default function Game({user}: { user: string }) {
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
-            websocket.sendMessage("/startGame:" + gameId);
+            if (!gameHasStarted) websocket.sendMessage("/startGame:" + gameId);
+            setGameHasStarted(true);
+        },
+
+        onClose: () => {
+            setTimeout(() => {
+                websocket.sendMessage("/reconnect:" + gameId);
+            }, 1000);
         },
 
         onMessage: (event) => {
@@ -181,6 +189,10 @@ export default function Game({user}: { user: string }) {
                 }
                 case ("[RESTART]"): {
                     setRestartMoodle(true);
+                    break;
+                }
+                case ("[SEND_UPDATE]"): {
+                    sendUpdate();
                     break;
                 }
                 default: {
