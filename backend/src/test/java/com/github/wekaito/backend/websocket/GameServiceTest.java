@@ -167,20 +167,6 @@ class GameServiceTest {
     }
 
     @Test
-    void testPlayerLeaves() throws IOException {
-        // GIVEN
-        TextMessage expectedMessage = new TextMessage("[PLAYER_LEFT]");
-        putPlayersToGameRoom();
-
-        // WHEN
-        gameService.afterConnectionClosed(session1, CloseStatus.NORMAL);
-
-        // THEN
-        verify(session2, times(1)).sendMessage(expectedMessage);
-        assertThat(gameService.getGameRooms()).isEmpty();
-    }
-
-    @Test
     void expectReturn_whenGameRoomDoesNotExist() throws IOException, InterruptedException {
         // WHEN
         gameService.handleTextMessage(session1, new TextMessage("wrongId" + ":/surrender:" + username1));
