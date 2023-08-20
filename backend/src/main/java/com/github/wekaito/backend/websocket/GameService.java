@@ -60,7 +60,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException {
+    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException, InterruptedException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         Set<WebSocketSession> gameRoom = gameRooms.values().stream()
                 .filter(s -> s.stream().anyMatch(s1 -> username.equals(Objects.requireNonNull(s1.getPrincipal()).getName())))
@@ -73,8 +73,8 @@ public class GameService extends TextWebSocketHandler {
                 WebSocketSession opponentSession = gameRoom.stream()
                         .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                         .findFirst().orElse(null);
-
-                if (opponentSession != null && opponentSession.isOpen()) {
+                Thread.sleep(2000);
+                if (!session.isOpen() && opponentSession != null && opponentSession.isOpen()) {
                     opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
                 }
                 break;
