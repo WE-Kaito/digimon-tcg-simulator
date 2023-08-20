@@ -67,18 +67,12 @@ public class GameService extends TextWebSocketHandler {
                 .findFirst().orElse(null);
 
         if (gameRoom == null) return;
+        gameRoom.remove(session);
+        Thread.sleep(3000);
 
         for (WebSocketSession webSocketSession : gameRoom) {
-            if (webSocketSession != null && Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals(username)) {
-                WebSocketSession opponentSession = gameRoom.stream()
-                        .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
-                        .findFirst().orElse(null);
-                Thread.sleep(2000);
-                if (!session.isOpen() && opponentSession != null && opponentSession.isOpen()) {
-                    opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
-                }
-                break;
-            }
+            if (webSocketSession != null && gameRoom.size() < 2)
+                webSocketSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
         }
 
         gameRoom.remove(session);

@@ -130,7 +130,8 @@ export default function Game({user}: { user: string }) {
 
         onClose: () => {
             setTimeout(() => {
-                websocket.sendMessage("/reconnect:" + gameId);
+                websocket.sendMessage(gameId + ":/reconnect");
+                console.log("Reconnect...") // investigating connection issue
             }, 1000);
         },
 
@@ -193,6 +194,7 @@ export default function Game({user}: { user: string }) {
                 }
                 case ("[SEND_UPDATE]"): {
                     sendUpdate();
+                    console.log("Opponent reconnected!") // investigating connection issue
                     break;
                 }
                 default: {
