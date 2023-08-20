@@ -80,9 +80,10 @@ const DeckContainer = styled.div`
   margin-left: 1.5%;
   margin-right: 1.5%;
   border-radius: 5px;
-  height: 99.5%;
+  height: 92%;
   transform: translateY(3px);
   gap: 1px;
+  margin-top: 5px;
 
   display: flex;
   align-items: center;

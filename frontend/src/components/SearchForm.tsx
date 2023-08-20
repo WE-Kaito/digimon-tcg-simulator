@@ -314,7 +314,7 @@ const StyledForm = styled.form`
   height: 13vh;
   padding: 1.75%;
   border-radius: 5px;
-
+  margin-top: 5px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);

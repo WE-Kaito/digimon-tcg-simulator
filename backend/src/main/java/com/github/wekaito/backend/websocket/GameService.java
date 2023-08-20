@@ -60,30 +60,8 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException {
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        Set<WebSocketSession> gameRoom = gameRooms.values().stream()
-                .filter(s -> s.stream().anyMatch(s1 -> username.equals(Objects.requireNonNull(s1.getPrincipal()).getName())))
-                .findFirst().orElse(null);
-
-        if (gameRoom == null) return;
-
-        for (WebSocketSession webSocketSession : gameRoom) {
-            if (webSocketSession != null && Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals(username)) {
-                WebSocketSession opponentSession = gameRoom.stream()
-                        .filter(s -> !username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
-                        .findFirst().orElse(null);
-
-                if (opponentSession != null && opponentSession.isOpen()) {
-                    opponentSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
-                }
-                gameRoom.remove(opponentSession);
-                break;
-            }
-        }
-
-        gameRoom.remove(session);
-        gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) {
+        // do nothing
     }
 
 
