@@ -538,9 +538,9 @@ export default function Game({user}: { user: string }) {
 
                 <InfoContainer>
                     <InfoSpan>
-                        <a href="https://world.digimoncard.com/rule/pdf/manual.pdf?070723" target="_blank"
+                        <a href="https://www.youtube.com/watch?v=ghZYuIi5mu4&ab_channel=OfficialBandaiCardGamesChannel" target="_blank"
                            rel="noopener noreferrer">
-                            <span style={{color: "dodgerblue"}}>🛈 </span>Manual
+                            <span style={{color: "dodgerblue"}}>🛈 </span>Tutorial
                         </a>
                         <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
                            rel="noopener noreferrer">
