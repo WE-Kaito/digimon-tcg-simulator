@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {topCardInfo} from "../utils/functions.ts";
+import {getCardSize, topCardInfo} from "../utils/functions.ts";
 import {playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
 
 type CardProps = {
@@ -92,13 +92,16 @@ const StyledImage = styled.img<StyledImageProps>`
     }
   }
 
-
   @media (max-width: 767px) {
     max-height: 115px;
   }
 
   @media (min-width: 768px) {
     width: ${(props) => ((props.location === "myTrash" || props.location === "opponentTrash") ? "105px" : "95px")};
+  }
+
+  @media (min-width: 1000px) {
+    width: ${(props) => getCardSize(props.location)};
   }
 
   @media (max-width: 700px) and (min-height: 800px) {

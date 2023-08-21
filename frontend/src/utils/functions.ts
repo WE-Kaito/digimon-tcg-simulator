@@ -4,7 +4,7 @@ import vaccineImage from '../assets/attribute_icons/vaccine.png';
 import freeImage from '../assets/attribute_icons/free.png';
 import unknownImage from '../assets/attribute_icons/unknown.png';
 import variableImage from '../assets/attribute_icons/variable.png';
-import {CardType, CardTypeGame} from "./types.ts";
+import {CardType, CardTypeGame, CardTypeWithId} from "./types.ts";
 import takatoImage from "../assets/profile_pictures/takato.jpg";
 import aibaImage from "../assets/profile_pictures/aiba.jpg";
 import arataImage from "../assets/profile_pictures/arata.jpg";
@@ -211,5 +211,59 @@ export function getOpponentSfx(command: string) {
             playShuffleDeckSfx();
             break;
         }
+    }
+}
+
+export function sortCards(deck: CardTypeWithId[]){
+    const newDeck = [...deck];
+    newDeck.sort(compareCardNumbers);
+    newDeck.sort(compareCardLevels);
+    newDeck.sort(compareCardTypes);
+    return newDeck;
+}
+
+function compareCardNumbers(a: CardTypeWithId, b: CardTypeWithId){
+    if (a.cardnumber < b.cardnumber) return -1;
+    if (a.cardnumber > b.cardnumber) return 1;
+    return 0;
+}
+
+function compareCardLevels(a: CardTypeWithId, b: CardTypeWithId){
+    if (a.level === null && b.level === null) return 0;
+    if (a.level === null) return -1;
+    if (b.level === null) return 1;
+    if (a.level < b.level) return -1;
+    if (a.level > b.level) return 1;
+    return 0;
+}
+
+function compareCardTypes(a: CardTypeWithId, b: CardTypeWithId) {
+    const typeOrder: { [key: string]: number } = {
+        "Digi-Egg": 0,
+        "Option": 1,
+        "Tamer": 2,
+        "Digimon": 3
+    };
+    const aTypeOrder = typeOrder[a.type];
+    const bTypeOrder = typeOrder[b.type];
+
+    if (aTypeOrder < bTypeOrder) return -1;
+    if (aTypeOrder > bTypeOrder) return 1;
+
+    return 0;
+}
+
+export function getCardSize(location: string) {
+    switch (location) {
+        case "myTrash":
+            return "105px";
+        case "opponentTrash":
+            return "105px";
+        case "deck":
+            return "103px";
+        case "fetchedData":
+            return "110px";
+        default:
+            return "95px";
     }
 }

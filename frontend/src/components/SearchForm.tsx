@@ -329,7 +329,7 @@ const StyledForm = styled.form`
   @media (min-width: 768px) {
     grid-gap: 5px;
     height: 11vh;
-    width: 484px;
+    width: 96.5%;
     transform: translateY(3px);
   }
 `;

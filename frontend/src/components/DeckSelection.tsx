@@ -8,6 +8,7 @@ import {CardTypeWithId, DraggedItem} from "../utils/types.ts";
 import Card from "./Card.tsx";
 import {useDrop} from "react-dnd";
 import {playPlaceCardSfx} from "../utils/sound.ts";
+import {sortCards} from "../utils/functions.ts";
 
 export default function DeckSelection() {
 
@@ -59,7 +60,7 @@ export default function DeckSelection() {
             <DeckList>
                 <legend>[ {deckCards.length - eggLength}/50]</legend>
 
-                {deckCards?.length !== 0 ? deckCards.map((card: CardTypeWithId) => (
+                {deckCards?.length !== 0 ? sortCards(deckCards).map((card: CardTypeWithId) => (
                             <Card key={card.id} card={card} location={"deck"}/>
                     ))
                     :
@@ -103,6 +104,15 @@ const DeckContainer = styled.div`
 
   @media (max-width: 700px) and (min-height: 900px) {
     max-height: 580px;
+  }
+
+  @media (min-width: 767px) {
+    height: 94%;
+  }
+
+  @media (min-width: 1000px) {
+    height: 96%;
+    background-color: rgba(40, 82, 67, 0.825);
   }
 `;
 
@@ -149,11 +159,21 @@ const DeckList = styled.fieldset`
   justify-content: flex-start;
   gap: 11px;
   overflow-y: scroll;
-  
+
+  &::-webkit-scrollbar {
+    background-color: rgba(28, 58, 47, 0.98);
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #C5C5C5;
+    border-radius: 2px;
+  }
+
   @media (max-width: 766px) {
     width: 83.5%;
     font-size: 10px;
-    gap:9px;
+    gap: 9px;
   };
 
   @media (max-height: 765px) {
@@ -174,6 +194,16 @@ const DeckList = styled.fieldset`
   @media (max-width: 700px) and (min-height: 900px) {
     height: 90%;
     max-height: 90%;
+  }
+
+  @media (min-width: 767px) {
+    height: 80%;
+    max-height: 80%;
+  }
+
+  @media (min-width: 1000px) {
+    height: 88.75%;
+    max-height: 88.75%;
   }
 
 `;
