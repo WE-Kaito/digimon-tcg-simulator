@@ -15,7 +15,7 @@ Reviews are very welcome!
 - [X] Manual simulation of the *Digimon Card Game* with audio and animations
 
 **Try it on https://cgn-java-23-2-enrico.capstone-project.de/.**  
-Currently available from 10:00 AM to 10:00 PM CET. Upon completion, I will attend to a personal deployment.
+Currently available from 10:00 AM to 10:00 PM CET.
 
 ---
 
