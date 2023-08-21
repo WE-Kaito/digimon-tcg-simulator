@@ -6,7 +6,6 @@ import SearchForm from "../components/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
-import {ToastContainer} from 'react-toastify';
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {
@@ -49,7 +48,6 @@ export default function EditDeck() {
     return (
         <OuterContainer>
 
-            <ToastContainer/>
             <DeckNameContainer>
                 <DeckNameInput value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
             </DeckNameContainer>
@@ -95,6 +93,9 @@ const ButtonContainer = styled.div`
   gap: 2%;
   padding-right: 3%;
   justify-content: space-between;
+  @media (min-width: 767px) {
+    transform: translateY(12px);
+  }
 `;
 
 const UpdateDeckButton = styled.button<ButtonProps>`

@@ -123,6 +123,9 @@ const Stats = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-evenly;
+  @media (min-width: 2000px) {
+    transform: scale(1.1) translateY(6px);
+  }
 `;
 
 const StatContainer = styled.div`
@@ -204,6 +207,10 @@ const DeckList = styled.fieldset`
   @media (min-width: 1000px) {
     height: 88.75%;
     max-height: 88.75%;
+  }
+
+  @media (min-width: 2000px) {
+    transform: translateY(10px);
   }
 
 `;

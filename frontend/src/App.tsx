@@ -13,6 +13,7 @@ import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
 import Game from "./pages/Game.tsx";
+import {StyledToastContainer} from "./components/game/StyledToastContainer.ts";
 function App() {
 
     const me = useStore((state) => state.me);
@@ -62,6 +63,9 @@ function App() {
 
     return (
         <DndProvider backend={isMobileDevice()}>
+
+            <StyledToastContainer/>
+
             <Routes>
                 <Route element={<ProtectedRoutes user={user}/>}>
                     <Route path="/" element={<MainMenu/>}/>
@@ -76,6 +80,7 @@ function App() {
                 <Route path="/login" element={<LoginPage/>}/>
 
             </Routes>
+
         </DndProvider>
     )
 }

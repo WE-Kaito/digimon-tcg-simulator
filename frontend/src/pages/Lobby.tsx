@@ -7,7 +7,6 @@ import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../hooks/useStore.ts";
-import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
 import {notifyNoActiveDeck} from "../utils/toasts.ts";
 
 export default function Lobby({user}: { user: string }) {
@@ -127,7 +126,6 @@ export default function Lobby({user}: { user: string }) {
                     <DeclineButton onClick={() => handleAbortInvite(true)} style={{margin: 0}}>ABORT</DeclineButton>
                 </InvitationMoodle>}
 
-            <StyledToastContainer/>
             {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
             {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
             {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}

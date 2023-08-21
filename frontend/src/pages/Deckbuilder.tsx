@@ -6,7 +6,6 @@ import SearchForm from "../components/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
-import {ToastContainer} from 'react-toastify';
 import BackButton from "../components/BackButton.tsx";
 
 export default function Deckbuilder() {
@@ -27,8 +26,6 @@ export default function Deckbuilder() {
 
     return (
         <OuterContainer>
-
-            <ToastContainer/>
             <DeckNameContainer>
                 <DeckNameInput value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
             </DeckNameContainer>
@@ -91,6 +88,10 @@ export const OuterContainer = styled.div`
     grid-template-areas: "deckselection deckname buttons"
                         "deckselection cardimage carddetails"
                         "deckselection searchform searchform";
+  }
+
+  @media (min-width: 2000px) {
+    max-height: 1100px;
   }
 `;
 

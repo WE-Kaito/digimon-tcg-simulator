@@ -312,6 +312,7 @@ const StyledForm = styled.form`
   background-color: rgba(102, 62, 71, 0.985);
   width: 97%;
   height: 13vh;
+  max-height: 110px;
   padding: 1.75%;
   border-radius: 5px;
   margin-top: 5px;

@@ -65,6 +65,9 @@ const FetchContainer = styled.div`
   @media (min-width: 767px) {
     height: 28vh;
   }
+  @media (min-width: 2000px) {
+    height: 30vh;
+  }
 `;
 
 const StyledFieldset = styled.fieldset`
@@ -102,6 +105,9 @@ const StyledFieldset = styled.fieldset`
 
   @media (min-width: 1700px) {
     gap: 0.7vw;
+  }
+  @media (min-width: 2000px) {
+    transform: translateY(7px);
   }
 `;
 

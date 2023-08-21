@@ -26,7 +26,6 @@ import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import Lottie from "lottie-react";
 import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
-import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import RestartMoodle from "../components/game/RestartMoodle.tsx";
 import AttackArrows from "../components/game/AttackArrows.tsx";
@@ -524,8 +523,6 @@ export default function Game({user}: { user: string }) {
             {showStartingPlayer && <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"42%", transform:"translateX(-50%)"}}><StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
             <Wrapper>
-
-                <StyledToastContainer/>
 
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) =>

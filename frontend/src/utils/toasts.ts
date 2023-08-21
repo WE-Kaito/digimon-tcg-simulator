@@ -1,46 +1,34 @@
 import {toast} from "react-toastify";
-export const notifySuccess = () => toast('✔️ Deck saved!', {
+export const notifySuccess = () => toast.success('Deck saved!', {
     position: "top-right",
     autoClose: 3000,
     hideProgressBar: false,
     closeOnClick: false,
     pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "light",
 });
 
 export const notifyLength = () => toast.error('Only full decks can be saved!', {
-    position: "top-right",
+    position: "top-center",
     autoClose: 5000,
     hideProgressBar: false,
     closeOnClick: false,
     pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "light",
 });
 
 export const notifyName = () => toast.error('Please enter a name.', {
-    position: "top-right",
+    position: "top-center",
     autoClose: 5000,
     hideProgressBar: false,
     closeOnClick: false,
     pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "light",
 });
 
-export const notifyUpdate = () => toast('✔️ Deck updated!', {
-    position: "top-right",
+export const notifyUpdate = () => toast.success('Deck updated!', {
+    position: "top-center",
     autoClose: 1500,
     hideProgressBar: true,
     closeOnClick: true,
     pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "light",
 });
 
 export const notifyError = () => toast.error('Could not update.', {
@@ -54,37 +42,28 @@ export const notifyError = () => toast.error('Could not update.', {
     theme: "light",
 });
 
-export const notifyDelete = () => toast('✔️ Deck deleted!', {
-    position: "top-right",
+export const notifyDelete = () => toast.success('Deck deleted!', {
+    position: "top-center",
     autoClose: 200,
     hideProgressBar: true,
     closeOnClick: true,
     pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "light",
 });
 
 export const notifyAlreadyExists = () => toast.error("Username already exists!", {
-    position: "top-right",
+    position: "bottom-center",
     autoClose: 3000,
     hideProgressBar: true,
     closeOnClick: true,
     pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
 });
 
-export const notifyRegistered = () => toast('✔️ Registered!', {
-    position: "top-right",
+export const notifyRegistered = () => toast.success('Registered!', {
+    position: "bottom-center",
     autoClose: 2000,
     hideProgressBar: true,
     closeOnClick: true,
     pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
 });
 
 export const notifySecurityView = () => toast.warning('Opponent opened Security Stack!', {
