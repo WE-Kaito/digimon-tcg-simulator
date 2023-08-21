@@ -238,11 +238,11 @@ export default function Game({user}: { user: string }) {
         }, 10);
     }
 
-    function handleDropToOpponent(name: string, from: string, to: string){
+    function handleDropToOpponent(from: string, to: string){
         setArrowFrom(from);
         setArrowTo(to);
         setShowAttackArrow(true);
-        websocket.sendMessage(gameId + ":/attack:"+ name + ":" + from + ":" + to);
+        websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to);
         endAttackAnimation();
     }
 
@@ -414,7 +414,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi1');
+            handleDropToOpponent(location, 'opponentDigi1');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -425,7 +425,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi2');
+            handleDropToOpponent(location, 'opponentDigi2');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -436,7 +436,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi3');
+            handleDropToOpponent(location, 'opponentDigi3');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -447,7 +447,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi4');
+            handleDropToOpponent(location, 'opponentDigi4');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -458,7 +458,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi5');
+            handleDropToOpponent(location, 'opponentDigi5');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -469,7 +469,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentSecurity');
+            handleDropToOpponent(location, 'opponentSecurity');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
