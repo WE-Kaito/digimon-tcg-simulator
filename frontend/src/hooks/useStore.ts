@@ -13,6 +13,7 @@ import {
     notifyUpdate
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
+import {sortCards} from "../utils/functions.ts";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -200,10 +201,13 @@ export const useStore = create<State>((set, get) => ({
         }
 
         set({isSaving: true});
+
+        const sortedDeck = sortCards(get().deckCards);
+
         const deckToSave = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: get().deckCards.map(({id, ...rest}) => rest),
+            cards: sortedDeck.map(({id, ...rest}) => rest),
 
             deckStatus: "INACTIVE"
         }

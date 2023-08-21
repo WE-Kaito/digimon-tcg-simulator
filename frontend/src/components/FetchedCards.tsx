@@ -56,11 +56,18 @@ const FetchContainer = styled.div`
   @media (max-width: 700px) and (min-height: 800px) {
     height: 42.9vh;
   }
-
   @media (max-width: 700px) and (min-height: 900px) {
     height: 47.155vh;
   }
-
+  @media (min-width: 767px) {
+    height: 20vh;
+  }
+  @media (min-width: 767px) {
+    height: 28vh;
+  }
+  @media (min-width: 2000px) {
+    height: 30vh;
+  }
 `;
 
 const StyledFieldset = styled.fieldset`
@@ -75,11 +82,32 @@ const StyledFieldset = styled.fieldset`
   gap: 1.8vw;
 
   overflow: auto;
-  scrollbar-width: thin;
 
+  &::-webkit-scrollbar {
+    background-color: rgba(9, 8, 8, 0.98);
+    border-radius: 2px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #C5C5C5;
+    border-radius: 2px;
+  }
   @media (min-width: 767px) {
     gap: 0.9vw;
     height: 93%;
+  }
+  @media (min-width: 767px) {
+    gap: 0.9vw;
+    height: 93%;
+  }
+  @media (min-width: 1000px) {
+    height: 89%;
+  }
+
+  @media (min-width: 1700px) {
+    gap: 0.7vw;
+  }
+  @media (min-width: 2000px) {
+    transform: translateY(7px);
   }
 `;
 

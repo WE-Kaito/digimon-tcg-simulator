@@ -3,7 +3,6 @@ import {useStore} from "../hooks/useStore.ts";
 import {useEffect} from "react";
 import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
-import {ToastContainer} from "react-toastify";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/ChooseAvatar.tsx";
 
@@ -28,7 +27,6 @@ export default function Profile({user}: { user: string }) {
         <Wrapper>
             <Header>
                 <Headline2 style={{transform: "translateY(-8px)"}}>{user}</Headline2>
-                <ToastContainer/>
                 <BackButton/>
             </Header>
             <ChooseAvatar/>

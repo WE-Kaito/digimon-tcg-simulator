@@ -3,7 +3,6 @@ import {useStore} from "../hooks/useStore.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
-import {ToastContainer} from "react-toastify";
 
 
 export default function LoginPage() {
@@ -69,7 +68,6 @@ export default function LoginPage() {
 
     return (
         <Wrapper className="login-background">
-            <ToastContainer/>
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)} type="text" name="userName"
@@ -124,7 +122,8 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 10vh;
+  justify-content: center;
+  transform: translateY(-20px);
 `;
 
 export const LoginPageButton = styled.button`
@@ -240,5 +239,4 @@ margin-top: 50px;
   @media (max-width: 767px) {
     margin-top: 32px;
   }
-
 `;

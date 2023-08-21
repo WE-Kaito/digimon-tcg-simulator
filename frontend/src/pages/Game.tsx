@@ -26,7 +26,6 @@ import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import Lottie from "lottie-react";
 import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
-import {StyledToastContainer} from "../components/game/StyledToastContainer.ts";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import RestartMoodle from "../components/game/RestartMoodle.tsx";
 import AttackArrows from "../components/game/AttackArrows.tsx";
@@ -239,11 +238,11 @@ export default function Game({user}: { user: string }) {
         }, 10);
     }
 
-    function handleDropToOpponent(name: string, from: string, to: string){
+    function handleDropToOpponent(from: string, to: string){
         setArrowFrom(from);
         setArrowTo(to);
         setShowAttackArrow(true);
-        websocket.sendMessage(gameId + ":/attack:"+ name + ":" + from + ":" + to);
+        websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to);
         endAttackAnimation();
     }
 
@@ -415,7 +414,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi1');
+            handleDropToOpponent(location, 'opponentDigi1');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -426,7 +425,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi2');
+            handleDropToOpponent(location, 'opponentDigi2');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -437,7 +436,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi3');
+            handleDropToOpponent(location, 'opponentDigi3');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -448,7 +447,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi4');
+            handleDropToOpponent(location, 'opponentDigi4');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -459,7 +458,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentDigi5');
+            handleDropToOpponent(location, 'opponentDigi5');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -470,7 +469,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {location} = item;
-            handleDropToOpponent(opponentName, location, 'opponentSecurity');
+            handleDropToOpponent(location, 'opponentSecurity');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -525,8 +524,6 @@ export default function Game({user}: { user: string }) {
 
             <Wrapper>
 
-                <StyledToastContainer/>
-
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) =>
                         <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
@@ -538,9 +535,9 @@ export default function Game({user}: { user: string }) {
 
                 <InfoContainer>
                     <InfoSpan>
-                        <a href="https://world.digimoncard.com/rule/pdf/manual.pdf?070723" target="_blank"
+                        <a href="https://www.youtube.com/watch?v=ghZYuIi5mu4&ab_channel=OfficialBandaiCardGamesChannel" target="_blank"
                            rel="noopener noreferrer">
-                            <span style={{color: "dodgerblue"}}>🛈 </span>Manual
+                            <span style={{color: "dodgerblue"}}>🛈 </span>Tutorial
                         </a>
                         <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
                            rel="noopener noreferrer">

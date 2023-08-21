@@ -312,6 +312,7 @@ const StyledForm = styled.form`
   background-color: rgba(102, 62, 71, 0.985);
   width: 97%;
   height: 13vh;
+  max-height: 110px;
   padding: 1.75%;
   border-radius: 5px;
   margin-top: 5px;
@@ -329,7 +330,7 @@ const StyledForm = styled.form`
   @media (min-width: 768px) {
     grid-gap: 5px;
     height: 11vh;
-    width: 484px;
+    width: 96.5%;
     transform: translateY(3px);
   }
 `;

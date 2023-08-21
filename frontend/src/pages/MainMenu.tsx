@@ -26,4 +26,3 @@ const Wrapper = styled.div`
   transform: translateY(-7.5vh);
   margin-top: 15.5vh;
 `;
-

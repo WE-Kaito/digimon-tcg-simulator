@@ -6,7 +6,6 @@ import SearchForm from "../components/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
-import {ToastContainer} from 'react-toastify';
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {
@@ -16,7 +15,7 @@ import {
     CardImage,
     ContainerUpperRightQuarter,
     ContainerBottomRightQuarter,
-    ContainerBottomLeftQuarter, StyledSpanSaveDeck
+    ContainerBottomLeftQuarter, StyledSpanSaveDeck, DeckNameContainer
 } from "./Deckbuilder.tsx";
 import {css} from "@emotion/css";
 
@@ -49,22 +48,27 @@ export default function EditDeck() {
     return (
         <OuterContainer>
 
-            <ToastContainer/>
+            <DeckNameContainer>
+                <DeckNameInput value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
+            </DeckNameContainer>
+
+            <ButtonContainer>
+                <UpdateDeckButton isDeleting={isDeleting}
+                                  onClick={() => id && updateDeck(id, deckName)}><StyledSpanSaveDeck>SAVE
+                    CHANGES</StyledSpanSaveDeck></UpdateDeckButton>
+                <DeleteDeckButton isDeleting={isDeleting} onClick={() => {
+                    if (isDeleting && id) deleteDeck(id, navigate);
+                    setIsDeleting(!isDeleting)
+                }}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>
+                <BackButton/>
+            </ButtonContainer>
 
             <ContainerUpperLeftQuarter>
-                <DeckNameInput value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
                 <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
                            alt={selectedCard?.name ?? "Card"}/>
             </ContainerUpperLeftQuarter>
 
             <ContainerUpperRightQuarter>
-                <ButtonContainer>
-                    <UpdateDeckButton isDeleting={isDeleting} onClick={() => id && updateDeck(id, deckName)}><StyledSpanSaveDeck>SAVE CHANGES</StyledSpanSaveDeck></UpdateDeckButton>
-                    <DeleteDeckButton isDeleting={isDeleting} onClick={()=> {
-                        if (isDeleting && id) deleteDeck(id, navigate);
-                        setIsDeleting(!isDeleting)}}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>
-                    <BackButton/>
-                </ButtonContainer>
                 <CardDetails/>
             </ContainerUpperRightQuarter>
 
@@ -82,12 +86,16 @@ export default function EditDeck() {
 }
 
 const ButtonContainer = styled.div`
+  grid-area: buttons;
   width: 100%;
   display: flex;
   padding-left: 3%;
   gap: 2%;
   padding-right: 3%;
   justify-content: space-between;
+  @media (min-width: 767px) {
+    transform: translateY(12px);
+  }
 `;
 
 const UpdateDeckButton = styled.button<ButtonProps>`
@@ -128,7 +136,7 @@ type ButtonProps = {
 const DeleteDeckButton = styled.button<ButtonProps>`
   font-weight: bold;
   max-height: 40px;
-background: ${props => props.isDeleting ? "ghostwhite" : "crimson"};
+  background: ${props => props.isDeleting ? "ghostwhite" : "crimson"};
   color: crimson;
   padding: 0;
   width: ${props => props.isDeleting ? "40%" : "20%"};
