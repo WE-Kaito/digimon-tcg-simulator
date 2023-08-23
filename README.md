@@ -26,14 +26,13 @@ Check the [Wiki page](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) fo
 - **Frontend:** React with Vite, Axios, Zustand, Emotion, react-dnd, react-use-websocket
 
 - - **Other libraries:** react-router-dom, react-awesome-reveal, react-arrows, lottie-react, react-toastify
+  - **Design:** Figma, Excalidraw
 
 - **Backend:** Spring Boot with Spring WebFlux, WebSocket, Security + MongoDB
 
 - **Testing:** JUnit, AssertJ, Mockito, MockMvc, Flapdoodle (for integration tests)
 
 - **Deployment:** GitHub Actions for CI/CD, Docker
-
-- **Design:** Figma, Excalidraw
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=we-kaito_digimon-tcg-simulator-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-backend)
 
