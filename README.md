@@ -33,6 +33,8 @@ Check the [Wiki page](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) fo
 
 - **Deployment:** GitHub Actions for CI/CD, Docker
 
+- **Design:** Figma, Excalidraw
+
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=we-kaito_digimon-tcg-simulator-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-backend)
 
 ---
