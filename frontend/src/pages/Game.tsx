@@ -193,7 +193,6 @@ export default function Game({user}: { user: string }) {
                 }
                 case ("[SEND_UPDATE]"): {
                     sendUpdate();
-                    console.log("Opponent reconnected!") // investigating connection issue
                     break;
                 }
                 default: {
@@ -239,6 +238,7 @@ export default function Game({user}: { user: string }) {
     }
 
     function handleDropToOpponent(from: string, to: string){
+        if(!from || !to) return;
         setArrowFrom(from);
         setArrowTo(to);
         setShowAttackArrow(true);
@@ -247,6 +247,7 @@ export default function Game({user}: { user: string }) {
     }
 
     function handleDroToField(cardId: string, from: string, to: string){
+        if(!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendUpdate();
         playPlaceCardSfx();
@@ -520,7 +521,9 @@ export default function Game({user}: { user: string }) {
                                  setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
                                  handleSurrender={handleSurrender}/>}
             {restartMoodle && <RestartMoodle setRestartMoodle={setRestartMoodle} sendAcceptRestart={acceptRestart}/>}
-            {showStartingPlayer && <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"42%", transform:"translateX(-50%)"}}><StartingName>1st: {startingPlayer}</StartingName></Fade>}
+            {showStartingPlayer &&
+                <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"40%", transform:"translateX(-50%)"}}>
+                <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
             <Wrapper>
 
@@ -1313,13 +1316,26 @@ const RevealContainer = styled.div`
 
 const StartingName = styled.span`
   font-family: Sansation, sans-serif;
-  font-size: 124px;
+  font-size: 114px;
   color: ghostwhite;
   text-outline: #114ce1 3px;
   text-shadow: 0 0 8px #2764ff;
   text-transform: uppercase;
   z-index: 10000 !important;
   filter: saturate(2) brightness(2);
+  
+  @media (max-height: 1199px) {
+    font-size: 116px;
+  }
+  @media (max-height: 1080px) {
+    font-size: 100px;
+  }
+  @media (max-height: 900px) {
+    font-size: 80px;
+  }
+  @media (min-height: 1200px) {
+    font-size: 124px;
+  }
 `;
 
 const BackGround = styled.div`

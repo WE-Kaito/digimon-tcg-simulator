@@ -113,36 +113,22 @@ public class GameService extends TextWebSocketHandler {
     }
 
     String convertCommand(String command){
-        switch(command){
-            case "/surrender":
-                return "[SURRENDER]";
-            case "/restartRequest":
-                return "[RESTART]";
-            case "/openedSecurity":
-                return "[SECURITY_VIEWED]";
-            case "/playRevealSfx":
-                return "[REVEAL_SFX]";
-            case "/playSecurityRevealSfx":
-                return "[SECURITY_REVEAL_SFX]";
-            case "/playPlaceCardSfx":
-                return "[PLACE_CARD_SFX]";
-            case "/playDrawCardSfx":
-                return "[DRAW_CARD_SFX]";
-            case "/playSuspendCardSfx":
-                return "[SUSPEND_CARD_SFX]";
-            case "/playUnsuspendCardSfx":
-                return "[UNSUSPEND_CARD_SFX]";
-            case "/playButtonClickSfx":
-                return "[BUTTON_CLICK_SFX]";
-            case "/playTrashCardSfx":
-                return "[TRASH_CARD_SFX]";
-            case "/playShuffleDeckSfx":
-                return "[SHUFFLE_DECK_SFX]";
-            case "/reconnect":
-                return "[SEND_UPDATE]";
-            default:
-                return "";
-        }
+        return switch (command) {
+            case "/surrender" -> "[SURRENDER]";
+            case "/restartRequest" -> "[RESTART]";
+            case "/openedSecurity" -> "[SECURITY_VIEWED]";
+            case "/playRevealSfx" -> "[REVEAL_SFX]";
+            case "/playSecurityRevealSfx" -> "[SECURITY_REVEAL_SFX]";
+            case "/playPlaceCardSfx" -> "[PLACE_CARD_SFX]";
+            case "/playDrawCardSfx" -> "[DRAW_CARD_SFX]";
+            case "/playSuspendCardSfx" -> "[SUSPEND_CARD_SFX]";
+            case "/playUnsuspendCardSfx" -> "[UNSUSPEND_CARD_SFX]";
+            case "/playButtonClickSfx" -> "[BUTTON_CLICK_SFX]";
+            case "/playTrashCardSfx" -> "[TRASH_CARD_SFX]";
+            case "/playShuffleDeckSfx" -> "[SHUFFLE_DECK_SFX]";
+            case "/reconnect" -> "[SEND_UPDATE]";
+            default -> "";
+        };
     }
 
     void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String opponentName, String message) throws IOException {
