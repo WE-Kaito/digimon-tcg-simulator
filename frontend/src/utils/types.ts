@@ -100,6 +100,11 @@ export type GameDistribution = {
     player1Digi3: CardTypeGame[],
     player1Digi4: CardTypeGame[],
     player1Digi5: CardTypeGame[],
+    player1Digi6: CardTypeGame[],
+    player1Digi7: CardTypeGame[],
+    player1Digi8: CardTypeGame[],
+    player1Digi9: CardTypeGame[],
+    player1Digi10: CardTypeGame[],
     player1BreedingArea: CardTypeGame[],
 
     player2Hand: CardTypeGame[],
@@ -115,6 +120,11 @@ export type GameDistribution = {
     player2Digi3: CardTypeGame[],
     player2Digi4: CardTypeGame[],
     player2Digi5: CardTypeGame[],
+    player2Digi6: CardTypeGame[],
+    player2Digi7: CardTypeGame[],
+    player2Digi8: CardTypeGame[],
+    player2Digi9: CardTypeGame[],
+    player2Digi10: CardTypeGame[],
     player2BreedingArea: CardTypeGame[]
 }
 
