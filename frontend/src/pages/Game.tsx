@@ -87,6 +87,8 @@ export default function Game({user}: { user: string }) {
     const [arrowTo, setArrowTo] = useState<string>("");
     const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
     const [gameHasStarted, setGameHasStarted] = useState<boolean>(false);
+    const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
+    const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -102,6 +104,11 @@ export default function Game({user}: { user: string }) {
     const myDigi3 = useGame((state) => state.myDigi3);
     const myDigi4 = useGame((state) => state.myDigi4);
     const myDigi5 = useGame((state) => state.myDigi5);
+    const myDigi6 = useGame((state) => state.myDigi6);
+    const myDigi7 = useGame((state) => state.myDigi7);
+    const myDigi8 = useGame((state) => state.myDigi8);
+    const myDigi9 = useGame((state) => state.myDigi9);
+    const myDigi10 = useGame((state) => state.myDigi10);
     const myBreedingArea = useGame((state) => state.myBreedingArea);
 
     const opponentHand = useGame((state) => state.opponentHand);
@@ -118,6 +125,11 @@ export default function Game({user}: { user: string }) {
     const opponentDigi3 = useGame((state) => state.opponentDigi3);
     const opponentDigi4 = useGame((state) => state.opponentDigi4);
     const opponentDigi5 = useGame((state) => state.opponentDigi5);
+    const opponentDigi6 = useGame((state) => state.opponentDigi6);
+    const opponentDigi7 = useGame((state) => state.opponentDigi7);
+    const opponentDigi8 = useGame((state) => state.opponentDigi8);
+    const opponentDigi9 = useGame((state) => state.opponentDigi9);
+    const opponentDigi10 = useGame((state) => state.opponentDigi10);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
     const websocket = useWebSocket(websocketURL, {
@@ -678,6 +690,8 @@ export default function Game({user}: { user: string }) {
                                 <SecuritySpan id="opponentSecurity">{opponentSecurity.length}</SecuritySpan>
                                 <Lottie animationData={opponentSecurityAnimation} loop={true}
                                         style={{width: "160px"}}/>
+                                <button onClick={() => setIsOpponentSecondRowVisible(!isOpponentSecondRowVisible)}
+                                style={{position:"absolute", left: "5px"}}>SWITCH</button>
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer>
@@ -743,6 +757,8 @@ export default function Game({user}: { user: string }) {
                                                     playShuffleDeckSfx();
                                                     sendSfx("playShuffleDeckSfx");
                                                 }}>🔄</SendButton>}
+                                <button onClick={() => setIsMySecondRowVisible(!isMySecondRowVisible)}
+                                        style={{position:"absolute", right: "5px"}}>SWITCH</button>
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
