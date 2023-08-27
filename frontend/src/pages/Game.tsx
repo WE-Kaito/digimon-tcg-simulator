@@ -196,7 +196,6 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 default: {
-                    console.log(event.data);
                     getOpponentSfx(event.data);
                 }
             }
