@@ -9,37 +9,42 @@ public record Game(
 
         GameCard[] player1Reveal,
         GameCard[] player2Reveal,
-
         GameCard[] player1Hand,
         GameCard[] player1DeckField,
         GameCard[] player1EggDeck,
         GameCard[] player1Trash,
         GameCard[] player1Security,
         GameCard[] player1Tamer,
-
         GameCard[] player1Digi1,
         GameCard[] player1Digi2,
         GameCard[] player1Digi3,
         GameCard[] player1Digi4,
         GameCard[] player1Digi5,
         GameCard[] player1BreedingArea,
-
         GameCard[] player2Hand,
         GameCard[] player2DeckField,
         GameCard[] player2EggDeck,
         GameCard[] player2Trash,
         GameCard[] player2Security,
         GameCard[] player2Tamer,
-
         GameCard[] player2Digi1,
         GameCard[] player2Digi2,
         GameCard[] player2Digi3,
         GameCard[] player2Digi4,
         GameCard[] player2Digi5,
         GameCard[] player2BreedingArea,
-
         GameCard[] player1Delay,
-        GameCard[] player2Delay
+        GameCard[] player2Delay,
+        GameCard[] player1Digi6,
+        GameCard[] player1Digi7,
+        GameCard[] player1Digi8,
+        GameCard[] player1Digi9,
+        GameCard[] player1Digi10,
+        GameCard[] player2Digi6,
+        GameCard[] player2Digi7,
+        GameCard[] player2Digi8,
+        GameCard[] player2Digi9,
+        GameCard[] player2Digi10
 ) {
     @Override
     public boolean equals(Object o) {
@@ -75,7 +80,17 @@ public record Game(
                 Arrays.deepEquals(player2Digi5, game.player2Digi5) &&
                 Arrays.deepEquals(player2BreedingArea, game.player2BreedingArea) &&
                 Arrays.deepEquals(player1Delay, game.player1Delay) &&
-                Arrays.deepEquals(player2Delay, game.player2Delay);
+                Arrays.deepEquals(player2Delay, game.player2Delay) &&
+                Arrays.deepEquals(player1Digi6, game.player1Digi6) &&
+                Arrays.deepEquals(player1Digi7, game.player1Digi7) &&
+                Arrays.deepEquals(player1Digi8, game.player1Digi8) &&
+                Arrays.deepEquals(player1Digi9, game.player1Digi9) &&
+                Arrays.deepEquals(player1Digi10, game.player1Digi10) &&
+                Arrays.deepEquals(player2Digi6, game.player2Digi6) &&
+                Arrays.deepEquals(player2Digi7, game.player2Digi7) &&
+                Arrays.deepEquals(player2Digi8, game.player2Digi8) &&
+                Arrays.deepEquals(player2Digi9, game.player2Digi9) &&
+                Arrays.deepEquals(player2Digi10, game.player2Digi10);
     }
 
     @Override
@@ -110,7 +125,17 @@ public record Game(
                 Arrays.hashCode(player2Digi5),
                 Arrays.hashCode(player2BreedingArea),
                 Arrays.hashCode(player1Delay),
-                Arrays.hashCode(player2Delay)
+                Arrays.hashCode(player2Delay),
+                Arrays.hashCode(player1Digi6),
+                Arrays.hashCode(player1Digi7),
+                Arrays.hashCode(player1Digi8),
+                Arrays.hashCode(player1Digi9),
+                Arrays.hashCode(player1Digi10),
+                Arrays.hashCode(player2Digi6),
+                Arrays.hashCode(player2Digi7),
+                Arrays.hashCode(player2Digi8),
+                Arrays.hashCode(player2Digi9),
+                Arrays.hashCode(player2Digi10)
         );
     }
 
@@ -147,6 +172,16 @@ public record Game(
                 ", player2BreedingArea='" + Arrays.toString(player2BreedingArea) +'\'' +
                 ", player1Delay='" + Arrays.toString(player1Delay) +'\'' +
                 ", player2Delay='" + Arrays.toString(player2Delay) +'\'' +
+                ", player1Digi6='" + Arrays.toString(player1Digi6) +'\'' +
+                ", player1Digi7='" + Arrays.toString(player1Digi7) +'\'' +
+                ", player1Digi8='" + Arrays.toString(player1Digi8) +'\'' +
+                ", player1Digi9='" + Arrays.toString(player1Digi9) +'\'' +
+                ", player1Digi10='" + Arrays.toString(player1Digi10) +'\'' +
+                ", player2Digi6='" + Arrays.toString(player2Digi6) +'\'' +
+                ", player2Digi7='" + Arrays.toString(player2Digi7) +'\'' +
+                ", player2Digi8='" + Arrays.toString(player2Digi8) +'\'' +
+                ", player2Digi9='" + Arrays.toString(player2Digi9) +'\'' +
+                ", player2Digi10='" + Arrays.toString(player2Digi10) +'\'' +
                 '}';
     }
 }
