@@ -258,7 +258,7 @@ export default function Game({user}: { user: string }) {
         endAttackAnimation();
     }
 
-    function handleDroToField(cardId: string, from: string, to: string){
+    function handleDropToField(cardId: string, from: string, to: string){
         if(!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendUpdate();
@@ -270,7 +270,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myDigi1');
+            handleDropToField(id, location, 'myDigi1');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -281,7 +281,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myDigi2');
+            handleDropToField(id, location, 'myDigi2');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -292,7 +292,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myDigi3');
+            handleDropToField(id, location, 'myDigi3');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -303,7 +303,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myDigi4');
+            handleDropToField(id, location, 'myDigi4');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -314,7 +314,62 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myDigi5');
+            handleDropToField(id, location, 'myDigi5');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi6] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            handleDropToField(id, location, 'myDigi6');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi7] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            handleDropToField(id, location, 'myDigi7');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi8] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            handleDropToField(id, location, 'myDigi8');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi9] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            handleDropToField(id, location, 'myDigi9');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    const [, dropToDigi10] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location} = item;
+            handleDropToField(id, location, 'myDigi10');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -338,7 +393,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myBreedingArea');
+            handleDropToField(id, location, 'myBreedingArea');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -349,7 +404,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myTamer');
+            handleDropToField(id, location, 'myTamer');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -360,7 +415,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location} = item;
-            handleDroToField(id, location, 'myDelay');
+            handleDropToField(id, location, 'myDelay');
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -827,9 +882,15 @@ export default function Game({user}: { user: string }) {
                                         <Card card={card} location={"myDigi2"} sendSfx={sendSfx}
                                               sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
-                            <BattleArea3 ref={dropToDigi3}>
-                                {myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {myDigi3.map((card, index) =>
+                            <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}>
+                                {myDigi3.length + myDigi8.length === 0 &&  <FieldSpan>Battle Area</FieldSpan>}
+                                {isMySecondRowVisible ?
+                                    myDigi8.map((card, index) =>
+                                        <CardContainer cardCount={myDigi8.length} key={card.id} cardIndex={index} id={index === myDigi8.length -1 ? "myDigi8" : ""}>
+                                            <Card card={card} location={"myDigi8"} sendSfx={sendSfx}
+                                                  sendUpdate={sendUpdate}/></CardContainer>)
+                                    : 
+                                    myDigi3.map((card, index) =>
                                     <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index} id={index === myDigi3.length -1 ? "myDigi3" : ""}>
                                         <Card card={card} location={"myDigi3"} sendSfx={sendSfx}
                                               sendUpdate={sendUpdate}/></CardContainer>)}
