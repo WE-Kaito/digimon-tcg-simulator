@@ -45,11 +45,21 @@ public class GameService extends TextWebSocketHandler {
         map.put("myDigi3", "opponentDigi3");
         map.put("myDigi4", "opponentDigi4");
         map.put("myDigi5", "opponentDigi5");
+        map.put("myDigi6", "opponentDigi6");
+        map.put("myDigi7", "opponentDigi7");
+        map.put("myDigi8", "opponentDigi8");
+        map.put("myDigi9", "opponentDigi9");
+        map.put("myDigi10", "opponentDigi10");
         map.put("opponentDigi1", "myDigi1");
         map.put("opponentDigi2", "myDigi2");
         map.put("opponentDigi3", "myDigi3");
         map.put("opponentDigi4", "myDigi4");
         map.put("opponentDigi5", "myDigi5");
+        map.put("opponentDigi6", "myDigi6");
+        map.put("opponentDigi7", "myDigi7");
+        map.put("opponentDigi8", "myDigi8");
+        map.put("opponentDigi9", "myDigi9");
+        map.put("opponentDigi10", "myDigi10");
         map.put("opponentSecurity", "mySecurity");
         return map;
     }
@@ -207,7 +217,7 @@ public class GameService extends TextWebSocketHandler {
         GameCard[] player2Deck = newDeck2.toArray(new GameCard[0]);
         GameCard[] empty = new GameCard[0];
 
-        Game newGame = new Game(0, 0, empty, empty, player1Hand.toArray(new GameCard[0]), player1Deck, player1EggDeck.toArray(new GameCard[0]), empty, player1Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, player2Hand.toArray(new GameCard[0]), player2Deck, player2EggDeck.toArray(new GameCard[0]), empty, player2Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, empty, empty);
+        Game newGame = new Game(0, 0, empty, empty, player1Hand.toArray(new GameCard[0]), player1Deck, player1EggDeck.toArray(new GameCard[0]), empty, player1Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, player2Hand.toArray(new GameCard[0]), player2Deck, player2EggDeck.toArray(new GameCard[0]), empty, player2Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty);
         String newGameJson = objectMapper.writeValueAsString(newGame);
 
         for (WebSocketSession s : gameRoom) {

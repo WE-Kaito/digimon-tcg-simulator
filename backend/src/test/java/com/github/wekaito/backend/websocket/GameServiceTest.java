@@ -197,8 +197,18 @@ class GameServiceTest {
         TextMessage attackMessage4 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi4:opponentDigi4");
         TextMessage expectedMessage5 = new TextMessage("[ATTACK]:opponentDigi5:myDigi5");
         TextMessage attackMessage5 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi5:opponentDigi5");
-        TextMessage expectedMessage6 = new TextMessage("[ATTACK]:opponentDigi1:mySecurity");
-        TextMessage attackMessage6 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentSecurity");
+        TextMessage expectedMessage6 = new TextMessage("[ATTACK]:opponentDigi6:myDigi6");
+        TextMessage attackMessage6 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi6:opponentDigi6");
+        TextMessage expectedMessage7 = new TextMessage("[ATTACK]:opponentDigi7:myDigi7");
+        TextMessage attackMessage7 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi7:opponentDigi7");
+        TextMessage expectedMessage8 = new TextMessage("[ATTACK]:opponentDigi8:myDigi8");
+        TextMessage attackMessage8 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi8:opponentDigi8");
+        TextMessage expectedMessage9 = new TextMessage("[ATTACK]:opponentDigi9:myDigi9");
+        TextMessage attackMessage9 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi9:opponentDigi9");
+        TextMessage expectedMessage10 = new TextMessage("[ATTACK]:opponentDigi10:myDigi10");
+        TextMessage attackMessage10 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi10:opponentDigi10");
+        TextMessage expectedMessage11 = new TextMessage("[ATTACK]:opponentDigi1:mySecurity");
+        TextMessage attackMessage11 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentSecurity");
 
         putPlayersToGameRoom();
         // WHEN
@@ -208,6 +218,11 @@ class GameServiceTest {
         gameService.handleTextMessage(session1, attackMessage4);
         gameService.handleTextMessage(session1, attackMessage5);
         gameService.handleTextMessage(session1, attackMessage6);
+        gameService.handleTextMessage(session1, attackMessage7);
+        gameService.handleTextMessage(session1, attackMessage8);
+        gameService.handleTextMessage(session1, attackMessage9);
+        gameService.handleTextMessage(session1, attackMessage10);
+        gameService.handleTextMessage(session1, attackMessage11);
         // THEN
         verify(session2, times(1)).sendMessage(expectedMessage1);
         verify(session2, times(1)).sendMessage(expectedMessage2);
@@ -215,6 +230,11 @@ class GameServiceTest {
         verify(session2, times(1)).sendMessage(expectedMessage4);
         verify(session2, times(1)).sendMessage(expectedMessage5);
         verify(session2, times(1)).sendMessage(expectedMessage6);
+        verify(session2, times(1)).sendMessage(expectedMessage7);
+        verify(session2, times(1)).sendMessage(expectedMessage8);
+        verify(session2, times(1)).sendMessage(expectedMessage9);
+        verify(session2, times(1)).sendMessage(expectedMessage10);
+        verify(session2, times(1)).sendMessage(expectedMessage11);
     }
 
 }

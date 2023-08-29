@@ -13,21 +13,24 @@ class GameTest {
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
-                cards, cards
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards
         );
         Game game2 = new Game(
                 10, -10, cards, cards, cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
-                cards, cards
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards
         );
         Game game3 = new Game(
                 5, -5, cards, cards, cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
-                cards, cards
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards
         );
 
         assertEquals(game1, game2);
@@ -45,7 +48,8 @@ class GameTest {
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
                 cards, cards, cards, cards, cards, cards,
-                cards, cards
+                cards, cards, cards, cards, cards, cards,
+                cards, cards, cards, cards, cards, cards
         );
         String expectedString = "Game{" +
                 "player1Memory='5'," +
@@ -77,7 +81,17 @@ class GameTest {
                 " player2Digi5='[]'," +
                 " player2BreedingArea='[]'," +
                 " player1Delay='[]'," +
-                " player2Delay='[]'" +
+                " player2Delay='[]'," +
+                " player1Digi6='[]'," +
+                " player1Digi7='[]'," +
+                " player1Digi8='[]'," +
+                " player1Digi9='[]'," +
+                " player1Digi10='[]'," +
+                " player2Digi6='[]'," +
+                " player2Digi7='[]'," +
+                " player2Digi8='[]'," +
+                " player2Digi9='[]'," +
+                " player2Digi10='[]'" +
                 "}";
         assertEquals(expectedString, game.toString());
     }
