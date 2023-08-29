@@ -145,7 +145,6 @@ export default function Game({user}: { user: string }) {
         onClose: () => {
             setTimeout(() => {
                 websocket.sendMessage(gameId + ":/reconnect");
-                console.log("Reconnect...") // investigating connection issue
             }, 1000);
         },
 
@@ -181,7 +180,38 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[ATTACK]:")) {
                 const parts = event.data.substring("[ATTACK]:".length).split(":");
-                console.log("Attack from " + parts[0] + " to " + parts[1]);
+                switch (parts[0]) {
+                    case "opponentDigi1":
+                    case "opponentDigi2":
+                    case "opponentDigi3":
+                    case "opponentDigi4":
+                    case "opponentDigi5":
+                        setIsOpponentSecondRowVisible(false);
+                        break;
+                    case "opponentDigi6":
+                    case "opponentDigi7":
+                    case "opponentDigi8":
+                    case "opponentDigi9":
+                    case "opponentDigi10":
+                        setIsOpponentSecondRowVisible(true);
+                        break;
+                }
+                switch (parts[1]) {
+                    case "myDigi1":
+                    case "myDigi2":
+                    case "myDigi3":
+                    case "myDigi4":
+                    case "myDigi5":
+                        setIsMySecondRowVisible(false);
+                        break;
+                    case "myDigi6":
+                    case "myDigi7":
+                    case "myDigi8":
+                    case "myDigi9":
+                    case "myDigi10":
+                        setIsMySecondRowVisible(true);
+                        break;
+                }
                 setArrowFrom(parts[0]);
                 setArrowTo(parts[1]);
                 setAttackFromOpponent(true);
