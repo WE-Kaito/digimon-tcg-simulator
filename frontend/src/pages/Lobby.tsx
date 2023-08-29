@@ -102,7 +102,6 @@ export default function Lobby({user}: { user: string }) {
         websocket.sendMessage(`/acceptInvite:` + inviteFrom);
         const newGameId = inviteFrom + "_" + user;
         setGameId(newGameId);
-        console.log("gameId: " + newGameId);
         navigate(`/game`);
     }
 

@@ -175,9 +175,6 @@ export const useGame = create<State>((set, get) => ({
 
         const player1 = gameId.split("_")[0];
 
-        console.log(game.player1Digi1);
-        console.log(game.player1Digi6);
-
         if (user === player1) {
             set({
                 myMemory: game.player1Memory,
