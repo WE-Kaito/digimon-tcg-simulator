@@ -26,7 +26,7 @@ export default function AttackArrows({fromOpponent, from, to}: Props) {
 }
 
 const StyledArrow = styled(Arrow)<{fromOpponent: boolean}>`
-position: relative;
+  position: relative;
   pointer-events: none;
   stroke: ${({fromOpponent}) => fromOpponent ? "crimson" : "#007fff"};
   fill: ${({fromOpponent}) => fromOpponent ? "crimson" : "#007fff"};
@@ -40,10 +40,11 @@ position: relative;
     stroke-dasharray: 0;
     stroke-width: 10px;
   }
+
   .arrow__head {
     stroke-width: 10px;
   }
-  
+
   @keyframes arrow-pulsate {
     0%,
     100% {
