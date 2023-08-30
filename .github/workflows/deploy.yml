@@ -84,15 +84,16 @@ jobs:
     needs: push-to-docker-hub
     steps:
       - name: Login to Heroku Container Registry
-        run: echo "${{ secrets.HEROKU_API_KEY }}" | docker login -u _ -p $(heroku auth:token) registry.heroku.com
+        run: docker login --username=_ --password=$(heroku auth:token) registry.heroku.com
 
       - name: Push Docker Container to Heroku
         run: |
-          docker tag sonkaito/digimon-tcg-sim:latest registry.heroku.com/your-heroku-app-name/web
-          docker push registry.heroku.com/your-heroku-app-name/web
+          docker tag sonkaito/digimon-tcg-sim:latest registry.heroku.com/digimon-tcg/web
+          docker push registry.heroku.com/digimon-tcg/web
 
       - name: Release Docker Container on Heroku
         run: heroku container:release web --app digimon-tcg
+
 
   deploy:
     runs-on: ubuntu-latest
