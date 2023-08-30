@@ -48,7 +48,7 @@ jobs:
     needs: build-backend
     environment:
       name: production-heroku
-      url: https://digimon-tcg-sim.herokuapp.com/
+      url: https://digimon-tcg-sim.com
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
     steps:
