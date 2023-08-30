@@ -6,14 +6,15 @@ on:
       - main
 
 jobs:
-  build-frontend:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: '14'
 
       - name: Build Frontend
         working-directory: frontend
@@ -21,90 +22,37 @@ jobs:
           npm install
           npm run build
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: frontend-build
-          path: frontend/dist/
-
-  build-backend:
-    runs-on: ubuntu-latest
-    needs: build-frontend
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: frontend-build
-          path: backend/src/main/resources/static
-
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          #Set Java Version
-          java-version: '20'
-          distribution: 'adopt'
-          cache: 'maven'
+          java-version: '11'
 
-      - name: Build with maven
+      - name: Build with Maven
         run: mvn -B package --file backend/pom.xml
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: digimon-tcg-sim.jar
-          path: backend/target/digimon-tcg-sim.jar
+      - name: Build Docker Image
+        run: docker build -t my-docker-image .
 
-  push-to-docker-hub:
-    runs-on: ubuntu-latest
-    needs: build-backend
-    steps:
-      - uses: actions/checkout@v2
+      - name: Push Docker Image to Registry
+        run: |
+          echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          docker tag my-docker-image ${{ secrets.DOCKERHUB_USERNAME }}/my-docker-image:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-docker-image:latest
 
-      - uses: actions/download-artifact@v2
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
         with:
-          name: digimon-tcg-sim.jar
-          path: backend/target
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          #Set dockerhub username
-          username: sonkaito
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
-          tags: sonkaito/digimon-tcg-sim:latest
-          context: .
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: push-to-docker-hub
-    steps:
-      - name: Restart docker container
-        uses: appleboy/ssh-action@master
-        with:
-          host: capstone-project.de
-          #Set App Name (replace "example" with your ssh user name)
-          username: cgn-java-23-2-enrico
-          password: ${{ secrets.SSH_PASSWORD }}
-          #Set App Name (replace "example" with your ssh user name)
-          #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
-          #Set IP (replace "10.0.1.99" with your ip address)
-          script: |
-            sudo docker stop cgn-java-23-2-enrico
-            sudo docker rm cgn-java-23-2-enrico
-            sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} sonkaito/digimon-tcg-sim:latest
-            sleep 15s
-            sudo docker logs cgn-java-23-2-enrico
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: your-heroku-app-name
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          buildpacks: 'heroku/java'
+          used_yml: true
+          env_vars: MONGO_DB_URI=${{ secrets.MONGO_DB_URI }}
 
       - name: Check the deployed service URL
         uses: jtalk/url-health-check-action@v3
         with:
-          #Set App Name (replace "example" with your ssh user name)
-          url: http://cgn-java-23-2-enrico.capstone-project.de
+          url: https://digimon-tcg.herokuapp.com
           max-attempts: 3
           retry-delay: 5s
           retry-all: true
