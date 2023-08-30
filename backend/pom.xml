@@ -102,7 +102,25 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <workingDirectory>${project.parent.basedir}/frontend</workingDirectory>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-static</id>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
+
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
