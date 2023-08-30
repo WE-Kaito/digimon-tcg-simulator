@@ -40,8 +40,8 @@ jobs:
         run: mvn -B package --file backend/pom.xml
       - uses: actions/upload-artifact@v2
         with:
-          name: app.jar
-          path: backend/target/app.jar
+          name: digimon-tcg-sim.jar
+          path: backend/target/digimon-tcg-sim.jar
 
   deploy:
     runs-on: ubuntu-latest
