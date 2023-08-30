@@ -1,2 +1,1 @@
-web: java -jar backend/target/digimon-tcg-sim.jar
-
+web: cd backend && mvn clean install && java -jar target/digimon-tcg-sim.jar
