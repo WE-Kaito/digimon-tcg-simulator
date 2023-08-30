@@ -12,8 +12,14 @@
     <artifactId>backend-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>backend-parent</name>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
+
     <properties>
         <java.version>20</java.version>
     </properties>
+
+    <modules>
+        <module>backend</module>
+    </modules>
+
 </project>
