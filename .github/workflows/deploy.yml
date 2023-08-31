@@ -87,6 +87,7 @@ jobs:
       url: https://digimon-tcg.herokuapp.com/
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      MONGO_DB_URI: ${{ secrets.MONGO_DB_URI }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v2
