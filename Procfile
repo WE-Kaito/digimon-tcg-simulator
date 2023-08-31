@@ -1,1 +1,1 @@
-web:java -jar backend/target/digimon-tcg-sim.jar
+web: npm run serve-heroku
