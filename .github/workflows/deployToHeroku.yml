@@ -10,18 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+
+      - uses: actions/setup-node@v3
         with:
           node-version: '18'
+
       - name: Build Frontend
+        working-directory: frontend
         run: |
-          cd frontend
           npm install
           npm run build
-      - uses: actions/upload-artifact@v2
+
+      - uses: actions/upload-artifact@v3
         with:
           name: frontend-build
-          path: frontend/build/
+          path: frontend/dist/
 
   build-backend:
     runs-on: ubuntu-latest
