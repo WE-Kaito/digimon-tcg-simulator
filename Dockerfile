@@ -6,4 +6,4 @@ LABEL maintainer="WE-Kaito"
 
 ADD backend/target/digimon-tcg-sim.jar digimon-tcg-sim.jar
 
-CMD [ "sh", "-c", "java -Dserver.port=$PORT -jar /app.jar" ]
+CMD [ "sh", "-c", "java -Dserver.port=$PORT -jar /digimon-tcg-sim.jar" ]
