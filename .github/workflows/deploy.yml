@@ -31,25 +31,21 @@ jobs:
         with:
           java-version: '20'
           distribution: 'temurin'
-      - uses: actions/download-artifact@v2
-        with:
-          name: frontend-build
-          path: backend/src/main/resources/static
       - name: Build Backend
         run: mvn -B package --file backend/pom.xml
       - uses: actions/upload-artifact@v2
         with:
           name: backend-build
-          path: backend/target/digimon-tcg-sim.jar  # app name (matches with final name in pom and Dockerfile)
+          path: backend/target/digimon-tcg-sim.jar
 
   deploy:
     runs-on: ubuntu-latest
     needs: build-backend
     environment:
-      name: Produktion Heroku
-      url: https://digimon-tcg.herokuapp.com/ # url of heroku app
+      name: production-heroku
+      url: https://digimon-tcg.herokuapp.com/
     env:
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}  # Heroku Key: will be replaced in GitHub
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v2
@@ -58,7 +54,7 @@ jobs:
           path: backend/target
       - name: Login to Heroku
         run: heroku container:login
-      - name: Push Docker Image
-        run: heroku container:push web -a digimon-tcg # name of the heroku app
+      - name: Push Docker Container
+        run: heroku container:push web -a digimon-tcg
       - name: Release Docker Container
-        run: heroku container:release web -a digimon-tcg # name of the heroku app
+        run: heroku container:release web -a digimon-tcg
