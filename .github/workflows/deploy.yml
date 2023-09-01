@@ -17,7 +17,7 @@ jobs:
           cd frontend
           npm install
           npm run build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: frontend-build
           path: frontend/build/
@@ -31,13 +31,13 @@ jobs:
         with:
           java-version: '20'
           distribution: 'temurin'
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: frontend-build
           path: backend/src/main/resources/static
       - name: Build Backend
         run: mvn -B package --file backend/pom.xml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: backend-build
           path: backend/target/digimon-tcg-sim.jar
@@ -52,7 +52,7 @@ jobs:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: backend-build
           path: backend/target
