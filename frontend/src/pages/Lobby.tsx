@@ -19,7 +19,7 @@ export default function Lobby({user}: { user: string }) {
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
     const currentPort = window.location.port;
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/chat";
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
 
     const setGameId = useStore((state) => state.setGameId);
 
