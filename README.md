@@ -14,8 +14,7 @@ Reviews are very welcome!
 - [x] Resposive design (Game page excluded).
 - [X] Manual simulation of the *Digimon Card Game* with audio and animations
 
-~~Try it on https://cgn-java-23-2-enrico.capstone-project.de/.~~  
-Currently not available. See you next week.
+**Try it on [https://cgn-java-23-2-enrico.capstone-project.de/](https://www.digi-tcg.online/) **
 
 Check the [Wiki page](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) for futher information.
 
