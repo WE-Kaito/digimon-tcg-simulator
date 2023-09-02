@@ -62,4 +62,3 @@ jobs:
         run: heroku container:push web -a digimon-tcg
       - name: Release Docker Container
         run: heroku container:release web -a digimon-tcg
-
