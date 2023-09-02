@@ -157,8 +157,8 @@ public class GameService extends TextWebSocketHandler {
     void setUpGame(WebSocketSession session, String gameId) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
-        String username1 = gameId.split("_")[0];
-        String username2 = gameId.split("_")[1];
+        String username1 = gameId.split("‗")[0];
+        String username2 = gameId.split("‗")[1];
 
         String avatar1 = mongoUserDetailsService.getAvatar(username1);
         String avatar2 = mongoUserDetailsService.getAvatar(username2);
@@ -180,8 +180,8 @@ public class GameService extends TextWebSocketHandler {
 
     void distributeCards(String gameId) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
-        String user1 = gameId.split("_")[0];
-        String user2 = gameId.split("_")[1];
+        String user1 = gameId.split("‗")[0];
+        String user2 = gameId.split("‗")[1];
 
         Card[] deck1 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
         Card[] deck2 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();

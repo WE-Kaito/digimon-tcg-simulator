@@ -53,7 +53,7 @@ class GameServiceTest {
     String username2 = "testUser2";
     Deck exampleDeck = new Deck("12345", "New Deck", cards, "authorId");
     Deck exampleDeck2 = new Deck("67890", "New Deck2", cards2, "authorId");
-    String gameId = "testUser1_testUser2";
+    String gameId = "testUser1‗testUser2";
 
     private WebSocketSession createMockSession(String username) {
         WebSocketSession session = mock(WebSocketSession.class);
@@ -87,7 +87,7 @@ class GameServiceTest {
     void testStartGameMessage() throws IOException, InterruptedException {
         // WHEN
         gameService.afterConnectionEstablished(session1);
-        gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1_testUser2"));
+        gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1‗testUser2"));
         // THEN
         verify(session1, times(3)).sendMessage(any());
     }

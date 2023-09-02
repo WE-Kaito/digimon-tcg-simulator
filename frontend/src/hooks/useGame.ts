@@ -173,7 +173,7 @@ export const useGame = create<State>((set, get) => ({
 
     distributeCards: (user, game, gameId) => {
 
-        const player1 = gameId.split("_")[0];
+        const player1 = gameId.split("‗")[0];
 
         if (user === player1) {
             set({
@@ -308,7 +308,7 @@ export const useGame = create<State>((set, get) => ({
 
     getUpdatedGame: (gameId, user) => {
 
-        const player1 = gameId.split("_")[0];
+        const player1 = gameId.split("‗")[0];
         let updatedGame: GameDistribution;
 
         if (user === player1) {

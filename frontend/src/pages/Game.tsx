@@ -18,6 +18,7 @@ import deckBackOpponent from "../assets/deckBackOpponent.png";
 import eggBack from "../assets/eggBack.jpg";
 import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
+import noiseBG from "../assets/noiseBG.png";
 import CardDetails from "../components/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
@@ -1669,7 +1670,7 @@ const BackGroundPattern = styled.div`
   left: -50vw;
   width: 200vw;
   height: 200vh;
-  background: transparent url('http://assets.iceable.com/img/noise-transparent.png') repeat 0 0;
+  background: transparent url(${noiseBG}) repeat 0 0;
   background-repeat: repeat;
   animation: bg-animation .2s infinite;
   opacity: .4;

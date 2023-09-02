@@ -45,7 +45,7 @@ export default function Lobby({user}: { user: string }) {
             if (event.data.startsWith("[INVITATION_ACCEPTED]")) {
                 const acceptedFrom: string = event.data.substring(event.data.indexOf(":") + 1);
                 if (acceptedFrom === inviteTo) {
-                    const newGameID = user + "_" + acceptedFrom;
+                    const newGameID = user + "‗" + acceptedFrom;
                     setGameId(newGameID);
                     navigate(`../game`);
                 }
@@ -100,7 +100,7 @@ export default function Lobby({user}: { user: string }) {
 
     function handleAcceptInvite() {
         websocket.sendMessage(`/acceptInvite:` + inviteFrom);
-        const newGameId = inviteFrom + "_" + user;
+        const newGameId = inviteFrom + "‗" + user;
         setGameId(newGameId);
         navigate(`/game`);
     }
