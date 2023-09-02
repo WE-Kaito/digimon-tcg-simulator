@@ -1,7 +1,7 @@
 Digimon TCG Simulator
 ---
 
-This is a graduation project for the [neuefische](https://www.neuefische.de/en) java/full-stack bootcamp with a 4 week time frame.  
+This was a graduation project for the [neuefische](https://www.neuefische.de/en) java/full-stack bootcamp.  
 As a fan of the Digimon franchise and [its card game](https://world.digimoncard.com/), this was a great opportunity to create something I and hopefully other fans will enjoy.
 Reviews are very welcome!
 
