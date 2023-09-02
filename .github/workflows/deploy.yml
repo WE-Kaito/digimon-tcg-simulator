@@ -40,7 +40,6 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          #Set Java Version
           java-version: '20'
           distribution: 'adopt'
           cache: 'maven'
@@ -67,7 +66,6 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          #Set dockerhub username
           username: sonkaito
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
@@ -75,7 +73,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
           tags: sonkaito/digimon-tcg-sim:latest
           context: .
 
@@ -86,25 +83,20 @@ jobs:
       - name: Restart docker container
         uses: appleboy/ssh-action@master
         with:
-          host: capstone-project.de
-          #Set App Name (replace "example" with your ssh user name)
-          username: cgn-java-23-2-enrico
-          password: ${{ secrets.SSH_PASSWORD }}
-          #Set App Name (replace "example" with your ssh user name)
-          #Set dockerhub project (replace "bartfastiel/java-capstone-project.de-example-app")
-          #Set IP (replace "10.0.1.99" with your ip address)
+          host: ec2-13-51-109-31.eu-north-1.compute.amazonaws.com
+          username: ec2-user
+          key: ${{ secrets.SSH_KEY }}
           script: |
-            sudo docker stop cgn-java-23-2-enrico
-            sudo docker rm cgn-java-23-2-enrico
-            sudo docker run --pull=always --name cgn-java-23-2-enrico --network capstones --ip 10.0.5.9 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} sonkaito/digimon-tcg-sim:latest
+            sudo docker stop digimon-tcg-sim
+            sudo docker rm digimon-tcg-sim
+            sudo docker run --pull=always --name digimon-tcg-sim --network launch-wizard-1 --ip 13.51.109.31 --restart always --detach --env MONGO_DB_URI=${{ secrets.MONGO_DB_URI }} sonkaito/digimon-tcg-sim:latest
             sleep 15s
-            sudo docker logs cgn-java-23-2-enrico
+            sudo docker logs ec2-user
 
       - name: Check the deployed service URL
         uses: jtalk/url-health-check-action@v3
         with:
-          #Set App Name (replace "example" with your ssh user name)
-          url: http://cgn-java-23-2-enrico.capstone-project.de
+          url: http://ec2-13-51-109-31.eu-north-1.compute.amazonaws.com:80
           max-attempts: 3
           retry-delay: 5s
           retry-all: true
