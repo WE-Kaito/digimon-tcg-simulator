@@ -46,7 +46,7 @@ import {
 export default function Game({user}: { user: string }) {
 
     const currentPort = window.location.port;
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://cgn-java-23-2-enrico.capstone-project.de/api/ws/game";
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://www.digi-tcg.online/api/ws/game";
     const navigate = useNavigate();
 
     const selectedCard = useStore((state) => state.selectedCard);
