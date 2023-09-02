@@ -31,7 +31,7 @@ Check the [Wiki page](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) fo
 
 - **Testing:** JUnit, AssertJ, Mockito, MockMvc, Flapdoodle (for integration tests)
 
-- **Deployment:** GitHub Actions for CI/CD, Docker
+- **Deployment:** GitHub Actions for CI/CD, Docker, Heroku
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=we-kaito_digimon-tcg-simulator-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-backend)
 
