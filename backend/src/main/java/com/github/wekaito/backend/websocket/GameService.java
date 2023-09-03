@@ -95,7 +95,7 @@ public class GameService extends TextWebSocketHandler {
         String payload = message.getPayload();
         String[] parts = payload.split(":", 2);
 
-        if (payload.startsWith("/startGame:")) {
+        if (payload.startsWith("/startGame:")  && parts.length >= 2) {
             String gameId = parts[1].trim();
             setUpGame(session, gameId);
             Thread.sleep(600);
@@ -115,6 +115,7 @@ public class GameService extends TextWebSocketHandler {
 
         else{
             String[] roomMessageParts = roomMessage.split(":", 2);
+            if (roomMessageParts.length < 2) return;
             String command = roomMessageParts[0];
             String opponentName = roomMessageParts[1];
             if (command.equals("/reconnect")) gameRoom.add(session);

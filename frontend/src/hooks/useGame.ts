@@ -3,7 +3,6 @@ import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
 
 type State = {
     myAvatar: string,
-    opponentName: string,
     opponentAvatar: string,
 
     myMemory: number,
@@ -73,7 +72,6 @@ type State = {
 export const useGame = create<State>((set, get) => ({
 
     myAvatar: "",
-    opponentName: "",
     opponentAvatar: "",
 
     myMemory: 0,
@@ -125,7 +123,6 @@ export const useGame = create<State>((set, get) => ({
     setUpGame: (me, opponent) => {
         set({
             myAvatar: me.avatarName,
-            opponentName: opponent.username,
             opponentAvatar: opponent.avatarName,
 
             myMemory: 0,

@@ -66,7 +66,7 @@ export default function Game({user}: { user: string }) {
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
-    const opponentName = useGame((state) => state.opponentName);
+    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
     const [surrenderOpen, setSurrenderOpen] = useState<boolean>(false);
     const [timerOpen, setTimerOpen] = useState<boolean>(false);
@@ -154,14 +154,16 @@ export default function Game({user}: { user: string }) {
             if (event.data.startsWith("[START_GAME]:")) {
                 const playersJson = event.data.substring("[START_GAME]:".length);
                 const players = JSON.parse(playersJson);
-                const me = players.filter((player: Player) => player.username === user)[0];
-                const opponent = players.filter((player: Player) => player.username !== user)[0];
+                const me = players.slice().filter((player: Player) => player.username === user)[0];
+                const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
+                return;
             }
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const newGame: GameDistribution = JSON.parse(event.data.substring("[DISTRIBUTE_CARDS]:".length));
                 distributeCards(user, newGame, gameId);
+                return;
             }
 
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
@@ -177,6 +179,7 @@ export default function Game({user}: { user: string }) {
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
                 }, 4500);
+                return;
             }
 
             if (event.data.startsWith("[ATTACK]:")) {
@@ -218,6 +221,7 @@ export default function Game({user}: { user: string }) {
                 setAttackFromOpponent(true);
                 setShowAttackArrow(true);
                 endAttackAnimation();
+                return;
             }
 
             switch (event.data) {
@@ -270,7 +274,6 @@ export default function Game({user}: { user: string }) {
     function sendUpdate() {
         const updatedGame: string = getUpdatedGame(gameId, user);
         const chunks = chunkString(updatedGame, 1000);
-
         for (const chunk of chunks) {
             setTimeout(() => {
                 websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
