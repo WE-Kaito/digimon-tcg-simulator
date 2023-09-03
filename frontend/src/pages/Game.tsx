@@ -1229,15 +1229,15 @@ const OpenChatSideBar = styled.div`
   top: 0;
   height: 1000px;
   width: 40px;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15) 35%);;
+  background: linear-gradient(to right, rgba(15, 15, 15, 0) 5%, rgba(15, 15, 15, 0.15) 35%);;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  
+
   span {
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     cursor: pointer;
     opacity: 0.2;
     font-size: 44px;
@@ -1246,9 +1246,10 @@ const OpenChatSideBar = styled.div`
   }
 
   &:hover {
-    background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5) 30%);
+    background: linear-gradient(to right, rgba(25, 25, 25, 0) 5%, rgba(25, 25, 25, 0.5) 30%);
     width: 50px;
     right: -35px;
+
     span {
       margin-left: 14px;
       opacity: 0.6;
