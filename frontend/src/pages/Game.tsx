@@ -687,7 +687,7 @@ export default function Game({user}: { user: string }) {
                 <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
             <Wrapper chatOpen={isChatOpen}>
-                <OpenChatSideBar chatOpen={isChatOpen} onClick={()=> setIsChatOpen(!isChatOpen)}><span>›</span></OpenChatSideBar>
+                <ChatSideBar chatOpen={isChatOpen} onClick={()=> setIsChatOpen(!isChatOpen)}><span>›</span></ChatSideBar>
 
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) =>
@@ -1225,7 +1225,7 @@ const Wrapper = styled.div<{chatOpen:boolean}>`
   }
 `;
 
-const OpenChatSideBar = styled.div<{chatOpen:boolean}>`
+const ChatSideBar = styled.div<{chatOpen:boolean}>`
   position: absolute;
   right: ${({chatOpen}) => chatOpen ? "-250px" : "-25px"};
   top: 0;
@@ -1238,7 +1238,7 @@ const OpenChatSideBar = styled.div<{chatOpen:boolean}>`
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
+  cursor: ${({chatOpen}) => chatOpen ? "default" : "pointer"};
   transition: all 0.4s ease-out;
 
   span {
