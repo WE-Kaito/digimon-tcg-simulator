@@ -11,7 +11,7 @@ import shuffleDeckSfx from "../assets/sounds/shuffle-deck.mp3";
 import suspendSfx from "../assets/sounds/suspend.mp3";
 import unsuspendSfx from "../assets/sounds/unsuspend.mp3";
 import opponentPlaceCardSfx from "../assets/sounds/opponent-place-card.mp3";
-import loaadMemorybarSfx from "../assets/sounds/load-memorybar.mp3";
+import loadMemorybarSfx from "../assets/sounds/load-memorybar.mp3";
 import buttonHoverSfx from "../assets/sounds/button-hover.mp3";
 
 export function playDrawCardSfx() {
@@ -96,7 +96,7 @@ export function playOpponentPlaceCardSfx() {
 }
 
 export const playLoadMemorybarSfx = () => {
-    const audio = new Audio(loaadMemorybarSfx);
+    const audio = new Audio(loadMemorybarSfx);
     audio.volume = 0.7;
     audio.addEventListener('canplay', () => audio.play());
 }
