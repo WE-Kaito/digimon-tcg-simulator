@@ -90,6 +90,7 @@ export default function Game({user}: { user: string }) {
     const [gameHasStarted, setGameHasStarted] = useState<boolean>(false);
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
+    const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -686,6 +687,7 @@ export default function Game({user}: { user: string }) {
                 <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
             <Wrapper>
+                <OpenChatSideBar onClick={()=> setIsChatOpen(true)}><span>›</span></OpenChatSideBar>
 
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) =>
@@ -1212,6 +1214,59 @@ const Wrapper = styled.div`
   @media (max-height: 1080px) {
     transform: scale(0.9);
   }
+  @media (max-height: 900px) {
+    transform: scale(0.7);
+  }
+
+  @media (min-height: 1200px) {
+    transform: scale(1.2);
+  }
+`;
+
+const OpenChatSideBar = styled.div`
+  position: absolute;
+  right: -25px;
+  top: 0;
+  height: 1000px;
+  width: 40px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15) 35%);;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  
+  span {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    opacity: 0.2;
+    font-size: 44px;
+    margin-bottom: 10px;
+    margin-left: 12px;
+  }
+
+  &:hover {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5) 30%);
+    width: 50px;
+    right: -35px;
+    span {
+      margin-left: 14px;
+      opacity: 0.6;
+      font-size: 54px;
+    }
+  }
+
+  border-top-right-radius: 15px;
+  border-bottom-right-radius: 15px;
+
+  @media (max-height: 1199px) {
+    transform: scale(1);
+  }
+
+  @media (max-height: 1080px) {
+    transform: scale(1);
+  }
+
   @media (max-height: 900px) {
     transform: scale(0.7);
   }
