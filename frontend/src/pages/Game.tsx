@@ -686,8 +686,8 @@ export default function Game({user}: { user: string }) {
                 <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"40%", transform:"translateX(-50%)"}}>
                 <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
-            <Wrapper>
-                <OpenChatSideBar onClick={()=> setIsChatOpen(true)}><span>›</span></OpenChatSideBar>
+            <Wrapper chatOpen={isChatOpen}>
+                <OpenChatSideBar chatOpen={isChatOpen} onClick={()=> setIsChatOpen(!isChatOpen)}><span>›</span></OpenChatSideBar>
 
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) =>
@@ -1199,44 +1199,50 @@ const FieldContainer = styled.div`
   flex-direction: column;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{chatOpen:boolean}>`
   position: relative;
   height: 1000px;
   width: 1600px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
+  transform: translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  transition: transform 0.4s ease-in-out;
 
   @media (max-height: 1199px) {
-    transform: scale(1);
+    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
 
   @media (max-height: 1080px) {
-    transform: scale(0.9);
+    transform: scale(0.9) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
   @media (max-height: 900px) {
-    transform: scale(0.7);
+    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
 
   @media (min-height: 1200px) {
-    transform: scale(1.2);
+    transform: scale(1.2) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
 `;
 
-const OpenChatSideBar = styled.div`
+const OpenChatSideBar = styled.div<{chatOpen:boolean}>`
   position: absolute;
-  right: -25px;
+  right: ${({chatOpen}) => chatOpen ? "-250px" : "-25px"};
   top: 0;
-  height: 1000px;
-  width: 40px;
-  background: linear-gradient(to right, rgba(15, 15, 15, 0) 5%, rgba(15, 15, 15, 0.15) 35%);;
+  height: 100%;
+  width: ${({chatOpen}) => chatOpen ? "280px" : "40px"};
+  background: linear-gradient(to right, rgba(15, 15, 15, 0) 5%, ${({chatOpen}) => chatOpen ? "rgba(30, 30, 30, 0.5) 10%" : "rgba(15, 15, 15, 0.15) 35%"});
+  border-top-right-radius: 15px;
+  border-bottom-right-radius: 15px;
+  
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.4s ease-out;
 
   span {
+    visibility: ${({chatOpen}) => chatOpen ? "hidden" : "visible"};
     transition: all 0.15s ease;
     cursor: pointer;
     opacity: 0.2;
@@ -1246,34 +1252,19 @@ const OpenChatSideBar = styled.div`
   }
 
   &:hover {
-    background: linear-gradient(to right, rgba(25, 25, 25, 0) 5%, rgba(25, 25, 25, 0.5) 30%);
-    width: 50px;
-    right: -35px;
-
-    span {
-      margin-left: 14px;
-      opacity: 0.6;
-      font-size: 54px;
-    }
-  }
-
-  border-top-right-radius: 15px;
-  border-bottom-right-radius: 15px;
-
-  @media (max-height: 1199px) {
-    transform: scale(1);
-  }
-
-  @media (max-height: 1080px) {
-    transform: scale(1);
-  }
-
-  @media (max-height: 900px) {
-    transform: scale(0.7);
-  }
-
-  @media (min-height: 1200px) {
-    transform: scale(1.2);
+    ${({ chatOpen }) =>
+            !chatOpen &&
+            `
+      background: linear-gradient(to right, rgba(25, 25, 25, 0) 5%, rgba(25, 25, 25, 0.5) 30%);
+      width: 50px;
+      right: -35px;
+      
+      span {
+        margin-left: 14px;
+        opacity: 0.6;
+        font-size: 54px;
+      }
+    `}
   }
 `;
 
