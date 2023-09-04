@@ -42,6 +42,7 @@ import {
     playShuffleDeckSfx,
     playLoadMemorybarSfx
 } from "../utils/sound.ts";
+import GameChat from "../components/game/GameChat.tsx";
 
 
 export default function Game({user}: { user: string }) {
@@ -91,6 +92,8 @@ export default function Game({user}: { user: string }) {
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+
+    const setMessages = useGame((state) => state.setMessages);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -183,6 +186,12 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
+            if (event.data.startsWith("[CHAT_MESSAGE]:")) {
+                const chatMessage = event.data.substring(event.data.indexOf(":") + 1);
+                setMessages(chatMessage);
+                return;
+            }
+
             if (event.data.startsWith("[ATTACK]:")) {
                 const parts = event.data.substring("[ATTACK]:".length).split(":");
                 switch (parts[0]) {
@@ -253,6 +262,13 @@ export default function Game({user}: { user: string }) {
             }
         }
     });
+
+    function sendChatMessage(message: string) {
+        if (message.length > 0) {
+            setMessages(user + ":" + message);
+            websocket.sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
+        }
+    }
 
     function endAttackAnimation() {
         playAttackSfx();
@@ -687,7 +703,9 @@ export default function Game({user}: { user: string }) {
                 <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
             <Wrapper chatOpen={isChatOpen}>
-                <ChatSideBar chatOpen={isChatOpen} onClick={()=> setIsChatOpen(!isChatOpen)}><span>›</span></ChatSideBar>
+                <ChatSideBar chatOpen={isChatOpen} onClick={()=> setIsChatOpen(true)}>
+                    {isChatOpen ? <GameChat user={user} sendChatMessage={sendChatMessage} closeChat={() => setIsChatOpen(false)}/> : <span>›</span>}
+                </ChatSideBar>
 
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) =>
@@ -1245,7 +1263,7 @@ const ChatSideBar = styled.div<{chatOpen:boolean}>`
     visibility: ${({chatOpen}) => chatOpen ? "hidden" : "visible"};
     transition: all 0.15s ease;
     cursor: pointer;
-    opacity: 0.2;
+    opacity: 0.1;
     font-size: 44px;
     margin-bottom: 10px;
     margin-left: 12px;

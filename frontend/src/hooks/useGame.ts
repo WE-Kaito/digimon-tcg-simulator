@@ -51,6 +51,9 @@ type State = {
     opponentDigi10: CardTypeGame[],
     opponentBreedingArea: CardTypeGame[],
 
+    messages: string[],
+    setMessages: (message: string) => void,
+
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
@@ -120,10 +123,14 @@ export const useGame = create<State>((set, get) => ({
     opponentDigi10: [],
     opponentBreedingArea: [],
 
+    messages: [],
+
     setUpGame: (me, opponent) => {
         set({
             myAvatar: me.avatarName,
             opponentAvatar: opponent.avatarName,
+
+            messages: [],
 
             myMemory: 0,
             myReveal: [],
@@ -477,6 +484,14 @@ export const useGame = create<State>((set, get) => ({
             }
             return {
                 [location]: newLocationCards
+            }
+        })
+    },
+
+    setMessages: (message: string) => {
+        set(state => {
+            return {
+                messages: [message, ...state.messages]
             }
         })
     }
