@@ -42,6 +42,7 @@ import {
     playShuffleDeckSfx,
     playLoadMemorybarSfx
 } from "../utils/sound.ts";
+import GameChat from "../components/game/GameChat.tsx";
 
 
 export default function Game({user}: { user: string }) {
@@ -66,7 +67,7 @@ export default function Game({user}: { user: string }) {
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
-    const opponentName = useGame((state) => state.opponentName);
+    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
     const [surrenderOpen, setSurrenderOpen] = useState<boolean>(false);
     const [timerOpen, setTimerOpen] = useState<boolean>(false);
@@ -90,6 +91,9 @@ export default function Game({user}: { user: string }) {
     const [gameHasStarted, setGameHasStarted] = useState<boolean>(false);
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
+    const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+
+    const setMessages = useGame((state) => state.setMessages);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -154,14 +158,16 @@ export default function Game({user}: { user: string }) {
             if (event.data.startsWith("[START_GAME]:")) {
                 const playersJson = event.data.substring("[START_GAME]:".length);
                 const players = JSON.parse(playersJson);
-                const me = players.filter((player: Player) => player.username === user)[0];
-                const opponent = players.filter((player: Player) => player.username !== user)[0];
+                const me = players.slice().filter((player: Player) => player.username === user)[0];
+                const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
+                return;
             }
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const newGame: GameDistribution = JSON.parse(event.data.substring("[DISTRIBUTE_CARDS]:".length));
                 distributeCards(user, newGame, gameId);
+                return;
             }
 
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
@@ -177,6 +183,13 @@ export default function Game({user}: { user: string }) {
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
                 }, 4500);
+                return;
+            }
+
+            if (event.data.startsWith("[CHAT_MESSAGE]:")) {
+                const chatMessage = event.data.substring(event.data.indexOf(":") + 1);
+                setMessages(chatMessage);
+                return;
             }
 
             if (event.data.startsWith("[ATTACK]:")) {
@@ -218,6 +231,7 @@ export default function Game({user}: { user: string }) {
                 setAttackFromOpponent(true);
                 setShowAttackArrow(true);
                 endAttackAnimation();
+                return;
             }
 
             switch (event.data) {
@@ -249,6 +263,13 @@ export default function Game({user}: { user: string }) {
         }
     });
 
+    function sendChatMessage(message: string) {
+        if (message.length > 0) {
+            setMessages(user + ":" + message);
+            websocket.sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
+        }
+    }
+
     function endAttackAnimation() {
         playAttackSfx();
         setTimeout(() => {
@@ -270,7 +291,6 @@ export default function Game({user}: { user: string }) {
     function sendUpdate() {
         const updatedGame: string = getUpdatedGame(gameId, user);
         const chunks = chunkString(updatedGame, 1000);
-
         for (const chunk of chunks) {
             setTimeout(() => {
                 websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
@@ -682,7 +702,10 @@ export default function Game({user}: { user: string }) {
                 <Fade direction={"right"} style={{zIndex:1000, position:"absolute", left:"40%", transform:"translateX(-50%)"}}>
                 <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
-            <Wrapper>
+            <Wrapper chatOpen={isChatOpen}>
+                <ChatSideBar chatOpen={isChatOpen} onClick={()=> setIsChatOpen(true)}>
+                    {isChatOpen ? <GameChat user={user} sendChatMessage={sendChatMessage} closeChat={() => setIsChatOpen(false)}/> : <span>›</span>}
+                </ChatSideBar>
 
                 {myReveal.length > 0 && <RevealContainer>
                     {myReveal?.map((card) =>
@@ -1194,27 +1217,72 @@ const FieldContainer = styled.div`
   flex-direction: column;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{chatOpen:boolean}>`
   position: relative;
   height: 1000px;
   width: 1600px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
+  transform: translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  transition: transform 0.4s ease-in-out;
 
   @media (max-height: 1199px) {
-    transform: scale(1);
+    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
 
   @media (max-height: 1080px) {
-    transform: scale(0.9);
+    transform: scale(0.9) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
   @media (max-height: 900px) {
-    transform: scale(0.7);
+    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
 
   @media (min-height: 1200px) {
-    transform: scale(1.2);
+    transform: scale(1.2) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  }
+`;
+
+const ChatSideBar = styled.div<{chatOpen:boolean}>`
+  position: absolute;
+  right: ${({chatOpen}) => chatOpen ? "-250px" : "-25px"};
+  top: 0;
+  height: 100%;
+  width: ${({chatOpen}) => chatOpen ? "280px" : "40px"};
+  background: linear-gradient(to right, rgba(15, 15, 15, 0) 5%, ${({chatOpen}) => chatOpen ? "rgba(30, 30, 30, 0.5) 10%" : "rgba(15, 15, 15, 0.15) 35%"});
+  border-top-right-radius: 15px;
+  border-bottom-right-radius: 15px;
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: ${({chatOpen}) => chatOpen ? "default" : "pointer"};
+  transition: all 0.4s ease-out;
+
+  span {
+    visibility: ${({chatOpen}) => chatOpen ? "hidden" : "visible"};
+    transition: all 0.15s ease;
+    cursor: pointer;
+    opacity: 0.1;
+    font-size: 44px;
+    margin-bottom: 10px;
+    margin-left: 12px;
+  }
+
+  &:hover {
+    ${({ chatOpen }) =>
+            !chatOpen &&
+            `
+      background: linear-gradient(to right, rgba(25, 25, 25, 0) 5%, rgba(25, 25, 25, 0.5) 30%);
+      width: 50px;
+      right: -35px;
+      
+      span {
+        margin-left: 14px;
+        opacity: 0.6;
+        font-size: 54px;
+      }
+    `}
   }
 `;
 

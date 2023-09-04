@@ -237,4 +237,15 @@ class GameServiceTest {
         verify(session2, times(1)).sendMessage(expectedMessage11);
     }
 
+    @Test
+    void testChatMessage() throws IOException, InterruptedException {
+        // GIVEN
+        TextMessage expectedMessage = new TextMessage("[CHAT_MESSAGE]:" + username1 + ":test test");
+        TextMessage chatMessage = new TextMessage(gameId + ":/chatMessage:" + username2 + ":test test");
+        putPlayersToGameRoom();
+        // WHEN
+        gameService.handleTextMessage(session1, chatMessage);
+        // THEN
+        verify(session2, times(1)).sendMessage(expectedMessage);
+    }
 }

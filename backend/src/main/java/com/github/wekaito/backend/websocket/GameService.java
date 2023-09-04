@@ -89,13 +89,13 @@ public class GameService extends TextWebSocketHandler {
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
-
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) throws IOException, InterruptedException {
+        String userName = Objects.requireNonNull(session.getPrincipal()).getName();
         String payload = message.getPayload();
         String[] parts = payload.split(":", 2);
 
-        if (payload.startsWith("/startGame:")) {
+        if (payload.startsWith("/startGame:") && parts.length >= 2) {
             String gameId = parts[1].trim();
             setUpGame(session, gameId);
             Thread.sleep(600);
@@ -113,7 +113,9 @@ public class GameService extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, roomMessage);
 
-        else{
+        if (roomMessage.startsWith("/chatMessage:")) sendChatMessage(gameRoom, userName, roomMessage);
+
+        else {
             String[] roomMessageParts = roomMessage.split(":", 2);
             String command = roomMessageParts[0];
             String opponentName = roomMessageParts[1];
@@ -122,7 +124,15 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    String convertCommand(String command){
+    void sendChatMessage(Set<WebSocketSession> gameRoom, String userName, String roomMessage) throws IOException {
+        String[] roomMessageParts = roomMessage.split(":");
+        if (roomMessageParts.length < 3) return;
+        String opponentName = roomMessageParts[1];
+        String chatMessage = roomMessageParts[2];
+        sendMessageToOpponent(gameRoom, opponentName, "[CHAT_MESSAGE]:" + userName + ":" + chatMessage);
+    }
+
+    String convertCommand(String command) {
         return switch (command) {
             case "/surrender" -> "[SURRENDER]";
             case "/restartRequest" -> "[RESTART]";
@@ -141,7 +151,7 @@ public class GameService extends TextWebSocketHandler {
         };
     }
 
-    void sendMessageToOpponent(Set<WebSocketSession> gameRoom,String opponentName, String message) throws IOException {
+    void sendMessageToOpponent(Set<WebSocketSession> gameRoom, String opponentName, String message) throws IOException {
         WebSocketSession opponentSession = gameRoom.stream()
                 .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
@@ -256,6 +266,7 @@ public class GameService extends TextWebSocketHandler {
             synchronizeGame(session, gameRoom, fullGameJson);
         }
     }
+
     void synchronizeGame(WebSocketSession session, Set<WebSocketSession> gameRoom, String fullGameJson) throws IOException {
         if (gameRoom == null) return;
         for (WebSocketSession s : gameRoom) {
