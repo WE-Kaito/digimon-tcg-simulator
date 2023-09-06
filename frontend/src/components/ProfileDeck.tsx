@@ -3,11 +3,13 @@ import styled from "@emotion/styled";
 import deckBack from '../assets/deckBack.png';
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../hooks/useStore.ts";
+import {playButtonClickSfx, playDrawCardSfx} from "../utils/sound.ts";
 
 function ColoredDeckImage(color:string | null, id: string) {
 
     const navigate = useNavigate();
     const navigateToDeck = () => {
+        playDrawCardSfx();
         navigate(`/update-deck/${id}`);
     }
 
@@ -74,6 +76,7 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
             <DeckName>{deck.name}</DeckName>
             <ActiveButton style={{backgroundColor: isActiveDeck ? "lightcyan" : "black", color: isActiveDeck ? "black" : "white"}}
             onClick={() => {
+                playButtonClickSfx();
                 setActiveDeck(deck.id);
             }}>Active</ActiveButton>
            {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards), deck.id) : null}
@@ -156,7 +159,6 @@ width: 75px;
   :hover {
     cursor: pointer;
   }
-  
 `;
 
 const BlackDeckImage = styled(DeckImage)`

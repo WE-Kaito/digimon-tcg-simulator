@@ -7,7 +7,6 @@ import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/ChooseAvatar.tsx";
 import {Loading} from "../components/FetchedCards.tsx";
 
-
 export default function Profile({user}: { user: string }) {
 
     const fetchDecks = useStore((state) => state.fetchDecks);
@@ -55,16 +54,24 @@ const Container = styled.div`
   border-radius: 10px;
   width: 100vw;
   height: 410px;
-  max-width: 1000px;
+  max-width: 1004px;
+  
+  @media (min-width: 1600px) {
+    gap: 20px;
+  }
+  
+  @media (min-width: 1600px) and (min-height: 1000px) {
+    height: 32vw;
+  }
 `;
 
 const Header = styled.div`
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    margin-top: 5vh;
-  
-    @media (max-width: 766px) {
-      margin-top: 1.5vh;
-    }
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  margin-top: 5vh;
+
+  @media (max-width: 766px) {
+    margin-top: 1.5vh;
+  }
 `;
