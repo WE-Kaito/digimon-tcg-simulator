@@ -13,6 +13,7 @@ import java.util.Optional;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final UserIdService userIdService;
 
     @GetMapping("/cards")
     public Card[] fetchCards(@RequestParam Optional<String> name, @RequestParam Optional<String> color, @RequestParam Optional<String> type) {
@@ -26,7 +27,7 @@ public class ProfileController {
 
     @GetMapping("/decks")
     public List<Deck> getDecks() {
-        return this.profileService.getDecks();
+        return this.profileService.getDecksByAuthorId(userIdService.getCurrentUserId());
     }
 
     @GetMapping("/decks/{id}")

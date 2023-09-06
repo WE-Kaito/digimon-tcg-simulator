@@ -43,7 +43,7 @@ class ProfileServiceTest {
         when(idService.createId()).thenReturn(exampleDeck.id());
         when(userIdService.getCurrentUserId()).thenReturn(exampleDeck.authorId());
         when(deckRepo.existsById(exampleDeck.id())).thenReturn(true);
-        when(deckRepo.findAll()).thenReturn(List.of(decks));
+        when(deckRepo.findByAuthorId("authorId")).thenReturn(List.of(decks));
     }
 
     @Test
@@ -63,7 +63,7 @@ class ProfileServiceTest {
     @Test
     void testGetDecks() {
         profileService.addDeck(exampleDeckWithoutId);
-        List<Deck> returnedDecks = profileService.getDecks();
+        List<Deck> returnedDecks = profileService.getDecksByAuthorId(exampleDeck.authorId());
         assertNotNull(returnedDecks);
         assertThat(returnedDecks).contains(exampleDeck).isInstanceOf(List.class);
     }
