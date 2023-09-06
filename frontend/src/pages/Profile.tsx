@@ -26,7 +26,7 @@ export default function Profile({user}: { user: string }) {
     return (
         <Wrapper>
             <Header>
-                <Headline2 style={{transform: "translateY(-8px)"}}>{user}</Headline2>
+                <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
             </Header>
             <ChooseAvatar/>
@@ -74,4 +74,9 @@ const Header = styled.div`
   @media (max-width: 766px) {
     margin-top: 1.5vh;
   }
+`;
+
+const Name = styled(Headline2)`
+  font-family: 'Amiga Forever', sans-serif;
+  letter-spacing: -8px;
 `;
