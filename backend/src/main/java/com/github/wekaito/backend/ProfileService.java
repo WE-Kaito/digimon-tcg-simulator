@@ -55,11 +55,8 @@ public class ProfileService {
         this.deckRepo.save(deckToSave);
     }
 
-    public List<Deck> getDecks() {
-        List<Deck> allDecks = deckRepo.findAll();
-
-        return allDecks.stream()
-                .filter(deck -> Objects.equals(deck.authorId(), userIdService.getCurrentUserId())).toList();
+    public List<Deck> getDecksByAuthorId(String authorId) {
+        return deckRepo.findByAuthorId(authorId);
     }
 
     public void updateDeck(String id, DeckWithoutId deckWithoutId) {
