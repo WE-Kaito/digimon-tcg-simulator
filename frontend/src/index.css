@@ -1,3 +1,115 @@
+@font-face {
+  font-family: Alarm Clock;
+  font-style: normal;
+  font-weight: normal;
+  src: url("./assets/fonts/alarm clock.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Amiga Forever Pro2;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/amiga4ever pro2.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Awsumsans;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/AwsumSans.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Awsumsans;
+    font-style: italic;
+    font-weight: normal;
+    src: url("./assets/fonts/AwsumSansItalic.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Awsumsans;
+    font-style: normal;
+    font-weight: bold;
+    src: url("./assets/fonts/AwsumSansBold.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Awsumsans;
+    font-style: italic;
+    font-weight: bold;
+    src: url("./assets/fonts/AwsumSansBoldItalic.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Cousine;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/Cousine-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Cousine;
+    font-style: italic;
+    font-weight: normal;
+    src: url("./assets/fonts/Cousine-Italic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Cousine;
+    font-style: normal;
+    font-weight: bold;
+    src: url("./assets/fonts/Cousine-Bold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Cousine;
+    font-style: italic;
+    font-weight: bold;
+    src: url("./assets/fonts/Cousine-BoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Montelgo Sans Serif;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/MontelgoSansSerif.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Montelgo Sans Serif;
+    font-style: italic;
+    font-weight: normal;
+    src: url("./assets/fonts/MontelgoSansSerifItalic.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Naston;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/naston-regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Pixel Digivolve;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/Pixel Digivolve.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Pixel Digivolve;
+    font-style: italic;
+    font-weight: normal;
+    src: url("./assets/fonts/Pixel Digivolve Italic.otf") format("truetype");
+}
+
+@font-face {
+    font-family: Sansation;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/Sansation_Regular.ttf") format("truetype");
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

@@ -882,7 +882,7 @@ export default function Game({user}: { user: string }) {
                             <EggDeckContainer>
                                 {opponentEggDeck.length !== 0 &&
                                     <div style={{
-                                        width: "100%", display: "flex",
+                                        width: "100%", display: "flex", fontStyle: "italic",
                                         justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
                                     }}>{opponentEggDeck.length}</div>}
                                 {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
@@ -927,7 +927,7 @@ export default function Game({user}: { user: string }) {
                                              }}/>}
                                 {myEggDeck.length !== 0 &&
                                     <div style={{
-                                        width: "100%", display: "flex",
+                                        width: "100%", display: "flex", fontStyle: "italic",
                                         justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
                                     }}>{myEggDeck.length}</div>}
                             </EggDeckContainer>
@@ -1392,6 +1392,7 @@ const SecuritySpan = styled.span`
   position: absolute;
   z-index: 5;
   font-family: Awsumsans, sans-serif;
+  font-style: italic;
   font-size: 35px;
   color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
@@ -1489,6 +1490,7 @@ const TrashSpan = styled.span`
   display: flex;
   justify-content: center;
   font-family: Awsumsans, sans-serif;
+  font-style: italic;
 `;
 
 const SendButton = styled.button`
