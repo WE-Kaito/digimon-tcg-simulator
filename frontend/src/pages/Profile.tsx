@@ -5,6 +5,7 @@ import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/ChooseAvatar.tsx";
+import {Loading} from "../components/FetchedCards.tsx";
 
 
 export default function Profile({user}: { user: string }) {
@@ -31,6 +32,7 @@ export default function Profile({user}: { user: string }) {
             </Header>
             <ChooseAvatar/>
             <Container>
+                {isLoading && <Loading/>}
                 {!isLoading && decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
             </Container>
         </Wrapper>
