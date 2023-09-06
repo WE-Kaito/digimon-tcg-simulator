@@ -9,7 +9,7 @@ import {lazy, Suspense} from 'react';
 
 const Card = lazy(() => import('./Card.tsx'));
 
-const Loading = () => <LoadingContainer>
+export const Loading = () => <LoadingContainer>
     <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
     <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
 </LoadingContainer>

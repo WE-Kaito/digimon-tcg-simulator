@@ -5,7 +5,7 @@ import ProfileDeck from "../components/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/ChooseAvatar.tsx";
-
+import {Loading} from "../components/FetchedCards.tsx";
 
 export default function Profile({user}: { user: string }) {
 
@@ -26,11 +26,12 @@ export default function Profile({user}: { user: string }) {
     return (
         <Wrapper>
             <Header>
-                <Headline2 style={{transform: "translateY(-8px)"}}>{user}</Headline2>
+                <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
             </Header>
             <ChooseAvatar/>
             <Container>
+                {isLoading && <Loading/>}
                 {!isLoading && decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
             </Container>
         </Wrapper>
@@ -53,16 +54,29 @@ const Container = styled.div`
   border-radius: 10px;
   width: 100vw;
   height: 410px;
-  max-width: 1000px;
+  max-width: 1004px;
+  
+  @media (min-width: 1600px) {
+    gap: 20px;
+  }
+  
+  @media (min-width: 1600px) and (min-height: 1000px) {
+    height: 32vw;
+  }
 `;
 
 const Header = styled.div`
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    margin-top: 5vh;
-  
-    @media (max-width: 766px) {
-      margin-top: 1.5vh;
-    }
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  margin-top: 5vh;
+
+  @media (max-width: 766px) {
+    margin-top: 1.5vh;
+  }
+`;
+
+const Name = styled(Headline2)`
+  font-family: 'Amiga Forever', sans-serif;
+  letter-spacing: -8px;
 `;

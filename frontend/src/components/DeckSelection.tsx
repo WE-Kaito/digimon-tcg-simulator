@@ -61,7 +61,7 @@ export default function DeckSelection() {
                 <legend>[ {deckCards.length - eggLength}/50]</legend>
 
                 {deckCards?.length !== 0 ? sortCards(deckCards).map((card: CardTypeWithId) => (
-                            <Card key={card.id} card={card} location={"deck"}/>
+                        <Card key={card.id} card={card} location={"deck"}/>
                     ))
                     :
                     <span>
@@ -156,7 +156,7 @@ const DeckList = styled.fieldset`
   max-height: 82.25%;
   border-radius: 5px;
   font-family: 'AwsumSans', sans-serif;
-
+  font-style: italic;
   display: flex;
   flex-flow: row wrap;
   justify-content: flex-start;

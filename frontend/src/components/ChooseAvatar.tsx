@@ -2,6 +2,7 @@ import {useEffect} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import styled from "@emotion/styled";
 import {profilePicture} from "../utils/functions.ts";
+import {playButtonClickSfx} from "../utils/sound.ts";
 
 export default function ChooseAvatar() {
 
@@ -36,9 +37,15 @@ export default function ChooseAvatar() {
 
     return (
         <Container>
-            <StyledButton style={{padding:"0px 8px 6px 0px"}} onClick={() => setPreviousAvatar(avatarName)}>{`❮`}</StyledButton>
+            <StyledButton style={{padding:"0px 8px 6px 0px"}} onClick={() => {
+                playButtonClickSfx();
+                setPreviousAvatar(avatarName);}
+            }>{`❮`}</StyledButton>
             <StyledImage alt="avatar" src={profilePicture(avatarName)}></StyledImage>
-            <StyledButton style={{padding:"0px 0px 6px 8px"}} onClick={() => setNextAvatar(avatarName)}>{`❯`}</StyledButton>
+            <StyledButton style={{padding:"0px 0px 6px 8px"}} onClick={() => {
+                playButtonClickSfx();
+                setNextAvatar(avatarName);}
+            }>{`❯`}</StyledButton>
         </Container>
     );
 }
