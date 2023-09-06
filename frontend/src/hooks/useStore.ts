@@ -153,6 +153,7 @@ export const useStore = create<State>((set, get) => ({
     addCardToDeck: (id, location, cardnumber, type) => {
         const cardToAdd = get().fetchedCards.filter((card) => card.id === id)[0];
         let cardToAddWithNewId;
+
         if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012"){
             cardToAddWithNewId = {...cardToAdd, id: uid(), type: "Digimon"} // fetched EX5-020 & EX5-012 are typed incorrectly
         } else {
@@ -164,7 +165,8 @@ export const useStore = create<State>((set, get) => ({
 
         if (location !== "fetchedData" || filteredLength >= 50) return;
 
-        if (cardnumber === "BT11-061") {     // unique effect
+        const cardsWithoutLimit: string[] = ["BT11-061","EX2-046", "BT6-085"];
+        if (cardsWithoutLimit.includes(cardnumber)) {     // unique effect
             set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
             return;
         }
