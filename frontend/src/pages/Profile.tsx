@@ -77,6 +77,5 @@ const Header = styled.div`
 `;
 
 const Name = styled(Headline2)`
-  font-family: 'Amiga Forever', sans-serif;
-  letter-spacing: -8px;
+  font-family: 'Amiga Forever Pro2', sans-serif;
 `;
