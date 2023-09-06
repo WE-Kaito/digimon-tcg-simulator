@@ -152,21 +152,17 @@ export const useStore = create<State>((set, get) => ({
 
     addCardToDeck: (id, location, cardnumber, type) => {
         const cardToAdd = get().fetchedCards.filter((card) => card.id === id)[0];
-        const cardToAddWithNewId = {...cardToAdd, id: uid()};
-
-        const restrictedCards: string[] = [
-            "BT2-047", "BT3-103", "BT6-015", "BT6-100", "BT7-072",
-            "EX1-068", "BT7-038", "BT7-086", "BT7-107", "BT9-099",
-            "BT7-064", "BT10-009", "BT11-064", "BT3-054", "EX2-039",
-            "P-008", "P-025"
-        ];
+        let cardToAddWithNewId;
+        if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012"){
+            cardToAddWithNewId = {...cardToAdd, id: uid(), type: "Digimon"} // fetched EX5-020 & EX5-012 are typed incorrectly
+        } else {
+            cardToAddWithNewId = {...cardToAdd, id: uid()}
+        }
 
         const eggCardLength = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const filteredLength = get().deckCards.length - eggCardLength; // 50 deck-cards & max 5 eggs
 
         if (location !== "fetchedData" || filteredLength >= 50) return;
-
-        if (cardnumber === "BT5-109") return; // currently forbidden
 
         if (cardnumber === "BT11-061") {     // unique effect
             set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
@@ -174,8 +170,6 @@ export const useStore = create<State>((set, get) => ({
         }
 
         if (type === "Digi-Egg" && get().deckCards.filter((card) => card.type === "Digi-Egg").length >= 5) return;
-
-        if (restrictedCards.some((searchString) => cardnumber.includes(searchString)) && get().deckCards.filter((card) => card.cardnumber === cardnumber).length >= 1) return;
 
         if (get().deckCards.filter((card) => card.cardnumber === cardnumber).length >= 4) return;
 
