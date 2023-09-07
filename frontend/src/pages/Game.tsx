@@ -177,6 +177,7 @@ export default function Game({user}: { user: string }) {
                 playStartSfx();
                 setTimeout(() => {
                     playDrawCardSfx();
+                    setIsChatOpen(true);
                 }, 3800);
                 setTimeout(() => {
                     setShowStartingPlayer(false);
