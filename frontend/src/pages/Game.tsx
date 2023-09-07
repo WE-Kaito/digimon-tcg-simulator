@@ -7,7 +7,7 @@ import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx
+    getOpponentSfx, opponentFieldLocations
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -306,7 +306,7 @@ export default function Game({user}: { user: string }) {
     }
 
     function handleDropToOpponent(from: string, to: string) {
-        if (!from || !to) return;
+        if (!from || !to || opponentFieldLocations.includes(from)) return;
         setArrowFrom(from);
         setArrowTo(to);
         setShowAttackArrow(true);

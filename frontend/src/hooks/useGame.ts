@@ -1,5 +1,6 @@
 import {create} from "zustand";
 import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
+import {opponentFieldLocations} from "../utils/functions.ts";
 
 type State = {
     myAvatar: string,
@@ -272,11 +273,7 @@ export const useGame = create<State>((set, get) => ({
 
         if (!cardId || !from || !to) return;
 
-        const opponentFields = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-            "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-            "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
-
-        if (opponentFields.includes(from) || opponentFields.includes(to)) return;
+        if (opponentFieldLocations.includes(from) || opponentFieldLocations.includes(to)) return;
 
         if (from === to) {
             set(state => {
