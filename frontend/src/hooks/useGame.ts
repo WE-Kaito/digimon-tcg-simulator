@@ -55,6 +55,9 @@ type State = {
     messages: string[],
     setMessages: (message: string) => void,
 
+    mulliganAllowed: boolean,
+    mulligan: () => void,
+
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
@@ -125,6 +128,7 @@ export const useGame = create<State>((set, get) => ({
     opponentBreedingArea: [],
 
     messages: [],
+    mulliganAllowed: true,
 
     setUpGame: (me, opponent) => {
         set({
@@ -132,6 +136,7 @@ export const useGame = create<State>((set, get) => ({
             opponentAvatar: opponent.avatarName,
 
             messages: [],
+            mulliganAllowed: true,
 
             myMemory: 0,
             myReveal: [],
@@ -288,6 +293,8 @@ export const useGame = create<State>((set, get) => ({
             return;
         }
 
+        if (get().mulliganAllowed) set({ mulliganAllowed: false });
+
         set(state => {
             const fromState = state[from as keyof State] as CardTypeGame[];
             const toState = state[to as keyof State] as CardTypeGame[];
@@ -401,6 +408,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     drawCardFromDeck: () => {
+        if (get().mulliganAllowed) set({ mulliganAllowed: false });
         set(state => {
             const deck = state.myDeckField;
             const hand = state.myHand;
@@ -416,6 +424,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     drawCardFromEggDeck: () => {
+        if (get().mulliganAllowed) set({ mulliganAllowed: false });
         set(state => {
             if (state.myBreedingArea.length !== 0) return state;
             const eggDeck = state.myEggDeck;
@@ -462,6 +471,29 @@ export const useGame = create<State>((set, get) => ({
             }
             return {
                 mySecurity: security
+            }
+        })
+    },
+
+    mulligan: () => {
+        set(state => {
+            const hand = state.myHand;
+            const deck = state.myDeckField;
+            const security = state.mySecurity;
+            const updatedDeck = [...hand, ...deck, ...security];
+            const cryptoArray = new Uint32Array(updatedDeck.length);
+            crypto.getRandomValues(cryptoArray);
+            for (let i = updatedDeck.length - 1; i > 0; i--) {
+                const j = cryptoArray[i] % (i + 1);
+                [updatedDeck[i], updatedDeck[j]] = [updatedDeck[j], updatedDeck[i]];
+            }
+            const updatedHand = updatedDeck.splice(0, 5);
+            const updatedSecurity = updatedDeck.splice(0, 5);
+            return {
+                myHand: updatedHand,
+                mySecurity: updatedSecurity,
+                myDeckField: updatedDeck,
+                mulliganAllowed: false
             }
         })
     },

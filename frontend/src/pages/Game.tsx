@@ -94,6 +94,8 @@ export default function Game({user}: { user: string }) {
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
 
     const setMessages = useGame((state) => state.setMessages);
+    const mulligan = useGame((state) => state.mulligan);
+    const mulliganAllowed = useGame((state) => state.mulliganAllowed);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -1019,14 +1021,18 @@ export default function Game({user}: { user: string }) {
                                     playDrawCardSfx();
                                     sendSfx("playDrawCardSfx");
                                 }}/>
+                                {mulliganAllowed && <MulliganButton onClick={() => {
+                                    mulligan();
+                                    sendUpdate();
+                                    playShuffleDeckSfx();
+                                    sendSfx("playShuffleDeckSfx");
+                                }}>MULLIGAN</MulliganButton>}
                                 <SendToTrashButton onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myTrash");
                                     sendUpdate();
                                     playTrashCardSfx();
                                     sendSfx("playTrashCardSfx");
-                                }
-                                }>
-                                    ↱</SendToTrashButton>
+                                }}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
                                                 moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
@@ -1546,6 +1552,30 @@ const SendButton = styled.button`
   border-radius: 5px;
   &:hover {
     border-color: #e8a71b;
+  }
+`;
+
+const MulliganButton = styled.div`
+  position: absolute;
+  left: 11px;
+  top: 13px;
+  width: 100px;
+  height: 40px;
+  border-radius: 5px;
+  background: #e8a71b;
+  color: #111921;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Sansation, sans-serif;
+  text-shadow: 0px 0px 1px #111921;
+  font-size: 1.1em;
+  
+  &:hover {
+    cursor: pointer;
+    filter: drop-shadow(0 0 2px #e4f3a3);
+    background-color: #ead023;
+    text-shadow: 0px 0px 2px #111921;
   }
 `;
 
