@@ -68,7 +68,7 @@ type State = {
                location: string,
                playSuspendSfx: () => void,
                playUnsuspendSfx: () => void,
-               sendSfx: (sfx: string) => void ) => void,
+               sendSfx: (sfx: string) => void) => void,
 };
 
 
@@ -274,22 +274,20 @@ export const useGame = create<State>((set, get) => ({
 
         const opponentFields = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
             "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-            "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10","opponentBreedingArea"];
-        for (const zone of opponentFields) {
-            if (from === zone) return;
-        }
+            "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
+
+        if (opponentFields.includes(from) || opponentFields.includes(to)) return;
+
         if (from === to) {
-            if (from === "myHand" && to === "myHand") {
-                set(state => {
-                    const fromState = state[from as keyof State] as CardTypeGame[];
-                    const card = fromState.find(card => card.id === cardId);
-                    if (!card) return state;
-                    const updatedFromState = fromState.filter(card => card.id !== cardId);
-                    return {
-                        [from]: [...updatedFromState, card]
-                    };
-                });
-            }
+            set(state => {
+                const fromState = state[from as keyof State] as CardTypeGame[];
+                const card = fromState.find(card => card.id === cardId);
+                if (!card) return state;
+                const updatedFromState = fromState.filter(card => card.id !== cardId);
+                return {
+                    [from]: [...updatedFromState, card]
+                };
+            });
             return;
         }
 
