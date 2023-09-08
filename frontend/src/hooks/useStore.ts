@@ -93,6 +93,11 @@ export const useStore = create<State>((set, get) => ({
 
                 let filteredData = data?.slice();
 
+                if (filteredData === undefined){
+                    set({fetchedCards: [], isLoading: false});
+                    return;
+                }
+
                 if (stage !== null) {
                     filteredData = filteredData.filter(
                         (card: CardType) => card.stage === stage
@@ -137,7 +142,7 @@ export const useStore = create<State>((set, get) => ({
                 set({fetchedCards: filteredData});
 
             })
-            .then(() => set({isLoading: false}));
+            .finally(() => set({isLoading: false}));
 
     },
 

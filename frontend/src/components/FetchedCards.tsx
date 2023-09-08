@@ -32,7 +32,7 @@ export default function FetchedCards() {
                             <Loading/>
                         )}
 
-                    {!isLoading && !cards && (
+                    {!isLoading && (cards.length === 0) && (
                         <LoadingContainer>
                             <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
                             <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
