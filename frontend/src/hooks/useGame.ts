@@ -1,5 +1,8 @@
 import {create} from "zustand";
 import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
+import {destroyTokenLocations, opponentFieldLocations} from "../utils/functions.ts";
+import {uid} from "uid";
+import {playTrashCardSfx} from "../utils/sound.ts";
 
 type State = {
     myAvatar: string,
@@ -54,6 +57,9 @@ type State = {
     messages: string[],
     setMessages: (message: string) => void,
 
+    mulliganAllowed: boolean,
+    mulligan: () => void,
+
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
@@ -68,7 +74,8 @@ type State = {
                location: string,
                playSuspendSfx: () => void,
                playUnsuspendSfx: () => void,
-               sendSfx: (sfx: string) => void ) => void,
+               sendSfx: (sfx: string) => void) => void,
+    createToken: () => void,
 };
 
 
@@ -124,6 +131,7 @@ export const useGame = create<State>((set, get) => ({
     opponentBreedingArea: [],
 
     messages: [],
+    mulliganAllowed: true,
 
     setUpGame: (me, opponent) => {
         set({
@@ -131,6 +139,7 @@ export const useGame = create<State>((set, get) => ({
             opponentAvatar: opponent.avatarName,
 
             messages: [],
+            mulliganAllowed: true,
 
             myMemory: 0,
             myReveal: [],
@@ -272,26 +281,22 @@ export const useGame = create<State>((set, get) => ({
 
         if (!cardId || !from || !to) return;
 
-        const opponentFields = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-            "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-            "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10","opponentBreedingArea"];
-        for (const zone of opponentFields) {
-            if (from === zone) return;
-        }
+        if (opponentFieldLocations.includes(from) || opponentFieldLocations.includes(to)) return;
+
         if (from === to) {
-            if (from === "myHand" && to === "myHand") {
-                set(state => {
-                    const fromState = state[from as keyof State] as CardTypeGame[];
-                    const card = fromState.find(card => card.id === cardId);
-                    if (!card) return state;
-                    const updatedFromState = fromState.filter(card => card.id !== cardId);
-                    return {
-                        [from]: [...updatedFromState, card]
-                    };
-                });
-            }
+            set(state => {
+                const fromState = state[from as keyof State] as CardTypeGame[];
+                const card = fromState.find(card => card.id === cardId);
+                if (!card) return state;
+                const updatedFromState = fromState.filter(card => card.id !== cardId);
+                return {
+                    [from]: [...updatedFromState, card]
+                };
+            });
             return;
         }
+
+        if (get().mulliganAllowed) set({ mulliganAllowed: false });
 
         set(state => {
             const fromState = state[from as keyof State] as CardTypeGame[];
@@ -299,6 +304,15 @@ export const useGame = create<State>((set, get) => ({
             const cardIndex = fromState.findIndex(card => card.id === cardId);
             if (cardIndex === -1) return state;
             const card = fromState[cardIndex];
+
+            if(destroyTokenLocations.includes(to) && card.type === "Token") {
+                const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
+                if (to !== "myTrash") playTrashCardSfx();
+                return {
+                    [from]: updatedFromState
+                };
+            }
+
             card.isTilted = false;
             const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
             const updatedToState = [...toState, card];
@@ -406,6 +420,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     drawCardFromDeck: () => {
+        if (get().mulliganAllowed) set({ mulliganAllowed: false });
         set(state => {
             const deck = state.myDeckField;
             const hand = state.myHand;
@@ -421,6 +436,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     drawCardFromEggDeck: () => {
+        if (get().mulliganAllowed) set({ mulliganAllowed: false });
         set(state => {
             if (state.myBreedingArea.length !== 0) return state;
             const eggDeck = state.myEggDeck;
@@ -471,6 +487,29 @@ export const useGame = create<State>((set, get) => ({
         })
     },
 
+    mulligan: () => {
+        set(state => {
+            const hand = state.myHand;
+            const deck = state.myDeckField;
+            const security = state.mySecurity;
+            const updatedDeck = [...hand, ...deck, ...security];
+            const cryptoArray = new Uint32Array(updatedDeck.length);
+            crypto.getRandomValues(cryptoArray);
+            for (let i = updatedDeck.length - 1; i > 0; i--) {
+                const j = cryptoArray[i] % (i + 1);
+                [updatedDeck[i], updatedDeck[j]] = [updatedDeck[j], updatedDeck[i]];
+            }
+            const updatedHand = updatedDeck.splice(0, 5);
+            const updatedSecurity = updatedDeck.splice(0, 5);
+            return {
+                myHand: updatedHand,
+                mySecurity: updatedSecurity,
+                myDeckField: updatedDeck,
+                mulliganAllowed: false
+            }
+        })
+    },
+
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx, sendSfx) => {
         set(state => {
             const locationCards = state[location as keyof State] as CardTypeGame[];
@@ -494,5 +533,37 @@ export const useGame = create<State>((set, get) => ({
                 messages: [message, ...state.messages]
             }
         })
+    },
+
+    createToken: () => {
+        const token: CardTypeGame = {
+            name: "Token",
+            type: "Token",
+            color: "White",
+            image_url: "src/assets/token-card.jpg",
+            cardnumber: "no-number",
+            stage: null,
+            attribute: "Unknown",
+            digi_type: null,
+            dp: null,
+            play_cost: null,
+            evolution_cost: null,
+            level: null,
+            maineffect: null,
+            soureeffect: null,
+            id: uid(),
+            isTilted: false
+        }
+        set((state) => {
+            for (let i = 1; i <= 10; i++) {
+                const digiKey = `myDigi${i}` as keyof State;
+                if (Array.isArray(state[digiKey] as CardTypeGame[]) && (state[digiKey] as CardTypeGame[]).length === 0) {
+                    return {
+                        [digiKey]: [token]
+                    };
+                }
+            }
+            return state;
+        });
     }
 }));
