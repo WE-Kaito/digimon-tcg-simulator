@@ -1,6 +1,8 @@
 import {create} from "zustand";
 import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
-import {opponentFieldLocations} from "../utils/functions.ts";
+import {destroyTokenLocations, opponentFieldLocations} from "../utils/functions.ts";
+import {uid} from "uid";
+import {playTrashCardSfx} from "../utils/sound.ts";
 
 type State = {
     myAvatar: string,
@@ -73,6 +75,7 @@ type State = {
                playSuspendSfx: () => void,
                playUnsuspendSfx: () => void,
                sendSfx: (sfx: string) => void) => void,
+    createToken: () => void,
 };
 
 
@@ -301,6 +304,15 @@ export const useGame = create<State>((set, get) => ({
             const cardIndex = fromState.findIndex(card => card.id === cardId);
             if (cardIndex === -1) return state;
             const card = fromState[cardIndex];
+
+            if(destroyTokenLocations.includes(to) && card.type === "Token") {
+                const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
+                if (to !== "myTrash") playTrashCardSfx();
+                return {
+                    [from]: updatedFromState
+                };
+            }
+
             card.isTilted = false;
             const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
             const updatedToState = [...toState, card];
@@ -521,5 +533,37 @@ export const useGame = create<State>((set, get) => ({
                 messages: [message, ...state.messages]
             }
         })
+    },
+
+    createToken: () => {
+        const token: CardTypeGame = {
+            name: "Token",
+            type: "Token",
+            color: "White",
+            image_url: "src/assets/token-card.jpg",
+            cardnumber: "no-number",
+            stage: null,
+            attribute: "Unknown",
+            digi_type: null,
+            dp: null,
+            play_cost: null,
+            evolution_cost: null,
+            level: null,
+            maineffect: null,
+            soureeffect: null,
+            id: uid(),
+            isTilted: false
+        }
+        set((state) => {
+            for (let i = 1; i <= 10; i++) {
+                const digiKey = `myDigi${i}` as keyof State;
+                if (Array.isArray(state[digiKey] as CardTypeGame[]) && (state[digiKey] as CardTypeGame[]).length === 0) {
+                    return {
+                        [digiKey]: [token]
+                    };
+                }
+            }
+            return state;
+        });
     }
 }));

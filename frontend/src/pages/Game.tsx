@@ -19,6 +19,7 @@ import eggBack from "../assets/eggBack.jpg";
 import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import noiseBG from "../assets/noiseBG.png";
+import hackmonButton from "../assets/hackmon-chip.png";
 import CardDetails from "../components/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
@@ -43,7 +44,6 @@ import {
     playLoadMemorybarSfx
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
-
 
 export default function Game({user}: { user: string }) {
 
@@ -96,6 +96,7 @@ export default function Game({user}: { user: string }) {
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
     const mulliganAllowed = useGame((state) => state.mulliganAllowed);
+    const createToken = useGame((state) => state.createToken);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -899,11 +900,11 @@ export default function Game({user}: { user: string }) {
                             <EggDeckContainer>
                                 {opponentEggDeck.length !== 0 &&
                                     <div style={{
-                                        width: "100%", display: "flex", fontStyle: "italic",
+                                        width: "100%", display: "flex", fontStyle: "italic", transform: "translateX(-5px)",
                                         justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
                                     }}>{opponentEggDeck.length}</div>}
                                 {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
-                                                                      style={{transform: "rotate(180deg)"}}/>}
+                                                                      style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToOpponentSecurity}>
@@ -951,8 +952,15 @@ export default function Game({user}: { user: string }) {
                                 {myEggDeck.length !== 0 &&
                                     <div style={{
                                         width: "100%", display: "flex", fontStyle: "italic",
-                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
+                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif",
+                                        transform: "translateY(-30px)"
                                     }}>{myEggDeck.length}</div>}
+
+                                <TokenButton alt="create token" src={hackmonButton} onClick={() => {
+                                    createToken();
+                                    playPlaceCardSfx();
+                                    sendUpdate();
+                                    sendSfx("playPlaceCardSfx");}}/>
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToSecurity}>
@@ -1394,6 +1402,7 @@ const Deck = styled.img`
 `;
 
 const EggDeck = styled(Deck)`
+  transform: translateY(-30px);
   &:hover {
     filter: drop-shadow(0 0 3px #dd33e8);
     outline: #dd33e8 solid 1px;
@@ -1562,7 +1571,7 @@ const MulliganButton = styled.div`
   width: 100px;
   height: 40px;
   border-radius: 5px;
-  background: #e8a71b;
+  background: #fad219;
   color: #111921;
   display: flex;
   justify-content: center;
@@ -1570,12 +1579,33 @@ const MulliganButton = styled.div`
   font-family: Sansation, sans-serif;
   text-shadow: 0px 0px 1px #111921;
   font-size: 1.1em;
-  
+  filter: drop-shadow(3px 3px 1px #131313);
+  transition: all 0.05s ease;
+
   &:hover {
     cursor: pointer;
-    filter: drop-shadow(0 0 2px #e4f3a3);
-    background-color: #ead023;
-    text-shadow: 0px 0px 2px #111921;
+    filter: drop-shadow(2px 2px 1px #131313);
+    background-color: #c7ff3b;
+    transform: translateY(1px);
+  }
+`;
+
+const TokenButton = styled.img`
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  z-index: 5;
+  left: 49px;
+  bottom: 12px;
+  transition: all 0.15s ease;
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+    cursor: pointer;
+    width: 52px;
+    height: 52px;
+    transform: translateX(-1px);
   }
 `;
 
