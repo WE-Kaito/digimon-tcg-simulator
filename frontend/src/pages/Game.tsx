@@ -899,6 +899,7 @@ export default function Game({user}: { user: string }) {
                                                       key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
                                         </HandListItem>)}
                                 </HandCards>
+                                {opponentHand.length > 5 && <MyHandSpan style={{transform: "rotate(180deg)"}}>{opponentHand.length}</MyHandSpan>}
                             </OpponentHandContainer>
 
                         </OpponentContainerMain>
@@ -1169,6 +1170,7 @@ export default function Game({user}: { user: string }) {
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
                                             <Card card={card} location={"myHand"}/></HandListItem>)}
                                 </HandCards>
+                                {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
                             </HandContainer>
 
                         </MyContainerMain>
@@ -1377,6 +1379,17 @@ const UserName = styled.span`
   align-self: flex-start;
   margin-left: 27px;
   font-family: 'Cousine', sans-serif;
+`;
+
+const MyHandSpan = styled.span`
+  font-family: Awsumsans, sans-serif;
+  font-style: italic;
+  font-size: 20px;
+  opacity: 0.4;
+
+  position: absolute;
+  bottom: 0;
+  transform: translateX(7px);
 `;
 
 const DeckContainer = styled.div`
