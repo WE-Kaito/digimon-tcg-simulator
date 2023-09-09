@@ -7,7 +7,7 @@ import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx, opponentFieldLocations
+    getOpponentSfx, opponentFieldLocations, getConsecutiveDigimonIndex, getTamerCardIndex
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -1148,7 +1148,8 @@ export default function Game({user}: { user: string }) {
 
                             <TamerAreaContainer ref={dropToTamer}>
                                 {myTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex("myTamer", card, myTamer)}
+                                        tamerIndex={getTamerCardIndex(card, myTamer)}>
                                         <Card card={card} location={"myTamer"}
                                               sendSfx={sendSfx}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
@@ -1478,9 +1479,16 @@ const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
   left: ${({cardIndex, cardCount}) => cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "auto"};
 `;
 
-const TamerCardContainer = styled.div<{ cardIndex: number }>`
+const TamerCardContainer = styled.div<{ cardIndex: number, digimonIndex: number, tamerIndex: number }>`
   position: absolute;
-  left: ${props => (props.cardIndex * 37) + 5}px;
+  top: 10px;
+  left: ${({ tamerIndex }) => (tamerIndex * 40) + 5}px;
+  z-index: ${({cardIndex}) => 20 - cardIndex};
+  transform: ${({ digimonIndex, cardIndex }) =>
+          cardIndex !== 0 ? (digimonIndex !== 0 ? `translate(-40px, ${digimonIndex * 25}px)` : "none") : "none"};
+  &:hover {
+    z-index: 100;
+  }
 `;
 
 const DelayCardContainer = styled.div<{ cardIndex: number }>`
