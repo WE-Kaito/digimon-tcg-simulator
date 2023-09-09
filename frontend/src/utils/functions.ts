@@ -276,8 +276,8 @@ export const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "o
 
 export const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField", "myEggDeck", "myBreedingArea"];
 
-export function getConsecutiveDigimonIndex(location: string, card: CardTypeGame, locationCards: CardTypeGame[]): number {
-    if (location !== "myTamer" || card.type !== "Digimon") return 0;
+export function getConsecutiveDigimonIndex(card: CardTypeGame, locationCards: CardTypeGame[]): number {
+    if (card.type !== "Digimon") return 0;
     const cardIndex = locationCards.findIndex((c) => c.id === card.id);
     let i = 1;
     for (let j = cardIndex - 1; j >= 0; j--) {

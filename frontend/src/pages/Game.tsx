@@ -878,7 +878,8 @@ export default function Game({user}: { user: string }) {
                             <TamerAreaContainer style={{height: "205px"}}>
                                 {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                                 {opponentTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
+                                    tamerIndex={getTamerCardIndex(card, opponentTamer)}>
                                         <Fade direction={"left"} duration={500}>
                                             <Card card={card} location={"opponentTamer"}/>
                                         </Fade></TamerCardContainer>)}
@@ -1148,7 +1149,7 @@ export default function Game({user}: { user: string }) {
 
                             <TamerAreaContainer ref={dropToTamer}>
                                 {myTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex("myTamer", card, myTamer)}
+                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
                                         tamerIndex={getTamerCardIndex(card, myTamer)}>
                                         <Card card={card} location={"myTamer"}
                                               sendSfx={sendSfx}/></TamerCardContainer>)}
