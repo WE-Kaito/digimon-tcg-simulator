@@ -263,6 +263,8 @@ export function getCardSize(location: string) {
             return "103px";
         case "fetchedData":
             return "110px";
+        case "myTamer":
+            return "85px";
         default:
             return "95px";
     }
@@ -273,3 +275,28 @@ export const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "o
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
 
 export const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField", "myEggDeck", "myBreedingArea"];
+
+export function getConsecutiveDigimonIndex(card: CardTypeGame, locationCards: CardTypeGame[]): number {
+    if (card.type !== "Digimon") return 0;
+    const cardIndex = locationCards.findIndex((c) => c.id === card.id);
+    let i = 1;
+    for (let j = cardIndex - 1; j >= 0; j--) {
+        if (locationCards[j].type === "Digimon") {
+            i++;
+        } else {
+            break;
+        }
+    }
+    return i;
+}
+
+export function getTamerCardIndex(card: CardTypeGame, locationCards: CardTypeGame[]): number {
+    const cardIndex = locationCards.findIndex((c) => c.id === card.id);
+    let count = 0;
+    for (let i = 0; i < cardIndex; i++) {
+        if (locationCards[i].type === "Tamer") {
+            count++;
+        }
+    }
+    return count;
+}

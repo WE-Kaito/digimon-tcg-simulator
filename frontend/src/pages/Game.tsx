@@ -1,13 +1,13 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
-import {DraggedItem, GameDistribution, Player} from "../utils/types.ts";
+import {CardTypeGame, DraggedItem, GameDistribution, Player} from "../utils/types.ts";
 import {
     profilePicture,
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx, opponentFieldLocations
+    getOpponentSfx, opponentFieldLocations, getConsecutiveDigimonIndex, getTamerCardIndex
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -323,6 +323,12 @@ export default function Game({user}: { user: string }) {
         sendUpdate();
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
+    }
+
+    function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1:string, location2:string): string {
+        if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
+        if (location2arr.length === 0 && (isOpponent ? isOpponentSecondRowVisible : isMySecondRowVisible)) return location2;
+        return "";
     }
 
     const [, dropToDigi1] = useDrop(() => ({
@@ -784,7 +790,7 @@ export default function Game({user}: { user: string }) {
                                                       title="Open opponents trash"/>}
                             </OpponentTrashContainer>
 
-                            <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}>
+                            <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5} id={getFieldId(true, opponentDigi1, opponentDigi6,"opponentDigi1", "opponentDigi6")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi10.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi10.length} key={card.id} cardIndex={index}
@@ -800,7 +806,7 @@ export default function Game({user}: { user: string }) {
                                                 <Card card={card} location={"opponentDigi5"}/>
                                             </Fade></CardContainer>)}
                             </BattleArea5>
-                            <BattleArea4 ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}>
+                            <BattleArea4 ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4} id={getFieldId(true, opponentDigi2, opponentDigi7,"opponentDigi2", "opponentDigi7")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi9.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi9.length} key={card.id} cardIndex={index}
@@ -816,7 +822,7 @@ export default function Game({user}: { user: string }) {
                                                 <Card card={card} location={"opponentDigi4"}/>
                                             </Fade></CardContainer>)}
                             </BattleArea4>
-                            <BattleArea3 ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}>
+                            <BattleArea3 ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3} id={getFieldId(true, opponentDigi3, opponentDigi8,"opponentDigi3", "opponentDigi8")}>
                                 {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
                                     <FieldSpan>Battle Area</FieldSpan>}
                                 {isOpponentSecondRowVisible ?
@@ -834,7 +840,7 @@ export default function Game({user}: { user: string }) {
                                                 <Card card={card} location={"opponentDigi3"}/>
                                             </Fade></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea2 ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}>
+                            <BattleArea2 ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2} id={getFieldId(true, opponentDigi4, opponentDigi9,"opponentDigi4", "opponentDigi9")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi7.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi7.length} key={card.id} cardIndex={index}
@@ -849,7 +855,7 @@ export default function Game({user}: { user: string }) {
                                             <Fade direction={"down"} duration={500}>
                                                 <Card card={card} location={"opponentDigi2"}/></Fade></CardContainer>)}
                             </BattleArea2>
-                            <BattleArea1 ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}>
+                            <BattleArea1 ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1} id={getFieldId(true, opponentDigi5, opponentDigi10,"opponentDigi5", "opponentDigi10")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi6.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi6.length} key={card.id} cardIndex={index}
@@ -878,7 +884,8 @@ export default function Game({user}: { user: string }) {
                             <TamerAreaContainer style={{height: "205px"}}>
                                 {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                                 {opponentTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
+                                    tamerIndex={getTamerCardIndex(card, opponentTamer)}>
                                         <Fade direction={"left"} duration={500}>
                                             <Card card={card} location={"opponentTamer"}/>
                                         </Fade></TamerCardContainer>)}
@@ -892,6 +899,7 @@ export default function Game({user}: { user: string }) {
                                                       key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
                                         </HandListItem>)}
                                 </HandCards>
+                                {opponentHand.length > 5 && <MyHandSpan style={{transform: "rotate(180deg)"}}>{opponentHand.length}</MyHandSpan>}
                             </OpponentHandContainer>
 
                         </OpponentContainerMain>
@@ -1067,7 +1075,7 @@ export default function Game({user}: { user: string }) {
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
                             </TrashContainer>
 
-                            <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1}>
+                            <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1} id={getFieldId(false, myDigi1, myDigi6,"myDigi1", "myDigi6")}>
                                 {isMySecondRowVisible ?
                                     myDigi6?.map((card, index) =>
                                         <CardContainer cardCount={myDigi6.length} key={card.id} cardIndex={index}
@@ -1081,7 +1089,7 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi1"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea1>
-                            <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}>
+                            <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2} id={getFieldId(false, myDigi2, myDigi7,"myDigi2", "myDigi7")}>
                                 {isMySecondRowVisible ?
                                     myDigi7?.map((card, index) =>
                                         <CardContainer cardCount={myDigi7.length} key={card.id} cardIndex={index}
@@ -1095,7 +1103,7 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi2"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
-                            <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}>
+                            <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3} id={getFieldId(false, myDigi3, myDigi8,"myDigi3", "myDigi8")}>
                                 {!isMySecondRowVisible && myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {isMySecondRowVisible ?
                                     myDigi8?.map((card, index) =>
@@ -1110,7 +1118,7 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi3"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}>
+                            <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4} id={getFieldId(false, myDigi4, myDigi9,"myDigi4", "myDigi9")}>
                                 {isMySecondRowVisible ?
                                     myDigi9?.map((card, index) =>
                                         <CardContainer cardCount={myDigi9.length} key={card.id} cardIndex={index}
@@ -1124,7 +1132,7 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi4"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea4>
-                            <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}>
+                            <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5} id={getFieldId(false, myDigi5, myDigi10,"myDigi5", "myDigi10")}>
                                 {isMySecondRowVisible ?
                                     myDigi10?.map((card, index) =>
                                         <CardContainer cardCount={myDigi10.length} key={card.id} cardIndex={index}
@@ -1148,7 +1156,8 @@ export default function Game({user}: { user: string }) {
 
                             <TamerAreaContainer ref={dropToTamer}>
                                 {myTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}>
+                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
+                                        tamerIndex={getTamerCardIndex(card, myTamer)}>
                                         <Card card={card} location={"myTamer"}
                                               sendSfx={sendSfx}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
@@ -1161,6 +1170,7 @@ export default function Game({user}: { user: string }) {
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
                                             <Card card={card} location={"myHand"}/></HandListItem>)}
                                 </HandCards>
+                                {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
                             </HandContainer>
 
                         </MyContainerMain>
@@ -1371,6 +1381,17 @@ const UserName = styled.span`
   font-family: 'Cousine', sans-serif;
 `;
 
+const MyHandSpan = styled.span`
+  font-family: Awsumsans, sans-serif;
+  font-style: italic;
+  font-size: 20px;
+  opacity: 0.4;
+
+  position: absolute;
+  bottom: 0;
+  transform: translateX(7px);
+`;
+
 const DeckContainer = styled.div`
   position: relative;
   grid-area: deck;
@@ -1478,9 +1499,16 @@ const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
   left: ${({cardIndex, cardCount}) => cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "auto"};
 `;
 
-const TamerCardContainer = styled.div<{ cardIndex: number }>`
+const TamerCardContainer = styled.div<{ cardIndex: number, digimonIndex: number, tamerIndex: number }>`
   position: absolute;
-  left: ${props => (props.cardIndex * 37) + 5}px;
+  top: 10px;
+  left: ${({ tamerIndex }) => (tamerIndex * 40) + 5}px;
+  z-index: ${({cardIndex}) => 20 - cardIndex};
+  transform: ${({ digimonIndex, cardIndex }) =>
+          cardIndex !== 0 ? (digimonIndex !== 0 ? `translate(-40px, ${digimonIndex * 25}px)` : "none") : "none"};
+  &:hover {
+    z-index: 100;
+  }
 `;
 
 const DelayCardContainer = styled.div<{ cardIndex: number }>`
