@@ -32,6 +32,18 @@ export default function GameChat({user, sendChatMessage, closeChat}: Props) {
                     const userName = message.split(":")[0];
                     const chatMessage = message.split(":")[1];
                     const isMyMessage = userName === user;
+
+                    if (chatMessage.startsWith("[FIELD_UPDATE]≔")){
+                        const filteredMessage = chatMessage.replace("[FIELD_UPDATE]≔", "");
+                        const cardName = filteredMessage.split("﹕")[0];
+                        const cardLocation = filteredMessage.split("﹕")[1];
+                        return (
+                            <UpdateMessage isMyMessage={isMyMessage} key={index}>
+                                <p>{cardName}<br/>{cardLocation}</p>
+                            </UpdateMessage>
+                        );
+                    }
+
                     return (
                             <Message isMyMessage={isMyMessage} key={index}>
                                 <p>{chatMessage}</p>
@@ -63,7 +75,7 @@ const Message = styled.div<{isMyMessage:boolean}>`
   width: 85%;
   height: fit-content;
   align-self: ${({isMyMessage}) => isMyMessage ? "flex-end" : "flex-start"};
-  background: ${({isMyMessage}) => isMyMessage ? "rgba(84, 84, 84, 0.2)" : "rgba(37,66,93,0.45)"};
+  background: ${({isMyMessage}) => isMyMessage ? "rgba(94,93,93,0.35)" : "rgba(40,73,103,0.6)"};
   border-radius: 5px;
   padding: 1px 4px 1px 4px;
   display: flex;
@@ -74,6 +86,17 @@ const Message = styled.div<{isMyMessage:boolean}>`
     text-align: left;
     color: papayawhip;
     max-width: 100%;
+  }
+`;
+
+const UpdateMessage = styled(Message)`
+  width: 100%;
+  background: ${({isMyMessage}) => isMyMessage ? "rgba(84, 84, 84, 0.2)" : "rgba(37,66,93,0.45)"};
+  
+  p {
+    width: 100%;
+    text-align: center;
+    opacity: 0.7;
   }
 `;
 

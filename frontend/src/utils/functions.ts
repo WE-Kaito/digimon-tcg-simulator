@@ -300,3 +300,46 @@ export function getTamerCardIndex(card: CardTypeGame, locationCards: CardTypeGam
     }
     return count;
 }
+
+export function convertForLog(location: string){
+    switch (location) {
+        case "myHand":
+            return "Hand";
+        case "myDeckField":
+            return "Deck";
+        case "myEggDeck":
+            return "Egg-Deck";
+        case "myTrash":
+            return "Trash";
+        case "mySecurity":
+            return "Security";
+        case "myTamer":
+            return "Tamers";
+        case "myDelay":
+            return "Delay";
+        case "myBreedingArea":
+            return "Breeding";
+        case "myDigi1":
+            return "BA 1";
+        case "myDigi2":
+            return "BA 2";
+        case "myDigi3":
+            return "BA 3";
+        case "myDigi4":
+            return "BA 4";
+        case "myDigi5":
+            return "BA 5";
+        case "myDigi6":
+            return "BA 6";
+        case "myDigi7":
+            return "BA 7";
+        case "myDigi8":
+            return "BA 8";
+        case "myDigi9":
+            return "BA 9";
+        case "myDigi10":
+            return "BA 10";
+        case "myReveal":
+            return "Reveal";
+    }
+}

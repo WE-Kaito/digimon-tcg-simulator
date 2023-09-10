@@ -7,7 +7,7 @@ import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx, opponentFieldLocations, getConsecutiveDigimonIndex, getTamerCardIndex
+    getOpponentSfx, opponentFieldLocations, getConsecutiveDigimonIndex, getTamerCardIndex, convertForLog
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -323,12 +323,14 @@ export default function Game({user}: { user: string }) {
         endAttackAnimation();
     }
 
-    function handleDropToField(cardId: string, from: string, to: string) {
+    function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
         if (!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendUpdate();
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
+        console.log(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
+        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1:string, location2:string): string {
@@ -340,8 +342,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi1] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi1');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi1', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -351,8 +353,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi2] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi2');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi2', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -362,8 +364,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi3] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi3');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi3', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -373,8 +375,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi4] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi4');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi4', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -384,8 +386,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi5] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi5');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi5', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -395,8 +397,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi6] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi6');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi6', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -406,8 +408,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi7] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi7');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi7', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -417,8 +419,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi8] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi8');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi8', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -428,8 +430,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi9] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi9');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi9', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -439,8 +441,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi10] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi10');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi10', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -450,10 +452,11 @@ export default function Game({user}: { user: string }) {
     const [, dropToHand] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, name} = item;
             moveCard(id, location, 'myHand');
             sendUpdate();
             playCardToHandSfx();
+            sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -463,8 +466,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToBreedingArea] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myBreedingArea');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myBreedingArea', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -474,8 +477,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToTamer] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myTamer');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myTamer', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -485,8 +488,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDelay] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDelay');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDelay', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -538,11 +541,12 @@ export default function Game({user}: { user: string }) {
     const [, dropToTrash] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, name} = item;
             moveCard(id, location, 'myTrash');
             sendUpdate();
             playTrashCardSfx();
             sendSfx("playTrashCardSfx");
+            sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
