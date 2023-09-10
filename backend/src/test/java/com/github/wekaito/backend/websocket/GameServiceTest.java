@@ -136,6 +136,7 @@ class GameServiceTest {
         TextMessage expectedMessage9 = new TextMessage("[BUTTON_CLICK_SFX]");
         TextMessage expectedMessage10 = new TextMessage("[TRASH_CARD_SFX]");
         TextMessage expectedMessage11 = new TextMessage("[SHUFFLE_DECK_SFX]");
+        TextMessage expectedMessage12 = new TextMessage("[ACCEPT_RESTART]");
         putPlayersToGameRoom();
         // WHEN
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/restartRequest:" + username2));
@@ -149,6 +150,7 @@ class GameServiceTest {
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playButtonClickSfx:" + username2));
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playTrashCardSfx:" + username2));
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playShuffleDeckSfx:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/acceptRestart:" + username2));
 
         // THEN
         verify(session2, times(1)).sendMessage(expectedMessage1);
@@ -162,6 +164,7 @@ class GameServiceTest {
         verify(session2, times(1)).sendMessage(expectedMessage9);
         verify(session2, times(1)).sendMessage(expectedMessage10);
         verify(session2, times(1)).sendMessage(expectedMessage11);
+        verify(session2, times(1)).sendMessage(expectedMessage12);
     }
 
     @Test
