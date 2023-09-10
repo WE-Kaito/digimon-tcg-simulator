@@ -273,6 +273,7 @@ const User = styled.span`
 
   width: 80%;
   height: 14%;
+  min-height: 30px;
   color: ghostwhite;
   background: black;
   font-family: Amiga Forever Pro2, sans-serif;
@@ -281,7 +282,7 @@ const User = styled.span`
   padding-top: 0.55vh;
   padding-right: 4vw;
   text-overflow: clip;
-  font-size: 3.2vh;
+  font-size: 28px;
   border: 3px solid #dcb415;
   box-shadow: inset 0 0 5px #dcb415;
   filter: drop-shadow(0 0 4px #dcb415);
@@ -296,15 +297,14 @@ const User = styled.span`
     padding-left: 2vw;
   }
 
-  @media (max-width: 500px) {
-    font-size: 3vh;
+  @media (max-width: 500px)  or (max-height: 680px) {
+    font-size: 18px;
     height: 12%;
     width: 87%;
     padding-right: 2vw;
     box-shadow: inset 0 0 3px #dcb415;
     filter: drop-shadow(0 0 2px #dcb415);
   }
-
 `;
 
 const Chat = styled.div`
@@ -423,7 +423,7 @@ const StyledButton = styled.button`
 
 const InviteButton = styled(StyledButton)`
   margin-bottom: 5px;
-  @media (max-width: 500px) {
+  @media (max-width: 500px)  or (max-height: 680px) {
     font-size: 17px;
     height: 22px;
     width: 70px;
