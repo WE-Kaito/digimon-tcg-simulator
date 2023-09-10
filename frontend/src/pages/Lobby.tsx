@@ -156,7 +156,7 @@ export default function Lobby({user}: { user: string }) {
                                 const content = message.substring(colonIndex + 1);
                                 return (
                                     <div style={{display: "flex"}} key={message}>
-                                        <StyledSpan><span>{name}</span>:{content}</StyledSpan>
+                                        <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>
                                     </div>
                                 );
                             }
@@ -349,14 +349,14 @@ const History = styled.div`
   }
 `;
 
-const StyledSpan = styled.span`
+const StyledSpan = styled.span<{name: string, user: string}>`
 
   font-family: Cousine, sans-serif;
   text-align: left;
   color: papayawhip;
 
   span {
-    color: #e1b70f;
+    color: ${({name, user}) => name === user ? '#f55f02' : '#e1b70f'};
     text-shadow: 0 0 1px #ffd11e;
     font-weight: bold;
   }
