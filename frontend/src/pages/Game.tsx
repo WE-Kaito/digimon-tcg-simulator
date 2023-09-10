@@ -1050,7 +1050,8 @@ export default function Game({user}: { user: string }) {
                                     playShuffleDeckSfx();
                                     sendSfx("playShuffleDeckSfx");
                                 }}>MULLIGAN</MulliganButton>}
-                                <SendToTrashButton onClick={() => {
+                                <SendToTrashButton title="Send top card from your deck to Trash"
+                                    onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myTrash");
                                     sendUpdate();
                                     playTrashCardSfx();
@@ -1650,19 +1651,20 @@ const SendToTrashButton = styled.div`
   height: 30px;
   font-size: 40px;
   z-index: 10;
-  left: -47px;
+  left: -49px;
   bottom: 48px;
-
+  color: #e0e0e0;
   transform: rotate(-90deg);
-  transition: all 0.15s ease;
 
   &:hover {
     cursor: pointer;
-    filter: drop-shadow(0 0 3px #e8a71b);
+    color: #e8a71b;
   }
 
   &:active {
-    filter: drop-shadow(0 0 2px #d2157f);
+    color: #e0e0e0;
+    filter: drop-shadow(0 0 2px #e8a71b);
+    transform: translateX(1px) rotate(-90deg);
   }
 `;
 
