@@ -275,40 +275,6 @@ export const useGame = create<State>((set, get) => ({
         }
     },
 
-    moveCard: (cardId, from, to) => {
-
-        if (!cardId || !from || !to) return;
-        if (opponentFieldLocations.includes(from) || opponentFieldLocations.includes(to)) return;
-
-        const fromState = get()[from as keyof State] as CardTypeGame[];
-        const card = fromState.find(card => card.id === cardId);
-        if (!card) return;
-        const updatedFromState = fromState.filter(card => card.id !== cardId);
-
-        if (from === to) {
-            set( { [from]: [...updatedFromState, card]});
-            return;
-        }
-
-        if (get().mulliganAllowed) set({ mulliganAllowed: false });
-
-        if(destroyTokenLocations.includes(to) && card.type === "Token") {
-            if (to !== "myTrash") playTrashCardSfx();
-            set({ [from]: updatedFromState });
-            return;
-        }
-
-        set(state => {
-            card.isTilted = false;
-            const toState = state[to as keyof State] as CardTypeGame[];
-            const updatedToState = [...toState, card];
-            return {
-                [from]: updatedFromState,
-                [to]: updatedToState
-            };
-        });
-    },
-
     getUpdatedGame: (gameId, user) => {
 
         const player1 = gameId.split("‗")[0];
@@ -402,6 +368,40 @@ export const useGame = create<State>((set, get) => ({
             };
         }
         return JSON.stringify(updatedGame);
+    },
+
+    moveCard: (cardId, from, to) => {
+
+        if (!cardId || !from || !to) return;
+        if (opponentFieldLocations.includes(from) || opponentFieldLocations.includes(to)) return;
+
+        const fromState = get()[from as keyof State] as CardTypeGame[];
+        const card = fromState.find(card => card.id === cardId);
+        if (!card) return;
+        const updatedFromState = fromState.filter(card => card.id !== cardId);
+
+        if (from === to) {
+            set( { [from]: [...updatedFromState, card]});
+            return;
+        }
+
+        if (get().mulliganAllowed) set({ mulliganAllowed: false });
+
+        if(destroyTokenLocations.includes(to) && card.type === "Token") {
+            if (to !== "myTrash") playTrashCardSfx();
+            set({ [from]: updatedFromState });
+            return;
+        }
+
+        set(state => {
+            card.isTilted = false;
+            const toState = state[to as keyof State] as CardTypeGame[];
+            const updatedToState = [...toState, card];
+            return {
+                [from]: updatedFromState,
+                [to]: updatedToState
+            };
+        });
     },
 
     sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
