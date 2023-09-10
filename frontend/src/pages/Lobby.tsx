@@ -8,6 +8,7 @@ import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../hooks/useStore.ts";
 import {notifyNoActiveDeck} from "../utils/toasts.ts";
+import {playInvitationSfx} from "../utils/sound.ts";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -18,6 +19,7 @@ export default function Lobby({user}: { user: string }) {
     const [invitationSent, setInvitationSent] = useState<boolean>(false);
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
+    const [search, setSearch] = useState<string>("");
     const currentPort = window.location.port;
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
 
@@ -29,7 +31,7 @@ export default function Lobby({user}: { user: string }) {
         onMessage: (event) => {
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
-
+                playInvitationSfx();
                 setPendingInvitation(true);
                 setInviteFrom(event.data.substring(event.data.indexOf(":") + 1));
                 setInviteTo("");
@@ -105,6 +107,9 @@ export default function Lobby({user}: { user: string }) {
         navigate(`/game`);
     }
 
+    function userVisible(username: string) {
+        return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
+    }
 
     return (
         <Wrapper>
@@ -130,16 +135,16 @@ export default function Lobby({user}: { user: string }) {
             {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
 
             <Header>
-                <Headline2 style={{transform: "translateY(20px)", gridColumnStart: 2}}>
-                    Lobby
-                </Headline2>
+                <HeadlineSpan>Lobby</HeadlineSpan>
                 <ButtonContainer><BackButton/></ButtonContainer>
             </Header>
 
             <Container>
+                <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder={"user search..."}/>
+
                 <UserList>
                     {usernames.length > 1 ?
-                        usernames.map((username) => (!pendingInvitation && !invitationSent && username !== user &&
+                        usernames.map((username) => (userVisible(username) &&
                             <User key={username}>
                                 {username}
                                 <InviteButton onClick={() => handleInvite(username)}>INVITE</InviteButton>
@@ -482,5 +487,31 @@ const DeclineButton = styled(StyledButton)`
 
   &:active {
     background: #e12909;
+  }
+`;
+
+const HeadlineSpan = styled(Headline2)`
+  grid-column-start: 2;
+  transform: translate(-300px, -15px);
+    @media (max-width: 768px) {
+      transform: translate(-24vw, -6px);
+    }
+`;
+
+const SearchBar = styled.input`
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 25px;
+  border: none;
+  width: 300px;
+  height: 35px;
+  font-family: Naston, sans-serif;
+  font-size: 20px;
+  position: absolute;
+  transform: translateY(-50%);
+  padding: 2px 15px 2px 15px;
+  text-align: center;
+  color: black;
+  ::placeholder {
+    color: ghostwhite;
   }
 `;
