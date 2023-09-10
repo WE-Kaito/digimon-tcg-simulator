@@ -446,8 +446,10 @@ const InvitationMoodle = styled.div`
   justify-content: space-between;
   padding: 40px 20px 40px 10px;
 
-  width: 16vw;
-  height: 12vh;
+  width: 24vw;
+  height: 14vh;
+  min-width: 320px;
+  min-height: 120px;
   background: black;
   z-index: 10;
   border: 3px solid #dcb415;
@@ -459,7 +461,7 @@ const InvitationMoodle = styled.div`
     border: 3px solid #dcb415;
     padding: 20px 40px 20px 5px;
     width: 60%;
-    height: 120px;
+    height: 140px;
     transform: translateY(0.7vh);
   }
 `;
