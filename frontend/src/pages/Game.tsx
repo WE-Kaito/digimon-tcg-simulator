@@ -92,6 +92,7 @@ export default function Game({user}: { user: string }) {
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+    const [restartObj, setRestartObj] = useState<any>({});
 
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
@@ -164,6 +165,7 @@ export default function Game({user}: { user: string }) {
                 const me = players.slice().filter((player: Player) => player.username === user)[0];
                 const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
+                setRestartObj({ me, opponent });
                 return;
             }
 
@@ -258,6 +260,10 @@ export default function Game({user}: { user: string }) {
                 }
                 case ("[SEND_UPDATE]"): {
                     sendUpdate();
+                    break;
+                }
+                case ("[ACCEPT_RESTART]"): {
+                    setUpGame(restartObj.me, restartObj.opponent);
                     break;
                 }
                 default: {
@@ -687,6 +693,7 @@ export default function Game({user}: { user: string }) {
 
     function acceptRestart() {
         setRestartMoodle(false);
+        websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
         websocket.sendMessage("/startGame:" + gameId);
     }
 
