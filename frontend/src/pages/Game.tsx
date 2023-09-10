@@ -59,8 +59,6 @@ export default function Game({user}: { user: string }) {
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
-    const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
-    const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
 
     const moveCard = useGame((state) => state.moveCard);
@@ -499,7 +497,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDeck] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, type} = item;
+            if (type === "Token") return;
             setCardToSend({id, location});
             setDeckMoodle(true);
             setSetSecurityMoodle(false);
@@ -513,7 +512,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToEggDeck] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, type} = item;
+            if (type === "Token") return;
             setCardToSend({id, location});
             setEggDeckMoodle(true);
             setDeckMoodle(false);
@@ -527,7 +527,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToSecurity] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, type} = item;
+            if (type === "Token") return;
             setCardToSend({id, location});
             setSetSecurityMoodle(true);
             setDeckMoodle(false);
@@ -963,13 +964,11 @@ export default function Game({user}: { user: string }) {
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
-                                                 drawCardFromEggDeck();
+                                                 moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  sendUpdate();
                                                  playDrawCardSfx();
-                                                 if (myBreedingArea.length === 0) {
-                                                     sendSfx("playPlaceCardSfx");
-                                                     sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
-                                                 }
+                                                 sendSfx("playPlaceCardSfx");
+                                                 sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
                                              }}/>}
                                 {myEggDeck.length !== 0 &&
                                     <div style={{
@@ -1050,7 +1049,7 @@ export default function Game({user}: { user: string }) {
                                                 setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
-                                    drawCardFromDeck();
+                                    moveCard(myDeckField[0].id, "myDeckField", "myHand");
                                     sendUpdate();
                                     playDrawCardSfx();
                                     sendSfx("playDrawCardSfx");
@@ -1647,7 +1646,7 @@ const TokenButton = styled.img`
   height: 50px;
   z-index: 5;
   left: 49px;
-  bottom: 12px;
+  bottom: 17px;
   transition: all 0.15s ease;
   opacity: 0.5;
 
