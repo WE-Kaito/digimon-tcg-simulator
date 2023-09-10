@@ -476,7 +476,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToTamer] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
+            const {id, location, name, type} = item;
+            if (type === "Digi-Egg" || type === "Option") return;
             handleDropToField(id, location, 'myTamer', name);
         },
         collect: (monitor) => ({
@@ -982,7 +983,7 @@ export default function Game({user}: { user: string }) {
                                     playPlaceCardSfx();
                                     sendUpdate();
                                     sendSfx("playPlaceCardSfx");
-                                    sendChatMessage("[FIELD_UPDATE]≔【Spawned Token】");}}/>
+                                    sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");}}/>
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToSecurity}>
@@ -1053,7 +1054,7 @@ export default function Game({user}: { user: string }) {
                                     sendUpdate();
                                     playDrawCardSfx();
                                     sendSfx("playDrawCardSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕Deck ➟ Hand`);
+                                    sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
                                 }}/>
                                 {mulliganAllowed && <MulliganButton onClick={() => {
                                     mulligan();
@@ -1074,7 +1075,7 @@ export default function Game({user}: { user: string }) {
                                                 moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
                                                 sendUpdate();
                                                 websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕Deck ➟ Security Top`);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
                                             }}>⛊️+1</SendButton>
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myReveal");
