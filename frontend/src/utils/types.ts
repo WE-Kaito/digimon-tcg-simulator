@@ -132,5 +132,6 @@ export type DraggedItem = {
     id: string,
     location: string,
     cardnumber: string,
-    type: string
+    type: string,
+    name: string,
 }

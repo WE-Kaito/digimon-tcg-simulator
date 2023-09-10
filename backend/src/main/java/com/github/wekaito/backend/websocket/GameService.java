@@ -136,6 +136,7 @@ public class GameService extends TextWebSocketHandler {
         return switch (command) {
             case "/surrender" -> "[SURRENDER]";
             case "/restartRequest" -> "[RESTART]";
+            case "/acceptRestart" -> "[ACCEPT_RESTART]";
             case "/openedSecurity" -> "[SECURITY_VIEWED]";
             case "/playRevealSfx" -> "[REVEAL_SFX]";
             case "/playSecurityRevealSfx" -> "[SECURITY_REVEAL_SFX]";

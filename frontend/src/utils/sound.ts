@@ -13,6 +13,7 @@ import unsuspendSfx from "../assets/sounds/unsuspend.mp3";
 import opponentPlaceCardSfx from "../assets/sounds/opponent-place-card.mp3";
 import loadMemorybarSfx from "../assets/sounds/load-memorybar.mp3";
 import buttonHoverSfx from "../assets/sounds/button-hover.mp3";
+import invitationSfx from "../assets/sounds/invite.mp3";
 
 export function playDrawCardSfx() {
     const audio = new Audio(drawCardSfx);
@@ -104,5 +105,11 @@ export const playLoadMemorybarSfx = () => {
 export const playButtonHoverSfx = () => {
     const audio = new Audio(buttonHoverSfx);
     audio.volume = 0.9;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playInvitationSfx = () => {
+    const audio = new Audio(invitationSfx);
+    audio.volume = 0.8;
     audio.addEventListener('canplay', () => audio.play());
 }

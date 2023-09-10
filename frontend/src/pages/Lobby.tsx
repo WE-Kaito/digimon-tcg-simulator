@@ -8,6 +8,7 @@ import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../hooks/useStore.ts";
 import {notifyNoActiveDeck} from "../utils/toasts.ts";
+import {playInvitationSfx} from "../utils/sound.ts";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -18,6 +19,7 @@ export default function Lobby({user}: { user: string }) {
     const [invitationSent, setInvitationSent] = useState<boolean>(false);
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
+    const [search, setSearch] = useState<string>("");
     const currentPort = window.location.port;
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
 
@@ -29,7 +31,7 @@ export default function Lobby({user}: { user: string }) {
         onMessage: (event) => {
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
-
+                playInvitationSfx();
                 setPendingInvitation(true);
                 setInviteFrom(event.data.substring(event.data.indexOf(":") + 1));
                 setInviteTo("");
@@ -105,6 +107,9 @@ export default function Lobby({user}: { user: string }) {
         navigate(`/game`);
     }
 
+    function userVisible(username: string) {
+        return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
+    }
 
     return (
         <Wrapper>
@@ -130,16 +135,16 @@ export default function Lobby({user}: { user: string }) {
             {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
 
             <Header>
-                <Headline2 style={{transform: "translateY(20px)", gridColumnStart: 2}}>
-                    Lobby
-                </Headline2>
+                <HeadlineSpan>Lobby</HeadlineSpan>
                 <ButtonContainer><BackButton/></ButtonContainer>
             </Header>
 
             <Container>
+                <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder={"user search..."}/>
+
                 <UserList>
                     {usernames.length > 1 ?
-                        usernames.map((username) => (!pendingInvitation && !invitationSent && username !== user &&
+                        usernames.map((username) => (userVisible(username) &&
                             <User key={username}>
                                 {username}
                                 <InviteButton onClick={() => handleInvite(username)}>INVITE</InviteButton>
@@ -156,7 +161,7 @@ export default function Lobby({user}: { user: string }) {
                                 const content = message.substring(colonIndex + 1);
                                 return (
                                     <div style={{display: "flex"}} key={message}>
-                                        <StyledSpan><span>{name}</span>:{content}</StyledSpan>
+                                        <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>
                                     </div>
                                 );
                             }
@@ -273,6 +278,7 @@ const User = styled.span`
 
   width: 80%;
   height: 14%;
+  min-height: 30px;
   color: ghostwhite;
   background: black;
   font-family: Amiga Forever Pro2, sans-serif;
@@ -281,7 +287,7 @@ const User = styled.span`
   padding-top: 0.55vh;
   padding-right: 4vw;
   text-overflow: clip;
-  font-size: 3.2vh;
+  font-size: 28px;
   border: 3px solid #dcb415;
   box-shadow: inset 0 0 5px #dcb415;
   filter: drop-shadow(0 0 4px #dcb415);
@@ -296,15 +302,14 @@ const User = styled.span`
     padding-left: 2vw;
   }
 
-  @media (max-width: 500px) {
-    font-size: 3vh;
+  @media (max-width: 500px)  or (max-height: 680px) {
+    font-size: 18px;
     height: 12%;
     width: 87%;
     padding-right: 2vw;
     box-shadow: inset 0 0 3px #dcb415;
     filter: drop-shadow(0 0 2px #dcb415);
   }
-
 `;
 
 const Chat = styled.div`
@@ -349,14 +354,14 @@ const History = styled.div`
   }
 `;
 
-const StyledSpan = styled.span`
+const StyledSpan = styled.span<{name: string, user: string}>`
 
   font-family: Cousine, sans-serif;
   text-align: left;
   color: papayawhip;
 
   span {
-    color: #e1b70f;
+    color: ${({name, user}) => name === user ? '#f55f02' : '#e1b70f'};
     text-shadow: 0 0 1px #ffd11e;
     font-weight: bold;
   }
@@ -423,7 +428,7 @@ const StyledButton = styled.button`
 
 const InviteButton = styled(StyledButton)`
   margin-bottom: 5px;
-  @media (max-width: 500px) {
+  @media (max-width: 500px)  or (max-height: 680px) {
     font-size: 17px;
     height: 22px;
     width: 70px;
@@ -441,8 +446,10 @@ const InvitationMoodle = styled.div`
   justify-content: space-between;
   padding: 40px 20px 40px 10px;
 
-  width: 16vw;
-  height: 12vh;
+  width: 24vw;
+  height: 14vh;
+  min-width: 320px;
+  min-height: 120px;
   background: black;
   z-index: 10;
   border: 3px solid #dcb415;
@@ -454,7 +461,7 @@ const InvitationMoodle = styled.div`
     border: 3px solid #dcb415;
     padding: 20px 40px 20px 5px;
     width: 60%;
-    height: 120px;
+    height: 140px;
     transform: translateY(0.7vh);
   }
 `;
@@ -482,5 +489,31 @@ const DeclineButton = styled(StyledButton)`
 
   &:active {
     background: #e12909;
+  }
+`;
+
+const HeadlineSpan = styled(Headline2)`
+  grid-column-start: 2;
+  transform: translate(-300px, -15px);
+    @media (max-width: 768px) {
+      transform: translate(-24vw, -6px);
+    }
+`;
+
+const SearchBar = styled.input`
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 25px;
+  border: none;
+  width: 300px;
+  height: 35px;
+  font-family: Naston, sans-serif;
+  font-size: 20px;
+  position: absolute;
+  transform: translateY(-50%);
+  padding: 2px 15px 2px 15px;
+  text-align: center;
+  color: black;
+  ::placeholder {
+    color: ghostwhite;
   }
 `;

@@ -64,10 +64,8 @@ type State = {
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getUpdatedGame: (gameId: string, user: string) => string,
-    drawCardFromDeck: () => void,
-    drawCardFromEggDeck: () => void,
 
-    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: { id: string, location: string }, to: string) => void,
+    sendCardToDeck: (topOrBottom: "Top" | "Bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
     shuffleSecurity: () => void,
     tiltCard: (cardId: string,
@@ -277,53 +275,6 @@ export const useGame = create<State>((set, get) => ({
         }
     },
 
-    moveCard: (cardId, from, to) => {
-
-        if (!cardId || !from || !to) return;
-
-        if (opponentFieldLocations.includes(from) || opponentFieldLocations.includes(to)) return;
-
-        if (from === to) {
-            set(state => {
-                const fromState = state[from as keyof State] as CardTypeGame[];
-                const card = fromState.find(card => card.id === cardId);
-                if (!card) return state;
-                const updatedFromState = fromState.filter(card => card.id !== cardId);
-                return {
-                    [from]: [...updatedFromState, card]
-                };
-            });
-            return;
-        }
-
-        if (get().mulliganAllowed) set({ mulliganAllowed: false });
-
-        set(state => {
-            const fromState = state[from as keyof State] as CardTypeGame[];
-            const toState = state[to as keyof State] as CardTypeGame[];
-            const cardIndex = fromState.findIndex(card => card.id === cardId);
-            if (cardIndex === -1) return state;
-            const card = fromState[cardIndex];
-
-            if(destroyTokenLocations.includes(to) && card.type === "Token") {
-                const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
-                if (to !== "myTrash") playTrashCardSfx();
-                return {
-                    [from]: updatedFromState
-                };
-            }
-
-            card.isTilted = false;
-            const updatedFromState = [...fromState.slice(0, cardIndex), ...fromState.slice(cardIndex + 1)];
-            const updatedToState = [...toState, card];
-
-            return {
-                [from]: updatedFromState,
-                [to]: updatedToState
-            };
-        });
-    },
-
     getUpdatedGame: (gameId, user) => {
 
         const player1 = gameId.split("‗")[0];
@@ -419,34 +370,36 @@ export const useGame = create<State>((set, get) => ({
         return JSON.stringify(updatedGame);
     },
 
-    drawCardFromDeck: () => {
-        if (get().mulliganAllowed) set({ mulliganAllowed: false });
-        set(state => {
-            const deck = state.myDeckField;
-            const hand = state.myHand;
-            if (deck.length === 0) return state;
-            const card = deck[0];
-            const updatedDeck = deck.slice(1);
-            const updatedHand = [...hand, card];
-            return {
-                myDeckField: updatedDeck,
-                myHand: updatedHand
-            };
-        });
-    },
+    moveCard: (cardId, from, to) => {
 
-    drawCardFromEggDeck: () => {
+        if (!cardId || !from || !to) return;
+        if (opponentFieldLocations.includes(from) || opponentFieldLocations.includes(to)) return;
+
+        const fromState = get()[from as keyof State] as CardTypeGame[];
+        const card = fromState.find(card => card.id === cardId);
+        if (!card) return;
+        const updatedFromState = fromState.filter(card => card.id !== cardId);
+
+        if (from === to) {
+            set( { [from]: [...updatedFromState, card]});
+            return;
+        }
+
         if (get().mulliganAllowed) set({ mulliganAllowed: false });
+
+        if(destroyTokenLocations.includes(to) && card.type === "Token") {
+            if (to !== "myTrash") playTrashCardSfx();
+            set({ [from]: updatedFromState });
+            return;
+        }
+
         set(state => {
-            if (state.myBreedingArea.length !== 0) return state;
-            const eggDeck = state.myEggDeck;
-            if (eggDeck.length === 0) return state;
-            const card = eggDeck[0];
-            const updatedDeck = eggDeck.slice(1);
-            const updatedBreedingArea = [card];
+            card.isTilted = false;
+            const toState = state[to as keyof State] as CardTypeGame[];
+            const updatedToState = [...toState, card];
             return {
-                myEggDeck: updatedDeck,
-                myBreedingArea: updatedBreedingArea
+                [from]: updatedFromState,
+                [to]: updatedToState
             };
         });
     },
@@ -457,7 +410,7 @@ export const useGame = create<State>((set, get) => ({
             const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
             const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id)
             const toDeck = state[to as keyof State] as CardTypeGame[];
-            const updatedDeck = topOrBottom === "top" ? [card, ...toDeck] : [...toDeck, card];
+            const updatedDeck = topOrBottom === "Top" ? [card, ...toDeck] : [...toDeck, card];
             return {
                 [cardToSendToDeck.location]: locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id),
                 [to]: updatedDeck

@@ -300,3 +300,28 @@ export function getTamerCardIndex(card: CardTypeGame, locationCards: CardTypeGam
     }
     return count;
 }
+
+export function convertForLog(location: string) {
+    const locationMappings: Record<string, string> = {
+        myHand: "Hand",
+        myDeckField: "Deck",
+        myEggDeck: "Egg-Deck",
+        myTrash: "Trash",
+        mySecurity: "Security",
+        myTamer: "Tamers",
+        myDelay: "Delay",
+        myBreedingArea: "Breeding",
+        myDigi1: "BA 1",
+        myDigi2: "BA 2",
+        myDigi3: "BA 3",
+        myDigi4: "BA 4",
+        myDigi5: "BA 5",
+        myDigi6: "BA 6",
+        myDigi7: "BA 7",
+        myDigi8: "BA 8",
+        myDigi9: "BA 9",
+        myDigi10: "BA 10",
+        myReveal: "Reveal",
+    };
+    return locationMappings[location] || location;
+}

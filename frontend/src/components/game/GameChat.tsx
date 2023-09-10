@@ -29,9 +29,22 @@ export default function GameChat({user, sendChatMessage, closeChat}: Props) {
 
             <History>
                 {messages.map((message, index) => {
-                    const userName = message.split(":")[0];
-                    const chatMessage = message.split(":")[1];
+                    const startIndex = message.indexOf("【");
+                    const userName = message.split(":", 2)[0];
+                    const chatMessage = message.split(":", 2)[1];
                     const isMyMessage = userName === user;
+
+                    if (chatMessage.startsWith("[FIELD_UPDATE]≔")){
+                        const filteredMessage = message.substring(startIndex);
+                        const cardName = filteredMessage.split("﹕")[0];
+                        const cardLocation = filteredMessage.split("﹕")[1];
+                        return (
+                            <UpdateMessage isMyMessage={isMyMessage} key={index}>
+                                <p>{cardName}<br/>{cardLocation}</p>
+                            </UpdateMessage>
+                        );
+                    }
+
                     return (
                             <Message isMyMessage={isMyMessage} key={index}>
                                 <p>{chatMessage}</p>
@@ -63,10 +76,11 @@ const Message = styled.div<{isMyMessage:boolean}>`
   width: 85%;
   height: fit-content;
   align-self: ${({isMyMessage}) => isMyMessage ? "flex-end" : "flex-start"};
-  background: ${({isMyMessage}) => isMyMessage ? "rgba(84, 84, 84, 0.2)" : "rgba(37,66,93,0.45)"};
+  background: ${({isMyMessage}) => isMyMessage ? "rgba(94,93,93,0.35)" : "rgba(40,73,103,0.65)"};
   border-radius: 5px;
   padding: 1px 4px 1px 4px;
   display: flex;
+  border: 1px solid ${({isMyMessage}) => isMyMessage ? "rgba(124,124,118,0.6)" : "rgba(48,90,128,0.8)"};
 
   p {
     margin: 3px;
@@ -74,6 +88,18 @@ const Message = styled.div<{isMyMessage:boolean}>`
     text-align: left;
     color: papayawhip;
     max-width: 100%;
+  }
+`;
+
+const UpdateMessage = styled(Message)`
+  width: 97%;
+  background: ${({isMyMessage}) => isMyMessage ? "rgba(84, 84, 84, 0.15)" : "rgba(37,66,93,0.35)"};
+  padding-bottom: 0;
+  border: none;
+  p {
+    width: 100%;
+    text-align: center;
+    opacity: ${({isMyMessage}) => isMyMessage ? "0.6" : "0.8"};
   }
 `;
 

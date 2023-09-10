@@ -23,7 +23,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
-        item: {id: card.id, location: location, cardnumber: card.cardnumber, type: card.type},
+        item: {id: card.id, location: location, cardnumber: card.cardnumber, type: card.type, name: card.name},
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),

@@ -7,7 +7,7 @@ import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx, opponentFieldLocations, getConsecutiveDigimonIndex, getTamerCardIndex
+    getOpponentSfx, opponentFieldLocations, getConsecutiveDigimonIndex, getTamerCardIndex, convertForLog
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -59,8 +59,6 @@ export default function Game({user}: { user: string }) {
     const setUpGame = useGame((state) => state.setUpGame);
     const distributeCards = useGame((state) => state.distributeCards);
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
-    const drawCardFromDeck = useGame((state) => state.drawCardFromDeck);
-    const drawCardFromEggDeck = useGame((state) => state.drawCardFromEggDeck);
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
 
     const moveCard = useGame((state) => state.moveCard);
@@ -92,6 +90,7 @@ export default function Game({user}: { user: string }) {
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+    const [restartObj, setRestartObj] = useState<{ me:Player, opponent:Player }>({me: {username: "", avatarName: ""}, opponent: {username: "", avatarName: ""}});
 
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
@@ -164,6 +163,7 @@ export default function Game({user}: { user: string }) {
                 const me = players.slice().filter((player: Player) => player.username === user)[0];
                 const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
+                setRestartObj({ me, opponent });
                 return;
             }
 
@@ -260,6 +260,10 @@ export default function Game({user}: { user: string }) {
                     sendUpdate();
                     break;
                 }
+                case ("[ACCEPT_RESTART]"): {
+                    setUpGame(restartObj.me, restartObj.opponent);
+                    break;
+                }
                 default: {
                     getOpponentSfx(event.data);
                 }
@@ -317,12 +321,13 @@ export default function Game({user}: { user: string }) {
         endAttackAnimation();
     }
 
-    function handleDropToField(cardId: string, from: string, to: string) {
-        if (!cardId || !from || !to) return;
+    function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
+        if (!cardId || !from || !to || opponentFieldLocations.includes(from)) return;
         moveCard(cardId, from, to);
         sendUpdate();
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
+        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1:string, location2:string): string {
@@ -334,8 +339,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi1] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi1');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi1', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -345,8 +350,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi2] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi2');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi2', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -356,8 +361,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi3] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi3');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi3', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -367,8 +372,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi4] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi4');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi4', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -378,8 +383,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi5] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi5');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi5', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -389,8 +394,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi6] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi6');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi6', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -400,8 +405,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi7] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi7');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi7', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -411,8 +416,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi8] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi8');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi8', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -422,8 +427,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi9] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi9');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi9', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -433,8 +438,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDigi10] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDigi10');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDigi10', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -444,10 +449,11 @@ export default function Game({user}: { user: string }) {
     const [, dropToHand] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, name} = item;
             moveCard(id, location, 'myHand');
             sendUpdate();
             playCardToHandSfx();
+            if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -457,8 +463,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToBreedingArea] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myBreedingArea');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myBreedingArea', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -468,8 +474,9 @@ export default function Game({user}: { user: string }) {
     const [, dropToTamer] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myTamer');
+            const {id, location, name, type} = item;
+            if (type === "Digi-Egg" || type === "Option") return;
+            handleDropToField(id, location, 'myTamer', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -479,8 +486,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDelay] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            handleDropToField(id, location, 'myDelay');
+            const {id, location, name} = item;
+            handleDropToField(id, location, 'myDelay', name);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -490,7 +497,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToDeck] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, type} = item;
+            if (type === "Token") return;
             setCardToSend({id, location});
             setDeckMoodle(true);
             setSetSecurityMoodle(false);
@@ -504,7 +512,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToEggDeck] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, type} = item;
+            if (type === "Token") return;
             setCardToSend({id, location});
             setEggDeckMoodle(true);
             setDeckMoodle(false);
@@ -518,7 +527,8 @@ export default function Game({user}: { user: string }) {
     const [, dropToSecurity] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, type} = item;
+            if (type === "Token") return;
             setCardToSend({id, location});
             setSetSecurityMoodle(true);
             setDeckMoodle(false);
@@ -532,11 +542,12 @@ export default function Game({user}: { user: string }) {
     const [, dropToTrash] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location} = item;
+            const {id, location, name} = item;
             moveCard(id, location, 'myTrash');
             sendUpdate();
             playTrashCardSfx();
             sendSfx("playTrashCardSfx");
+            sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -687,6 +698,7 @@ export default function Game({user}: { user: string }) {
 
     function acceptRestart() {
         setRestartMoodle(false);
+        websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
         websocket.sendMessage("/startGame:" + gameId);
     }
 
@@ -948,14 +960,15 @@ export default function Game({user}: { user: string }) {
                             <EggDeckContainer ref={dropToEggDeck}>
                                 {eggDeckMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
-                                                setMoodle={setEggDeckMoodle}/>}
+                                                setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
-                                                 drawCardFromEggDeck();
+                                                 moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  sendUpdate();
                                                  playDrawCardSfx();
-                                                 if (myBreedingArea.length === 0) sendSfx("playPlaceCardSfx");
+                                                 sendSfx("playPlaceCardSfx");
+                                                 sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
                                              }}/>}
                                 {myEggDeck.length !== 0 &&
                                     <div style={{
@@ -968,18 +981,20 @@ export default function Game({user}: { user: string }) {
                                     createToken();
                                     playPlaceCardSfx();
                                     sendUpdate();
-                                    sendSfx("playPlaceCardSfx");}}/>
+                                    sendSfx("playPlaceCardSfx");
+                                    sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");}}/>
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToSecurity}>
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
-                                                setMoodle={setSecurityContentMoodle}/>}
+                                                setMoodle={setSecurityContentMoodle} sendChatMessage={sendChatMessage}/>}
                                 <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
                                     if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                     sendUpdate();
                                     playSecurityRevealSfx();
                                     sendSfx("playSecurityRevealSfx");
+                                    sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
                                 }}>{mySecurity.length}</MySecuritySpan>
                                 <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px"}}/>
                                 {!securityContentMoodle ?
@@ -988,6 +1003,7 @@ export default function Game({user}: { user: string }) {
                                                 onClick={() => {
                                                     setSecurityContentMoodle(true);
                                                     websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
+                                                    sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
                                                 }}
                                     >🔎</SendButton>
                                     :
@@ -999,6 +1015,7 @@ export default function Game({user}: { user: string }) {
                                                     sendUpdate();
                                                     playShuffleDeckSfx();
                                                     sendSfx("playShuffleDeckSfx");
+                                                    sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
                                                 }}>🔄</SendButton>}
                                 <MySwitchRowButton1 disabled={showAttackArrow}
                                                     onClick={() => setIsMySecondRowVisible(false)}
@@ -1029,13 +1046,14 @@ export default function Game({user}: { user: string }) {
                             <DeckContainer>
                                 {deckMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}
-                                                setMoodle={setDeckMoodle}/>}
+                                                setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
-                                    drawCardFromDeck();
+                                    moveCard(myDeckField[0].id, "myDeckField", "myHand");
                                     sendUpdate();
                                     playDrawCardSfx();
                                     sendSfx("playDrawCardSfx");
+                                    sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
                                 }}/>
                                 {mulliganAllowed && <MulliganButton onClick={() => {
                                     mulligan();
@@ -1043,23 +1061,27 @@ export default function Game({user}: { user: string }) {
                                     playShuffleDeckSfx();
                                     sendSfx("playShuffleDeckSfx");
                                 }}>MULLIGAN</MulliganButton>}
-                                <SendToTrashButton onClick={() => {
+                                <SendToTrashButton title="Send top card from your deck to Trash"
+                                    onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myTrash");
                                     sendUpdate();
                                     playTrashCardSfx();
                                     sendSfx("playTrashCardSfx");
+                                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
                                 }}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
                                                 moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
                                                 sendUpdate();
                                                 websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
                                             }}>⛊️+1</SendButton>
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
                                     moveCard(myDeckField[0].id, "myDeckField", "myReveal");
                                     sendUpdate();
                                     playRevealCardSfx();
                                     sendSfx("playRevealSfx");
+                                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
                                 }}
                                             disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
                             </DeckContainer>
@@ -1624,7 +1646,7 @@ const TokenButton = styled.img`
   height: 50px;
   z-index: 5;
   left: 49px;
-  bottom: 12px;
+  bottom: 17px;
   transition: all 0.15s ease;
   opacity: 0.5;
 
@@ -1643,19 +1665,20 @@ const SendToTrashButton = styled.div`
   height: 30px;
   font-size: 40px;
   z-index: 10;
-  left: -47px;
+  left: -49px;
   bottom: 48px;
-
+  color: #e0e0e0;
   transform: rotate(-90deg);
-  transition: all 0.15s ease;
 
   &:hover {
     cursor: pointer;
-    filter: drop-shadow(0 0 3px #e8a71b);
+    color: #e8a71b;
   }
 
   &:active {
-    filter: drop-shadow(0 0 2px #d2157f);
+    color: #e0e0e0;
+    filter: drop-shadow(0 0 2px #e8a71b);
+    transform: translateX(1px) rotate(-90deg);
   }
 `;
 
