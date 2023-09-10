@@ -1,19 +1,24 @@
 import styled from "@emotion/styled";
 import {useGame} from "../../hooks/useGame.ts";
 import {playDrawCardSfx} from "../../utils/sound.ts";
+import {convertForLog} from "../../utils/functions.ts";
 
 type DeckMoodleProps = {
     cardToSend: {id: string, location:string},
     sendUpdate: () => void,
     to: string,
-    setMoodle: (isOpen: boolean) => void
+    setMoodle: (isOpen: boolean) => void,
+    sendChatMessage: (message: string) => void,
 }
 
-export default function DeckMoodle({cardToSend, sendUpdate, to, setMoodle} : DeckMoodleProps) {
+export default function DeckMoodle({cardToSend, sendUpdate, to, setMoodle, sendChatMessage} : DeckMoodleProps) {
 
     const sendCardToDeck = useGame((state) => state.sendCardToDeck);
+    // @ts-ignore
+    const cardName = useGame((state) => state[cardToSend.location as keyof typeof state].find(card => card.id === cardToSend.id)?.name);
 
-    const handleClick = (topOrBottom: "top" | "bottom") => {
+    const handleClick = (topOrBottom: "Top" | "Bottom") => {
+        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(cardToSend.location)} ➟ ${convertForLog(to)} ${topOrBottom}`);
         sendCardToDeck(topOrBottom, cardToSend, to);
         sendUpdate();
         setMoodle(false);
@@ -22,8 +27,8 @@ export default function DeckMoodle({cardToSend, sendUpdate, to, setMoodle} : Dec
 
     return (
         <Container to={to}>
-            <StyledButton onClick={() => handleClick("top")}><StyledSpan>»</StyledSpan></StyledButton>
-            <StyledButton onClick={() => handleClick("bottom")}><StyledSpan2>»</StyledSpan2></StyledButton>
+            <StyledButton onClick={() => handleClick("Top")}><StyledSpan>»</StyledSpan></StyledButton>
+            <StyledButton onClick={() => handleClick("Bottom")}><StyledSpan2>»</StyledSpan2></StyledButton>
         </Container>
     );
 }

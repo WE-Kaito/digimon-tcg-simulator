@@ -67,7 +67,7 @@ type State = {
     drawCardFromDeck: () => void,
     drawCardFromEggDeck: () => void,
 
-    sendCardToDeck: (topOrBottom: "top" | "bottom", cardToSend: { id: string, location: string }, to: string) => void,
+    sendCardToDeck: (topOrBottom: "Top" | "Bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
     shuffleSecurity: () => void,
     tiltCard: (cardId: string,
@@ -457,7 +457,7 @@ export const useGame = create<State>((set, get) => ({
             const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
             const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id)
             const toDeck = state[to as keyof State] as CardTypeGame[];
-            const updatedDeck = topOrBottom === "top" ? [card, ...toDeck] : [...toDeck, card];
+            const updatedDeck = topOrBottom === "Top" ? [card, ...toDeck] : [...toDeck, card];
             return {
                 [cardToSendToDeck.location]: locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id),
                 [to]: updatedDeck
