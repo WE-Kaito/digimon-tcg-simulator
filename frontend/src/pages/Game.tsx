@@ -74,7 +74,7 @@ export default function Game({user}: { user: string }) {
     const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
     const [deckMoodle, setDeckMoodle] = useState<boolean>(false);
     const [eggDeckMoodle, setEggDeckMoodle] = useState<boolean>(false);
-    const [securityMoodle, setSetSecurityMoodle] = useState<boolean>(false);
+    const [securityMoodle, setSecurityMoodle] = useState<boolean>(false);
     const [cardToSend, setCardToSend] = useState<{ id: string, location: string }>({id: "", location: ""});
     const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
@@ -529,7 +529,7 @@ export default function Game({user}: { user: string }) {
             if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
             setDeckMoodle(true);
-            setSetSecurityMoodle(false);
+            setSecurityMoodle(false);
             setEggDeckMoodle(false);
         },
         collect: (monitor) => ({
@@ -546,7 +546,7 @@ export default function Game({user}: { user: string }) {
             setCardToSend({id, location});
             setEggDeckMoodle(true);
             setDeckMoodle(false);
-            setSetSecurityMoodle(false);
+            setSecurityMoodle(false);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -560,7 +560,7 @@ export default function Game({user}: { user: string }) {
             if (type === "Token") return;
             if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
-            setSetSecurityMoodle(true);
+            setSecurityMoodle(true);
             setDeckMoodle(false);
             setEggDeckMoodle(false);
         },
@@ -712,7 +712,7 @@ export default function Game({user}: { user: string }) {
     useEffect(() => {
         setDeckMoodle(false);
         setEggDeckMoodle(false);
-        setSetSecurityMoodle(false);
+        setSecurityMoodle(false);
         if (opponentTrash.length === 0) {
             setOpponentTrashMoodle(false);
         }
@@ -1018,7 +1018,7 @@ export default function Game({user}: { user: string }) {
                             <SecurityStackContainer ref={dropToSecurity}>
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
-                                                setMoodle={setSecurityContentMoodle} sendChatMessage={sendChatMessage}/>}
+                                                setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
                                 <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
                                     if (opponentReveal.length === 0) moveCard(false, mySecurity[0].id, "mySecurity", "myReveal");
                                     sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
@@ -1054,7 +1054,7 @@ export default function Game({user}: { user: string }) {
                                                 moveCard(false, mySecurity[0].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕➟ Trash`);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
                                             }}>🗑️ ▲</SendButton>
 
                                 <SendButton title="Trash the bottom card of your Security Stack" style={{left: 20, top: 100}}
@@ -1062,7 +1062,7 @@ export default function Game({user}: { user: string }) {
                                                 moveCard(false, mySecurity[mySecurity.length-1].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[mySecurity.length-1].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length-1].name}】﹕➟ Trash`);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length-1].name}】﹕Security Bot ➟ Trash`);
                                             }}>🗑️ ▼</SendButton>
 
                                 <MySwitchRowButton1 disabled={showAttackArrow}
