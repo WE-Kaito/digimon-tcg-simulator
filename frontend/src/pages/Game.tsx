@@ -526,6 +526,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, type} = item;
             if (type === "Token") return;
+            if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
             setDeckMoodle(true);
             setSetSecurityMoodle(false);
@@ -541,6 +542,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, type} = item;
             if (type === "Token") return;
+            if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
             setEggDeckMoodle(true);
             setDeckMoodle(false);
@@ -556,6 +558,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, type} = item;
             if (type === "Token") return;
+            if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
             setSetSecurityMoodle(true);
             setDeckMoodle(false);
