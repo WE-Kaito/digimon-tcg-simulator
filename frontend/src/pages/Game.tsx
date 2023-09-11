@@ -353,7 +353,7 @@ export default function Game({user}: { user: string }) {
         sendSingleUpdate(cardId, from, to);
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
-        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
+        if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1:string, location2:string): string {
