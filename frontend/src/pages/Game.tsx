@@ -91,7 +91,10 @@ export default function Game({user}: { user: string }) {
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
-    const [restartObj, setRestartObj] = useState<{ me:Player, opponent:Player }>({me: {username: "", avatarName: ""}, opponent: {username: "", avatarName: ""}});
+    const [restartObj, setRestartObj] = useState<{ me: Player, opponent: Player }>({
+        me: {username: "", avatarName: ""},
+        opponent: {username: "", avatarName: ""}
+    });
 
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
@@ -165,7 +168,7 @@ export default function Game({user}: { user: string }) {
                 const me = players.slice().filter((player: Player) => player.username === user)[0];
                 const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
-                setRestartObj({ me, opponent });
+                setRestartObj({me, opponent});
                 return;
             }
 
@@ -357,7 +360,7 @@ export default function Game({user}: { user: string }) {
         if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
-    function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1:string, location2:string): string {
+    function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
         if (location2arr.length === 0 && (isOpponent ? isOpponentSecondRowVisible : isMySecondRowVisible)) return location2;
         return "";
@@ -832,7 +835,8 @@ export default function Game({user}: { user: string }) {
                                                       title="Open opponents trash"/>}
                             </OpponentTrashContainer>
 
-                            <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5} id={getFieldId(true, opponentDigi1, opponentDigi6,"opponentDigi1", "opponentDigi6")}>
+                            <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
+                                         id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi10.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi10.length} key={card.id} cardIndex={index}
@@ -848,7 +852,8 @@ export default function Game({user}: { user: string }) {
                                                 <Card card={card} location={"opponentDigi5"}/>
                                             </Fade></CardContainer>)}
                             </BattleArea5>
-                            <BattleArea4 ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4} id={getFieldId(true, opponentDigi2, opponentDigi7,"opponentDigi2", "opponentDigi7")}>
+                            <BattleArea4 ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}
+                                         id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi9.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi9.length} key={card.id} cardIndex={index}
@@ -864,7 +869,8 @@ export default function Game({user}: { user: string }) {
                                                 <Card card={card} location={"opponentDigi4"}/>
                                             </Fade></CardContainer>)}
                             </BattleArea4>
-                            <BattleArea3 ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3} id={getFieldId(true, opponentDigi3, opponentDigi8,"opponentDigi3", "opponentDigi8")}>
+                            <BattleArea3 ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}
+                                         id={getFieldId(true, opponentDigi3, opponentDigi8, "opponentDigi3", "opponentDigi8")}>
                                 {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
                                     <FieldSpan>Battle Area</FieldSpan>}
                                 {isOpponentSecondRowVisible ?
@@ -882,7 +888,8 @@ export default function Game({user}: { user: string }) {
                                                 <Card card={card} location={"opponentDigi3"}/>
                                             </Fade></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea2 ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2} id={getFieldId(true, opponentDigi4, opponentDigi9,"opponentDigi4", "opponentDigi9")}>
+                            <BattleArea2 ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}
+                                         id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi7.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi7.length} key={card.id} cardIndex={index}
@@ -897,7 +904,8 @@ export default function Game({user}: { user: string }) {
                                             <Fade direction={"down"} duration={500}>
                                                 <Card card={card} location={"opponentDigi2"}/></Fade></CardContainer>)}
                             </BattleArea2>
-                            <BattleArea1 ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1} id={getFieldId(true, opponentDigi5, opponentDigi10,"opponentDigi5", "opponentDigi10")}>
+                            <BattleArea1 ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}
+                                         id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
                                 {isOpponentSecondRowVisible ?
                                     opponentDigi6.map((card, index) =>
                                         <CardContainer cardCount={opponentDigi6.length} key={card.id} cardIndex={index}
@@ -926,8 +934,9 @@ export default function Game({user}: { user: string }) {
                             <TamerAreaContainer style={{height: "205px"}}>
                                 {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                                 {opponentTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
-                                    tamerIndex={getTamerCardIndex(card, opponentTamer)}>
+                                    <TamerCardContainer key={card.id} cardIndex={index}
+                                                        digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
+                                                        tamerIndex={getTamerCardIndex(card, opponentTamer)}>
                                         <Fade direction={"left"} duration={500}>
                                             <Card card={card} location={"opponentTamer"}/>
                                         </Fade></TamerCardContainer>)}
@@ -941,7 +950,8 @@ export default function Game({user}: { user: string }) {
                                                       key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
                                         </HandListItem>)}
                                 </HandCards>
-                                {opponentHand.length > 5 && <MyHandSpan style={{transform: "rotate(180deg)"}}>{opponentHand.length}</MyHandSpan>}
+                                {opponentHand.length > 5 && <MyHandSpan
+                                    style={{transform: "rotate(180deg)"}}>{opponentHand.length}</MyHandSpan>}
                             </OpponentHandContainer>
 
                         </OpponentContainerMain>
@@ -950,8 +960,12 @@ export default function Game({user}: { user: string }) {
                             <EggDeckContainer>
                                 {opponentEggDeck.length !== 0 &&
                                     <div style={{
-                                        width: "100%", display: "flex", fontStyle: "italic", transform: "translateX(-5px)",
-                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif"
+                                        width: "100%",
+                                        display: "flex",
+                                        fontStyle: "italic",
+                                        transform: "translateX(-5px)",
+                                        justifyContent: "center",
+                                        fontFamily: "Awsumsans, sans-serif"
                                     }}>{opponentEggDeck.length}</div>}
                                 {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
                                                                       style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
@@ -1012,7 +1026,8 @@ export default function Game({user}: { user: string }) {
                                     playPlaceCardSfx();
                                     sendUpdate();
                                     sendSfx("playPlaceCardSfx");
-                                    sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");}}/>
+                                    sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");
+                                }}/>
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToSecurity}>
@@ -1026,11 +1041,12 @@ export default function Game({user}: { user: string }) {
                                     sendSfx("playSecurityRevealSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
                                 }}>{mySecurity.length}</MySecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px", transform: "translate(23px, -14px)"}}/>
+                                <Lottie animationData={mySecurityAnimation} loop={true}
+                                        style={{width: "160px", transform: "translate(23px, -14px)"}}/>
 
                                 {!securityContentMoodle ?
                                     <SendButton title="Open Security Stack"
-                                                style={{left: 20, top: 30}}
+                                                style={{left: 20, top: 20}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(true);
                                                     websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
@@ -1039,7 +1055,7 @@ export default function Game({user}: { user: string }) {
                                     >🔎</SendButton>
                                     :
                                     <SendButton title="Close and shuffle Security Stack"
-                                                style={{left: 20, top: 30}}
+                                                style={{left: 20, top: 20}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(false);
                                                     shuffleSecurity();
@@ -1049,7 +1065,8 @@ export default function Game({user}: { user: string }) {
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
                                                 }}>🔄</SendButton>}
 
-                                <SendButton title="Trash the bottom card of your Security Stack" style={{left: 20, top: 65}}
+                                <SendButton title="Trash the bottom card of your Security Stack"
+                                            style={{left: 20, top: 55}}
                                             onClick={() => {
                                                 moveCard(false, mySecurity[0].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
@@ -1057,13 +1074,23 @@ export default function Game({user}: { user: string }) {
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
                                             }}>🗑️ ▲</SendButton>
 
-                                <SendButton title="Trash the bottom card of your Security Stack" style={{left: 20, top: 100}}
+                                <SendButton title="Trash the bottom card of your Security Stack"
+                                            style={{left: 20, top: 90}}
                                             onClick={() => {
-                                                moveCard(false, mySecurity[mySecurity.length-1].id, "mySecurity", "myTrash");
-                                                sendSingleUpdate(mySecurity[mySecurity.length-1].id, "mySecurity", "myTrash");
+                                                moveCard(false, mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
+                                                sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length-1].name}】﹕Security Bot ➟ Trash`);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
                                             }}>🗑️ ▼</SendButton>
+
+                                <SendButton title="Trash the bottom card of your Security Stack"
+                                            style={{left: 20, top: 135}}
+                                            onClick={() => {
+                                                shuffleSecurity();
+                                                sendUpdate();
+                                                playShuffleDeckSfx();
+                                                sendSfx("playShuffleDeckSfx");
+                                            }}>🔄</SendButton>
 
                                 <MySwitchRowButton1 disabled={showAttackArrow}
                                                     onClick={() => setIsMySecondRowVisible(false)}
@@ -1110,13 +1137,13 @@ export default function Game({user}: { user: string }) {
                                     sendSfx("playShuffleDeckSfx");
                                 }}>MULLIGAN</MulliganButton>}
                                 <SendToTrashButton title="Send top card from your deck to Trash"
-                                    onClick={() => {
-                                    moveCard(false, myDeckField[0].id, "myDeckField", "myTrash");
-                                    sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
-                                    playTrashCardSfx();
-                                    sendSfx("playTrashCardSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
-                                }}>↱</SendToTrashButton>
+                                                   onClick={() => {
+                                                       moveCard(false, myDeckField[0].id, "myDeckField", "myTrash");
+                                                       sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
+                                                       playTrashCardSfx();
+                                                       sendSfx("playTrashCardSfx");
+                                                       sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
+                                                   }}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
                                                 const id = myDeckField[0].id;
@@ -1147,7 +1174,8 @@ export default function Game({user}: { user: string }) {
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
                             </TrashContainer>
 
-                            <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1} id={getFieldId(false, myDigi1, myDigi6,"myDigi1", "myDigi6")}>
+                            <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1}
+                                         id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
                                 {isMySecondRowVisible ?
                                     myDigi6?.map((card, index) =>
                                         <CardContainer cardCount={myDigi6.length} key={card.id} cardIndex={index}
@@ -1161,7 +1189,8 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi1"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea1>
-                            <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2} id={getFieldId(false, myDigi2, myDigi7,"myDigi2", "myDigi7")}>
+                            <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
+                                         id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
                                 {isMySecondRowVisible ?
                                     myDigi7?.map((card, index) =>
                                         <CardContainer cardCount={myDigi7.length} key={card.id} cardIndex={index}
@@ -1175,7 +1204,8 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi2"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea2>
-                            <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3} id={getFieldId(false, myDigi3, myDigi8,"myDigi3", "myDigi8")}>
+                            <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
+                                         id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
                                 {!isMySecondRowVisible && myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {isMySecondRowVisible ?
                                     myDigi8?.map((card, index) =>
@@ -1190,7 +1220,8 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi3"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea3>
-                            <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4} id={getFieldId(false, myDigi4, myDigi9,"myDigi4", "myDigi9")}>
+                            <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
+                                         id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
                                 {isMySecondRowVisible ?
                                     myDigi9?.map((card, index) =>
                                         <CardContainer cardCount={myDigi9.length} key={card.id} cardIndex={index}
@@ -1204,7 +1235,8 @@ export default function Game({user}: { user: string }) {
                                             <Card card={card} location={"myDigi4"} sendSfx={sendSfx}
                                                   sendUpdate={sendUpdate}/></CardContainer>)}
                             </BattleArea4>
-                            <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5} id={getFieldId(false, myDigi5, myDigi10,"myDigi5", "myDigi10")}>
+                            <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
+                                         id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
                                 {isMySecondRowVisible ?
                                     myDigi10?.map((card, index) =>
                                         <CardContainer cardCount={myDigi10.length} key={card.id} cardIndex={index}
@@ -1228,8 +1260,9 @@ export default function Game({user}: { user: string }) {
 
                             <TamerAreaContainer ref={dropToTamer}>
                                 {myTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index} digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
-                                        tamerIndex={getTamerCardIndex(card, myTamer)}>
+                                    <TamerCardContainer key={card.id} cardIndex={index}
+                                                        digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
+                                                        tamerIndex={getTamerCardIndex(card, myTamer)}>
                                         <Card card={card} location={"myTamer"}
                                               sendSfx={sendSfx}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
@@ -1496,6 +1529,7 @@ const Deck = styled.img`
 
 const EggDeck = styled(Deck)`
   transform: translateY(-30px);
+
   &:hover {
     filter: drop-shadow(0 0 3px #dd33e8);
     outline: #dd33e8 solid 1px;
@@ -1563,13 +1597,14 @@ const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
     color: #f9f9f9;
     transform: translate(${({cardCount}) => cardCount === 1 ? 28 : 21}px, -14px);
   }
+
   @media (min-width: 2000px) {
     transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 24}px, -13px);
     &:hover {
       transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 22}px, -14px);
     }
   }
-  
+
 `;
 
 const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
@@ -1581,10 +1616,11 @@ const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
 const TamerCardContainer = styled.div<{ cardIndex: number, digimonIndex: number, tamerIndex: number }>`
   position: absolute;
   top: 10px;
-  left: ${({ tamerIndex }) => (tamerIndex * 40) + 5}px;
+  left: ${({tamerIndex}) => (tamerIndex * 40) + 5}px;
   z-index: ${({cardIndex}) => 20 - cardIndex};
-  transform: ${({ digimonIndex, cardIndex }) =>
+  transform: ${({digimonIndex, cardIndex}) =>
           cardIndex !== 0 ? (digimonIndex !== 0 ? `translate(-40px, ${digimonIndex * 25}px)` : "none") : "none"};
+
   &:hover {
     z-index: 100;
   }
@@ -1667,6 +1703,7 @@ const SendButton = styled.button`
   padding: 0;
   border-radius: 5px;
   opacity: 0.65;
+
   &:hover {
     opacity: 1;
     border-color: #e8a71b;
