@@ -3,14 +3,19 @@ import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
 import {playButtonClickSfx} from "../../utils/sound.ts";
 
-export default function MemoryBar({sendUpdate, sendSfx}:{sendUpdate: () => void, sendSfx: (sfx: string) => void}) {
+type Props = {
+    sendMemoryUpdate: (memory: number) => void;
+    sendSfx: (sfx: string) => void;
+}
+
+export default function MemoryBar({sendMemoryUpdate, sendSfx}: Props) {
 
     const myMemory = useGame(state => state.myMemory);
     const setMemory = useGame(state => state.setMemory);
 
     function handleClick(memory: number) {
         setMemory(memory);
-        sendUpdate();
+        sendMemoryUpdate(memory);
         playButtonClickSfx();
         sendSfx("playButtonClickSfx");
     }

@@ -274,7 +274,7 @@ export const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "o
     "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
 
-export const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField", "myEggDeck", "myBreedingArea"];
+export const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField", "myEggDeck", "myBreedingArea", "opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity", "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
 
 export function getConsecutiveDigimonIndex(card: CardTypeGame, locationCards: CardTypeGame[]): number {
     if (card.type !== "Digimon") return 0;

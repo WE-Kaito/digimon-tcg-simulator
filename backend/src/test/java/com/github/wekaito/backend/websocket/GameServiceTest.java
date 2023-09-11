@@ -251,4 +251,28 @@ class GameServiceTest {
         // THEN
         verify(session2, times(1)).sendMessage(expectedMessage);
     }
+
+    @Test
+    void testSingleUpdate() throws IOException, InterruptedException {
+        // GIVEN
+        TextMessage expectedMessage = new TextMessage("[MOVE_CARD]:123abc:opponentDigi1:opponentDigi2");
+        TextMessage updateFromClient = new TextMessage(gameId + ":/moveCard:"+ username2 +":123abc:myDigi1:myDigi2");
+        putPlayersToGameRoom();
+        // WHEN
+        gameService.handleTextMessage(session1, updateFromClient);
+        // THEN
+        verify(session2, times(1)).sendMessage(expectedMessage);
+    }
+
+    @Test
+    void testMemoryUpdate() throws IOException, InterruptedException {
+        // GIVEN
+        TextMessage expectedMessage = new TextMessage("[UPDATE_MEMORY]:-5");
+        TextMessage updateFromClient = new TextMessage(gameId + ":/updateMemory:"+ username2 +":5");
+        putPlayersToGameRoom();
+        // WHEN
+        gameService.handleTextMessage(session1, updateFromClient);
+        // THEN
+        verify(session2, times(1)).sendMessage(expectedMessage);
+    }
 }

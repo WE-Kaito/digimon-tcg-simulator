@@ -50,7 +50,6 @@ type State = {
     setGameId: (gameId: string) => void,
 };
 
-
 export const useStore = create<State>((set, get) => ({
 
     fetchedCards: [],
@@ -158,11 +157,18 @@ export const useStore = create<State>((set, get) => ({
     addCardToDeck: (id, location, cardnumber, type) => {
         const cardToAdd = get().fetchedCards.filter((card) => card.id === id)[0];
         let cardToAddWithNewId;
+        const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
+        const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
 
         if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012"){
             cardToAddWithNewId = {...cardToAdd, id: uid(), type: "Digimon"} // fetched EX5-020 & EX5-012 are typed incorrectly
         } else {
             cardToAddWithNewId = {...cardToAdd, id: uid()}
+        }
+
+        if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4){
+            set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
+            return;
         }
 
         const eggCardLength = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
@@ -176,9 +182,9 @@ export const useStore = create<State>((set, get) => ({
             return;
         }
 
-        if (type === "Digi-Egg" && get().deckCards.filter((card) => card.type === "Digi-Egg").length >= 5) return;
+        if (type === "Digi-Egg" && digiEggsInDeck >= 5) return;
 
-        if (get().deckCards.filter((card) => card.cardnumber === cardnumber).length >= 4) return;
+        if (cardOfIdInDeck >= 4) return;
 
         set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
     },

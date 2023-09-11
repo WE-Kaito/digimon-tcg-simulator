@@ -17,7 +17,6 @@ import {
     ContainerBottomRightQuarter,
     ContainerBottomLeftQuarter, StyledSpanSaveDeck, DeckNameContainer
 } from "./Deckbuilder.tsx";
-import {css} from "@emotion/css";
 
 export default function EditDeck() {
 
@@ -25,7 +24,6 @@ export default function EditDeck() {
     const setDeckById = useStore(state => state.setDeckById);
     const updateDeck = useStore(state => state.updateDeck);
     const nameOfDeckToEdit = useStore(state => state.nameOfDeckToEdit);
-    const isLoading = useStore(state => state.isLoading);
 
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
@@ -40,10 +38,6 @@ export default function EditDeck() {
         setDeckById(id);
         setDeckName(nameOfDeckToEdit);
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById]);
-
-    if (isLoading) {
-        return <h1 className={css`font-family: 'Pixel Digivolve', sans-serif;`}>Loading...</h1>
-    }
 
     return (
         <OuterContainer>
