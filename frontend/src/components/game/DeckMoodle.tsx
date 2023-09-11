@@ -71,9 +71,9 @@ function getTop(to: string) {
         case "myDeckField":
             return "35px";
         case "myEggDeck":
-            return "-12px";
+            return "-42px";
         case "mySecurity":
-            return "-18px";
+            return "122px";
     }
 }
 
@@ -84,6 +84,6 @@ function getLeft(to: string) {
         case "myEggDeck":
             return "24px";
         case "mySecurity":
-            return "90px";
+            return "115px";
     }
 }

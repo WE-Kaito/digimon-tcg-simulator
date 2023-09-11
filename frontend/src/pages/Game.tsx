@@ -1022,10 +1022,11 @@ export default function Game({user}: { user: string }) {
                                     sendSfx("playSecurityRevealSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
                                 }}>{mySecurity.length}</MySecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px"}}/>
+                                <Lottie animationData={mySecurityAnimation} loop={true} style={{width: "160px", transform: "translate(23px, -14px)"}}/>
+
                                 {!securityContentMoodle ?
                                     <SendButton title="Open Security Stack"
-                                                style={{left: 20, top: 20, background: "none"}}
+                                                style={{left: 20, top: 30}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(true);
                                                     websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
@@ -1034,7 +1035,7 @@ export default function Game({user}: { user: string }) {
                                     >🔎</SendButton>
                                     :
                                     <SendButton title="Close and shuffle Security Stack"
-                                                style={{left: 20, top: 20, background: "none"}}
+                                                style={{left: 20, top: 30}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(false);
                                                     shuffleSecurity();
@@ -1043,6 +1044,23 @@ export default function Game({user}: { user: string }) {
                                                     sendSfx("playShuffleDeckSfx");
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
                                                 }}>🔄</SendButton>}
+
+                                <SendButton title="Trash the bottom card of your Security Stack" style={{left: 20, top: 65}}
+                                            onClick={() => {
+                                                moveCard(false, mySecurity[0].id, "mySecurity", "myTrash");
+                                                sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
+                                                websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕➟ Trash`);
+                                            }}>🗑️ ▲</SendButton>
+
+                                <SendButton title="Trash the bottom card of your Security Stack" style={{left: 20, top: 100}}
+                                            onClick={() => {
+                                                moveCard(false, mySecurity[mySecurity.length-1].id, "mySecurity", "myTrash");
+                                                sendSingleUpdate(mySecurity[mySecurity.length-1].id, "mySecurity", "myTrash");
+                                                websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length-1].name}】﹕➟ Trash`);
+                                            }}>🗑️ ▼</SendButton>
+
                                 <MySwitchRowButton1 disabled={showAttackArrow}
                                                     onClick={() => setIsMySecondRowVisible(false)}
                                                     secondRowVisible={!isMySecondRowVisible}/>
@@ -1520,25 +1538,32 @@ const SecuritySpan = styled.span`
   position: absolute;
   z-index: 5;
   font-family: Awsumsans, sans-serif;
-  font-style: italic;
+  font-style: normal;
   font-size: 35px;
   color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
-  left: 133px;
+  left: 132px;
 `;
 
 const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
   cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
-  transform: translateX(${({cardCount}) => cardCount === 1 ? 4 : 0}px);
+  transform: translate(${({cardCount}) => cardCount === 1 ? 28 : 23}px, -13px);
 
   &:hover {
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
     font-size: 42px;
     color: #f9f9f9;
-    transform: translate(${({cardCount}) => cardCount === 1 ? 4 : -2}px, -1px);
+    transform: translate(${({cardCount}) => cardCount === 1 ? 28 : 21}px, -14px);
   }
+  @media (min-width: 2000px) {
+    transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 24}px, -13px);
+    &:hover {
+      transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 22}px, -14px);
+    }
+  }
+  
 `;
 
 const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
@@ -1635,7 +1660,9 @@ const SendButton = styled.button`
   z-index: 10;
   padding: 0;
   border-radius: 5px;
+  opacity: 0.65;
   &:hover {
+    opacity: 1;
     border-color: #e8a71b;
   }
 `;
@@ -1695,13 +1722,16 @@ const SendToTrashButton = styled.div`
   bottom: 48px;
   color: #e0e0e0;
   transform: rotate(-90deg);
+  opacity: 0.65;
 
   &:hover {
+    opacity: 1;
     cursor: pointer;
     color: #e8a71b;
   }
 
   &:active {
+    opacity: 1;
     color: #e0e0e0;
     filter: drop-shadow(0 0 2px #e8a71b);
     transform: translateX(1px) rotate(-90deg);
