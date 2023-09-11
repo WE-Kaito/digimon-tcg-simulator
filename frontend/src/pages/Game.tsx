@@ -96,6 +96,7 @@ export default function Game({user}: { user: string }) {
     const mulligan = useGame((state) => state.mulligan);
     const mulliganAllowed = useGame((state) => state.mulliganAllowed);
     const createToken = useGame((state) => state.createToken);
+    const setMemory = useGame(state => state.setMemory);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -195,7 +196,15 @@ export default function Game({user}: { user: string }) {
                 const cardId = parts[0];
                 const from = parts[1];
                 const to = parts[2];
-                moveCard(cardId, from, to);
+                console.log(event.data)
+                moveCard(true, cardId, from, to);
+                return;
+            }
+
+            if (event.data.startsWith("[UPDATE_MEMORY]:")) {
+                const newMemory = event.data.substring("[UPDATE_MEMORY]:".length);
+                setMemory(parseInt(newMemory));
+                console.log(event.data);
                 return;
             }
 
@@ -315,6 +324,14 @@ export default function Game({user}: { user: string }) {
         }
     }
 
+    function sendSingleUpdate(cardId: string, from: string, to: string) {
+        websocket.sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+    }
+
+    function sendMemoryUpdate(memory: number) {
+        websocket.sendMessage(`${gameId}:/updateMemory:${opponentName}:${memory}`);
+    }
+
     function sendSfx(sfx: string) {
         setTimeout(() => {
             websocket.sendMessage(gameId + ":/" + sfx + ":" + opponentName);
@@ -332,8 +349,8 @@ export default function Game({user}: { user: string }) {
 
     function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
         if (!cardId || !from || !to || opponentFieldLocations.includes(from)) return;
-        moveCard(cardId, from, to);
-        sendUpdate();
+        moveCard(false, cardId, from, to);
+        sendSingleUpdate(cardId, from, to);
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
         sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
@@ -459,8 +476,8 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location, name} = item;
-            moveCard(id, location, 'myHand');
-            sendUpdate();
+            moveCard(false, id, location, 'myHand');
+            sendSingleUpdate(id, location, 'myHand');
             playCardToHandSfx();
             if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
         },
@@ -552,8 +569,8 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location, name} = item;
-            moveCard(id, location, 'myTrash');
-            sendUpdate();
+            moveCard(false, id, location, 'myTrash');
+            sendSingleUpdate(id, location, 'myTrash');
             playTrashCardSfx();
             sendSfx("playTrashCardSfx");
             sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`);
@@ -962,7 +979,7 @@ export default function Game({user}: { user: string }) {
                     </div>
 
                     {memoryBarLoading ? <div style={{height: "100px"}}/> :
-                        <Zoom><MemoryBar sendUpdate={sendUpdate} sendSfx={sendSfx}/></Zoom>}
+                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}/></Zoom>}
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
@@ -973,8 +990,8 @@ export default function Game({user}: { user: string }) {
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
-                                                 moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
-                                                 sendUpdate();
+                                                 moveCard(false, myEggDeck[0].id, "myEggDeck", "myBreedingArea");
+                                                 sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  playDrawCardSfx();
                                                  sendSfx("playPlaceCardSfx");
                                                  sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
@@ -999,8 +1016,8 @@ export default function Game({user}: { user: string }) {
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityContentMoodle} sendChatMessage={sendChatMessage}/>}
                                 <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
-                                    if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                    sendUpdate();
+                                    if (opponentReveal.length === 0) moveCard(false, mySecurity[0].id, "mySecurity", "myReveal");
+                                    sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
                                     playSecurityRevealSfx();
                                     sendSfx("playSecurityRevealSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
@@ -1058,8 +1075,8 @@ export default function Game({user}: { user: string }) {
                                                 setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
-                                    moveCard(myDeckField[0].id, "myDeckField", "myHand");
-                                    sendUpdate();
+                                    moveCard(false, myDeckField[0].id, "myDeckField", "myHand");
+                                    sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
                                     playDrawCardSfx();
                                     sendSfx("playDrawCardSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
@@ -1072,22 +1089,22 @@ export default function Game({user}: { user: string }) {
                                 }}>MULLIGAN</MulliganButton>}
                                 <SendToTrashButton title="Send top card from your deck to Trash"
                                     onClick={() => {
-                                    moveCard(myDeckField[0].id, "myDeckField", "myTrash");
-                                    sendUpdate();
+                                    moveCard(false, myDeckField[0].id, "myDeckField", "myTrash");
+                                    sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
                                     playTrashCardSfx();
                                     sendSfx("playTrashCardSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
                                 }}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
-                                                moveCard(myDeckField[0].id, "myDeckField", "mySecurity");
-                                                sendUpdate();
+                                                moveCard(false, myDeckField[0].id, "myDeckField", "mySecurity");
+                                                sendSingleUpdate(myDeckField[0].id, "myDeckField", "mySecurity");
                                                 websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
                                             }}>⛊️+1</SendButton>
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
-                                    moveCard(myDeckField[0].id, "myDeckField", "myReveal");
-                                    sendUpdate();
+                                    moveCard(false, myDeckField[0].id, "myDeckField", "myReveal");
+                                    sendSingleUpdate(myDeckField[0].id, "myDeckField", "myReveal");
                                     playRevealCardSfx();
                                     sendSfx("playRevealSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);

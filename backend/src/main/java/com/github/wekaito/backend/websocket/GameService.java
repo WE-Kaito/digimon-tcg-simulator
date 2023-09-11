@@ -50,6 +50,15 @@ public class GameService extends TextWebSocketHandler {
         map.put("myDigi8", "opponentDigi8");
         map.put("myDigi9", "opponentDigi9");
         map.put("myDigi10", "opponentDigi10");
+        map.put("mySecurity", "opponentSecurity");
+        map.put("myHand", "opponentHand");
+        map.put("myDeckField", "opponentDeckField");
+        map.put("myEggDeck", "opponentEggDeck");
+        map.put("myBreedingArea", "opponentBreedingArea");
+        map.put("myTrash", "opponentTrash");
+        map.put("myTamer", "opponentTamer");
+        map.put("myDelay", "opponentDelay");
+        map.put("myReveal", "opponentReveal");
         map.put("opponentDigi1", "myDigi1");
         map.put("opponentDigi2", "myDigi2");
         map.put("opponentDigi3", "myDigi3");
@@ -61,6 +70,14 @@ public class GameService extends TextWebSocketHandler {
         map.put("opponentDigi9", "myDigi9");
         map.put("opponentDigi10", "myDigi10");
         map.put("opponentSecurity", "mySecurity");
+        map.put("opponentHand", "myHand");
+        map.put("opponentDeckField", "myDeckField");
+        map.put("opponentEggDeck", "myEggDeck");
+        map.put("opponentBreedingArea", "myBreedingArea");
+        map.put("opponentTrash", "myTrash");
+        map.put("opponentTamer", "myTamer");
+        map.put("opponentDelay", "myDelay");
+        map.put("opponentReveal", "myReveal");
         return map;
     }
 
@@ -112,6 +129,10 @@ public class GameService extends TextWebSocketHandler {
         if (roomMessage.startsWith("/updateGame:")) processGameChunks(gameId, session, roomMessage, gameRoom);
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, roomMessage);
+
+        if (roomMessage.startsWith("/moveCard:")) handleSingleUpdate(gameRoom, roomMessage);
+
+        if (roomMessage.startsWith("/updateMemory:")) handleMemoryUpdate(gameRoom, roomMessage);
 
         if (roomMessage.startsWith("/chatMessage:")) sendChatMessage(gameRoom, userName, roomMessage);
 
@@ -278,7 +299,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     void handleAttack(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
-        if (roomMessage.split(":", 4).length < 4) return;
+        if (roomMessage.split(":").length < 4) return;
         String[] parts = roomMessage.split(":", 4);
         String opponentName = parts[1];
         String from = parts[2];
@@ -288,5 +309,23 @@ public class GameService extends TextWebSocketHandler {
 
     private String getPosition(String fromTo) {
         return positionMap.getOrDefault(fromTo, "");
+    }
+
+    void handleSingleUpdate(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 5) return;
+        String[] parts = roomMessage.split(":", 5);
+        String opponentName = parts[1];
+        String cardId = parts[2];
+        String from = parts[3];
+        String to = parts[4];
+        sendMessageToOpponent(gameRoom, opponentName, "[MOVE_CARD]:" + cardId + ":" + getPosition(from) + ":" + getPosition(to));
+    }
+
+    void handleMemoryUpdate(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 3) return;
+        String[] parts = roomMessage.split(":", 3);
+        String opponentName = parts[1];
+        int memory = Integer.parseInt(parts[2]) * -1;
+        sendMessageToOpponent(gameRoom, opponentName, "[UPDATE_MEMORY]:" + memory);
     }
 }

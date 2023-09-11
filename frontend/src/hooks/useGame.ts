@@ -62,7 +62,7 @@ type State = {
 
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
-    moveCard: (cardId: string, from: string, to: string) => void,
+    moveCard: (isUpdate:boolean, cardId: string, from: string, to: string) => void,
     getUpdatedGame: (gameId: string, user: string) => string,
 
     sendCardToDeck: (topOrBottom: "Top" | "Bottom", cardToSend: { id: string, location: string }, to: string) => void,
@@ -370,10 +370,10 @@ export const useGame = create<State>((set, get) => ({
         return JSON.stringify(updatedGame);
     },
 
-    moveCard: (cardId, from, to) => {
+    moveCard: (isUpdate, cardId, from, to) => {
 
         if (!cardId || !from || !to) return;
-        if (opponentFieldLocations.includes(from) || opponentFieldLocations.includes(to)) return;
+        if (!isUpdate && opponentFieldLocations.includes(from) || !isUpdate && opponentFieldLocations.includes(to)) return;
 
         const fromState = get()[from as keyof State] as CardTypeGame[];
         const card = fromState.find(card => card.id === cardId);
