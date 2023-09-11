@@ -29,7 +29,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
         }),
     }));
 
-    const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myTamer"];
+    const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
     const tiltable = tiltLocations.includes(location);
 
     function handleClick() {
