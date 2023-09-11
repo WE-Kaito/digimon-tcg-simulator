@@ -1691,7 +1691,7 @@ const MulliganButton = styled.div`
   &:hover {
     cursor: pointer;
     filter: drop-shadow(2px 2px 1px #131313);
-    background-color: #c7ff3b;
+    background-color: #fad736;
     transform: translateY(1px);
   }
 `;
