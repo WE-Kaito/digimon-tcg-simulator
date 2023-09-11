@@ -190,6 +190,15 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
+            if (event.data.startsWith("[MOVE_CARD]:")) {
+                const parts = event.data.substring("[MOVE_CARD]:".length).split(":");
+                const cardId = parts[0];
+                const from = parts[1];
+                const to = parts[2];
+                moveCard(cardId, from, to);
+                return;
+            }
+
             if (event.data.startsWith("[CHAT_MESSAGE]:")) {
                 const chatMessage = event.data.substring(event.data.indexOf(":") + 1);
                 setMessages(chatMessage);
