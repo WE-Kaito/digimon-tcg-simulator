@@ -62,6 +62,7 @@ export default function Game({user}: { user: string }) {
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
 
     const moveCard = useGame((state) => state.moveCard);
+    const sendCardToDeck = useGame((state) => state.sendCardToDeck);
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
@@ -1115,8 +1116,10 @@ export default function Game({user}: { user: string }) {
                                 }}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
-                                                moveCard(false, myDeckField[0].id, "myDeckField", "mySecurity");
-                                                sendSingleUpdate(myDeckField[0].id, "myDeckField", "mySecurity");
+                                                const id = myDeckField[0].id;
+                                                const location = "myDeckField";
+                                                sendCardToDeck("Top", {id, location}, "mySecurity");
+                                                sendUpdate();
                                                 websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
                                             }}>⛊️+1</SendButton>
