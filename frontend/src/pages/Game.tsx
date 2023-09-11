@@ -1065,7 +1065,7 @@ export default function Game({user}: { user: string }) {
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
                                                 }}>🔄</SendButton>}
 
-                                <SendButton title="Trash the bottom card of your Security Stack"
+                                <SendButton title="Trash the top card of your Security Stack"
                                             style={{left: 20, top: 55}}
                                             onClick={() => {
                                                 moveCard(false, mySecurity[0].id, "mySecurity", "myTrash");
@@ -1083,7 +1083,7 @@ export default function Game({user}: { user: string }) {
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
                                             }}>🗑️ ▼</SendButton>
 
-                                <SendButton title="Trash the bottom card of your Security Stack"
+                                <SendButton title="Shuffle your Security Stack"
                                             style={{left: 20, top: 135}}
                                             onClick={() => {
                                                 shuffleSecurity();
