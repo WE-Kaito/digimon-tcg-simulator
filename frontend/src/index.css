@@ -183,13 +183,23 @@ button:hover {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+      color: rgba(255, 255, 255, 0.87);
+      background-color: #242424;
   }
   a:hover {
-    color: #747bff;
+      color: #535bf2;
   }
   button {
-    background-color: #f9f9f9;
+      background-color: #1a1a1a;
+      color: rgba(255, 255, 255, 0.9);
+  }
+  input {
+      color: floralwhite;
+  }
+    select {
+        color: floralwhite;
+    }
+  option {
+      color: floralwhite;
   }
 }

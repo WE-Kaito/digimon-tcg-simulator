@@ -7,7 +7,7 @@ import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx, opponentFieldLocations, getConsecutiveDigimonIndex, getTamerCardIndex, convertForLog
+    getOpponentSfx, getConsecutiveDigimonIndex, getTamerCardIndex, convertForLog
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -201,7 +201,7 @@ export default function Game({user}: { user: string }) {
                 const from = parts[1];
                 const to = parts[2];
                 console.log(event.data)
-                moveCard(true, cardId, from, to);
+                moveCard(cardId, from, to);
                 return;
             }
 
@@ -343,7 +343,7 @@ export default function Game({user}: { user: string }) {
     }
 
     function handleDropToOpponent(from: string, to: string) {
-        if (!from || !to || opponentFieldLocations.includes(from)) return;
+        if (!from || !to) return;
         setArrowFrom(from);
         setArrowTo(to);
         setShowAttackArrow(true);
@@ -352,8 +352,8 @@ export default function Game({user}: { user: string }) {
     }
 
     function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
-        if (!cardId || !from || !to || opponentFieldLocations.includes(from)) return;
-        moveCard(false, cardId, from, to);
+        if (!cardId || !from || !to) return;
+        moveCard(cardId, from, to);
         sendSingleUpdate(cardId, from, to);
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
@@ -480,7 +480,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location, name} = item;
-            moveCard(false, id, location, 'myHand');
+            moveCard(id, location, 'myHand');
             sendSingleUpdate(id, location, 'myHand');
             playCardToHandSfx();
             if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
@@ -529,7 +529,6 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, type} = item;
             if (type === "Token") return;
-            if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
             setDeckMoodle(true);
             setSecurityMoodle(false);
@@ -545,7 +544,6 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, type} = item;
             if (type === "Token") return;
-            if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
             setEggDeckMoodle(true);
             setDeckMoodle(false);
@@ -561,7 +559,6 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, type} = item;
             if (type === "Token") return;
-            if (opponentFieldLocations.includes(location)) return;
             setCardToSend({id, location});
             setSecurityMoodle(true);
             setDeckMoodle(false);
@@ -576,7 +573,7 @@ export default function Game({user}: { user: string }) {
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location, name} = item;
-            moveCard(false, id, location, 'myTrash');
+            moveCard(id, location, 'myTrash');
             sendSingleUpdate(id, location, 'myTrash');
             playTrashCardSfx();
             sendSfx("playTrashCardSfx");
@@ -1008,7 +1005,7 @@ export default function Game({user}: { user: string }) {
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
-                                                 moveCard(false, myEggDeck[0].id, "myEggDeck", "myBreedingArea");
+                                                 moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  playDrawCardSfx();
                                                  sendSfx("playPlaceCardSfx");
@@ -1018,7 +1015,7 @@ export default function Game({user}: { user: string }) {
                                     <div style={{
                                         width: "100%", display: "flex", fontStyle: "italic",
                                         justifyContent: "center", fontFamily: "Awsumsans, sans-serif",
-                                        transform: "translateY(-30px)"
+                                        transform: "translateY(-25px)"
                                     }}>{myEggDeck.length}</div>}
 
                                 <TokenButton alt="create token" src={hackmonButton} onClick={() => {
@@ -1035,7 +1032,7 @@ export default function Game({user}: { user: string }) {
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
                                 <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
-                                    if (opponentReveal.length === 0) moveCard(false, mySecurity[0].id, "mySecurity", "myReveal");
+                                    if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                     sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
                                     playSecurityRevealSfx();
                                     sendSfx("playSecurityRevealSfx");
@@ -1046,7 +1043,7 @@ export default function Game({user}: { user: string }) {
 
                                 {!securityContentMoodle ?
                                     <SendButton title="Open Security Stack"
-                                                style={{left: 20, top: 20}}
+                                                style={{left: 20, top: 10}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(true);
                                                     websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
@@ -1055,7 +1052,7 @@ export default function Game({user}: { user: string }) {
                                     >🔎</SendButton>
                                     :
                                     <SendButton title="Close and shuffle Security Stack"
-                                                style={{left: 20, top: 20}}
+                                                style={{left: 20, top: 10}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(false);
                                                     shuffleSecurity();
@@ -1063,28 +1060,28 @@ export default function Game({user}: { user: string }) {
                                                     playShuffleDeckSfx();
                                                     sendSfx("playShuffleDeckSfx");
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
-                                                }}>🔄</SendButton>}
+                                                }}>❌🔄</SendButton>}
 
-                                <SendButton title="Trash the bottom card of your Security Stack"
-                                            style={{left: 20, top: 55}}
+                                <SendButton title="Trash the top card of your Security Stack"
+                                            style={{left: 20, top: 45}}
                                             onClick={() => {
-                                                moveCard(false, mySecurity[0].id, "mySecurity", "myTrash");
+                                                moveCard(mySecurity[0].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
                                             }}>🗑️ ▲</SendButton>
 
                                 <SendButton title="Trash the bottom card of your Security Stack"
-                                            style={{left: 20, top: 90}}
+                                            style={{left: 20, top: 80}}
                                             onClick={() => {
-                                                moveCard(false, mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
+                                                moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
                                             }}>🗑️ ▼</SendButton>
 
-                                <SendButton title="Trash the bottom card of your Security Stack"
-                                            style={{left: 20, top: 135}}
+                                <SendButton title="Shuffle your Security Stack"
+                                            style={{left: 20, top: 115}}
                                             onClick={() => {
                                                 shuffleSecurity();
                                                 sendUpdate();
@@ -1124,7 +1121,7 @@ export default function Game({user}: { user: string }) {
                                                 setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
-                                    moveCard(false, myDeckField[0].id, "myDeckField", "myHand");
+                                    moveCard(myDeckField[0].id, "myDeckField", "myHand");
                                     sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
                                     playDrawCardSfx();
                                     sendSfx("playDrawCardSfx");
@@ -1138,7 +1135,7 @@ export default function Game({user}: { user: string }) {
                                 }}>MULLIGAN</MulliganButton>}
                                 <SendToTrashButton title="Send top card from your deck to Trash"
                                                    onClick={() => {
-                                                       moveCard(false, myDeckField[0].id, "myDeckField", "myTrash");
+                                                       moveCard(myDeckField[0].id, "myDeckField", "myTrash");
                                                        sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
                                                        playTrashCardSfx();
                                                        sendSfx("playTrashCardSfx");
@@ -1154,7 +1151,7 @@ export default function Game({user}: { user: string }) {
                                                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
                                             }}>⛊️+1</SendButton>
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
-                                    moveCard(false, myDeckField[0].id, "myDeckField", "myReveal");
+                                    moveCard(myDeckField[0].id, "myDeckField", "myReveal");
                                     sendSingleUpdate(myDeckField[0].id, "myDeckField", "myReveal");
                                     playRevealCardSfx();
                                     sendSfx("playRevealSfx");
@@ -1528,7 +1525,7 @@ const Deck = styled.img`
 `;
 
 const EggDeck = styled(Deck)`
-  transform: translateY(-30px);
+  transform: translateY(-25px);
 
   &:hover {
     filter: drop-shadow(0 0 3px #dd33e8);
@@ -1675,7 +1672,7 @@ const SecurityView = styled.div`
   gap: 15px;
   padding: 10px;
   width: 706px;
-  height: 151px;
+  height: 140px;
   overflow: hidden;
   z-index: 150;
   border-radius: 10px;
