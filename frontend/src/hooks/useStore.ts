@@ -42,7 +42,7 @@ type State = {
     clearDeck: () => void,
     login: (userName: string, password: string, navigate: NavigateFunction) => void,
     me: () => void,
-    register: (userName: string, password: string, repeatedPassword: string, setPassword: (password: string) => void, setRepeatedPassword: (repeatedPassword: string) => void, setRegisterPage: (state: boolean) => void) => void,
+    register: (userName: string, password: string, setRegisterPage: (state: boolean) => void, navigate: NavigateFunction) => void,
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
@@ -92,7 +92,7 @@ export const useStore = create<State>((set, get) => ({
 
                 let filteredData = data?.slice();
 
-                if (filteredData === undefined){
+                if (filteredData === undefined) {
                     set({fetchedCards: [], isLoading: false});
                     return;
                 }
@@ -160,13 +160,13 @@ export const useStore = create<State>((set, get) => ({
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
 
-        if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012"){
+        if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012") {
             cardToAddWithNewId = {...cardToAdd, id: uid(), type: "Digimon"} // fetched EX5-020 & EX5-012 are typed incorrectly
         } else {
             cardToAddWithNewId = {...cardToAdd, id: uid()}
         }
 
-        if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4){
+        if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4) {
             set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
             return;
         }
@@ -176,7 +176,7 @@ export const useStore = create<State>((set, get) => ({
 
         if (location !== "fetchedData" || filteredLength >= 50) return;
 
-        const cardsWithoutLimit: string[] = ["BT11-061","EX2-046", "BT6-085"];
+        const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
         if (cardsWithoutLimit.includes(cardnumber)) {     // unique effect
             set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
             return;
@@ -332,33 +332,27 @@ export const useStore = create<State>((set, get) => ({
             .then(response => set({user: response.data}))
     },
 
-    register: (userName, password, repeatedPassword, setPassword, setRepeatedPassword, setRegisterPage) => {
+    register: (userName, password, setRegisterPage, navigate) => {
         const newUserData = {
             "username": `${userName}`,
             "password": `${password}`
         }
 
-        if (password === repeatedPassword) {
-
-            axios.post("/api/user/register", newUserData)
-                .then(response => {
-                    console.error(response)
-                    setRegisterPage(false);
-                    if (response.data === "Username already exists!") {
-                        notifyAlreadyExists();
-                    }
-                    if (response.data === "Successfully registered!") {
-                        notifyRegistered();
-                    }
-                })
-                .catch((e) => {
-                    console.error(e);
-                });
-
-        } else {
-            setPassword("");
-            setRepeatedPassword("");
-        }
+        axios.post("/api/user/register", newUserData)
+            .then(response => {
+                console.error(response)
+                setRegisterPage(false);
+                if (response.data === "Username already exists!") {
+                    notifyAlreadyExists();
+                }
+                if (response.data === "Successfully registered!") {
+                    notifyRegistered();
+                    get().login(userName, password, navigate);
+                }
+            })
+            .catch((e) => {
+                console.error(e);
+            });
     },
 
     setActiveDeck: (deckId) => {
