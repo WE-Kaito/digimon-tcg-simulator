@@ -4,7 +4,6 @@ import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
 
-
 export default function LoginPage() {
 
     const [userName, setUserName] = useState("");
@@ -19,6 +18,8 @@ export default function LoginPage() {
     const [repeatedPassword, setRepeatedPassword] = useState("");
     const register = useStore((state) => state.register);
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,20}$/;
+    const forbiddenCharacters = [":","‗","【","】","﹕","≔"," "]
+    const validUserName = userNameReg.length >= 3 && userNameReg.length <= 14 && !containsForbiddenCharacters();
 
     function handleSubmitLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -27,10 +28,20 @@ export default function LoginPage() {
 
     function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        register(userNameReg, passwordReg, repeatedPassword, setPassword, setRepeatedPassword, setRegisterPage);
+        if(!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword) return;
+        register(userNameReg, passwordReg, setRegisterPage, navigate);
         setPasswordReg("");
         setRepeatedPassword("");
         setUserNameReg("");
+    }
+
+    function containsForbiddenCharacters(){
+        for(let i = 0; i < forbiddenCharacters.length; i++){
+            if(userNameReg.includes(forbiddenCharacters[i])){
+                return true;
+            }
+        }
+        return false;
     }
 
     function passWordColor() {
@@ -59,7 +70,7 @@ export default function LoginPage() {
         if (userNameReg === "") {
             return "ghostwhite";
         }
-        if (userNameReg.length >= 5) {
+        if (validUserName) {
             return "#6ed298";
         } else {
             return "#e17b88";
@@ -89,7 +100,7 @@ export default function LoginPage() {
                                 name="userName" placeholder="username"
                                 style={{backgroundColor: `${userNameColor()}`}}/>
                     <br/>
-                    <StyledInfo>at least 5 characters</StyledInfo>
+                    <StyledInfo>at least 3 characters</StyledInfo>
                 </div>
                 <div>
                     <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)} type="password"

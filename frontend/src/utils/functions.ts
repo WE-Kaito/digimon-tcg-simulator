@@ -25,6 +25,8 @@ import {
     playSecurityRevealSfx, playShuffleDeckSfx,
     playSuspendSfx, playTrashCardSfx, playUnsuspendSfx
 } from "./sound.ts";
+import axios from "axios";
+import {starterBeelzemon, starterGallantmon, starterImperialdramon} from "./starterDecks.ts";
 
 export function getBackgroundColor(color: string) {
     switch (color) {
@@ -270,12 +272,6 @@ export function getCardSize(location: string) {
     }
 }
 
-export const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-    "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
-
-export const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField", "myEggDeck", "myBreedingArea", "opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity", "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
-
 export function getConsecutiveDigimonIndex(card: CardTypeGame, locationCards: CardTypeGame[]): number {
     if (card.type !== "Digimon") return 0;
     const cardIndex = locationCards.findIndex((c) => c.id === card.id);
@@ -324,4 +320,27 @@ export function convertForLog(location: string) {
         myReveal: "Reveal",
     };
     return locationMappings[location] || location;
+}
+
+function saveStarterDeck(name:string, deck: CardType[]){
+
+    const deckToSave = {
+        name: name,
+        cards: deck,
+        deckStatus: "INACTIVE"
+    }
+
+    axios
+        .post("/api/profile/decks", deckToSave)
+        .then((res) => res.data)
+        .catch((error) => {
+            console.error(error);
+            throw error;
+        });
+}
+
+export function addStarterDecks(){
+    setTimeout(() => saveStarterDeck("[ADVANCED STARTER] Beelzemon", starterBeelzemon), 100);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon), 200);
+    setTimeout(() => saveStarterDeck("[STARTER] Ultimate Ancient Dragon", starterImperialdramon), 300);
 }

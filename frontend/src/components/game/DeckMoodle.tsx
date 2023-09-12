@@ -71,7 +71,7 @@ function getTop(to: string) {
         case "myDeckField":
             return "35px";
         case "myEggDeck":
-            return "-42px";
+            return "-37px";
         case "mySecurity":
             return "122px";
     }

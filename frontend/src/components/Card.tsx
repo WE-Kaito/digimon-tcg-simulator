@@ -13,6 +13,11 @@ type CardProps = {
     sendSfx?: (sfx: string) => void
 }
 
+const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
+    "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
+const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
+
 export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
@@ -29,8 +34,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
         }),
     }));
 
-    const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
-    const tiltable = tiltLocations.includes(location);
+    const tiltable = tiltLocations.includes(location) && locationCards[locationCards.length -1] === card;
 
     function handleClick() {
         if (location === "deck") {
@@ -48,7 +52,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
 
     return (
         <StyledImage
-            ref={drag}
+            ref={!opponentFieldLocations.includes(location) ? drag : undefined}
             onClick={handleClick}
             onMouseEnter={() => setHoverCard(card)}
             onMouseLeave={() => setHoverCard(null)}
@@ -56,7 +60,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
             src={card.image_url}
             isDragging={isDragging}
             location={location}
-            isTilted={(card as CardTypeGame)?.isTilted ?? false}
+            isTilted={((card as CardTypeGame)?.isTilted && tiltable) ?? false}
             title={topCardInfo(card as CardTypeGame, location, locationCards)}
         />)
 }

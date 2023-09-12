@@ -73,7 +73,7 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
 
     return (
         <Container>
-            <DeckName>{deck.name}</DeckName>
+            <DeckName longName={deck.name.length >= 15}>{deck.name}</DeckName>
             <ActiveButton style={{backgroundColor: isActiveDeck ? "lightcyan" : "black", color: isActiveDeck ? "black" : "white"}}
             onClick={() => {
                 playButtonClickSfx();
@@ -85,6 +85,7 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
 }
 
 const Container = styled.div`
+  position: relative;
   width: 220px;
   height: 105px;
 
@@ -147,9 +148,16 @@ const ActiveButton = styled.button`
   }
 `;
 
-const DeckName = styled.span`
+const DeckName = styled.span<{longName:boolean}>`
   grid-area: name;
   font-family: 'Sansation', sans-serif;
+  font-size: ${props => props.longName ? "12px" : "16px"};
+  
+  position: absolute;
+  width: 130px;
+  left: 18px;
+  top: 4px;
+  text-align: left;
 `;
 
 
