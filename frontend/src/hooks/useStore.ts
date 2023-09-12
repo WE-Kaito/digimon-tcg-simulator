@@ -13,7 +13,7 @@ import {
     notifyUpdate
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
-import {sortCards} from "../utils/functions.ts";
+import {addStarterDecks, sortCards} from "../utils/functions.ts";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -348,6 +348,9 @@ export const useStore = create<State>((set, get) => ({
                 if (response.data === "Successfully registered!") {
                     notifyRegistered();
                     get().login(userName, password, navigate);
+                    setTimeout(function () {
+                        addStarterDecks();
+                    }, 3000);
                 }
             })
             .catch((e) => {

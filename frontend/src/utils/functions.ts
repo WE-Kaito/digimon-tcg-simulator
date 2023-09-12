@@ -25,6 +25,8 @@ import {
     playSecurityRevealSfx, playShuffleDeckSfx,
     playSuspendSfx, playTrashCardSfx, playUnsuspendSfx
 } from "./sound.ts";
+import axios from "axios";
+import {starterBeelzemon, starterGallantmon, starterImperialdramon} from "./starterDecks.ts";
 
 export function getBackgroundColor(color: string) {
     switch (color) {
@@ -318,4 +320,27 @@ export function convertForLog(location: string) {
         myReveal: "Reveal",
     };
     return locationMappings[location] || location;
+}
+
+function saveStarterDeck(name:string, deck: CardType[]){
+
+    const deckToSave = {
+        name: name,
+        cards: deck,
+        deckStatus: "INACTIVE"
+    }
+
+    axios
+        .post("/api/profile/decks", deckToSave)
+        .then((res) => res.data)
+        .catch((error) => {
+            console.error(error);
+            throw error;
+        });
+}
+
+export function addStarterDecks(){
+    setTimeout(() => saveStarterDeck("[ADVANCED STARTER] Beelzemon", starterBeelzemon), 100);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon), 200);
+    setTimeout(() => saveStarterDeck("[STARTER] Ultimate Ancient Dragon", starterImperialdramon), 300);
 }

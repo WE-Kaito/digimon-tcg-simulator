@@ -27,7 +27,7 @@ export default function Deckbuilder() {
     return (
         <OuterContainer>
             <DeckNameContainer>
-                <DeckNameInput value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
+                <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
             </DeckNameContainer>
             <ButtonContainer>
                 <SaveDeckButton isSaving={isSaving} disabled={isSaving} onClick={() => {
