@@ -35,6 +35,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     }));
 
     const tiltable = tiltLocations.includes(location) && locationCards[locationCards.length -1] === card;
+    const tiltVisible = locationCards[locationCards.length -1] === card;
 
     function handleClick() {
         if (location === "deck") {
@@ -60,7 +61,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
             src={card.image_url}
             isDragging={isDragging}
             location={location}
-            isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+            isTilted={(((card as CardTypeGame)?.isTilted) && tiltVisible) ?? false}
             title={topCardInfo(card as CardTypeGame, location, locationCards)}
         />)
 }

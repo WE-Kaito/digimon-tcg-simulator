@@ -286,6 +286,10 @@ export default function Game({user}: { user: string }) {
                     setUpGame(restartObj.me, restartObj.opponent);
                     break;
                 }
+                case ("[HEARTBEAT]"): {
+                    websocket.sendMessage("/heartbeat/");
+                    break;
+                }
                 default: {
                     getOpponentSfx(event.data);
                 }

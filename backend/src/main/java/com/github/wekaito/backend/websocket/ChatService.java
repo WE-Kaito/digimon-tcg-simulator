@@ -81,10 +81,7 @@ public class ChatService extends TextWebSocketHandler {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String payload = message.getPayload();
 
-        if (payload.equals("/heartbeat/")) {
-            System.out.println("Heartbeat received from " + username + " at " + System.currentTimeMillis());
-            return;
-        }
+        if (payload.equals("/heartbeat/")) return;
 
         if (payload.startsWith("/invite:")) {
 
