@@ -8,6 +8,7 @@ import com.github.wekaito.backend.security.MongoUserDetailsService;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -34,6 +35,8 @@ public class GameService extends TextWebSocketHandler {
     private final ObjectMapper objectMapper;
 
     private final SecureRandom secureRand = new SecureRandom();
+
+    private Set<WebSocketSession> activeSessions = new HashSet<>();
 
     @Getter
     private final Map<String, String> positionMap = initializePositionMap();
@@ -83,7 +86,7 @@ public class GameService extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        // do nothing
+        activeSessions.add(session);
     }
 
     @Override
@@ -101,9 +104,20 @@ public class GameService extends TextWebSocketHandler {
             if (webSocketSession != null && gameRoom.size() < 2)
                 webSocketSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
         }
-
+        activeSessions.remove(session);
         gameRoom.remove(session);
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+    }
+
+    @Scheduled(fixedRate = 10000)
+    public synchronized void sendHeartbeat() {
+        for (WebSocketSession session : activeSessions) {
+            try {
+                session.sendMessage(new TextMessage("[HEARTBEAT]"));
+            } catch (IOException e) {
+                System.out.println("Heartbeat failed for session " + session.getId() + " at " + System.currentTimeMillis());
+            }
+        }
     }
 
     @Override
@@ -111,6 +125,8 @@ public class GameService extends TextWebSocketHandler {
         String userName = Objects.requireNonNull(session.getPrincipal()).getName();
         String payload = message.getPayload();
         String[] parts = payload.split(":", 2);
+
+        if (payload.equals("/heartbeat/")) return;
 
         if (payload.startsWith("/startGame:") && parts.length >= 2) {
             String gameId = parts[1].trim();
@@ -225,13 +241,13 @@ public class GameService extends TextWebSocketHandler {
                 .filter(card -> card.type().equals("Digi-Egg")).toList();
         newDeck1.removeAll(player1EggDeck);
 
-        List<GameCard> player1Security = newDeck1.stream()
-                .limit(5).toList();
-        newDeck1.removeAll(player1Security);
-
         List<GameCard> player1Hand = newDeck1.stream()
                 .limit(5).toList();
         newDeck1.removeAll(player1Hand);
+
+        List<GameCard> player1Security = newDeck1.stream()
+                .limit(5).toList();
+        newDeck1.removeAll(player1Security);
 
         List<GameCard> player2EggDeck = newDeck2.stream()
                 .filter(card -> card.type().equals("Digi-Egg")).toList();

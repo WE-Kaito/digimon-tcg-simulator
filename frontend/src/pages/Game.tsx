@@ -286,6 +286,10 @@ export default function Game({user}: { user: string }) {
                     setUpGame(restartObj.me, restartObj.opponent);
                     break;
                 }
+                case ("[HEARTBEAT]"): {
+                    websocket.sendMessage("/heartbeat/");
+                    break;
+                }
                 default: {
                     getOpponentSfx(event.data);
                 }
@@ -704,6 +708,10 @@ export default function Game({user}: { user: string }) {
             isOver: !!monitor.isOver(),
         }),
     }));
+
+    useEffect(() => {
+        setMessages("[STARTING_PLAYER]≔" + startingPlayer);
+    }, [startingPlayer]);
 
     useEffect(() => {
         if (timer === 0) navigate("/lobby");

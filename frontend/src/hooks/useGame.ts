@@ -381,6 +381,14 @@ export const useGame = create<State>((set, get) => ({
         if (!card) return;
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
+        const toState = get()[to as keyof State] as CardTypeGame[];
+        if (toState.length > 0 && toState[toState.length -1].isTilted) {
+            toState[toState.length -1].isTilted = false;
+            card.isTilted = true;
+        } else {
+            card.isTilted = false;
+        }
+
         if (from === to) {
             set({[from]: [...updatedFromState, card]});
             return;
@@ -394,14 +402,11 @@ export const useGame = create<State>((set, get) => ({
             return;
         }
 
-        set(state => {
-            card.isTilted = false;
-            const toState = state[to as keyof State] as CardTypeGame[];
-            const updatedToState = [...toState, card];
-            return {
-                [from]: updatedFromState,
-                [to]: updatedToState
-            };
+        const updatedToState = [...toState, card];
+        set({
+            [from]: updatedFromState,
+            [to]: updatedToState
+
         });
     },
 
@@ -482,6 +487,8 @@ export const useGame = create<State>((set, get) => ({
     },
 
     setMessages: (message: string) => {
+
+
         set(state => {
             return {
                 messages: [message, ...state.messages]

@@ -4,6 +4,7 @@ import com.github.wekaito.backend.ProfileService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -29,17 +30,13 @@ public class ChatService extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
-
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
-
         if (activeDeck.equals("") || profileService.getDeckById(activeDeck) == null){
             session.sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
             return;
         }
-
         activeSessions.add(session);
         connectedUsernames.add(username);
-
         broadcastConnectedUsernames();
     }
 
@@ -50,6 +47,18 @@ public class ChatService extends TextWebSocketHandler {
         connectedUsernames.remove(username);
 
         broadcastConnectedUsernames();
+    }
+
+    @Scheduled(fixedRate = 10000)
+    public synchronized void sendHeartbeat() {
+        for (WebSocketSession session : activeSessions) {
+            try {
+                session.sendMessage(new TextMessage("[HEARTBEAT]"));
+                broadcastConnectedUsernames();
+            } catch (IOException e) {
+                System.out.println("Heartbeat failed for session " + session.getId() + " at " + System.currentTimeMillis());
+            }
+        }
     }
 
     void broadcastConnectedUsernames() throws IOException {
@@ -71,6 +80,8 @@ public class ChatService extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String payload = message.getPayload();
+
+        if (payload.equals("/heartbeat/")) return;
 
         if (payload.startsWith("/invite:")) {
 
