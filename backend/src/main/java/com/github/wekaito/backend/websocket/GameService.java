@@ -126,10 +126,7 @@ public class GameService extends TextWebSocketHandler {
         String payload = message.getPayload();
         String[] parts = payload.split(":", 2);
 
-        if (payload.equals("/heartbeat/")) {
-            System.out.println("Heartbeat received from " + userName + " at " + System.currentTimeMillis());
-            return;
-        }
+        if (payload.equals("/heartbeat/")) return;
 
         if (payload.startsWith("/startGame:") && parts.length >= 2) {
             String gameId = parts[1].trim();
