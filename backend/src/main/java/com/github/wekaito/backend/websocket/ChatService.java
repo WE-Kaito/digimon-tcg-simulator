@@ -38,7 +38,7 @@ public class ChatService extends TextWebSocketHandler {
         activeSessions.add(session);
         connectedUsernames.add(username);
         broadcastConnectedUsernames();
-        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:SERVER: Join our Discord﹕ https://discord.gg/sBdByGAh2y"));
+        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: Join our Discord!"));
     }
 
     @Override
