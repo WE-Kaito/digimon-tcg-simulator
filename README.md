@@ -1,9 +1,10 @@
 Digimon TCG Simulator
 ---
 
-This was a graduation project for the [neuefische](https://www.neuefische.de/en) java/full-stack bootcamp.  
-As a fan of the Digimon franchise and [its card game](https://world.digimoncard.com/), this was a great opportunity to create something I and hopefully other fans will enjoy.
-Reviews are very welcome!
+This started as a graduation project for the [neuefische](https://www.neuefische.de/en) java/full-stack bootcamp.
+It was always a dream of mine to make some sort of Digimon fan game, so why not making the still missing sim for [its card game](https://world.digimoncard.com/)?
+
+Feel free to use the code to improve upon. Reviews, bug-reports and feature-requests are also very welcome!
 
 **Features**:
 - [x] Register with a unique username + password to use the App.
@@ -11,12 +12,14 @@ Reviews are very welcome!
 - [x] Drag and drop cards. 
 - [x] Edit your decks and set your avatar and active deck on the profile page.
 - [x] Chat with other players and invite your friends in the Lobby.
-- [x] Resposive design (Game page excluded).
+- [x] Mobile compatible (Game page currently not optimized).
 - [X] Manual simulation of the *Digimon Card Game* with audio and animations
 
 **Try it on [www.digi-tcg.online](https://www.digi-tcg.online/)**
 
 Check the [Wiki page](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) for futher information.
+
+Join our discord community! https://discord.gg/sBdByGAh2y
 
 ---
 
@@ -37,9 +40,11 @@ Check the [Wiki page](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) fo
 
 ---
 
-![Game](https://cdn.discordapp.com/attachments/1044771748303884288/1141219676819554355/image.png)
-![Login](https://cdn.discordapp.com/attachments/1044771748303884288/1135661456906530877/image.png) ![MainMenu](https://cdn.discordapp.com/attachments/1044771748303884288/1135661720774377662/image.png) ![Deckbuilder](https://cdn.discordapp.com/attachments/1044771748303884288/1135663067301171261/image.png) ![Profile](https://cdn.discordapp.com/attachments/1044771748303884288/1135664253295149127/image.png)
-![Lobby](https://cdn.discordapp.com/attachments/1044771748303884288/1138686209800028211/image.png)
+![deckbuilderExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/26572873-7672-4ff4-b24b-a2d63e3ad482) ![profileExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/49ccc4e9-a903-4812-bdef-559066b653fc) ![lobbyExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/1a471309-a350-42a7-aed9-c46581f881ee)
+
+![gameExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/f6ed2f0f-875c-4eb3-a4df-8df30e81adf3)
+
+![loginExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/884bdaf1-bdad-4dc4-ad50-56d3cefdd0de) ![registerExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/f8f8f582-fa21-44e9-a1ea-7a8275b65a42) ![mainmenuExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/ea2e2f0e-b5ce-458d-b86e-baa3b8e83ac7)
 
 ---
 
