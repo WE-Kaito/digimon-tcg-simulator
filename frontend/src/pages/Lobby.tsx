@@ -29,6 +29,10 @@ export default function Lobby({user}: { user: string }) {
 
     const websocket = useWebSocket(websocketURL, {
         onMessage: (event) => {
+            if (event.data.startsWith("[HEARTBEAT]")) {
+                websocket.sendMessage("/heartbeat/");
+            }
+
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
                 playInvitationSfx();

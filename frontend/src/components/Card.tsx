@@ -43,10 +43,10 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
         } else {
             if (tiltable && sendSfx && selectedCard === card) {
                 tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
+                if(sendUpdate) sendUpdate();
             } else {
                 selectCard(card);
             }
-            if (tiltable && sendUpdate) sendUpdate();
         }
     }
 
@@ -60,7 +60,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
             src={card.image_url}
             isDragging={isDragging}
             location={location}
-            isTilted={((card as CardTypeGame)?.isTilted && tiltable) ?? false}
+            isTilted={((card as CardTypeGame)?.isTilted) ?? false}
             title={topCardInfo(card as CardTypeGame, location, locationCards)}
         />)
 }
