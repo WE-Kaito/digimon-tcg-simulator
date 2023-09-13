@@ -710,6 +710,10 @@ export default function Game({user}: { user: string }) {
     }));
 
     useEffect(() => {
+        setMessages("[STARTING_PLAYER]≔" + startingPlayer);
+    }, [startingPlayer]);
+
+    useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
 

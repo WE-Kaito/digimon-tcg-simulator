@@ -29,6 +29,15 @@ export default function GameChat({user, sendChatMessage, closeChat}: Props) {
 
             <History>
                 {messages.map((message, index) => {
+                    if (message.startsWith("[STARTING_PLAYER]≔")) {
+                        const startingPlayer = message.split("≔")[1];
+                        return (
+                            <StartingPlayerMessage key={index}>
+                                <p>Starting Player:<br/>{startingPlayer}</p>
+                            </StartingPlayerMessage>
+                        );
+                    }
+
                     const startIndex = message.indexOf("【");
                     const userName = message.split(":", 2)[0];
                     const chatMessage = message.split(":", 2)[1];
@@ -100,6 +109,24 @@ const UpdateMessage = styled(Message)`
     width: 100%;
     text-align: center;
     opacity: ${({isMyMessage}) => isMyMessage ? "0.6" : "0.8"};
+  }
+`;
+
+const StartingPlayerMessage = styled.div`
+  width: 97%;
+  height: fit-content;
+  background: rgba(231, 202, 12, 0.65);
+  border-radius: 5px;
+  padding: 1px 4px 0 4px;
+  display: flex;
+
+  p {
+    margin: 2px;
+    font-family: Cousine, sans-serif;
+    width: 100%;
+    text-align: center;
+    color: #060e18;
+    max-width: 100%;
   }
 `;
 

@@ -244,13 +244,13 @@ public class GameService extends TextWebSocketHandler {
                 .filter(card -> card.type().equals("Digi-Egg")).toList();
         newDeck1.removeAll(player1EggDeck);
 
-        List<GameCard> player1Security = newDeck1.stream()
-                .limit(5).toList();
-        newDeck1.removeAll(player1Security);
-
         List<GameCard> player1Hand = newDeck1.stream()
                 .limit(5).toList();
         newDeck1.removeAll(player1Hand);
+
+        List<GameCard> player1Security = newDeck1.stream()
+                .limit(5).toList();
+        newDeck1.removeAll(player1Security);
 
         List<GameCard> player2EggDeck = newDeck2.stream()
                 .filter(card -> card.type().equals("Digi-Egg")).toList();

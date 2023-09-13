@@ -487,6 +487,8 @@ export const useGame = create<State>((set, get) => ({
     },
 
     setMessages: (message: string) => {
+
+
         set(state => {
             return {
                 messages: [message, ...state.messages]
