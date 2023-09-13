@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ProfileService {
+public class DeckService {
 
     private final DeckRepo deckRepo;
 

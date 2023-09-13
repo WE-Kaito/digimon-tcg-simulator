@@ -9,6 +9,7 @@ import {useNavigate} from "react-router-dom";
 import {useStore} from "../hooks/useStore.ts";
 import {notifyNoActiveDeck} from "../utils/toasts.ts";
 import {playInvitationSfx} from "../utils/sound.ts";
+import discordIcon from "../assets/discordLogo.png";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -163,6 +164,19 @@ export default function Lobby({user}: { user: string }) {
                             if (colonIndex !== -1) {
                                 const name = message.substring(0, colonIndex);
                                 const content = message.substring(colonIndex + 1);
+
+                                if (name === "【SERVER】"){
+                                    return (
+                                        <div style={{display: "flex"}} key={message}>
+                                            <StyledSpan name={name} user={user}>
+                                                <span style={{color:"#31da75"}}>Server</span>:
+                                                <a href="https://discord.gg/sBdByGAh2y" target="_blank" rel="noopener noreferrer">{content}</a>
+                                                <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
+                                            </StyledSpan>
+                                        </div>
+                                        );
+                                }
+
                                 return (
                                     <div style={{display: "flex"}} key={message}>
                                         <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>

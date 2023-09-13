@@ -2,7 +2,7 @@ package com.github.wekaito.backend.websocket;
 
 import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.Deck;
-import com.github.wekaito.backend.ProfileService;
+import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class ChatServiceTest {
     @Mock
     private MongoUserDetailsService mongoUserDetailsService;
     @Mock
-    private ProfileService profileService;
+    private DeckService deckService;
     @InjectMocks
     private ChatService chatService;
     private WebSocketSession session1;
@@ -51,14 +51,14 @@ class ChatServiceTest {
 
     @BeforeEach
     void setUp() {
-        chatService = new ChatService(mongoUserDetailsService, profileService);
+        chatService = new ChatService(mongoUserDetailsService, deckService);
 
         session1 = createMockSession("testUser1");
         session2 = createMockSession("testUser2");
         session3 = createMockSession("testUser3");
 
         when(mongoUserDetailsService.getActiveDeck(any())).thenReturn("12345");
-        when(profileService.getDeckById("12345")).thenReturn(exampleDeck);
+        when(deckService.getDeckById("12345")).thenReturn(exampleDeck);
     }
 
     @Test
@@ -72,7 +72,7 @@ class ChatServiceTest {
     @Test
     @DirtiesContext
     void testNoDeck_whenDeckDoesNotExist() throws IOException {
-        when(profileService.getDeckById("12345")).thenReturn(null);
+        when(deckService.getDeckById("12345")).thenReturn(null);
         chatService.afterConnectionEstablished(session1);
         verify(session1).sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
     }

@@ -14,9 +14,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
-class ProfileServiceTest {
+class DeckServiceTest {
 
-    private ProfileService profileService;
+    private DeckService deckService;
 
     @Mock
     private DeckRepo deckRepo;
@@ -39,7 +39,7 @@ class ProfileServiceTest {
     @BeforeEach
     void setUp() {
         openMocks(this);
-        profileService = new ProfileService(deckRepo, idService, userIdService);
+        deckService = new DeckService(deckRepo, idService, userIdService);
         when(idService.createId()).thenReturn(exampleDeck.id());
         when(userIdService.getCurrentUserId()).thenReturn(exampleDeck.authorId());
         when(deckRepo.existsById(exampleDeck.id())).thenReturn(true);
@@ -48,7 +48,7 @@ class ProfileServiceTest {
 
     @Test
     void testFetchCards() {
-        Card[] cards = profileService.fetchCards("Agumon".describeConstable(), "Red".describeConstable(), "Digimon".describeConstable());
+        Card[] cards = deckService.fetchCards("Agumon".describeConstable(), "Red".describeConstable(), "Digimon".describeConstable());
         assertNotNull(cards);
         assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class);
     }
@@ -56,45 +56,45 @@ class ProfileServiceTest {
     @DirtiesContext
     @Test
     void testAddDeck() {
-        profileService.addDeck(exampleDeckWithoutId);
+        deckService.addDeck(exampleDeckWithoutId);
         verify(deckRepo).save(exampleDeck);
     }
 
     @Test
     void testGetDecks() {
-        profileService.addDeck(exampleDeckWithoutId);
-        List<Deck> returnedDecks = profileService.getDecksByAuthorId(exampleDeck.authorId());
+        deckService.addDeck(exampleDeckWithoutId);
+        List<Deck> returnedDecks = deckService.getDecksByAuthorId(exampleDeck.authorId());
         assertNotNull(returnedDecks);
         assertThat(returnedDecks).contains(exampleDeck).isInstanceOf(List.class);
     }
 
     @Test
     void testUpdateDeck() {
-        profileService.updateDeck(exampleDeck.id(), exampleDeckWithoutId);
+        deckService.updateDeck(exampleDeck.id(), exampleDeckWithoutId);
         verify(deckRepo).save(exampleDeck);
 
         when(deckRepo.existsById(exampleDeck.id())).thenReturn(false);
         String id = exampleDeck.id();
-        assertThrows(IllegalArgumentException.class, () -> profileService.updateDeck(id, exampleDeckWithoutId));
+        assertThrows(IllegalArgumentException.class, () -> deckService.updateDeck(id, exampleDeckWithoutId));
     }
 
     @Test
     void testDeleteDeck() {
-        profileService.deleteDeck(exampleDeck.id());
+        deckService.deleteDeck(exampleDeck.id());
         verify(deckRepo).deleteById(exampleDeck.id());
 
         when(deckRepo.existsById(exampleDeck.id())).thenReturn(false);
         String id = exampleDeck.id();
-        assertThrows(IllegalArgumentException.class, () -> profileService.deleteDeck(id));
+        assertThrows(IllegalArgumentException.class, () -> deckService.deleteDeck(id));
     }
 
     @Test
     void testGetDeckById() {
-        profileService.getDeckById(exampleDeck.id());
+        deckService.getDeckById(exampleDeck.id());
         verify(deckRepo).findById(exampleDeck.id());
 
         when(deckRepo.findById(exampleDeck.id())).thenReturn(Optional.empty());
-        assertNull(profileService.getDeckById(exampleDeck.id()));
+        assertNull(deckService.getDeckById(exampleDeck.id()));
     }
 
 }

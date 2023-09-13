@@ -1,6 +1,6 @@
 package com.github.wekaito.backend.websocket;
 
-import com.github.wekaito.backend.ProfileService;
+import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.Set;
 public class ChatService extends TextWebSocketHandler {
 
     private final MongoUserDetailsService mongoUserDetailsService;
-    private final ProfileService profileService;
+    private final DeckService deckService;
 
     private Set<WebSocketSession> activeSessions = new HashSet<>();
     private Set<String> connectedUsernames = new HashSet<>();
@@ -31,13 +31,14 @@ public class ChatService extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
-        if (activeDeck.equals("") || profileService.getDeckById(activeDeck) == null){
+        if (activeDeck.equals("") || deckService.getDeckById(activeDeck) == null){
             session.sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
             return;
         }
         activeSessions.add(session);
         connectedUsernames.add(username);
         broadcastConnectedUsernames();
+        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: Join our Discord!"));
     }
 
     @Override
@@ -56,7 +57,7 @@ public class ChatService extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage("[HEARTBEAT]"));
                 broadcastConnectedUsernames();
             } catch (IOException e) {
-                System.out.println("Heartbeat failed for session " + session.getId() + " at " + System.currentTimeMillis());
+                e.getCause();
             }
         }
     }

@@ -2,6 +2,7 @@ import {create} from "zustand";
 import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
 import {uid} from "uid";
 import {playTrashCardSfx} from "../utils/sound.ts";
+import tokenImage from "../assets/tokenCard.jpg";
 
 type State = {
     myAvatar: string,
@@ -382,7 +383,7 @@ export const useGame = create<State>((set, get) => ({
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
-        if (toState.length > 0 && toState[toState.length -1].isTilted) {
+        if (toState.length > 0 && toState[toState.length -1].isTilted && to !== "myTamer") {
             toState[toState.length -1].isTilted = false;
             card.isTilted = true;
         } else {
@@ -471,19 +472,18 @@ export const useGame = create<State>((set, get) => ({
 
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx, sendSfx) => {
         set(state => {
-            const locationCards = state[location as keyof State] as CardTypeGame[];
-            const card = locationCards.find((card: CardTypeGame) => card.id === cardId);
-            card?.isTilted ? playUnsuspendSfx() : playSuspendSfx();
-            card?.isTilted ? sendSfx("playUnsuspendCardSfx") : sendSfx("playSuspendCardSfx");
-            const newLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId)
-            if (card) {
-                card.isTilted = !card.isTilted;
-                newLocationCards.push(card);
-            }
             return {
-                [location]: newLocationCards
-            }
-        })
+                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
+                    if (card.id === cardId) {
+                        const isTilted = !card.isTilted;
+                        card.isTilted = isTilted;
+                        isTilted ? playUnsuspendSfx() : playSuspendSfx();
+                        isTilted ? sendSfx("playUnsuspendCardSfx") : sendSfx("playSuspendCardSfx");
+                    }
+                    return card;
+                })
+            };
+        });
     },
 
     setMessages: (message: string) => {
@@ -501,7 +501,7 @@ export const useGame = create<State>((set, get) => ({
             name: "Token",
             type: "Token",
             color: "White",
-            image_url: "src/assets/token-card.jpg",
+            image_url: tokenImage,
             cardnumber: "no-number",
             stage: null,
             attribute: "Unknown",

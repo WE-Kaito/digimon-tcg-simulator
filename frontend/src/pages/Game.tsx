@@ -154,15 +154,10 @@ export default function Game({user}: { user: string }) {
             setGameHasStarted(true);
         },
 
-        onClose: () => {
-            setTimeout(() => {
-                websocket.sendMessage(gameId + ":/reconnect");
-            }, 1000);
-        },
-
         onMessage: (event) => {
 
             if (event.data.startsWith("[START_GAME]:")) {
+                setStartingPlayer("");
                 const playersJson = event.data.substring("[START_GAME]:".length);
                 const players = JSON.parse(playersJson);
                 const me = players.slice().filter((player: Player) => player.username === user)[0];
@@ -710,7 +705,7 @@ export default function Game({user}: { user: string }) {
     }));
 
     useEffect(() => {
-        setMessages("[STARTING_PLAYER]≔" + startingPlayer);
+        if(startingPlayer !== "") setMessages("[STARTING_PLAYER]≔" + startingPlayer);
     }, [startingPlayer]);
 
     useEffect(() => {
@@ -727,7 +722,7 @@ export default function Game({user}: { user: string }) {
         if (myTrash.length === 0) {
             setTrashMoodle(false);
         }
-    }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5]);
+    }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myReveal, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10]);
 
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);

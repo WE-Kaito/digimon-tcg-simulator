@@ -127,6 +127,7 @@ const StartingPlayerMessage = styled.div`
     text-align: center;
     color: #060e18;
     max-width: 100%;
+    text-shadow: 0 0 1px #060e18;
   }
 `;
 
