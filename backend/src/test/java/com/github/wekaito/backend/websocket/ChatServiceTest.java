@@ -119,12 +119,14 @@ class ChatServiceTest {
     void testHandleTextMessage_ChatMessage() throws Exception {
         TextMessage incomingMessage1 = new TextMessage("Hello!");
         TextMessage incomingMessage2 = new TextMessage("Test message.");
+        TextMessage heartbeatMessage = new TextMessage("/heartbeat/");
 
         chatService.afterConnectionEstablished(session1);
         chatService.afterConnectionEstablished(session2);
 
         chatService.handleTextMessage(session1, incomingMessage1);
         chatService.handleTextMessage(session2, incomingMessage2);
+        chatService.handleTextMessage(session1, heartbeatMessage);
 
         TextMessage outgoingMessage1 = new TextMessage("[CHAT_MESSAGE]:testUser1: Hello!");
         TextMessage outgoingMessage2 = new TextMessage("[CHAT_MESSAGE]:testUser2: Test message.");
@@ -180,5 +182,17 @@ class ChatServiceTest {
 
         // THEN
         verify(session1, times(1)).sendMessage(expectedMessage);
+    }
+
+    @Test
+    void testSendingHeartbeats() throws IOException {
+        // GIVEN
+        chatService.afterConnectionEstablished(session1);
+        chatService.afterConnectionEstablished(session2);
+        // WHEN
+        chatService.sendHeartbeat();
+        // THEN
+        verify(session1, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
+        verify(session2, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
     }
 }
