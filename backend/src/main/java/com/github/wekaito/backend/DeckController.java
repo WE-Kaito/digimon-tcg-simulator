@@ -10,38 +10,38 @@ import java.util.Optional;
 @RequestMapping("/api/profile")
 @RestController
 @RequiredArgsConstructor
-public class ProfileController {
+public class DeckController {
 
-    private final ProfileService profileService;
+    private final DeckService deckService;
     private final UserIdService userIdService;
 
     @GetMapping("/cards")
     public Card[] fetchCards(@RequestParam Optional<String> name, @RequestParam Optional<String> color, @RequestParam Optional<String> type) {
-        return this.profileService.fetchCards(name, color, type);
+        return this.deckService.fetchCards(name, color, type);
     }
 
     @PostMapping("/decks")
     public void addDeck(@RequestBody DeckWithoutId deckWithoutId) {
-        this.profileService.addDeck(deckWithoutId);
+        this.deckService.addDeck(deckWithoutId);
     }
 
     @GetMapping("/decks")
     public List<Deck> getDecks() {
-        return this.profileService.getDecksByAuthorId(userIdService.getCurrentUserId());
+        return this.deckService.getDecksByAuthorId(userIdService.getCurrentUserId());
     }
 
     @GetMapping("/decks/{id}")
     public Deck getDeckById(@PathVariable String id) {
-        return this.profileService.getDeckById(id);
+        return this.deckService.getDeckById(id);
     }
 
     @PutMapping("/decks/{id}")
     public void updateDeck(@PathVariable String id, @RequestBody DeckWithoutId deckWithoutId) {
-        this.profileService.updateDeck(id, deckWithoutId);
+        this.deckService.updateDeck(id, deckWithoutId);
     }
 
     @DeleteMapping("/decks/{id}")
     public void deleteDeck(@PathVariable String id) {
-        this.profileService.deleteDeck(id);
+        this.deckService.deleteDeck(id);
     }
 }

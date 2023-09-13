@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.Deck;
 import com.github.wekaito.backend.IdService;
-import com.github.wekaito.backend.ProfileService;
+import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ class GameServiceTest {
     @Mock
     private MongoUserDetailsService mongoUserDetailsService;
     @Mock
-    private ProfileService profileService;
+    private DeckService deckService;
     @Mock
     private IdService idService;
 
@@ -71,12 +71,12 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
-        gameService = new GameService(mongoUserDetailsService, profileService, idService, objectMapper);
+        gameService = new GameService(mongoUserDetailsService, deckService, idService, objectMapper);
         session1 = createMockSession(username1);
         session2 = createMockSession(username2);
 
-        when(profileService.getDeckById(exampleDeck.id())).thenReturn(exampleDeck);
-        when(profileService.getDeckById(exampleDeck2.id())).thenReturn(exampleDeck2);
+        when(deckService.getDeckById(exampleDeck.id())).thenReturn(exampleDeck);
+        when(deckService.getDeckById(exampleDeck2.id())).thenReturn(exampleDeck2);
         when(mongoUserDetailsService.getActiveDeck(username1)).thenReturn(exampleDeck.id());
         when(mongoUserDetailsService.getActiveDeck(username2)).thenReturn(exampleDeck2.id());
         when(mongoUserDetailsService.getAvatar(username1)).thenReturn("takato");

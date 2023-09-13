@@ -19,7 +19,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(username = "testUser", password = "testPassWord1")
-class ProfileControllerTest {
+class DeckControllerTest {
 
     @Autowired
     MockMvc mockMvc;

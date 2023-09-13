@@ -3,7 +3,7 @@ package com.github.wekaito.backend.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.IdService;
-import com.github.wekaito.backend.ProfileService;
+import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -26,7 +26,7 @@ public class GameService extends TextWebSocketHandler {
 
     private final MongoUserDetailsService mongoUserDetailsService;
 
-    private final ProfileService profileService;
+    private final DeckService deckService;
 
     private final IdService idService;
 
@@ -229,8 +229,8 @@ public class GameService extends TextWebSocketHandler {
         String user1 = gameId.split("‗")[0];
         String user2 = gameId.split("‗")[1];
 
-        Card[] deck1 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
-        Card[] deck2 = profileService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
+        Card[] deck1 = deckService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
+        Card[] deck2 = deckService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
 
         List<GameCard> newDeck1 = createGameDeck(deck1);
         List<GameCard> newDeck2 = createGameDeck(deck2);
