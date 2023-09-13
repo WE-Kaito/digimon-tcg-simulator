@@ -155,6 +155,7 @@ const DeckName = styled.span<{longName:boolean}>`
   
   position: absolute;
   width: 130px;
+  max-width: 100%;
   left: 18px;
   top: 4px;
   text-align: left;

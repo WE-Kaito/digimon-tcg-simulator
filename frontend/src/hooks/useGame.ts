@@ -2,6 +2,7 @@ import {create} from "zustand";
 import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
 import {uid} from "uid";
 import {playTrashCardSfx} from "../utils/sound.ts";
+import tokenImage from "../assets/images/tokenCard.jpg";
 
 type State = {
     myAvatar: string,
@@ -501,7 +502,7 @@ export const useGame = create<State>((set, get) => ({
             name: "Token",
             type: "Token",
             color: "White",
-            image_url: "src/assets/token-card.jpg",
+            image_url: tokenImage,
             cardnumber: "no-number",
             stage: null,
             attribute: "Unknown",
