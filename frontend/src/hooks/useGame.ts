@@ -2,7 +2,7 @@ import {create} from "zustand";
 import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
 import {uid} from "uid";
 import {playTrashCardSfx} from "../utils/sound.ts";
-import tokenImage from "../assets/images/tokenCard.jpg";
+import tokenImage from "../assets/tokenCard.jpg";
 
 type State = {
     myAvatar: string,
