@@ -383,7 +383,7 @@ export const useGame = create<State>((set, get) => ({
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
-        if (toState.length > 0 && toState[toState.length -1].isTilted) {
+        if (toState.length > 0 && toState[toState.length -1].isTilted && to !== "myTamer") {
             toState[toState.length -1].isTilted = false;
             card.isTilted = true;
         } else {
@@ -472,19 +472,18 @@ export const useGame = create<State>((set, get) => ({
 
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx, sendSfx) => {
         set(state => {
-            const locationCards = state[location as keyof State] as CardTypeGame[];
-            const card = locationCards.find((card: CardTypeGame) => card.id === cardId);
-            card?.isTilted ? playUnsuspendSfx() : playSuspendSfx();
-            card?.isTilted ? sendSfx("playUnsuspendCardSfx") : sendSfx("playSuspendCardSfx");
-            const newLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId)
-            if (card) {
-                card.isTilted = !card.isTilted;
-                newLocationCards.push(card);
-            }
             return {
-                [location]: newLocationCards
-            }
-        })
+                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
+                    if (card.id === cardId) {
+                        const isTilted = !card.isTilted;
+                        card.isTilted = isTilted;
+                        isTilted ? playUnsuspendSfx() : playSuspendSfx();
+                        isTilted ? sendSfx("playUnsuspendCardSfx") : sendSfx("playSuspendCardSfx");
+                    }
+                    return card;
+                })
+            };
+        });
     },
 
     setMessages: (message: string) => {

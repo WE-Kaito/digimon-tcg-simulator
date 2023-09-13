@@ -34,14 +34,20 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
         }),
     }));
 
-    const tiltable = tiltLocations.includes(location) && card === locationCards[locationCards.length -1];
+    function getTiltable(){
+        if (location === "myTamer"){
+            return card.type === "Tamer";
+        } else {
+            return tiltLocations.includes(location) && card === locationCards[locationCards.length -1];
+        }
+    }
 
     function handleClick() {
         if (location === "deck") {
             deleteFromDeck(card.id);
             playTrashCardSfx();
         } else {
-            if (tiltable && sendSfx && selectedCard === card) {
+            if (getTiltable() && sendSfx && selectedCard === card) {
                 tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
                 if(sendUpdate) sendUpdate();
             } else {
