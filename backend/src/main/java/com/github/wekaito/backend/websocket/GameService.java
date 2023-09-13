@@ -115,7 +115,7 @@ public class GameService extends TextWebSocketHandler {
             try {
                 session.sendMessage(new TextMessage("[HEARTBEAT]"));
             } catch (IOException e) {
-                System.out.println("Heartbeat failed for session " + session.getId() + " at " + System.currentTimeMillis());
+                e.getCause();
             }
         }
     }
@@ -156,7 +156,6 @@ public class GameService extends TextWebSocketHandler {
             String[] roomMessageParts = roomMessage.split(":", 2);
             String command = roomMessageParts[0];
             String opponentName = roomMessageParts[1];
-            if (command.equals("/reconnect")) gameRoom.add(session);
             sendMessageToOpponent(gameRoom, opponentName, convertCommand(command));
         }
     }
@@ -184,7 +183,6 @@ public class GameService extends TextWebSocketHandler {
             case "/playButtonClickSfx" -> "[BUTTON_CLICK_SFX]";
             case "/playTrashCardSfx" -> "[TRASH_CARD_SFX]";
             case "/playShuffleDeckSfx" -> "[SHUFFLE_DECK_SFX]";
-            case "/reconnect" -> "[SEND_UPDATE]";
             default -> "";
         };
     }

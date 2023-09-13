@@ -56,7 +56,7 @@ public class ChatService extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage("[HEARTBEAT]"));
                 broadcastConnectedUsernames();
             } catch (IOException e) {
-                System.out.println("Heartbeat failed for session " + session.getId() + " at " + System.currentTimeMillis());
+                e.getCause();
             }
         }
     }
