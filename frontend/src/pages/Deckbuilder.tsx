@@ -22,7 +22,7 @@ export default function Deckbuilder() {
     useEffect(() => {
         clearDeck();
         fetchCards()
-        filterCards(null, null, null, null, null, null, null, null, null, null);
+        filterCards(null, null, null, null, null, null, null, null, null, null, null);
     }, []);
 
     return (
