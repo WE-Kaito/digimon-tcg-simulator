@@ -234,8 +234,8 @@ function compareCardLevels(a: CardTypeWithId, b: CardTypeWithId){
     if (a.level === null && b.level === null) return 0;
     if (a.level === null) return -1;
     if (b.level === null) return 1;
-    if (a.level < b.level) return -1;
-    if (a.level > b.level) return 1;
+    if (a.level && b.level && a.level < b.level) return -1;
+    if (a.level && b.level && a.level > b.level) return 1;
     return 0;
 }
 
