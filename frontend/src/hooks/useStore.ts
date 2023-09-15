@@ -93,9 +93,10 @@ export const useStore = create<State>((set, get) => ({
                   cardnumber
     ) => {
 
+        set({isLoading: true})
         let filteredData = get().fetchedCards;
 
-        if (name) filteredData = filteredData.filter((card: CardType) => card.name.includes(name));
+        if (name) filteredData = filteredData.filter((card: CardType) => card.name.toUpperCase().includes(name.toUpperCase()));
         if (color) filteredData = filteredData.filter((card: CardType) => card.color === color);
         if (type) filteredData = filteredData.filter((card: CardType) => card.type === type);
         if (stage) filteredData = filteredData.filter((card: CardType) => card.stage === stage);
@@ -105,7 +106,7 @@ export const useStore = create<State>((set, get) => ({
         if (play_cost) filteredData = filteredData.filter((card: CardType) => card.play_cost === play_cost);
         if (evolution_cost) filteredData = filteredData.filter((card: CardType) => card.evolution_cost === evolution_cost);
         if (level) filteredData = filteredData.filter((card: CardType) => card.level === level);
-        if (cardnumber) filteredData = filteredData.filter((card: CardType) => card.cardnumber.includes(cardnumber));
+        if (cardnumber) filteredData = filteredData.filter((card: CardType) => card.cardnumber.toUpperCase().includes(cardnumber.toUpperCase()));
 
         if (!filteredData || filteredData.length === 0) {
             set({filteredCards: [], isLoading: false});
@@ -117,7 +118,7 @@ export const useStore = create<State>((set, get) => ({
             id: uid()
         }));
 
-        set({filteredCards: filteredDataWithIds});
+        set({filteredCards: filteredDataWithIds, isLoading: false});
     },
 
     selectCard: (card) => {
