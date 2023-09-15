@@ -4,7 +4,7 @@ import {useStore} from "../hooks/useStore.ts";
 
 export default function SearchForm() {
 
-    const fetchCards = useStore((state) => state.fetchCards);
+    const filterCards = useStore((state) => state.filterCards);
 
     const [cardname, setCardname] = useState<string | null>(null);
     const [color, setColor] = useState<string | null>(null);
@@ -16,10 +16,11 @@ export default function SearchForm() {
     const [stage, setStage] = useState<string | null>(null);
     const [digitype, setDigitype] = useState<string | null>(null);
     const [attribute, setAttribute] = useState<string | null>(null);
+    const [cardnumber, setCardnumber] = useState<string | null>(null);
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        fetchCards(cardname, color, type, stage, attribute, digitype, dp, playcost, digivolutioncost, level);
+        filterCards(cardname, color, type, stage, attribute, digitype, dp, playcost, digivolutioncost, level, cardnumber);
     }
 
     return (
@@ -301,6 +302,10 @@ export default function SearchForm() {
                 <option>Vaccine</option>
             </AttributeSelect>
 
+            <CardNumberInput placeholder={"Card Number"} value={cardnumber ?? undefined} onChange={(e) => {
+                setCardnumber(e.target.value)
+            }}/>
+
             <SubmitButton>SEARCH</SubmitButton>
 
         </StyledForm>
@@ -324,7 +329,7 @@ const StyledForm = styled.form`
     "cardname cardname cardname color"
     "type dp playcost digivolutioncost"
     "level stage digitype digitype"
-    "attribute submit submit submit";
+    "attribute cardnumber submit submit";
   overflow: hidden;
 
   @media (min-width: 768px) {
@@ -363,6 +368,13 @@ const StyledInput = styled.input`
 
 const CardNameInput = styled(StyledInput)`
   grid-area: cardname;
+`;
+
+const CardNumberInput = styled(StyledInput)`
+  grid-area: cardnumber;
+  @media (min-width: 767px) {
+    height: 18px;
+  }
 `;
 
 const DPInput = styled(StyledInput)`
@@ -432,7 +444,7 @@ const TypeSelect = styled(StyledSelect)`
 const SubmitButton = styled.button`
 
   grid-area: submit;
-
+  margin-left: 1px;
   height: 17px;
   width: 100%;
   padding: 0;
@@ -466,4 +478,3 @@ const SubmitButton = styled.button`
     height: 20px;
   }
 `;
-

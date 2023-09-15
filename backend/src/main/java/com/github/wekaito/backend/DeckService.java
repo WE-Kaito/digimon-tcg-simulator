@@ -1,7 +1,9 @@
 package com.github.wekaito.backend;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,6 +22,8 @@ public class DeckService {
 
     private final UserIdService userIdService;
 
+    private Card[] fetchedCards;
+
     private final WebClient webClient = WebClient.builder()
             .baseUrl("https://digimoncard.io/api-public")
             .exchangeStrategies(ExchangeStrategies.builder()
@@ -29,20 +33,27 @@ public class DeckService {
                     .build())
             .build();
 
-    Card[] fetchCards(Optional<String> name, Optional<String> color, Optional<String> type) {
+    @PostConstruct
+    public void init() {
+        fetchCards();
+    }
+
+    @Scheduled(fixedRate = 600000) // 10 minutes
+    void fetchCards() {
         ResponseEntity<Card[]> response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search.php")
                         .queryParam("sort", "name")
                         .queryParam("series", "Digimon Card Game")
-                        .queryParamIfPresent("n", name)
-                        .queryParamIfPresent("color", color)
-                        .queryParamIfPresent("type", type)
                         .build())
                 .retrieve()
                 .toEntity(Card[].class)
                 .block();
-        return Objects.requireNonNull(response).getBody();
+        fetchedCards = Objects.requireNonNull(response).getBody();
+    }
+
+    public Card[] getCards() {
+        return fetchedCards;
     }
 
     public void addDeck(DeckWithoutId deckWithoutId) {

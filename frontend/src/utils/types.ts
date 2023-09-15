@@ -24,15 +24,15 @@ export type CardTypeWithId = {
     color: string,
     image_url: string,
     cardnumber: string,
-    stage: string | null,
-    attribute: string | null,
-    digi_type: string | null,
-    dp: number | null,
-    play_cost: number | null,
-    evolution_cost: number | null,
-    level: number | null,
-    maineffect: string | null,
-    soureeffect: string | null,
+    stage?: string | null,
+    attribute?: string | null,
+    digi_type?: string | null,
+    dp?: number | null,
+    play_cost?: number | null,
+    evolution_cost?: number | null,
+    level?: number | null,
+    maineffect?: string | null,
+    soureeffect?: string | null,
     id: string
 
 }
@@ -56,7 +56,7 @@ export type CardTypeGame = {
     isTilted: boolean
 }
 
-export type FetchCards = (
+export type SearchCards = (
     name: string | null,
     color: string | null,
     type: string | null,
@@ -66,7 +66,8 @@ export type FetchCards = (
     dp: number | null,
     play_cost: number | null,
     evolution_cost: number | null,
-    level: number | null) => void;
+    level: number | null,
+    cardnumber: string | null) => void;
 
 export type DeckType = {
     id: string,

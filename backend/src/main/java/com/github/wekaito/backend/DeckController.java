@@ -16,8 +16,8 @@ public class DeckController {
     private final UserIdService userIdService;
 
     @GetMapping("/cards")
-    public Card[] fetchCards(@RequestParam Optional<String> name, @RequestParam Optional<String> color, @RequestParam Optional<String> type) {
-        return this.deckService.fetchCards(name, color, type);
+    public Card[] getCards() {
+        return this.deckService.getCards();
     }
 
     @PostMapping("/decks")

@@ -17,7 +17,7 @@ export const Loading = () => <LoadingContainer>
 export default function FetchedCards() {
 
     const isLoading = useStore((state) => state.isLoading);
-    const cards = useStore((state) => state.fetchedCards);
+    const cards = useStore((state) => state.filteredCards);
 
     return (
         <FetchContainer>
