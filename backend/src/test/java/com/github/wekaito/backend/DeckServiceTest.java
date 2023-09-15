@@ -48,7 +48,8 @@ class DeckServiceTest {
 
     @Test
     void testFetchCards() {
-        Card[] cards = deckService.fetchCards("Agumon".describeConstable(), "Red".describeConstable(), "Digimon".describeConstable());
+        deckService.init();
+        Card[] cards = deckService.getCards();
         assertNotNull(cards);
         assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class);
     }

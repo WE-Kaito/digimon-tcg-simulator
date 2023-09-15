@@ -1,5 +1,5 @@
 import {create} from "zustand";
-import {CardType, CardTypeGame, CardTypeWithId, DeckType, FetchCards} from "../utils/types.ts";
+import {CardType, CardTypeGame, CardTypeWithId, DeckType, SearchCards} from "../utils/types.ts";
 import axios from "axios";
 import {uid} from "uid";
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,7 +16,8 @@ import {NavigateFunction} from "react-router-dom";
 import {addStarterDecks, sortCards} from "../utils/functions.ts";
 
 type State = {
-    fetchedCards: CardTypeWithId[],
+    fetchedCards: CardType[],
+    filteredCards: CardTypeWithId[],
     isLoading: boolean,
     selectedCard: CardTypeWithId | CardTypeGame | null,
     deckCards: CardTypeWithId[],
@@ -28,7 +29,8 @@ type State = {
     avatarName: string,
     gameId: string,
 
-    fetchCards: FetchCards,
+    fetchCards: () => void,
+    filterCards: SearchCards,
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
     hoverCard: CardTypeWithId | null,
     setHoverCard: (card: CardTypeWithId | null) => void,
@@ -53,6 +55,7 @@ type State = {
 export const useStore = create<State>((set, get) => ({
 
     fetchedCards: [],
+    filteredCards: [],
     isLoading: false,
     selectedCard: null,
     hoverCard: null,
@@ -65,84 +68,56 @@ export const useStore = create<State>((set, get) => ({
     avatarName: "",
     gameId: "",
 
-    fetchCards: (name,
-                 color,
-                 type,
-                 stage,
-                 attribute,
-                 digi_type,
-                 dp,
-                 play_cost,
-                 evolution_cost,
-                 level
-    ) => {
-
-        const queryParams = {
-            name: name,
-            color: color,
-            type: type
-        };
-
+    fetchCards: () => {
         set({isLoading: true})
         axios
-            .get("/api/profile/cards", {params: queryParams})
+            .get("/api/profile/cards")
             .then((res) => res.data)
             .catch(console.error)
             .then((data) => {
-
-                let filteredData = data?.slice();
-
-                if (filteredData === undefined) {
-                    set({fetchedCards: [], isLoading: false});
-                    return;
-                }
-
-                if (stage !== null) {
-                    filteredData = filteredData.filter(
-                        (card: CardType) => card.stage === stage
-                    );
-                }
-                if (attribute !== null) {
-                    filteredData = filteredData.filter(
-                        (card: CardType) => card.attribute === attribute
-                    );
-                }
-                if (digi_type !== null) {
-                    filteredData = filteredData.filter(
-                        (card: CardType) => card.digi_type === digi_type
-                    );
-                }
-                if (dp !== null) {
-                    filteredData = filteredData.filter(
-                        (card: CardType) => card.dp === dp
-                    );
-                }
-                if (play_cost !== null) {
-                    filteredData = filteredData.filter(
-                        (card: CardType) => card.play_cost === play_cost
-                    );
-                }
-                if (evolution_cost !== null) {
-                    filteredData = filteredData.filter(
-                        (card: CardType) => card.evolution_cost === evolution_cost
-                    );
-                }
-                if (level !== null) {
-                    filteredData = filteredData.filter(
-                        (card: CardType) => card.level === level
-                    );
-                }
-
-                filteredData = filteredData.map((card: CardType) => ({
-                    ...card,
-                    id: uid()
-                }));
-
-                set({fetchedCards: filteredData});
-
+                set({fetchedCards: data});
             })
             .finally(() => set({isLoading: false}));
+    },
 
+    filterCards: (name,
+                  color,
+                  type,
+                  stage,
+                  attribute,
+                  digi_type,
+                  dp,
+                  play_cost,
+                  evolution_cost,
+                  level,
+                  cardnumber
+    ) => {
+
+        let filteredData = get().fetchedCards;
+
+        if (name) filteredData = filteredData.filter((card: CardType) => card.name.includes(name));
+        if (color) filteredData = filteredData.filter((card: CardType) => card.color === color);
+        if (type) filteredData = filteredData.filter((card: CardType) => card.type === type);
+        if (stage) filteredData = filteredData.filter((card: CardType) => card.stage === stage);
+        if (attribute) filteredData = filteredData.filter((card: CardType) => card.attribute === attribute);
+        if (digi_type) filteredData = filteredData.filter((card: CardType) => card.digi_type === digi_type);
+        if (dp) filteredData = filteredData.filter((card: CardType) => card.dp === dp);
+        if (play_cost) filteredData = filteredData.filter((card: CardType) => card.play_cost === play_cost);
+        if (evolution_cost) filteredData = filteredData.filter((card: CardType) => card.evolution_cost === evolution_cost);
+        if (level) filteredData = filteredData.filter((card: CardType) => card.level === level);
+        if (cardnumber) filteredData = filteredData.filter((card: CardType) => card.cardnumber.includes(cardnumber));
+
+        if (!filteredData || filteredData.length === 0) {
+            set({filteredCards: [], isLoading: false});
+            return;
+        }
+
+        const filteredDataWithIds = filteredData.map((card: CardType) => ({
+            ...card,
+            id: uid()
+        }));
+
+        set({filteredCards: filteredDataWithIds});
     },
 
     selectCard: (card) => {
@@ -155,7 +130,7 @@ export const useStore = create<State>((set, get) => ({
     },
 
     addCardToDeck: (id, location, cardnumber, type) => {
-        const cardToAdd = get().fetchedCards.filter((card) => card.id === id)[0];
+        const cardToAdd = get().filteredCards.filter((card) => card.id === id)[0];
         let cardToAddWithNewId;
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
@@ -247,7 +222,6 @@ export const useStore = create<State>((set, get) => ({
 
     updateDeck: (id, name) => {
 
-
         const deckWithoutId = {
             name: name,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -271,7 +245,7 @@ export const useStore = create<State>((set, get) => ({
 
         if (id === undefined) return;
 
-        get().fetchCards(null, null, null, null, null, null, null, null, null, null,);
+        get().filterCards(null, null, null, null, null, null, null, null, null, null, null);
 
         set({isLoading: true});
 
