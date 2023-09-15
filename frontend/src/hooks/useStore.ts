@@ -16,7 +16,7 @@ import {NavigateFunction} from "react-router-dom";
 import {addStarterDecks, sortCards} from "../utils/functions.ts";
 
 type State = {
-    fetchedCards: CardType[],
+    fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
     isLoading: boolean,
     selectedCard: CardTypeWithId | CardTypeGame | null,
@@ -75,7 +75,8 @@ export const useStore = create<State>((set, get) => ({
             .then((res) => res.data)
             .catch(console.error)
             .then((data) => {
-                set({fetchedCards: data});
+                const cardsWithId: CardTypeWithId[] = data.map((card: CardType) => ({...card, id: uid()}));
+                set({fetchedCards: cardsWithId});
             })
             .finally(() => set({isLoading: false}));
     },
@@ -94,31 +95,22 @@ export const useStore = create<State>((set, get) => ({
     ) => {
 
         set({isLoading: true})
+
         let filteredData = get().fetchedCards;
 
-        if (name) filteredData = filteredData.filter((card: CardType) => card.name.toUpperCase().includes(name.toUpperCase()));
-        if (color) filteredData = filteredData.filter((card: CardType) => card.color === color);
-        if (type) filteredData = filteredData.filter((card: CardType) => card.type === type);
-        if (stage) filteredData = filteredData.filter((card: CardType) => card.stage === stage);
-        if (attribute) filteredData = filteredData.filter((card: CardType) => card.attribute === attribute);
-        if (digi_type) filteredData = filteredData.filter((card: CardType) => card.digi_type === digi_type);
-        if (dp) filteredData = filteredData.filter((card: CardType) => card.dp === dp);
-        if (play_cost) filteredData = filteredData.filter((card: CardType) => card.play_cost === play_cost);
-        if (evolution_cost) filteredData = filteredData.filter((card: CardType) => card.evolution_cost === evolution_cost);
-        if (level) filteredData = filteredData.filter((card: CardType) => card.level === level);
-        if (cardnumber) filteredData = filteredData.filter((card: CardType) => card.cardnumber.toUpperCase().includes(cardnumber.toUpperCase()));
+        if (name) filteredData = filteredData.filter((card) => card.name.toUpperCase().includes(name.toUpperCase()));
+        if (color) filteredData = filteredData.filter((card) => card.color === color);
+        if (type) filteredData = filteredData.filter((card) => card.type === type);
+        if (stage) filteredData = filteredData.filter((card) => card.stage === stage);
+        if (attribute) filteredData = filteredData.filter((card) => card.attribute === attribute);
+        if (digi_type) filteredData = filteredData.filter((card) => card.digi_type === digi_type);
+        if (dp) filteredData = filteredData.filter((card) => card.dp === dp);
+        if (play_cost) filteredData = filteredData.filter((card) => card.play_cost === play_cost);
+        if (evolution_cost) filteredData = filteredData.filter((card) => card.evolution_cost === evolution_cost);
+        if (level) filteredData = filteredData.filter((card) => card.level === level);
+        if (cardnumber) filteredData = filteredData.filter((card) => card.cardnumber.toUpperCase().includes(cardnumber.toUpperCase()));
 
-        if (!filteredData || filteredData.length === 0) {
-            set({filteredCards: [], isLoading: false});
-            return;
-        }
-
-        const filteredDataWithIds = filteredData.map((card: CardType) => ({
-            ...card,
-            id: uid()
-        }));
-
-        set({filteredCards: filteredDataWithIds, isLoading: false});
+        set({filteredCards: filteredData, isLoading: false});
     },
 
     selectCard: (card) => {
@@ -131,10 +123,12 @@ export const useStore = create<State>((set, get) => ({
     },
 
     addCardToDeck: (id, location, cardnumber, type) => {
-        const cardToAdd = get().filteredCards.filter((card) => card.id === id)[0];
-        let cardToAddWithNewId;
+        if(location !== "fetchedData") return;
+
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
+        const cardToAdd = get().filteredCards.filter((card) => card.id === id)[0];
+        let cardToAddWithNewId;
 
         if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012") {
             cardToAddWithNewId = {...cardToAdd, id: uid(), type: "Digimon"} // fetched EX5-020 & EX5-012 are typed incorrectly
@@ -150,7 +144,7 @@ export const useStore = create<State>((set, get) => ({
         const eggCardLength = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const filteredLength = get().deckCards.length - eggCardLength; // 50 deck-cards & max 5 eggs
 
-        if (location !== "fetchedData" || filteredLength >= 50) return;
+        if (filteredLength >= 50) return;
 
         const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
         if (cardsWithoutLimit.includes(cardnumber)) {     // unique effect
@@ -158,9 +152,7 @@ export const useStore = create<State>((set, get) => ({
             return;
         }
 
-        if (type === "Digi-Egg" && digiEggsInDeck >= 5) return;
-
-        if (cardOfIdInDeck >= 4) return;
+        if ((type === "Digi-Egg" && digiEggsInDeck >= 5) || cardOfIdInDeck >= 4) return;
 
         set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
     },
