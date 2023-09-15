@@ -11,6 +11,7 @@ import BackButton from "../components/BackButton.tsx";
 export default function Deckbuilder() {
 
     const fetchCards = useStore((state) => state.fetchCards);
+    const fetchedCards = useStore((state) => state.fetchedCards);
     const filterCards = useStore((state) => state.filterCards);
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
@@ -21,9 +22,12 @@ export default function Deckbuilder() {
 
     useEffect(() => {
         clearDeck();
-        fetchCards()
+        fetchCards();
+    }, [clearDeck, fetchCards]);
+
+    useEffect(() => {
         filterCards(null, null, null, null, null, null, null, null, null, null, null);
-    }, []);
+    }, [fetchedCards, filterCards]);
 
     return (
         <OuterContainer>
