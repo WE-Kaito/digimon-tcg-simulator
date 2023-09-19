@@ -35,6 +35,10 @@ public class ChatService extends TextWebSocketHandler {
             session.sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
             return;
         }
+        if (activeSessions.stream().anyMatch(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username))) {
+            session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected!"));
+            return;
+        }
         activeSessions.add(session);
         connectedUsernames.add(username);
         broadcastConnectedUsernames();

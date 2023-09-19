@@ -16,9 +16,10 @@ export default function DeckMoodle({cardToSend, sendUpdate, to, setMoodle, sendC
     const sendCardToDeck = useGame((state) => state.sendCardToDeck);
     // @ts-ignore
     const cardName = useGame((state) => state[cardToSend.location as keyof typeof state].find(card => card.id === cardToSend.id)?.name);
+    const handToDeck = cardToSend.location === "myHand" && to === "myDeckField";
 
     const handleClick = (topOrBottom: "Top" | "Bottom") => {
-        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(cardToSend.location)} ➟ ${convertForLog(to)} ${topOrBottom}`);
+        sendChatMessage(`[FIELD_UPDATE]≔【${handToDeck ? "???" : cardName}】﹕${convertForLog(cardToSend.location)} ➟ ${convertForLog(to)} ${topOrBottom}`);
         sendCardToDeck(topOrBottom, cardToSend, to);
         sendUpdate();
         setMoodle(false);

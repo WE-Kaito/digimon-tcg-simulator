@@ -186,6 +186,7 @@ export default function Game({user}: { user: string }) {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
+                    setInterval(() => {websocket.sendMessage("/heartbeat/")}, 5000);
                 }, 4500);
                 return;
             }
@@ -282,7 +283,6 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[HEARTBEAT]"): {
-                    websocket.sendMessage("/heartbeat/");
                     break;
                 }
                 default: {

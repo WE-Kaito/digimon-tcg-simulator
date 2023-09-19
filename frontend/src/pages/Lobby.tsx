@@ -168,11 +168,15 @@ export default function Lobby({user}: { user: string }) {
                                 if (name === "【SERVER】"){
                                     return (
                                         <div style={{display: "flex"}} key={message}>
-                                            <StyledSpan name={name} user={user}>
+                                            {content === " Join our Discord!"
+                                                ? <StyledSpan name={name} user={user}>
                                                 <span style={{color:"#31da75"}}>Server</span>:
                                                 <a href="https://discord.gg/sBdByGAh2y" target="_blank" rel="noopener noreferrer">{content}</a>
-                                                <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
-                                            </StyledSpan>
+                                                      <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
+                                                  </StyledSpan>
+                                                : <StyledSpan name={name} user={user}>
+                                                    <span style={{color:"#31da75"}}>Server</span>:{content}
+                                                </StyledSpan>}
                                         </div>
                                         );
                                 }
