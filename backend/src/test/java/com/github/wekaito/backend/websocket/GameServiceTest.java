@@ -279,14 +279,15 @@ class GameServiceTest {
     }
 
     @Test
-    void testSendingHeartbeats() throws IOException {
+    void testSendingAndReceivingHeartbeats() throws IOException, InterruptedException {
         // GIVEN
-        gameService.afterConnectionEstablished(session1);
-        gameService.afterConnectionEstablished(session2);
+        putPlayersToGameRoom();
         // WHEN
         gameService.sendHeartbeat();
+        gameService.handleTextMessage(session1, new TextMessage("/heartbeat/"));
         // THEN
         verify(session1, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
         verify(session2, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
+        verify(session1, times(1)).sendMessage(any());
     }
 }

@@ -36,8 +36,6 @@ public class GameService extends TextWebSocketHandler {
 
     private final SecureRandom secureRand = new SecureRandom();
 
-    private Set<WebSocketSession> activeSessions = new HashSet<>();
-
     @Getter
     private final Map<String, String> positionMap = initializePositionMap();
 
@@ -85,8 +83,8 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
-        activeSessions.add(session);
+    public void afterConnectionEstablished(WebSocketSession session)  {
+        // do nothing
     }
 
     @Override
@@ -104,18 +102,19 @@ public class GameService extends TextWebSocketHandler {
             if (webSocketSession != null && gameRoom.size() < 2)
                 webSocketSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
         }
-        activeSessions.remove(session);
         gameRoom.remove(session);
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 5000)
     public synchronized void sendHeartbeat() {
-        for (WebSocketSession session : activeSessions) {
-            try {
-                session.sendMessage(new TextMessage("[HEARTBEAT]"));
-            } catch (IOException e) {
-                e.getCause();
+        for (Set<WebSocketSession> gameRoom : gameRooms.values()) {
+            for (WebSocketSession webSocketSession : gameRoom) {
+                try {
+                    webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+                } catch (IOException e) {
+                    e.getCause();
+                }
             }
         }
     }
@@ -124,9 +123,8 @@ public class GameService extends TextWebSocketHandler {
     protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) throws IOException, InterruptedException {
         String userName = Objects.requireNonNull(session.getPrincipal()).getName();
         String payload = message.getPayload();
-        String[] parts = payload.split(":", 2);
-
         if (payload.equals("/heartbeat/")) return;
+        String[] parts = payload.split(":", 2);
 
         if (payload.startsWith("/startGame:") && parts.length >= 2) {
             String gameId = parts[1].trim();
