@@ -195,4 +195,15 @@ class ChatServiceTest {
         verify(session1, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
         verify(session2, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
     }
+
+    @Test
+    void testSendAlreadyConnected() throws IOException {
+        // GIVEN
+        TextMessage messageReceived = new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected!");
+        // WHEN
+        chatService.afterConnectionEstablished(session1);
+        chatService.afterConnectionEstablished(session1);
+        // THEN
+        verify(session1, times(1)).sendMessage(messageReceived);
+    }
 }

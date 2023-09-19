@@ -113,7 +113,7 @@ public class GameService extends TextWebSocketHandler {
                 try {
                     webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    e.getCause();
                 }
             }
         }
