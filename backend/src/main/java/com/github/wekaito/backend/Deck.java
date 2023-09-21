@@ -3,7 +3,11 @@ package com.github.wekaito.backend;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document("decks")
-public record Deck(String id, String name, Card[] cards, String authorId) {
+public record Deck(
+        String id,
+        String name,
+        Card[] cards,
+        String authorId) {
 
     @Override
     public boolean equals(Object o) {

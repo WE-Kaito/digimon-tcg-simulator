@@ -1,6 +1,8 @@
 package com.github.wekaito.backend;
 
-public record DeckWithoutId(String name, Card[] cards) {
+public record DeckWithoutId(
+        String name,
+        Card[] cards) {
 
     @Override
     public boolean equals(Object o) {

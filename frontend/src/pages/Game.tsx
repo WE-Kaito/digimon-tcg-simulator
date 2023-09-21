@@ -101,6 +101,7 @@ export default function Game({user}: { user: string }) {
     const mulliganAllowed = useGame((state) => state.mulliganAllowed);
     const createToken = useGame((state) => state.createToken);
     const setMemory = useGame(state => state.setMemory);
+    const messages = useGame((state) => state.messages);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -181,7 +182,8 @@ export default function Game({user}: { user: string }) {
                 setTimeout(() => {
                     playDrawCardSfx();
                     setIsChatOpen(true);
-                }, 3800);
+                    if (messages.length === 0) setMessages("[STARTING_PLAYER]≔" + startingPlayer)
+                        }, 3800);
                 setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
@@ -938,7 +940,7 @@ export default function Game({user}: { user: string }) {
                                                         digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
                                                         tamerIndex={getTamerCardIndex(card, opponentTamer)}>
                                         <Fade direction={"left"} duration={500}>
-                                            <Card card={card} location={"opponentTamer"}/>
+                                            <Card card={card} location={"opponentTamer"} sendUpdate={sendUpdate}/>
                                         </Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
@@ -1403,16 +1405,20 @@ const Wrapper = styled.div<{ chatOpen: boolean }>`
   @media (max-height: 1199px) {
     transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
-
   @media (max-height: 1080px) {
     transform: scale(0.9) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
   @media (max-height: 900px) {
     transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
-
   @media (min-height: 1200px) {
     transform: scale(1.2) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  }
+  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : landscape) and (-webkit-min-device-pixel-ratio : 2) {
+    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  }
+  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : portrait) and (-webkit-min-device-pixel-ratio : 2) {
+    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-120px" : "-20px"});
   }
 `;
 
@@ -1984,6 +1990,10 @@ const BackGround = styled.div`
   -webkit-animation: Background 25s ease infinite;
   -moz-animation: Background 25s ease infinite;
   animation: Background 25s ease infinite;
+  
+  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : portrait) and (-webkit-min-device-pixel-ratio : 2) {
+    width: 310vw;
+  }
 
   @-webkit-keyframes Background {
     0% {
@@ -2032,6 +2042,7 @@ const BackGroundPattern = styled.div`
   animation: bg-animation .2s infinite;
   opacity: .4;
   z-index: 0;
+  
   @keyframes bg-animation {
     0% {
       transform: translate(0, 0)
