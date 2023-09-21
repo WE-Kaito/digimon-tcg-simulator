@@ -162,7 +162,9 @@ export function calculateCardOffsetX(handCardLength: number, index: number) {
 }
 
 export function topCardInfo(card: CardTypeGame, location:string, locationCards: CardTypeGame[]){
-    const locationsWithInfo = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "myBreedingArea", "opponentBreedingArea"];
+    const locationsWithInfo = ["myBreedingArea", "opponentBreedingArea",
+        "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
+        "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
     if (!locationsWithInfo.find((l => l === location))) return undefined;
 
     let effectInfo = "Inherited effects: \n";
