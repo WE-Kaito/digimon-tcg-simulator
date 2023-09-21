@@ -259,6 +259,8 @@ export function getCardSize(location: string) {
     switch (location) {
         case "myTrash":
             return "105px";
+        case "mySecurity":
+            return "105px";
         case "opponentTrash":
             return "105px";
         case "deck":

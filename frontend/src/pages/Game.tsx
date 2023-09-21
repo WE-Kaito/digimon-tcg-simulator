@@ -1047,6 +1047,7 @@ export default function Game({user}: { user: string }) {
                                                 style={{left: 20, top: 10}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(true);
+                                                    setTrashMoodle(false);
                                                     websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
                                                 }}
@@ -1659,7 +1660,7 @@ const TrashView = styled.div`
   border: 2px solid crimson;
   box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.5);
 
-  left: 60.5%;
+  left: 59.5%;
   top: 27%;
   transform: translate(-50%, -50%);
 
@@ -1669,24 +1670,13 @@ const TrashView = styled.div`
   }
 `;
 
-const SecurityView = styled.div`
-  background: rgba(2, 1, 1, 0.95);
-  position: absolute;
-  display: flex;
-  flex-flow: row wrap;
-  gap: 15px;
+const SecurityView = styled(TrashView)`
   padding: 10px;
   width: 706px;
-  height: 140px;
-  overflow: hidden;
-  z-index: 150;
-  border-radius: 10px;
+  height: 310px;
   border: 2px solid #1482dc;
   box-shadow: 2px 4px 12px rgba(33, 222, 250, 0.5);
-
-  left: 57%;
-  top: 62%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -40%);
 `;
 
 const TrashSpan = styled.span`
