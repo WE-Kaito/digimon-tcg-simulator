@@ -487,15 +487,12 @@ export const useGame = create<State>((set, get) => ({
     },
 
     setMessages: (message: string) => {
-        // @ts-ignore
         set(state => {
-            if (state.messages[0]?.includes("[STARTING_PLAYER]") && message.includes("[STARTING_PLAYER]")) {
-                if(state.messages[0] === message) return;
+            if(state.messages[0]?.includes("[STARTING_PLAYER]") && message.includes("[STARTING_PLAYER]")) {
                 return {
                     messages: [message]
                 }
             }
-
             return {
                 messages: [message, ...state.messages]
             }

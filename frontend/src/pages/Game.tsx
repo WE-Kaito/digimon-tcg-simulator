@@ -101,7 +101,6 @@ export default function Game({user}: { user: string }) {
     const mulliganAllowed = useGame((state) => state.mulliganAllowed);
     const createToken = useGame((state) => state.createToken);
     const setMemory = useGame(state => state.setMemory);
-    const messages = useGame((state) => state.messages);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -175,14 +174,15 @@ export default function Game({user}: { user: string }) {
             }
 
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
+                const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
                 setMemoryBarLoading(true);
-                setStartingPlayer(event.data.substring("[STARTING_PLAYER]:".length));
+                setStartingPlayer(firstPlayer);
                 setShowStartingPlayer(true);
                 playStartSfx();
                 setTimeout(() => {
                     playDrawCardSfx();
                     setIsChatOpen(true);
-                    if (messages.length === 0) setMessages("[STARTING_PLAYER]≔" + startingPlayer)
+                    setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                         }, 3800);
                 setTimeout(() => {
                     setShowStartingPlayer(false);
@@ -707,10 +707,6 @@ export default function Game({user}: { user: string }) {
     }));
 
     useEffect(() => {
-        if(startingPlayer !== "") setMessages("[STARTING_PLAYER]≔" + startingPlayer);
-    }, [startingPlayer]);
-
-    useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
 
@@ -940,7 +936,7 @@ export default function Game({user}: { user: string }) {
                                                         digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
                                                         tamerIndex={getTamerCardIndex(card, opponentTamer)}>
                                         <Fade direction={"left"} duration={500}>
-                                            <Card card={card} location={"opponentTamer"} sendUpdate={sendUpdate}/>
+                                            <Card card={card} location={"opponentTamer"}/>
                                         </Fade></TamerCardContainer>)}
                             </TamerAreaContainer>
 
@@ -1266,7 +1262,7 @@ export default function Game({user}: { user: string }) {
                                                         digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
                                                         tamerIndex={getTamerCardIndex(card, myTamer)}>
                                         <Card card={card} location={"myTamer"}
-                                              sendSfx={sendSfx}/></TamerCardContainer>)}
+                                              sendSfx={sendSfx} sendUpdate={sendUpdate}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                             </TamerAreaContainer>
 
