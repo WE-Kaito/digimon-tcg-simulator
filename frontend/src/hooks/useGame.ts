@@ -505,7 +505,7 @@ export const useGame = create<State>((set, get) => ({
             type: "Token",
             color: "White",
             image_url: tokenImage,
-            cardnumber: "no-number",
+            cardnumber: "",
             stage: null,
             attribute: "Unknown",
             digi_type: null,
