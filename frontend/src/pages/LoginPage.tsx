@@ -36,8 +36,8 @@ export default function LoginPage() {
     }
 
     function containsForbiddenCharacters(){
-        for(let i = 0; i < forbiddenCharacters.length; i++){
-            if(userNameReg.includes(forbiddenCharacters[i])){
+        for(const char of forbiddenCharacters) {
+            if (userNameReg.includes(char)){
                 return true;
             }
         }
