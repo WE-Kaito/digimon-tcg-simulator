@@ -1064,23 +1064,42 @@ export default function Game({user}: { user: string }) {
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
                                                 }}>❌🔄</SendButton>}
 
-                                <SendButton title="Trash the top card of your Security Stack"
+                                <SendButtonSmall title="Trash the top card of your Security Stack"
                                             style={{left: 20, top: 45}}
                                             onClick={() => {
                                                 moveCard(mySecurity[0].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
-                                            }}>🗑️ ▲</SendButton>
+                                            }}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButton title="Trash the bottom card of your Security Stack"
+                                <SendButtonSmall title="Trash the bottom card of your Security Stack"
                                             style={{left: 20, top: 80}}
                                             onClick={() => {
                                                 moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
-                                            }}>🗑️ ▼</SendButton>
+                                            }}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
+
+                                <SendButtonSmall title="Take the top card of your Security Stack"
+                                            style={{left: 50, top: 45}}
+                                            onClick={() => {
+                                                moveCard(mySecurity[0].id, "mySecurity", "myHand");
+                                                sendSingleUpdate(mySecurity[0].id, "mySecurity", "myHand");
+                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Top ➟ Hand`);
+                                            }}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
+
+
+                                <SendButtonSmall title="Take the bottom card of your Security Stack"
+                                            style={{left: 50, top: 80}}
+                                            onClick={() => {
+                                                moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
+                                                sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
+                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Bot ➟ Hand`);
+                                            }}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
                                 <SendButton title="Shuffle your Security Stack"
                                             style={{left: 20, top: 115}}
@@ -1462,6 +1481,14 @@ const ChatSideBar = styled.div<{ chatOpen: boolean }>`
   }
 `;
 
+const MiniArrowSpan = styled.span`
+  position: absolute;
+  left: 13px;
+  top: 0;
+  font-size: 10px;
+  filter: drop-shadow(0 0 2px #000000);
+`;
+
 const PlayerContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -1700,6 +1727,11 @@ const SendButton = styled.button`
     opacity: 1;
     border-color: #e8a71b;
   }
+`;
+
+const SendButtonSmall = styled(SendButton)`
+  width: 25px;
+  font-size: 0.9em;
 `;
 
 const MulliganButton = styled.div`
