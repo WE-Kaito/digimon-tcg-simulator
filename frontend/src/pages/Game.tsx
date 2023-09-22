@@ -995,7 +995,7 @@ export default function Game({user}: { user: string }) {
                     </div>
 
                     {memoryBarLoading ? <div style={{height: "100px"}}/> :
-                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}/></Zoom>}
+                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx} sendChatMessage={sendChatMessage}/></Zoom>}
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>

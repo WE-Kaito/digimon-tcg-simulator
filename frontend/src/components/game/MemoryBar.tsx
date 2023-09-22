@@ -6,15 +6,17 @@ import {playButtonClickSfx} from "../../utils/sound.ts";
 type Props = {
     sendMemoryUpdate: (memory: number) => void;
     sendSfx: (sfx: string) => void;
+    sendChatMessage: (message: string) => void;
 }
 
-export default function MemoryBar({sendMemoryUpdate, sendSfx}: Props) {
+export default function MemoryBar({sendMemoryUpdate, sendSfx, sendChatMessage}: Props) {
 
     const myMemory = useGame(state => state.myMemory);
     const setMemory = useGame(state => state.setMemory);
 
     function handleClick(memory: number) {
         setMemory(memory);
+        sendChatMessage(`[FIELD_UPDATE]≔【MEMORY】﹕${memory}`);
         sendMemoryUpdate(memory);
         playButtonClickSfx();
         sendSfx("playButtonClickSfx");
