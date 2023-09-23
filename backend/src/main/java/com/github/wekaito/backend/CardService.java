@@ -21,7 +21,7 @@ public class CardService {
         return cardRepo.findAll().toArray(new Card[0]);
     }
 
-    public Card findByCardnumber(String cardnumber) {
+    public Card getCardByCardumber(String cardnumber) {
         return cardRepo.findByCardnumber(cardnumber);
     }
 

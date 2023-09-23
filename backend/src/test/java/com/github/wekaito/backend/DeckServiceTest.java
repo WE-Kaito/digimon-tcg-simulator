@@ -19,14 +19,12 @@ class DeckServiceTest {
     private DeckService deckService;
 
     private CardService cardService;
-
     @Mock
     private DeckRepo deckRepo;
     @Mock
     private CardRepo cardRepo;
     @Mock
     private IdService idService;
-
     @Mock
     private UserIdService userIdService;
 
@@ -34,15 +32,15 @@ class DeckServiceTest {
                             "Reptile", 2000, 3, 0, 3,
             "[On Play] Reveal 5 cards from the top of your deck. Add 1 Tamer card among them to your hand. Place the remaining cards at the bottom of your deck in any order.", null);
 
-    Card[] cards = {exampleCard, exampleCard, exampleCard};
-    Deck exampleDeck = new Deck("12345", "New Deck", cards, "authorId");
-    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards);
+    List<String> decklist = List.of("BT1-010", "BT1-010", "BT1-010");
+    Deck exampleDeck = new Deck("12345", "New Deck", "Red", decklist, "authorId");
+    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", "Red", decklist);
     Deck[] decks = {exampleDeck};
 
     @BeforeEach
     void setUp() {
         openMocks(this);
-        deckService = new DeckService(deckRepo, idService, userIdService);
+        deckService = new DeckService(deckRepo, cardService, idService, userIdService);
         cardService = new CardService(cardRepo);
         when(cardRepo.findAll()).thenReturn(List.of(exampleCard));
         when(deckRepo.save(exampleDeck)).thenReturn(exampleDeck);

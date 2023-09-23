@@ -3,6 +3,7 @@ package com.github.wekaito.backend;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,8 @@ public class DeckService {
 
     private final DeckRepo deckRepo;
 
+    private final CardService cardService;
+
     private final IdService idService;
 
     private final UserIdService userIdService;
@@ -20,7 +23,8 @@ public class DeckService {
         Deck deckToSave = new Deck(
                 idService.createId(),
                 deckWithoutId.name(),
-                deckWithoutId.cards(),
+                deckWithoutId.color(),
+                deckWithoutId.decklist(),
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
@@ -35,7 +39,8 @@ public class DeckService {
         Deck deckToSave = new Deck(
                 id,
                 deckWithoutId.name(),
-                deckWithoutId.cards(),
+                deckWithoutId.color(),
+                deckWithoutId.decklist(),
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
@@ -44,6 +49,18 @@ public class DeckService {
     public Deck getDeckById(String id) {
         Optional<Deck> optionalDeck = this.deckRepo.findById(id);
         return optionalDeck.orElse(null);
+    }
+
+    public List<Card> getDeckCardsById(String id) {
+        Optional<Deck> optionalDeck = this.deckRepo.findById(id);
+        List<Card> cards = new ArrayList<>();
+        if (optionalDeck.isPresent()) {
+            Deck deck = optionalDeck.get();
+            for (String cardnumber : deck.decklist()) {
+               cards.add(cardService.getCardByCardumber(cardnumber));
+            }
+        }
+        return cards;
     }
 
     public void deleteDeck(String id) {

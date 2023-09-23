@@ -1,6 +1,5 @@
 package com.github.wekaito.backend.websocket;
 
-import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.Deck;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
@@ -16,7 +15,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,13 +36,7 @@ class ChatServiceTest {
     private WebSocketSession session2;
     private WebSocketSession session3;
 
-    Card exampleCard = new Card("Agumon", "Digimon", "Red", "img", "BT1-010", "Rookie", "Vaccine",
-            "Reptile", 2000, 3, 0, 3,
-            "main effect text", null);
-
-    Card[] cards = {exampleCard, exampleCard, exampleCard};
-
-    Deck exampleDeck = new Deck("12345", "New Deck", cards, "authorId");
+    Deck exampleDeck = new Deck("12345", "New Deck", "Red", new ArrayList<>(List.of("BT1-010", "BT1-010")), "authorId");
 
     private WebSocketSession createMockSession(String username) {
         WebSocketSession session = mock(WebSocketSession.class);
