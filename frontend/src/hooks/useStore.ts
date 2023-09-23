@@ -13,7 +13,7 @@ import {
     notifyUpdate
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
-import {addStarterDecks, sortCards} from "../utils/functions.ts";
+import {addStarterDecks, mostFrequentColor, sortCards} from "../utils/functions.ts";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -179,39 +179,9 @@ export const useStore = create<State>((set, get) => ({
 
         const sortedDeck = sortCards(get().deckCards);
 
-        const mostFrequentColor = () => {
-            const colorOccurrences = {};
-
-            for (const element of sortedDeck) {
-                const color = element.color;
-                // @ts-ignore
-                if (colorOccurrences[color]) {
-                    // @ts-ignore
-                    colorOccurrences[color]++;
-                } else {
-                    // @ts-ignore
-                    colorOccurrences[color] = 1;
-                }
-            }
-
-            let mostFrequentColor = null;
-            let maxOccurrences = 0;
-
-            for (const color in colorOccurrences) {
-                // @ts-ignore
-                if (colorOccurrences[color] > maxOccurrences) {
-                    mostFrequentColor = color;
-                    // @ts-ignore
-                    maxOccurrences = colorOccurrences[color];
-                }
-            }
-
-            return mostFrequentColor;
-        };
-
         const deckToSave = {
             name: name,
-            color: mostFrequentColor(),
+            color: mostFrequentColor(sortedDeck),
             decklist: sortedDeck.map((card) => card.cardnumber),
             deckStatus: "INACTIVE"
         }
@@ -243,11 +213,11 @@ export const useStore = create<State>((set, get) => ({
     },
 
     updateDeck: (id, name) => {
-
+        const sortedDeck = sortCards(get().deckCards);
         const deckWithoutId = {
             name: name,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: get().deckCards.map(({id, ...rest}) => rest)
+            color: mostFrequentColor(sortedDeck),
+            decklist: sortedDeck.map((card) => card.cardnumber)
         }
 
         axios

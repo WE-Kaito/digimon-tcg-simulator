@@ -326,11 +326,12 @@ export function convertForLog(location: string) {
     return locationMappings[location] || location;
 }
 
-function saveStarterDeck(name:string, deck: CardType[]){
+function saveStarterDeck(name:string, color: string, decklist: string[]){
 
     const deckToSave = {
         name: name,
-        cards: deck,
+        color: color,
+        decklist: decklist,
         deckStatus: "INACTIVE"
     }
 
@@ -344,7 +345,36 @@ function saveStarterDeck(name:string, deck: CardType[]){
 }
 
 export function addStarterDecks(){
-    setTimeout(() => saveStarterDeck("[ADVANCED STARTER] Beelzemon", starterBeelzemon), 100);
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon), 200);
-    setTimeout(() => saveStarterDeck("[STARTER] Ultimate Ancient Dragon", starterImperialdramon), 300);
+    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon","Purple", starterBeelzemon), 100);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon","Red", starterGallantmon), 200);
+}
+
+export function mostFrequentColor(deckCards: CardTypeWithId[]){
+    const colorOccurrences = {};
+
+    for (const card of deckCards) {
+        const color = card.color;
+        // @ts-ignore
+        if (colorOccurrences[color]) {
+            // @ts-ignore
+            colorOccurrences[color]++;
+        } else {
+            // @ts-ignore
+            colorOccurrences[color] = 1;
+        }
+    }
+
+    let mostFrequentColor = null;
+    let maxOccurrences = 0;
+
+    for (const color in colorOccurrences) {
+        // @ts-ignore
+        if (colorOccurrences[color] > maxOccurrences) {
+            mostFrequentColor = color;
+            // @ts-ignore
+            maxOccurrences = colorOccurrences[color];
+        }
+    }
+
+    return mostFrequentColor;
 }
