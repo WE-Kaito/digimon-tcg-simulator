@@ -41,7 +41,7 @@ export default function Deckbuilder() {
             <ButtonContainer>
                 <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={() => {
                     saveDeck(deckName)
-                }}><StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : "SAVE"}</StyledSpanSaveDeck></SaveDeckButton>
+                }}><StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : `SAVE [${decks.length}/16]`}</StyledSpanSaveDeck></SaveDeckButton>
                 <BackButton/>
             </ButtonContainer>
 
@@ -171,7 +171,7 @@ const SaveDeckButton = styled.button<{ disabled:boolean }>`
   height: 40px;
   width: 95%;
   padding: 0;
-  padding-top: 5px;
+  padding-top: 3px;
   margin-left: 5px;
   background: ${(props) => props.disabled ? "grey" : "mediumaquamarine"};
   color: black;

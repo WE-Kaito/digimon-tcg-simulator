@@ -72,7 +72,8 @@ export type SearchCards = (
 export type DeckType = {
     id: string,
     name: string,
-    cards: CardType[],
+    color: string,
+    decklist: string[],
     deckStatus: string,
 }
 

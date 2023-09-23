@@ -4,7 +4,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {useDrag} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {getCardSize, topCardInfo} from "../utils/functions.ts";
-import {playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
+import {playPlaceCardSfx, playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -25,6 +25,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     const deleteFromDeck = useStore((state) => state.deleteFromDeck);
     const tiltCard = useGame((state) => state.tiltCard);
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
+    const addCardToDeck = useStore((state) => state.addCardToDeck);
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
@@ -43,6 +44,10 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     }
 
     function handleClick() {
+        if (location === "fetchedData") {
+            addCardToDeck(card.id, location, card.cardnumber, card.type);
+            playPlaceCardSfx();
+        }
         if (location === "deck") {
             deleteFromDeck(card.id);
             playTrashCardSfx();
@@ -82,7 +87,7 @@ const StyledImage = styled.img<StyledImageProps>`
   max-height: 150px;
   border-radius: 5px;
   transition: all 0.15s ease-out;
-  cursor: ${({location}) => (location === "deck" ? "not-allowed" : "grab")};
+  cursor: ${({location}) => (location === "deck" ? "not-allowed" : (location === "fetchedData" ? "cell" : "grab"))};
   opacity: ${({isDragging}) => (isDragging ? 0.5 : 1)};
   filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190)" : "drop-shadow(0 0 1.5px #004567)")};
   transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};

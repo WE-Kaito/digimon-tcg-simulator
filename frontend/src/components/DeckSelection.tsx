@@ -4,36 +4,21 @@ import digimonIcon from "../assets/cardtype_icons/gammamon.png";
 import tamerIcon from "../assets/cardtype_icons/tamer.png";
 import optionIcon from "../assets/cardtype_icons/option.png";
 import {useStore} from "../hooks/useStore.ts";
-import {CardTypeWithId, DraggedItem} from "../utils/types.ts";
+import {CardTypeWithId} from "../utils/types.ts";
 import Card from "./Card.tsx";
-import {useDrop} from "react-dnd";
-import {playPlaceCardSfx} from "../utils/sound.ts";
 import {sortCards} from "../utils/functions.ts";
 
 export default function DeckSelection() {
 
     const deckCards = useStore((state) => state.deckCards);
-    const addCardToDeck = useStore((state) => state.addCardToDeck);
 
     const digimonLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digimon").length;
     const tamerLength = deckCards.filter((card: CardTypeWithId) => card.type === "Tamer").length;
     const optionLength = deckCards.filter((card: CardTypeWithId) => card.type === "Option").length;
     const eggLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digi-Egg").length;
 
-    const [, drop] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, cardnumber, type} = item;
-            addCardToDeck(id, location, cardnumber, type);
-            playPlaceCardSfx();
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
-    }));
-
     return (
-        <DeckContainer ref={drop}>
+        <DeckContainer>
 
             <Stats>
                 <StatContainer>

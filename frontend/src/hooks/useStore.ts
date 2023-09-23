@@ -123,7 +123,7 @@ export const useStore = create<State>((set, get) => ({
     },
 
     addCardToDeck: (id, location, cardnumber, type) => {
-        if(location !== "fetchedData") return;
+        if (location !== "fetchedData") return;
 
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
@@ -179,11 +179,40 @@ export const useStore = create<State>((set, get) => ({
 
         const sortedDeck = sortCards(get().deckCards);
 
+        const mostFrequentColor = () => {
+            const colorOccurrences = {};
+
+            for (const element of sortedDeck) {
+                const color = element.color;
+                // @ts-ignore
+                if (colorOccurrences[color]) {
+                    // @ts-ignore
+                    colorOccurrences[color]++;
+                } else {
+                    // @ts-ignore
+                    colorOccurrences[color] = 1;
+                }
+            }
+
+            let mostFrequentColor = null;
+            let maxOccurrences = 0;
+
+            for (const color in colorOccurrences) {
+                // @ts-ignore
+                if (colorOccurrences[color] > maxOccurrences) {
+                    mostFrequentColor = color;
+                    // @ts-ignore
+                    maxOccurrences = colorOccurrences[color];
+                }
+            }
+
+            return mostFrequentColor;
+        };
+
         const deckToSave = {
             name: name,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            cards: sortedDeck.map(({id, ...rest}) => rest),
-
+            color: mostFrequentColor(),
+            decklist: sortedDeck.map((card) => card.cardnumber),
             deckStatus: "INACTIVE"
         }
 
@@ -246,16 +275,18 @@ export const useStore = create<State>((set, get) => ({
             .get(`/api/profile/decks/${id}`)
             .then((res) => res.data)
             .catch(console.error)
-            .then((data) => {
+            .then((data: DeckType) => {
 
-                const cardsWithId = data.cards.map((card: CardType) => ({
-                    ...card,
+                const cardsWithId: CardTypeWithId[] = data.decklist.map((cardnumber: string) => ({
+                    ...get().fetchedCards.filter((card) => card.cardnumber === cardnumber)[0],
                     id: uid(),
                 }));
 
-                set({deckCards: cardsWithId});
-                set({nameOfDeckToEdit: data.name});
-                set({isLoading: false});
+                set({
+                    deckCards: cardsWithId,
+                    nameOfDeckToEdit: data.name,
+                    isLoading: false
+                });
             });
     },
 
