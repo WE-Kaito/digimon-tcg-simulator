@@ -427,6 +427,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
+        if (!get().opponentReady) return;
         if (cardToSendToDeck.location === to) return;
         set(state => {
             const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
@@ -519,6 +520,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     createToken: () => {
+        if (!get().opponentReady) return;
         const token: CardTypeGame = {
             name: "Token",
             type: "Token",

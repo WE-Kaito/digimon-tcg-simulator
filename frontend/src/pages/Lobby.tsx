@@ -149,7 +149,7 @@ export default function Lobby({user}: { user: string }) {
 
                 <UserList>
                     {usernames.length > 1 ?
-                        usernames.map((username) => (userVisible(username) &&
+                        usernames.map((username) => (userVisible(username) && username &&
                             <User key={username}>
                                 {username}
                                 <InviteButton onClick={() => handleInvite(username)}>INVITE</InviteButton>

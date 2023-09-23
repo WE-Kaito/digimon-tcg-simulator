@@ -768,7 +768,7 @@ export default function Game({user}: { user: string }) {
                                             closeChat={() => setIsChatOpen(false)}/> : <span>›</span>}
                 </ChatSideBar>
 
-                {myReveal.length > 0 && <RevealContainer>
+                {myReveal.length > 0 && <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
                     {myReveal?.map((card) =>
                         <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
@@ -1012,6 +1012,7 @@ export default function Game({user}: { user: string }) {
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
+                                                 if (!opponentReady) return;
                                                  moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  playDrawCardSfx();
@@ -1148,6 +1149,7 @@ export default function Game({user}: { user: string }) {
                                                 setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
+                                    if (!opponentReady) return;
                                     moveCard(myDeckField[0].id, "myDeckField", "myHand");
                                     sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
                                     playDrawCardSfx();
@@ -1175,6 +1177,7 @@ export default function Game({user}: { user: string }) {
                                     </>}
                                 <SendToTrashButton title="Send top card from your deck to Trash"
                                                    onClick={() => {
+                                                       if (!opponentReady) return;
                                                        moveCard(myDeckField[0].id, "myDeckField", "myTrash");
                                                        sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
                                                        playTrashCardSfx();
@@ -1183,6 +1186,7 @@ export default function Game({user}: { user: string }) {
                                                    }}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
+                                                if (!opponentReady) return;
                                                 const id = myDeckField[0].id;
                                                 const location = "myDeckField";
                                                 sendCardToDeck("Top", {id, location}, "mySecurity");
@@ -1191,6 +1195,7 @@ export default function Game({user}: { user: string }) {
                                                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
                                             }}>⛊️+1</SendButton>
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
+                                    if (!opponentReady) return;
                                     moveCard(myDeckField[0].id, "myDeckField", "myReveal");
                                     sendSingleUpdate(myDeckField[0].id, "myDeckField", "myReveal");
                                     playRevealCardSfx();
