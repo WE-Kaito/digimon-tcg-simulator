@@ -26,6 +26,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     const tiltCard = useGame((state) => state.tiltCard);
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const addCardToDeck = useStore((state) => state.addCardToDeck);
+    const opponentReady = useGame((state) => state.opponentReady);
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
@@ -63,7 +64,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
 
     return (
         <StyledImage
-            ref={!opponentFieldLocations.includes(location) ? drag : undefined}
+            ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
             onClick={handleClick}
             onMouseEnter={() => setHoverCard(card)}
             onMouseLeave={() => setHoverCard(null)}

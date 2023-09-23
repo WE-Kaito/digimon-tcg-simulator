@@ -99,8 +99,11 @@ export default function Game({user}: { user: string }) {
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
     const mulliganAllowed = useGame((state) => state.mulliganAllowed);
+    const setMulliganAllowed = useGame((state) => state.setMulliganAllowed);
     const createToken = useGame((state) => state.createToken);
     const setMemory = useGame(state => state.setMemory);
+    const opponentReady = useGame(state => state.opponentReady);
+    const setOpponentReady = useGame(state => state.setOpponentReady);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -198,15 +201,14 @@ export default function Game({user}: { user: string }) {
                 const cardId = parts[0];
                 const from = parts[1];
                 const to = parts[2];
-                console.log(event.data)
                 moveCard(cardId, from, to);
+                if (!opponentReady) setOpponentReady();
                 return;
             }
 
             if (event.data.startsWith("[UPDATE_MEMORY]:")) {
                 const newMemory = event.data.substring("[UPDATE_MEMORY]:".length);
                 setMemory(parseInt(newMemory));
-                console.log(event.data);
                 return;
             }
 
@@ -285,6 +287,10 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[HEARTBEAT]"): {
+                    break;
+                }
+                case ("[PLAYER_READY]"): {
+                    setOpponentReady();
                     break;
                 }
                 default: {
@@ -1148,12 +1154,25 @@ export default function Game({user}: { user: string }) {
                                     sendSfx("playDrawCardSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
                                 }}/>
-                                {mulliganAllowed && <MulliganButton onClick={() => {
+                                {!mulliganAllowed && !opponentReady && <MulliganSpan style={{top:3}}>Waiting for opponent...</MulliganSpan>}
+                                {mulliganAllowed &&
+                                    <>
+                                        <MulliganSpan>KEEP HAND?</MulliganSpan>
+                                    <MulliganButton onClick={() => {
                                     mulligan();
                                     sendUpdate();
+                                    websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
                                     playShuffleDeckSfx();
                                     sendSfx("playShuffleDeckSfx");
-                                }}>MULLIGAN</MulliganButton>}
+                                    sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
+                                }}>N</MulliganButton>
+                                        <MulliganButton2 onClick={() => {
+                                            setMulliganAllowed(false);
+                                            websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
+                                        }}>
+                                            Y
+                                        </MulliganButton2>
+                                    </>}
                                 <SendToTrashButton title="Send top card from your deck to Trash"
                                                    onClick={() => {
                                                        moveCard(myDeckField[0].id, "myDeckField", "myTrash");
@@ -1738,7 +1757,7 @@ const MulliganButton = styled.div`
   position: absolute;
   left: 11px;
   top: 13px;
-  width: 100px;
+  width: 40px;
   height: 40px;
   border-radius: 5px;
   background: #fad219;
@@ -1748,7 +1767,7 @@ const MulliganButton = styled.div`
   align-items: center;
   font-family: Sansation, sans-serif;
   text-shadow: 0px 0px 1px #111921;
-  font-size: 1.1em;
+  font-size: 1.4em;
   filter: drop-shadow(3px 3px 1px #131313);
   transition: all 0.05s ease;
 
@@ -1758,6 +1777,22 @@ const MulliganButton = styled.div`
     background-color: #fad736;
     transform: translateY(1px);
   }
+`;
+
+const MulliganButton2 = styled(MulliganButton)`
+left: 71px;  
+`;
+
+const MulliganSpan = styled.span`
+  position: absolute;
+  left: 8px;
+  top: -15px;
+  width: 110px;
+  font-family: Cuisine, sans-serif;
+  font-size: 17px;
+  color: #fad219;
+  filter: drop-shadow(2px 2px 1px #131313);
+  cursor: default;
 `;
 
 const TokenButton = styled.img`

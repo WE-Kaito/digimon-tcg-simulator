@@ -181,6 +181,7 @@ public class GameService extends TextWebSocketHandler {
             case "/playButtonClickSfx" -> "[BUTTON_CLICK_SFX]";
             case "/playTrashCardSfx" -> "[TRASH_CARD_SFX]";
             case "/playShuffleDeckSfx" -> "[SHUFFLE_DECK_SFX]";
+            case "/playerReady" -> "[PLAYER_READY]";
             default -> "";
         };
     }

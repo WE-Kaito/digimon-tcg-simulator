@@ -26,7 +26,7 @@ import {
     playSuspendSfx, playTrashCardSfx, playUnsuspendSfx
 } from "./sound.ts";
 import axios from "axios";
-import {starterBeelzemon, starterGallantmon, starterImperialdramon} from "./starterDecks.ts";
+import {starterBeelzemon, starterGallantmon} from "./starterDecks.ts";
 
 export function getBackgroundColor(color: string) {
     switch (color) {
