@@ -18,9 +18,12 @@ class DeckServiceTest {
 
     private DeckService deckService;
 
+    private CardService cardService;
+
     @Mock
     private DeckRepo deckRepo;
-
+    @Mock
+    private CardRepo cardRepo;
     @Mock
     private IdService idService;
 
@@ -40,6 +43,10 @@ class DeckServiceTest {
     void setUp() {
         openMocks(this);
         deckService = new DeckService(deckRepo, idService, userIdService);
+        cardService = new CardService(cardRepo);
+        when(cardRepo.findAll()).thenReturn(List.of(exampleCard));
+        when(deckRepo.save(exampleDeck)).thenReturn(exampleDeck);
+        when(deckRepo.findById(exampleDeck.id())).thenReturn(Optional.of(exampleDeck));
         when(idService.createId()).thenReturn(exampleDeck.id());
         when(userIdService.getCurrentUserId()).thenReturn(exampleDeck.authorId());
         when(deckRepo.existsById(exampleDeck.id())).thenReturn(true);
@@ -48,8 +55,8 @@ class DeckServiceTest {
 
     @Test
     void testFetchCards() {
-        deckService.init();
-        Card[] cards = deckService.getCards();
+        cardService.init();
+        Card[] cards = cardService.getCards();
         assertNotNull(cards);
         assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class);
     }
