@@ -1,22 +1,14 @@
 package com.github.wekaito.backend;
 
-public record DeckWithoutId(String name, Card[] cards) {
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DeckWithoutId that = (DeckWithoutId) o;
-        return DeckUtils.areDecksWithoutIdEqual(this, that);
-    }
+import java.util.List;
 
-    @Override
-    public int hashCode() {
-        return DeckUtils.hashCode(this);
-    }
-
-    @Override
-    public String toString() {
-        return DeckUtils.deckWithoutIdToString(name, cards);
-    }
+public record DeckWithoutId(
+        String name,
+        String color,
+        @Min(50)
+        @Max(55)
+        List<String> decklist) {
 }

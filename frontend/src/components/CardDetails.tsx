@@ -74,6 +74,10 @@ export default function CardDetails() {
                 {hoverCard?.name || selectedCard?.name || null}
             </Name>
 
+            <CardNumber inGame={inGame}  className={css`color:${strokeColor};`}>
+                {hoverCard ? hoverCard.cardnumber : (selectedCard?.cardnumber || null)}
+            </CardNumber>
+
             {currentAttr && <Type inGame={inGame} src={getAttributeImage(currentAttr)} alt={currentAttr}/>}
 
             <PlayCost inGame={inGame} className={css`color:${strokeColor}`}>
@@ -200,6 +204,23 @@ const Name = styled(StyledSpan)<{inGame:boolean, longName:boolean|null}>`
     font-size: ${({longName}) => longName ? 17 : 24}px;
     left: ${({inGame}) => inGame ? 10 : 182}px;
     transform: ${({inGame}) => inGame ? "translateY(8px)" : "translateX(-50%) translateY(14px)"};
+    max-height: ${({inGame}) => inGame ? 50 : 40}px;
+  }
+`;
+
+const CardNumber = styled(StyledSpan)<{inGame:boolean}>`
+  left: 100px;
+  top: 45px;
+  font-size: 10px;
+  max-width: 102px;
+  max-height: 26px;
+  visibility: hidden;
+
+  @media (min-width: 767px) {
+    visibility: visible;
+    max-width: ${({inGame}) => inGame ? 200 : 306}px;
+    left: ${({inGame}) => inGame ? 165 : 250}px;
+    transform: ${({inGame}) => inGame ? "translateY(8px)" : "translateX(50px) translateY(6px)"};
     max-height: ${({inGame}) => inGame ? 50 : 40}px;
   }
 `;

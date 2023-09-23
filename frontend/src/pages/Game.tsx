@@ -99,8 +99,11 @@ export default function Game({user}: { user: string }) {
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
     const mulliganAllowed = useGame((state) => state.mulliganAllowed);
+    const setMulliganAllowed = useGame((state) => state.setMulliganAllowed);
     const createToken = useGame((state) => state.createToken);
     const setMemory = useGame(state => state.setMemory);
+    const opponentReady = useGame(state => state.opponentReady);
+    const setOpponentReady = useGame(state => state.setOpponentReady);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -174,14 +177,16 @@ export default function Game({user}: { user: string }) {
             }
 
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
+                const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
                 setMemoryBarLoading(true);
-                setStartingPlayer(event.data.substring("[STARTING_PLAYER]:".length));
+                setStartingPlayer(firstPlayer);
                 setShowStartingPlayer(true);
                 playStartSfx();
                 setTimeout(() => {
                     playDrawCardSfx();
                     setIsChatOpen(true);
-                }, 3800);
+                    setMessages("[STARTING_PLAYER]≔" + firstPlayer);
+                        }, 3800);
                 setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
@@ -196,15 +201,14 @@ export default function Game({user}: { user: string }) {
                 const cardId = parts[0];
                 const from = parts[1];
                 const to = parts[2];
-                console.log(event.data)
                 moveCard(cardId, from, to);
+                if (!opponentReady) setOpponentReady();
                 return;
             }
 
             if (event.data.startsWith("[UPDATE_MEMORY]:")) {
                 const newMemory = event.data.substring("[UPDATE_MEMORY]:".length);
                 setMemory(parseInt(newMemory));
-                console.log(event.data);
                 return;
             }
 
@@ -283,6 +287,10 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[HEARTBEAT]"): {
+                    break;
+                }
+                case ("[PLAYER_READY]"): {
+                    setOpponentReady();
                     break;
                 }
                 default: {
@@ -705,10 +713,6 @@ export default function Game({user}: { user: string }) {
     }));
 
     useEffect(() => {
-        if(startingPlayer !== "") setMessages("[STARTING_PLAYER]≔" + startingPlayer);
-    }, [startingPlayer]);
-
-    useEffect(() => {
         if (timer === 0) navigate("/lobby");
     }, [timer, navigate]);
 
@@ -764,7 +768,7 @@ export default function Game({user}: { user: string }) {
                                             closeChat={() => setIsChatOpen(false)}/> : <span>›</span>}
                 </ChatSideBar>
 
-                {myReveal.length > 0 && <RevealContainer>
+                {myReveal.length > 0 && <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
                     {myReveal?.map((card) =>
                         <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
                 </RevealContainer>}
@@ -997,7 +1001,7 @@ export default function Game({user}: { user: string }) {
                     </div>
 
                     {memoryBarLoading ? <div style={{height: "100px"}}/> :
-                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}/></Zoom>}
+                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx} sendChatMessage={sendChatMessage}/></Zoom>}
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
@@ -1008,6 +1012,7 @@ export default function Game({user}: { user: string }) {
                                 {myEggDeck.length !== 0 &&
                                     <EggDeck alt="egg-deck" src={eggBack}
                                              onClick={() => {
+                                                 if (!opponentReady) return;
                                                  moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                  playDrawCardSfx();
@@ -1049,6 +1054,7 @@ export default function Game({user}: { user: string }) {
                                                 style={{left: 20, top: 10}}
                                                 onClick={() => {
                                                     setSecurityContentMoodle(true);
+                                                    setTrashMoodle(false);
                                                     websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
                                                 }}
@@ -1065,23 +1071,42 @@ export default function Game({user}: { user: string }) {
                                                     sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
                                                 }}>❌🔄</SendButton>}
 
-                                <SendButton title="Trash the top card of your Security Stack"
+                                <SendButtonSmall title="Trash the top card of your Security Stack"
                                             style={{left: 20, top: 45}}
                                             onClick={() => {
                                                 moveCard(mySecurity[0].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
-                                            }}>🗑️ ▲</SendButton>
+                                            }}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButton title="Trash the bottom card of your Security Stack"
+                                <SendButtonSmall title="Trash the bottom card of your Security Stack"
                                             style={{left: 20, top: 80}}
                                             onClick={() => {
                                                 moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
                                                 sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
                                                 websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
                                                 sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
-                                            }}>🗑️ ▼</SendButton>
+                                            }}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
+
+                                <SendButtonSmall title="Take the top card of your Security Stack"
+                                            style={{left: 50, top: 45}}
+                                            onClick={() => {
+                                                moveCard(mySecurity[0].id, "mySecurity", "myHand");
+                                                sendSingleUpdate(mySecurity[0].id, "mySecurity", "myHand");
+                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Top ➟ Hand`);
+                                            }}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
+
+
+                                <SendButtonSmall title="Take the bottom card of your Security Stack"
+                                            style={{left: 50, top: 80}}
+                                            onClick={() => {
+                                                moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
+                                                sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
+                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
+                                                sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Bot ➟ Hand`);
+                                            }}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
                                 <SendButton title="Shuffle your Security Stack"
                                             style={{left: 20, top: 115}}
@@ -1124,20 +1149,35 @@ export default function Game({user}: { user: string }) {
                                                 setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                 <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
+                                    if (!opponentReady) return;
                                     moveCard(myDeckField[0].id, "myDeckField", "myHand");
                                     sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
                                     playDrawCardSfx();
                                     sendSfx("playDrawCardSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
                                 }}/>
-                                {mulliganAllowed && <MulliganButton onClick={() => {
+                                {!mulliganAllowed && !opponentReady && <MulliganSpan style={{top:3}}>Waiting for opponent...</MulliganSpan>}
+                                {mulliganAllowed &&
+                                    <>
+                                        <MulliganSpan>KEEP HAND?</MulliganSpan>
+                                    <MulliganButton onClick={() => {
                                     mulligan();
                                     sendUpdate();
+                                    websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
                                     playShuffleDeckSfx();
                                     sendSfx("playShuffleDeckSfx");
-                                }}>MULLIGAN</MulliganButton>}
+                                    sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
+                                }}>N</MulliganButton>
+                                        <MulliganButton2 onClick={() => {
+                                            setMulliganAllowed(false);
+                                            websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
+                                        }}>
+                                            Y
+                                        </MulliganButton2>
+                                    </>}
                                 <SendToTrashButton title="Send top card from your deck to Trash"
                                                    onClick={() => {
+                                                       if (!opponentReady) return;
                                                        moveCard(myDeckField[0].id, "myDeckField", "myTrash");
                                                        sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
                                                        playTrashCardSfx();
@@ -1146,6 +1186,7 @@ export default function Game({user}: { user: string }) {
                                                    }}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
                                             onClick={() => {
+                                                if (!opponentReady) return;
                                                 const id = myDeckField[0].id;
                                                 const location = "myDeckField";
                                                 sendCardToDeck("Top", {id, location}, "mySecurity");
@@ -1154,6 +1195,7 @@ export default function Game({user}: { user: string }) {
                                                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
                                             }}>⛊️+1</SendButton>
                                 <SendButton title="Reveal the top card of your deck" onClick={() => {
+                                    if (!opponentReady) return;
                                     moveCard(myDeckField[0].id, "myDeckField", "myReveal");
                                     sendSingleUpdate(myDeckField[0].id, "myDeckField", "myReveal");
                                     playRevealCardSfx();
@@ -1264,7 +1306,7 @@ export default function Game({user}: { user: string }) {
                                                         digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
                                                         tamerIndex={getTamerCardIndex(card, myTamer)}>
                                         <Card card={card} location={"myTamer"}
-                                              sendSfx={sendSfx}/></TamerCardContainer>)}
+                                              sendSfx={sendSfx} sendUpdate={sendUpdate}/></TamerCardContainer>)}
                                 {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
                             </TamerAreaContainer>
 
@@ -1403,16 +1445,20 @@ const Wrapper = styled.div<{ chatOpen: boolean }>`
   @media (max-height: 1199px) {
     transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
-
   @media (max-height: 1080px) {
     transform: scale(0.9) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
   @media (max-height: 900px) {
     transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
-
   @media (min-height: 1200px) {
     transform: scale(1.2) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  }
+  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : landscape) and (-webkit-min-device-pixel-ratio : 2) {
+    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  }
+  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : portrait) and (-webkit-min-device-pixel-ratio : 2) {
+    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-120px" : "-20px"});
   }
 `;
 
@@ -1457,6 +1503,14 @@ const ChatSideBar = styled.div<{ chatOpen: boolean }>`
       }
     `}
   }
+`;
+
+const MiniArrowSpan = styled.span`
+  position: absolute;
+  left: 13px;
+  top: 0;
+  font-size: 10px;
+  filter: drop-shadow(0 0 2px #000000);
 `;
 
 const PlayerContainer = styled.div`
@@ -1657,7 +1711,7 @@ const TrashView = styled.div`
   border: 2px solid crimson;
   box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.5);
 
-  left: 60.5%;
+  left: 59.5%;
   top: 27%;
   transform: translate(-50%, -50%);
 
@@ -1667,24 +1721,13 @@ const TrashView = styled.div`
   }
 `;
 
-const SecurityView = styled.div`
-  background: rgba(2, 1, 1, 0.95);
-  position: absolute;
-  display: flex;
-  flex-flow: row wrap;
-  gap: 15px;
+const SecurityView = styled(TrashView)`
   padding: 10px;
   width: 706px;
-  height: 140px;
-  overflow: hidden;
-  z-index: 150;
-  border-radius: 10px;
+  height: 310px;
   border: 2px solid #1482dc;
   box-shadow: 2px 4px 12px rgba(33, 222, 250, 0.5);
-
-  left: 57%;
-  top: 62%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -40%);
 `;
 
 const TrashSpan = styled.span`
@@ -1710,11 +1753,16 @@ const SendButton = styled.button`
   }
 `;
 
+const SendButtonSmall = styled(SendButton)`
+  width: 25px;
+  font-size: 0.9em;
+`;
+
 const MulliganButton = styled.div`
   position: absolute;
   left: 11px;
   top: 13px;
-  width: 100px;
+  width: 40px;
   height: 40px;
   border-radius: 5px;
   background: #fad219;
@@ -1724,7 +1772,7 @@ const MulliganButton = styled.div`
   align-items: center;
   font-family: Sansation, sans-serif;
   text-shadow: 0px 0px 1px #111921;
-  font-size: 1.1em;
+  font-size: 1.4em;
   filter: drop-shadow(3px 3px 1px #131313);
   transition: all 0.05s ease;
 
@@ -1734,6 +1782,22 @@ const MulliganButton = styled.div`
     background-color: #fad736;
     transform: translateY(1px);
   }
+`;
+
+const MulliganButton2 = styled(MulliganButton)`
+left: 71px;  
+`;
+
+const MulliganSpan = styled.span`
+  position: absolute;
+  left: 8px;
+  top: -15px;
+  width: 110px;
+  font-family: Cuisine, sans-serif;
+  font-size: 17px;
+  color: #fad219;
+  filter: drop-shadow(2px 2px 1px #131313);
+  cursor: default;
 `;
 
 const TokenButton = styled.img`
@@ -1984,6 +2048,10 @@ const BackGround = styled.div`
   -webkit-animation: Background 25s ease infinite;
   -moz-animation: Background 25s ease infinite;
   animation: Background 25s ease infinite;
+  
+  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : portrait) and (-webkit-min-device-pixel-ratio : 2) {
+    width: 310vw;
+  }
 
   @-webkit-keyframes Background {
     0% {
@@ -2032,6 +2100,7 @@ const BackGroundPattern = styled.div`
   animation: bg-animation .2s infinite;
   opacity: .4;
   z-index: 0;
+  
   @keyframes bg-animation {
     0% {
       transform: translate(0, 0)

@@ -20,10 +20,14 @@ export default function Deckbuilder() {
     const clearDeck = useStore((state) => state.clearDeck);
     const isSaving = useStore((state) => state.isSaving);
 
+    const fetchDecks = useStore((state) => state.fetchDecks);
+    const decks = useStore((state) => state.decks);
+
     useEffect(() => {
         clearDeck();
         fetchCards();
-    }, [clearDeck, fetchCards]);
+        fetchDecks();
+    }, [clearDeck, fetchCards, fetchDecks]);
 
     useEffect(() => {
         filterCards(null, null, null, null, null, null, null, null, null, null, null);
@@ -35,9 +39,9 @@ export default function Deckbuilder() {
                 <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
             </DeckNameContainer>
             <ButtonContainer>
-                <SaveDeckButton isSaving={isSaving} disabled={isSaving} onClick={() => {
+                <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={() => {
                     saveDeck(deckName)
-                }}><StyledSpanSaveDeck>SAVE</StyledSpanSaveDeck></SaveDeckButton>
+                }}><StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : `SAVE [${decks.length}/16]`}</StyledSpanSaveDeck></SaveDeckButton>
                 <BackButton/>
             </ButtonContainer>
 
@@ -163,13 +167,13 @@ export const DeckNameInput = styled.input`
   }
 `;
 
-const SaveDeckButton = styled.button<{ isSaving: boolean }>`
+const SaveDeckButton = styled.button<{ disabled:boolean }>`
   height: 40px;
   width: 95%;
   padding: 0;
-  padding-top: 5px;
+  padding-top: 3px;
   margin-left: 5px;
-  background: ${(props) => props.isSaving ? "grey" : "mediumaquamarine"};
+  background: ${(props) => props.disabled ? "grey" : "mediumaquamarine"};
   color: black;
   font-size: 25px;
   font-weight: bold;
@@ -178,11 +182,11 @@ const SaveDeckButton = styled.button<{ isSaving: boolean }>`
   filter: drop-shadow(1px 2px 3px #060e18);
 
   :hover {
-    background: ${(props) => props.isSaving ? "grey" : "aquamarine"};
+    background: ${(props) => props.disabled ? "grey" : "aquamarine"};
   }
 
   &:active {
-    background-color: ${(props) => props.isSaving ? "grey" : "aquamarine"};
+    background-color: ${(props) => props.disabled ? "grey" : "aquamarine"};
     border: none;
     filter: none;
     transform: translateY(1px);

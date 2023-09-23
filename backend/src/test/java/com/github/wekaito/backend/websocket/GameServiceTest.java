@@ -1,7 +1,6 @@
 package com.github.wekaito.backend.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.Deck;
 import com.github.wekaito.backend.IdService;
 import com.github.wekaito.backend.DeckService;
@@ -15,9 +14,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,27 +32,15 @@ class GameServiceTest {
     private DeckService deckService;
     @Mock
     private IdService idService;
-
     private ObjectMapper objectMapper = new ObjectMapper();
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
     private WebSocketSession session2;
-
-    Card exampleCard = new Card("ExampleAgumon1", "Digimon", "Red", "https://images.digimoncard.io/images/cards/BT1-010.jpg", "BT1-010", "Rookie", "Vaccine",
-            "Reptile", 2000, 3, 0, 3,
-            "main effect text", null);
-
-    Card exampleCard2 = new Card("ExampleAgumon2", "Digimon", "Red", "https://images.digimoncard.io/images/cards/BT1-010.jpg", "BT1-010", "Rookie", "Vaccine",
-            "Reptile", 2000, 3, 0, 3,
-            null, "inherited effect text");
-
-    Card[] cards = {exampleCard, exampleCard, exampleCard};
-    Card[] cards2 = {exampleCard2, exampleCard2, exampleCard2};
     String username1 = "testUser1";
     String username2 = "testUser2";
-    Deck exampleDeck = new Deck("12345", "New Deck", cards, "authorId");
-    Deck exampleDeck2 = new Deck("67890", "New Deck2", cards2, "authorId");
+    Deck exampleDeck = new Deck("12345", "New Deck", "Red", new ArrayList<>(List.of("BT1-010", "BT1-010")), "authorId");
+    Deck exampleDeck2 = new Deck("67890", "New Deck2",  "Red", new ArrayList<>(List.of("BT1-020", "BT1-020")), "authorId");
     String gameId = "testUser1‗testUser2";
 
     private WebSocketSession createMockSession(String username) {

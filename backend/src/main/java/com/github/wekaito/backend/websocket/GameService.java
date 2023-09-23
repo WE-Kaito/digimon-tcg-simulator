@@ -181,6 +181,7 @@ public class GameService extends TextWebSocketHandler {
             case "/playButtonClickSfx" -> "[BUTTON_CLICK_SFX]";
             case "/playTrashCardSfx" -> "[TRASH_CARD_SFX]";
             case "/playShuffleDeckSfx" -> "[SHUFFLE_DECK_SFX]";
+            case "/playerReady" -> "[PLAYER_READY]";
             default -> "";
         };
     }
@@ -227,8 +228,8 @@ public class GameService extends TextWebSocketHandler {
         String user1 = gameId.split("‗")[0];
         String user2 = gameId.split("‗")[1];
 
-        Card[] deck1 = deckService.getDeckById(mongoUserDetailsService.getActiveDeck(user1)).cards();
-        Card[] deck2 = deckService.getDeckById(mongoUserDetailsService.getActiveDeck(user2)).cards();
+        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user1));
+        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user2));
 
         List<GameCard> newDeck1 = createGameDeck(deck1);
         List<GameCard> newDeck2 = createGameDeck(deck2);
@@ -269,14 +270,14 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    List<GameCard> createGameDeck(Card[] deck) {
+    List<GameCard> createGameDeck(List<Card> deck) {
         List<GameCard> gameDeck = new ArrayList<>();
 
-        for (int i = deck.length - 1; i > 0; i--) {
+        for (int i = deck.size() - 1; i > 0; i--) {
             int j = secureRand.nextInt(i + 1);
-            Card temp = deck[i];
-            deck[i] = deck[j];
-            deck[j] = temp;
+            Card temp = deck.get(i);
+            deck.set(i, deck.get(j));
+            deck.set(j, temp);
         }
 
         for (Card card : deck) {

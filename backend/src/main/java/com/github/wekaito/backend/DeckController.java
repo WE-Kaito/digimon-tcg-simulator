@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-
 
 @RequestMapping("/api/profile")
 @RestController
@@ -13,11 +11,12 @@ import java.util.Optional;
 public class DeckController {
 
     private final DeckService deckService;
+    private final CardService cardService;
     private final UserIdService userIdService;
 
     @GetMapping("/cards")
     public Card[] getCards() {
-        return this.deckService.getCards();
+        return this.cardService.getCards();
     }
 
     @PostMapping("/decks")

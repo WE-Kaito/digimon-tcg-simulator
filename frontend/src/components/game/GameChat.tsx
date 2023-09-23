@@ -47,6 +47,17 @@ export default function GameChat({user, sendChatMessage, closeChat}: Props) {
                         const filteredMessage = message.substring(startIndex);
                         const cardName = filteredMessage.split("﹕")[0];
                         const cardLocation = filteredMessage.split("﹕")[1];
+                        if (filteredMessage.startsWith("【MEMORY】")){
+                            const memory = parseInt(cardLocation);
+                            return (
+                                <UpdateMessage isMyMessage={isMyMessage} key={index}>
+                                    <p style={{textAlign:"left", marginLeft:"35px"}}>
+                                        {cardName}➟ {isMyMessage
+                                        ? memory.toString()
+                                        : (-memory).toString()}</p>
+                                </UpdateMessage>
+                            );
+                        }
                         return (
                             <UpdateMessage isMyMessage={isMyMessage} key={index}>
                                 <p>{cardName}<br/>{cardLocation}</p>

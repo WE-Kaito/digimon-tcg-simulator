@@ -13,6 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -44,8 +47,8 @@ class DeckControllerTest {
             null
     );
 
-    Card[] cards = {exampleCard, exampleCard, exampleCard};
-    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", cards);
+    List<String> decklist = new ArrayList<>(List.of("BT1-010", "BT1-010", "BT1-010"));
+    DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", "Red", decklist);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -112,7 +115,7 @@ class DeckControllerTest {
         String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks").with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].cards[0].name").value("Agumon"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].decklist[0]").value("BT1-010"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -137,7 +140,7 @@ class DeckControllerTest {
         String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/decks").with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("New Deck"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].cards[0].name").value("Agumon"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].decklist[0]").value("BT1-010"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -147,7 +150,7 @@ class DeckControllerTest {
 
         String id = decks[0].id();
 
-        Deck exampleDeck = new Deck(id,"New Deck2", cards, "authorId");
+        Deck exampleDeck = new Deck(id,"New Deck2", "Red", decklist, "authorId");
         String requestBody2 = objectMapper.writeValueAsString(exampleDeck);
 
         mockMvc.perform(

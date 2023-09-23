@@ -4,8 +4,8 @@ import styled from "@emotion/styled";
 export default function Header() {
     return (
         <div>
-            <Headline>DIGIMON</Headline>
-            <Headline2>TCG Simulator</Headline2>
+            <Headline>???</Headline>
+            <Headline2>TCG SIMULATOR</Headline2>
         </div>
     );
 }

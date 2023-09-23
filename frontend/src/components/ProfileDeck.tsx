@@ -1,4 +1,4 @@
-import {CardType, DeckType} from "../utils/types.ts";
+import {DeckType} from "../utils/types.ts";
 import styled from "@emotion/styled";
 import deckBack from '../assets/deckBack.png';
 import {useNavigate} from "react-router-dom";
@@ -38,37 +38,6 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
     const setActiveDeck = useStore(state => state.setActiveDeck);
     const activeDeckId = useStore(state => state.activeDeckId);
 
-
-    const findMostFrequentColor = (cards: CardType[]) => {
-        const colorOccurrences = {};
-
-        for (const element of cards) {
-            const color = element.color;
-            // @ts-ignore
-            if (colorOccurrences[color]) {
-                // @ts-ignore
-                colorOccurrences[color]++;
-            } else {
-                // @ts-ignore
-                colorOccurrences[color] = 1;
-            }
-        }
-
-        let mostFrequentColor = null;
-        let maxOccurrences = 0;
-
-        for (const color in colorOccurrences) {
-            // @ts-ignore
-            if (colorOccurrences[color] > maxOccurrences) {
-                mostFrequentColor = color;
-                // @ts-ignore
-                maxOccurrences = colorOccurrences[color];
-            }
-        }
-
-        return mostFrequentColor;
-    };
-
     const isActiveDeck = deck.id === activeDeckId;
 
     return (
@@ -79,7 +48,7 @@ export default function ProfileDeck({deck}:{deck:DeckType}) {
                 playButtonClickSfx();
                 setActiveDeck(deck.id);
             }}>Active</ActiveButton>
-           {deck.cards ?  ColoredDeckImage(findMostFrequentColor(deck.cards), deck.id) : null}
+           {ColoredDeckImage(deck.color, deck.id)}
         </Container>
     );
 }

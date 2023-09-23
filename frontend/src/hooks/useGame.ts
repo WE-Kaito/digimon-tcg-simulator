@@ -59,6 +59,9 @@ type State = {
 
     mulliganAllowed: boolean,
     mulligan: () => void,
+    setMulliganAllowed: (allowed: boolean) => void,
+    opponentReady: boolean,
+    setOpponentReady: () => void,
 
     setUpGame: (me: Player, opponent: Player) => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
@@ -79,6 +82,10 @@ type State = {
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
     "myEggDeck", "myBreedingArea", "opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity",
     "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
+
+const opponentLocations = ["opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity", "opponentDeckField",
+    "opponentEggDeck", "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
+    "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentReveal"];
 
 export const useGame = create<State>((set, get) => ({
 
@@ -133,6 +140,11 @@ export const useGame = create<State>((set, get) => ({
 
     messages: [],
     mulliganAllowed: true,
+    opponentReady: false,
+
+    setOpponentReady: () => {
+        set({opponentReady: true});
+    },
 
     setUpGame: (me, opponent) => {
         set({
@@ -141,6 +153,7 @@ export const useGame = create<State>((set, get) => ({
 
             messages: [],
             mulliganAllowed: true,
+            opponentReady: false,
 
             myMemory: 0,
             myReveal: [],
@@ -383,8 +396,8 @@ export const useGame = create<State>((set, get) => ({
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
-        if (toState.length > 0 && toState[toState.length -1].isTilted && to !== "myTamer") {
-            toState[toState.length -1].isTilted = false;
+        if (toState.length > 0 && toState[toState.length - 1].isTilted && to !== "myTamer") {
+            toState[toState.length - 1].isTilted = false;
             card.isTilted = true;
         } else {
             card.isTilted = false;
@@ -395,7 +408,9 @@ export const useGame = create<State>((set, get) => ({
             return;
         }
 
-        if (get().mulliganAllowed) set({mulliganAllowed: false});
+        if (get().mulliganAllowed && !opponentLocations.includes(from) && !opponentLocations.includes(to)) {
+            set({mulliganAllowed: false});
+        }
 
         if (destroyTokenLocations.includes(to) && card.type === "Token") {
             if (to !== "myTrash") playTrashCardSfx();
@@ -412,6 +427,7 @@ export const useGame = create<State>((set, get) => ({
     },
 
     sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
+        if (!get().opponentReady) return;
         if (cardToSendToDeck.location === to) return;
         set(state => {
             const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
@@ -470,6 +486,10 @@ export const useGame = create<State>((set, get) => ({
         })
     },
 
+    setMulliganAllowed: (mulliganAllowed: boolean) => {
+        set({mulliganAllowed})
+    },
+
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx, sendSfx) => {
         set(state => {
             return {
@@ -487,9 +507,12 @@ export const useGame = create<State>((set, get) => ({
     },
 
     setMessages: (message: string) => {
-
-
         set(state => {
+            if (state.messages[0]?.includes("[STARTING_PLAYER]") && message.includes("[STARTING_PLAYER]")) {
+                return {
+                    messages: [message]
+                }
+            }
             return {
                 messages: [message, ...state.messages]
             }
@@ -497,12 +520,13 @@ export const useGame = create<State>((set, get) => ({
     },
 
     createToken: () => {
+        if (!get().opponentReady) return;
         const token: CardTypeGame = {
             name: "Token",
             type: "Token",
             color: "White",
             image_url: tokenImage,
-            cardnumber: "no-number",
+            cardnumber: "",
             stage: null,
             attribute: "Unknown",
             digi_type: null,
