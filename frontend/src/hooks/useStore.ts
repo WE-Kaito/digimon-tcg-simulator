@@ -18,7 +18,9 @@ import {addStarterDecks, mostFrequentColor, sortCards} from "../utils/functions.
 type State = {
     fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
+    cardsFiltered: boolean,
     isLoading: boolean,
+    loadingDeck: boolean,
     selectedCard: CardTypeWithId | CardTypeGame | null,
     deckCards: CardTypeWithId[],
     decks: DeckType[],
@@ -56,6 +58,7 @@ export const useStore = create<State>((set, get) => ({
 
     fetchedCards: [],
     filteredCards: [],
+    cardsFiltered: false,
     isLoading: false,
     selectedCard: null,
     hoverCard: null,
@@ -67,8 +70,10 @@ export const useStore = create<State>((set, get) => ({
     isSaving: false,
     avatarName: "",
     gameId: "",
+    loadingDeck: false,
 
     fetchCards: () => {
+        if (get().fetchedCards.length > 0) return;
         set({isLoading: true})
         axios
             .get("/api/profile/cards")
@@ -110,7 +115,7 @@ export const useStore = create<State>((set, get) => ({
         if (level) filteredData = filteredData.filter((card) => card.level === level);
         if (cardnumber) filteredData = filteredData.filter((card) => card.cardnumber.toUpperCase().includes(cardnumber.toUpperCase()));
 
-        set({filteredCards: filteredData, isLoading: false});
+        set(state => ({filteredCards: filteredData, cardsFiltered: filteredData !== state.fetchedCards,  isLoading: false}));
     },
 
     selectCard: (card) => {
@@ -127,17 +132,10 @@ export const useStore = create<State>((set, get) => ({
 
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
-        const cardToAdd = get().filteredCards.filter((card) => card.id === id)[0];
-        let cardToAddWithNewId;
-
-        if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012") {
-            cardToAddWithNewId = {...cardToAdd, id: uid(), type: "Digimon"} // fetched EX5-020 & EX5-012 are typed incorrectly
-        } else {
-            cardToAddWithNewId = {...cardToAdd, id: uid()}
-        }
+        const cardToAdd = {...get().filteredCards.filter((card) => card.id === id)[0], id: uid()};
 
         if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4) {
-            set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
+            set({deckCards: [cardToAdd, ...get().deckCards]});
             return;
         }
 
@@ -148,13 +146,13 @@ export const useStore = create<State>((set, get) => ({
 
         const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
         if (cardsWithoutLimit.includes(cardnumber)) {     // unique effect
-            set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
+            set({deckCards: [cardToAdd, ...get().deckCards]});
             return;
         }
 
         if ((type === "Digi-Egg" && digiEggsInDeck >= 5) || cardOfIdInDeck >= 4) return;
 
-        set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
+        set({deckCards: [cardToAdd, ...get().deckCards]});
     },
 
     deleteFromDeck: (id) => {
@@ -236,11 +234,7 @@ export const useStore = create<State>((set, get) => ({
     setDeckById: (id) => {
 
         if (id === undefined) return;
-
-        get().filterCards(null, null, null, null, null, null, null, null, null, null, null);
-
-        set({isLoading: true});
-
+        set({loadingDeck: true, filteredCards: []});
         axios
             .get(`/api/profile/decks/${id}`)
             .then((res) => res.data)
@@ -254,10 +248,11 @@ export const useStore = create<State>((set, get) => ({
 
                 set({
                     deckCards: cardsWithId,
-                    nameOfDeckToEdit: data.name,
-                    isLoading: false
+                    nameOfDeckToEdit: data.name
                 });
-            });
+            })
+            .finally(() => set({loadingDeck: false}));
+
     },
 
     deleteDeck: (id, navigate) => {

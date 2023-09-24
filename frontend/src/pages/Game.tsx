@@ -788,6 +788,10 @@ export default function Game({user}: { user: string }) {
                            rel="noopener noreferrer">
                             <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                         </a>
+                        <a style={{position:"absolute", left: 32, top:33}} href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F" target="_blank"
+                           rel="noopener noreferrer">
+                            <span style={{color: "dodgerblue"}}>🛈 </span>Controls
+                        </a>
                     </InfoSpan>
                     <CardImage onClick={() => selectCard(null)}
                                src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
@@ -1760,7 +1764,7 @@ const SendButtonSmall = styled(SendButton)`
 
 const MulliganButton = styled.div`
   position: absolute;
-  left: 11px;
+  left: 71px;
   top: 13px;
   width: 40px;
   height: 40px;
@@ -1779,13 +1783,17 @@ const MulliganButton = styled.div`
   &:hover {
     cursor: pointer;
     filter: drop-shadow(2px 2px 1px #131313);
-    background-color: #fad736;
+    background-color: #f8681a;
     transform: translateY(1px);
   }
 `;
 
 const MulliganButton2 = styled(MulliganButton)`
-left: 71px;  
+  left: 11px;
+
+  &:hover {
+    background-color: #51b60a;
+  }
 `;
 
 const MulliganSpan = styled.span`

@@ -129,8 +129,12 @@ public class GameService extends TextWebSocketHandler {
         if (payload.startsWith("/startGame:") && parts.length >= 2) {
             String gameId = parts[1].trim();
             setUpGame(session, gameId);
+            String user1 = gameId.split("‗")[0];
+            String user2 = gameId.split("‗")[1];
+            List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user1));
+            List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user2));
             Thread.sleep(600);
-            distributeCards(gameId);
+            distributeCards(gameId, deck1, deck2);
             return;
         }
 
@@ -190,10 +194,11 @@ public class GameService extends TextWebSocketHandler {
         WebSocketSession opponentSession = gameRoom.stream()
                 .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
-        if (opponentSession != null) sendTextMessage(opponentSession, message);
+        sendTextMessage(opponentSession, message);
     }
 
     synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
+        if(session == null) return;
         if (session.isOpen()) {
             session.sendMessage(new TextMessage(message));
         }
@@ -223,13 +228,8 @@ public class GameService extends TextWebSocketHandler {
         Thread.sleep(3600);
     }
 
-    void distributeCards(String gameId) throws IOException {
+    void distributeCards(String gameId, List<Card> deck1, List<Card> deck2) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
-        String user1 = gameId.split("‗")[0];
-        String user2 = gameId.split("‗")[1];
-
-        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user1));
-        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user2));
 
         List<GameCard> newDeck1 = createGameDeck(deck1);
         List<GameCard> newDeck2 = createGameDeck(deck2);
