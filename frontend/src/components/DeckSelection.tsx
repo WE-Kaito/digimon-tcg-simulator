@@ -3,6 +3,8 @@ import eggIcon from "../assets/cardtype_icons/egg.png";
 import digimonIcon from "../assets/cardtype_icons/gammamon.png";
 import tamerIcon from "../assets/cardtype_icons/tamer.png";
 import optionIcon from "../assets/cardtype_icons/option.png";
+import loadingAnimation from "../assets/lotties/loading.json";
+import Lottie from "lottie-react";
 import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
 import Card from "./Card.tsx";
@@ -11,6 +13,7 @@ import {sortCards} from "../utils/functions.ts";
 export default function DeckSelection() {
 
     const deckCards = useStore((state) => state.deckCards);
+    const loadingDeck = useStore((state) => state.loadingDeck);
 
     const digimonLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digimon").length;
     const tamerLength = deckCards.filter((card: CardTypeWithId) => card.type === "Tamer").length;
@@ -45,13 +48,11 @@ export default function DeckSelection() {
             <DeckList>
                 <legend>[ {deckCards.length - eggLength}/50]</legend>
 
-                {deckCards?.length !== 0 ? sortCards(deckCards).map((card: CardTypeWithId) => (
-                        <Card key={card.id} card={card} location={"deck"}/>
-                    ))
-                    :
-                    <span>
-                        DROP CARDS HERE
-                    </span>
+                {!loadingDeck
+                    ? sortCards(deckCards)?.map((card: CardTypeWithId) => (
+                    <Card key={card.id} card={card} location={"deck"}/>))
+                    : <Lottie animationData={loadingAnimation} loop={true}
+                              style={{width: "130px", marginLeft: "50%", transform: "translateX(-50%)"}}/>
                 }
 
             </DeckList>

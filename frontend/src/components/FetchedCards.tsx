@@ -18,23 +18,28 @@ export default function FetchedCards() {
 
     const isLoading = useStore((state) => state.isLoading);
     const cards = useStore((state) => state.filteredCards);
+    const cardsFiltered = useStore((state) => state.cardsFiltered);
 
     return (
         <FetchContainer>
             <Suspense fallback={<Loading/>}>
                 <StyledFieldset>
 
-                    {!isLoading
-                        ? cards?.map((card: CardTypeWithId) => (
-                            <Card key={card.cardnumber} card={card} location={"fetchedData"}/>
-                        ))
-                        : (
-                            <Loading/>
-                        )}
+                    {isLoading && <Loading/>}
 
-                    {!isLoading && (cards.length === 0) && (
+                    {!isLoading && cardsFiltered && cards?.map((card: CardTypeWithId) => (
+                            <Card key={card.cardnumber} card={card} location={"fetchedData"}/>
+                        ))}
+
+                    {!isLoading && cardsFiltered && (cards.length === 0) && (
                         <LoadingContainer>
                             <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
+                            <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+                        </LoadingContainer>
+                    )}
+
+                    {!isLoading && !cardsFiltered && (
+                        <LoadingContainer>
                             <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
                         </LoadingContainer>
                     )}
