@@ -22,6 +22,8 @@ export default function MainMenu() {
                 <li><b>Deckbuilder:</b></li>
                 <li>• Removed drag & drop</li>
                 <li>• Added max. deck limit</li>
+                <li style={{color:"#DCBB14FF"}}>• (24/9) Unfiltered cards no longer displayed</li>
+                <li style={{color:"#DCBB14FF"}}>• (24/9) Fixed card type of EX5-020 & EX5-012</li>
                 <li><b>Game:</b></li>
                 <li>• Improved mobile view</li>
                 <li>• Log: added memory; fixed starting player</li>
@@ -57,7 +59,7 @@ const PatchNotes = styled.div`
   top: 0;
   right: 20px;
   width: 300px;
-  height: 400px;
+  height: 420px;
   background: rgba(7, 13, 17, 0.9);
   filter: drop-shadow(0 0 3px #1d7dfc);
   border-radius: 10px;

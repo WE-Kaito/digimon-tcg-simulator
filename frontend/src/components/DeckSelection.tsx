@@ -50,7 +50,8 @@ export default function DeckSelection() {
 
                 {!loadingDeck
                     ? sortCards(deckCards)?.map((card: CardTypeWithId) => (
-                    <Card key={card.id} card={card} location={"deck"}/>))
+                    card.name ? <Card key={card.id} card={card} location={"deck"}/> : null
+                    ))
                     : <Lottie animationData={loadingAnimation} loop={true}
                               style={{width: "130px", marginLeft: "50%", transform: "translateX(-50%)"}}/>
                 }
