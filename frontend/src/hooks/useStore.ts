@@ -127,17 +127,10 @@ export const useStore = create<State>((set, get) => ({
 
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
-        const cardToAdd = get().filteredCards.filter((card) => card.id === id)[0];
-        let cardToAddWithNewId;
-
-        if (cardToAdd.cardnumber === "EX5-020" || cardToAdd.cardnumber === "EX5-012") {
-            cardToAddWithNewId = {...cardToAdd, id: uid(), type: "Digimon"} // fetched EX5-020 & EX5-012 are typed incorrectly
-        } else {
-            cardToAddWithNewId = {...cardToAdd, id: uid()}
-        }
+        const cardToAdd = {...get().filteredCards.filter((card) => card.id === id)[0], id: uid()};
 
         if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4) {
-            set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
+            set({deckCards: [cardToAdd, ...get().deckCards]});
             return;
         }
 
@@ -148,13 +141,13 @@ export const useStore = create<State>((set, get) => ({
 
         const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
         if (cardsWithoutLimit.includes(cardnumber)) {     // unique effect
-            set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
+            set({deckCards: [cardToAdd, ...get().deckCards]});
             return;
         }
 
         if ((type === "Digi-Egg" && digiEggsInDeck >= 5) || cardOfIdInDeck >= 4) return;
 
-        set({deckCards: [cardToAddWithNewId, ...get().deckCards]});
+        set({deckCards: [cardToAdd, ...get().deckCards]});
     },
 
     deleteFromDeck: (id) => {
