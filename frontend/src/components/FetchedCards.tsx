@@ -5,7 +5,7 @@ import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
 import gatchmon from "../assets/gatchmon.png";
 import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
-import {lazy, Suspense} from 'react';
+import {lazy, Suspense, useEffect} from 'react';
 
 const Card = lazy(() => import('./Card.tsx'));
 
@@ -17,8 +17,15 @@ export const Loading = () => <LoadingContainer>
 export default function FetchedCards() {
 
     const isLoading = useStore((state) => state.isLoading);
-    const cards = useStore((state) => state.filteredCards);
-    const cardsFiltered = useStore((state) => state.cardsFiltered);
+    const filteredCards = useStore((state) => state.filteredCards);
+    const fetchCards = useStore((state) => state.fetchCards);
+    const fetchedCards = useStore((state) => state.fetchedCards);
+    const filterCards = useStore((state) => state.filterCards);
+
+    useEffect(() => {
+        fetchCards();
+        setTimeout( () => filterCards("", "", "", "", "", "", null, null, null, null, ""), 50);
+    }, [fetchCards,filterCards]);
 
     return (
         <FetchContainer>
@@ -27,18 +34,18 @@ export default function FetchedCards() {
 
                     {isLoading && <Loading/>}
 
-                    {!isLoading && cardsFiltered && cards?.map((card: CardTypeWithId) => (
+                    {!isLoading && (filteredCards !== fetchedCards) && filteredCards?.map((card: CardTypeWithId) => (
                             <Card key={card.cardnumber} card={card} location={"fetchedData"}/>
                         ))}
 
-                    {!isLoading && cardsFiltered && (cards.length === 0) && (
+                    {!isLoading && (filteredCards.length === 0) && (
                         <LoadingContainer>
                             <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
                             <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
                         </LoadingContainer>
                     )}
 
-                    {!isLoading && !cardsFiltered && (
+                    {!isLoading && (filteredCards === fetchedCards) && (
                         <LoadingContainer>
                             <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
                         </LoadingContainer>

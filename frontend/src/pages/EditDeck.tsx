@@ -30,10 +30,6 @@ export default function EditDeck() {
     const deleteDeck = useStore((state) => state.deleteDeck);
     const [deckName, setDeckName] = useState<string>("");
 
-    const fetchCards = useStore((state) => state.fetchCards);
-    const fetchedCards = useStore((state) => state.fetchedCards);
-    const filterCards = useStore((state) => state.filterCards);
-
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
     const navigate = useNavigate();
@@ -42,14 +38,6 @@ export default function EditDeck() {
         setDeckById(id);
         setDeckName(nameOfDeckToEdit);
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById]);
-
-    useEffect(() => {
-        fetchCards();
-    }, [fetchCards]);
-
-    useEffect(() => {
-        filterCards(null, null, null, null, null, null, null, null, null, null, null);
-    }, [fetchedCards, filterCards]);
 
     return (
         <OuterContainer>
