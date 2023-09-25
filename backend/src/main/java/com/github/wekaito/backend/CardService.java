@@ -26,7 +26,7 @@ public class CardService {
     }
 
     public Card getCardByCardumber(String cardnumber) {
-        return cardRepo.findByCardnumber(cardnumber);
+        return cardCollection.stream().filter(card -> cardnumber.equals(card.cardnumber())).findFirst().orElse(null);
     }
 
     private final WebClient webClient = WebClient.builder()
