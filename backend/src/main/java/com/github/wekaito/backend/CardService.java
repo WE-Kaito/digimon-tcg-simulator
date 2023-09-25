@@ -19,8 +19,10 @@ public class CardService {
 
     private final CardRepo cardRepo;
 
-    public Card[] getCards() {
-        return cardRepo.findAll().toArray(new Card[0]);
+    private final List<Card> cardCollection;
+
+    public List<Card> getCards() {
+        return cardCollection;
     }
 
     public Card getCardByCardumber(String cardnumber) {
@@ -52,6 +54,7 @@ public class CardService {
                 .retrieve()
                 .toEntity(Card[].class)
                 .block();
+
         List<Card> cards = new ArrayList<>(Arrays.asList(Objects.requireNonNull(Objects.requireNonNull(response).getBody())));
         Card replaceCard1 = cards.stream().filter(card -> "EX5-020".equals(card.cardnumber())).findFirst().orElse(null);
         Card replaceCard2 = cards.stream().filter(card -> "EX5-012".equals(card.cardnumber())).findFirst().orElse(null);
@@ -61,5 +64,10 @@ public class CardService {
         cards.add(new Card(replaceCard2.name(), "Digimon", replaceCard2.color(), replaceCard2.image_url(), "EX5-012", replaceCard2.stage(), replaceCard2.attribute(), replaceCard2.digi_type(), replaceCard2.dp(), replaceCard2.play_cost(), replaceCard2.evolution_cost(), replaceCard2.level(), replaceCard2.maineffect(), replaceCard2.soureeffect()));
         this.cardRepo.deleteAll();
         this.cardRepo.saveAll(cards);
+
+        if (cardCollection != cards) {
+            cardCollection.clear();
+            cardCollection.addAll(cards);
+        }
     }
 }
