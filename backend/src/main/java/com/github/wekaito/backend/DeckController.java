@@ -15,7 +15,7 @@ public class DeckController {
     private final UserIdService userIdService;
 
     @GetMapping("/cards")
-    public Card[] getCards() {
+    public List<Card> getCards() {
         return this.cardService.getCards();
     }
 

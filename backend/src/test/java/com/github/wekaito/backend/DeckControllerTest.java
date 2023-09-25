@@ -70,7 +70,7 @@ class DeckControllerTest {
         ).andExpect(MockMvcResultMatchers.status().isOk());
     }
     @Test
-    void expectArrayOfCards_whenGetCards() throws Exception {
+    void expectListOfCards_whenGetCards() throws Exception {
 
         String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/profile/cards"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -80,7 +80,7 @@ class DeckControllerTest {
 
         Card[] cards = objectMapper.readValue(response, Card[].class);
 
-        assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class).hasSizeGreaterThan(200);
+        assertThat(cards).contains(exampleCard).hasSizeGreaterThan(200);
     }
 
 

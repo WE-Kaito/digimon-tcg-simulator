@@ -18,7 +18,6 @@ import {addStarterDecks, mostFrequentColor, sortCards} from "../utils/functions.
 type State = {
     fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
-    cardsFiltered: boolean,
     isLoading: boolean,
     loadingDeck: boolean,
     selectedCard: CardTypeWithId | CardTypeGame | null,
@@ -58,7 +57,6 @@ export const useStore = create<State>((set, get) => ({
 
     fetchedCards: [],
     filteredCards: [],
-    cardsFiltered: false,
     isLoading: false,
     selectedCard: null,
     hoverCard: null,
@@ -115,7 +113,7 @@ export const useStore = create<State>((set, get) => ({
         if (level) filteredData = filteredData.filter((card) => card.level === level);
         if (cardnumber) filteredData = filteredData.filter((card) => card.cardnumber.toUpperCase().includes(cardnumber.toUpperCase()));
 
-        set(state => ({filteredCards: filteredData, cardsFiltered: filteredData !== state.fetchedCards,  isLoading: false}));
+        set({filteredCards: filteredData, isLoading: false});
     },
 
     selectCard: (card) => {

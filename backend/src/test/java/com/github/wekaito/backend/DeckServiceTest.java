@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,11 +38,13 @@ class DeckServiceTest {
     DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", "Red", decklist);
     Deck[] decks = {exampleDeck};
 
+    List<Card> cardCollection = new ArrayList<>();
+
     @BeforeEach
     void setUp() {
         openMocks(this);
         deckService = new DeckService(deckRepo, cardService, idService, userIdService);
-        cardService = new CardService(cardRepo);
+        cardService = new CardService(cardRepo, cardCollection);
         when(cardRepo.findAll()).thenReturn(List.of(exampleCard));
         when(deckRepo.save(exampleDeck)).thenReturn(exampleDeck);
         when(deckRepo.findById(exampleDeck.id())).thenReturn(Optional.of(exampleDeck));
@@ -54,9 +57,9 @@ class DeckServiceTest {
     @Test
     void testFetchCards() {
         cardService.init();
-        Card[] cards = cardService.getCards();
+        List<Card> cards = cardService.getCards();
         assertNotNull(cards);
-        assertThat(cards).contains(exampleCard).isInstanceOf(Card[].class);
+        assertThat(cards).contains(exampleCard);
     }
 
     @DirtiesContext

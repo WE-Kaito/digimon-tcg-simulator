@@ -396,7 +396,7 @@ export const useGame = create<State>((set, get) => ({
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
-        if (toState.length > 0 && toState[toState.length - 1].isTilted && to !== "myTamer") {
+        if (toState.length > 0 && toState[toState.length - 1].isTilted && to !== "myTamer" && to !== "opponentTamer") {
             toState[toState.length - 1].isTilted = false;
             card.isTilted = true;
         } else {
