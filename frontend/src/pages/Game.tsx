@@ -95,6 +95,7 @@ export default function Game({user}: { user: string }) {
         me: {username: "", avatarName: ""},
         opponent: {username: "", avatarName: ""}
     });
+    const [userCount, setUserCount] = useState<number>(0);
 
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
@@ -257,6 +258,12 @@ export default function Game({user}: { user: string }) {
                 setAttackFromOpponent(true);
                 setShowAttackArrow(true);
                 endAttackAnimation();
+                return;
+            }
+
+            if (event.data.startsWith("[USER_COUNT]:")) {
+                const userCount = event.data.substring("[USER_COUNT]:".length);
+                setUserCount(parseInt(userCount));
                 return;
             }
 
@@ -750,6 +757,7 @@ export default function Game({user}: { user: string }) {
 
     return (
         <BackGround>
+            {user === "Kaito" && <span style={{position:"absolute", top:15, left:15}}>users ingame: {userCount}</span>}
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
             <BackGroundPattern/>
             {(surrenderOpen || timerOpen) &&

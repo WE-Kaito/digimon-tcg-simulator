@@ -112,6 +112,9 @@ public class GameService extends TextWebSocketHandler {
             for (WebSocketSession webSocketSession : gameRoom) {
                 try {
                     webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+                    if (Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals("Kaito")) {
+                        webSocketSession.sendMessage(new TextMessage("[USER_COUNT]:" + gameRooms.size() * 2));
+                    }
                 } catch (IOException e) {
                     e.getCause();
                 }
