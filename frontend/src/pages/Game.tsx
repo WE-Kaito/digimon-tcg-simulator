@@ -57,6 +57,7 @@ export default function Game({user}: { user: string }) {
 
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
+    const clearBoard = useGame((state) => state.clearBoard);
     const distributeCards = useGame((state) => state.distributeCards);
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
@@ -187,13 +188,13 @@ export default function Game({user}: { user: string }) {
                     playDrawCardSfx();
                     setIsChatOpen(true);
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
-                        }, 3800);
+                        }, 4300);
                 setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
                     setInterval(() => {websocket.sendMessage("/heartbeat/")}, 5000);
-                }, 4500);
+                }, 5500);
                 return;
             }
 
@@ -736,6 +737,7 @@ export default function Game({user}: { user: string }) {
     }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myReveal, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10]);
 
     useEffect(() => {
+        clearBoard();
         document.addEventListener('contextmenu', function(event) {
             event.preventDefault();
         });

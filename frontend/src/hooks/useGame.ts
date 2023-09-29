@@ -64,6 +64,7 @@ type State = {
     setOpponentReady: () => void,
 
     setUpGame: (me: Player, opponent: Player) => void,
+    clearBoard: () => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getUpdatedGame: (gameId: string, user: string) => string,
@@ -154,7 +155,11 @@ export const useGame = create<State>((set, get) => ({
             messages: [],
             mulliganAllowed: true,
             opponentReady: false,
+        });
+    },
 
+    clearBoard: () => {
+        set({
             myMemory: 0,
             myReveal: [],
             myHand: [],
@@ -508,11 +513,6 @@ export const useGame = create<State>((set, get) => ({
 
     setMessages: (message: string) => {
         set(state => {
-            if (state.messages[0]?.includes("[STARTING_PLAYER]") && message.includes("[STARTING_PLAYER]")) {
-                return {
-                    messages: [message]
-                }
-            }
             return {
                 messages: [message, ...state.messages]
             }
