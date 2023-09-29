@@ -54,7 +54,7 @@ function App() {
     }, [me])
 
     function isMobileDevice() {
-        if ('ontouchstart' in window || navigator.maxTouchPoints) {
+        if (window.innerWidth <= 766) {
             return TouchBackend;
         } else {
             return HTML5Backend;
