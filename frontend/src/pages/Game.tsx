@@ -152,6 +152,7 @@ export default function Game({user}: { user: string }) {
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
 
+    let interval: any;
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
@@ -184,18 +185,21 @@ export default function Game({user}: { user: string }) {
                 setStartingPlayer(firstPlayer);
                 setShowStartingPlayer(true);
                 playStartSfx();
-                setTimeout(() => {
+                const timeout1 = setTimeout(() => {
                     playDrawCardSfx();
                     setIsChatOpen(true);
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                         }, 4300);
-                setTimeout(() => {
+                const timeout2 = setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
-                    setInterval(() => {websocket.sendMessage("/heartbeat/")}, 5000);
+                    interval = setInterval(() => {websocket.sendMessage("/heartbeat/")}, 5000);
                 }, 5500);
-                return;
+                return () => {
+                    clearTimeout(timeout1);
+                    clearTimeout(timeout2)
+                };
             }
 
             if (event.data.startsWith("[MOVE_CARD]:")) {
@@ -318,12 +322,13 @@ export default function Game({user}: { user: string }) {
 
     function endAttackAnimation() {
         playAttackSfx();
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             setShowAttackArrow(false);
             setArrowFrom('');
             setArrowTo('');
             setAttackFromOpponent(false);
         }, 3500);
+        return () => clearTimeout(timeout);
     }
 
     function chunkString(str: string, size: number): string[] {
@@ -337,11 +342,14 @@ export default function Game({user}: { user: string }) {
     function sendUpdate() {
         const updatedGame: string = getUpdatedGame(gameId, user);
         const chunks = chunkString(updatedGame, 1000);
+        const timeoutIds: number[] = [];
         for (const chunk of chunks) {
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
             }, 10);
+            timeoutIds.push(timeoutId);
         }
+        return () => { timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId)); };
     }
 
     function sendSingleUpdate(cardId: string, from: string, to: string) {
@@ -353,9 +361,10 @@ export default function Game({user}: { user: string }) {
     }
 
     function sendSfx(sfx: string) {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             websocket.sendMessage(gameId + ":/" + sfx + ":" + opponentName);
         }, 10);
+        return () => clearTimeout(timeout);
     }
 
     function handleDropToOpponent(from: string, to: string) {
@@ -742,6 +751,9 @@ export default function Game({user}: { user: string }) {
         document.addEventListener('contextmenu', function(event) {
             event.preventDefault();
         });
+        return () => {
+            clearInterval(interval);
+        };
     },[]);
 
     function handleSurrender() {
@@ -758,11 +770,14 @@ export default function Game({user}: { user: string }) {
 
     function startTimer() {
         setTimerOpen(true);
+        const timeoutIDs: number[] = [];
         for (let i = 5; i > 0; i--) {
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 setTimer((timer) => timer - 1);
             }, i * 1000);
+            timeoutIDs.push(timeoutId);
         }
+        return () => {timeoutIDs.forEach(clearTimeout)};
     }
 
     return (
