@@ -166,7 +166,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     void sendChatMessage(Set<WebSocketSession> gameRoom, String userName, String roomMessage) throws IOException {
-        String[] roomMessageParts = roomMessage.split(":");
+        String[] roomMessageParts = roomMessage.split(":", 3);
         if (roomMessageParts.length < 3) return;
         String opponentName = roomMessageParts[1];
         String chatMessage = roomMessageParts[2];

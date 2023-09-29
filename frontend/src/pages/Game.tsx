@@ -735,6 +735,12 @@ export default function Game({user}: { user: string }) {
         }
     }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myReveal, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10]);
 
+    useEffect(() => {
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
+    },[]);
+
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
         startTimer();
