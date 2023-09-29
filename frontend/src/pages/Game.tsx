@@ -14,7 +14,6 @@ import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderMoodle from "../components/game/SurrenderMoodle.tsx";
 import deckBack from "../assets/deckBack.png";
-import deckBackOpponent from "../assets/deckBackOpponent.png";
 import eggBack from "../assets/eggBack.jpg";
 import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
@@ -859,7 +858,7 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <OpponentDeckContainer>
-                                <img alt="deck" src={deckBackOpponent} width="105px"/>
+                                <img alt="deck" src={deckBack} width="105px"/>
                                 <TrashSpan
                                     style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
                             </OpponentDeckContainer>
@@ -2051,6 +2050,10 @@ const RevealContainer = styled.div`
   align-items: center;
   gap: 5px;
   transform: scale(2);
+  pointer-events: none;
+  * {
+    pointer-events: initial;
+  }
 `;
 
 const StartingName = styled.span`

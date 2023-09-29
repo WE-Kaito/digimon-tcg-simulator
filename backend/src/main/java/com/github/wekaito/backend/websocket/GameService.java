@@ -131,9 +131,12 @@ public class GameService extends TextWebSocketHandler {
 
         if (payload.startsWith("/startGame:") && parts.length >= 2) {
             String gameId = parts[1].trim();
-            setUpGame(session, gameId);
+            String username1 = gameId.split("‗")[0];
+            String username2 = gameId.split("‗")[1];
+            setUpGame(session, gameId, username1, username2);
+            if (username2.equals(session.getPrincipal().getName())) return;
             Thread.sleep(3600);
-            distributeCards(gameId);
+            distributeCards(gameId, username1, username2);
             return;
         }
 
@@ -203,11 +206,9 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    void setUpGame(WebSocketSession session, String gameId) throws IOException, InterruptedException {
+    void setUpGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
-        String username1 = gameId.split("‗")[0];
-        String username2 = gameId.split("‗")[1];
 
         String avatar1 = mongoUserDetailsService.getAvatar(username1);
         String avatar2 = mongoUserDetailsService.getAvatar(username2);
@@ -231,12 +232,11 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    void distributeCards(String gameId) throws IOException, InterruptedException {
+    void distributeCards(String gameId, String username1, String username2) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
-        String user1 = gameId.split("‗")[0];
-        String user2 = gameId.split("‗")[1];
-        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user1));
-        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user2));
+
+        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
+        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username2));
 
         List<GameCard> newDeck1 = createGameDeck(deck1);
         List<GameCard> newDeck2 = createGameDeck(deck2);
