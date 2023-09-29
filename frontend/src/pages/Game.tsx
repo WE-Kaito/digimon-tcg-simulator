@@ -215,7 +215,7 @@ export default function Game({user}: { user: string }) {
             }
 
             if (event.data.startsWith("[CHAT_MESSAGE]:")) {
-                const chatMessage = event.data.substring(event.data.indexOf(":") + 1);
+                const chatMessage = event.data.substring("[CHAT_MESSAGE]:".length);
                 setMessages(chatMessage);
                 return;
             }
@@ -291,6 +291,7 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[ACCEPT_RESTART]"): {
+                    clearBoard();
                     setUpGame(restartObj.me, restartObj.opponent);
                     break;
                 }
@@ -310,7 +311,7 @@ export default function Game({user}: { user: string }) {
 
     function sendChatMessage(message: string) {
         if (message.length > 0) {
-            setMessages(user + ":" + message);
+            setMessages(user + "﹕" + message);
             websocket.sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
         }
     }
@@ -749,6 +750,7 @@ export default function Game({user}: { user: string }) {
     }
 
     function acceptRestart() {
+        clearBoard();
         setRestartMoodle(false);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
         websocket.sendMessage("/startGame:" + gameId);

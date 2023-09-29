@@ -233,7 +233,7 @@ class GameServiceTest {
     @Test
     void testChatMessage() throws IOException, InterruptedException {
         // GIVEN
-        TextMessage expectedMessage = new TextMessage("[CHAT_MESSAGE]:" + username1 + ":test test");
+        TextMessage expectedMessage = new TextMessage("[CHAT_MESSAGE]:" + username1 + "﹕test test");
         TextMessage chatMessage = new TextMessage(gameId + ":/chatMessage:" + username2 + ":test test");
         putPlayersToGameRoom();
         // WHEN

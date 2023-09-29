@@ -166,7 +166,7 @@ public class GameService extends TextWebSocketHandler {
         if (roomMessageParts.length < 3) return;
         String opponentName = roomMessageParts[1];
         String chatMessage = roomMessageParts[2];
-        sendMessageToOpponent(gameRoom, opponentName, "[CHAT_MESSAGE]:" + userName + ":" + chatMessage);
+        sendMessageToOpponent(gameRoom, opponentName, "[CHAT_MESSAGE]:" + userName + "﹕" + chatMessage);
     }
 
     String convertCommand(String command) {
@@ -265,11 +265,7 @@ public class GameService extends TextWebSocketHandler {
                 .limit(5).toList();
         newDeck2.removeAll(player2Hand);
 
-        GameCard[] player1Deck = newDeck1.toArray(new GameCard[0]);
-        GameCard[] player2Deck = newDeck2.toArray(new GameCard[0]);
-        GameCard[] empty = new GameCard[0];
-
-        Game newGame = new Game(0, 0, empty, empty, player1Hand.toArray(new GameCard[0]), player1Deck, player1EggDeck.toArray(new GameCard[0]), empty, player1Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, player2Hand.toArray(new GameCard[0]), player2Deck, player2EggDeck.toArray(new GameCard[0]), empty, player2Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty);
+        GameStart newGame = new GameStart(player1Hand, newDeck1, player1EggDeck, player1Security, player2Hand, newDeck2, player2EggDeck, player2Security);
         String newGameJson = objectMapper.writeValueAsString(newGame);
 
         Thread.sleep(600);
