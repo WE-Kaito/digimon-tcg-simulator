@@ -1,13 +1,17 @@
 import styled from "@emotion/styled";
+import {useLocation} from "react-router-dom";
 
 
 export default function Header() {
+
+    const location = useLocation().pathname;
+
     return (
-        <div>
-            <Headline>???</Headline>
-            <Headline2>TCG SIMULATOR</Headline2>
-        </div>
-    );
+        <Headline>
+            Project {location === "/login" && <br/>}
+            <Headline2 style={{fontSize: "60px"}}>Drasil</Headline2>
+        </Headline>
+    )
 }
 
 const Headline = styled.h1`
@@ -15,6 +19,7 @@ const Headline = styled.h1`
   font-style: italic;
   font-weight: bold;
   margin: 0;
+  font-size: 60px;
   text-shadow: 2px 4px 1px #03060a;
   letter-spacing: 2px;
   color: #ff880d;
@@ -25,7 +30,7 @@ const Headline = styled.h1`
   }
 `;
 
-export const Headline2 = styled.h2`
+export const Headline2 = styled.span`
   font-family: 'Pixel Digivolve', sans-serif;
   font-style: italic;
   font-weight: bold;
