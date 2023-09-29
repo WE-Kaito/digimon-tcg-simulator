@@ -81,12 +81,11 @@ export default function LoginPage() {
         <Wrapper className="login-background">
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
-                <InputField value={userName} onChange={(e) => setUserName(e.target.value)} type="text" name="userName"
-                            placeholder="username"/>
+                <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
+                            type="text" name="userName" placeholder="username" maxLength={14}/>
 
-                <InputField value={password} onChange={(e) => setPassword(e.target.value)} type="password"
-                            name="password"
-                            placeholder="password"/>
+                <InputField value={password} onChange={(e) => setPassword(e.target.value)}
+                            type="password" name="password" placeholder="password" maxLength={20}/>
 
                 <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
                 <RegisterButton style={{marginTop: "50px"}} type="button"
@@ -96,15 +95,16 @@ export default function LoginPage() {
             {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
 
                 <div>
-                    <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)} type="text"
-                                name="userName" placeholder="username"
-                                style={{backgroundColor: `${userNameColor()}`}}/>
+                    <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
+                                type="text" name="userName" placeholder="username" maxLength={14}
+                                style={{backgroundColor: `${userNameColor()}`}}
+                    />
                     <br/>
                     <StyledInfo>at least 3 characters</StyledInfo>
                 </div>
                 <div>
-                    <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)} type="password"
-                                name="password" placeholder="password"
+                    <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
+                                type="password" name="password" placeholder="password" maxLength={20}
                                 style={{backgroundColor: `${passWordColor()}`}}
                     />
                     <br/>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                     </StyledInfo>
                 </div>
                 <InputField value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
-                            type="password" name="RepeatPassword" placeholder="repeat password"
+                            type="password" name="RepeatPassword" placeholder="repeat password" maxLength={20}
                             style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
                 <ButtonContainer>
                     <BackButton type="button"
