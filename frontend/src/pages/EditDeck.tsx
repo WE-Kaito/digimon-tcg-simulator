@@ -17,6 +17,7 @@ import {
     ContainerBottomRightQuarter,
     ContainerBottomLeftQuarter, StyledSpanSaveDeck, DeckNameContainer
 } from "./Deckbuilder.tsx";
+import DeckImport from "../components/DeckImport.tsx";
 
 export default function EditDeck() {
 
@@ -34,9 +35,18 @@ export default function EditDeck() {
 
     const navigate = useNavigate();
 
+    const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
+
     useEffect(() => {
         setDeckById(id);
         setDeckName(nameOfDeckToEdit);
+        function handleResize() {
+            setShouldRender(window.innerWidth >= 1000);
+        }
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById]);
 
     return (
@@ -68,6 +78,7 @@ export default function EditDeck() {
 
 
             <ContainerBottomLeftQuarter>
+                {shouldRender && <DeckImport/>}
                 <DeckSelection/>
             </ContainerBottomLeftQuarter>
 
