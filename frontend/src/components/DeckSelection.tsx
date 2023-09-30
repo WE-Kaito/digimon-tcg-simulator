@@ -20,6 +20,18 @@ export default function DeckSelection() {
     const optionLength = deckCards.filter((card: CardTypeWithId) => card.type === "Option").length;
     const eggLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digi-Egg").length;
 
+    const sortedDeck = sortCards(deckCards);
+    const cardGroups: { [key: string]: CardTypeWithId[] } = {};
+    sortedDeck.forEach((card) => {
+        const cardnumber = card.cardnumber;
+        if (!cardGroups[cardnumber]) {
+            cardGroups[cardnumber] = [];
+        }
+        cardGroups[cardnumber].push(card);
+    });
+
+
+
     return (
         <DeckContainer>
 
@@ -47,17 +59,28 @@ export default function DeckSelection() {
 
             <DeckList>
                 <legend>[ {deckCards.length - eggLength}/50]</legend>
-
                 {!loadingDeck
-                    ? sortCards(deckCards)?.map((card: CardTypeWithId) => (
-                    card.name ? <Card key={card.id} card={card} location={"deck"}/> : null
-                    ))
+                   ? Object.values(cardGroups).map((group, groupIndex) => {
+                       if (group.length === 1) {
+                           return <Card key={group[0].id} card={group[0]} location={"deck"}/>
+                       }
+                        return <div key={groupIndex} style={{position: "relative"}}>
+                            {group.map((card: CardTypeWithId, index) => {
+                                if (index > 0) {
+                                    if (group[index - 1].cardnumber === card.cardnumber) {
+                                        return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
+                                            <Card card={card} location={"deck"}/>
+                                        </div>
+                                    }
+                                }
+                                return <Card key={card.id} card={card} location={"deck"}/>
+                            })}
+                            </div>
+                    })
                     : <Lottie animationData={loadingAnimation} loop={true}
                               style={{width: "130px", marginLeft: "50%", transform: "translateX(-50%)"}}/>
                 }
-
             </DeckList>
-
         </DeckContainer>
     );
 }
@@ -70,7 +93,7 @@ const DeckContainer = styled.div`
   border-radius: 5px;
   height: 92%;
   transform: translateY(3px);
-  gap: 1px;
+  gap: 2px;
   margin-top: 5px;
 
   display: flex;
@@ -204,5 +227,4 @@ const DeckList = styled.fieldset`
   @media (min-width: 2000px) {
     transform: translateY(10px);
   }
-
 `;
