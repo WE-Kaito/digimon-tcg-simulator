@@ -98,7 +98,12 @@ const DeckContainer = styled.div`
   }
 
   @media (min-width: 1000px) {
-    height: 96%;
+    height: 79.25%;
+    background-color: rgba(40, 82, 67, 0.825);
+  }
+
+  @media (min-width: 1500px) and (min-height: 1100px) {
+    height: 81.5%;
     background-color: rgba(40, 82, 67, 0.825);
   }
 `;
@@ -192,8 +197,8 @@ const DeckList = styled.fieldset`
   }
 
   @media (min-width: 1000px) {
-    height: 88.75%;
-    max-height: 88.75%;
+    height: 86.25%;
+    max-height: 86.25%;
   }
 
   @media (min-width: 2000px) {

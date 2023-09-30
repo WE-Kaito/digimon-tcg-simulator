@@ -4,9 +4,9 @@ import axios from "axios";
 import {uid} from "uid";
 import 'react-toastify/dist/ReactToastify.css';
 import {
-    notifyAlreadyExists,
+    notifyAlreadyExists, notifyCredentials,
     notifyDelete,
-    notifyError,
+    notifyError, notifyInvalidImport,
     notifyLength,
     notifyName, notifyRegistered,
     notifySuccess,
@@ -35,7 +35,7 @@ type State = {
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
     hoverCard: CardTypeWithId | null,
     setHoverCard: (card: CardTypeWithId | null) => void,
-    addCardToDeck: (id: string, location: string, cardnumber: string, type: string) => void,
+    addCardToDeck: (id: string, cardnumber: string, type: string) => void,
     deleteFromDeck: (id: string) => void,
     saveDeck: (name: string) => void,
     fetchDecks: () => void,
@@ -51,6 +51,8 @@ type State = {
     setAvatar: (avatarName: string) => void,
     getAvatar: () => string,
     setGameId: (gameId: string) => void,
+    importDeck: (decklist: string[]) => void,
+    exportDeck: () => string,
 };
 
 export const useStore = create<State>((set, get) => ({
@@ -125,9 +127,7 @@ export const useStore = create<State>((set, get) => ({
         set({hoverCard: card});
     },
 
-    addCardToDeck: (id, location, cardnumber, type) => {
-        if (location !== "fetchedData") return;
-
+    addCardToDeck: (id, cardnumber, type) => {
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
         const cardToAdd = {...get().filteredCards.filter((card) => card.id === id)[0], id: uid()};
@@ -285,7 +285,11 @@ export const useStore = create<State>((set, get) => ({
                 set({user: response.data})
                 navigate("/");
             })
-            .catch(console.error)
+            .catch((error) => {
+                console.error(error);
+                notifyCredentials();
+                throw error;
+            })
     },
 
     me: () => {
@@ -351,6 +355,38 @@ export const useStore = create<State>((set, get) => ({
 
     setGameId: (gameId) => {
         set({gameId: gameId});
+    },
+
+    importDeck: (decklist) => {
+        set({loadingDeck: true});
+        const cardsWithId: CardTypeWithId[] = decklist.map((cardnumber: string) => ({
+            ...get().fetchedCards.filter((card) => card.cardnumber === cardnumber)[0],
+            id: uid(),
+        }));
+        // --- check if deck is valid ---
+        const eggCardLength = cardsWithId.filter((card) => card.type === "Digi-Egg").length;
+        const filteredLength = cardsWithId.length - eggCardLength;
+        if (eggCardLength > 5 || filteredLength > 50) {
+            notifyInvalidImport();
+            set ({loadingDeck: false});
+            return;
+        }
+        const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
+        for (const card of cardsWithId) {
+            const cardOfIdInDeck = cardsWithId.filter((c) => c.cardnumber === card.cardnumber).length;
+            if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardnumber)) {
+                notifyInvalidImport();
+                set({ loadingDeck: false });
+                return;
+            }
+        }
+        // ---
+        set({ deckCards: cardsWithId, loadingDeck: false });
+    },
+
+    exportDeck: (): string => {
+        const decklist = get().deckCards.map((card) => card.cardnumber);
+        return JSON.stringify(decklist);
     }
 
 }));
