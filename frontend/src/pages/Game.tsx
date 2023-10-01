@@ -761,7 +761,7 @@ export default function Game({user}: { user: string }) {
         clearBoard();
         setRestartMoodle(false);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
-        websocket.sendMessage("/startGame:" + gameId);
+        websocket.sendMessage("/restartGame:" + gameId);
     }
 
     function startTimer() {
@@ -799,11 +799,13 @@ export default function Game({user}: { user: string }) {
 
                 {myReveal.length > 0 && <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
                     {myReveal?.map((card) =>
-                        <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
+                        <Flip key={card.id}><Card card={card} location="myReveal"
+                                                  sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
                 </RevealContainer>}
                 {opponentReveal.length > 0 && <RevealContainer>
                     {opponentReveal?.map((card) =>
-                        <Flip key={card.id}><Card card={card} location="opponentReveal"/></Flip>)}
+                        <Flip key={card.id}><Card card={card} location="opponentReveal"
+                                                  sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
                 </RevealContainer>}
 
                 <InfoContainer>
@@ -2037,9 +2039,7 @@ const TrashCardImage = styled.img`
 
 const RevealContainer = styled.div`
   position: absolute;
-  width: 600px;
-  height: 130px;
-  left: 660px;
+  left: 760px;
   top: 435px;
   z-index: 300;
   display: flex;
@@ -2047,10 +2047,6 @@ const RevealContainer = styled.div`
   align-items: center;
   gap: 5px;
   transform: scale(2);
-  pointer-events: none;
-  * {
-    pointer-events: initial;
-  }
 `;
 
 const StartingName = styled.span`

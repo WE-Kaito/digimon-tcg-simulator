@@ -9,6 +9,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
 import Card from "./Card.tsx";
 import {sortCards} from "../utils/functions.ts";
+import {useEffect} from "react";
 
 export default function DeckSelection() {
 
@@ -29,6 +30,10 @@ export default function DeckSelection() {
         }
         cardGroups[cardnumber].push(card);
     });
+
+    useEffect(() => {
+
+    }, [deckCards])
 
     return (
         <DeckContainer>

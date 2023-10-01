@@ -252,7 +252,12 @@ export const useStore = create<State>((set, get) => ({
                     nameOfDeckToEdit: data.name
                 });
             })
-            .finally(() => set({loadingDeck: false}));
+            .finally(() => {
+                const timeout = setTimeout(() => {
+                    set({loadingDeck: false});
+                }, 1200);
+                return () => clearTimeout(timeout);
+            });
 
     },
 
@@ -384,7 +389,11 @@ export const useStore = create<State>((set, get) => ({
             }
         }
         // ---
-        set({ deckCards: cardsWithId, loadingDeck: false });
+        set({ deckCards: cardsWithId });
+        const timeout = setTimeout(() => {
+            set({ loadingDeck: false });
+        }, 700);
+        return () => clearTimeout(timeout);
     },
 
     exportDeck: (): string => {
