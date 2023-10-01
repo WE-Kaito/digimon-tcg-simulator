@@ -24,7 +24,7 @@ export default function FetchedCards() {
 
     useEffect(() => {
         fetchCards();
-        setTimeout( () => filterCards("", "", "", "", "", "", null, null, null, null, ""), 50);
+        filterCards("", "", "", "", "", "", null, null, null, null, "");
     }, [fetchCards,filterCards]);
 
     return (
@@ -45,9 +45,9 @@ export default function FetchedCards() {
                         </LoadingContainer>
                     )}
 
-                    {!isLoading && (filteredCards === fetchedCards) && (
+                    {!isLoading && (filteredCards.length > 2000) && (
                         <LoadingContainer>
-                            <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+                            <img alt="gatchmon" src={gatchmon} width={100} height={120}/>
                         </LoadingContainer>
                     )}
 

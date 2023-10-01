@@ -266,7 +266,7 @@ export function getCardSize(location: string) {
         case "opponentTrash":
             return "105px";
         case "deck":
-            return "103px";
+            return "102px";
         case "fetchedData":
             return "110px";
         case "myTamer":

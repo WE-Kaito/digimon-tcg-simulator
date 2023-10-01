@@ -30,8 +30,6 @@ export default function DeckSelection() {
         cardGroups[cardnumber].push(card);
     });
 
-
-
     return (
         <DeckContainer>
 
@@ -59,15 +57,16 @@ export default function DeckSelection() {
 
             <DeckList>
                 <legend>[ {deckCards.length - eggLength}/50]</legend>
+                <InnerDeckList>
                 {!loadingDeck
                    ? Object.values(cardGroups).map((group, groupIndex) => {
-                       if (group.length === 1) {
-                           return <Card key={group[0].id} card={group[0]} location={"deck"}/>
-                       }
-                        return <div key={groupIndex} style={{position: "relative"}}>
+                        return <div key={groupIndex} style={{position: "relative", marginRight:27, height:"fit-content"}}>
+                            {(group.length > 1) && <CardstackCount>×{group.length}</CardstackCount>}
+                            {(group.length > 1) && <CountBox/>}
                             {group.map((card: CardTypeWithId, index) => {
                                 if (index > 0) {
-                                    if (group[index - 1].cardnumber === card.cardnumber) {
+                                    if (group[index - 1]?.cardnumber === card.cardnumber) {
+                                        if (group[index - 4]?.cardnumber === card.cardnumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
                                             <Card card={card} location={"deck"}/>
                                         </div>
@@ -80,10 +79,35 @@ export default function DeckSelection() {
                     : <Lottie animationData={loadingAnimation} loop={true}
                               style={{width: "130px", marginLeft: "50%", transform: "translateX(-50%)"}}/>
                 }
+                </InnerDeckList>
             </DeckList>
         </DeckContainer>
     );
 }
+
+const CardstackCount = styled.span`
+  position: absolute;
+  top: 82px;
+  left: 70px;
+  color: black;
+  text-shadow: 0 0 3px #C71E78E5;
+  font-size: 1.6em;
+  z-index: 1000;
+  pointer-events: none;
+`;
+
+const CountBox = styled.div`
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: ghostwhite;
+  position: absolute;
+  top: 88px;
+  left: 74px;
+  z-index: 999;
+  filter: drop-shadow(0 0 5px ghostwhite) blur(3px);
+  pointer-events: none;
+`;
 
 const DeckContainer = styled.div`
   background-color: rgba(40, 82, 67, 0.985);
@@ -165,6 +189,14 @@ const StyledSpan = styled.span`
   };
 `;
 
+const InnerDeckList = styled.div`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  height: fit-content;
+  gap: 15px;
+`;
+
 const DeckList = styled.fieldset`
   width: 90%;
   height: 82.25%;
@@ -173,9 +205,7 @@ const DeckList = styled.fieldset`
   font-family: 'AwsumSans', sans-serif;
   font-style: italic;
   display: flex;
-  flex-flow: row wrap;
   justify-content: flex-start;
-  gap: 11px;
   overflow-y: scroll;
 
   &::-webkit-scrollbar {
