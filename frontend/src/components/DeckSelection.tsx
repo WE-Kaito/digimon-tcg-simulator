@@ -87,7 +87,7 @@ export default function DeckSelection() {
 
 const CardstackCount = styled.span`
   position: absolute;
-  top: 82px;
+  top: 83px;
   left: 70px;
   color: black;
   text-shadow: 0 0 3px #C71E78E5;
@@ -102,7 +102,7 @@ const CountBox = styled.div`
   border-radius: 50%;
   background: ghostwhite;
   position: absolute;
-  top: 88px;
+  top: 89px;
   left: 74px;
   z-index: 999;
   filter: drop-shadow(0 0 5px ghostwhite) blur(3px);
