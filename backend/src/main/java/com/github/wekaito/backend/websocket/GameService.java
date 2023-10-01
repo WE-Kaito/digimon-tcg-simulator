@@ -134,7 +134,7 @@ public class GameService extends TextWebSocketHandler {
             String username1 = gameId.split("‗")[0];
             String username2 = gameId.split("‗")[1];
             setUpGame(session, gameId, username1, username2);
-            if (username2.equals(session.getPrincipal().getName())) return;
+            if (username2.equals(Objects.requireNonNull(session.getPrincipal()).getName())) return;
             Thread.sleep(3600);
             distributeCards(gameId, username1, username2);
             return;
