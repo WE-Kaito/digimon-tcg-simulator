@@ -7,6 +7,7 @@ import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
+import DeckImport from "../components/DeckImport.tsx";
 
 export default function Deckbuilder() {
 
@@ -16,14 +17,23 @@ export default function Deckbuilder() {
     const [deckName, setDeckName] = useState<string>("New Deck");
     const clearDeck = useStore((state) => state.clearDeck);
     const isSaving = useStore((state) => state.isSaving);
-
+    const filterCards = useStore((state) => state.filterCards);
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
+    const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
 
     useEffect(() => {
         clearDeck();
         fetchDecks();
-    }, [clearDeck, fetchDecks]);
+        filterCards("", "", "", "", "", "", null, null, null, null, "");
+        function handleResize() {
+            setShouldRender(window.innerWidth >= 1000);
+        }
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [clearDeck, fetchDecks, filterCards]);
 
     return (
         <OuterContainer>
@@ -47,6 +57,7 @@ export default function Deckbuilder() {
             </ContainerUpperRightQuarter>
 
             <ContainerBottomLeftQuarter>
+                {shouldRender && <DeckImport/>}
                 <DeckSelection/>
             </ContainerBottomLeftQuarter>
 
@@ -159,7 +170,7 @@ export const DeckNameInput = styled.input`
   }
 `;
 
-const SaveDeckButton = styled.button<{ disabled:boolean }>`
+const SaveDeckButton = styled.button<{ disabled: boolean }>`
   height: 40px;
   width: 95%;
   padding: 0;

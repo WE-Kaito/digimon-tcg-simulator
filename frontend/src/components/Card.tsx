@@ -46,7 +46,7 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
 
     function handleClick() {
         if (location === "fetchedData") {
-            addCardToDeck(card.id, location, card.cardnumber, card.type);
+            addCardToDeck(card.id, card.cardnumber, card.type);
             playPlaceCardSfx();
         }
         if (location === "deck") {

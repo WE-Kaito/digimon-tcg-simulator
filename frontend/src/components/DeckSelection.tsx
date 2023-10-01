@@ -20,6 +20,16 @@ export default function DeckSelection() {
     const optionLength = deckCards.filter((card: CardTypeWithId) => card.type === "Option").length;
     const eggLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digi-Egg").length;
 
+    const sortedDeck = sortCards(deckCards);
+    const cardGroups: { [key: string]: CardTypeWithId[] } = {};
+    sortedDeck.forEach((card) => {
+        const cardnumber = card.cardnumber;
+        if (!cardGroups[cardnumber]) {
+            cardGroups[cardnumber] = [];
+        }
+        cardGroups[cardnumber].push(card);
+    });
+
     return (
         <DeckContainer>
 
@@ -47,20 +57,58 @@ export default function DeckSelection() {
 
             <DeckList>
                 <legend>[ {deckCards.length - eggLength}/50]</legend>
-
+                <InnerDeckList>
                 {!loadingDeck
-                    ? sortCards(deckCards)?.map((card: CardTypeWithId) => (
-                    card.name ? <Card key={card.id} card={card} location={"deck"}/> : null
-                    ))
+                   ? Object.values(cardGroups).map((group, groupIndex) => {
+                        return <div key={groupIndex} style={{position: "relative", marginRight:27, height:"fit-content"}}>
+                            {(group.length > 1) && <CardstackCount>×{group.length}</CardstackCount>}
+                            {(group.length > 1) && <CountBox/>}
+                            {group.map((card: CardTypeWithId, index) => {
+                                if (index > 0) {
+                                    if (group[index - 1]?.cardnumber === card.cardnumber) {
+                                        if (group[index - 4]?.cardnumber === card.cardnumber) return;
+                                        return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
+                                            <Card card={card} location={"deck"}/>
+                                        </div>
+                                    }
+                                }
+                                return <Card key={card.id} card={card} location={"deck"}/>
+                            })}
+                            </div>
+                    })
                     : <Lottie animationData={loadingAnimation} loop={true}
                               style={{width: "130px", marginLeft: "50%", transform: "translateX(-50%)"}}/>
                 }
-
+                </InnerDeckList>
             </DeckList>
 
         </DeckContainer>
     );
 }
+
+const CardstackCount = styled.span`
+  position: absolute;
+  top: 83px;
+  left: 70px;
+  color: black;
+  text-shadow: 0 0 3px #C71E78E5;
+  font-size: 1.6em;
+  z-index: 1000;
+  pointer-events: none;
+`;
+
+const CountBox = styled.div`
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: ghostwhite;
+  position: absolute;
+  top: 89px;
+  left: 74px;
+  z-index: 999;
+  filter: drop-shadow(0 0 5px ghostwhite) blur(3px);
+  pointer-events: none;
+`;
 
 const DeckContainer = styled.div`
   background-color: rgba(40, 82, 67, 0.985);
@@ -70,7 +118,7 @@ const DeckContainer = styled.div`
   border-radius: 5px;
   height: 92%;
   transform: translateY(3px);
-  gap: 1px;
+  gap: 2px;
   margin-top: 5px;
 
   display: flex;
@@ -98,7 +146,12 @@ const DeckContainer = styled.div`
   }
 
   @media (min-width: 1000px) {
-    height: 96%;
+    height: 79.25%;
+    background-color: rgba(40, 82, 67, 0.825);
+  }
+
+  @media (min-width: 1500px) and (min-height: 1100px) {
+    height: 81.5%;
     background-color: rgba(40, 82, 67, 0.825);
   }
 `;
@@ -137,6 +190,14 @@ const StyledSpan = styled.span`
   };
 `;
 
+const InnerDeckList = styled.div`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  height: fit-content;
+  gap: 15px;
+`;
+
 const DeckList = styled.fieldset`
   width: 90%;
   height: 82.25%;
@@ -145,9 +206,7 @@ const DeckList = styled.fieldset`
   font-family: 'AwsumSans', sans-serif;
   font-style: italic;
   display: flex;
-  flex-flow: row wrap;
   justify-content: flex-start;
-  gap: 11px;
   overflow-y: scroll;
 
   &::-webkit-scrollbar {
@@ -192,12 +251,11 @@ const DeckList = styled.fieldset`
   }
 
   @media (min-width: 1000px) {
-    height: 88.75%;
-    max-height: 88.75%;
+    height: 86.25%;
+    max-height: 86.25%;
   }
 
   @media (min-width: 2000px) {
     transform: translateY(10px);
   }
-
 `;

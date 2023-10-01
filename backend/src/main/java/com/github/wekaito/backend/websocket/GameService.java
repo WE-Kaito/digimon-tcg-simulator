@@ -112,6 +112,9 @@ public class GameService extends TextWebSocketHandler {
             for (WebSocketSession webSocketSession : gameRoom) {
                 try {
                     webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+                    if (Objects.requireNonNull(webSocketSession.getPrincipal()).getName().equals("Kaito")) {
+                        webSocketSession.sendMessage(new TextMessage("[USER_COUNT]:" + gameRooms.size() * 2));
+                    }
                 } catch (IOException e) {
                     e.getCause();
                 }
@@ -128,13 +131,12 @@ public class GameService extends TextWebSocketHandler {
 
         if (payload.startsWith("/startGame:") && parts.length >= 2) {
             String gameId = parts[1].trim();
-            setUpGame(session, gameId);
-            String user1 = gameId.split("‗")[0];
-            String user2 = gameId.split("‗")[1];
-            List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user1));
-            List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(user2));
-            Thread.sleep(600);
-            distributeCards(gameId, deck1, deck2);
+            String username1 = gameId.split("‗")[0];
+            String username2 = gameId.split("‗")[1];
+            setUpGame(session, gameId, username1, username2);
+            if (username2.equals(Objects.requireNonNull(session.getPrincipal()).getName())) return;
+            Thread.sleep(3600);
+            distributeCards(gameId, username1, username2);
             return;
         }
 
@@ -163,11 +165,11 @@ public class GameService extends TextWebSocketHandler {
     }
 
     void sendChatMessage(Set<WebSocketSession> gameRoom, String userName, String roomMessage) throws IOException {
-        String[] roomMessageParts = roomMessage.split(":");
+        String[] roomMessageParts = roomMessage.split(":", 3);
         if (roomMessageParts.length < 3) return;
         String opponentName = roomMessageParts[1];
         String chatMessage = roomMessageParts[2];
-        sendMessageToOpponent(gameRoom, opponentName, "[CHAT_MESSAGE]:" + userName + ":" + chatMessage);
+        sendMessageToOpponent(gameRoom, opponentName, "[CHAT_MESSAGE]:" + userName + "﹕" + chatMessage);
     }
 
     String convertCommand(String command) {
@@ -204,11 +206,9 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    void setUpGame(WebSocketSession session, String gameId) throws IOException, InterruptedException {
+    void setUpGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
-        String username1 = gameId.split("‗")[0];
-        String username2 = gameId.split("‗")[1];
 
         String avatar1 = mongoUserDetailsService.getAvatar(username1);
         String avatar2 = mongoUserDetailsService.getAvatar(username2);
@@ -218,18 +218,25 @@ public class GameService extends TextWebSocketHandler {
 
         Player[] players = {player1, player2};
         String playersJson = new ObjectMapper().writeValueAsString(players);
+
+        Thread.sleep(500);
         sendTextMessage(session, "[START_GAME]:" + playersJson);
+        Thread.sleep(500);
 
         String[] names = {username1, username2};
         int index = secureRand.nextInt(names.length);
-        for (WebSocketSession s : gameRoom) {
-            sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
+        if(Objects.requireNonNull(session.getPrincipal()).getName().equals(username1)){
+            for (WebSocketSession s : gameRoom) {
+                sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
+            }
         }
-        Thread.sleep(3600);
     }
 
-    void distributeCards(String gameId, List<Card> deck1, List<Card> deck2) throws IOException {
+    void distributeCards(String gameId, String username1, String username2) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+
+        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
+        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username2));
 
         List<GameCard> newDeck1 = createGameDeck(deck1);
         List<GameCard> newDeck2 = createGameDeck(deck2);
@@ -258,12 +265,10 @@ public class GameService extends TextWebSocketHandler {
                 .limit(5).toList();
         newDeck2.removeAll(player2Hand);
 
-        GameCard[] player1Deck = newDeck1.toArray(new GameCard[0]);
-        GameCard[] player2Deck = newDeck2.toArray(new GameCard[0]);
-        GameCard[] empty = new GameCard[0];
-
-        Game newGame = new Game(0, 0, empty, empty, player1Hand.toArray(new GameCard[0]), player1Deck, player1EggDeck.toArray(new GameCard[0]), empty, player1Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, player2Hand.toArray(new GameCard[0]), player2Deck, player2EggDeck.toArray(new GameCard[0]), empty, player2Security.toArray(new GameCard[0]), empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty);
+        GameStart newGame = new GameStart(player1Hand, newDeck1, player1EggDeck, player1Security, player2Hand, newDeck2, player2EggDeck, player2Security);
         String newGameJson = objectMapper.writeValueAsString(newGame);
+
+        Thread.sleep(600);
 
         for (WebSocketSession s : gameRoom) {
             sendTextMessage(s, "[DISTRIBUTE_CARDS]:" + newGameJson);

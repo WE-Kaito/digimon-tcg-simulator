@@ -38,12 +38,12 @@ export default function GameChat({user, sendChatMessage, closeChat}: Props) {
                         );
                     }
 
-                    const startIndex = message.indexOf("【");
-                    const userName = message.split(":", 2)[0];
-                    const chatMessage = message.split(":", 2)[1];
+                    const userName = message.split("﹕", 2)[0];
+                    const chatMessage = message.split("﹕", 2)[1];
                     const isMyMessage = userName === user;
 
                     if (chatMessage.startsWith("[FIELD_UPDATE]≔")){
+                        const startIndex = message.indexOf("【");
                         const filteredMessage = message.substring(startIndex);
                         const cardName = filteredMessage.split("﹕")[0];
                         const cardLocation = filteredMessage.split("﹕")[1];

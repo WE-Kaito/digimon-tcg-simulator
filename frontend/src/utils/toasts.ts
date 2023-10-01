@@ -51,7 +51,7 @@ export const notifyDelete = () => toast.success('Deck deleted!', {
 });
 
 export const notifyAlreadyExists = () => toast.error("Username already exists!", {
-    position: "bottom-center",
+    position: "top-center",
     autoClose: 3000,
     hideProgressBar: true,
     closeOnClick: true,
@@ -81,8 +81,22 @@ export const notifyRequestedRestart = () => toast.success('Sent restart request!
 });
 
 export const notifyNoActiveDeck = () => toast.error('Please activate a deck first!', {
-    position: "bottom-center",
+    position: "top-center",
     autoClose: 3000,
     hideProgressBar: false,
     pauseOnHover: false,
+});
+
+export const notifyCredentials = () => toast.error('Wrong username or password!', {
+    position: "top-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    pauseOnHover: false
+});
+
+export const notifyInvalidImport = () => toast.error('Deck not allowed!', {
+    position: "top-left",
+    autoClose: 2000,
+    hideProgressBar: false,
+    pauseOnHover: false
 });

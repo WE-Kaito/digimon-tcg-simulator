@@ -17,6 +17,7 @@ import {
     ContainerBottomRightQuarter,
     ContainerBottomLeftQuarter, StyledSpanSaveDeck, DeckNameContainer
 } from "./Deckbuilder.tsx";
+import DeckImport from "../components/DeckImport.tsx";
 
 export default function EditDeck() {
 
@@ -24,20 +25,29 @@ export default function EditDeck() {
     const setDeckById = useStore(state => state.setDeckById);
     const updateDeck = useStore(state => state.updateDeck);
     const nameOfDeckToEdit = useStore(state => state.nameOfDeckToEdit);
-
+    const fetchCards = useStore((state) => state.fetchCards);
+    const filterCards = useStore((state) => state.filterCards);
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
     const deleteDeck = useStore((state) => state.deleteDeck);
     const [deckName, setDeckName] = useState<string>("");
-
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
-
     const navigate = useNavigate();
+    const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
 
     useEffect(() => {
         setDeckById(id);
+        fetchCards();
+        filterCards("", "", "", "", "", "", null, null, null, null, "");
         setDeckName(nameOfDeckToEdit);
-    }, [setDeckName, nameOfDeckToEdit, id, setDeckById]);
+        function handleResize() {
+            setShouldRender(window.innerWidth >= 1000);
+        }
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 
     return (
         <OuterContainer>
@@ -68,6 +78,7 @@ export default function EditDeck() {
 
 
             <ContainerBottomLeftQuarter>
+                {shouldRender && <DeckImport/>}
                 <DeckSelection/>
             </ContainerBottomLeftQuarter>
 

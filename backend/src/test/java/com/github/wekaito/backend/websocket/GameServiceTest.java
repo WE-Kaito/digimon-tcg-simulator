@@ -89,8 +89,8 @@ class GameServiceTest {
         String playersJson = new ObjectMapper().writeValueAsString(players);
         TextMessage expectedMessage = new TextMessage("[START_GAME]:" + playersJson);
         // WHEN
-        gameService.setUpGame(session1, gameId);
-        gameService.setUpGame(session2, gameId);
+        gameService.setUpGame(session1, gameId, username1, username2);
+        gameService.setUpGame(session2, gameId, username1, username2);
         // THEN
         verify(session1, times(1)).sendMessage(expectedMessage);
         verify(session2, times(1)).sendMessage(expectedMessage);
@@ -233,7 +233,7 @@ class GameServiceTest {
     @Test
     void testChatMessage() throws IOException, InterruptedException {
         // GIVEN
-        TextMessage expectedMessage = new TextMessage("[CHAT_MESSAGE]:" + username1 + ":test test");
+        TextMessage expectedMessage = new TextMessage("[CHAT_MESSAGE]:" + username1 + "﹕test test");
         TextMessage chatMessage = new TextMessage(gameId + ":/chatMessage:" + username2 + ":test test");
         putPlayersToGameRoom();
         // WHEN

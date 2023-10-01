@@ -14,7 +14,6 @@ import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderMoodle from "../components/game/SurrenderMoodle.tsx";
 import deckBack from "../assets/deckBack.png";
-import deckBackOpponent from "../assets/deckBackOpponent.png";
 import eggBack from "../assets/eggBack.jpg";
 import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
@@ -57,6 +56,7 @@ export default function Game({user}: { user: string }) {
 
     const gameId = useStore((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
+    const clearBoard = useGame((state) => state.clearBoard);
     const distributeCards = useGame((state) => state.distributeCards);
     const getUpdatedGame = useGame((state) => state.getUpdatedGame);
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
@@ -95,6 +95,7 @@ export default function Game({user}: { user: string }) {
         me: {username: "", avatarName: ""},
         opponent: {username: "", avatarName: ""}
     });
+    const [userCount, setUserCount] = useState<number>(0);
 
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
@@ -150,6 +151,7 @@ export default function Game({user}: { user: string }) {
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
 
+    let interval: any;
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
@@ -182,18 +184,21 @@ export default function Game({user}: { user: string }) {
                 setStartingPlayer(firstPlayer);
                 setShowStartingPlayer(true);
                 playStartSfx();
-                setTimeout(() => {
+                const timeout1 = setTimeout(() => {
                     playDrawCardSfx();
                     setIsChatOpen(true);
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
-                        }, 3800);
-                setTimeout(() => {
+                        }, 4300);
+                const timeout2 = setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
-                    setInterval(() => {websocket.sendMessage("/heartbeat/")}, 5000);
-                }, 4500);
-                return;
+                    interval = setInterval(() => {websocket.sendMessage("/heartbeat/")}, 5000);
+                }, 5500);
+                return () => {
+                    clearTimeout(timeout1);
+                    clearTimeout(timeout2)
+                };
             }
 
             if (event.data.startsWith("[MOVE_CARD]:")) {
@@ -213,7 +218,7 @@ export default function Game({user}: { user: string }) {
             }
 
             if (event.data.startsWith("[CHAT_MESSAGE]:")) {
-                const chatMessage = event.data.substring(event.data.indexOf(":") + 1);
+                const chatMessage = event.data.substring("[CHAT_MESSAGE]:".length);
                 setMessages(chatMessage);
                 return;
             }
@@ -260,6 +265,12 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
+            if (event.data.startsWith("[USER_COUNT]:")) {
+                const userCount = event.data.substring("[USER_COUNT]:".length);
+                setUserCount(parseInt(userCount));
+                return;
+            }
+
             switch (event.data) {
                 case "[SURRENDER]": {
                     startTimer();
@@ -283,6 +294,7 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[ACCEPT_RESTART]"): {
+                    clearBoard();
                     setUpGame(restartObj.me, restartObj.opponent);
                     break;
                 }
@@ -302,19 +314,20 @@ export default function Game({user}: { user: string }) {
 
     function sendChatMessage(message: string) {
         if (message.length > 0) {
-            setMessages(user + ":" + message);
+            setMessages(user + "﹕" + message);
             websocket.sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
         }
     }
 
     function endAttackAnimation() {
         playAttackSfx();
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             setShowAttackArrow(false);
             setArrowFrom('');
             setArrowTo('');
             setAttackFromOpponent(false);
         }, 3500);
+        return () => clearTimeout(timeout);
     }
 
     function chunkString(str: string, size: number): string[] {
@@ -328,11 +341,14 @@ export default function Game({user}: { user: string }) {
     function sendUpdate() {
         const updatedGame: string = getUpdatedGame(gameId, user);
         const chunks = chunkString(updatedGame, 1000);
+        const timeoutIds: number[] = [];
         for (const chunk of chunks) {
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
             }, 10);
+            timeoutIds.push(timeoutId);
         }
+        return () => { timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId)); };
     }
 
     function sendSingleUpdate(cardId: string, from: string, to: string) {
@@ -344,9 +360,10 @@ export default function Game({user}: { user: string }) {
     }
 
     function sendSfx(sfx: string) {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             websocket.sendMessage(gameId + ":/" + sfx + ":" + opponentName);
         }, 10);
+        return () => clearTimeout(timeout);
     }
 
     function handleDropToOpponent(from: string, to: string) {
@@ -728,12 +745,20 @@ export default function Game({user}: { user: string }) {
         }
     }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myReveal, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10]);
 
+    useEffect(() => {
+        clearBoard();
+        return () => {
+            clearInterval(interval);
+        };
+    },[]);
+
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
         startTimer();
     }
 
     function acceptRestart() {
+        clearBoard();
         setRestartMoodle(false);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
         websocket.sendMessage("/startGame:" + gameId);
@@ -741,15 +766,19 @@ export default function Game({user}: { user: string }) {
 
     function startTimer() {
         setTimerOpen(true);
+        const timeoutIDs: number[] = [];
         for (let i = 5; i > 0; i--) {
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 setTimer((timer) => timer - 1);
             }, i * 1000);
+            timeoutIDs.push(timeoutId);
         }
+        return () => {timeoutIDs.forEach(clearTimeout)};
     }
 
     return (
         <BackGround>
+            {user === "Kaito" && <span style={{position:"absolute", top:15, left:15}}>users ingame: {userCount}</span>}
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
             <BackGroundPattern/>
             {(surrenderOpen || timerOpen) &&
@@ -826,7 +855,7 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <OpponentDeckContainer>
-                                <img alt="deck" src={deckBackOpponent} width="105px"/>
+                                <img alt="deck" src={deckBack} width="105px"/>
                                 <TrashSpan
                                     style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
                             </OpponentDeckContainer>
@@ -2018,6 +2047,10 @@ const RevealContainer = styled.div`
   align-items: center;
   gap: 5px;
   transform: scale(2);
+  pointer-events: none;
+  * {
+    pointer-events: initial;
+  }
 `;
 
 const StartingName = styled.span`

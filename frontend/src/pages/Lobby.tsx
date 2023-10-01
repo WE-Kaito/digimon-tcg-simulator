@@ -61,7 +61,8 @@ export default function Lobby({user}: { user: string }) {
 
             if (event.data === "[NO_ACTIVE_DECK]") {
                 notifyNoActiveDeck();
-                setTimeout(() => navigate("/"), 3100);
+                const timeout = setTimeout(() => navigate("/"), 3100);
+                return () => clearTimeout(timeout);
             }
 
             if (event.data.startsWith("[CHAT_MESSAGE]")) {
