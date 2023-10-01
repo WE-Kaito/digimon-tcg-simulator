@@ -8,28 +8,32 @@ export default function DeckImport() {
     const exportDeck = useStore((state) => state.exportDeck);
     const [copyButton, setCopyButton] = useState<boolean>(false);
     const [invalidButton, setInvalidButton] = useState<boolean>(false);
+    const fetchedCards = useStore((state) => state.fetchedCards);
 
     function handleImport() {
         try {
             const deckToImport = JSON.parse(deckString);
+            if (!deckToImport.every((cardnumber: string) => fetchedCards.some((card) => card.cardnumber === cardnumber))) {
+                invalidImport();
+            }
             if (Array.isArray(deckToImport) && deckToImport.every(item => typeof item === 'string')) {
                 console.log(deckToImport);
                 importDeck(deckToImport);
                 setDeckString("");
             } else {
-                setInvalidButton(true);
-                const timer = setTimeout(() => {
-                    setInvalidButton(false);
-                }, 3500);
-                return () => clearTimeout(timer);
+                invalidImport();
             }
         } catch (error) {
-            setInvalidButton(true);
-            const timer = setTimeout(() => {
-                setInvalidButton(false);
-            }, 3500);
-            return () => clearTimeout(timer);
+            invalidImport();
         }
+    }
+
+    function invalidImport() {
+        setInvalidButton(true);
+        const timer = setTimeout(() => {
+            setInvalidButton(false);
+        }, 3500);
+        return () => clearTimeout(timer);
     }
 
     function handleExport() {

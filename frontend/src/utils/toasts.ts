@@ -94,7 +94,7 @@ export const notifyCredentials = () => toast.error('Wrong username or password!'
     pauseOnHover: false
 });
 
-export const notifyInvalidImport = () => toast.error('Invalid deck list!', {
+export const notifyInvalidImport = () => toast.error('Deck not allowed!', {
     position: "top-left",
     autoClose: 2000,
     hideProgressBar: false,
