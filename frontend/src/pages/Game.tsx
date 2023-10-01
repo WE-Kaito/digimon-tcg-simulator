@@ -799,11 +799,13 @@ export default function Game({user}: { user: string }) {
 
                 {myReveal.length > 0 && <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
                     {myReveal?.map((card) =>
-                        <Flip key={card.id}><Card card={card} location="myReveal"/></Flip>)}
+                        <Flip key={card.id}><Card card={card} location="myReveal"
+                                                  sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
                 </RevealContainer>}
                 {opponentReveal.length > 0 && <RevealContainer>
                     {opponentReveal?.map((card) =>
-                        <Flip key={card.id}><Card card={card} location="opponentReveal"/></Flip>)}
+                        <Flip key={card.id}><Card card={card} location="opponentReveal"
+                                                  sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
                 </RevealContainer>}
 
                 <InfoContainer>
