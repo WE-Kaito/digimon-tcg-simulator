@@ -9,13 +9,14 @@ export default function MenuButton({ name, path }: { name: string, path: string 
     const navigate = useNavigate();
     const me = useStore((state) => state.me);
     const fetchCards = useStore((state) => state.fetchCards);
+    const fetchedCards = useStore((state) => state.fetchedCards);
 
     function handleClick() {
 
         playButtonClickSfx();
 
         if (name !== "LOGOUT") {
-            if(name === "Deckbuilder") fetchCards();
+            if(fetchedCards.length === 0) fetchCards();
             navigate(path);
             return;
         }
