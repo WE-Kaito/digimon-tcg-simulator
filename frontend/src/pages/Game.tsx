@@ -747,9 +747,6 @@ export default function Game({user}: { user: string }) {
 
     useEffect(() => {
         clearBoard();
-        document.addEventListener('contextmenu', function(event) {
-            event.preventDefault();
-        });
         return () => {
             clearInterval(interval);
         };
