@@ -81,6 +81,7 @@ export default function DeckSelection() {
                 }
                 </InnerDeckList>
             </DeckList>
+
         </DeckContainer>
     );
 }
