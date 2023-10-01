@@ -761,7 +761,7 @@ export default function Game({user}: { user: string }) {
         clearBoard();
         setRestartMoodle(false);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
-        websocket.sendMessage("/startGame:" + gameId);
+        websocket.sendMessage("/restartGame:" + gameId);
     }
 
     function startTimer() {
@@ -2037,9 +2037,7 @@ const TrashCardImage = styled.img`
 
 const RevealContainer = styled.div`
   position: absolute;
-  width: 600px;
-  height: 130px;
-  left: 660px;
+  left: 760px;
   top: 435px;
   z-index: 300;
   display: flex;
@@ -2047,10 +2045,6 @@ const RevealContainer = styled.div`
   align-items: center;
   gap: 5px;
   transform: scale(2);
-  pointer-events: none;
-  * {
-    pointer-events: initial;
-  }
 `;
 
 const StartingName = styled.span`

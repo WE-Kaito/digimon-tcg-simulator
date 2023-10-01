@@ -83,7 +83,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session)  {
+    public void afterConnectionEstablished(WebSocketSession session) {
         // do nothing
     }
 
@@ -135,6 +135,16 @@ public class GameService extends TextWebSocketHandler {
             String username2 = gameId.split("‗")[1];
             setUpGame(session, gameId, username1, username2);
             if (username2.equals(Objects.requireNonNull(session.getPrincipal()).getName())) return;
+            Thread.sleep(3600);
+            distributeCards(gameId, username1, username2);
+            return;
+        }
+
+        if (payload.startsWith("/restartGame:") && parts.length >= 2) {
+            String gameId = parts[1].trim();
+            String username1 = gameId.split("‗")[0];
+            String username2 = gameId.split("‗")[1];
+            restartGame(session, gameId, username1, username2);
             Thread.sleep(3600);
             distributeCards(gameId, username1, username2);
             return;
@@ -200,7 +210,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
-        if(session == null) return;
+        if (session == null) return;
         if (session.isOpen()) {
             session.sendMessage(new TextMessage(message));
         }
@@ -225,10 +235,33 @@ public class GameService extends TextWebSocketHandler {
 
         String[] names = {username1, username2};
         int index = secureRand.nextInt(names.length);
-        if(Objects.requireNonNull(session.getPrincipal()).getName().equals(username1)){
+        if (Objects.requireNonNull(session.getPrincipal()).getName().equals(username1)) {
             for (WebSocketSession s : gameRoom) {
                 sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
             }
+        }
+    }
+
+    void restartGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException, InterruptedException {
+        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+
+        String avatar1 = mongoUserDetailsService.getAvatar(username1);
+        String avatar2 = mongoUserDetailsService.getAvatar(username2);
+
+        Player player1 = new Player(username1, avatar1);
+        Player player2 = new Player(username2, avatar2);
+
+        Player[] players = {player1, player2};
+        String playersJson = new ObjectMapper().writeValueAsString(players);
+
+        Thread.sleep(500);
+        sendTextMessage(session, "[START_GAME]:" + playersJson);
+        Thread.sleep(500);
+
+        String[] names = {username1, username2};
+        int index = secureRand.nextInt(names.length);
+        for (WebSocketSession s : gameRoom) {
+            sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
         }
     }
 
