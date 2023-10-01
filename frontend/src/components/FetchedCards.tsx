@@ -5,7 +5,7 @@ import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
 import gatchmon from "../assets/gatchmon.png";
 import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
-import {lazy, Suspense, useEffect} from 'react';
+import {lazy, Suspense} from 'react';
 
 const Card = lazy(() => import('./Card.tsx'));
 
@@ -18,14 +18,7 @@ export default function FetchedCards() {
 
     const isLoading = useStore((state) => state.isLoading);
     const filteredCards = useStore((state) => state.filteredCards);
-    const fetchCards = useStore((state) => state.fetchCards);
     const fetchedCards = useStore((state) => state.fetchedCards);
-    const filterCards = useStore((state) => state.filterCards);
-
-    useEffect(() => {
-        fetchCards();
-        filterCards("", "", "", "", "", "", null, null, null, null, "");
-    }, [fetchCards,filterCards]);
 
     return (
         <FetchContainer>

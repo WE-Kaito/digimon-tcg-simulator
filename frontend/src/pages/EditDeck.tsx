@@ -25,20 +25,20 @@ export default function EditDeck() {
     const setDeckById = useStore(state => state.setDeckById);
     const updateDeck = useStore(state => state.updateDeck);
     const nameOfDeckToEdit = useStore(state => state.nameOfDeckToEdit);
-
+    const fetchCards = useStore((state) => state.fetchCards);
+    const filterCards = useStore((state) => state.filterCards);
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
     const deleteDeck = useStore((state) => state.deleteDeck);
     const [deckName, setDeckName] = useState<string>("");
-
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
-
     const navigate = useNavigate();
-
     const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
 
     useEffect(() => {
         setDeckById(id);
+        fetchCards();
+        filterCards("", "", "", "", "", "", null, null, null, null, "");
         setDeckName(nameOfDeckToEdit);
         function handleResize() {
             setShouldRender(window.innerWidth >= 1000);
@@ -47,7 +47,7 @@ export default function EditDeck() {
         return () => {
             window.removeEventListener('resize', handleResize);
         };
-    }, [setDeckName, nameOfDeckToEdit, id, setDeckById]);
+    }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 
     return (
         <OuterContainer>

@@ -81,7 +81,10 @@ export const useStore = create<State>((set, get) => ({
             .catch(console.error)
             .then((data) => {
                 const cardsWithId: CardTypeWithId[] = data.map((card: CardType) => ({...card, id: uid()}));
-                set({fetchedCards: cardsWithId});
+                set({
+                    fetchedCards: cardsWithId,
+                    filteredCards: cardsWithId
+                });
             })
             .finally(() => set({isLoading: false}));
     },
