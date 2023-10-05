@@ -1,21 +1,33 @@
 import {CardTypeGame} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import Card from "../Card.tsx";
+import {Fade} from "react-awesome-reveal";
 
 type CardStackProps = {
     cards: CardTypeGame[],
     location: string,
     sendUpdate?: () => void,
     sendSfx?: (sfx: string) => void
+    opponentSide?: boolean
 }
 
-export default function CardStack({cards, location, sendUpdate, sendSfx}: CardStackProps) {
-    return <div style={{position:"absolute", width:"100%", height:"100%"}}>
-        { cards?.map((card, index) =>
-            <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                           id={index === cards.length - 1 ? location : ""}>
-                <Card card={card} location={location} sendSfx={sendSfx}
-                      sendUpdate={sendUpdate}/></CardContainer>)}
+export default function CardStack({cards, location, sendUpdate, sendSfx, opponentSide}: CardStackProps) {
+    return <div style={{position: "absolute", width: "100%", height: "100%"}}>
+        {!opponentSide
+
+            ? cards?.map((card, index) =>
+                <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
+                               id={index === cards.length - 1 ? location : ""}>
+                    <Card card={card} location={location} sendSfx={sendSfx}
+                          sendUpdate={sendUpdate}/></CardContainer>)
+
+            : cards?.map((card, index) =>
+                <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
+                               id={index === cards.length - 1 ? location : ""}>
+                    <Fade direction={"down"} duration={500}>
+                        <Card card={card} location={location}/>
+                    </Fade></CardContainer>)
+        }
     </div>
 }
 

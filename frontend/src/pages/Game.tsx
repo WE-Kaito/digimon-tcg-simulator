@@ -876,90 +876,46 @@ export default function Game({user}: { user: string }) {
                             </OpponentTrashContainer>
 
                             <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
-                                         id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi10.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi10.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi10.length - 1 ? "opponentDigi10" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi10"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi5.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi5.length - 1 ? "opponentDigi5" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi5"}/>
-                                            </Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi10} location={"opponentDigi10"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi5} location={"opponentDigi5"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  opponentSide={true}/>}
                             </BattleArea5>
                             <BattleArea4 ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}
-                                         id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi9.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi9.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi9.length - 1 ? "opponentDigi9" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi9"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi4.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi4.length - 1 ? "opponentDigi4" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi4"}/>
-                                            </Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi9} location={"opponentDigi9"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi4} location={"opponentDigi4"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  opponentSide={true}/>}
                             </BattleArea4>
                             <BattleArea3 ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}
                                          id={getFieldId(true, opponentDigi3, opponentDigi8, "opponentDigi3", "opponentDigi8")}>
                                 {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
                                     <FieldSpan>Battle Area</FieldSpan>}
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi8.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi8.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi8.length - 1 ? "opponentDigi8" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi8"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi3.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi3.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi3.length - 1 ? "opponentDigi3" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi3"}/>
-                                            </Fade></CardContainer>)}
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi8} location={"opponentDigi8"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi3} location={"opponentDigi3"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  opponentSide={true}/>}
                             </BattleArea3>
                             <BattleArea2 ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}
-                                         id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi7.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi7.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi7.length - 1 ? "opponentDigi7" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi7"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi2.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi2.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi2.length - 1 ? "opponentDigi2" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi2"}/></Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
+                                {isOpponentSecondRowVisible
+                                        ? <CardStack cards={opponentDigi7} location={"opponentDigi7"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>
+                                        : <CardStack cards={opponentDigi2} location={"opponentDigi2"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}  opponentSide={true}/>}
                             </BattleArea2>
                             <BattleArea1 ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}
-                                         id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi6.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi6.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi6.length - 1 ? "opponentDigi6" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi6"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi1.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi1.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi1.length - 1 ? "opponentDigi1" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi1"}/>
-                                            </Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
+                                {isOpponentSecondRowVisible
+                                        ? <CardStack cards={opponentDigi6} location={"opponentDigi6"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>
+                                        : <CardStack cards={opponentDigi1} location={"opponentDigi1"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}  opponentSide={true}/>}
                             </BattleArea1>
 
                             <DelayAreaContainer style={{marginTop: "1px", height: "205px"}}>
@@ -1026,10 +982,8 @@ export default function Game({user}: { user: string }) {
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer>
-                                {opponentBreedingArea.map((card, index) =>
-                                    <CardContainer cardCount={opponentBreedingArea.length} key={card.id}
-                                                   cardIndex={index}><Fade direction={"down"} duration={500}>
-                                        <Card card={card} location={"opponentBreedingArea"}/></Fade></CardContainer>)}
+                                <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
+                                           sendSfx={sendSfx} sendUpdate={sendUpdate} opponentSide={true} />
                                 {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
 
