@@ -43,6 +43,7 @@ import {
     playLoadMemorybarSfx
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
+import CardStack from "../components/game/CardStack.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -1162,9 +1163,7 @@ export default function Game({user}: { user: string }) {
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
-                                {myBreedingArea.map((card, index) =>
-                                    <CardContainer cardCount={myBreedingArea.length} key={card.id} cardIndex={index}>
-                                        <Card card={card} location={"myBreedingArea"}/></CardContainer>)}
+                                {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx} sendUpdate={sendUpdate} />}
                                 {myBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
                         </MyContainerSide>
@@ -1253,79 +1252,34 @@ export default function Game({user}: { user: string }) {
 
                             <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1}
                                          id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
-                                {isMySecondRowVisible ?
-                                    myDigi6?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi6.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi6.length - 1 ? "myDigi6" : ""}>
-                                            <Card card={card} location={"myDigi6"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi1?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi1.length - 1 ? "myDigi1" : ""}>
-                                            <Card card={card} location={"myDigi1"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi6} location={"myDigi6"} sendSfx={sendSfx} sendUpdate={sendUpdate} />
+                                    : <CardStack cards={myDigi1} location={"myDigi1"} sendSfx={sendSfx} sendUpdate={sendUpdate} />}
                             </BattleArea1>
                             <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
                                          id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
-                                {isMySecondRowVisible ?
-                                    myDigi7?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi7.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi7.length - 1 ? "myDigi7" : ""}>
-                                            <Card card={card} location={"myDigi7"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi2?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi2.length - 1 ? "myDigi2" : ""}>
-                                            <Card card={card} location={"myDigi2"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi7} location={"myDigi7"} sendSfx={sendSfx} sendUpdate={sendUpdate} />
+                                    : <CardStack cards={myDigi2} location={"myDigi2"} sendSfx={sendSfx} sendUpdate={sendUpdate} />}
                             </BattleArea2>
                             <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
                                          id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
                                 {!isMySecondRowVisible && myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {isMySecondRowVisible ?
-                                    myDigi8?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi8.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi8.length - 1 ? "myDigi8" : ""}>
-                                            <Card card={card} location={"myDigi8"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi3?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi3.length - 1 ? "myDigi3" : ""}>
-                                            <Card card={card} location={"myDigi3"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi8} location={"myDigi8"} sendSfx={sendSfx} sendUpdate={sendUpdate} />
+                                    : <CardStack cards={myDigi3} location={"myDigi3"} sendSfx={sendSfx} sendUpdate={sendUpdate} />}
                             </BattleArea3>
                             <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
                                          id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
-                                {isMySecondRowVisible ?
-                                    myDigi9?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi9.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi9.length - 1 ? "myDigi9" : ""}>
-                                            <Card card={card} location={"myDigi9"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi4?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi4.length - 1 ? "myDigi4" : ""}>
-                                            <Card card={card} location={"myDigi4"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi9} location={"myDigi9"} sendSfx={sendSfx} sendUpdate={sendUpdate} />
+                                    : <CardStack cards={myDigi4} location={"myDigi4"} sendSfx={sendSfx} sendUpdate={sendUpdate} />}
                             </BattleArea4>
                             <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
                                          id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
-                                {isMySecondRowVisible ?
-                                    myDigi10?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi10.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi10.length - 1 ? "myDigi10" : ""}>
-                                            <Card card={card} location={"myDigi10"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi5?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi5.length - 1 ? "myDigi5" : ""}>
-                                            <Card card={card} location={"myDigi5"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi10} location={"myDigi10"} sendSfx={sendSfx} sendUpdate={sendUpdate} />
+                                    : <CardStack cards={myDigi5} location={"myDigi5"} sendSfx={sendSfx} sendUpdate={sendUpdate} />}
                             </BattleArea5>
 
                             <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
