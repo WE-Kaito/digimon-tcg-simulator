@@ -2,7 +2,7 @@ import {CardTypeGame} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import Card from "../Card.tsx";
 import {Fade} from "react-awesome-reveal";
-
+import {useState} from "react";
 type CardStackProps = {
     cards: CardTypeGame[],
     location: string,
@@ -13,15 +13,19 @@ type CardStackProps = {
 
 export default function CardStack({cards, location, sendUpdate, sendSfx, opponentSide}: CardStackProps) {
 
+    const [dragStackEffect, setDragStackEffect] = useState(false);
+
     return <div style={{position: "absolute", width: "100%", height: "100%"}}>
         {!opponentSide
 
-            ? cards?.map((card, index) =>
+            ? cards?.map((card, index) =>{
+                return (
                 <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
                                id={index === cards.length - 1 ? location : ""}>
                     <Card card={card} location={location} sendSfx={sendSfx} sendUpdate={sendUpdate}
-                          index={index} cards={cards}/>
+                          index={index} dragStackEffect={dragStackEffect} setDragStackEffect={setDragStackEffect}/>
                 </CardContainer>)
+            })
 
             : cards?.map((card, index) =>
                 <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}

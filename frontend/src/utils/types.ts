@@ -139,6 +139,6 @@ export type DraggedItem = {
 }
 
 export type DraggedStack = {
-    cards: CardTypeGame[],
+    index: number,
     location: string,
 }

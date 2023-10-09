@@ -380,8 +380,8 @@ export default function Game({user}: { user: string }) {
         if (!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendSingleUpdate(cardId, from, to);
-        playPlaceCardSfx();
-        sendSfx("playPlaceCardSfx");
+        to === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();
+        sendSfx(to === "myTrash" ? "playTrashCardSfx" : "playPlaceCardSfx");
         if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
@@ -392,19 +392,18 @@ export default function Game({user}: { user: string }) {
     }
 
     function isCardStack(item: DraggedItem | DraggedStack): item is DraggedStack {
-        const {cards} = item as DraggedStack;
-        return Array.isArray(cards) && cards.length > 1;
+        const {index} = item as DraggedStack;
+        return index > 0;
     }
+
+    const moveCardStack = useGame((state) => state.moveCardStack);
 
     const [, dropToDigi1] = useDrop(() => ({
         accept: ["card","card-stack"],
         drop: (item: DraggedItem | DraggedStack) => {
             if (isCardStack(item)) {
-                const {cards, location} = item as DraggedStack;
-                for (const card of cards) {
-                    const {id, name} = card;
-                    handleDropToField(id, location, 'myDigi1', name)
-                }
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi1", handleDropToField);
             } else {
                 const {id, location, name} = item as DraggedItem;
                 handleDropToField(id, location, 'myDigi1', name);
@@ -419,11 +418,8 @@ export default function Game({user}: { user: string }) {
         accept: ["card","card-stack"],
         drop: (item: DraggedItem | DraggedStack) => {
             if (isCardStack(item)) {
-                const {cards, location} = item as DraggedStack;
-                for (const card of cards) {
-                    const {id, name} = card;
-                    handleDropToField(id, location, 'myDigi2', name)
-                }
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi2", handleDropToField);
             } else {
                 const {id, location, name} = item as DraggedItem;
                 handleDropToField(id, location, 'myDigi2', name);
@@ -438,11 +434,8 @@ export default function Game({user}: { user: string }) {
         accept: ["card","card-stack"],
         drop: (item: DraggedItem | DraggedStack) => {
             if (isCardStack(item)) {
-                const {cards, location} = item as DraggedStack;
-                for (const card of cards) {
-                    const {id, name} = card;
-                    handleDropToField(id, location, 'myDigi3', name)
-                }
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi3", handleDropToField);
             } else {
                 const {id, location, name} = item as DraggedItem;
                 handleDropToField(id, location, 'myDigi3', name);
@@ -457,11 +450,8 @@ export default function Game({user}: { user: string }) {
         accept: ["card","card-stack"],
         drop: (item: DraggedItem | DraggedStack) => {
             if (isCardStack(item)) {
-                const {cards, location} = item as DraggedStack;
-                for (const card of cards) {
-                    const {id, name} = card;
-                    handleDropToField(id, location, 'myDigi4', name)
-                }
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi4", handleDropToField);
             } else {
                 const {id, location, name} = item as DraggedItem;
                 handleDropToField(id, location, 'myDigi4', name);
@@ -476,11 +466,8 @@ export default function Game({user}: { user: string }) {
         accept: ["card","card-stack"],
         drop: (item: DraggedItem | DraggedStack) => {
             if (isCardStack(item)) {
-                const {cards, location} = item as DraggedStack;
-                for (const card of cards) {
-                    const {id, name} = card;
-                    handleDropToField(id, location, 'myDigi5', name)
-                }
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi5", handleDropToField);
             } else {
                 const {id, location, name} = item as DraggedItem;
                 handleDropToField(id, location, 'myDigi5', name);
@@ -492,10 +479,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi6] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi6', name);
+        accept: ["card","card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi6", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi6', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -503,10 +495,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi7] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi7', name);
+        accept: ["card","card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi7", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi7', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -514,10 +511,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi8] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi8', name);
+        accept: ["card","card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi8", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi8', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -525,10 +527,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi9] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi9', name);
+        accept: ["card","card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi9", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi9', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -536,10 +543,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi10] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi10', name);
+        accept: ["card","card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi10", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi10', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -561,10 +573,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToBreedingArea] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myBreedingArea', name);
+        accept: ["card","card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myBreedingArea", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myBreedingArea', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -640,14 +657,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToTrash] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            moveCard(id, location, 'myTrash');
-            sendSingleUpdate(id, location, 'myTrash');
-            playTrashCardSfx();
-            sendSfx("playTrashCardSfx");
-            sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`);
+        accept: ["card","card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myTrash", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myTrash', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),

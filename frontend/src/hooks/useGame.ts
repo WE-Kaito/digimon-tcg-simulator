@@ -78,13 +78,8 @@ type State = {
                playUnsuspendSfx: () => void,
                sendSfx: (sfx: string) => void) => void,
     createToken: () => void,
-
-    isDraggingStackState: boolean,
-    setIsDraggingStackState: (isDragging: boolean) => void,
-    draggedCards: CardTypeGame[],
-    setDraggedCards: (draggedCards: CardTypeGame[]) => void,
-    dragIndex: number,
-    setDragIndex: (dragIndex: number) => void,
+    moveCardStack: (index: number, from: string, to: string,
+                    handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
 
 };
 
@@ -150,10 +145,6 @@ export const useGame = create<State>((set, get) => ({
     messages: [],
     mulliganAllowed: true,
     opponentReady: false,
-
-    isDraggingStackState: false,
-    draggedCards: [],
-    dragIndex: 0,
 
     setOpponentReady: () => {
         set({opponentReady: true});
@@ -590,15 +581,11 @@ export const useGame = create<State>((set, get) => ({
         });
     },
 
-    setIsDraggingStackState: (isDraggingStack: boolean) => {
-        set({isDraggingStackState: isDraggingStack});
-    },
-
-    setDraggedCards: (draggedCards: CardTypeGame[]) => {
-        set({draggedCards: draggedCards});
-    },
-
-    setDragIndex: (dragIndex: number) => {
-        set({dragIndex: dragIndex});
+    moveCardStack: (index, from, to, handleDropToField) => {
+        const locationCards = get()[from as keyof State] as CardTypeGame[];
+        const cards = locationCards.slice(0, index + 1);
+        for (const card of cards) {
+            handleDropToField(card.id, from, to, card.name);
+        }
     }
 }));
