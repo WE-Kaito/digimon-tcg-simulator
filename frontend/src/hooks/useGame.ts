@@ -78,6 +78,14 @@ type State = {
                playUnsuspendSfx: () => void,
                sendSfx: (sfx: string) => void) => void,
     createToken: () => void,
+
+    isDraggingStackState: boolean,
+    setIsDraggingStackState: (isDragging: boolean) => void,
+    draggedCards: CardTypeGame[],
+    setDraggedCards: (draggedCards: CardTypeGame[]) => void,
+    dragIndex: number,
+    setDragIndex: (dragIndex: number) => void,
+
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
@@ -142,6 +150,10 @@ export const useGame = create<State>((set, get) => ({
     messages: [],
     mulliganAllowed: true,
     opponentReady: false,
+
+    isDraggingStackState: false,
+    draggedCards: [],
+    dragIndex: 0,
 
     setOpponentReady: () => {
         set({opponentReady: true});
@@ -576,5 +588,17 @@ export const useGame = create<State>((set, get) => ({
             }
             return state;
         });
+    },
+
+    setIsDraggingStackState: (isDraggingStack: boolean) => {
+        set({isDraggingStackState: isDraggingStack});
+    },
+
+    setDraggedCards: (draggedCards: CardTypeGame[]) => {
+        set({draggedCards: draggedCards});
+    },
+
+    setDragIndex: (dragIndex: number) => {
+        set({dragIndex: dragIndex});
     }
 }));

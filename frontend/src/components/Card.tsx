@@ -13,11 +13,7 @@ type CardProps = {
     sendUpdate?: () => void
     sendSfx?: (sfx: string) => void,
     index?: number,
-    cards?: CardTypeGame[],
-    setIsDraggingStack?: (insideStack: boolean) => void,
-    setDraggedCards?: (cards: CardTypeGame[]) => void,
-    draggedCards?: CardTypeGame[],
-    isDraggingStackState?: boolean,
+    cards?: CardTypeGame[]
 }
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
@@ -25,7 +21,7 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
 const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
 
-export default function Card({card, location, sendUpdate, sendSfx, index, cards, setIsDraggingStack, setDraggedCards, draggedCards, isDraggingStackState}: CardProps) {
+export default function Card({card, location, sendUpdate, sendSfx, index, cards}: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -34,7 +30,13 @@ export default function Card({card, location, sendUpdate, sendSfx, index, cards,
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const addCardToDeck = useStore((state) => state.addCardToDeck);
     const opponentReady = useGame((state) => state.opponentReady);
-    const cardsFromStartToIndex = index ? cards?.slice(0, index + 1) : [];
+
+    const isDraggingStackState = useGame((state) => state.isDraggingStackState);
+    const setIsDraggingStackState = useGame((state) => state.setIsDraggingStackState);
+    const draggedCards = useGame((state) => state.draggedCards);
+    const setDraggedCards = useGame((state) => state.setDraggedCards);
+    const dragIndex = useGame((state) => state.dragIndex);
+    const setDragIndex = useGame((state) => state.setDragIndex);
 
     const [{isDragging: isDragging}, drag] = useDrag(() => ({
         type: "card",
@@ -53,13 +55,13 @@ export default function Card({card, location, sendUpdate, sendSfx, index, cards,
     });
 
     useEffect(() => {
-        if (setIsDraggingStack && setDraggedCards && cardsFromStartToIndex) {
-            setIsDraggingStack(isDraggingStack);
-            setTimeout(() => {
-                setDraggedCards(cardsFromStartToIndex);
-            }, 20);
-        }
-    }, [isDraggingStack]);
+        if (index) setDraggedCards((cards?.slice(0, dragIndex + 1)) as CardTypeGame[]);
+    }, [isDraggingStackState,index, dragIndex, cards, card, setDraggedCards]);
+
+    useEffect(() => {
+        if (isDraggingStack) setIsDraggingStackState(true);
+        else setIsDraggingStackState(false);
+    }, [isDraggingStack, setIsDraggingStackState]);
 
     function getTiltable() {
         if (location === "myTamer") {
@@ -94,7 +96,7 @@ export default function Card({card, location, sendUpdate, sendSfx, index, cards,
         const dragIndex = draggedCards.findIndex(c => c.id === card.id);
         if (index > 0) {
             if (isDraggingStackState && index !== dragIndex) return null;
-            return <DragIcon ref={dragStack}>🎴</DragIcon>
+            return <DragIcon onMouseEnter={() => setDragIndex(index) } ref={dragStack}>🎴</DragIcon>
         }
         return null;
     }
