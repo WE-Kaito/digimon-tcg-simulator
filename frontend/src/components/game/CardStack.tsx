@@ -13,19 +13,17 @@ type CardStackProps = {
 
 export default function CardStack({cards, location, sendUpdate, sendSfx, opponentSide}: CardStackProps) {
 
-    const [dragStackEffect, setDragStackEffect] = useState(false);
+    const [draggedCards, setDraggedCards] = useState<CardTypeGame[]>([]);
 
     return <div style={{position: "absolute", width: "100%", height: "100%"}}>
         {!opponentSide
 
-            ? cards?.map((card, index) =>{
-                return (
+            ? cards?.map((card, index) =>
                 <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
                                id={index === cards.length - 1 ? location : ""}>
                     <Card card={card} location={location} sendSfx={sendSfx} sendUpdate={sendUpdate}
-                          index={index} dragStackEffect={dragStackEffect} setDragStackEffect={setDragStackEffect}/>
+                          index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}/>
                 </CardContainer>)
-            })
 
             : cards?.map((card, index) =>
                 <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}

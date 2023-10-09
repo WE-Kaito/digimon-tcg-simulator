@@ -6,6 +6,7 @@ import {useGame} from "../hooks/useGame.ts";
 import {getCardSize, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
+import {useEffect} from "react";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -13,8 +14,8 @@ type CardProps = {
     sendUpdate?: () => void
     sendSfx?: (sfx: string) => void,
     index?: number,
-    dragStackEffect?: boolean,
-    setDragStackEffect?: (value: boolean) => void
+    draggedCards?: CardTypeGame[],
+    setDraggedCards?: (cards: CardTypeGame[]) => void
 }
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
@@ -22,7 +23,7 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
 const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
 
-export default function Card({card, location, sendUpdate, sendSfx, index}: CardProps) {
+export default function Card({card, location, sendUpdate, sendSfx, index, draggedCards, setDraggedCards}: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -33,7 +34,7 @@ export default function Card({card, location, sendUpdate, sendSfx, index}: CardP
     const opponentReady = useGame((state) => state.opponentReady);
     const hoverCard = useStore((state) => state.hoverCard);
 
-    const [{isDragging: isDragging}, drag] = useDrag(() => ({
+    const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
         item: {id: card.id, location: location, cardnumber: card.cardnumber, type: card.type, name: card.name},
         collect: (monitor) => ({
@@ -41,13 +42,25 @@ export default function Card({card, location, sendUpdate, sendSfx, index}: CardP
         }),
     }));
 
-    const [{isDraggingStack}, dragStack] = useDrag({
+    const [{isDraggingStack, dragStackItem}, dragStack] = useDrag({
         type: "card-stack",
         item: {index: index, location: location},
         collect: (monitor) => ({
             isDraggingStack: !!monitor.isDragging(),
+            dragStackItem: monitor.getItem(),
         }),
     });
+
+    useEffect(() => {
+        if (setDraggedCards){
+            if (isDraggingStack && dragStackItem.index) {
+                return setDraggedCards(locationCards.slice(0, dragStackItem.index + 1));
+            }
+            if (!isDraggingStack) return setDraggedCards([]);
+        }
+    }, [isDraggingStack, dragStackItem, locationCards, setDraggedCards]);
+
+    const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
 
     function getTiltable() {
         if (location === "myTamer") {
@@ -91,7 +104,7 @@ export default function Card({card, location, sendUpdate, sendSfx, index}: CardP
                 onMouseLeave={() => setHoverCard(null)}
                 alt={card.name + " " + card.cardnumber}
                 src={card.image_url}
-                isDragging={isDragging || isDraggingStack}
+                isDragging={isDragging || dragStackEffect}
                 location={location}
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 title={topCardInfo(card as CardTypeGame, location, locationCards)}
