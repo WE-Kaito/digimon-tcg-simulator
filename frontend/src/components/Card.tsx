@@ -5,12 +5,19 @@ import {useDrag} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {getCardSize, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
+import {useEffect} from "react";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
     location: string,
     sendUpdate?: () => void
-    sendSfx?: (sfx: string) => void
+    sendSfx?: (sfx: string) => void,
+    index?: number,
+    cards?: CardTypeGame[],
+    setIsDraggingStack?: (insideStack: boolean) => void,
+    setDraggedCards?: (cards: CardTypeGame[]) => void,
+    draggedCards?: CardTypeGame[],
+    isDraggingStackState?: boolean,
 }
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
@@ -18,7 +25,7 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
 const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
 
-export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
+export default function Card({card, location, sendUpdate, sendSfx, index, cards, setIsDraggingStack, setDraggedCards, draggedCards, isDraggingStackState}: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -27,8 +34,9 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const addCardToDeck = useStore((state) => state.addCardToDeck);
     const opponentReady = useGame((state) => state.opponentReady);
+    const cardsFromStartToIndex = index ? cards?.slice(0, index + 1) : [];
 
-    const [{isDragging}, drag] = useDrag(() => ({
+    const [{isDragging: isDragging}, drag] = useDrag(() => ({
         type: "card",
         item: {id: card.id, location: location, cardnumber: card.cardnumber, type: card.type, name: card.name},
         collect: (monitor) => ({
@@ -36,11 +44,28 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
         }),
     }));
 
-    function getTiltable(){
-        if (location === "myTamer"){
+    const [{isDraggingStack}, dragStack] = useDrag({
+        type: "card-stack",
+        item: {cards: draggedCards, location: location},
+        collect: (monitor) => ({
+            isDraggingStack: !!monitor.isDragging(),
+        }),
+    });
+
+    useEffect(() => {
+        if (setIsDraggingStack && setDraggedCards && cardsFromStartToIndex) {
+            setIsDraggingStack(isDraggingStack);
+            setTimeout(() => {
+                setDraggedCards(cardsFromStartToIndex);
+            }, 20);
+        }
+    }, [isDraggingStack]);
+
+    function getTiltable() {
+        if (location === "myTamer") {
             return card.type === "Tamer";
         } else {
-            return tiltLocations.includes(location) && card === locationCards[locationCards.length -1];
+            return tiltLocations.includes(location) && card === locationCards[locationCards.length - 1];
         }
     }
 
@@ -55,30 +80,45 @@ export default function Card({card, location, sendUpdate, sendSfx}: CardProps) {
         } else {
             if (getTiltable() && sendSfx && selectedCard === card) {
                 tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
-                if(sendUpdate) sendUpdate();
+                if (sendUpdate) sendUpdate();
             } else {
                 selectCard(card);
             }
         }
     }
 
+    const stackDragEffect = !!(isDraggingStackState && draggedCards && draggedCards.length > 1 && draggedCards.find(c => c.id === card.id));
+
+    function getDragIcon(){
+        if (!draggedCards || !index) return null;
+        const dragIndex = draggedCards.findIndex(c => c.id === card.id);
+        if (index > 0) {
+            if (isDraggingStackState && index !== dragIndex) return null;
+            return <DragIcon ref={dragStack}>🎴</DragIcon>
+        }
+        return null;
+    }
+
     return (
-        <StyledImage
-            ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
-            onClick={handleClick}
-            onMouseEnter={() => setHoverCard(card)}
-            onMouseLeave={() => setHoverCard(null)}
-            alt={card.name + " " + card.cardnumber}
-            src={card.image_url}
-            isDragging={isDragging}
-            location={location}
-            isTilted={((card as CardTypeGame)?.isTilted) ?? false}
-            title={topCardInfo(card as CardTypeGame, location, locationCards)}
-        />)
+        <div style={{position: "relative"}}>
+            {getDragIcon()}
+            <StyledImage
+                ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
+                onClick={handleClick}
+                onMouseEnter={() => setHoverCard(card)}
+                onMouseLeave={() => setHoverCard(null)}
+                alt={card.name + " " + card.cardnumber}
+                src={card.image_url}
+                isDragging={isDragging || stackDragEffect}
+                location={location}
+                isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+                title={topCardInfo(card as CardTypeGame, location, locationCards)}
+            />
+        </div>)
 }
 
 type StyledImageProps = {
-    isDragging: boolean,
+    isDragging: boolean | undefined,
     location: string
     isTilted: boolean
 }
@@ -89,8 +129,8 @@ const StyledImage = styled.img<StyledImageProps>`
   border-radius: 5px;
   transition: all 0.15s ease-out;
   cursor: ${({location}) => (location === "deck" ? "not-allowed" : (location === "fetchedData" ? "cell" : "grab"))};
-  opacity: ${({isDragging}) => (isDragging ? 0.5 : 1)};
-  filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190)" : "drop-shadow(0 0 1.5px #004567)")};
+  opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
+  filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
   transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
   animation: ${({isTilted}) => (isTilted ? "pulsate 5s ease-in-out infinite" : "")};
 
@@ -126,5 +166,16 @@ const StyledImage = styled.img<StyledImageProps>`
 
   @media (max-width: 390px) and (min-height: 800px) {
     width: 68.5px;
+  }
+`;
+
+const DragIcon = styled.div`
+  position: absolute;
+  z-index: 1;
+  bottom: 4px;
+  right: 3px;
+  :hover {
+    cursor: grab;
+    transform: scale(1.25);
   }
 `;
