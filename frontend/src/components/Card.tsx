@@ -171,7 +171,9 @@ const DragIcon = styled.img`
   bottom: 2px;
   left: 1px;
   pointer-events: auto;
-  &:hover {
+  transition: all 0.075s ease-in;
+  
+  &:hover, &:active {
     z-index: 1000;
     cursor: grab;
     transform: scale(1.75);
