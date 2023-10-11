@@ -621,7 +621,7 @@ export default function Game({user}: { user: string }) {
         }),
     }));
 
-    const [, dropToDeck] = useDrop(() => ({
+    const [{isOverDeckTop}, dropToDeck] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location, type, name} = item;
@@ -632,11 +632,11 @@ export default function Game({user}: { user: string }) {
             playDrawCardSfx();
         },
         collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
+            isOverDeckTop: !!monitor.isOver(),
         }),
     }));
 
-    const [, dropToDeckBottom] = useDrop(() => ({
+    const [{isOverBottom, canDropToDeckBottom}, dropToDeckBottom] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
             const {id, location, type, name} = item;
@@ -647,7 +647,8 @@ export default function Game({user}: { user: string }) {
             playDrawCardSfx();
         },
         collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
+            isOverBottom: !!monitor.isOver(),
+            canDropToDeckBottom: !!monitor.canDrop(),
         }),
     }));
 
@@ -663,6 +664,7 @@ export default function Game({user}: { user: string }) {
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
+            highlighted: monitor.canDrop(),
         }),
     }));
 
@@ -681,7 +683,7 @@ export default function Game({user}: { user: string }) {
         }),
     }));
 
-    const [, dropToTrash] = useDrop(() => ({
+    const [{isOverTrash}, dropToTrash] = useDrop(() => ({
         accept: ["card", "card-stack"],
         drop: (item: DraggedItem | DraggedStack) => {
             if (isCardStack(item)) {
@@ -693,7 +695,7 @@ export default function Game({user}: { user: string }) {
             }
         },
         collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
+            isOverTrash: !!monitor.isOver(),
         }),
     }));
 
@@ -1256,7 +1258,7 @@ export default function Game({user}: { user: string }) {
 
                                 <TrashSpan style={{transform: gameHasStarted ? "translate(-14px, -40px)" : "translate(-14px, 0)",}}>
                                     {myDeckField.length}</TrashSpan>
-                                <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted} isOver={isOverDeckTop}
                                       onClick={() => {
                                           if (!opponentReady) return;
                                           moveCard(myDeckField[0].id, "myDeckField", "myHand");
@@ -1266,8 +1268,8 @@ export default function Game({user}: { user: string }) {
                                           sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
                                       }}/>
 
-                                { gameHasStarted && <DeckBottomZone ref={dropToDeckBottom}>
-                                    <DBZSpan>⇑ ⇑ ⇑</DBZSpan></DeckBottomZone>}
+                                { gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
+                                    <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑ ⇑</DBZSpan></DeckBottomZone>}
 
                                 <SendToTrashButton title="Send top card from your deck to Trash"
                                                    onClick={() => {
@@ -1300,13 +1302,13 @@ export default function Game({user}: { user: string }) {
                             </DeckContainer>
 
                             <TrashContainer ref={dropToTrash}>
-                                {myTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
+                                {myTrash.length === 0 ? <TrashPlaceholder isOver={isOverTrash}>Trash</TrashPlaceholder>
                                     : <TrashCardImage src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
                                                           setOpponentTrashMoodle(false);
                                                       }}
-                                                      title="Open your trash"/>}
+                                                      title="Open your trash" isOver={isOverTrash}/>}
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
                             </TrashContainer>
 
@@ -1629,27 +1631,28 @@ const OpponentDeckContainer = styled.div`
   padding: 10px 10px 0 0;
 `;
 
-const Deck = styled.img<{gameHasStarted?: boolean}>`
+const Deck = styled.img<{gameHasStarted?: boolean, isOver?: boolean}>`
   width: 105px;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.1s ease;
   transform: ${({gameHasStarted}) => gameHasStarted ? "translateY(-37px)" : "translateY(0)"};
   z-index: 2;
-
+  filter: ${({isOver}) => isOver ? "drop-shadow(0 0 1px #eceaea) saturate(1.1) brightness(0.95)" : "none"};
+  
   &:hover {
     filter: drop-shadow(0 0 1px #eceaea);
   }
 `;
 
-const DeckBottomZone = styled.div`
+const DeckBottomZone = styled.div<{isOver: boolean}>`
   z-index: 1;
   width: 95px;
   margin-left: 5px;
   padding-top: 10px;
   height: 40px;
   border-radius: 5px;
-  border: #0c0c0c dashed 2px;
+  border: ${({isOver}) => isOver ? "#DAD8D5E0 solid 2px" : "#0c0c0c dashed 2px"};
   background: rgba(0, 0, 0, 0.35);
   position: absolute;
   bottom: 10px;
@@ -1658,11 +1661,12 @@ const DeckBottomZone = styled.div`
   align-items: center;
 `;
 
-const DBZSpan = styled.span`
-  font-size: 20px;
-  color: rgba(161, 157, 154, 0.5);
+const DBZSpan = styled.span<{isOver: boolean, canDrop: boolean}>`
+  visibility: ${({canDrop}) => canDrop ? "visible" : "hidden"};
+  color: ${({isOver}) => isOver ? "rgba(218,216,213,0.88)" : "rgba(161, 157, 154, 0.3)"};
   cursor: default;
-  transform: translateY(1px);
+  transition: all 0.1s ease;
+  transform: translateY(1px) scale(${({isOver}) => isOver ? "1.05" : "1"});
 `;
 
 const EggDeck = styled(Deck)`
@@ -2056,26 +2060,26 @@ const FieldSpan = styled.span`
   font-family: Naston, sans-serif;
 `;
 
-const TrashPlaceholder = styled.div`
+const TrashPlaceholder = styled.div<{isOver?: boolean}>`
   width: 105px;
   height: 146px;
   border-radius: 5px;
-  border: #0c0c0c solid 2px;
+  border: ${({isOver}) => isOver ? '#8d8d8d' : '#0c0c0c'} solid 2px;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   color: rgba(220, 220, 220, 0.8);
   font-family: Naston, sans-serif;
+  transition: all 0.1s ease-in-out;
 `;
 
-const TrashCardImage = styled.img`
+const TrashCardImage = styled.img<{isOver?: boolean}>`
   width: 105px;
   border-radius: 5px;
   cursor: pointer;
-  filter: drop-shadow(1px 1px 2px #060e18);
-  transition: all 0.2s ease-in-out;
-
+  transition: all 0.1s ease-in-out;
+  filter: drop-shadow(${({isOver}) => isOver ? '0px 0px 1px whitesmoke' : '1px 1px 2px #060e18'});
   &:hover {
     filter: drop-shadow(0px 0px 3px #af0c3d) brightness(1.1) saturate(1.2);
   }
