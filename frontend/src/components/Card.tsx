@@ -91,7 +91,7 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
     return (
         <div style={{position: "relative"}}>
             {!isDraggingStack && !!(index) && (index > 0)
-                && ((hoverCard === card) || ('ontouchstart' in window || navigator.maxTouchPoints)) &&
+                && ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints)) &&
                 <DragIcon
                     ref={dragStack}
                     onMouseEnter={() => setHoverCard(hoverCard)}

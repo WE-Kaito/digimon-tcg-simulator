@@ -1301,9 +1301,9 @@ export default function Game({user}: { user: string }) {
                                             disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
                             </DeckContainer>
 
-                            <TrashContainer ref={dropToTrash}>
-                                {myTrash.length === 0 ? <TrashPlaceholder isOver={isOverTrash}>Trash</TrashPlaceholder>
-                                    : <TrashCardImage src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
+                            <TrashContainer>
+                                {myTrash.length === 0 ? <TrashPlaceholder ref={dropToTrash} isOver={isOverTrash}>Trash</TrashPlaceholder>
+                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
                                                           setOpponentTrashMoodle(false);
