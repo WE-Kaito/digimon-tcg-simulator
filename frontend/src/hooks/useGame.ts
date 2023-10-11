@@ -61,7 +61,7 @@ type State = {
     mulligan: () => void,
     setMulliganAllowed: (allowed: boolean) => void,
     opponentReady: boolean,
-    setOpponentReady: () => void,
+    setOpponentReady: (ready: boolean) => void,
 
     setUpGame: (me: Player, opponent: Player) => void,
     clearBoard: () => void,
@@ -146,8 +146,8 @@ export const useGame = create<State>((set, get) => ({
     mulliganAllowed: true,
     opponentReady: false,
 
-    setOpponentReady: () => {
-        set({opponentReady: true});
+    setOpponentReady: (ready) => {
+        set({opponentReady: ready});
     },
 
     setUpGame: (me, opponent) => {
@@ -156,8 +156,8 @@ export const useGame = create<State>((set, get) => ({
             opponentAvatar: opponent.avatarName,
 
             messages: [],
-            mulliganAllowed: true,
-            opponentReady: false,
+            mulliganAllowed: false,
+            opponentReady: true,
         });
     },
 
