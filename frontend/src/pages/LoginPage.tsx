@@ -19,7 +19,7 @@ export default function LoginPage() {
     const register = useStore((state) => state.register);
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,20}$/;
     const forbiddenCharacters = [":","‗","【","】","﹕","≔"," "]
-    const validUserName = userNameReg.length >= 3 && userNameReg.length <= 14 && !containsForbiddenCharacters();
+    const validUserName = userNameReg.length >= 3 && userNameReg.length <= 16 && !containsForbiddenCharacters();
 
     function handleSubmitLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -82,7 +82,7 @@ export default function LoginPage() {
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
-                            type="text" name="userName" placeholder="username" maxLength={14}/>
+                            type="text" name="userName" placeholder="username" maxLength={16}/>
 
                 <InputField value={password} onChange={(e) => setPassword(e.target.value)}
                             type="password" name="password" placeholder="password" maxLength={20}/>
@@ -96,7 +96,7 @@ export default function LoginPage() {
 
                 <div>
                     <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
-                                type="text" name="userName" placeholder="username" maxLength={14}
+                                type="text" name="userName" placeholder="username" maxLength={16}
                                 style={{backgroundColor: `${userNameColor()}`}}
                     />
                     <br/>
