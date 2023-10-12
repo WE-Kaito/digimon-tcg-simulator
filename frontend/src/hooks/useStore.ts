@@ -189,7 +189,15 @@ export const useStore = create<State>((set, get) => ({
             .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
             .catch((error) => {
-                console.error(error);
+                if (error.response) {
+                    console.error(error.response.status + " " + error.response.data.message);
+                } else if (error.request) {
+                    // The request was made, but no response was received
+                    console.error("No response received from the server");
+                } else {
+                    // Something happened in setting up the request that triggered an error
+                    console.error("Request setup error: " + error.message);
+                }
                 throw error;
             })
             .then(() =>
