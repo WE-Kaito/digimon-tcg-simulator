@@ -52,7 +52,7 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
     });
 
     useEffect(() => {
-        if (setDraggedCards){
+        if (setDraggedCards) {
             if (isDraggingStack && dragStackItem.index) {
                 return setDraggedCards(locationCards.slice(0, dragStackItem.index + 1));
             }
@@ -72,7 +72,7 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
 
     function handleClick() {
         if (location === "fetchedData") {
-            addCardToDeck(card.id, card.cardnumber, card.type);
+            addCardToDeck(card.cardnumber, card.type);
             playPlaceCardSfx();
         }
         if (location === "deck") {
@@ -88,10 +88,11 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
         }
     }
 
+    const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
+
     return (
         <div style={{position: "relative"}}>
-            {!isDraggingStack && !!(index) && (index > 0)
-                && ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints)) &&
+            {!isDraggingStack && !!(index) && (index > 0) && utilIcon &&
                 <DragIcon
                     ref={dragStack}
                     onMouseEnter={() => setHoverCard(hoverCard)}
@@ -100,8 +101,12 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
                 />}
             <StyledImage
                 ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
-                onClick={(e) => { e.stopPropagation(); handleClick; }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleClick();
+                }}
                 onMouseEnter={() => setHoverCard(card)}
+                onMouseOver={() => setHoverCard(card)}
                 onMouseLeave={() => setHoverCard(null)}
                 alt={card.name + " " + card.cardnumber}
                 src={card.image_url}
@@ -173,7 +178,7 @@ const DragIcon = styled.img`
   left: 1px;
   pointer-events: auto;
   transition: all 0.075s ease-in;
-  
+
   &:hover, &:active {
     z-index: 1000;
     cursor: grab;

@@ -95,8 +95,9 @@ export const OuterContainer = styled.div`
   }
 
   @media (min-width: 1000px) {
+    max-width: 1700px;
     grid-template-rows: 0.1fr 1fr 1fr;
-    grid-template-columns: 2fr 1fr 1.5fr;
+    grid-template-columns: 3fr 1fr 1.5fr;
     grid-template-areas: "deckselection deckname buttons"
                         "deckselection cardimage carddetails"
                         "deckselection searchform searchform";

@@ -35,7 +35,7 @@ type State = {
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
     hoverCard: CardTypeWithId | null,
     setHoverCard: (card: CardTypeWithId | null) => void,
-    addCardToDeck: (id: string, cardnumber: string, type: string) => void,
+    addCardToDeck: (cardnumber: string, type: string) => void,
     deleteFromDeck: (id: string) => void,
     saveDeck: (name: string) => void,
     fetchDecks: () => void,
@@ -130,10 +130,10 @@ export const useStore = create<State>((set, get) => ({
         set({hoverCard: card});
     },
 
-    addCardToDeck: (id, cardnumber, type) => {
+    addCardToDeck: (cardnumber, type) => {
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
-        const cardToAdd = {...get().filteredCards.filter((card) => card.id === id)[0], id: uid()};
+        const cardToAdd = {...get().fetchedCards.filter((card) => card.cardnumber === cardnumber)[0], id: uid()};
 
         if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4) {
             set({deckCards: [cardToAdd, ...get().deckCards]});
@@ -375,10 +375,11 @@ export const useStore = create<State>((set, get) => ({
 
     importDeck: (decklist) => {
         set({loadingDeck: true});
-        const cardsWithId: CardTypeWithId[] = decklist.map((cardnumber: string) => ({
+        const cardsWithId: CardTypeWithId[] = decklist
+            .map((cardnumber: string) => ({
             ...get().fetchedCards.filter((card) => card.cardnumber === cardnumber)[0],
-            id: uid(),
-        }));
+            id: uid()}))
+            .filter((card) => card.name !== undefined);
         // --- check if deck is valid ---
         const eggCardLength = cardsWithId.filter((card) => card.type === "Digi-Egg").length;
         const filteredLength = cardsWithId.length - eggCardLength;

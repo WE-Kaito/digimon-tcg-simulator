@@ -9,12 +9,15 @@ import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
 import Card from "./Card.tsx";
 import {sortCards} from "../utils/functions.ts";
-import {useEffect} from "react";
+import {playPlaceCardSfx} from "../utils/sound.ts";
 
 export default function DeckSelection() {
 
     const deckCards = useStore((state) => state.deckCards);
     const loadingDeck = useStore((state) => state.loadingDeck);
+    const setHoverCard = useStore((state) => state.setHoverCard);
+    const hoverCard = useStore((state) => state.hoverCard);
+    const addCardToDeck = useStore((state) => state.addCardToDeck);
 
     const digimonLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digimon").length;
     const tamerLength = deckCards.filter((card: CardTypeWithId) => card.type === "Tamer").length;
@@ -31,9 +34,16 @@ export default function DeckSelection() {
         cardGroups[cardnumber].push(card);
     });
 
-    useEffect(() => {
-
-    }, [deckCards])
+    const filteredDeckLength = deckCards.length - deckCards.filter((card) => card.type === "Digi-Egg").length;
+    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
+    function getAddAllowed(card: CardTypeWithId, lastIndex: boolean) {
+        return ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints))
+            && !!hoverCard
+            && filteredDeckLength < 50
+            && lastIndex
+            && (deckCards.filter(c => c.cardnumber === card.cardnumber).length < 4
+                || cardsWithoutLimit.includes(card.cardnumber))
+    }
 
     return (
         <DeckContainer>
@@ -73,11 +83,37 @@ export default function DeckSelection() {
                                     if (group[index - 1]?.cardnumber === card.cardnumber) {
                                         if (group[index - 4]?.cardnumber === card.cardnumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
+                                            {getAddAllowed(card, group.length === index + 1) &&
+                                                <AddIcon
+                                                    onClick={() => {
+                                                        addCardToDeck(card.cardnumber, card.type);
+                                                        playPlaceCardSfx();
+                                                    }}
+                                                    onMouseEnter={() => setHoverCard(hoverCard)}
+                                                    onMouseLeave={() => setHoverCard(null)}
+                                                >
+                                                    ➕
+                                                </AddIcon>
+                                            }
                                             <Card card={card} location={"deck"}/>
                                         </div>
                                     }
                                 }
-                                return <Card key={card.id} card={card} location={"deck"}/>
+                                return <div key={card.id} >
+                                    {getAddAllowed(card, deckCards.filter(c => c.cardnumber === card.cardnumber).length === 1) &&
+                                        <AddIcon
+                                            onClick={() => {
+                                                addCardToDeck(card.cardnumber, card.type);
+                                                playPlaceCardSfx();
+                                            }}
+                                            onMouseEnter={() => setHoverCard(hoverCard)}
+                                            onMouseLeave={() => setHoverCard(null)}
+                                        >
+                                            ➕
+                                        </AddIcon>
+                                    }
+                                    <Card card={card} location={"deck"}/>
+                                </div>
                             })}
                             </div>
                     })
@@ -262,5 +298,29 @@ const DeckList = styled.fieldset`
 
   @media (min-width: 2000px) {
     transform: translateY(10px);
+  }
+`;
+
+const AddIcon = styled.div`
+  font-size: 22px;
+  position: absolute;
+  z-index: 1;
+  bottom: 5px;
+  right: 6px;
+  pointer-events: auto;
+  transition: all 0.075s ease-in;
+
+  &:hover {
+    z-index: 1000;
+    cursor: pointer;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 1px ghostwhite) brightness(1.35) saturate(1.2)
+  }
+
+  &:active {
+    z-index: 1000;
+    cursor: pointer;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 1px ghostwhite) sepia(100%) hue-rotate(90deg) saturate(1.35);
   }
 `;
