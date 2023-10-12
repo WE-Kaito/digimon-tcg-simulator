@@ -1199,6 +1199,7 @@ export default function Game({user}: { user: string }) {
                                                 shuffleSecurity();
                                                 sendUpdate();
                                                 playShuffleDeckSfx();
+                                                sendChatMessage(`[FIELD_UPDATE]≔【↻ Security Stack】`);
                                                 sendSfx("playShuffleDeckSfx");
                                             }}>🔄</SendButton>
 
