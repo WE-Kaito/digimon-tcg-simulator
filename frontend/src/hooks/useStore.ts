@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import {
     notifyAlreadyExists, notifyCredentials,
     notifyDelete,
-    notifyError, notifyInvalidImport,
+    notifyError, notifyGeneralError, notifyInvalidImport,
     notifyLength,
     notifyName, notifyRegistered,
     notifySuccess,
@@ -191,12 +191,15 @@ export const useStore = create<State>((set, get) => ({
             .catch((error) => {
                 if (error.response) {
                     console.error(error.response.status + " " + error.response.data.message);
+                    notifyGeneralError();
                 } else if (error.request) {
                     // The request was made, but no response was received
                     console.error("No response received from the server");
+                    notifyGeneralError();
                 } else {
                     // Something happened in setting up the request that triggered an error
                     console.error("Request setup error: " + error.message);
+                    notifyGeneralError();
                 }
                 throw error;
             })

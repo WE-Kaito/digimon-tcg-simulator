@@ -100,3 +100,10 @@ export const notifyInvalidImport = () => toast.error('Deck not allowed!', {
     hideProgressBar: false,
     pauseOnHover: false
 });
+
+export const notifyGeneralError = () => toast.error('Something went wrong!', {
+    position: "top-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    pauseOnHover: false
+});
