@@ -52,9 +52,24 @@ const Container = styled.div`
   align-items: flex-start;
   background: #0e0e0e;
   border-radius: 10px;
-  width: 100vw;
+  width: 100vw + 5px;
   height: 410px;
-  max-width: 1004px;
+  max-width: 1010px;
+  overflow-y: scroll;
+  
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #C5C5C5;
+    border-radius: 2px;
+  }
+
+  @media (min-width: 1000px) {
+    width: 1010px;
+    gap: 19px;
+  }
   
   @media (min-width: 1600px) {
     gap: 20px;
