@@ -1,12 +1,12 @@
-import {CardTypeGame, CardTypeWithId} from "../utils/types.ts";
+import {CardTypeGame, CardTypeWithId, DraggedItem} from "../utils/types.ts";
 import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
-import {useDrag} from "react-dnd";
+import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {getCardSize, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -16,6 +16,7 @@ type CardProps = {
     index?: number,
     draggedCards?: CardTypeGame[],
     setDraggedCards?: (cards: CardTypeGame[]) => void
+    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void
 }
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
@@ -23,7 +24,7 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
 const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
 
-export default function Card({card, location, sendUpdate, sendSfx, index, draggedCards, setDraggedCards}: CardProps) {
+export default function Card({card, location, sendUpdate, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom}: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -32,7 +33,8 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const addCardToDeck = useStore((state) => state.addCardToDeck);
     const opponentReady = useGame((state) => state.opponentReady);
-    const hoverCard = useStore((state) => state.hoverCard);
+    const hoverCard = useStore((state) => state.hoverCard)
+    const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
@@ -51,14 +53,37 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
         }),
     });
 
+    const [{isOver, canDrop}, dropToBottom] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location: loc, type, name} = item;
+            if (type === "Token" || !handleDropToStackBottom) return;
+            handleDropToStackBottom(id, loc, location, name);
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+            canDrop: !!monitor.canDrop(),
+        }),
+    }));
+
     useEffect(() => {
         if (setDraggedCards) {
             if (isDraggingStack && dragStackItem.index) {
-                return setDraggedCards(locationCards.slice(0, dragStackItem.index + 1));
+                setDraggedCards(locationCards.slice(0, dragStackItem.index + 1));
             }
-            if (!isDraggingStack) return setDraggedCards([]);
+            if (!isDraggingStack) setDraggedCards([]);
         }
     }, [isDraggingStack, dragStackItem, locationCards, setDraggedCards]);
+
+    useEffect(() => {
+        if(!canDropToStackBottom && canDrop) {
+            const timer = setTimeout(() => {
+                setCanDropToStackBottom(true);
+            }, 20);
+            return () => clearTimeout(timer);
+        }
+        if (canDropToStackBottom && !canDrop) setCanDropToStackBottom(false)
+    }, [canDrop,canDropToStackBottom, setCanDropToStackBottom]);
 
     const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
 
@@ -115,6 +140,8 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 title={topCardInfo(card as CardTypeGame, location, locationCards)}
             />
+            {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
+                <DTSBZone isOver={isOver} ref={dropToBottom}/>}
         </div>)
 }
 
@@ -185,4 +212,16 @@ const DragIcon = styled.img`
     transform: scale(1.75);
     filter: drop-shadow(0 0 1px ghostwhite) hue-rotate(90deg);
   }
+`;
+
+const DTSBZone = styled.div<{isOver: boolean}>`
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  z-index: 4;
+  height: 27px;
+  width: 95px;
+  background: rgba(236, 148, 241, ${({isOver}) => (isOver ? "0.25" : "0")});
+  border-radius: 5px;
+  transition: all 0.15s ease-in-out;
 `;

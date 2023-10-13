@@ -462,14 +462,26 @@ export const useGame = create<State>((set, get) => ({
 
     sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
         if (!get().opponentReady) return;
-        if (cardToSendToDeck.location === to) return;
+
+        const locationCards = get()[cardToSendToDeck.location as keyof State] as CardTypeGame[];
+        const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id);
+        const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id);
+
+        if(cardToSendToDeck.location === to){
+            set ({
+                [cardToSendToDeck.location]: []
+            });
+            const timer1 = setTimeout(() => {
+                set ({[to]: [card, ...updatedLocationCards]});
+            }, 10);
+            return () => clearTimeout(timer1);
+        } else
+
         set(state => {
-            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
-            const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id)
             const toDeck = state[to as keyof State] as CardTypeGame[];
             const updatedDeck = topOrBottom === "Top" ? [card, ...toDeck] : [...toDeck, card];
             return {
-                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id),
+                [cardToSendToDeck.location]: updatedLocationCards,
                 [to]: updatedDeck
             }
         })

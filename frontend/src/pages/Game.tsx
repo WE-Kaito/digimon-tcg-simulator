@@ -395,6 +395,20 @@ export default function Game({user}: { user: string }) {
         if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
+    function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
+        if (!cardId || !from || !to) return;
+        sendCardToDeck("Top", {id: cardId, location: from}, to);
+        playPlaceCardSfx();
+        sendSfx("playPlaceCardSfx");
+        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
+        if (from === to){
+            const timer = setTimeout(() => {
+                sendUpdate();
+            }, 30);
+            return () => clearTimeout(timer);
+        } else sendUpdate();
+    }
+
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
         if (location2arr.length === 0 && (isOpponent ? isOpponentSecondRowVisible : isMySecondRowVisible)) return location2;
@@ -1317,42 +1331,42 @@ export default function Game({user}: { user: string }) {
                                          id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi6} location={"myDigi6"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi1} location={"myDigi1"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea1>
                             <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
                                          id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi7} location={"myDigi7"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi2} location={"myDigi2"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea2>
                             <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
                                          id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
                                 {!isMySecondRowVisible && myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi8} location={"myDigi8"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi3} location={"myDigi3"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea3>
                             <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
                                          id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi9} location={"myDigi9"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi4} location={"myDigi4"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea4>
                             <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
                                          id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi10} location={"myDigi10"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi5} location={"myDigi5"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}/>}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea5>
 
                             <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>

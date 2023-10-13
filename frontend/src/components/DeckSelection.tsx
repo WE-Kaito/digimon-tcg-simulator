@@ -45,6 +45,19 @@ export default function DeckSelection() {
                 || cardsWithoutLimit.includes(card.cardnumber))
     }
 
+    function AddButton(card: CardTypeWithId) {
+        return <AddIcon
+            onClick={() => {
+                addCardToDeck(card.cardnumber, card.type);
+                playPlaceCardSfx();
+            }}
+            onMouseEnter={() => setHoverCard(hoverCard)}
+            onMouseLeave={() => setHoverCard(null)}
+        >
+            ➕
+        </AddIcon>
+    }
+
     return (
         <DeckContainer>
 
@@ -83,35 +96,14 @@ export default function DeckSelection() {
                                     if (group[index - 1]?.cardnumber === card.cardnumber) {
                                         if (group[index - 4]?.cardnumber === card.cardnumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
-                                            {getAddAllowed(card, group.length === index + 1) &&
-                                                <AddIcon
-                                                    onClick={() => {
-                                                        addCardToDeck(card.cardnumber, card.type);
-                                                        playPlaceCardSfx();
-                                                    }}
-                                                    onMouseEnter={() => setHoverCard(hoverCard)}
-                                                    onMouseLeave={() => setHoverCard(null)}
-                                                >
-                                                    ➕
-                                                </AddIcon>
-                                            }
+                                            {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
                                             <Card card={card} location={"deck"}/>
                                         </div>
                                     }
                                 }
                                 return <div key={card.id} >
-                                    {getAddAllowed(card, deckCards.filter(c => c.cardnumber === card.cardnumber).length === 1) &&
-                                        <AddIcon
-                                            onClick={() => {
-                                                addCardToDeck(card.cardnumber, card.type);
-                                                playPlaceCardSfx();
-                                            }}
-                                            onMouseEnter={() => setHoverCard(hoverCard)}
-                                            onMouseLeave={() => setHoverCard(null)}
-                                        >
-                                            ➕
-                                        </AddIcon>
-                                    }
+                                    {getAddAllowed(card, deckCards.filter(c => c.cardnumber === card.cardnumber).length === 1)
+                                        && AddButton(card)}
                                     <Card card={card} location={"deck"}/>
                                 </div>
                             })}

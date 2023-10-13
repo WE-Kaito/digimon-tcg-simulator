@@ -9,9 +9,10 @@ type CardStackProps = {
     sendUpdate?: () => void,
     sendSfx?: (sfx: string) => void
     opponentSide?: boolean
+    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void
 }
 
-export default function CardStack({cards, location, sendUpdate, sendSfx, opponentSide}: CardStackProps) {
+export default function CardStack({cards, location, sendUpdate, sendSfx, opponentSide, handleDropToStackBottom}: CardStackProps) {
 
     const [draggedCards, setDraggedCards] = useState<CardTypeGame[]>([]);
 
@@ -22,7 +23,8 @@ export default function CardStack({cards, location, sendUpdate, sendSfx, opponen
                 <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
                                id={index === cards.length - 1 ? location : ""}>
                     <Card card={card} location={location} sendSfx={sendSfx} sendUpdate={sendUpdate}
-                          index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}/>
+                          index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
+                          handleDropToStackBottom={handleDropToStackBottom} />
                 </CardContainer>)
 
             : cards?.map((card, index) =>
