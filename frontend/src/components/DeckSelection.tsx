@@ -40,7 +40,7 @@ export default function DeckSelection() {
         return ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints))
             && !!hoverCard
             && filteredDeckLength < 50
-            && lastIndex
+            && (lastIndex || cardsWithoutLimit.includes(card.cardnumber))
             && (deckCards.filter(c => c.cardnumber === card.cardnumber).length < 4
                 || cardsWithoutLimit.includes(card.cardnumber))
     }
@@ -301,18 +301,19 @@ const AddIcon = styled.div`
   right: 6px;
   pointer-events: auto;
   transition: all 0.075s ease-in;
+  filter: drop-shadow(0 0 1px #C71E78E5);
 
   &:hover {
     z-index: 1000;
     cursor: pointer;
     transform: scale(1.15);
-    filter: drop-shadow(0 0 1px ghostwhite) brightness(1.35) saturate(1.2)
+    filter: drop-shadow(0 0 3px mediumaquamarine) brightness(1.35) saturate(1.2)
   }
 
   &:active {
     z-index: 1000;
     cursor: pointer;
     transform: scale(1.15);
-    filter: drop-shadow(0 0 1px ghostwhite) sepia(100%) hue-rotate(90deg) saturate(1.35);
+    filter: drop-shadow(0 0 3px mediumaquamarine) sepia(100%) hue-rotate(90deg) saturate(1.5);
   }
 `;

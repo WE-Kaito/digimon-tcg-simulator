@@ -20,6 +20,8 @@ export default function Deckbuilder() {
     const filterCards = useStore((state) => state.filterCards);
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
+    const fetchCards = useStore((state) => state.fetchCards);
+    const fetchedCards = useStore((state) => state.fetchedCards);
     const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
 
     useEffect(() => {
@@ -34,6 +36,10 @@ export default function Deckbuilder() {
             window.removeEventListener('resize', handleResize);
         };
     }, [clearDeck, fetchDecks, filterCards]);
+
+    useEffect(() => {
+        if(fetchedCards.length === 0) fetchCards();
+    }, []);
 
     return (
         <OuterContainer>
