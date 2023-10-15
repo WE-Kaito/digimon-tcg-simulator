@@ -956,7 +956,7 @@ export default function Game({user}: { user: string }) {
                         <OpponentContainerMain>
 
                             <PlayerContainer>
-                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)}
+                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
                                              onClick={() => {
                                                  websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
                                                  notifyRequestedRestart();
@@ -1597,15 +1597,17 @@ const PlayerContainer = styled.div`
   justify-content: center;
 `;
 
-const PlayerImage = styled.img`
+const PlayerImage = styled.img<{opponent?:boolean}>`
   cursor: pointer;
   width: 160px;
-  border: #0c0c0c solid 2px;
   transition: all 0.1s ease;
-
+  transform: ${({opponent}) => opponent ? "rotateY(180deg)" : "none"};
+  
   &:hover {
-    filter: drop-shadow(0 0 2px #eceaea);
-    border: #eceaea solid 2px;
+    filter: drop-shadow(0 0 2px ${({opponent}) => opponent ? "#43d789" : "#bb2848"});
+    width: 144px;
+    margin-left: 8px;
+    padding: 8px;
   }
 `;
 

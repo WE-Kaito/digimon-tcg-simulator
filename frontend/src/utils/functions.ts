@@ -5,18 +5,26 @@ import freeImage from '../assets/attribute_icons/free.png';
 import unknownImage from '../assets/attribute_icons/unknown.png';
 import variableImage from '../assets/attribute_icons/variable.png';
 import {CardType, CardTypeGame, CardTypeWithId} from "./types.ts";
-import takatoImage from "../assets/profile_pictures/takato.jpg";
-import aibaImage from "../assets/profile_pictures/aiba.jpg";
-import arataImage from "../assets/profile_pictures/arata.jpg";
-import eriImage from "../assets/profile_pictures/eri.jpg";
-import haruImage from "../assets/profile_pictures/haru.jpg";
-import hiroImage from "../assets/profile_pictures/hiro.jpg";
-import mattImage from "../assets/profile_pictures/matt.jpg";
-import minoruImage from "../assets/profile_pictures/minoru.jpg";
-import rinaImage from "../assets/profile_pictures/rina.jpg";
-import sakiImage from "../assets/profile_pictures/saki.jpg";
-import taiImage from "../assets/profile_pictures/tai.jpg";
-import takumiImage from "../assets/profile_pictures/takumi.jpg";
+import ancientIrismon from "../assets/profile_pictures/AncientIrismon.png";
+import bearmon from "../assets/profile_pictures/Bearmon.png";
+import belphemon from "../assets/profile_pictures/Belphemon.png";
+import bloomLordmon from "../assets/profile_pictures/BloomLordmon.png";
+import commandramon from "../assets/profile_pictures/Commandramon.png";
+import darkKnightmonX from "../assets/profile_pictures/DarkKnightmonX.png";
+import diablomon from "../assets/profile_pictures/Diablomon.png";
+import guilmon from "../assets/profile_pictures/Guilmon.png";
+import hexeblaumon from "../assets/profile_pictures/Hexeblaumon.png";
+import impmon from "../assets/profile_pictures/Impmon.png";
+import kaiserGreymon from "../assets/profile_pictures/KaiserGreymon.png";
+import omegamon from "../assets/profile_pictures/Omegamon.png";
+import sakuyamon from "../assets/profile_pictures/Sakuyamon.png";
+import silphymon from "../assets/profile_pictures/Silphymon.png";
+import solarmon from "../assets/profile_pictures/Solarmon.png";
+import stingmon from "../assets/profile_pictures/Stingmon.png";
+import superstarmon from "../assets/profile_pictures/Superstarmon.png";
+import tyrannomon from "../assets/profile_pictures/Tyrannomon.png";
+import vMon from "../assets/profile_pictures/V-mon.png";
+import wereGarurumon from "../assets/profile_pictures/WereGarurumon.png";
 import {
     playButtonClickSfx,
     playDrawCardSfx,
@@ -94,32 +102,48 @@ export function getStrokeColor(hoverCard: CardType | null, selectedCard: CardTyp
 
 export function profilePicture(avatarName: string) {
     switch (avatarName) {
-        case "takato":
-            return takatoImage;
-        case "aiba":
-            return aibaImage;
-        case "arata":
-            return arataImage;
-        case "eri":
-            return eriImage;
-        case "haru":
-            return haruImage;
-        case "hiro":
-            return hiroImage;
-        case "matt":
-            return mattImage;
-        case "minoru":
-            return minoruImage;
-        case "rina":
-            return rinaImage;
-        case "saki":
-            return sakiImage;
-        case "tai":
-            return taiImage;
-        case "takumi":
-            return takumiImage;
+        case "ava1":
+            return ancientIrismon;
+        case "ava2":
+            return bearmon;
+        case "ava3":
+            return belphemon;
+        case "ava4":
+            return bloomLordmon;
+        case "ava5":
+            return commandramon;
+        case "ava6":
+            return darkKnightmonX;
+        case "ava7":
+            return diablomon;
+        case "ava8":
+            return guilmon;
+        case "ava9":
+            return hexeblaumon;
+        case "ava10":
+            return impmon;
+        case "ava11":
+            return kaiserGreymon;
+        case "ava12":
+            return omegamon;
+        case "ava13":
+            return sakuyamon;
+        case "ava14":
+            return silphymon;
+        case "ava15":
+            return solarmon;
+        case "ava16":
+            return stingmon;
+        case "ava17":
+            return superstarmon;
+        case "ava18":
+            return tyrannomon;
+        case "ava19":
+            return vMon;
+        case "ava20":
+            return wereGarurumon;
         default:
-            return takatoImage;
+            return tyrannomon;
     }
 }
 
