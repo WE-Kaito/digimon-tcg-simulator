@@ -44,6 +44,8 @@ import {
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
+import {Menu, Item, useContextMenu} from "react-contexify";
+import "react-contexify/dist/ReactContexify.css";
 
 export default function Game({user}: { user: string }) {
 
@@ -408,6 +410,10 @@ export default function Game({user}: { user: string }) {
             return () => clearTimeout(timer);
         } else sendUpdate();
     }
+
+    const { show: showDeckMenu } = useContextMenu({
+        id: "deckMenu"
+    });
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
@@ -885,6 +891,20 @@ export default function Game({user}: { user: string }) {
 
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
+
+            <Menu id={"deckMenu"} theme="dark">
+                <Item onClick={() => {
+                    if (!opponentReady) return;
+                    moveCard(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
+                    sendSingleUpdate(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
+                    playRevealCardSfx();
+                    sendSfx("playRevealSfx");
+                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
+                }}>
+                   Reveal Bottom Deck Card ↺
+                </Item>
+            </Menu>
+
             {user === "Kaito" &&
                 <span style={{position: "absolute", top: 15, left: 15}}>users ingame: {userCount}</span>}
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
@@ -1273,7 +1293,8 @@ export default function Game({user}: { user: string }) {
 
                                 <TrashSpan style={{transform: gameHasStarted ? "translate(-14px, -40px)" : "translate(-14px, 0)",}}>
                                     {myDeckField.length}</TrashSpan>
-                                <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted} isOver={isOverDeckTop}
+                                <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                      isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                       onClick={() => {
                                           if (!opponentReady) return;
                                           moveCard(myDeckField[0].id, "myDeckField", "myHand");
