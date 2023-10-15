@@ -884,7 +884,7 @@ export default function Game({user}: { user: string }) {
     }
 
     return (
-        <BackGround>
+        <BackGround onContextMenu={(e) => e.preventDefault()}>
             {user === "Kaito" &&
                 <span style={{position: "absolute", top: 15, left: 15}}>users ingame: {userCount}</span>}
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
