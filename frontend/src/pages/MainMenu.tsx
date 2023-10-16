@@ -14,18 +14,9 @@ export default function MainMenu() {
             <MenuButton name={"LOGOUT"} path={"/login"}/>
 
             <PatchNotes><PatchNotesText>
-                <u>Patchnotes (01/10)</u>
+                <u>Patchnotes (15/10)</u>
             <ul>
-                <li>• fixed chatlog messages containing " <span>:</span> "</li>
-                <li>• fixed drag & drop not working on mobile devices</li>
-                <li>• fixed doubled distribution of cards & starting player</li>
-                <li><b>Deckbuilder:</b></li>
-                <li>• import / export </li>
-                <li>• duplicate cards are now shown as stacks</li>
-                <li>• fixed position of cards in deck</li>
-                <li><b>Login:</b></li>
-                <li>• restricted input length</li>
-                <li>• toast for login attempt with wrong credentials</li>
+                <li>• </li>
             </ul></PatchNotesText></PatchNotes>
         </Wrapper>
     );

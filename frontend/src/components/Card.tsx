@@ -4,7 +4,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {getCardSize, topCardInfo} from "../utils/functions.ts";
-import {playPlaceCardSfx, playSuspendSfx, playTrashCardSfx, playUnsuspendSfx} from "../utils/sound.ts";
+import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
 
@@ -28,7 +28,6 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
-    const deleteFromDeck = useStore((state) => state.deleteFromDeck);
     const tiltCard = useGame((state) => state.tiltCard);
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const addCardToDeck = useStore((state) => state.addCardToDeck);
@@ -99,10 +98,6 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
         if (location === "fetchedData") {
             addCardToDeck(card.cardnumber, card.type);
             playPlaceCardSfx();
-        }
-        if (location === "deck") {
-            deleteFromDeck(card.id);
-            playTrashCardSfx();
         } else {
             if (getTiltable() && sendSfx && selectedCard === card) {
                 tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
@@ -156,7 +151,7 @@ const StyledImage = styled.img<StyledImageProps>`
   max-height: 150px;
   border-radius: 5px;
   transition: all 0.15s ease-out;
-  cursor: ${({location}) => (location === "deck" ? "not-allowed" : (location === "fetchedData" ? "cell" : "grab"))};
+  cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
   opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
   filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
   transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};

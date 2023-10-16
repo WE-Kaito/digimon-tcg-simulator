@@ -9,7 +9,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {CardTypeWithId} from "../utils/types.ts";
 import Card from "./Card.tsx";
 import {sortCards} from "../utils/functions.ts";
-import {playPlaceCardSfx} from "../utils/sound.ts";
+import {playPlaceCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 
 export default function DeckSelection() {
 
@@ -18,6 +18,7 @@ export default function DeckSelection() {
     const setHoverCard = useStore((state) => state.setHoverCard);
     const hoverCard = useStore((state) => state.hoverCard);
     const addCardToDeck = useStore((state) => state.addCardToDeck);
+    const deleteFromDeck = useStore((state) => state.deleteFromDeck);
 
     const digimonLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digimon").length;
     const tamerLength = deckCards.filter((card: CardTypeWithId) => card.type === "Tamer").length;
@@ -56,6 +57,19 @@ export default function DeckSelection() {
         >
             ➕
         </AddIcon>
+    }
+
+    function DeleteButton(cardId: string) {
+        return <DeleteIcon
+            onClick={() => {
+                deleteFromDeck(cardId);
+                playTrashCardSfx();
+            }}
+            onMouseEnter={() => setHoverCard(hoverCard)}
+            onMouseLeave={() => setHoverCard(null)}
+        >
+            ❌
+        </DeleteIcon>
     }
 
     return (
@@ -97,6 +111,7 @@ export default function DeckSelection() {
                                         if (group[index - 4]?.cardnumber === card.cardnumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
                                             {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
+                                            {(hoverCard?.id === card.id) && (group.length === index + 1) && DeleteButton(card.id)}
                                             <Card card={card} location={"deck"}/>
                                         </div>
                                     }
@@ -104,6 +119,7 @@ export default function DeckSelection() {
                                 return <div key={card.id} >
                                     {getAddAllowed(card, deckCards.filter(c => c.cardnumber === card.cardnumber).length === 1)
                                         && AddButton(card)}
+                                    {(hoverCard?.id === card.id) && (group.length === index + 1) && DeleteButton(card.id)}
                                     <Card card={card} location={"deck"}/>
                                 </div>
                             })}
@@ -316,4 +332,8 @@ const AddIcon = styled.div`
     transform: scale(1.15);
     filter: drop-shadow(0 0 3px mediumaquamarine) sepia(100%) hue-rotate(90deg) saturate(1.5);
   }
+`;
+
+const DeleteIcon = styled(AddIcon)`
+  right: 67px;
 `;
