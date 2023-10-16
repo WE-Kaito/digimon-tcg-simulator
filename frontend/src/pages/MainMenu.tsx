@@ -14,18 +14,20 @@ export default function MainMenu() {
             <MenuButton name={"LOGOUT"} path={"/login"}/>
 
             <PatchNotes><PatchNotesText>
-                <u>Patchnotes (01/10)</u>
+                <u>Patchnotes (15/10)</u>
             <ul>
-                <li>• fixed chatlog messages containing " <span>:</span> "</li>
-                <li>• fixed drag & drop not working on mobile devices</li>
-                <li>• fixed doubled distribution of cards & starting player</li>
-                <li><b>Deckbuilder:</b></li>
-                <li>• import / export </li>
-                <li>• duplicate cards are now shown as stacks</li>
-                <li>• fixed position of cards in deck</li>
-                <li><b>Login:</b></li>
-                <li>• restricted input length</li>
-                <li>• toast for login attempt with wrong credentials</li>
+                <li>• <span>Drag card stacks with the new icon on hovered cards, starting from the 2. stacked card (for now, the to-be-replaced tamer are not included)</span></li>
+                <li>• <span>Put a card under a stack at the new small drop-zone at the bottom</span></li>
+                <li>• <span>Directly drop cards to deck top/bottom</span></li>
+                <li>• <span>Right click deck to open the option to retrieve the bottom card</span></li>
+                <li>• <span>⨯/+ - Buttons on hovered cards in Deckbuilder</span></li>
+                <li>• <span style={{color: "hotpink"}}>Replaced avatars with 20 sprites by Tortoiseshel</span></li>
+                <li>• Trash/Deck(top/bottom)/Stack-bottom now marked as droppable, when hovering with dragged item</li>
+                <li>• Log: Memory now [old ➟ new]; Security shuffle</li>
+                <li>• wider Deckbuilder</li>
+                <li>• Max username length now 16 chars</li>
+                <li>• additional backend validation should prevent broken deck data</li>
+                <li>• minor fixes</li>
             </ul></PatchNotesText></PatchNotes>
         </Wrapper>
     );
@@ -47,7 +49,7 @@ const PatchNotes = styled.div`
   top: 0;
   right: 20px;
   width: 300px;
-  height: 260px;
+  height: 400px;
   background: rgba(7, 13, 17, 0.9);
   filter: drop-shadow(0 0 3px #1d7dfc);
   border-radius: 10px;
@@ -73,9 +75,7 @@ const PatchNotesText = styled.p`
       padding-bottom: 2px;
 
       span {
-        color: #fcd414;
-        font-size: 1.1em;
-        font-weight: 800;
+        color: #3cd9aa;
       }
     }
   }

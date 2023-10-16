@@ -15,8 +15,9 @@ export default function MemoryBar({sendMemoryUpdate, sendSfx, sendChatMessage}: 
     const setMemory = useGame(state => state.setMemory);
 
     function handleClick(memory: number) {
+        const oldMemory = myMemory;
         setMemory(memory);
-        sendChatMessage(`[FIELD_UPDATE]≔【MEMORY】﹕${memory}`);
+        sendChatMessage(`[FIELD_UPDATE]≔【MEMORY】﹕${oldMemory}±${memory}`);
         sendMemoryUpdate(memory);
         playButtonClickSfx();
         sendSfx("playButtonClickSfx");

@@ -18,6 +18,7 @@
     "react": "^18.2.0",
     "react-arrows": "^1.2.0",
     "react-awesome-reveal": "^4.2.5",
+    "react-contexify": "^6.0.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dnd-touch-backend": "^16.0.1",

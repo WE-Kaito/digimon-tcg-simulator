@@ -1,7 +1,7 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {useNavigate} from "react-router-dom";
-import {CardTypeGame, DraggedItem, GameDistribution, Player} from "../utils/types.ts";
+import {CardTypeGame, DraggedItem, DraggedStack, GameDistribution, Player} from "../utils/types.ts";
 import {
     profilePicture,
     calculateCardRotation,
@@ -43,6 +43,9 @@ import {
     playLoadMemorybarSfx
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
+import CardStack from "../components/game/CardStack.tsx";
+import {Menu, Item, useContextMenu} from "react-contexify";
+import "react-contexify/dist/ReactContexify.css";
 
 export default function Game({user}: { user: string }) {
 
@@ -155,8 +158,7 @@ export default function Game({user}: { user: string }) {
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
-            if (!gameHasStarted) websocket.sendMessage("/startGame:" + gameId);
-            setGameHasStarted(true);
+            websocket.sendMessage("/startGame:" + gameId);
         },
 
         onMessage: (event) => {
@@ -168,6 +170,7 @@ export default function Game({user}: { user: string }) {
                 const me = players.slice().filter((player: Player) => player.username === user)[0];
                 const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
+                setGameHasStarted(false);
                 setRestartObj({me, opponent});
                 return;
             }
@@ -188,12 +191,16 @@ export default function Game({user}: { user: string }) {
                     playDrawCardSfx();
                     setIsChatOpen(true);
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
-                        }, 4300);
+                    setMulliganAllowed(true);
+                    setOpponentReady(false);
+                }, 4300);
                 const timeout2 = setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
-                    interval = setInterval(() => {websocket.sendMessage("/heartbeat/")}, 5000);
+                    interval = setInterval(() => {
+                        websocket.sendMessage("/heartbeat/")
+                    }, 5000);
                 }, 5500);
                 return () => {
                     clearTimeout(timeout1);
@@ -207,7 +214,7 @@ export default function Game({user}: { user: string }) {
                 const from = parts[1];
                 const to = parts[2];
                 moveCard(cardId, from, to);
-                if (!opponentReady) setOpponentReady();
+                if (!opponentReady) setOpponentReady(true);
                 return;
             }
 
@@ -296,13 +303,15 @@ export default function Game({user}: { user: string }) {
                 case ("[ACCEPT_RESTART]"): {
                     clearBoard();
                     setUpGame(restartObj.me, restartObj.opponent);
+                    setGameHasStarted(false);
                     break;
                 }
                 case ("[HEARTBEAT]"): {
                     break;
                 }
                 case ("[PLAYER_READY]"): {
-                    setOpponentReady();
+                    setOpponentReady(true);
+                    if (!mulliganAllowed) setGameHasStarted(true);
                     break;
                 }
                 default: {
@@ -348,11 +357,15 @@ export default function Game({user}: { user: string }) {
             }, 10);
             timeoutIds.push(timeoutId);
         }
-        return () => { timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId)); };
+        if (!gameHasStarted && opponentReady && !mulliganAllowed) setGameHasStarted(true);
+        return () => {
+            timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
+        };
     }
 
     function sendSingleUpdate(cardId: string, from: string, to: string) {
         websocket.sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+        if (!gameHasStarted && opponentReady) setGameHasStarted(true);
     }
 
     function sendMemoryUpdate(memory: number) {
@@ -379,10 +392,28 @@ export default function Game({user}: { user: string }) {
         if (!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendSingleUpdate(cardId, from, to);
-        playPlaceCardSfx();
-        sendSfx("playPlaceCardSfx");
+        to === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();
+        sendSfx(to === "myTrash" ? "playTrashCardSfx" : "playPlaceCardSfx");
         if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
+
+    function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
+        if (!cardId || !from || !to) return;
+        sendCardToDeck("Top", {id: cardId, location: from}, to);
+        playPlaceCardSfx();
+        sendSfx("playPlaceCardSfx");
+        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
+        if (from === to){
+            const timer = setTimeout(() => {
+                sendUpdate();
+            }, 30);
+            return () => clearTimeout(timer);
+        } else sendUpdate();
+    }
+
+    const { show: showDeckMenu } = useContextMenu({
+        id: "deckMenu"
+    });
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
@@ -390,11 +421,23 @@ export default function Game({user}: { user: string }) {
         return "";
     }
 
+    function isCardStack(item: DraggedItem | DraggedStack): item is DraggedStack {
+        const {index} = item as DraggedStack;
+        return index > 0;
+    }
+
+    const moveCardStack = useGame((state) => state.moveCardStack);
+
     const [, dropToDigi1] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi1', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi1", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi1', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -402,10 +445,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi2] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi2', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi2", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi2', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -413,10 +461,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi3] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi3', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi3", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi3', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -424,10 +477,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi4] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi4', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi4", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi4', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -435,10 +493,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi5] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi5', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi5", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi5', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -446,10 +509,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi6] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi6', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi6", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi6', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -457,10 +525,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi7] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi7', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi7", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi7', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -468,10 +541,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi8] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi8', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi8", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi8', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -479,10 +557,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi9] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi9', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi9", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi9', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -490,10 +573,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToDigi10] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDigi10', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myDigi10", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myDigi10', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -515,10 +603,15 @@ export default function Game({user}: { user: string }) {
     }));
 
     const [, dropToBreedingArea] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myBreedingArea', name);
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myBreedingArea", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myBreedingArea', name);
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -548,18 +641,34 @@ export default function Game({user}: { user: string }) {
         }),
     }));
 
-    const [, dropToDeck] = useDrop(() => ({
+    const [{isOverDeckTop}, dropToDeck] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location, type} = item;
+            const {id, location, type, name} = item;
             if (type === "Token") return;
-            setCardToSend({id, location});
-            setDeckMoodle(true);
-            setSecurityMoodle(false);
-            setEggDeckMoodle(false);
+            sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? "???" : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck Top`);
+            sendCardToDeck("Top", {id, location}, "myDeckField");
+            sendUpdate();
+            playDrawCardSfx();
         },
         collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
+            isOverDeckTop: !!monitor.isOver(),
+        }),
+    }));
+
+    const [{isOverBottom, canDropToDeckBottom}, dropToDeckBottom] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => {
+            const {id, location, type, name} = item;
+            if (type === "Token") return;
+            sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? "???" : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck Bottom`);
+            sendCardToDeck("Bottom", {id, location}, "myDeckField");
+            sendUpdate();
+            playDrawCardSfx();
+        },
+        collect: (monitor) => ({
+            isOverBottom: !!monitor.isOver(),
+            canDropToDeckBottom: !!monitor.canDrop(),
         }),
     }));
 
@@ -575,6 +684,7 @@ export default function Game({user}: { user: string }) {
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
+            highlighted: monitor.canDrop(),
         }),
     }));
 
@@ -593,18 +703,19 @@ export default function Game({user}: { user: string }) {
         }),
     }));
 
-    const [, dropToTrash] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            moveCard(id, location, 'myTrash');
-            sendSingleUpdate(id, location, 'myTrash');
-            playTrashCardSfx();
-            sendSfx("playTrashCardSfx");
-            sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`);
+    const [{isOverTrash}, dropToTrash] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => {
+            if (isCardStack(item)) {
+                const {index, location} = item as DraggedStack;
+                moveCardStack(index, location, "myTrash", handleDropToField);
+            } else {
+                const {id, location, name} = item as DraggedItem;
+                handleDropToField(id, location, 'myTrash', name);
+            }
         },
         collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
+            isOverTrash: !!monitor.isOver(),
         }),
     }));
 
@@ -750,7 +861,7 @@ export default function Game({user}: { user: string }) {
         return () => {
             clearInterval(interval);
         };
-    },[]);
+    }, []);
 
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
@@ -773,12 +884,29 @@ export default function Game({user}: { user: string }) {
             }, i * 1000);
             timeoutIDs.push(timeoutId);
         }
-        return () => {timeoutIDs.forEach(clearTimeout)};
+        return () => {
+            timeoutIDs.forEach(clearTimeout)
+        };
     }
 
     return (
-        <BackGround>
-            {user === "Kaito" && <span style={{position:"absolute", top:15, left:15}}>users ingame: {userCount}</span>}
+        <BackGround onContextMenu={(e) => e.preventDefault()}>
+
+            <Menu id={"deckMenu"} theme="dark">
+                <Item onClick={() => {
+                    if (!opponentReady) return;
+                    moveCard(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
+                    sendSingleUpdate(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
+                    playRevealCardSfx();
+                    sendSfx("playRevealSfx");
+                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
+                }}>
+                   Reveal Bottom Deck Card ↺
+                </Item>
+            </Menu>
+
+            {user === "Kaito" &&
+                <span style={{position: "absolute", top: 15, left: 15}}>users ingame: {userCount}</span>}
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
             <BackGroundPattern/>
             {(surrenderOpen || timerOpen) &&
@@ -819,7 +947,8 @@ export default function Game({user}: { user: string }) {
                            rel="noopener noreferrer">
                             <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                         </a>
-                        <a style={{position:"absolute", left: 32, top:33}} href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F" target="_blank"
+                        <a style={{position: "absolute", left: 32, top: 33}}
+                           href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F" target="_blank"
                            rel="noopener noreferrer">
                             <span style={{color: "dodgerblue"}}>🛈 </span>Controls
                         </a>
@@ -847,7 +976,7 @@ export default function Game({user}: { user: string }) {
                         <OpponentContainerMain>
 
                             <PlayerContainer>
-                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)}
+                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
                                              onClick={() => {
                                                  websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
                                                  notifyRequestedRestart();
@@ -875,90 +1004,46 @@ export default function Game({user}: { user: string }) {
                             </OpponentTrashContainer>
 
                             <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
-                                         id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi10.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi10.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi10.length - 1 ? "opponentDigi10" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi10"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi5.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi5.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi5.length - 1 ? "opponentDigi5" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi5"}/>
-                                            </Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi10} location={"opponentDigi10"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi5} location={"opponentDigi5"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
                             </BattleArea5>
                             <BattleArea4 ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}
-                                         id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi9.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi9.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi9.length - 1 ? "opponentDigi9" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi9"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi4.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi4.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi4.length - 1 ? "opponentDigi4" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi4"}/>
-                                            </Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi9} location={"opponentDigi9"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi4} location={"opponentDigi4"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
                             </BattleArea4>
                             <BattleArea3 ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}
                                          id={getFieldId(true, opponentDigi3, opponentDigi8, "opponentDigi3", "opponentDigi8")}>
                                 {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
                                     <FieldSpan>Battle Area</FieldSpan>}
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi8.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi8.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi8.length - 1 ? "opponentDigi8" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi8"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi3.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi3.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi3.length - 1 ? "opponentDigi3" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi3"}/>
-                                            </Fade></CardContainer>)}
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi8} location={"opponentDigi8"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi3} location={"opponentDigi3"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
                             </BattleArea3>
                             <BattleArea2 ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}
-                                         id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi7.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi7.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi7.length - 1 ? "opponentDigi7" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi7"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi2.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi2.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi2.length - 1 ? "opponentDigi2" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi2"}/></Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi7} location={"opponentDigi7"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi2} location={"opponentDigi2"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
                             </BattleArea2>
                             <BattleArea1 ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}
-                                         id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
-                                {isOpponentSecondRowVisible ?
-                                    opponentDigi6.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi6.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi6.length - 1 ? "opponentDigi6" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi6"}/>
-                                            </Fade></CardContainer>)
-                                    :
-                                    opponentDigi1.map((card, index) =>
-                                        <CardContainer cardCount={opponentDigi1.length} key={card.id} cardIndex={index}
-                                                       id={index === opponentDigi1.length - 1 ? "opponentDigi1" : ""}>
-                                            <Fade direction={"down"} duration={500}>
-                                                <Card card={card} location={"opponentDigi1"}/>
-                                            </Fade></CardContainer>)}
+                                         id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
+                                {isOpponentSecondRowVisible
+                                    ? <CardStack cards={opponentDigi6} location={"opponentDigi6"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>
+                                    : <CardStack cards={opponentDigi1} location={"opponentDigi1"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
                             </BattleArea1>
 
                             <DelayAreaContainer style={{marginTop: "1px", height: "205px"}}>
@@ -1025,10 +1110,8 @@ export default function Game({user}: { user: string }) {
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer>
-                                {opponentBreedingArea.map((card, index) =>
-                                    <CardContainer cardCount={opponentBreedingArea.length} key={card.id}
-                                                   cardIndex={index}><Fade direction={"down"} duration={500}>
-                                        <Card card={card} location={"opponentBreedingArea"}/></Fade></CardContainer>)}
+                                <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
+                                           sendSfx={sendSfx} sendUpdate={sendUpdate} opponentSide={true}/>
                                 {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
 
@@ -1036,7 +1119,8 @@ export default function Game({user}: { user: string }) {
                     </div>
 
                     {memoryBarLoading ? <div style={{height: "100px"}}/> :
-                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx} sendChatMessage={sendChatMessage}/></Zoom>}
+                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}
+                                         sendChatMessage={sendChatMessage}/></Zoom>}
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
@@ -1107,41 +1191,41 @@ export default function Game({user}: { user: string }) {
                                                 }}>❌🔄</SendButton>}
 
                                 <SendButtonSmall title="Trash the top card of your Security Stack"
-                                            style={{left: 20, top: 45}}
-                                            onClick={() => {
-                                                moveCard(mySecurity[0].id, "mySecurity", "myTrash");
-                                                sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
-                                                websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
-                                            }}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
+                                                 style={{left: 20, top: 45}}
+                                                 onClick={() => {
+                                                     moveCard(mySecurity[0].id, "mySecurity", "myTrash");
+                                                     sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
+                                                     websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
+                                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
+                                                 }}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
                                 <SendButtonSmall title="Trash the bottom card of your Security Stack"
-                                            style={{left: 20, top: 80}}
-                                            onClick={() => {
-                                                moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
-                                                sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
-                                                websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
-                                            }}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
+                                                 style={{left: 20, top: 80}}
+                                                 onClick={() => {
+                                                     moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
+                                                     sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
+                                                     websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
+                                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
+                                                 }}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
                                 <SendButtonSmall title="Take the top card of your Security Stack"
-                                            style={{left: 50, top: 45}}
-                                            onClick={() => {
-                                                moveCard(mySecurity[0].id, "mySecurity", "myHand");
-                                                sendSingleUpdate(mySecurity[0].id, "mySecurity", "myHand");
-                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Top ➟ Hand`);
-                                            }}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
+                                                 style={{left: 50, top: 45}}
+                                                 onClick={() => {
+                                                     moveCard(mySecurity[0].id, "mySecurity", "myHand");
+                                                     sendSingleUpdate(mySecurity[0].id, "mySecurity", "myHand");
+                                                     websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
+                                                     sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Top ➟ Hand`);
+                                                 }}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
 
                                 <SendButtonSmall title="Take the bottom card of your Security Stack"
-                                            style={{left: 50, top: 80}}
-                                            onClick={() => {
-                                                moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
-                                                sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
-                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Bot ➟ Hand`);
-                                            }}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
+                                                 style={{left: 50, top: 80}}
+                                                 onClick={() => {
+                                                     moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
+                                                     sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
+                                                     websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
+                                                     sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Bot ➟ Hand`);
+                                                 }}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
                                 <SendButton title="Shuffle your Security Stack"
                                             style={{left: 20, top: 115}}
@@ -1149,6 +1233,7 @@ export default function Game({user}: { user: string }) {
                                                 shuffleSecurity();
                                                 sendUpdate();
                                                 playShuffleDeckSfx();
+                                                sendChatMessage(`[FIELD_UPDATE]≔【↻ Security Stack】`);
                                                 sendSfx("playShuffleDeckSfx");
                                             }}>🔄</SendButton>
 
@@ -1162,9 +1247,8 @@ export default function Game({user}: { user: string }) {
                             </SecurityStackContainer>
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
-                                {myBreedingArea.map((card, index) =>
-                                    <CardContainer cardCount={myBreedingArea.length} key={card.id} cardIndex={index}>
-                                        <Card card={card} location={"myBreedingArea"}/></CardContainer>)}
+                                {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
+                                            sendUpdate={sendUpdate}/>}
                                 {myBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                             </BreedingAreaContainer>
                         </MyContainerSide>
@@ -1179,37 +1263,50 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <DeckContainer>
+
                                 {deckMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}
                                                 setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
-                                <TrashSpan style={{transform: "translateX(-14px)",}}>{myDeckField.length}</TrashSpan>
-                                <Deck ref={dropToDeck} alt="deck" src={deckBack} onClick={() => {
-                                    if (!opponentReady) return;
-                                    moveCard(myDeckField[0].id, "myDeckField", "myHand");
-                                    sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
-                                    playDrawCardSfx();
-                                    sendSfx("playDrawCardSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
-                                }}/>
-                                {!mulliganAllowed && !opponentReady && <MulliganSpan style={{top:3}}>Waiting for opponent...</MulliganSpan>}
+
+                                {!mulliganAllowed && !opponentReady &&
+                                    <MulliganSpan style={{top: 3}}>Waiting for opponent...</MulliganSpan>}
                                 {mulliganAllowed &&
                                     <>
                                         <MulliganSpan>KEEP HAND?</MulliganSpan>
-                                    <MulliganButton onClick={() => {
-                                    mulligan();
-                                    sendUpdate();
-                                    websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-                                    playShuffleDeckSfx();
-                                    sendSfx("playShuffleDeckSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
-                                }}>N</MulliganButton>
+                                        <MulliganButton onClick={() => {
+                                            mulligan();
+                                            sendUpdate();
+                                            websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
+                                            playShuffleDeckSfx();
+                                            sendSfx("playShuffleDeckSfx");
+                                            sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
+                                            if (opponentReady) setGameHasStarted(true);
+                                        }}>N</MulliganButton>
                                         <MulliganButton2 onClick={() => {
                                             setMulliganAllowed(false);
                                             websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
+                                            if (opponentReady) setGameHasStarted(true);
                                         }}>
                                             Y
                                         </MulliganButton2>
                                     </>}
+
+                                <TrashSpan style={{transform: gameHasStarted ? "translate(-14px, -40px)" : "translate(-14px, 0)",}}>
+                                    {myDeckField.length}</TrashSpan>
+                                <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                      isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
+                                      onClick={() => {
+                                          if (!opponentReady) return;
+                                          moveCard(myDeckField[0].id, "myDeckField", "myHand");
+                                          sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
+                                          playDrawCardSfx();
+                                          sendSfx("playDrawCardSfx");
+                                          sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
+                                      }}/>
+
+                                { gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
+                                    <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑ ⇑</DBZSpan></DeckBottomZone>}
+
                                 <SendToTrashButton title="Send top card from your deck to Trash"
                                                    onClick={() => {
                                                        if (!opponentReady) return;
@@ -1240,92 +1337,57 @@ export default function Game({user}: { user: string }) {
                                             disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
                             </DeckContainer>
 
-                            <TrashContainer ref={dropToTrash}>
-                                {myTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
-                                    : <TrashCardImage src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
+                            <TrashContainer>
+                                {myTrash.length === 0 ? <TrashPlaceholder ref={dropToTrash} isOver={isOverTrash}>Trash</TrashPlaceholder>
+                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
                                                           setOpponentTrashMoodle(false);
                                                       }}
-                                                      title="Open your trash"/>}
+                                                      title="Open your trash" isOver={isOverTrash}/>}
                                 <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
                             </TrashContainer>
 
                             <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1}
                                          id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
-                                {isMySecondRowVisible ?
-                                    myDigi6?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi6.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi6.length - 1 ? "myDigi6" : ""}>
-                                            <Card card={card} location={"myDigi6"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi1?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi1.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi1.length - 1 ? "myDigi1" : ""}>
-                                            <Card card={card} location={"myDigi1"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi6} location={"myDigi6"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                    : <CardStack cards={myDigi1} location={"myDigi1"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea1>
                             <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
                                          id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
-                                {isMySecondRowVisible ?
-                                    myDigi7?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi7.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi7.length - 1 ? "myDigi7" : ""}>
-                                            <Card card={card} location={"myDigi7"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi2?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi2.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi2.length - 1 ? "myDigi2" : ""}>
-                                            <Card card={card} location={"myDigi2"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi7} location={"myDigi7"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                    : <CardStack cards={myDigi2} location={"myDigi2"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea2>
                             <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
                                          id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
                                 {!isMySecondRowVisible && myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {isMySecondRowVisible ?
-                                    myDigi8?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi8.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi8.length - 1 ? "myDigi8" : ""}>
-                                            <Card card={card} location={"myDigi8"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi3?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi3.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi3.length - 1 ? "myDigi3" : ""}>
-                                            <Card card={card} location={"myDigi3"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi8} location={"myDigi8"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                    : <CardStack cards={myDigi3} location={"myDigi3"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea3>
                             <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
                                          id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
-                                {isMySecondRowVisible ?
-                                    myDigi9?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi9.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi9.length - 1 ? "myDigi9" : ""}>
-                                            <Card card={card} location={"myDigi9"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi4?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi4.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi4.length - 1 ? "myDigi4" : ""}>
-                                            <Card card={card} location={"myDigi4"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi9} location={"myDigi9"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                    : <CardStack cards={myDigi4} location={"myDigi4"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea4>
                             <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
                                          id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
-                                {isMySecondRowVisible ?
-                                    myDigi10?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi10.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi10.length - 1 ? "myDigi10" : ""}>
-                                            <Card card={card} location={"myDigi10"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)
-                                    :
-                                    myDigi5?.map((card, index) =>
-                                        <CardContainer cardCount={myDigi5.length} key={card.id} cardIndex={index}
-                                                       id={index === myDigi5.length - 1 ? "myDigi5" : ""}>
-                                            <Card card={card} location={"myDigi5"} sendSfx={sendSfx}
-                                                  sendUpdate={sendUpdate}/></CardContainer>)}
+                                {isMySecondRowVisible
+                                    ? <CardStack cards={myDigi10} location={"myDigi10"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                    : <CardStack cards={myDigi5} location={"myDigi5"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea5>
 
                             <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
@@ -1489,10 +1551,10 @@ const Wrapper = styled.div<{ chatOpen: boolean }>`
   @media (min-height: 1200px) {
     transform: scale(1.2) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
-  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : landscape) and (-webkit-min-device-pixel-ratio : 2) {
+  @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) {
     transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
   }
-  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : portrait) and (-webkit-min-device-pixel-ratio : 2) {
+  @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
     transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-120px" : "-20px"});
   }
 `;
@@ -1556,15 +1618,17 @@ const PlayerContainer = styled.div`
   justify-content: center;
 `;
 
-const PlayerImage = styled.img`
+const PlayerImage = styled.img<{opponent?:boolean}>`
   cursor: pointer;
   width: 160px;
-  border: #0c0c0c solid 2px;
   transition: all 0.1s ease;
-
+  transform: ${({opponent}) => opponent ? "rotateY(180deg)" : "none"};
+  
   &:hover {
-    filter: drop-shadow(0 0 2px #eceaea);
-    border: #eceaea solid 2px;
+    filter: drop-shadow(0 0 2px ${({opponent}) => opponent ? "#43d789" : "#bb2848"});
+    width: 144px;
+    margin-left: 8px;
+    padding: 8px;
   }
 `;
 
@@ -1605,15 +1669,42 @@ const OpponentDeckContainer = styled.div`
   padding: 10px 10px 0 0;
 `;
 
-const Deck = styled.img`
+const Deck = styled.img<{gameHasStarted?: boolean, isOver?: boolean}>`
   width: 105px;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.1s ease;
-
+  transform: ${({gameHasStarted}) => gameHasStarted ? "translateY(-37px)" : "translateY(0)"};
+  z-index: 2;
+  filter: ${({isOver}) => isOver ? "drop-shadow(0 0 1px #eceaea) saturate(1.1) brightness(0.95)" : "none"};
+  
   &:hover {
     filter: drop-shadow(0 0 1px #eceaea);
   }
+`;
+
+const DeckBottomZone = styled.div<{isOver: boolean}>`
+  z-index: 1;
+  width: 95px;
+  margin-left: 5px;
+  padding-top: 10px;
+  height: 40px;
+  border-radius: 5px;
+  border: ${({isOver}) => isOver ? "#DAD8D5E0 solid 2px" : "#0c0c0c dashed 2px"};
+  background: rgba(0, 0, 0, 0.35);
+  position: absolute;
+  bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const DBZSpan = styled.span<{isOver: boolean, canDrop: boolean}>`
+  visibility: ${({canDrop}) => canDrop ? "visible" : "hidden"};
+  color: ${({isOver}) => isOver ? "rgba(218,216,213,0.88)" : "rgba(161, 157, 154, 0.3)"};
+  cursor: default;
+  transition: all 0.1s ease;
+  transform: translateY(1px) scale(${({isOver}) => isOver ? "1.05" : "1"});
 `;
 
 const EggDeck = styled(Deck)`
@@ -1696,12 +1787,6 @@ const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
 
 `;
 
-const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
-  position: absolute;
-  bottom: ${({cardIndex}) => cardIndex > 5 ? ((cardIndex - 6) * 20) + 5 : (cardIndex * 20) + 5}px;
-  left: ${({cardIndex, cardCount}) => cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "auto"};
-`;
-
 const TamerCardContainer = styled.div<{ cardIndex: number, digimonIndex: number, tamerIndex: number }>`
   position: absolute;
   top: 10px;
@@ -1771,6 +1856,7 @@ const TrashSpan = styled.span`
   justify-content: center;
   font-family: Awsumsans, sans-serif;
   font-style: italic;
+  transition: all 0.1s ease;
 `;
 
 const SendButton = styled.button`
@@ -2012,26 +2098,26 @@ const FieldSpan = styled.span`
   font-family: Naston, sans-serif;
 `;
 
-const TrashPlaceholder = styled.div`
+const TrashPlaceholder = styled.div<{isOver?: boolean}>`
   width: 105px;
   height: 146px;
   border-radius: 5px;
-  border: #0c0c0c solid 2px;
+  border: ${({isOver}) => isOver ? '#8d8d8d' : '#0c0c0c'} solid 2px;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   color: rgba(220, 220, 220, 0.8);
   font-family: Naston, sans-serif;
+  transition: all 0.1s ease-in-out;
 `;
 
-const TrashCardImage = styled.img`
+const TrashCardImage = styled.img<{isOver?: boolean}>`
   width: 105px;
   border-radius: 5px;
   cursor: pointer;
-  filter: drop-shadow(1px 1px 2px #060e18);
-  transition: all 0.2s ease-in-out;
-
+  transition: all 0.1s ease-in-out;
+  filter: drop-shadow(${({isOver}) => isOver ? '0px 0px 1px whitesmoke' : '1px 1px 2px #060e18'});
   &:hover {
     filter: drop-shadow(0px 0px 3px #af0c3d) brightness(1.1) saturate(1.2);
   }
@@ -2085,8 +2171,8 @@ const BackGround = styled.div`
   -webkit-animation: Background 25s ease infinite;
   -moz-animation: Background 25s ease infinite;
   animation: Background 25s ease infinite;
-  
-  @media only screen and (min-device-width : 300px) and (max-device-width : 550px) and (orientation : portrait) and (-webkit-min-device-pixel-ratio : 2) {
+
+  @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
     width: 310vw;
   }
 
@@ -2137,7 +2223,7 @@ const BackGroundPattern = styled.div`
   animation: bg-animation .2s infinite;
   opacity: .4;
   z-index: 0;
-  
+
   @keyframes bg-animation {
     0% {
       transform: translate(0, 0)

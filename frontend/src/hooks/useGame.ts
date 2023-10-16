@@ -61,7 +61,7 @@ type State = {
     mulligan: () => void,
     setMulliganAllowed: (allowed: boolean) => void,
     opponentReady: boolean,
-    setOpponentReady: () => void,
+    setOpponentReady: (ready: boolean) => void,
 
     setUpGame: (me: Player, opponent: Player) => void,
     clearBoard: () => void,
@@ -78,6 +78,9 @@ type State = {
                playUnsuspendSfx: () => void,
                sendSfx: (sfx: string) => void) => void,
     createToken: () => void,
+    moveCardStack: (index: number, from: string, to: string,
+                    handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
+
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
@@ -143,8 +146,8 @@ export const useGame = create<State>((set, get) => ({
     mulliganAllowed: true,
     opponentReady: false,
 
-    setOpponentReady: () => {
-        set({opponentReady: true});
+    setOpponentReady: (ready) => {
+        set({opponentReady: ready});
     },
 
     setUpGame: (me, opponent) => {
@@ -153,8 +156,8 @@ export const useGame = create<State>((set, get) => ({
             opponentAvatar: opponent.avatarName,
 
             messages: [],
-            mulliganAllowed: true,
-            opponentReady: false,
+            mulliganAllowed: false,
+            opponentReady: true,
         });
     },
 
@@ -459,14 +462,26 @@ export const useGame = create<State>((set, get) => ({
 
     sendCardToDeck: (topOrBottom, cardToSendToDeck, to) => {
         if (!get().opponentReady) return;
-        if (cardToSendToDeck.location === to) return;
+
+        const locationCards = get()[cardToSendToDeck.location as keyof State] as CardTypeGame[];
+        const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id);
+        const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id);
+
+        if(cardToSendToDeck.location === to){
+            set ({
+                [cardToSendToDeck.location]: []
+            });
+            const timer1 = setTimeout(() => {
+                set ({[to]: [card, ...updatedLocationCards]});
+            }, 10);
+            return () => clearTimeout(timer1);
+        } else
+
         set(state => {
-            const locationCards = state[cardToSendToDeck.location as keyof State] as CardTypeGame[];
-            const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id)
             const toDeck = state[to as keyof State] as CardTypeGame[];
             const updatedDeck = topOrBottom === "Top" ? [card, ...toDeck] : [...toDeck, card];
             return {
-                [cardToSendToDeck.location]: locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id),
+                [cardToSendToDeck.location]: updatedLocationCards,
                 [to]: updatedDeck
             }
         })
@@ -576,5 +591,13 @@ export const useGame = create<State>((set, get) => ({
             }
             return state;
         });
+    },
+
+    moveCardStack: (index, from, to, handleDropToField) => {
+        const locationCards = get()[from as keyof State] as CardTypeGame[];
+        const cards = locationCards.slice(0, index + 1);
+        for (const card of cards) {
+            handleDropToField(card.id, from, to, card.name);
+        }
     }
 }));

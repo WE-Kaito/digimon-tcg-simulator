@@ -20,6 +20,8 @@ export default function Deckbuilder() {
     const filterCards = useStore((state) => state.filterCards);
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
+    const fetchCards = useStore((state) => state.fetchCards);
+    const fetchedCards = useStore((state) => state.fetchedCards);
     const [shouldRender, setShouldRender] = useState(window.innerWidth >= 1000);
 
     useEffect(() => {
@@ -34,6 +36,10 @@ export default function Deckbuilder() {
             window.removeEventListener('resize', handleResize);
         };
     }, [clearDeck, fetchDecks, filterCards]);
+
+    useEffect(() => {
+        if(fetchedCards.length === 0) fetchCards();
+    }, []);
 
     return (
         <OuterContainer>
@@ -95,8 +101,9 @@ export const OuterContainer = styled.div`
   }
 
   @media (min-width: 1000px) {
+    max-width: 1700px;
     grid-template-rows: 0.1fr 1fr 1fr;
-    grid-template-columns: 2fr 1fr 1.5fr;
+    grid-template-columns: 3fr 1fr 1.5fr;
     grid-template-areas: "deckselection deckname buttons"
                         "deckselection cardimage carddetails"
                         "deckselection searchform searchform";

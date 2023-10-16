@@ -14,9 +14,9 @@ export default function ChooseAvatar() {
         getAvatar();
     }, [getAvatar, avatarName]);
 
-    const avatarNames = [
-        "takato", "aiba", "arata", "eri", "haru", "hiro",
-        "matt", "minoru", "rina", "saki", "tai", "takumi"
+    const avatarNames: string[] = [
+        "ava1", "ava2", "ava3", "ava4", "ava5", "ava6", "ava7", "ava8", "ava9", "ava10",
+        "ava11", "ava12", "ava13", "ava14", "ava15", "ava16", "ava17", "ava18", "ava19", "ava20"
     ];
 
     function getAvatarIndex(avatarName: string) {
@@ -27,6 +27,7 @@ export default function ChooseAvatar() {
         const currentIndex = getAvatarIndex(avatarName);
         const nextIndex = (currentIndex + 1) % avatarNames.length;
         setAvatar(avatarNames[nextIndex]);
+        console.log(avatarName)
     }
 
     function setPreviousAvatar(avatarName: string) {
@@ -37,14 +38,16 @@ export default function ChooseAvatar() {
 
     return (
         <Container>
-            <StyledButton style={{padding:"0px 8px 6px 0px"}} onClick={() => {
+            <StyledButton style={{padding: "0px 8px 6px 0px"}} onClick={() => {
                 playButtonClickSfx();
-                setPreviousAvatar(avatarName);}
+                setPreviousAvatar(avatarName);
+            }
             }>{`❮`}</StyledButton>
-            <StyledImage alt="avatar" src={profilePicture(avatarName)}></StyledImage>
-            <StyledButton style={{padding:"0px 0px 6px 8px"}} onClick={() => {
+            <img alt="avatar" src={profilePicture(avatarName)}></img>
+            <StyledButton style={{padding: "0px 0px 6px 8px"}} onClick={() => {
                 playButtonClickSfx();
-                setNextAvatar(avatarName);}
+                setNextAvatar(avatarName);
+            }
             }>{`❯`}</StyledButton>
         </Container>
     );
@@ -55,14 +58,10 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   max-width: 100vw;
-  
-    @media (max-width: 766px) {
-      transform: scale(0.8)
-    }
-`;
 
-const StyledImage = styled.img`
-    border-radius: 50%;
+  @media (max-width: 766px) {
+    transform: scale(0.8)
+  }
 `;
 
 const StyledButton = styled.button`
@@ -84,7 +83,7 @@ const StyledButton = styled.button`
     cursor: pointer;
     border: 4px solid ghostwhite;
   }
-  
+
   :active {
     border-width: 3px;
     filter: drop-shadow(0px 0px 2px ghostwhite);

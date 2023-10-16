@@ -78,7 +78,7 @@ const StyledFieldset = styled.fieldset`
   height: 96px;
   border-radius: 5px;
   display: grid;
-  grid-template-columns: 4fr 1fr;
+  grid-template-columns: 4.2fr 1fr;
   grid-template-rows: 1fr 1fr;
   grid-template-areas: "input import"
                        "input export";
@@ -90,6 +90,8 @@ const TextArea = styled.textarea`
   border-radius: 5px;
   border: none;
   transform: translate(-2px, 2px);
+  font-size: 0.95em;
+  line-height: 1.24em;
 
   &:focus {
     outline: 1px solid #646CFFA3;
