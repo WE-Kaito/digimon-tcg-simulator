@@ -16,7 +16,7 @@ export default function MainMenu() {
             <PatchNotes><PatchNotesText>
                 <u>Patchnotes (15/10)</u>
             <ul>
-                <li>• <span>Drag card stacks with the new icon on hovered cards, starting from the 2. stacked card</span></li>
+                <li>• <span>Drag card stacks with the new icon on hovered cards, starting from the 2. stacked card (for now, the to-be-replaced tamer are not included)</span></li>
                 <li>• <span>Put a card under a stack at the new small drop-zone at the bottom</span></li>
                 <li>• <span>Directly drop cards to deck top/bottom</span></li>
                 <li>• <span>Right click deck to open the option to retrieve the bottom card</span></li>
@@ -49,7 +49,7 @@ const PatchNotes = styled.div`
   top: 0;
   right: 20px;
   width: 300px;
-  height: 380px;
+  height: 400px;
   background: rgba(7, 13, 17, 0.9);
   filter: drop-shadow(0 0 3px #1d7dfc);
   border-radius: 10px;
