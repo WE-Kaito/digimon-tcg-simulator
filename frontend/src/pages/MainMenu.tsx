@@ -20,7 +20,6 @@ export default function MainMenu() {
                 <li>• <span>Put a card under a stack at the new small drop-zone at the bottom</span></li>
                 <li>• <span>Directly drop cards to deck top/bottom</span></li>
                 <li>• <span>Right click deck to open the option to retrieve the bottom card</span></li>
-                <li>• <span>Directly drop cards to deck top/bottom</span></li>
                 <li>• <span>⨯/+ - Buttons on hovered cards in Deckbuilder</span></li>
                 <li>• <span style={{color: "hotpink"}}>Replaced avatars with 20 sprites by Tortoiseshel</span></li>
                 <li>• Trash/Deck(top/bottom)/Stack-bottom now marked as droppable, when hovering with dragged item</li>
@@ -50,7 +49,7 @@ const PatchNotes = styled.div`
   top: 0;
   right: 20px;
   width: 300px;
-  height: 400px;
+  height: 380px;
   background: rgba(7, 13, 17, 0.9);
   filter: drop-shadow(0 0 3px #1d7dfc);
   border-radius: 10px;
