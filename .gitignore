@@ -2,3 +2,4 @@
 *.iml
 /node_modules/
 backend/src/main/resources/static/
+.env
