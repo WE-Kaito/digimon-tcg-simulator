@@ -62,6 +62,7 @@ E.g:
 If you're using Fedora, make sure that correct alternatives are selected for both `java` and `javac` with:
 ``update-alternatives --config javac``
 ``update-alternatives --config javac``
+
 -----
 ``mongod: error while loading shared libraries: libcrypto.so.1.1: cannot open shared object file: No such file or directory``
 
@@ -70,4 +71,9 @@ You can find the rpm for Fedora [here](https://rpmfind.net/linux/rpm2html/search
 Then install with:
 
 `sudo rpm -i openssl1.1xxxx.fcxx.xxx.rpm`
+
+-----
+``"NoSuchFieldError: JCImport does not have member field JCTree qualid"``
+
+Check the lombok version in the pom.xml file as suggested [here](https://stackoverflow.com/questions/77171270/compilation-error-after-upgrading-to-jdk-21-nosuchfielderror-jcimport-does-n)
 
