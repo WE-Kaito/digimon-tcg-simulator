@@ -1,4 +1,5 @@
 import json
+from decouple import config
 import time
 import asyncio
 import requests
@@ -6,6 +7,8 @@ import requests
 from decouple import config
 import websockets
 
+
+host = 'localhost:8080'
 username = config('BOT_USERNAME')
 password = config('BOT_PASSWORD')
 
@@ -33,6 +36,18 @@ async def enter_lobby_message(host, headers, message):
         await ws.send(message)
         await ws.recv()
 
+async def wait_in_lobby(host, headers):
+    async with websockets.connect(f'ws://{host}/api/ws/chat', extra_headers=[('Cookie', headers['Cookie'])]) as ws:
+        while 1:
+            await ws.send("/heartbeat/")
+            message = await ws.recv()
+            print(f"Received: {message}")
+            if(message.startswith('[INVITATION]:')):
+                challenger = message.removeprefix('[INVITATION]:')
+                print(f'Challenger: {challenger}')
+                await ws.send(f'/acceptInvite:{challenger}')
+                message = await ws.recv()
+            time.sleep(1)
 
 s = requests.Session()
 cookies = s.get(f'http://{host}/login').cookies.get_dict()
@@ -61,5 +76,7 @@ lobby_response = s.get(f'http://{host}/lobby', auth=(username, password))
 if lobby_response.status_code == 200:
     print('Accessed lobby, saying Hi')
     asyncio.run(enter_lobby_message(host, headers, "Ciao everyone! I'm the first bot working here!"))
+    
+    asyncio.run(wait_in_lobby(host, headers))
 else:
     print('Error when accessing lobby')
