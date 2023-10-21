@@ -413,6 +413,9 @@ export default function Game({user}: { user: string }) {
     const {show: showDeckMenu} = useContextMenu({
         id: "deckMenu"
     });
+    const {show: showDetailsImageMenu} = useContextMenu({
+        id: "detailsImageMenu"
+    });
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
@@ -696,6 +699,12 @@ export default function Game({user}: { user: string }) {
                 </Item>
             </Menu>
 
+            {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
+                <Item onClick={() => window.open(selectedCard.image_url, '_blank')}>
+                    Open Image in new Tab ↗
+                </Item>
+            </Menu>}
+
             {user === "Kaito" && <span style={{position: "absolute", top: 15, left: 15}}>users ingame: {userCount}</span>}
 
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
@@ -746,6 +755,7 @@ export default function Game({user}: { user: string }) {
                         </a>
                     </InfoSpan>
                     <CardImage onClick={() => selectCard(null)}
+                               onContextMenu={(e) => showDetailsImageMenu({event: e})}
                                src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
                                alt={selectedCard?.name ?? "Card"}/>
                     <CardDetails/>
