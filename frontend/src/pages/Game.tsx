@@ -594,93 +594,57 @@ export default function Game({user}: { user: string }) {
 
     const [, dropToOpponentDigi1] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi1');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi1')
     }));
 
     const [, dropToOpponentDigi2] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi2');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi2')
     }));
 
     const [, dropToOpponentDigi3] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi3');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi3')
     }));
 
     const [, dropToOpponentDigi4] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi4');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi4')
     }));
 
     const [, dropToOpponentDigi5] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi5');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi5')
     }));
 
     const [, dropToOpponentDigi6] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi6');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi6')
     }));
 
     const [, dropToOpponentDigi7] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi7');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi7')
     }));
 
     const [, dropToOpponentDigi8] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi8');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi8')
     }));
 
     const [, dropToOpponentDigi9] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi9');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi9')
     }));
 
     const [, dropToOpponentDigi10] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi10');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi10')
     }));
 
     const [, dropToOpponentSecurity] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentSecurity');
-        }
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentSecurity')
     }));
 
     useEffect(() => {
