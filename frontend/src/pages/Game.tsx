@@ -719,6 +719,19 @@ export default function Game({user}: { user: string }) {
         }
     }
 
+    function handleMulligan(mulliganWanted: boolean) {
+        if (mulliganWanted) {
+            mulligan();
+            sendUpdate();
+            playShuffleDeckSfx();
+            sendSfx("playShuffleDeckSfx");
+            sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
+        }
+        setMulliganAllowed(false);
+        websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
+        if (opponentReady) setGameHasStarted(true);
+    }
+
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
 
@@ -1093,22 +1106,8 @@ export default function Game({user}: { user: string }) {
                                 {mulliganAllowed &&
                                     <>
                                         <MulliganSpan>KEEP HAND?</MulliganSpan>
-                                        <MulliganButton onClick={() => {
-                                            mulligan();
-                                            sendUpdate();
-                                            websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-                                            playShuffleDeckSfx();
-                                            sendSfx("playShuffleDeckSfx");
-                                            sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
-                                            if (opponentReady) setGameHasStarted(true);
-                                        }}>N</MulliganButton>
-                                        <MulliganButton2 onClick={() => {
-                                            setMulliganAllowed(false);
-                                            websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-                                            if (opponentReady) setGameHasStarted(true);
-                                        }}>
-                                            Y
-                                        </MulliganButton2>
+                                        <MulliganButton onClick={() => handleMulligan(true)}>N</MulliganButton>
+                                        <MulliganButton2 onClick={() => handleMulligan(false)}>Y</MulliganButton2>
                                     </>}
 
                                 <TrashSpan
