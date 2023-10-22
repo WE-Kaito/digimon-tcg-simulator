@@ -111,14 +111,14 @@ export default function DeckSelection() {
                                         if (group[index - 4]?.cardnumber === card.cardnumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
                                             {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
-                                            {(hoverCard?.id === card.id) && (group.length === index + 1) && DeleteButton(card.id)}
+                                            {(hoverCard?.id === card.id) && (group.length === index + 1
+                                                || cardsWithoutLimit.includes(card.cardnumber)) && DeleteButton(card.id)}
                                             <Card card={card} location={"deck"}/>
                                         </div>
                                     }
                                 }
                                 return <div key={card.id} >
-                                    {getAddAllowed(card, deckCards.filter(c => c.cardnumber === card.cardnumber).length === 1)
-                                        && AddButton(card)}
+                                    {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
                                     {(hoverCard?.id === card.id) && (group.length === index + 1) && DeleteButton(card.id)}
                                     <Card card={card} location={"deck"}/>
                                 </div>
@@ -318,6 +318,7 @@ const AddIcon = styled.div`
   pointer-events: auto;
   transition: all 0.075s ease-in;
   filter: drop-shadow(0 0 1px #C71E78E5);
+  user-select: none;
 
   &:hover {
     z-index: 1000;
