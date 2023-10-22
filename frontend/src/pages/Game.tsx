@@ -732,6 +732,22 @@ export default function Game({user}: { user: string }) {
         if (opponentReady) setGameHasStarted(true);
     }
 
+    function handleOpenSecurity(onOpenOrClose: "onOpen" | "onClose") {
+        if (onOpenOrClose === "onOpen") {
+            setSecurityContentMoodle(true);
+            setTrashMoodle(false);
+            websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
+            sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
+        } else {
+            setSecurityContentMoodle(false);
+            shuffleSecurity();
+            sendUpdate();
+            playShuffleDeckSfx();
+            sendSfx("playShuffleDeckSfx");
+            sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
+        }
+    }
+
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
 
@@ -1001,27 +1017,11 @@ export default function Game({user}: { user: string }) {
                                 <Lottie animationData={mySecurityAnimation} loop={true}
                                         style={{width: "160px", transform: "translate(23px, -14px)"}}/>
 
-                                {!securityContentMoodle ?
-                                    <SendButton title="Open Security Stack"
-                                                style={{left: 20, top: 10}}
-                                                onClick={() => {
-                                                    setSecurityContentMoodle(true);
-                                                    setTrashMoodle(false);
-                                                    websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
-                                                    sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
-                                                }}
-                                    >🔎</SendButton>
-                                    :
-                                    <SendButton title="Close and shuffle Security Stack"
-                                                style={{left: 20, top: 10}}
-                                                onClick={() => {
-                                                    setSecurityContentMoodle(false);
-                                                    shuffleSecurity();
-                                                    sendUpdate();
-                                                    playShuffleDeckSfx();
-                                                    sendSfx("playShuffleDeckSfx");
-                                                    sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
-                                                }}>❌🔄</SendButton>}
+                                {!securityContentMoodle
+                                    ? <SendButton title="Open Security Stack" style={{left: 20, top: 10}}
+                                                onClick={() => handleOpenSecurity("onOpen")}>🔎</SendButton>
+                                    : <SendButton title="Close and shuffle Security Stack" style={{left: 20, top: 10}}
+                                                onClick={() => handleOpenSecurity("onClose")}>❌🔄</SendButton>}
 
                                 <SendButtonSmall title="Trash the top card of your Security Stack"
                                                  style={{left: 20, top: 45}}
