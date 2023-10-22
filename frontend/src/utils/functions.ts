@@ -30,6 +30,11 @@ import justimon from "../assets/profile_pictures/Justimon.png";
 import coronamon from "../assets/profile_pictures/Coronamon.png";
 import hackmon from "../assets/profile_pictures/Hackmon.png";
 import clearAgumon from "../assets/profile_pictures/ClearAgumon.png";
+import terriermon from "../assets/profile_pictures/Terriermon.png";
+import airdramon from "../assets/profile_pictures/Airdramon.png";
+import tailmon from "../assets/profile_pictures/Tailmon.png";
+import togemonX from "../assets/profile_pictures/TogemonX.png";
+import wizardmonX from "../assets/profile_pictures/WizardmonX.png";
 import placeholder from "../assets/profile_pictures/Placeholder.png";
 import {
     playButtonClickSfx,
@@ -158,6 +163,16 @@ export function profilePicture(avatarName: string) {
             return hackmon;
         case "ava25":
             return clearAgumon;
+        case "ava26":
+            return terriermon;
+        case "ava27":
+            return airdramon;
+        case "ava28":
+            return tailmon;
+        case "ava29":
+            return togemonX;
+        case "ava30":
+            return wizardmonX;
         default:
             return placeholder;
     }
