@@ -16,7 +16,8 @@ export default function ChooseAvatar() {
 
     const avatarNames: string[] = [
         "ava1", "ava2", "ava3", "ava4", "ava5", "ava6", "ava7", "ava8", "ava9", "ava10",
-        "ava11", "ava12", "ava13", "ava14", "ava15", "ava16", "ava17", "ava18", "ava19", "ava20"
+        "ava11", "ava12", "ava13", "ava14", "ava15", "ava16", "ava17", "ava18", "ava19", "ava20",
+        "ava21", "ava22", "ava23", "ava24", "ava25"
     ];
 
     function getAvatarIndex(avatarName: string) {
@@ -27,7 +28,6 @@ export default function ChooseAvatar() {
         const currentIndex = getAvatarIndex(avatarName);
         const nextIndex = (currentIndex + 1) % avatarNames.length;
         setAvatar(avatarNames[nextIndex]);
-        console.log(avatarName)
     }
 
     function setPreviousAvatar(avatarName: string) {
