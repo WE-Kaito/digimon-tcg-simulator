@@ -521,10 +521,7 @@ export default function Game({user}: { user: string }) {
             const {id, location, name, type} = item;
             if (type === "Digi-Egg" || type === "Option") return;
             handleDropToField(id, location, 'myTamer', name);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        }
     }));
 
     const [, dropToDelay] = useDrop(() => ({
@@ -532,10 +529,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, name} = item;
             handleDropToField(id, location, 'myDelay', name);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        }
     }));
 
     const [{isOverDeckTop}, dropToDeck] = useDrop(() => ({
@@ -564,11 +558,7 @@ export default function Game({user}: { user: string }) {
             setEggDeckMoodle(true);
             setDeckMoodle(false);
             setSecurityMoodle(false);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-            highlighted: monitor.canDrop(),
-        }),
+        }
     }));
 
     const [, dropToSecurity] = useDrop(() => ({
@@ -580,10 +570,7 @@ export default function Game({user}: { user: string }) {
             setSecurityMoodle(true);
             setDeckMoodle(false);
             setEggDeckMoodle(false);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        }
     }));
 
     const [{isOverTrash}, dropToTrash] = useDrop(() => ({
