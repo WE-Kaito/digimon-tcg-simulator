@@ -39,7 +39,7 @@ import {
     playStartSfx,
     playSecurityRevealSfx,
     playShuffleDeckSfx,
-    playLoadMemorybarSfx
+    playLoadMemorybarSfx, playUnsuspendSfx
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
@@ -683,18 +683,47 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage("/restartGame:" + gameId);
     }
 
+    function moveDeckCard(to: string, bottomCard?: boolean) {
+        if (!opponentReady) return;
+        const cardId = (bottomCard) ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;
+        switch (to) {
+            case "myReveal":
+                playRevealCardSfx();
+                sendSfx("playRevealSfx");
+                moveCard(cardId, "myDeckField", "myReveal");
+                sendSingleUpdate(cardId, "myDeckField", "myReveal");
+                if (bottomCard) sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
+                else sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
+                break;
+            case "myTrash":
+                playTrashCardSfx();
+                sendSfx("playTrashCardSfx");
+                moveCard(cardId, "myDeckField", "myTrash");
+                sendSingleUpdate(cardId, "myDeckField", "myTrash");
+                sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
+                break;
+            case "mySecurity":
+                playUnsuspendSfx();
+                sendSfx("playUnsuspendCardSfx");
+                sendCardToDeck("Top", {id: cardId, location: "myDeckField"}, "mySecurity");
+                sendUpdate();
+                sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
+                break;
+            case "myHand":
+                playDrawCardSfx();
+                sendSfx("playDrawCardSfx");
+                moveCard(cardId, "myDeckField", "myHand");
+                sendSingleUpdate(cardId, "myDeckField", "myHand");
+                sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
+                break;
+        }
+    }
+
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
 
             <Menu id={"deckMenu"} theme="dark">
-                <Item onClick={() => {
-                    if (!opponentReady) return;
-                    moveCard(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
-                    sendSingleUpdate(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
-                    playRevealCardSfx();
-                    sendSfx("playRevealSfx");
-                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
-                }}>
+                <Item onClick={() => moveDeckCard("myReveal", true)}>
                     Reveal Bottom Deck Card ↺
                 </Item>
             </Menu>
@@ -885,14 +914,7 @@ export default function Game({user}: { user: string }) {
                         <OpponentContainerSide>
                             <EggDeckContainer>
                                 {opponentEggDeck.length !== 0 &&
-                                    <div style={{
-                                        width: "100%",
-                                        display: "flex",
-                                        fontStyle: "italic",
-                                        transform: "translateX(-5px)",
-                                        justifyContent: "center",
-                                        fontFamily: "Awsumsans, sans-serif"
-                                    }}>{opponentEggDeck.length}</div>}
+                                    <EggDeckSpan style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
                                 {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
                                                                       style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                             </EggDeckContainer>
@@ -941,11 +963,7 @@ export default function Game({user}: { user: string }) {
                                                  sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
                                              }}/>}
                                 {myEggDeck.length !== 0 &&
-                                    <div style={{
-                                        width: "100%", display: "flex", fontStyle: "italic",
-                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif",
-                                        transform: "translateY(-25px)"
-                                    }}>{myEggDeck.length}</div>}
+                                    <EggDeckSpan>{myEggDeck.length}</EggDeckSpan>}
 
                                 <TokenButton alt="create token" src={hackmonButton} onClick={() => {
                                     createToken();
@@ -1098,14 +1116,7 @@ export default function Game({user}: { user: string }) {
                                     {myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                       isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
-                                      onClick={() => {
-                                          if (!opponentReady) return;
-                                          moveCard(myDeckField[0].id, "myDeckField", "myHand");
-                                          sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
-                                          playDrawCardSfx();
-                                          sendSfx("playDrawCardSfx");
-                                          sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
-                                      }}/>
+                                      onClick={() => moveDeckCard("myHand")}/>
 
                                 {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
                                     {/* eslint-disable-next-line no-irregular-whitespace */}
@@ -1113,32 +1124,10 @@ export default function Game({user}: { user: string }) {
                                         ⇑</DBZSpan></DeckBottomZone>}
 
                                 <SendToTrashButton title="Send top card from your deck to Trash"
-                                                   onClick={() => {
-                                                       if (!opponentReady) return;
-                                                       moveCard(myDeckField[0].id, "myDeckField", "myTrash");
-                                                       sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
-                                                       playTrashCardSfx();
-                                                       sendSfx("playTrashCardSfx");
-                                                       sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
-                                                   }}>↱</SendToTrashButton>
+                                                   onClick={() => moveDeckCard("myTrash")}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
-                                            onClick={() => {
-                                                if (!opponentReady) return;
-                                                const id = myDeckField[0].id;
-                                                const location = "myDeckField";
-                                                sendCardToDeck("Top", {id, location}, "mySecurity");
-                                                sendUpdate();
-                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
-                                            }}>⛊️+1</SendButton>
-                                <SendButton title="Reveal the top card of your deck" onClick={() => {
-                                    if (!opponentReady) return;
-                                    moveCard(myDeckField[0].id, "myDeckField", "myReveal");
-                                    sendSingleUpdate(myDeckField[0].id, "myDeckField", "myReveal");
-                                    playRevealCardSfx();
-                                    sendSfx("playRevealSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
-                                }}
+                                            onClick={() => moveDeckCard("mySecurity")}>⛊️+1</SendButton>
+                                <SendButton title="Reveal the top card of your deck" onClick={() => moveDeckCard("myReveal")}
                                             disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
                             </DeckContainer>
 
@@ -1533,6 +1522,15 @@ const EggDeck = styled(Deck)`
   }
 `;
 
+const EggDeckSpan = styled.span`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-family: Awsumsans, sans-serif;
+  font-style: italic;
+  transform: translateY(-25px);
+`;
+
 const TrashContainer = styled.div`
   grid-area: trash;
   display: flex;
@@ -1580,6 +1578,7 @@ const SecuritySpan = styled.span`
   color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
   left: 132px;
+  user-select: none;
 `;
 
 const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
