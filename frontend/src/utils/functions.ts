@@ -25,6 +25,12 @@ import superstarmon from "../assets/profile_pictures/Superstarmon.png";
 import tyrannomon from "../assets/profile_pictures/Tyrannomon.png";
 import vMon from "../assets/profile_pictures/V-mon.png";
 import wereGarurumon from "../assets/profile_pictures/WereGarurumon.png";
+import gammamon from "../assets/profile_pictures/Gammamon.png";
+import justimon from "../assets/profile_pictures/Justimon.png";
+import coronamon from "../assets/profile_pictures/Coronamon.png";
+import hackmon from "../assets/profile_pictures/Hackmon.png";
+import clearAgumon from "../assets/profile_pictures/ClearAgumon.png";
+import placeholder from "../assets/profile_pictures/Placeholder.png";
 import {
     playButtonClickSfx,
     playDrawCardSfx,
@@ -142,8 +148,18 @@ export function profilePicture(avatarName: string) {
             return vMon;
         case "ava20":
             return wereGarurumon;
+        case "ava21":
+            return gammamon;
+        case "ava22":
+            return justimon;
+        case "ava23":
+            return coronamon;
+        case "ava24":
+            return hackmon;
+        case "ava25":
+            return clearAgumon;
         default:
-            return tyrannomon;
+            return placeholder;
     }
 }
 
