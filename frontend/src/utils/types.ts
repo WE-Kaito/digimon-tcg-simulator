@@ -142,3 +142,7 @@ export type DraggedStack = {
     index: number,
     location: string,
 }
+
+export type HandCardContextMenuItemProps = {
+    index: number;
+}

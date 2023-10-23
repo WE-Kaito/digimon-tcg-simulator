@@ -1,6 +1,12 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
-import {CardTypeGame, DraggedItem, DraggedStack, GameDistribution, Player} from "../utils/types.ts";
+import {
+    CardTypeGame,
+    DraggedItem,
+    DraggedStack,
+    GameDistribution, HandCardContextMenuItemProps,
+    Player
+} from "../utils/types.ts";
 import {
     profilePicture,
     calculateCardRotation,
@@ -43,7 +49,7 @@ import {
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
-import {Menu, Item, useContextMenu} from "react-contexify";
+import {Menu, Item, useContextMenu, ItemParams} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 
 export default function Game({user}: { user: string }) {
@@ -410,13 +416,6 @@ export default function Game({user}: { user: string }) {
         } else sendUpdate();
     }
 
-    const {show: showDeckMenu} = useContextMenu({
-        id: "deckMenu"
-    });
-    const {show: showDetailsImageMenu} = useContextMenu({
-        id: "detailsImageMenu"
-    });
-
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
         if (location2arr.length === 0 && (isOpponent ? isOpponentSecondRowVisible : isMySecondRowVisible)) return location2;
@@ -750,19 +749,32 @@ export default function Game({user}: { user: string }) {
         (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
     }
 
+    function revealHandCard({props} : ItemParams<HandCardContextMenuItemProps>) {
+        if (!opponentReady || props === undefined) return;
+        moveCard(myHand[props.index].id, "myHand", "myReveal");
+        sendSingleUpdate(myHand[props.index].id, "myHand", "myReveal");
+        sendChatMessage(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕Hand ➟ Reveal`);
+        playRevealCardSfx();
+        sendSfx("playRevealSfx");
+    }
+
+    const {show: showDeckMenu} = useContextMenu({ id: "deckMenu" });
+    const {show: showDetailsImageMenu} = useContextMenu({ id: "detailsImageMenu" });
+    const {show: showHandCardMenu} = useContextMenu({ id: "handCardMenu", props: { index: -1 } });
+
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
 
             <Menu id={"deckMenu"} theme="dark">
-                <Item onClick={() => moveDeckCard("myReveal", true)}>
-                    Reveal Bottom Deck Card ↺
-                </Item>
+                <Item onClick={() => moveDeckCard("myReveal", true)}>Reveal Bottom Deck Card ↺</Item>
+            </Menu>
+
+            <Menu id={"handCardMenu"} theme="dark">
+                <Item onClick={revealHandCard}>Reveal Card 👁️</Item>
             </Menu>
 
             {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
-                <Item onClick={() => window.open(selectedCard.image_url, '_blank')}>
-                    Open Image in new Tab ↗
-                </Item>
+                <Item onClick={() => window.open(selectedCard.image_url, '_blank')}>Open Image in new Tab ↗</Item>
             </Menu>}
 
             {user === "Kaito" &&
@@ -1194,8 +1206,10 @@ export default function Game({user}: { user: string }) {
                                 <HandCards cardCount={myHand.length}
                                            style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
-                                        <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
-                                            <Card card={card} location={"myHand"}/></HandListItem>)}
+                                        <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}
+                                                      onContextMenu={(e) => showHandCardMenu({event: e, props: {index}})}>
+                                            <Card card={card} location={"myHand"}/>
+                                        </HandListItem>)}
                                 </HandCards>
                                 {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
                             </HandContainer>
