@@ -15,6 +15,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +33,7 @@ class GameServiceTest {
     private DeckService deckService;
     @Mock
     private IdService idService;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
@@ -88,13 +89,25 @@ class GameServiceTest {
         Player[] players = {player1, player2};
         String playersJson = new ObjectMapper().writeValueAsString(players);
         TextMessage expectedMessage = new TextMessage("[START_GAME]:" + playersJson);
-        // WHEN
+
+        // WHEN START
         gameService.setUpGame(session1, gameId, username1, username2);
         gameService.setUpGame(session2, gameId, username1, username2);
+        // WHEN RESTART
+        gameService.handleTextMessage(session1, new TextMessage("/restartGame:" + gameId));
         // THEN
-        verify(session1, times(1)).sendMessage(expectedMessage);
+        verify(session1, times(2)).sendMessage(expectedMessage);
         verify(session2, times(1)).sendMessage(expectedMessage);
         assertThat(gameService.getGameRooms().get(gameId)).contains(session1).contains(session2);
+        verify(session1, times(5)).sendMessage(any());
+        verify(session2, times(3)).sendMessage(any());
+
+        // WHEN CLOSING
+        gameService.afterConnectionClosed(session1, null);
+        gameService.afterConnectionClosed(session2, null);
+        // THEN
+        verify(session2, times(1)).sendMessage(new TextMessage("[PLAYER_LEFT]"));
+        assertThat(gameService.getGameRooms().get(gameId)).isNull();
     }
 
     @Test
