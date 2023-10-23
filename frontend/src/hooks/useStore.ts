@@ -203,12 +203,14 @@ export const useStore = create<State>((set, get) => ({
                 }
                 throw error;
             })
-            .then(() =>
-                notifySuccess() &&
+            .then((data) => {
+                if (data === "There was an error while saving the deck.") notifyGeneralError();
+                else  notifySuccess();
                 setTimeout(function () {
                     window.location.reload();
                     set({isSaving: false});
-                }, 3000));
+                }, 2900)
+            });
     },
 
     fetchDecks: () => {

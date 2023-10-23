@@ -20,8 +20,12 @@ public class DeckController {
     }
 
     @PostMapping("/decks")
-    public void addDeck(@RequestBody DeckWithoutId deckWithoutId) {
+    public String addDeck(@RequestBody DeckWithoutId deckWithoutId) {
+        if (deckWithoutId.color().equals("undefined") || deckWithoutId.decklist().get(0) == null) {
+            return "There was an error while saving the deck.";
+        }
         this.deckService.addDeck(deckWithoutId);
+        return "Deck saved successfully.";
     }
 
     @GetMapping("/decks")
