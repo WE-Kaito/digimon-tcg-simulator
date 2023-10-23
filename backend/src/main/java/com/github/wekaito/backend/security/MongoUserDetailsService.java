@@ -21,16 +21,18 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     private final IdService idService = new IdService();
 
+    String exceptionMessage = "not found";
+
     public MongoUser getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
+                new UsernameNotFoundException("User" + username + exceptionMessage));
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
+                new UsernameNotFoundException("User" + username + exceptionMessage));
 
         return new User(mongoUser.username(), mongoUser.password(), Collections.emptyList());
     }
@@ -44,7 +46,7 @@ public class MongoUserDetailsService implements UserDetailsService {
             return "Username already exists!";
         }
 
-        MongoUser newUser = new MongoUser(idService.createId() ,registrationUser.username(), encodedPassword, "", "takato");
+        MongoUser newUser = new MongoUser(idService.createId() ,registrationUser.username(), encodedPassword, "", "ava1");
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";
@@ -52,7 +54,7 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     public String getUserIdByUsername(String username){
         MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
+                new UsernameNotFoundException("User" + username + exceptionMessage));
         return mongoUser.id();
     }
 
@@ -69,7 +71,7 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     public String getActiveDeck(String username) {
         MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
+                new UsernameNotFoundException("User" + username + exceptionMessage));
         return mongoUser.activeDeckId();
     }
 
@@ -86,7 +88,7 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     public String getAvatar(String username) {
         MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
+                new UsernameNotFoundException("User" + username + exceptionMessage));
         return mongoUser.avatarName();
     }
 }

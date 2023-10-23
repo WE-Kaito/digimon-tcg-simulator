@@ -56,12 +56,10 @@ public class CardService {
                 .block();
 
         List<Card> cards = new ArrayList<>(Arrays.asList(Objects.requireNonNull(Objects.requireNonNull(response).getBody())));
-        Card replaceCard1 = cards.stream().filter(card -> "EX5-020".equals(card.cardnumber())).findFirst().orElse(null);
-        Card replaceCard2 = cards.stream().filter(card -> "EX5-012".equals(card.cardnumber())).findFirst().orElse(null);
-        cards.removeIf(card -> "EX5-020".equals(card.cardnumber()));
-        cards.removeIf(card -> "EX5-012".equals(card.cardnumber()));
-        cards.add(new Card(replaceCard1.name(), "Digimon", replaceCard1.color(), replaceCard1.image_url(), "EX5-020", replaceCard1.stage(), replaceCard1.attribute(), replaceCard1.digi_type(), replaceCard1.dp(), replaceCard1.play_cost(), replaceCard1.evolution_cost(), replaceCard1.level(), replaceCard1.maineffect(), replaceCard1.soureeffect()));
-        cards.add(new Card(replaceCard2.name(), "Digimon", replaceCard2.color(), replaceCard2.image_url(), "EX5-012", replaceCard2.stage(), replaceCard2.attribute(), replaceCard2.digi_type(), replaceCard2.dp(), replaceCard2.play_cost(), replaceCard2.evolution_cost(), replaceCard2.level(), replaceCard2.maineffect(), replaceCard2.soureeffect()));
+        String cardnumber = "EX5-012";
+        Card replaceCard = cards.stream().filter(card -> cardnumber.equals(card.cardnumber())).findFirst().orElse(null);
+        cards.removeIf(card -> cardnumber.equals(card.cardnumber()));
+        cards.add(new Card(Objects.requireNonNull(replaceCard).name(), "Digimon", replaceCard.color(), replaceCard.image_url(), cardnumber, replaceCard.stage(), replaceCard.attribute(), replaceCard.digi_type(), replaceCard.dp(), replaceCard.play_cost(), replaceCard.evolution_cost(), replaceCard.level(), replaceCard.maineffect(), replaceCard.soureeffect()));
         this.cardRepo.deleteAll();
         this.cardRepo.saveAll(cards);
 
