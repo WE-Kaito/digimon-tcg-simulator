@@ -49,7 +49,7 @@ class MongoUserDetailsServiceTest {
         // THEN
         assertThat(resultAvatarName).isEqualTo("takato");
         assertThrows(UsernameNotFoundException.class, () -> {
-            mongoUserDetailsService.getActiveDeck("notExistingUser");
+            mongoUserDetailsService.getAvatar("notExistingUser");
         });
     }
 
@@ -64,7 +64,17 @@ class MongoUserDetailsServiceTest {
         assertThat(userDetails.getPassword()).isEqualTo("password");
         assertThat(userDetails.getAuthorities()).isEmpty();
         assertThrows(UsernameNotFoundException.class, () -> {
-            mongoUserDetailsService.getActiveDeck("notExistingUser");
+            mongoUserDetailsService.loadUserByUsername("notExistingUser");
         });
     }
+
+    @Test
+    void testGetUserIdByUsername() {
+        String userId = mongoUserDetailsService.getUserIdByUsername("testUser1");
+        assertThat(userId).isEqualTo("123");
+        assertThrows(UsernameNotFoundException.class, () -> {
+            mongoUserDetailsService.getUserIdByUsername("notExistingUser");
+        });
+    }
+
 }

@@ -44,12 +44,20 @@ class MongoUserControllerTest {
     @Test
     @WithMockUser(username = "testUser", password = "testPassword")
     void getUserName_whenLogin() throws Exception {
-        // GIVEN that user is logged in
         // WHEN
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login").with(csrf()))
                 // THEN
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("testUser"));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", password = "testPassword")
+    void getStatusOk_whenLogout() throws Exception {
+        // WHEN
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/logout").with(csrf()))
+                // THEN
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
