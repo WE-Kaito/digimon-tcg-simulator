@@ -24,7 +24,16 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
 const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
 
-export default function Card({card, location, sendUpdate, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom}: CardProps) {
+export default function Card({
+                                 card,
+                                 location,
+                                 sendUpdate,
+                                 sendSfx,
+                                 index,
+                                 draggedCards,
+                                 setDraggedCards,
+                                 handleDropToStackBottom
+                             }: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -75,22 +84,21 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
     }, [isDraggingStack, dragStackItem, locationCards, setDraggedCards]);
 
     useEffect(() => {
-        if(!canDropToStackBottom && canDrop) {
+        if (!canDropToStackBottom && canDrop) {
             const timer = setTimeout(() => {
                 setCanDropToStackBottom(true);
-            }, 20);
+            }, 20); // could not make it work without timeout
             return () => clearTimeout(timer);
         }
         if (canDropToStackBottom && !canDrop) setCanDropToStackBottom(false)
-    }, [canDrop,canDropToStackBottom, setCanDropToStackBottom]);
+    }, [canDrop, canDropToStackBottom, setCanDropToStackBottom]);
 
-    const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
-
-    function getTiltable() {
-        if (location === "myTamer") {
-            return card.type === "Tamer";
-        } else {
-            return tiltLocations.includes(location) && card === locationCards[locationCards.length - 1];
+    function handleTiltCard() {
+        if (location === "myTamer" && card.type !== "Tamer") return;
+        if (tiltLocations.includes(location) && card === locationCards[locationCards.length - 1]
+            && sendSfx && sendUpdate && selectedCard === card) {
+            tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
+            sendUpdate();
         }
     }
 
@@ -98,16 +106,10 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
         if (location === "fetchedData") {
             addCardToDeck(card.cardnumber, card.type);
             playPlaceCardSfx();
-        } else {
-            if (getTiltable() && sendSfx && selectedCard === card) {
-                tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
-                if (sendUpdate) sendUpdate();
-            } else {
-                selectCard(card);
-            }
-        }
+        } else selectCard(card);
     }
 
+    const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
     const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
 
     return (
@@ -125,6 +127,7 @@ export default function Card({card, location, sendUpdate, sendSfx, index, dragge
                     e.stopPropagation();
                     handleClick();
                 }}
+                onDoubleClick={handleTiltCard}
                 onMouseEnter={() => setHoverCard(card)}
                 onMouseOver={() => setHoverCard(card)}
                 onMouseLeave={() => setHoverCard(null)}
@@ -209,7 +212,7 @@ const DragIcon = styled.img`
   }
 `;
 
-const DTSBZone = styled.div<{isOver: boolean}>`
+const DTSBZone = styled.div<{ isOver: boolean }>`
   position: absolute;
   bottom: -3px;
   left: 0;
