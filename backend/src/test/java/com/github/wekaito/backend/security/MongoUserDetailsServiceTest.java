@@ -7,10 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +36,9 @@ class MongoUserDetailsServiceTest {
         String resultDeckId = mongoUserDetailsService.getActiveDeck("testUser1");
         // THEN
         assertThat(resultDeckId).isEqualTo("12345");
+        assertThrows(UsernameNotFoundException.class, () -> {
+            mongoUserDetailsService.getActiveDeck("notExistingUser");
+        });
     }
 
     @Test
@@ -43,6 +48,9 @@ class MongoUserDetailsServiceTest {
 
         // THEN
         assertThat(resultAvatarName).isEqualTo("takato");
+        assertThrows(UsernameNotFoundException.class, () -> {
+            mongoUserDetailsService.getActiveDeck("notExistingUser");
+        });
     }
 
     @Test
@@ -55,5 +63,8 @@ class MongoUserDetailsServiceTest {
         assertThat(userDetails.getUsername()).isEqualTo("testUser1");
         assertThat(userDetails.getPassword()).isEqualTo("password");
         assertThat(userDetails.getAuthorities()).isEmpty();
+        assertThrows(UsernameNotFoundException.class, () -> {
+            mongoUserDetailsService.getActiveDeck("notExistingUser");
+        });
     }
 }
