@@ -1100,7 +1100,7 @@ export default function Game({user}: { user: string }) {
                                     </>}
 
                                 <TrashSpan
-                                    style={{transform: gameHasStarted ? "translate(-14px, -40px)" : "translate(-14px, 0)",}}>
+                                    style={{transform: gameHasStarted ? "translate(-14px, -50px)" : "translate(-14px, 0)",}}>
                                     {myDeckField.length}</TrashSpan>
                                 <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                       isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
@@ -1471,7 +1471,7 @@ const Deck = styled.img<{ gameHasStarted?: boolean, isOver?: boolean }>`
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.1s ease;
-  transform: ${({gameHasStarted}) => gameHasStarted ? "translateY(-37px)" : "translateY(0)"};
+  transform: ${({gameHasStarted}) => gameHasStarted ? "translateY(-47px)" : "translateY(0)"};
   z-index: 2;
   filter: ${({isOver}) => isOver ? "drop-shadow(0 0 1px #eceaea) saturate(1.1) brightness(0.95)" : "none"};
 
@@ -1500,6 +1500,7 @@ const DBZSpan = styled.span<{ isOver: boolean, canDrop: boolean }>`
   visibility: ${({canDrop}) => canDrop ? "visible" : "hidden"};
   color: ${({isOver}) => isOver ? "rgba(218,216,213,0.88)" : "rgba(161, 157, 154, 0.3)"};
   cursor: default;
+  padding-bottom: 5px;
   transition: all 0.1s ease;
   transform: translateY(1px) scale(${({isOver}) => isOver ? "1.05" : "1"});
 `;
