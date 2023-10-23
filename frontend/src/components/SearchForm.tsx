@@ -332,6 +332,10 @@ const StyledForm = styled.form`
     "attribute cardnumber submit submit";
   overflow: hidden;
 
+  @media (max-width: 600px) {
+    width: 96%;
+  }
+
   @media (min-width: 768px) {
     grid-gap: 5px;
     height: 11vh;

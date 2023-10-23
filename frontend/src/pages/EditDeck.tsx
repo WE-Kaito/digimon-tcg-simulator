@@ -49,6 +49,8 @@ export default function EditDeck() {
         };
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 
+    const mobileSize = window.innerWidth < 500;
+
     return (
         <OuterContainer>
 
@@ -59,11 +61,11 @@ export default function EditDeck() {
             <ButtonContainer>
                 <UpdateDeckButton isDeleting={isDeleting}
                                   onClick={() => id && updateDeck(id, deckName)}><StyledSpanSaveDeck>SAVE
-                    CHANGES</StyledSpanSaveDeck></UpdateDeckButton>
+                    {`${!mobileSize ? "CHANGES" : ""}`}</StyledSpanSaveDeck></UpdateDeckButton>
                 <DeleteDeckButton isDeleting={isDeleting} onClick={() => {
                     if (isDeleting && id) deleteDeck(id, navigate);
                     setIsDeleting(!isDeleting)
-                }}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>
+                }}>{!isDeleting ? "🗑️" : mobileSize ? "🗑️?" : "DELETE PERMANENTLY"}</DeleteDeckButton>
                 <BackButton/>
             </ButtonContainer>
 
@@ -93,11 +95,15 @@ export default function EditDeck() {
 const ButtonContainer = styled.div`
   grid-area: buttons;
   width: 100%;
+  max-width: 44.5vw;
   display: flex;
   padding-left: 3%;
   gap: 2%;
   padding-right: 3%;
   justify-content: space-between;
+  @media (max-width: 600px) {
+    transform: scale(0.9) translateX(-3px);
+  }
   @media (min-width: 767px) {
     transform: translateY(12px);
   }
@@ -116,6 +122,11 @@ const UpdateDeckButton = styled.button<ButtonProps>`
   font-family: 'Sansation', sans-serif;
   filter: drop-shadow(1px 2px 3px #060e18);
   transition: all 0.3s ease;
+
+  @media (max-width: 768px) and (max-height: 850px) {
+    font-size: ${props => props.isDeleting ? "15px" : "21px"};
+    width: ${props => props.isDeleting ? "60px" : "80px"};
+  }
 
   :hover {
     background: aquamarine;
@@ -141,6 +152,7 @@ type ButtonProps = {
 const DeleteDeckButton = styled.button<ButtonProps>`
   font-weight: bold;
   max-height: 40px;
+  font-size: 16px;
   background: ${props => props.isDeleting ? "ghostwhite" : "crimson"};
   color: crimson;
   padding: 0;
@@ -157,5 +169,11 @@ const DeleteDeckButton = styled.button<ButtonProps>`
 
   &:focus {
     outline: none;
+  }
+
+  @media (max-width: 768px) and (max-height: 850px) {
+    font-family: 'Pixel Digivolve', sans-serif;
+    font-size: ${props => props.isDeleting ? "1.15em" : "1em"};
+    width: ${props => props.isDeleting ? "30%" : "20%"};
   }
 `;

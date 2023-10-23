@@ -58,8 +58,9 @@ const FetchContainer = styled.div`
   border-radius: 5px;
   height: 35.8vh;
 
-  @media (max-width: 700px) and (min-height: 800px) {
-    height: 42.9vh;
+  @media (max-width: 700px) and (max-height: 800px) {
+    max-height: 42vh;
+    width: 96%;
   }
   @media (max-width: 700px) and (min-height: 900px) {
     height: 47.155vh;

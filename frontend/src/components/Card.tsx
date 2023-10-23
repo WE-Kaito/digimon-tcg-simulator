@@ -106,6 +106,9 @@ export default function Card({
         if (location === "fetchedData") {
             addCardToDeck(card.cardnumber, card.type);
             playPlaceCardSfx();
+
+            if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
+            && card.id === selectedCard?.id) handleTiltCard(); // 'double click' on mobile
         } else selectCard(card);
     }
 
@@ -150,7 +153,7 @@ type StyledImageProps = {
 }
 
 const StyledImage = styled.img<StyledImageProps>`
-  width: 69.5px;
+  width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
   max-height: 150px;
   border-radius: 5px;
   transition: all 0.15s ease-out;
@@ -172,10 +175,6 @@ const StyledImage = styled.img<StyledImageProps>`
     70% {
       filter: drop-shadow(0 0 4px #ff2190) brightness(0.65) saturate(1.5);
     }
-  }
-
-  @media (max-width: 767px) {
-    max-height: 115px;
   }
 
   @media (min-width: 768px) {
