@@ -7,8 +7,8 @@ import {
     GameDistribution, HandCardContextMenuItemProps,
     Player
 } from "../utils/types.ts";
+import {profilePicture} from "../utils/avatars.ts";
 import {
-    profilePicture,
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,

@@ -13,7 +13,7 @@ export default function ChooseAvatar() {
     useEffect(() => {
         getAvatar();
     }, [getAvatar, avatarName]);
-
+/*
     function getAvatarIndex(avatarName: string) {
         return avatars.findIndex((avatar) => avatar.name === avatarName) || 0;
     }
@@ -26,9 +26,71 @@ export default function ChooseAvatar() {
             setAvatar(avatars[nextIndex].name);
         }
     }
-
+*/
     return (
-        <Container>
+        <GridContainer>
+            <AvatarSpan>Avatar</AvatarSpan>
+            {avatars.map((avatar) => {
+                return <SpriteButton  key={avatar.name} alt={avatar.name} src={profilePicture(avatar.name)}
+                                      chosen={avatarName === avatar.name}
+                                      onClick={() => {
+                                          playButtonClickSfx();
+                                          setAvatar(avatar.name);
+                                      }}
+                />
+            })}
+        </GridContainer>
+    );
+}
+
+const GridContainer = styled.div`
+  width: fit-content;
+  display: grid;
+  grid-template-columns: repeat(6, 48px);
+  grid-template-rows: repeat(5, 48px);
+  gap: 3px;
+  position: relative;
+  padding: 5px;
+  border: 1px solid #1d7dfc;
+  border-radius: 5px;
+  margin-left: 10px;
+  
+    @media (max-width: 766px) {
+      grid-template-columns: repeat(6, 32px);
+      grid-template-rows: repeat(5, 32px);
+      gap: 2px;
+      padding: 3px;
+    }
+  
+`;
+
+const SpriteButton = styled.img<{chosen: boolean}>`
+  width: 48px;
+  opacity: ${({chosen}) => chosen ? "1" : "0.5"};
+  background: ${({chosen}) => chosen ? "ghostwhite" : "none"};
+  border-radius: 3px;
+  cursor: pointer;
+  @media (max-width: 766px) {
+    width: 32px;
+  }
+`;
+
+const AvatarSpan = styled.span`
+  position: absolute;
+  top: -22px;
+  left: 2px;
+  color: #1d7dfc;
+  font-size: 20px;
+  font-family: Naston, sans-serif;
+  @media (max-width: 766px) {
+    top: -22px;
+    left: 2px;
+    font-size: 20px;
+  }
+`;
+/*
+
+<Container>
             <StyledButton style={{padding: "0px 8px 6px 0px"}} onClick={() => {
                 playButtonClickSfx();
                 setNextAvatar(avatarName, true);
@@ -41,8 +103,6 @@ export default function ChooseAvatar() {
             }
             }>{`❯`}</StyledButton>
         </Container>
-    );
-}
 
 const Container = styled.div`
   display: flex;
@@ -86,3 +146,4 @@ const StyledButton = styled.button`
     margin: 0;
   }
 `;
+*/

@@ -50,7 +50,7 @@ const Container = styled.div`
   flex-wrap: wrap;
   gap: 1.5vw;
   align-items: flex-start;
-  background: #0e0e0e;
+  background: rgba(0,0,0,0);
   border-radius: 10px;
   width: 100vw + 5px;
   height: 410px;

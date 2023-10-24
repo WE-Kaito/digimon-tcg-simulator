@@ -142,15 +142,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: #0c0c0c;
-  background-image: url("./assets/background.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
   transition: background-image 0.3s;
-}
-
-.main-background {
-  background-image: url("./assets/background.jpg");
 }
 
 .lobby-background {
