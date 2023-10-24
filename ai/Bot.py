@@ -1,5 +1,6 @@
 import asyncio
 import json
+import random
 import time
 from abc import ABC, abstractmethod
 
@@ -14,7 +15,6 @@ class Bot(ABC):
     deck_path = config('DECK_PATH')
 
     def __init__(self, username):
-        self.hand = []
         self.s = requests.Session()
         cookies = self.s.get(f'http://{self.host}/login').cookies.get_dict()
         self.headers = {
@@ -28,6 +28,8 @@ class Bot(ABC):
         self.username = username
         self.game_ws = f'ws://{self.host}/api/ws/game'
         self.chat_ws = f'ws://{self.host}/api/ws/chat'
+        self.hand = []
+        self.my_turn = False
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
         if response.status_code == expected_status_code:
@@ -99,20 +101,38 @@ class Bot(ABC):
             asyncio.run(self.play(opponent))
         else:
             print('Error when accessing/waiting in lobby')
-        
-    async def hi(self, ws, game, message):
+
+    async def send_game_chat_message(self, ws, game_name, player, message):
+        await ws.send(f"{game_name}:/chatMessage:{player}:{message}")
+
+    async def send_game_command(self, ws, game_name, command):
+        await ws.send(f"{game_name}:{command}")
+
+    async def hi(self, ws, game_name, message):
         if not message.startswith('[START_GAME]:'):
             raise Exception('Message does not contain [START_GAME] information to say hi!')
         players_info = json.loads(message.removeprefix('[START_GAME]:'))
-        print(players_info)
         for player in players_info:
             if player['username'] != self.username:
-                print(f"{game}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
-                await ws.send(f"{game}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
+                print(f"{game_name}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
+                await ws.send(f"{game_name}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
                 break
     
-    async def mulligan(self, ws, game, opponent):
-        await ws.send(f"{game}:/chatMessage:{opponent}:[FIELD_UPDATE]≔【MULLIGAN】")
+    async def update_game(self, ws, game_name):
+        n = config('WS_CHUNK_SIZE', cast=int)
+        g = json.dumps(self.game)
+        chunks = [g[i:i+n] for i in range(0, len(g), n)]
+        for chunk in chunks:
+            await ws.send(f'{game_name}:/updateGame:{chunk}')
+        
+
+    async def mulligan(self, ws, game_name, opponent):
+        await ws.send(f"{game_name}:/chatMessage:{opponent}:[FIELD_UPDATE]≔【MULLIGAN】")
+        self.game['player2DeckField'] += list(self.game['player2Hand'])
+        random.shuffle(self.game['player2DeckField'])
+        self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
+        await self.update_game(ws, game_name)
+        await self.send_game_command(ws, game_name, f'/playShuffleDeckSfx:{opponent}')
 
 
     @abstractmethod
