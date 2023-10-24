@@ -14,7 +14,9 @@ export default function ChooseAvatar() {
     useEffect(() => {
         getAvatar();
     }, [getAvatar, avatarName]);
-/*
+
+
+/*  // saving this logic for later (mobile solution)
     function getAvatarIndex(avatarName: string) {
         return avatars.findIndex((avatar) => avatar.name === avatarName) || 0;
     }
@@ -80,79 +82,24 @@ const SpriteButton = styled.img<{chosen: boolean}>`
 
 const AvatarSpan = styled.span`
   position: absolute;
-  top: -22px;
+  top: -25px;
   left: 2px;
   color: #1d7dfc;
-  font-size: 20px;
+  font-size: 22px;
   font-family: Naston, sans-serif;
   @media (max-width: 766px) {
-    font-size: 16px;
+    font-size: 17px;
+    top: -22px  
   }
 `;
 
 const AvatarSpan2 = styled(AvatarSpan)`
   left: 205px;
+  top: -21px;
   font-size: 16px;
   @media (max-width: 766px) {
-  font-size: 14px;
+  transform: scale(0.75);
+    top: -22px;
+    left: 108px;
 }
 `;
-/*
-
-<Container>
-            <StyledButton style={{padding: "0px 8px 6px 0px"}} onClick={() => {
-                playButtonClickSfx();
-                setNextAvatar(avatarName, true);
-            }
-            }>{`❮`}</StyledButton>
-            <img alt="avatar" src={profilePicture(avatarName)}></img>
-            <StyledButton style={{padding: "0px 0px 6px 8px"}} onClick={() => {
-                playButtonClickSfx();
-                setNextAvatar(avatarName);
-            }
-            }>{`❯`}</StyledButton>
-        </Container>
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 100vw;
-
-  @media (max-width: 766px) {
-    transform: scale(0.8)
-  }
-`;
-
-const StyledButton = styled.button`
-  margin: 20px;
-  font-size: 50px;
-  height: 100px;
-  color: ghostwhite;
-  background: none;
-  border: 1px solid ghostwhite;
-  width: 100px;
-  border-radius: 50%;
-  transition: border 0.2s ease, filter 0.1s ease;
-
-  :focus {
-    outline: none;
-  }
-
-  :hover {
-    cursor: pointer;
-    border: 4px solid ghostwhite;
-  }
-
-  :active {
-    border-width: 3px;
-    filter: drop-shadow(0px 0px 2px ghostwhite);
-  }
-
-  @media (max-width: 766px) {
-    border: none;
-    padding: 0;
-    margin: 0;
-  }
-`;
-*/
