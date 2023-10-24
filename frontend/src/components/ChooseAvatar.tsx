@@ -3,6 +3,7 @@ import {useStore} from "../hooks/useStore.ts";
 import styled from "@emotion/styled";
 import {avatars, profilePicture} from "../utils/avatars.ts";
 import {playButtonClickSfx} from "../utils/sound.ts";
+import Pen from "../assets/profile_pictures/pen.tsx";
 
 export default function ChooseAvatar() {
 
@@ -27,9 +28,11 @@ export default function ChooseAvatar() {
         }
     }
 */
+
     return (
         <GridContainer>
             <AvatarSpan>Avatar</AvatarSpan>
+            <AvatarSpan2><Pen scale={0.285}/> Tortoiseshel</AvatarSpan2>
             {avatars.map((avatar) => {
                 return <SpriteButton  key={avatar.name} alt={avatar.name} src={profilePicture(avatar.name)}
                                       chosen={avatarName === avatar.name}
@@ -83,10 +86,16 @@ const AvatarSpan = styled.span`
   font-size: 20px;
   font-family: Naston, sans-serif;
   @media (max-width: 766px) {
-    top: -22px;
-    left: 2px;
-    font-size: 20px;
+    font-size: 16px;
   }
+`;
+
+const AvatarSpan2 = styled(AvatarSpan)`
+  left: 205px;
+  font-size: 16px;
+  @media (max-width: 766px) {
+  font-size: 14px;
+}
 `;
 /*
 
