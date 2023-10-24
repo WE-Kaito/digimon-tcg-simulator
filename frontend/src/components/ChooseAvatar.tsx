@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import styled from "@emotion/styled";
-import {profilePicture} from "../utils/avatars.ts";
+import {avatars, profilePicture} from "../utils/avatars.ts";
 import {playButtonClickSfx} from "../utils/sound.ts";
 
 export default function ChooseAvatar() {
@@ -14,33 +14,24 @@ export default function ChooseAvatar() {
         getAvatar();
     }, [getAvatar, avatarName]);
 
-    const avatarNames: string[] = [
-        "ava1", "ava2", "ava3", "ava4", "ava5", "ava6", "ava7", "ava8", "ava9", "ava10",
-        "ava11", "ava12", "ava13", "ava14", "ava15", "ava16", "ava17", "ava18", "ava19", "ava20",
-        "ava21", "ava22", "ava23", "ava24", "ava25", "ava26", "ava27", "ava28", "ava29", "ava30",
-    ];
-
     function getAvatarIndex(avatarName: string) {
-        return avatarNames.indexOf(avatarName);
+        return avatars.findIndex((avatar) => avatar.name === avatarName) || 0;
     }
 
-    function setNextAvatar(avatarName: string) {
+    function setNextAvatar(avatarName: string, previous?: boolean) {
         const currentIndex = getAvatarIndex(avatarName);
-        const nextIndex = (currentIndex + 1) % avatarNames.length;
-        setAvatar(avatarNames[nextIndex]);
-    }
-
-    function setPreviousAvatar(avatarName: string) {
-        const currentIndex = getAvatarIndex(avatarName);
-        const previousIndex = (currentIndex - 1 + avatarNames.length) % avatarNames.length;
-        setAvatar(avatarNames[previousIndex]);
+        if (currentIndex === 0 && previous) setAvatar(avatars[avatars.length - 1].name)
+        else {
+            const nextIndex = (previous ? (currentIndex - 1) : (currentIndex + 1)) % avatars.length;
+            setAvatar(avatars[nextIndex].name);
+        }
     }
 
     return (
         <Container>
             <StyledButton style={{padding: "0px 8px 6px 0px"}} onClick={() => {
                 playButtonClickSfx();
-                setPreviousAvatar(avatarName);
+                setNextAvatar(avatarName, true);
             }
             }>{`❮`}</StyledButton>
             <img alt="avatar" src={profilePicture(avatarName)}></img>
