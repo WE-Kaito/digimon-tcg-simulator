@@ -146,3 +146,8 @@ export type DraggedStack = {
 export type HandCardContextMenuItemProps = {
     index: number;
 }
+
+export type Picture = {
+    name: string,
+    imagePath: string,
+}

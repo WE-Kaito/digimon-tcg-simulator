@@ -50,6 +50,7 @@ export default function ChooseAvatar() {
 
 const GridContainer = styled.div`
   width: fit-content;
+  height: fit-content;
   display: grid;
   grid-template-columns: repeat(6, 48px);
   grid-template-rows: repeat(5, 48px);
@@ -58,7 +59,6 @@ const GridContainer = styled.div`
   padding: 5px;
   border: 1px solid #1d7dfc;
   border-radius: 5px;
-  margin-left: 10px;
   
     @media (max-width: 766px) {
       grid-template-columns: repeat(6, 32px);

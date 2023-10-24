@@ -6,6 +6,7 @@ import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/ChooseAvatar.tsx";
 import {Loading} from "../components/FetchedCards.tsx";
+import ChooseCardSleeve from "../components/ChooseCardSleeve.tsx";
 
 export default function Profile({user}: { user: string }) {
 
@@ -29,7 +30,11 @@ export default function Profile({user}: { user: string }) {
                 <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
             </Header>
+            <div style={{display: "flex", flexDirection: "row", transform: "translateX(-18px)"}}>
             <ChooseAvatar/>
+                <ChooseCardSleeve/>
+            </div>
+
             <Container>
                 {isLoading && <Loading/>}
                 {!isLoading && decks?.map((deck) => <ProfileDeck key={deck.id} deck={deck}/>)}

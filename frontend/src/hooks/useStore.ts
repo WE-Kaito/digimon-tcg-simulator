@@ -28,6 +28,7 @@ type State = {
     activeDeckId: string,
     isSaving: boolean,
     avatarName: string,
+    sleeveName: string,
     gameId: string,
 
     fetchCards: () => void,
@@ -50,6 +51,8 @@ type State = {
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
     getAvatar: () => string,
+    setSleeve: (avatarName: string) => void,
+    getActiveSleeve: () => string,
     setGameId: (gameId: string) => void,
     importDeck: (decklist: string[]) => void,
     exportDeck: () => string,
@@ -69,6 +72,7 @@ export const useStore = create<State>((set, get) => ({
     activeDeckId: "",
     isSaving: false,
     avatarName: "",
+    sleeveName: "Default",
     gameId: "",
     loadingDeck: false,
 
@@ -413,6 +417,16 @@ export const useStore = create<State>((set, get) => ({
     exportDeck: (): string => {
         const decklist = get().deckCards.map((card) => card.cardnumber);
         return JSON.stringify(decklist);
+    },
+
+    setSleeve: (sleeveName) => {
+        set({sleeveName: sleeveName});
+    },
+
+    getActiveSleeve: () => {
+
+
+        return get().sleeveName;
     }
 
 }));

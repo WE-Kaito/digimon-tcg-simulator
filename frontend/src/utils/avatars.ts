@@ -29,13 +29,9 @@ import tailmon from "../assets/profile_pictures/Tailmon.png";
 import togemonX from "../assets/profile_pictures/TogemonX.png";
 import wizardmonX from "../assets/profile_pictures/WizardmonX.png";
 import placeholder from "../assets/profile_pictures/Placeholder.png";
+import {Picture} from "./types.ts";
 
-type Avatar = {
-    name: string,
-    imagePath: string,
-}
-
-export const avatars: Avatar[] = [
+export const avatars: Picture[] = [
     { name: "AncientIrismon", imagePath: ancientIrismon },
     { name: "Bearmon", imagePath: bearmon },
     { name: "Belphemon", imagePath: belphemon },
