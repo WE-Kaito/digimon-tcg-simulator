@@ -10,11 +10,11 @@ from decouple import config
 class Bot(ABC):
 
     host = config('HOST')
-    username = config('BOT_USERNAME')
     password = config('BOT_PASSWORD')
     deck_path = config('DECK_PATH')
 
-    def __init__(self, name):
+    def __init__(self, username):
+        self.hand = []
         self.s = requests.Session()
         cookies = self.s.get(f'http://{self.host}/login').cookies.get_dict()
         self.headers = {
@@ -25,13 +25,9 @@ class Bot(ABC):
             'X-Xsrf-Token': cookies['XSRF-TOKEN']
         }
         self.deck = json.load(open(self.deck_path))
-        self.name = name
+        self.username = username
         self.game_ws = f'ws://{self.host}/api/ws/game'
         self.chat_ws = f'ws://{self.host}/api/ws/chat'
-    
-    # async def get_websockets_connection(self):
-    #     self.game_ws = await websockets.connect(f'ws://{self.host}/api/ws/game', extra_headers=[('Cookie', self.headers['Cookie'])])
-    #     self.chat_ws = await websockets.connect(f'ws://{self.host}/api/ws/chat', extra_headers=[('Cookie', self.headers['Cookie'])])
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
         if response.status_code == expected_status_code:
@@ -81,7 +77,7 @@ class Bot(ABC):
 
     async def wait_in_lobby(self):
         async with websockets.connect(self.chat_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
-            while 1:
+            while True:
                 await ws.send("/heartbeat/")
                 message = await ws.recv()
                 print(f"Received: {message}")
@@ -90,7 +86,7 @@ class Bot(ABC):
                     print(f'Challenger: {challenger}')
                     await ws.send(f'/acceptInvite:{challenger}')
                     message = await ws.recv()
-                    break
+                    return challenger
                 time.sleep(1)
 
     def join_lobby(self):
@@ -99,22 +95,25 @@ class Bot(ABC):
         if lobby_response.status_code == 200:
             print('Accessed lobby, saying Hi')
             asyncio.run(self.enter_lobby_message(f'Ciao everyone! I\'m {self.username}!'))
-            asyncio.run(self.wait_in_lobby())
+            opponent = asyncio.run(self.wait_in_lobby())
+            asyncio.run(self.play(opponent))
         else:
-            print('Error when accessing lobby')
-        self.play()
-
-    async def send_chat_message(self, message):
-        await self.chat_ws.send(message)
-
-    async def hi(self, message):
+            print('Error when accessing/waiting in lobby')
+        
+    async def hi(self, ws, game, message):
         if not message.startswith('[START_GAME]:'):
             raise Exception('Message does not contain [START_GAME] information to say hi!')
-        players_info = json.loads(message.removeprefix())
+        players_info = json.loads(message.removeprefix('[START_GAME]:'))
+        print(players_info)
         for player in players_info:
-            if player['username'] != self.name:
-                self.send_chat_message(f"Hi {player['username']}, good luck with the game!")
+            if player['username'] != self.username:
+                print(f"{game}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
+                await ws.send(f"{game}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
                 break
+    
+    async def mulligan(self, ws, game, opponent):
+        await ws.send(f"{game}:/chatMessage:{opponent}:[FIELD_UPDATE]≔【MULLIGAN】")
+
 
     @abstractmethod
     def play(self):

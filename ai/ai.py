@@ -4,7 +4,7 @@ from RedHybridBot import RedHybridBot
 
 def main():
     
-    bot = RedHybridBot('Red Hybrid Bot')
+    bot = RedHybridBot(config('BOT_USERNAME'))
     login_response = bot.login()
     print(login_response)
     if not login_response:
