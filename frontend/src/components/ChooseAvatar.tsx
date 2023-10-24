@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import styled from "@emotion/styled";
-import {profilePicture} from "../utils/functions.ts";
+import {profilePicture} from "../utils/avatars.ts";
 import {playButtonClickSfx} from "../utils/sound.ts";
 
 export default function ChooseAvatar() {

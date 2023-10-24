@@ -5,37 +5,6 @@ import freeImage from '../assets/attribute_icons/free.png';
 import unknownImage from '../assets/attribute_icons/unknown.png';
 import variableImage from '../assets/attribute_icons/variable.png';
 import {CardType, CardTypeGame, CardTypeWithId} from "./types.ts";
-import ancientIrismon from "../assets/profile_pictures/AncientIrismon.png";
-import bearmon from "../assets/profile_pictures/Bearmon.png";
-import belphemon from "../assets/profile_pictures/Belphemon.png";
-import bloomLordmon from "../assets/profile_pictures/BloomLordmon.png";
-import commandramon from "../assets/profile_pictures/Commandramon.png";
-import darkKnightmonX from "../assets/profile_pictures/DarkKnightmonX.png";
-import diablomon from "../assets/profile_pictures/Diablomon.png";
-import guilmon from "../assets/profile_pictures/Guilmon.png";
-import hexeblaumon from "../assets/profile_pictures/Hexeblaumon.png";
-import impmon from "../assets/profile_pictures/Impmon.png";
-import kaiserGreymon from "../assets/profile_pictures/KaiserGreymon.png";
-import omegamon from "../assets/profile_pictures/Omegamon.png";
-import sakuyamon from "../assets/profile_pictures/Sakuyamon.png";
-import silphymon from "../assets/profile_pictures/Silphymon.png";
-import solarmon from "../assets/profile_pictures/Solarmon.png";
-import stingmon from "../assets/profile_pictures/Stingmon.png";
-import superstarmon from "../assets/profile_pictures/Superstarmon.png";
-import tyrannomon from "../assets/profile_pictures/Tyrannomon.png";
-import vMon from "../assets/profile_pictures/V-mon.png";
-import wereGarurumon from "../assets/profile_pictures/WereGarurumon.png";
-import gammamon from "../assets/profile_pictures/Gammamon.png";
-import justimon from "../assets/profile_pictures/Justimon.png";
-import coronamon from "../assets/profile_pictures/Coronamon.png";
-import hackmon from "../assets/profile_pictures/Hackmon.png";
-import clearAgumon from "../assets/profile_pictures/ClearAgumon.png";
-import terriermon from "../assets/profile_pictures/Terriermon.png";
-import airdramon from "../assets/profile_pictures/Airdramon.png";
-import tailmon from "../assets/profile_pictures/Tailmon.png";
-import togemonX from "../assets/profile_pictures/TogemonX.png";
-import wizardmonX from "../assets/profile_pictures/WizardmonX.png";
-import placeholder from "../assets/profile_pictures/Placeholder.png";
 import {
     playButtonClickSfx,
     playDrawCardSfx,
@@ -109,73 +78,6 @@ export function getStrokeColor(hoverCard: CardType | null, selectedCard: CardTyp
         }
     }
     return "#C5C5C5";
-}
-
-export function profilePicture(avatarName: string) {
-    switch (avatarName) {
-        case "ava1":
-            return ancientIrismon;
-        case "ava2":
-            return bearmon;
-        case "ava3":
-            return belphemon;
-        case "ava4":
-            return bloomLordmon;
-        case "ava5":
-            return commandramon;
-        case "ava6":
-            return darkKnightmonX;
-        case "ava7":
-            return diablomon;
-        case "ava8":
-            return guilmon;
-        case "ava9":
-            return hexeblaumon;
-        case "ava10":
-            return impmon;
-        case "ava11":
-            return kaiserGreymon;
-        case "ava12":
-            return omegamon;
-        case "ava13":
-            return sakuyamon;
-        case "ava14":
-            return silphymon;
-        case "ava15":
-            return solarmon;
-        case "ava16":
-            return stingmon;
-        case "ava17":
-            return superstarmon;
-        case "ava18":
-            return tyrannomon;
-        case "ava19":
-            return vMon;
-        case "ava20":
-            return wereGarurumon;
-        case "ava21":
-            return gammamon;
-        case "ava22":
-            return justimon;
-        case "ava23":
-            return coronamon;
-        case "ava24":
-            return hackmon;
-        case "ava25":
-            return clearAgumon;
-        case "ava26":
-            return terriermon;
-        case "ava27":
-            return airdramon;
-        case "ava28":
-            return tailmon;
-        case "ava29":
-            return togemonX;
-        case "ava30":
-            return wizardmonX;
-        default:
-            return placeholder;
-    }
 }
 
 export function calculateCardRotation(handCardLength: number, index: number) {
