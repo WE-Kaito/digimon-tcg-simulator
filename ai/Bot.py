@@ -8,6 +8,29 @@ import requests
 import websockets
 from decouple import config
 
+FIELD_UPDATE_MAP = {
+    'myHand': 'Hand',
+    'myDigi': 'BA ',
+    'myDeckField': 'Deck',
+    'myEggDeck': 'Egg-Deck',
+    'myBreedingArea': 'Breeding',
+    'myTamer': 'Tamers',
+    'myDelay': 'Delay',
+    'mySecurity': 'Security',
+    'myReveal': 'Reveal'    
+}
+
+GAME_LOCATIONS_MAP = {
+    'myHand': 'player2Hand',
+    'myDigi': 'player2DeckField ',
+    'myEggDeck': 'player2EggDeck',
+    'myBreedingArea': 'Breeding',
+    'myTamer': 'Tamers',
+    'myDelay': 'Delay',
+    'mySecurity': 'player2Security',
+    'myReveal': 'Reveal'    
+}
+
 class Bot(ABC):
 
     host = config('HOST')
@@ -72,6 +95,11 @@ class Bot(ABC):
         active_deck = self.s.put(f'http://{self.host}/api/user/active-deck/{deck_id}', auth=(self.username, self.password), headers=self.headers)
         return self.handle_response(active_deck, 200, 'Deck set succesfully to active', f'Failed to set deck as active with status code {active_deck.status_code}, exiting...')
 
+    def initialize_game(self, starting_game):
+        self.game = starting_game
+        self.game['player1Digi'] = [None, None, None, None, None]
+        self.game['player2Digi'] = [None, None, None, None, None]
+
     async def enter_lobby_message(self, message):
         async with websockets.connect(self.chat_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
             await ws.send(message)
@@ -97,43 +125,78 @@ class Bot(ABC):
         if lobby_response.status_code == 200:
             print('Accessed lobby, saying Hi')
             asyncio.run(self.enter_lobby_message(f'Ciao everyone! I\'m {self.username}!'))
-            opponent = asyncio.run(self.wait_in_lobby())
-            asyncio.run(self.play(opponent))
+            self.opponent = asyncio.run(self.wait_in_lobby())
+            asyncio.run(self.play())
         else:
             print('Error when accessing/waiting in lobby')
 
-    async def send_game_chat_message(self, ws, game_name, player, message):
-        await ws.send(f"{game_name}:/chatMessage:{player}:{message}")
+    async def send_game_chat_message(self, ws, message):
+        await ws.send(f"{self.game_name}:/chatMessage:{self.opponent}:{message}")
 
-    async def send_game_command(self, ws, game_name, command):
-        await ws.send(f"{game_name}:{command}")
+    async def shuffle_deck(self, ws):
+        self.game['player2DeckField'] += list(self.game['player2Hand'])
+        random.shuffle(self.game['player2DeckField'])
+        await self.play_shuffle_deck_sfx(ws)
 
-    async def hi(self, ws, game_name, message):
+    def get_card(self, location):
+        index = int(location[-1])
+        location = GAME_LOCATIONS_MAP[location[:-1]]
+        return self.game[location][index]
+
+    async def field_update(self, ws, card_name, fr, to):
+        if fr[-1].isdigit():
+            fr = fr.replace(fr[:-1], FIELD_UPDATE_MAP[fr[:-1]])
+        else:
+            fr = FIELD_UPDATE_MAP[fr]
+        if to[-1].isdigit():
+            to = to.replace(to[:-1], FIELD_UPDATE_MAP[to[:-1]])
+        else:
+            to = FIELD_UPDATE_MAP[to]
+        if fr == 'Deck' and to == 'Hand':
+            self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【Draw Card】')
+        self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
+
+    async def move_card(self, ws, fr, to):
+        card = self.get_card(fr)
+        card_id = card['id']
+        card_name = card['name']
+        if fr.startswith('myHand'):
+            fr = 'myHand'
+        if to.startswith('myHand'):
+            to = 'myHand'
+        await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
+        await self.field_update(ws, card_name, fr, to)
+        await self.play_place_card_sfx(ws)
+
+    async def send_player_ready(self, ws):
+        await ws.send(f'{self.game_name}:/playerReady:{self.opponent}')
+
+    async def play_shuffle_deck_sfx(self, ws):
+        await ws.send(f'{self.game_name}:/playShuffleDeckSfx:{self.opponent}')
+    
+    async def play_place_card_sfx(self, ws):
+        await ws.send(f'{self.game_name}:/playPlaceCardSfx:{self.opponent}')
+
+    async def hi(self, ws, message):
         if not message.startswith('[START_GAME]:'):
             raise Exception('Message does not contain [START_GAME] information to say hi!')
         players_info = json.loads(message.removeprefix('[START_GAME]:'))
         for player in players_info:
             if player['username'] != self.username:
-                print(f"{game_name}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
-                await ws.send(f"{game_name}:/chatMessage:{player['username']}:Hi {player['username']}, good luck with the game!")
+                await self.send_game_chat_message(ws, f"Hi {player['username']}, good luck with the game!")
                 break
     
-    async def update_game(self, ws, game_name):
+    async def update_game(self, ws):
         n = config('WS_CHUNK_SIZE', cast=int)
         g = json.dumps(self.game)
         chunks = [g[i:i+n] for i in range(0, len(g), n)]
         for chunk in chunks:
-            await ws.send(f'{game_name}:/updateGame:{chunk}')
-        
+            await ws.send(f'{self.game_name}:/updateGame:{chunk}')
 
-    async def mulligan(self, ws, game_name, opponent):
-        await ws.send(f"{game_name}:/chatMessage:{opponent}:[FIELD_UPDATE]≔【MULLIGAN】")
-        self.game['player2DeckField'] += list(self.game['player2Hand'])
-        random.shuffle(self.game['player2DeckField'])
+    async def mulligan(self, ws):
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
-        await self.update_game(ws, game_name)
-        await self.send_game_command(ws, game_name, f'/playShuffleDeckSfx:{opponent}')
-
+        await self.update_game(ws)
 
     @abstractmethod
     def play(self):
