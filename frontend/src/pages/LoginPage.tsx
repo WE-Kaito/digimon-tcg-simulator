@@ -17,7 +17,7 @@ export default function LoginPage() {
     const [passwordReg, setPasswordReg] = useState("");
     const [repeatedPassword, setRepeatedPassword] = useState("");
     const register = useStore((state) => state.register);
-    const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,20}$/;
+    const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
     const forbiddenCharacters = [":","‗","【","】","﹕","≔"," "]
     const validUserName = userNameReg.length >= 3 && userNameReg.length <= 16 && !containsForbiddenCharacters();
 
@@ -85,7 +85,7 @@ export default function LoginPage() {
                             type="text" name="userName" placeholder="username" maxLength={16}/>
 
                 <InputField value={password} onChange={(e) => setPassword(e.target.value)}
-                            type="password" name="password" placeholder="password" maxLength={20}/>
+                            type="password" name="password" placeholder="password"/>
 
                 <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
                 <RegisterButton style={{marginTop: "50px"}} type="button"
@@ -104,7 +104,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                     <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
-                                type="password" name="password" placeholder="password" maxLength={20}
+                                type="password" name="password" placeholder="password"
                                 style={{backgroundColor: `${passWordColor()}`}}
                     />
                     <br/>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                     </StyledInfo>
                 </div>
                 <InputField value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
-                            type="password" name="RepeatPassword" placeholder="repeat password" maxLength={20}
+                            type="password" name="RepeatPassword" placeholder="repeat password"
                             style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
                 <ButtonContainer>
                     <BackButton type="button"
