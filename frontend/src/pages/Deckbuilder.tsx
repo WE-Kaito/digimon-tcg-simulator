@@ -225,6 +225,7 @@ const ButtonContainer = styled.div`
   justify-content: space-between;
   @media (min-width: 767px) {
     transform: translateY(12px);
+    position: relative;
   }
 `;
 
@@ -235,7 +236,13 @@ export const StyledSpanSaveDeck = styled.span`
   margin: 0;
   letter-spacing: 2px;
   color: #0e1625;
-  margin-bottom: 10px;
+  @media (max-width: 500px) {
+    font-size: 0.75em;
+    line-height: 15px;
+    position: absolute;
+    left: 4px;
+    top: 4px;
+  }
 `;
 
 export const DeckNameContainer = styled.div`

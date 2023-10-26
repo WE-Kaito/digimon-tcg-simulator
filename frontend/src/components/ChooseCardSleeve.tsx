@@ -46,6 +46,16 @@ const GridContainer = styled.div`
   border-radius: 5px;
   margin-left: 10px;
   transform: translateY(-2px);
+  transition: all 0.2s ease-in-out;
+  @media (max-width: 1050px) {
+    grid-template-columns: repeat(11, 40px);
+    grid-template-rows: repeat(3, 53px);
+    gap: 1px;
+    padding: 2px;
+    margin: 10px 2px 0 2px;
+    max-width: 97.24vw;
+    overflow-x: scroll;
+  }
 `;
 
 const SleeveButton = styled.img<{chosen: boolean}>`
@@ -55,7 +65,7 @@ const SleeveButton = styled.img<{chosen: boolean}>`
   background: ${({chosen}) => chosen ? "ghostwhite" : "none"};
   cursor: pointer;
   border-radius: 2px;
-
+  transition: all 0.2s ease-in-out;
   :hover {
     width: 72px;
     height: 96px;
@@ -64,9 +74,15 @@ const SleeveButton = styled.img<{chosen: boolean}>`
     filter: drop-shadow(0 0 5px #57a0ff);
     transform: translate(-4px, -6px);
   }
-
-  @media (max-width: 766px) {
-    width: 32px;
+  @media (max-width: 1050px) {
+    width: 40px;
+    height: 53px;
+    :hover {
+      width: 40px;
+      height: 53px;
+      opacity: 1;
+      transform: translate(-1px, -1px);
+    }
   }
 `;
 
@@ -77,9 +93,9 @@ const AvatarSpan = styled.span`
   color: #1d7dfc;
   font-size: 22px;
   font-family: Naston, sans-serif;
-  @media (max-width: 766px) {
-    font-size: 17px;
-    top: -22px  
+  transition: all 0.2s ease-in-out;
+  @media (max-width: 1050px) {
+    visibility: hidden;
   }
 `;
 
@@ -87,9 +103,5 @@ const AvatarSpan2 = styled(AvatarSpan)`
   left: 670px;
   top: -21px;
   font-size: 16px;
-  @media (max-width: 766px) {
-  transform: scale(0.75);
-    top: -22px;
-    left: 108px;
-}
+  transition: all 0.2s ease-in-out;
 `;

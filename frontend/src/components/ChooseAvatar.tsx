@@ -15,22 +15,6 @@ export default function ChooseAvatar() {
         getAvatar();
     }, [getAvatar, avatarName]);
 
-
-/*  // saving this logic for later (mobile solution)
-    function getAvatarIndex(avatarName: string) {
-        return avatars.findIndex((avatar) => avatar.name === avatarName) || 0;
-    }
-
-    function setNextAvatar(avatarName: string, previous?: boolean) {
-        const currentIndex = getAvatarIndex(avatarName);
-        if (currentIndex === 0 && previous) setAvatar(avatars[avatars.length - 1].name)
-        else {
-            const nextIndex = (previous ? (currentIndex - 1) : (currentIndex + 1)) % avatars.length;
-            setAvatar(avatars[nextIndex].name);
-        }
-    }
-*/
-
     return (
         <GridContainer>
             <AvatarSpan>Avatar</AvatarSpan>
@@ -59,10 +43,10 @@ const GridContainer = styled.div`
   padding: 5px;
   border: 1px solid #1d7dfc;
   border-radius: 5px;
-  
-    @media (max-width: 766px) {
-      grid-template-columns: repeat(6, 32px);
-      grid-template-rows: repeat(5, 32px);
+  transition: all 0.2s ease-in-out;
+    @media (max-width: 1050px) {
+      grid-template-columns: repeat(10, 32px);
+      grid-template-rows: repeat(3, 32px);
       gap: 2px;
       padding: 3px;
     }
@@ -75,7 +59,7 @@ const SpriteButton = styled.img<{chosen: boolean}>`
   background: ${({chosen}) => chosen ? "ghostwhite" : "none"};
   border-radius: 3px;
   cursor: pointer;
-
+  transition: all 0.2s ease-in-out;
   :hover {
     width: 64px;
     height: 64px;
@@ -85,8 +69,13 @@ const SpriteButton = styled.img<{chosen: boolean}>`
     transform: translate(-8px, -8px);
   }
   
-  @media (max-width: 766px) {
+  @media (max-width: 1050px) {
     width: 32px;
+    :hover {
+      width: 32px;
+      height: 32px;
+      transform: translate(-1px, -1px);
+    }
   }
 `;
 
@@ -97,7 +86,9 @@ const AvatarSpan = styled.span`
   color: #1d7dfc;
   font-size: 22px;
   font-family: Naston, sans-serif;
-  @media (max-width: 766px) {
+  transition: all 0.2s ease-in-out;
+  @media (max-width: 1050px) {
+    visibility: hidden;
     font-size: 17px;
     top: -22px  
   }
@@ -107,9 +98,5 @@ const AvatarSpan2 = styled(AvatarSpan)`
   left: 205px;
   top: -21px;
   font-size: 16px;
-  @media (max-width: 766px) {
-  transform: scale(0.75);
-    top: -22px;
-    left: 108px;
-}
+  transition: all 0.2s ease-in-out;
 `;

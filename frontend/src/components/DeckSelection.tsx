@@ -280,6 +280,7 @@ const DeckList = styled.fieldset`
   display: flex;
   justify-content: flex-start;
   overflow-y: scroll;
+  overflow-x: hidden;
 
   &::-webkit-scrollbar {
     background-color: rgba(28, 58, 47, 0.98);
@@ -295,6 +296,9 @@ const DeckList = styled.fieldset`
     width: 83.5%;
     font-size: 10px;
     gap: 9px;
+    &::-webkit-scrollbar {
+      width: 3px;
+    }
   };
 
   @media (max-height: 765px) {

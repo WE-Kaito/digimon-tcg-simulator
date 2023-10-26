@@ -188,10 +188,10 @@ const StyledImage = styled.img<StyledImageProps>`
   @media (max-width: 700px) and (min-height: 800px) {
     width: 80px;
   }
-
-  @media (max-width: 390px) and (min-height: 800px) {
-    width: 68.5px;
+  @media (max-width: 390px) {
+    width: 61px;
   }
+  
 `;
 
 const DragIcon = styled.img`
