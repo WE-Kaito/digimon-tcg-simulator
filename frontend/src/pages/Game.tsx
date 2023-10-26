@@ -51,6 +51,7 @@ import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
 import {Menu, Item, useContextMenu, ItemParams} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
+import {getSleeve} from "../utils/sleeves.ts";
 
 export default function Game({user}: { user: string }) {
 
@@ -73,6 +74,8 @@ export default function Game({user}: { user: string }) {
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
+    const mySleeve = useGame((state) => state.mySleeve);
+    const opponentSleeve = useGame((state) => state.opponentSleeve);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
     const [endScreen, setEndScreen] = useState<boolean>(false);
@@ -98,8 +101,8 @@ export default function Game({user}: { user: string }) {
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
     const [restartObj, setRestartObj] = useState<{ me: Player, opponent: Player }>({
-        me: {username: "", avatarName: ""},
-        opponent: {username: "", avatarName: ""}
+        me: {username: "", avatarName: "", sleeveName: ""},
+        opponent: {username: "", avatarName: "", sleeveName: ""}
     });
     const [userCount, setUserCount] = useState<number>(0);
 
@@ -862,7 +865,12 @@ export default function Game({user}: { user: string }) {
                             </PlayerContainer>
 
                             <OpponentDeckContainer>
-                                <img alt="deck" src={deckBack} width="105px"/>
+                                {opponentSleeve === "Default"
+                                    ? <img alt="deck" src={deckBack} width="105px"/>
+                                    : <div style={{width:"105px", position: "relative"}}>
+                                        <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
+                                        <img alt="deck" src={deckBack} width="105px"/>
+                                    </div>}
                                 <TrashSpan
                                     style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
                             </OpponentDeckContainer>
@@ -947,7 +955,7 @@ export default function Game({user}: { user: string }) {
                                            style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
-                                                      key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
+                                                      key={card.id}><OppenentHandCard alt="card" src={getSleeve(opponentSleeve)}/>
                                         </HandListItem>)}
                                 </HandCards>
                                 {opponentHand.length > 5 && <MyHandSpan
@@ -1102,10 +1110,17 @@ export default function Game({user}: { user: string }) {
                                 <TrashSpan
                                     style={{transform: gameHasStarted ? "translate(-14px, -50px)" : "translate(-14px, 0)",}}>
                                     {myDeckField.length}</TrashSpan>
-                                <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                {mySleeve === "Default"
+                                    ? <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                       isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                       onClick={() => moveDeckCard("myHand")}/>
-
+                                    : <div style={{width:"105px", position: "relative"}}>
+                                        <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)} gameHasStarted={gameHasStarted}/>
+                                        <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                              isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
+                                              onClick={() => moveDeckCard("myHand")}/>
+                                      </div>
+                                }
                                 {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
                                     {/* eslint-disable-next-line no-irregular-whitespace */}
                                     <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
@@ -1466,6 +1481,23 @@ const OpponentDeckContainer = styled.div`
   padding: 10px 10px 0 0;
 `;
 
+const OpponentDeckSleeve = styled.img`
+  width: 99px;
+  height: 140px;
+  position: absolute;
+  border-radius: 5px;
+`;
+
+const MyDeckSleeve = styled.img<{gameHasStarted?: boolean}>`
+  width: 99px;
+  height: 140px;
+  position: absolute;
+  border-radius: 5px;
+  z-index: 3;
+  top: ${({gameHasStarted}) => gameHasStarted ? "-47px" : "0"};
+  pointer-events: none;
+  transition: all 0.1s ease;
+`;
 const Deck = styled.img<{ gameHasStarted?: boolean, isOver?: boolean }>`
   width: 105px;
   border-radius: 5px;

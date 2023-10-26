@@ -79,7 +79,8 @@ export type DeckType = {
 
 export type Player = {
     username: string,
-    avatarName: string
+    avatarName: string,
+    sleeveName: string,
 }
 
 export type GameDistribution = {

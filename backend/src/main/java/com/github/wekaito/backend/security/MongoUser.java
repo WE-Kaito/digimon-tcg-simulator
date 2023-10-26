@@ -10,6 +10,7 @@ public record MongoUser(
         String username,
         String password,
         String activeDeckId,
-        String avatarName
+        String avatarName,
+        String sleeveName
 ) {
 }

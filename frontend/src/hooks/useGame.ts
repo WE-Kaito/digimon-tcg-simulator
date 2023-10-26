@@ -7,6 +7,8 @@ import tokenImage from "../assets/tokenCard.jpg";
 type State = {
     myAvatar: string,
     opponentAvatar: string,
+    mySleeve: string,
+    opponentSleeve: string,
 
     myMemory: number,
     myReveal: CardTypeGame[],
@@ -95,6 +97,8 @@ export const useGame = create<State>((set, get) => ({
 
     myAvatar: "",
     opponentAvatar: "",
+    mySleeve: "",
+    opponentSleeve: "",
 
     myMemory: 0,
     myReveal: [],
@@ -154,6 +158,8 @@ export const useGame = create<State>((set, get) => ({
         set({
             myAvatar: me.avatarName,
             opponentAvatar: opponent.avatarName,
+            mySleeve: me.sleeveName,
+            opponentSleeve: opponent.sleeveName,
 
             messages: [],
             mulliganAllowed: false,

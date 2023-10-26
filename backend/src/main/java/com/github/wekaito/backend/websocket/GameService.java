@@ -1,5 +1,6 @@
 package com.github.wekaito.backend.websocket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.Card;
 import com.github.wekaito.backend.IdService;
@@ -216,21 +217,26 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
+    private String getPlayersJson(String username1, String username2) throws JsonProcessingException {
+        String avatar1 = mongoUserDetailsService.getAvatar(username1);
+        String avatar2 = mongoUserDetailsService.getAvatar(username2);
+
+        String sleeve1 = mongoUserDetailsService.getSleeve(username1);
+        String sleeve2 = mongoUserDetailsService.getSleeve(username2);
+
+        Player player1 = new Player(username1, avatar1, sleeve1);
+        Player player2 = new Player(username2, avatar2, sleeve2);
+
+        Player[] players = {player1, player2};
+        return new ObjectMapper().writeValueAsString(players);
+    }
+
     void setUpGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
 
-        String avatar1 = mongoUserDetailsService.getAvatar(username1);
-        String avatar2 = mongoUserDetailsService.getAvatar(username2);
-
-        Player player1 = new Player(username1, avatar1);
-        Player player2 = new Player(username2, avatar2);
-
-        Player[] players = {player1, player2};
-        String playersJson = new ObjectMapper().writeValueAsString(players);
-
         Thread.sleep(500);
-        sendTextMessage(session, "[START_GAME]:" + playersJson);
+        sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
         Thread.sleep(500);
 
         String[] names = {username1, username2};
@@ -245,17 +251,8 @@ public class GameService extends TextWebSocketHandler {
     void restartGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
-        String avatar1 = mongoUserDetailsService.getAvatar(username1);
-        String avatar2 = mongoUserDetailsService.getAvatar(username2);
-
-        Player player1 = new Player(username1, avatar1);
-        Player player2 = new Player(username2, avatar2);
-
-        Player[] players = {player1, player2};
-        String playersJson = new ObjectMapper().writeValueAsString(players);
-
         Thread.sleep(500);
-        sendTextMessage(session, "[START_GAME]:" + playersJson);
+        sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
         Thread.sleep(500);
 
         String[] names = {username1, username2};

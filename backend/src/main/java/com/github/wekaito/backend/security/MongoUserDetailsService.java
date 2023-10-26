@@ -46,7 +46,7 @@ public class MongoUserDetailsService implements UserDetailsService {
             return "Username already exists!";
         }
 
-        MongoUser newUser = new MongoUser(idService.createId() ,registrationUser.username(), encodedPassword, "", "ava1");
+        MongoUser newUser = new MongoUser(idService.createId() ,registrationUser.username(), encodedPassword, "", "ava1", "Default");
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";
@@ -60,7 +60,7 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     public void setActiveDeck(String deckId) {
         MongoUser mongoUser = getCurrentUser();
-        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), deckId, mongoUser.avatarName());
+        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), deckId, mongoUser.avatarName(), mongoUser.sleeveName());
         mongoUserRepository.save(updatedUser);
     }
 
@@ -77,7 +77,7 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     public void setAvatar(String avatarName) {
         MongoUser mongoUser = getCurrentUser();
-        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), mongoUser.activeDeckId(), avatarName);
+        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), mongoUser.activeDeckId(), avatarName, mongoUser.sleeveName());
         mongoUserRepository.save(updatedUser);
     }
 
@@ -90,5 +90,22 @@ public class MongoUserDetailsService implements UserDetailsService {
         MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
                 new UsernameNotFoundException("User " + username + exceptionMessage));
         return mongoUser.avatarName();
+    }
+
+    public void setSleeve(String sleeveName) {
+        MongoUser mongoUser = getCurrentUser();
+        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), mongoUser.activeDeckId(), mongoUser.avatarName(), sleeveName);
+        mongoUserRepository.save(updatedUser);
+    }
+
+    public String getSleeve() {
+        MongoUser mongoUser = getCurrentUser();
+        return mongoUser.sleeveName();
+    }
+
+    public String getSleeve(String username) {
+        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User " + username + exceptionMessage));
+        return mongoUser.sleeveName();
     }
 }

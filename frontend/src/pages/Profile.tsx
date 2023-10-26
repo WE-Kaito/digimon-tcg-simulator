@@ -31,7 +31,7 @@ export default function Profile({user}: { user: string }) {
                 <BackButton/>
             </Header>
             <div style={{display: "flex", flexDirection: "row", transform: "translateX(-18px)"}}>
-            <ChooseAvatar/>
+                <ChooseAvatar/>
                 <ChooseCardSleeve/>
             </div>
 

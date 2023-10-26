@@ -374,7 +374,6 @@ export const useStore = create<State>((set, get) => ({
         axios.get("/api/user/avatar")
             .then(response => set({avatarName: response.data}))
             .catch(console.error);
-
         return get().avatarName;
     },
 
@@ -420,12 +419,17 @@ export const useStore = create<State>((set, get) => ({
     },
 
     setSleeve: (sleeveName) => {
-        set({sleeveName: sleeveName});
+        axios.put(`/api/user/sleeve/${sleeveName}`, null)
+            .catch(console.error)
+            .finally(() => {
+                set({sleeveName: sleeveName});
+            });
     },
 
     getActiveSleeve: () => {
-
-
+        axios.get("/api/user/sleeve")
+            .then(response => set({sleeveName: response.data === "" ? "Default" : response.data}))
+            .catch(console.error);
         return get().sleeveName;
     }
 

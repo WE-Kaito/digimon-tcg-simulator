@@ -52,4 +52,14 @@ public class MongoUserController {
         return mongoUserDetailsService.getAvatar();
     }
 
+    @PutMapping("/sleeve/{sleeveName}")
+    public void setSleeve(@PathVariable String sleeveName){
+        mongoUserDetailsService.setSleeve(sleeveName);
+    }
+
+    @GetMapping("/sleeve")
+    public String getSleeve() {
+        return mongoUserDetailsService.getSleeve();
+    }
+
 }
