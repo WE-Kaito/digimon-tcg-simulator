@@ -27,7 +27,7 @@ class MongoUserDetailsServiceTest {
     @BeforeEach
     void setUp() {
         mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository);
-        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "12345", "takato")));
+        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "12345", "takato", "sleeve1")));
     }
 
     @Test

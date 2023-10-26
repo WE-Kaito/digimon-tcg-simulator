@@ -69,6 +69,8 @@ class GameServiceTest {
         when(mongoUserDetailsService.getActiveDeck(username2)).thenReturn(exampleDeck2.id());
         when(mongoUserDetailsService.getAvatar(username1)).thenReturn("takato");
         when(mongoUserDetailsService.getAvatar(username2)).thenReturn("tai");
+        when(mongoUserDetailsService.getSleeve(username1)).thenReturn("sleeve1");
+        when(mongoUserDetailsService.getSleeve(username2)).thenReturn("sleeve2");
     }
 
     @Test
@@ -83,8 +85,8 @@ class GameServiceTest {
     @Test
     void testGameSetup() throws IOException, InterruptedException {
         // GIVEN
-        Player player1 = new Player(username1, "takato");
-        Player player2 = new Player(username2, "tai");
+        Player player1 = new Player(username1, "takato", "sleeve1");
+        Player player2 = new Player(username2, "tai", "sleeve2");
         Player[] players = {player1, player2};
         String playersJson = new ObjectMapper().writeValueAsString(players);
         TextMessage expectedMessage = new TextMessage("[START_GAME]:" + playersJson);
