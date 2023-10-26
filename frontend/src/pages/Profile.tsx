@@ -30,7 +30,7 @@ export default function Profile({user}: { user: string }) {
                 <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
             </Header>
-            <div style={{display: "flex", flexDirection: "row", transform: "translateX(-18px)"}}>
+            <div style={{display: "flex", flexDirection: "row", transform: "translateX(0px)"}}>
                 <ChooseAvatar/>
                 <ChooseCardSleeve/>
             </div>
@@ -59,8 +59,9 @@ const Container = styled.div`
   border-radius: 10px;
   width: 100vw + 5px;
   height: 410px;
-  max-width: 1010px;
   overflow-y: scroll;
+  padding: 5px;
+  border: 1px solid #1d7dfc;
   
   &::-webkit-scrollbar {
     width: 3px;
@@ -68,16 +69,17 @@ const Container = styled.div`
   
   &::-webkit-scrollbar-thumb {
     background-color: #C5C5C5;
-    border-radius: 2px;
+    -moz-border-radius-topright: 15px;
+    -moz-border-radius-bottomright: 15px;
   }
 
   @media (min-width: 1000px) {
-    width: 1010px;
+    width: 1032px;
     gap: 19px;
   }
   
   @media (min-width: 1600px) {
-    gap: 20px;
+    gap: 23px;
   }
   
   @media (min-width: 1600px) and (min-height: 1000px) {

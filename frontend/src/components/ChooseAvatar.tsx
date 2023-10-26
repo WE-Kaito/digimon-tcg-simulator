@@ -75,6 +75,16 @@ const SpriteButton = styled.img<{chosen: boolean}>`
   background: ${({chosen}) => chosen ? "ghostwhite" : "none"};
   border-radius: 3px;
   cursor: pointer;
+
+  :hover {
+    width: 64px;
+    height: 64px;
+    opacity: 1;
+    z-index: 100;
+    filter: drop-shadow(0 0 3px #57a0ff);
+    transform: translate(-8px, -8px);
+  }
+  
   @media (max-width: 766px) {
     width: 32px;
   }
