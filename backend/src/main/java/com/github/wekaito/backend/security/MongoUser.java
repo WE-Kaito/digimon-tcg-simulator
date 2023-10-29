@@ -9,6 +9,8 @@ public record MongoUser(
         String id,
         String username,
         String password,
+        String question,
+        String answer,
         String activeDeckId,
         String avatarName,
         String sleeveName

@@ -62,4 +62,14 @@ public class MongoUserController {
         return mongoUserDetailsService.getSleeve();
     }
 
+    @GetMapping("/recovery/{username}")
+    public String getRecoveryQuestion(@PathVariable String username) {
+        return mongoUserDetailsService.getRecoveryQuestion(username);
+    }
+
+    @PutMapping("/recovery")
+    public String changePassword(@RequestBody PasswordChange passwordChange) {
+        return mongoUserDetailsService.changePassword(passwordChange);
+    }
+
 }
