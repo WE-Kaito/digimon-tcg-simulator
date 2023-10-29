@@ -52,7 +52,7 @@ export default function FetchedCards() {
 
 const FetchContainer = styled.div`
 
-  background-color: rgba(18, 17, 17, 0.985);
+  background-color: rgba(18, 17, 17, 0.7);
   width: 97%;
   padding: 1.5%;
   border-radius: 5px;
@@ -82,11 +82,10 @@ const StyledFieldset = styled.fieldset`
   border-radius: 5px;
   margin-top: 2px;
   transform: translateX(0.5px);
-
+  scrollbar-width: thin;
   display: flex;
   flex-flow: row wrap;
   gap: 1.8vw;
-
   overflow: auto;
 
   &::-webkit-scrollbar {

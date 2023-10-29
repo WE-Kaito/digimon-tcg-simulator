@@ -314,7 +314,7 @@ export default function SearchForm() {
 
 const StyledForm = styled.form`
 
-  background-color: rgba(102, 62, 71, 0.985);
+  background-color: rgba(102, 62, 71, 0.75);
   width: 97%;
   height: 13vh;
   max-height: 110px;

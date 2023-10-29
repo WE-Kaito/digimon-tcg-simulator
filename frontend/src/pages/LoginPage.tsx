@@ -3,6 +3,8 @@ import {useStore} from "../hooks/useStore.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
 
 export default function LoginPage() {
 
@@ -79,6 +81,7 @@ export default function LoginPage() {
 
     return (
         <Wrapper className="login-background">
+            <ParticlesBackground options={blueTriangles}/>
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
@@ -100,7 +103,7 @@ export default function LoginPage() {
                                 style={{backgroundColor: `${userNameColor()}`}}
                     />
                     <br/>
-                    <StyledInfo>at least 3 characters</StyledInfo>
+                    <StyledInfo>3 - 16 characters</StyledInfo>
                 </div>
                 <div>
                     <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
@@ -109,7 +112,7 @@ export default function LoginPage() {
                     />
                     <br/>
                     <StyledInfo>
-                        at least 6 characters;
+                        at least 6 characters
                         <br/>
                         numbers and letters
                     </StyledInfo>
@@ -130,11 +133,12 @@ export default function LoginPage() {
 
 const Wrapper = styled.div`
   height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transform: translateY(-20px);
+  transform: translate(0px, 0px); // has to be here for the particles to work ???
 `;
 
 export const LoginPageButton = styled.button`

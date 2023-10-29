@@ -7,6 +7,8 @@ import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/ChooseAvatar.tsx";
 import {Loading} from "../components/FetchedCards.tsx";
 import ChooseCardSleeve from "../components/ChooseCardSleeve.tsx";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
 
 export default function Profile({user}: { user: string }) {
 
@@ -26,6 +28,7 @@ export default function Profile({user}: { user: string }) {
 
     return (
         <Wrapper>
+            <ParticlesBackground options={blueTriangles}/>
             <Header>
                 <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
@@ -55,8 +58,10 @@ const Personalization = styled.div`
 const Wrapper = styled.div`
   display: flex;
   height: 100vh;
+  width: 100vw;
   flex-direction: column;
-  justify-content: flex-start;
+  align-items: center;
+  transform: translate(0px, 0px); // has to be here for the particles to work ???
 `;
 
 const Container = styled.div`
@@ -104,6 +109,7 @@ const Header = styled.div`
   padding: 10px;
   margin-top: 20px;
   margin-bottom: 140px;
+    width: 1040px;
     @media (max-width: 500px) {
     margin-bottom: 40px;
     }

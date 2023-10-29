@@ -9,6 +9,7 @@ import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {
+    Wrapper,
     ContainerUpperLeftQuarter,
     DeckNameInput,
     OuterContainer,
@@ -18,6 +19,8 @@ import {
     ContainerBottomLeftQuarter, StyledSpanSaveDeck, DeckNameContainer
 } from "./Deckbuilder.tsx";
 import DeckImport from "../components/DeckImport.tsx";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
 
 export default function EditDeck() {
 
@@ -52,6 +55,8 @@ export default function EditDeck() {
     const mobileSize = window.innerWidth < 500;
 
     return (
+        <Wrapper>
+            <ParticlesBackground options={blueTriangles}/>
         <OuterContainer>
 
             <DeckNameContainer>
@@ -89,6 +94,7 @@ export default function EditDeck() {
                 <FetchedCards/>
             </ContainerBottomRightQuarter>
         </OuterContainer>
+        </Wrapper>
     );
 }
 

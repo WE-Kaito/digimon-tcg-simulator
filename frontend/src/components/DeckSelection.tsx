@@ -178,7 +178,7 @@ const CountBox = styled.div`
 `;
 
 const DeckContainer = styled.div`
-  background-color: rgba(40, 82, 67, 0.985);
+  background-color: rgba(40, 82, 67, 0.7);
   width: 97%;
   margin-left: 1.5%;
   margin-right: 1.5%;
@@ -219,12 +219,12 @@ const DeckContainer = styled.div`
 
   @media (min-width: 1000px) {
     height: 79.25%;
-    background-color: rgba(40, 82, 67, 0.825);
+    background-color: rgba(40, 82, 67, 0.7);
   }
 
   @media (min-width: 1500px) and (min-height: 1100px) {
     height: 81.5%;
-    background-color: rgba(40, 82, 67, 0.825);
+    background-color: rgba(40, 82, 67, 0.7);
   }
 `;
 
@@ -281,6 +281,7 @@ const DeckList = styled.fieldset`
   justify-content: flex-start;
   overflow-y: scroll;
   overflow-x: hidden;
+  scrollbar-width: thin;
 
   &::-webkit-scrollbar {
     background-color: rgba(28, 58, 47, 0.98);
