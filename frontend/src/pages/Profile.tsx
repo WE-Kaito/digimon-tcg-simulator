@@ -77,6 +77,7 @@ const Container = styled.div`
   overflow-x: hidden;
   padding: 1px;
   border: 1px solid #1d7dfc;
+  scrollbar-width: thin;
   
   &::-webkit-scrollbar {
     width: 3px;
