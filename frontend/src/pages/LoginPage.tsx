@@ -32,11 +32,13 @@ export default function LoginPage() {
 
     function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if(!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword) return;
+        if(!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword || !question || !answer) return;
         register(userNameReg, passwordReg, question, answer, setRegisterPage, navigate);
         setPasswordReg("");
         setRepeatedPassword("");
         setUserNameReg("");
+        setQuestion("");
+        setAnswer("");
     }
 
     function containsForbiddenCharacters(){
