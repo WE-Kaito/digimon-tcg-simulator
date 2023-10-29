@@ -4,7 +4,7 @@ import EditDeck from "./pages/EditDeck.tsx";
 import {DndProvider} from "react-dnd";
 import {TouchBackend} from "react-dnd-touch-backend";
 import {HTML5Backend} from "react-dnd-html5-backend";
-import {Navigate, Route, Routes, useLocation} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 import Profile from "./pages/Profile.tsx";
 import MainMenu from "./pages/MainMenu.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
@@ -18,36 +18,6 @@ function App() {
 
     const me = useStore((state) => state.me);
     const user = useStore((state) => state.user);
-
-    const location = useLocation();
-
-    useEffect(() => {
-        const body = document.body;
-
-        switch (location.pathname) {
-            case "/":
-                body.className = "main-background";
-                break;
-            case "/profile":
-                body.className = "main-background";
-                break;
-            case "/deckbuilder":
-                body.className = "main-background";
-                break;
-            case "/update-deck":
-                body.className = "main-background";
-                break;
-            case "/login":
-                body.className = "login-background";
-                break;
-            case "/lobby":
-                body.className = "lobby-background";
-                break;
-            default:
-                body.className = "main-background";
-                break;
-        }
-    }, [location.pathname]);
 
     useEffect(() => {
         me();

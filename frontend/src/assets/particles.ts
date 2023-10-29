@@ -4,7 +4,7 @@ export const blueTriangles: ISourceOptions = {
   "autoPlay": true,
   "background": {
     "color": {
-      "value": "#070707"
+      "value": "#050505"
     },
     "image": "",
     "position": "",

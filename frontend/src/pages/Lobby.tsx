@@ -10,6 +10,8 @@ import {useStore} from "../hooks/useStore.ts";
 import {notifyNoActiveDeck} from "../utils/toasts.ts";
 import {playInvitationSfx} from "../utils/sound.ts";
 import discordIcon from "../assets/discordLogo.png";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -119,7 +121,7 @@ export default function Lobby({user}: { user: string }) {
 
     return (
         <Wrapper>
-
+            <ParticlesBackground options={blueTriangles}/>
             {pendingInvitation &&
                 <InvitationMoodle>
                     <span>Invitation from {inviteFrom}</span>
@@ -205,9 +207,11 @@ export default function Lobby({user}: { user: string }) {
 const Wrapper = styled.div`
   display: flex;
   height: 100vh;
+  width: 100vw;
   flex-direction: column;
   align-items: center;
   max-height: 100vh;
+  transform: translateX(0);
 `;
 
 const Header = styled.div`
@@ -284,6 +288,7 @@ const UserList = styled.div`
   justify-content: flex-start;
   gap: 16px;
   overflow-y: scroll;
+  scrollbar-width: thin;
 
   @media (max-width: 500px) {
     gap: 8px;
@@ -367,6 +372,7 @@ const History = styled.div`
   max-height: 400px;
   width: 100%;
   overflow-y: scroll;
+  scrollbar-width: thin;
 
   ::-webkit-scrollbar {
     background: #1e1f10;
