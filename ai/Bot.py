@@ -23,7 +23,7 @@ FIELD_UPDATE_MAP = {
 
 GAME_LOCATIONS_MAP = {
     'myHand': 'player2Hand',
-    'myDigi': 'player2DeckField ',
+    'myDeckField': 'player2DeckField',
     'myEggDeck': 'player2EggDeck',
     'myBreedingArea': 'Breeding',
     'myTamer': 'Tamers',
@@ -53,7 +53,10 @@ class Bot(ABC):
         self.game_ws = f'ws://{self.host}/api/ws/game'
         self.chat_ws = f'ws://{self.host}/api/ws/chat'
         self.hand = []
+        self.breeding_area = []
+        self.memory = 0
         self.my_turn = False
+        self.first_turn = False
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
         if response.status_code == expected_status_code:
@@ -133,6 +136,9 @@ class Bot(ABC):
 
     async def send_game_chat_message(self, ws, message):
         await ws.send(f"{self.game_name}:/chatMessage:{self.opponent}:{message}")
+    
+    async def send_game_chat_update_memory(self, ws, message):
+        await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{message}")
 
     async def shuffle_deck(self, ws):
         self.game['player2DeckField'] += list(self.game['player2Hand'])
@@ -154,8 +160,8 @@ class Bot(ABC):
         else:
             to = FIELD_UPDATE_MAP[to]
         if fr == 'Deck' and to == 'Hand':
-            self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【Draw Card】')
-        self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
+            await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【Draw Card】')
+        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
 
     async def move_card(self, ws, fr, to):
         card = self.get_card(fr)
@@ -165,6 +171,19 @@ class Bot(ABC):
             fr = 'myHand'
         if to.startswith('myHand'):
             to = 'myHand'
+        if fr.startswith('myEggDeck'):
+            fr = 'myEggDeck'
+        if to.startswith('myEggDeck'):
+            to = 'myEggDeck'
+        if fr.startswith('myBreedingArea'):
+            fr = 'myBreedingArea'
+        if to.startswith('myBreedingArea'):
+            to = 'myBreedingArea'
+        if fr.startswith('myDeckField'):
+            fr = 'myDeckField'
+        if to.startswith('myDeckField'):
+            to = 'myDeckField'
+        
         await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
         await self.field_update(ws, card_name, fr, to)
         await self.play_place_card_sfx(ws)
@@ -177,6 +196,9 @@ class Bot(ABC):
     
     async def play_place_card_sfx(self, ws):
         await ws.send(f'{self.game_name}:/playPlaceCardSfx:{self.opponent}')
+
+    async def play_button_click_sfx(self, ws):
+        await ws.send(f'{self.game_name}:/playButtonClickSfx:{self.opponent}')
 
     async def hi(self, ws, message):
         if not message.startswith('[START_GAME]:'):
@@ -198,6 +220,20 @@ class Bot(ABC):
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
         await self.update_game(ws)
+    
+    async def hatch(self, ws):
+        self.breeding_area.append(self.game['player2EggDeck'].pop(0))
+        await self.move_card(ws, 'myEggDeck0', 'myBreedingArea0')
+
+    async def draw(self, ws, n_cards):
+        for i in range(n_cards):
+            self.game['player2Hand'].append(self.game['player2DeckField'].pop(0))
+            await self.move_card(ws, 'myDeckField0', 'myHand0')
+
+    async def set_memory(self, ws, value):
+        self.memory += int(value)
+        await ws.send(f'{self.game_name}:/updateMemory:{self.opponent}:{value}')
+        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【MEMORY】﹕{value}')
 
     async def play(self):
         self.game_name = f'{self.opponent}‗{self.username}'
@@ -206,9 +242,8 @@ class Bot(ABC):
             opponent_ready = False
             done_mulligan = False
             while True:
-                ws.send(f'/heartbeat/')
+                await ws.send(f'/heartbeat/')
                 message = await ws.recv()
-                pprint(f"Received: {message}")
                 if message.startswith('[START_GAME]:'):
                     await self.hi(ws, message)
                 if message.startswith('[DISTRIBUTE_CARDS]:'):
@@ -224,6 +259,7 @@ class Bot(ABC):
                 if message.startswith('[STARTING_PLAYER]:'):
                     starting_player = message.removeprefix('[STARTING_PLAYER]:')
                     if starting_player == self.username:
+                       self.first_turn = True
                        self.my_turn = True
                 if message.startswith('[PLAYER_READY]'):
                     opponent_ready = True
