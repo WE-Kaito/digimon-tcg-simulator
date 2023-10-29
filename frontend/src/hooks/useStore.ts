@@ -8,9 +8,9 @@ import {
     notifyDelete,
     notifyError, notifyGeneralError, notifyInvalidImport,
     notifyLength,
-    notifyName, notifyRegistered,
+    notifyName, notifyPasswordChanged, notifyRegistered,
     notifySuccess,
-    notifyUpdate
+    notifyUpdate, notifyWrongAnswer
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
 import {addStarterDecks, mostFrequentColor, sortCards} from "../utils/functions.ts";
@@ -46,7 +46,8 @@ type State = {
     clearDeck: () => void,
     login: (userName: string, password: string, navigate: NavigateFunction) => void,
     me: () => void,
-    register: (userName: string, password: string, setRegisterPage: (state: boolean) => void, navigate: NavigateFunction) => void,
+    register: (userName: string, password: string, question: string, answer:string,
+               setRegisterPage: (state: boolean) => void, navigate: NavigateFunction) => void,
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
@@ -56,6 +57,11 @@ type State = {
     setGameId: (gameId: string) => void,
     importDeck: (decklist: string[]) => void,
     exportDeck: () => string,
+
+    usernameForRecovery: string,
+    recoveryQuestion: string,
+    getRecoveryQuestion: (userName: string) => void,
+    changePassword: (answer: string, newPassword: string, navigate: NavigateFunction) => void,
 };
 
 export const useStore = create<State>((set, get) => ({
@@ -75,6 +81,8 @@ export const useStore = create<State>((set, get) => ({
     sleeveName: "Default",
     gameId: "",
     loadingDeck: false,
+    usernameForRecovery: "",
+    recoveryQuestion: "",
 
     fetchCards: () => {
         if (get().fetchedCards.length > 0) return;
@@ -322,15 +330,16 @@ export const useStore = create<State>((set, get) => ({
             .then(response => set({user: response.data}))
     },
 
-    register: (userName, password, setRegisterPage, navigate) => {
+    register: (userName, password, question, answer, setRegisterPage, navigate) => {
         const newUserData = {
             "username": `${userName}`,
-            "password": `${password}`
+            "password": `${password}`,
+            "question": `${question}`,
+            "answer": `${answer}`
         }
 
         axios.post("/api/user/register", newUserData)
             .then(response => {
-                console.error(response)
                 setRegisterPage(false);
                 if (response.data === "Username already exists!") {
                     notifyAlreadyExists();
@@ -342,9 +351,6 @@ export const useStore = create<State>((set, get) => ({
                         addStarterDecks();
                     }, 3000);
                 }
-            })
-            .catch((e) => {
-                console.error(e);
             });
     },
 
@@ -431,6 +437,34 @@ export const useStore = create<State>((set, get) => ({
             .then(response => set({sleeveName: response.data === "" ? "Default" : response.data}))
             .catch(console.error);
         return get().sleeveName;
-    }
+    },
+
+    getRecoveryQuestion: (username) => {
+        axios.get(`/api/user/recovery/${username}`)
+            .then(response =>  response?.data )
+            .catch(console.error)
+            .then(data => {
+                set({recoveryQuestion: data, usernameForRecovery: username});
+            });
+    },
+
+    changePassword: (answer, password, navigate) => {
+        const passwordChange = {
+            "username": `${get().usernameForRecovery}`,
+            "answer": `${answer}`,
+            "newPassword": `${password}`
+        }
+
+        axios.put("/api/user/recovery", passwordChange)
+            .then(response => {
+                if (response.data === "Answer didn't match!") {
+                    notifyWrongAnswer();
+                }
+                if (response.data === "Password changed!") {
+                    notifyPasswordChanged();
+                    navigate("/login");
+                }
+            });
+    },
 
 }));

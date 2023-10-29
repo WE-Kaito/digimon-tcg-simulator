@@ -18,6 +18,8 @@ export default function LoginPage() {
     const [userNameReg, setUserNameReg] = useState("");
     const [passwordReg, setPasswordReg] = useState("");
     const [repeatedPassword, setRepeatedPassword] = useState("");
+    const [question, setQuestion] = useState("");
+    const [answer, setAnswer] = useState("");
     const register = useStore((state) => state.register);
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
     const forbiddenCharacters = [":","‗","【","】","﹕","≔"," "]
@@ -31,7 +33,7 @@ export default function LoginPage() {
     function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if(!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword) return;
-        register(userNameReg, passwordReg, setRegisterPage, navigate);
+        register(userNameReg, passwordReg, question, answer, setRegisterPage, navigate);
         setPasswordReg("");
         setRepeatedPassword("");
         setUserNameReg("");
@@ -79,6 +81,9 @@ export default function LoginPage() {
         }
     }
 
+    const questionColor = question.length > 0 ? "#6ed298" : "ghostwhite";
+    const answerColor = answer.length > 0 ? "#6ed298" : "ghostwhite";
+
     return (
         <Wrapper className="login-background">
             <ParticlesBackground options={blueTriangles}/>
@@ -98,7 +103,7 @@ export default function LoginPage() {
             {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
 
                 <div>
-                    <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
+                    <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
                                 type="text" name="userName" placeholder="username" maxLength={16}
                                 style={{backgroundColor: `${userNameColor()}`}}
                     />
@@ -106,20 +111,24 @@ export default function LoginPage() {
                     <StyledInfo>3 - 16 characters</StyledInfo>
                 </div>
                 <div>
-                    <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
+                    <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
                                 type="password" name="password" placeholder="password"
                                 style={{backgroundColor: `${passWordColor()}`}}
                     />
                     <br/>
                     <StyledInfo>
-                        at least 6 characters
-                        <br/>
-                        numbers and letters
+                        6+ characters, cont. numbers & letters
                     </StyledInfo>
                 </div>
-                <InputField value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
+                <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
                             type="password" name="RepeatPassword" placeholder="repeat password"
                             style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
+                <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
+                                    type="text" name="Question" placeholder="safety question"
+                                    style={{backgroundColor: `${questionColor}`}}/>
+                <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
+                                    type="text" name="Answer" placeholder="answer (pw recovery)"
+                                    style={{backgroundColor: `${answerColor}`}}/>
                 <ButtonContainer>
                     <BackButton type="button"
                                 onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
@@ -191,6 +200,12 @@ export const InputField = styled.input`
 
 `;
 
+export const InputFieldRegister = styled(InputField)`
+  font-size: 22px;
+  width: 300px;
+    height: 50px;
+`;
+
 const StyledForm = styled.form`
   margin-top: 70px;
   width: 100%;
@@ -205,11 +220,11 @@ const StyledForm = styled.form`
 `;
 
 const StyledForm2 = styled.form`
-  margin-top: 70px;
+  margin-top: 45px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 20px;
   align-items: center;
   justify-content: center;
   

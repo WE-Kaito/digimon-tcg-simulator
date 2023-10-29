@@ -133,6 +133,9 @@ public class MongoUserDetailsService implements UserDetailsService {
     }
 
     public String getRecoveryQuestion(String username) {
+        if (mongoUserRepository.findByUsername(username).isEmpty()) {
+            return "User not found!";
+        }
         MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
                 new UsernameNotFoundException("User " + username + exceptionMessage));
         return mongoUser.question();

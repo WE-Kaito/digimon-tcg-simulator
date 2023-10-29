@@ -107,3 +107,17 @@ export const notifyGeneralError = () => toast.error('Something went wrong!', {
     hideProgressBar: false,
     pauseOnHover: false
 });
+
+export const notifyWrongAnswer = () => toast.error("Answer didn't match!", {
+    position: "top-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    pauseOnHover: false
+});
+
+export const notifyPasswordChanged = () => toast.success('Password changed!', {
+    position: "top-center",
+    autoClose: 2000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
