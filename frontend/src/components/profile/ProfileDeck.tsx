@@ -33,7 +33,7 @@ function ColoredDeckImage(color:string | null, id: string) {
     }
 }
 
-export default function ProfileDeck({deck}:{deck:DeckType}) {
+export default function ProfileDeck({deck}:{readonly deck:DeckType}) {
 
     const setActiveDeck = useStore(state => state.setActiveDeck);
     const activeDeckId = useStore(state => state.activeDeckId);

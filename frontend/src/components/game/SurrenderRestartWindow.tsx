@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
 
 type Props = {
-    setRestartMoodle?: (restartMoodle:boolean) => void,
-    handleAcceptRestart?: () => void,
-    setSurrenderOpen?: (surrenderOpen:boolean) => void,
-    handleSurrender?: () => void,
+    readonly setRestartMoodle?: (restartMoodle:boolean) => void,
+    readonly handleAcceptRestart?: () => void,
+    readonly setSurrenderOpen?: (surrenderOpen:boolean) => void,
+    readonly handleSurrender?: () => void,
 }
 
 export default function SurrenderRestartWindow({setRestartMoodle, handleAcceptRestart, setSurrenderOpen, handleSurrender}:Props) {

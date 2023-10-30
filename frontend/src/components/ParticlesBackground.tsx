@@ -4,7 +4,7 @@ import {loadSlim} from "tsparticles-slim";
 import Particles from "react-particles";
 import {useCallback} from "react";
 
-export default function ParticlesBackground({options}: {options: ISourceOptions}) {
+export default function ParticlesBackground({options}: {readonly options: ISourceOptions}) {
 
     const particlesInit = useCallback(async (engine: Engine) => await loadSlim(engine), []);
 

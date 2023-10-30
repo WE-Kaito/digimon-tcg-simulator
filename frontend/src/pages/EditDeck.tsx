@@ -54,6 +54,14 @@ export default function EditDeck() {
 
     const mobileSize = window.innerWidth < 500;
 
+    function getDeleteString() {
+        if (!isDeleting) {
+            return "🗑️";
+        } else {
+            return mobileSize ? "🗑️?" : "DELETE PERMANENTLY";
+        }
+    }
+
     return (
         <Wrapper>
             <ParticlesBackground options={blueTriangles}/>
@@ -70,7 +78,7 @@ export default function EditDeck() {
                 <DeleteDeckButton isDeleting={isDeleting} onClick={() => {
                     if (isDeleting && id) deleteDeck(id, navigate);
                     setIsDeleting(!isDeleting)
-                }}>{!isDeleting ? "🗑️" : mobileSize ? "🗑️?" : "DELETE PERMANENTLY"}</DeleteDeckButton>
+                }}>{getDeleteString()}</DeleteDeckButton>
                 <BackButton/>
             </ButtonContainer>
 

@@ -1,7 +1,7 @@
 import {useNavigate} from "react-router-dom";
 import styled from "@emotion/styled";
 
-export default function EndWindow({message}:{message:string}) {
+export default function EndWindow({message}:{readonly message:string}) {
 
     const navigate = useNavigate();
 

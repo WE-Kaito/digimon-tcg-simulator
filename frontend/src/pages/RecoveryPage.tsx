@@ -62,7 +62,7 @@ export default function RecoveryPage() {
 
             <StyledForm onSubmit={handleUserSearch}>
                 <InputField value={username} onChange={(e) => setUsername(e.target.value)} type="text" name="username"
-                            placeholder={usernameForRecovery ? usernameForRecovery : "username"} maxLength={16}/>
+                            placeholder={usernameForRecovery || "username"} maxLength={16}/>
                 <ButtonContainer>
                     <BackButton type="button" onClick={() => navigate("/")}>
                         <ButtonSpan>Back</ButtonSpan>
@@ -76,29 +76,26 @@ export default function RecoveryPage() {
             {(recoveryQuestion === "User not found!") && <StyledInfo2>User not found!</StyledInfo2>}
 
             {(recoveryQuestion !== "") && (recoveryQuestion !== "User not found!") &&
-                <>
-                    <StyledForm2 onSubmit={handleSubmitNewPassword}>
-                        <StyledInfo>{recoveryQuestion}</StyledInfo>
-                        <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
-                                            type="text" name="answer" placeholder="answer"
-                        />
-                        <InputFieldRegister value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                                            type="password" name="password" placeholder="new password"
-                                            style={{backgroundColor: passwordColor()}}
-                        />
-                        <InputFieldRegister value={newPasswordRepeated}
-                                            onChange={(e) => setNewPasswordRepeated(e.target.value)}
-                                            type="password" name="repeatPassword" placeholder="repeat new password"
-                                            style={{backgroundColor: repeatedPasswordColor()}}
-                        />
-                        <ChangePWButton type="submit" style={{width:280}}>
-                            <ButtonSpan>Change Password</ButtonSpan>
-                        </ChangePWButton>
-                    </StyledForm2>
-                </>
+
+                <StyledForm2 onSubmit={handleSubmitNewPassword}>
+                    <StyledInfo>{recoveryQuestion}</StyledInfo>
+                    <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
+                                        type="text" name="answer" placeholder="answer"
+                    />
+                    <InputFieldRegister value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                                        type="password" name="password" placeholder="new password"
+                                        style={{backgroundColor: passwordColor()}}
+                    />
+                    <InputFieldRegister value={newPasswordRepeated}
+                                        onChange={(e) => setNewPasswordRepeated(e.target.value)}
+                                        type="password" name="repeatPassword" placeholder="repeat new password"
+                                        style={{backgroundColor: repeatedPasswordColor()}}
+                    />
+                    <ChangePWButton type="submit" style={{width: 280}}>
+                        <ButtonSpan>Change Password</ButtonSpan>
+                    </ChangePWButton>
+                </StyledForm2>
             }
-
-
         </Wrapper>
     );
 }
