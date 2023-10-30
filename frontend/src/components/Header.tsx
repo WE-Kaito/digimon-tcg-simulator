@@ -38,7 +38,7 @@ export const Headline2 = styled.span`
   margin: 0;
   text-shadow: 1.5px 3px 1px #060e18;
   color: #1d7dfc;
-  -webkit-text-stroke: 2px #0830b4;
+  -webkit-text-stroke: 2px navy;
   position: relative;
 
   @media (max-width: 766px) {

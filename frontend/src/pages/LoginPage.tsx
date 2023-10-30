@@ -22,7 +22,7 @@ export default function LoginPage() {
     const [answer, setAnswer] = useState("");
     const register = useStore((state) => state.register);
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
-    const forbiddenCharacters = [":","‗","【","】","﹕","≔"," "]
+    const forbiddenCharacters = [":", "‗", "【", "】", "﹕", "≔", " "]
     const validUserName = userNameReg.length >= 3 && userNameReg.length <= 16 && !containsForbiddenCharacters();
 
     function handleSubmitLogin(event: FormEvent<HTMLFormElement>) {
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if(!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword || !question || !answer) return;
+        if (!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword || !question || !answer) return;
         register(userNameReg, passwordReg, question, answer, setRegisterPage, navigate);
         setPasswordReg("");
         setRepeatedPassword("");
@@ -41,9 +41,9 @@ export default function LoginPage() {
         setAnswer("");
     }
 
-    function containsForbiddenCharacters(){
-        for(const char of forbiddenCharacters) {
-            if (userNameReg.includes(char)){
+    function containsForbiddenCharacters() {
+        for (const char of forbiddenCharacters) {
+            if (userNameReg.includes(char)) {
                 return true;
             }
         }
@@ -93,10 +93,12 @@ export default function LoginPage() {
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
                             type="text" name="userName" placeholder="username" maxLength={16}/>
-
-                <InputField value={password} onChange={(e) => setPassword(e.target.value)}
-                            type="password" name="password" placeholder="password"/>
-
+                <div>
+                    <InputField value={password} onChange={(e) => setPassword(e.target.value)}
+                                type="password" name="password" placeholder="password"/>
+                    <br/>
+                    <StyledInfo2 onClick={() => navigate("/recover-password")}>Forgot your password?</StyledInfo2>
+                </div>
                 <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
                 <RegisterButton style={{marginTop: "50px"}} type="button"
                                 onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
@@ -106,16 +108,16 @@ export default function LoginPage() {
 
                 <div>
                     <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
-                                type="text" name="userName" placeholder="username" maxLength={16}
-                                style={{backgroundColor: `${userNameColor()}`}}
+                                        type="text" name="userName" placeholder="username" maxLength={16}
+                                        style={{backgroundColor: `${userNameColor()}`}}
                     />
                     <br/>
                     <StyledInfo>3 - 16 characters</StyledInfo>
                 </div>
                 <div>
                     <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
-                                type="password" name="password" placeholder="password"
-                                style={{backgroundColor: `${passWordColor()}`}}
+                                        type="password" name="password" placeholder="password"
+                                        style={{backgroundColor: `${passWordColor()}`}}
                     />
                     <br/>
                     <StyledInfo>
@@ -123,8 +125,8 @@ export default function LoginPage() {
                     </StyledInfo>
                 </div>
                 <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
-                            type="password" name="RepeatPassword" placeholder="repeat password"
-                            style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
+                                    type="password" name="RepeatPassword" placeholder="repeat password"
+                                    style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
                 <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
                                     type="text" name="Question" placeholder="safety question"
                                     style={{backgroundColor: `${questionColor}`}}/>
@@ -205,7 +207,7 @@ export const InputField = styled.input`
 export const InputFieldRegister = styled(InputField)`
   font-size: 22px;
   width: 300px;
-    height: 50px;
+  height: 50px;
 `;
 
 const StyledForm = styled.form`
@@ -229,7 +231,7 @@ const StyledForm2 = styled.form`
   gap: 20px;
   align-items: center;
   justify-content: center;
-  
+
   @media (max-width: 767px) {
     gap: 20px;
     margin-top: 35px;
@@ -239,6 +241,22 @@ const StyledForm2 = styled.form`
 const StyledInfo = styled.span`
   font-family: 'Naston', sans-serif;
   font-size: 15px;
+`;
+
+const StyledInfo2 = styled.span`
+  font-family: 'Naston', sans-serif;
+  font-size: 14px;
+  margin-top: 2px;
+  color: #646cff;
+  user-select: none;
+  cursor: pointer;
+  &:hover {
+    color: #ff880d;
+  }
+
+  &:active {
+    color: #ff310d;
+  }
 `;
 
 const RegisterButton = styled(LoginPageButton)`
@@ -267,7 +285,7 @@ const ButtonSpan = styled.span`
 `;
 
 const ButtonContainer = styled.div`
-margin-top: 50px;
+  margin-top: 50px;
   @media (max-width: 767px) {
     margin-top: 32px;
   }

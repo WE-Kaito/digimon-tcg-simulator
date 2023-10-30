@@ -8,6 +8,7 @@ import {Navigate, Route, Routes} from "react-router-dom";
 import Profile from "./pages/Profile.tsx";
 import MainMenu from "./pages/MainMenu.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
+import RecoveryPage from "./pages/RecoveryPage.tsx";
 import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
@@ -48,6 +49,7 @@ function App() {
                 </Route>
 
                 <Route path="/login" element={<LoginPage/>}/>
+                <Route path="/recover-password" element={<RecoveryPage/>}/>
 
             </Routes>
 
