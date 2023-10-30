@@ -7,7 +7,7 @@ import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import {InputField, InputFieldRegister, LoginPageButton} from "./LoginPage.tsx";
 
-export default function LoginPage() {
+export default function RecoveryPage() {
 
     const [username, setUsername] = useState("");
     const navigate = useNavigate();
@@ -20,7 +20,6 @@ export default function LoginPage() {
 
     const [newPassword, setNewPassword] = useState("");
     const [newPasswordRepeated, setNewPasswordRepeated] = useState("");
-    const [repeatedPassword, setRepeatedPassword] = useState("");
     const [answer, setAnswer] = useState("");
 
     function passwordColor() {
