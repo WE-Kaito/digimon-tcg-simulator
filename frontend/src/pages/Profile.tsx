@@ -1,14 +1,15 @@
 import styled from "@emotion/styled";
 import {useStore} from "../hooks/useStore.ts";
 import {useEffect} from "react";
-import ProfileDeck from "../components/ProfileDeck.tsx";
+import ProfileDeck from "../components/profile/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
-import ChooseAvatar from "../components/ChooseAvatar.tsx";
-import {Loading} from "../components/FetchedCards.tsx";
-import ChooseCardSleeve from "../components/ChooseCardSleeve.tsx";
+import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
+import {Loading} from "../components/deckbuilder/FetchedCards.tsx";
+import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
+import UserSettings from "../components/profile/UserSettings.tsx";
 
 export default function Profile({user}: { user: string }) {
 
@@ -29,10 +30,14 @@ export default function Profile({user}: { user: string }) {
     return (
         <Wrapper>
             <ParticlesBackground options={blueTriangles}/>
+
             <Header>
                 <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
             </Header>
+
+            <UserSettings/>
+
             <Personalization>
                 <ChooseAvatar/>
                 <ChooseCardSleeve/>
@@ -52,7 +57,6 @@ const Personalization = styled.div`
   @media (max-width: 1050px) {
     flex-direction: column;
   }
-
 `;
 
 const Wrapper = styled.div`
@@ -110,10 +114,11 @@ const Header = styled.div`
   padding: 10px;
   margin-top: 20px;
   margin-bottom: 140px;
-    width: 1040px;
-    @media (max-width: 500px) {
+  width: 1040px;
+  @media (max-width: 1000px) {
     margin-bottom: 40px;
-    }
+    width: 96.5vw;
+  }
 `;
 
 const Name = styled(Headline2)`

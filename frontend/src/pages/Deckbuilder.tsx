@@ -1,13 +1,13 @@
 import styled from '@emotion/styled';
 import {useEffect, useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
-import FetchedCards from "../components/FetchedCards.tsx";
-import SearchForm from "../components/SearchForm.tsx";
+import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
+import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
-import DeckSelection from "../components/DeckSelection.tsx";
+import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
-import DeckImport from "../components/DeckImport.tsx";
+import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
 

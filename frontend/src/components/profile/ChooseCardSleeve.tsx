@@ -1,9 +1,9 @@
 import {useEffect} from "react";
-import {useStore} from "../hooks/useStore.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import styled from "@emotion/styled";
-import {sleeves, getSleeve} from "../utils/sleeves.ts";
-import {playButtonClickSfx} from "../utils/sound.ts";
-import Pen from "../assets/profile_pictures/pen.tsx";
+import {sleeves, getSleeve} from "../../utils/sleeves.ts";
+import {playButtonClickSfx} from "../../utils/sound.ts";
+import Pen from "../../assets/profile_pictures/pen.tsx";
 
 export default function ChooseCardSleeve() {
 

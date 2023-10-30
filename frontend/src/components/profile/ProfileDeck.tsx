@@ -1,9 +1,9 @@
-import {DeckType} from "../utils/types.ts";
+import {DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
-import deckBack from '../assets/deckBack.png';
+import deckBack from '../../assets/deckBack.png';
 import {useNavigate} from "react-router-dom";
-import {useStore} from "../hooks/useStore.ts";
-import {playButtonClickSfx, playDrawCardSfx} from "../utils/sound.ts";
+import {useStore} from "../../hooks/useStore.ts";
+import {playButtonClickSfx, playDrawCardSfx} from "../../utils/sound.ts";
 
 function ColoredDeckImage(color:string | null, id: string) {
 

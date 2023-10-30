@@ -3,7 +3,7 @@ package com.github.wekaito.backend.security;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record PasswordChange(
+public record PasswordRecovery(
         String username,
         String answer,
         @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])", message = "Invalid password")

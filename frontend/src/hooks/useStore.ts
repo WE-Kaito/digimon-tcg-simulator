@@ -8,7 +8,7 @@ import {
     notifyDelete,
     notifyError, notifyGeneralError, notifyInvalidImport,
     notifyLength,
-    notifyName, notifyPasswordChanged, notifyRegistered,
+    notifyName, notifyPasswordChanged, notifyQuestionChanged, notifyRegistered,
     notifySuccess,
     notifyUpdate, notifyWrongAnswer
 } from "../utils/toasts.ts";
@@ -61,7 +61,8 @@ type State = {
     usernameForRecovery: string,
     recoveryQuestion: string,
     getRecoveryQuestion: (userName: string) => void,
-    changePassword: (answer: string, newPassword: string, navigate: NavigateFunction) => void,
+    recoverPassword: (answer: string, newPassword: string, navigate: NavigateFunction) => void,
+    changeSafetyQuestion: (question: string, answer: string) => void,
 };
 
 export const useStore = create<State>((set, get) => ({
@@ -448,14 +449,14 @@ export const useStore = create<State>((set, get) => ({
             });
     },
 
-    changePassword: (answer, password, navigate) => {
-        const passwordChange = {
+    recoverPassword: (answer, password, navigate) => {
+        const passwordRecovery = {
             "username": `${get().usernameForRecovery}`,
             "answer": `${answer}`,
             "newPassword": `${password}`
         }
 
-        axios.put("/api/user/recovery", passwordChange)
+        axios.put("/api/user/recovery", passwordRecovery)
             .then(response => {
                 if (response.data === "Answer didn't match!") {
                     notifyWrongAnswer();
@@ -466,5 +467,22 @@ export const useStore = create<State>((set, get) => ({
                 }
             });
     },
+
+    changeSafetyQuestion: (question, answer) => {
+        const safetyQuestionChange = {
+            "question": `${question}`,
+            "answer": `${answer}`
+        }
+
+        axios.put("/api/user/change-question", safetyQuestionChange)
+            .then(response => {
+                if (response.data === "Safety question changed!") {
+                    notifyQuestionChanged();
+                }
+                else {
+                    notifyGeneralError();
+                }
+            });
+    }
 
 }));

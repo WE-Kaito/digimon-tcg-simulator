@@ -1,15 +1,15 @@
 import styled from "@emotion/styled";
-import eggIcon from "../assets/cardtype_icons/egg.png";
-import digimonIcon from "../assets/cardtype_icons/gammamon.png";
-import tamerIcon from "../assets/cardtype_icons/tamer.png";
-import optionIcon from "../assets/cardtype_icons/option.png";
-import loadingAnimation from "../assets/lotties/loading.json";
+import eggIcon from "../../assets/cardtype_icons/egg.png";
+import digimonIcon from "../../assets/cardtype_icons/gammamon.png";
+import tamerIcon from "../../assets/cardtype_icons/tamer.png";
+import optionIcon from "../../assets/cardtype_icons/option.png";
+import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
-import {useStore} from "../hooks/useStore.ts";
-import {CardTypeWithId} from "../utils/types.ts";
-import Card from "./Card.tsx";
-import {sortCards} from "../utils/functions.ts";
-import {playPlaceCardSfx, playTrashCardSfx} from "../utils/sound.ts";
+import {useStore} from "../../hooks/useStore.ts";
+import {CardTypeWithId} from "../../utils/types.ts";
+import Card from "../Card.tsx";
+import {sortCards} from "../../utils/functions.ts";
+import {playPlaceCardSfx, playTrashCardSfx} from "../../utils/sound.ts";
 
 export default function DeckSelection() {
 

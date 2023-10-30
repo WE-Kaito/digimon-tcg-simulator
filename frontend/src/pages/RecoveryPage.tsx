@@ -16,7 +16,7 @@ export default function RecoveryPage() {
     const usernameForRecovery = useStore((state) => state.usernameForRecovery);
     const recoveryQuestion = useStore((state) => state.recoveryQuestion);
     const getRecoveryQuestion = useStore((state) => state.getRecoveryQuestion);
-    const changePassword = useStore((state) => state.changePassword);
+    const recoverPassword = useStore((state) => state.recoverPassword);
 
     const [newPassword, setNewPassword] = useState("");
     const [newPasswordRepeated, setNewPasswordRepeated] = useState("");
@@ -52,7 +52,7 @@ export default function RecoveryPage() {
     function handleSubmitNewPassword(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!regex.test(newPassword) || newPassword !== newPasswordRepeated) return;
-        changePassword(answer, newPassword, navigate);
+        recoverPassword(answer, newPassword, navigate);
     }
 
     return (

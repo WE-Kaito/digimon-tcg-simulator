@@ -1,13 +1,13 @@
 import styled from '@emotion/styled';
 import Lottie from "lottie-react";
-import loadingAnimation from "../assets/lotties/loading.json";
-import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
-import gatchmon from "../assets/gatchmon.png";
-import {useStore} from "../hooks/useStore.ts";
-import {CardTypeWithId} from "../utils/types.ts";
+import loadingAnimation from "../../assets/lotties/loading.json";
+import noCardsFoundAnimation from "../../assets/lotties/noCardsFound.json";
+import gatchmon from "../../assets/gatchmon.png";
+import {useStore} from "../../hooks/useStore.ts";
+import {CardTypeWithId} from "../../utils/types.ts";
 import {lazy, Suspense} from 'react';
 
-const Card = lazy(() => import('./Card.tsx'));
+const Card = lazy(() => import('../Card.tsx'));
 
 export const Loading = () => <LoadingContainer>
     <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>

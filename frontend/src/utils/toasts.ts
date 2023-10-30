@@ -121,3 +121,10 @@ export const notifyPasswordChanged = () => toast.success('Password changed!', {
     hideProgressBar: false,
     pauseOnHover: false,
 });
+
+export const notifyQuestionChanged = () => toast.success('Safety Question updated!', {
+    position: "top-center",
+    autoClose: 2000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});

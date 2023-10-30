@@ -29,19 +29,27 @@ public class MongoUserDetailsService implements UserDetailsService {
                 new UsernameNotFoundException("User " + username + exceptionMessage));
     }
 
+    private MongoUser getUserByUsername(String username){
+        return mongoUserRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User " + username + exceptionMessage));
+    }
+
+    private String getEncodedPassword(String password) {
+        PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 8, 1 << 16, 4);
+        return encoder.encode(password);
+    }
+
+    public String getUserIdByUsername(String username){
+        return getUserByUsername(username).id();
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User " + username + exceptionMessage));
-
+        MongoUser mongoUser = getUserByUsername(username);
         return new User(mongoUser.username(), mongoUser.password(), Collections.emptyList());
     }
 
     public String registerNewUser(RegistrationUser registrationUser){
-
-        PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 8, 1 << 16, 4);
-        String encodedPassword = encoder.encode(registrationUser.password());
-
         if (mongoUserRepository.findByUsername(registrationUser.username()).isPresent()) {
             return "Username already exists!";
         }
@@ -49,7 +57,7 @@ public class MongoUserDetailsService implements UserDetailsService {
         MongoUser newUser = new MongoUser(
                 idService.createId(),
                 registrationUser.username(),
-                encodedPassword,
+                getEncodedPassword(registrationUser.password()),
                 registrationUser.question(),
                 registrationUser.answer(),
                 "",
@@ -58,12 +66,6 @@ public class MongoUserDetailsService implements UserDetailsService {
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";
-    }
-
-    public String getUserIdByUsername(String username){
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User " + username + exceptionMessage));
-        return mongoUser.id();
     }
 
     public void setActiveDeck(String deckId) {
@@ -83,9 +85,7 @@ public class MongoUserDetailsService implements UserDetailsService {
     public String getActiveDeck() { return getCurrentUser().activeDeckId(); }
 
     public String getActiveDeck(String username) {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User " + username + exceptionMessage));
-        return mongoUser.activeDeckId();
+        return getUserByUsername(username).activeDeckId();
     }
 
     public void setAvatar(String avatarName) {
@@ -105,9 +105,7 @@ public class MongoUserDetailsService implements UserDetailsService {
     public String getAvatar() { return getCurrentUser().avatarName(); }
 
     public String getAvatar(String username) {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User " + username + exceptionMessage));
-        return mongoUser.avatarName();
+        return getUserByUsername(username).avatarName();
     }
 
     public void setSleeve(String sleeveName) {
@@ -127,33 +125,25 @@ public class MongoUserDetailsService implements UserDetailsService {
     public String getSleeve() { return getCurrentUser().sleeveName(); }
 
     public String getSleeve(String username) {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User " + username + exceptionMessage));
-        return mongoUser.sleeveName();
+        return getUserByUsername(username).sleeveName();
     }
 
     public String getRecoveryQuestion(String username) {
         if (mongoUserRepository.findByUsername(username).isEmpty()) {
             return "User not found!";
         }
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User " + username + exceptionMessage));
-        return mongoUser.question();
+        return getUserByUsername(username).question();
     }
 
-    public String changePassword(PasswordChange passwordChange) {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(passwordChange.username()).orElseThrow(() ->
-                new UsernameNotFoundException("User " + passwordChange.username() + exceptionMessage));
-
-        if (!mongoUser.answer().equals(passwordChange.answer())) {
+    public String changePassword(PasswordRecovery passwordRecovery) {
+        MongoUser mongoUser = getUserByUsername(passwordRecovery.username());
+        if (!mongoUser.answer().equals(passwordRecovery.answer())) {
             return "Answer didn't match!";
         } else {
-            PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 8, 1 << 16, 4);
-            String encodedPassword = encoder.encode(passwordChange.newPassword());
             MongoUser updatedUser = new MongoUser(
                     mongoUser.id(),
                     mongoUser.username(),
-                    encodedPassword,
+                    getEncodedPassword(passwordRecovery.newPassword()),
                     mongoUser.question(),
                     mongoUser.answer(),
                     mongoUser.activeDeckId(),
@@ -162,5 +152,21 @@ public class MongoUserDetailsService implements UserDetailsService {
             mongoUserRepository.save(updatedUser);
             return "Password changed!";
         }
+    }
+
+    public String changeQuestion(SafetyQuestionChange safetyQuestionChange) {
+        MongoUser mongoUser = getCurrentUser();
+            MongoUser updatedUser = new MongoUser(
+                    mongoUser.id(),
+                    mongoUser.username(),
+                    mongoUser.password(),
+                    safetyQuestionChange.question(),
+                    safetyQuestionChange.answer(),
+                    mongoUser.activeDeckId(),
+                    mongoUser.avatarName(),
+                    mongoUser.sleeveName());
+            mongoUserRepository.save(updatedUser);
+            return "Safety question changed!";
+
     }
 }
