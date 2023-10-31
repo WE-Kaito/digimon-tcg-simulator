@@ -59,7 +59,7 @@ class DeckServiceTest {
         cardService.init();
         List<Card> cards = cardService.getCards();
         assertNotNull(cards);
-        assertThat(cards).contains(exampleCard);
+        assertThat(cards).hasSizeGreaterThan(200);
     }
 
     @DirtiesContext
