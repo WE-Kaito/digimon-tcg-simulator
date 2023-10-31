@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -94,6 +95,7 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     @WithMockUser(username = "testUser", password = "testPassword")
     void expectActiveDeck_AfterSetActiveDeck() throws Exception {
 
@@ -118,6 +120,7 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     @WithMockUser(username = "testUser", password = "testPassword")
     void expectTestAvatar_AfterSetAvatar() throws Exception {
 
@@ -142,6 +145,7 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     @WithMockUser(username = "testUser", password = "testPassword")
     void expectTestSleeve_AfterSetSleeve() throws Exception {
 
@@ -166,6 +170,7 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     void expectQuestion_AfterGetRecoveryQuestion() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
@@ -185,6 +190,7 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     void expectMessage_AfterChangePassword() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
@@ -209,6 +215,7 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     @WithMockUser(username = "testUser", password = "testPassword")
     void expectMessage_AfterChangeQuestion() throws Exception {
 
