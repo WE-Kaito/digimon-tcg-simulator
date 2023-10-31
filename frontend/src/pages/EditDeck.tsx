@@ -1,14 +1,15 @@
 import styled from '@emotion/styled';
 import {useEffect, useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
-import FetchedCards from "../components/FetchedCards.tsx";
-import SearchForm from "../components/SearchForm.tsx";
+import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
+import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
-import DeckSelection from "../components/DeckSelection.tsx";
+import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {
+    Wrapper,
     ContainerUpperLeftQuarter,
     DeckNameInput,
     OuterContainer,
@@ -17,7 +18,9 @@ import {
     ContainerBottomRightQuarter,
     ContainerBottomLeftQuarter, StyledSpanSaveDeck, DeckNameContainer
 } from "./Deckbuilder.tsx";
-import DeckImport from "../components/DeckImport.tsx";
+import DeckImport from "../components/deckbuilder/DeckImport.tsx";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
 
 export default function EditDeck() {
 
@@ -49,7 +52,19 @@ export default function EditDeck() {
         };
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 
+    const mobileSize = window.innerWidth < 500;
+
+    function getDeleteString() {
+        if (!isDeleting) {
+            return "🗑️";
+        } else {
+            return mobileSize ? "🗑️?" : "DELETE PERMANENTLY";
+        }
+    }
+
     return (
+        <Wrapper>
+            <ParticlesBackground options={blueTriangles}/>
         <OuterContainer>
 
             <DeckNameContainer>
@@ -59,11 +74,11 @@ export default function EditDeck() {
             <ButtonContainer>
                 <UpdateDeckButton isDeleting={isDeleting}
                                   onClick={() => id && updateDeck(id, deckName)}><StyledSpanSaveDeck>SAVE
-                    CHANGES</StyledSpanSaveDeck></UpdateDeckButton>
+                    {`${!mobileSize ? "CHANGES" : ""}`}</StyledSpanSaveDeck></UpdateDeckButton>
                 <DeleteDeckButton isDeleting={isDeleting} onClick={() => {
                     if (isDeleting && id) deleteDeck(id, navigate);
                     setIsDeleting(!isDeleting)
-                }}>{!isDeleting ? "🗑️" : "DELETE PERMANENTLY"}</DeleteDeckButton>
+                }}>{getDeleteString()}</DeleteDeckButton>
                 <BackButton/>
             </ButtonContainer>
 
@@ -87,17 +102,22 @@ export default function EditDeck() {
                 <FetchedCards/>
             </ContainerBottomRightQuarter>
         </OuterContainer>
+        </Wrapper>
     );
 }
 
 const ButtonContainer = styled.div`
   grid-area: buttons;
   width: 100%;
+  max-width: 44.5vw;
   display: flex;
   padding-left: 3%;
   gap: 2%;
   padding-right: 3%;
   justify-content: space-between;
+  @media (max-width: 600px) {
+    transform: scale(0.9) translateX(-3px);
+  }
   @media (min-width: 767px) {
     transform: translateY(12px);
   }
@@ -116,6 +136,11 @@ const UpdateDeckButton = styled.button<ButtonProps>`
   font-family: 'Sansation', sans-serif;
   filter: drop-shadow(1px 2px 3px #060e18);
   transition: all 0.3s ease;
+
+  @media (max-width: 768px) and (max-height: 850px) {
+    font-size: ${props => props.isDeleting ? "15px" : "21px"};
+    width: ${props => props.isDeleting ? "60px" : "80px"};
+  }
 
   :hover {
     background: aquamarine;
@@ -141,6 +166,7 @@ type ButtonProps = {
 const DeleteDeckButton = styled.button<ButtonProps>`
   font-weight: bold;
   max-height: 40px;
+  font-size: 16px;
   background: ${props => props.isDeleting ? "ghostwhite" : "crimson"};
   color: crimson;
   padding: 0;
@@ -157,5 +183,11 @@ const DeleteDeckButton = styled.button<ButtonProps>`
 
   &:focus {
     outline: none;
+  }
+
+  @media (max-width: 768px) and (max-height: 850px) {
+    font-family: 'Pixel Digivolve', sans-serif;
+    font-size: ${props => props.isDeleting ? "1.15em" : "1em"};
+    width: ${props => props.isDeleting ? "30%" : "20%"};
   }
 `;

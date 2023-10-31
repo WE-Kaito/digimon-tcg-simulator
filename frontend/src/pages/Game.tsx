@@ -1,9 +1,14 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
-import {useNavigate} from "react-router-dom";
-import {CardTypeGame, DraggedItem, DraggedStack, GameDistribution, Player} from "../utils/types.ts";
 import {
-    profilePicture,
+    CardTypeGame,
+    DraggedItem,
+    DraggedStack,
+    GameDistribution, HandCardContextMenuItemProps, OneSideDistribution,
+    Player
+} from "../utils/types.ts";
+import {profilePicture} from "../utils/avatars.ts";
+import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
@@ -12,7 +17,8 @@ import {
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
 import styled from "@emotion/styled";
-import SurrenderMoodle from "../components/game/SurrenderMoodle.tsx";
+import SurrenderRestartWindow from "../components/game/SurrenderRestartWindow.tsx";
+import EndWindow from "../components/game/EndWindow.tsx";
 import deckBack from "../assets/deckBack.png";
 import eggBack from "../assets/eggBack.jpg";
 import Card from "../components/Card.tsx";
@@ -28,7 +34,6 @@ import Lottie from "lottie-react";
 import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
-import RestartMoodle from "../components/game/RestartMoodle.tsx";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import {
     playAttackSfx,
@@ -40,18 +45,18 @@ import {
     playStartSfx,
     playSecurityRevealSfx,
     playShuffleDeckSfx,
-    playLoadMemorybarSfx
+    playLoadMemorybarSfx, playUnsuspendSfx
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
-import {Menu, Item, useContextMenu} from "react-contexify";
+import {Menu, Item, useContextMenu, ItemParams} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
+import {getSleeve} from "../utils/sleeves.ts";
 
 export default function Game({user}: { user: string }) {
 
     const currentPort = window.location.port;
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://www.digi-tcg.online/api/ws/game";
-    const navigate = useNavigate();
 
     const selectedCard = useStore((state) => state.selectedCard);
     const selectCard = useStore((state) => state.selectCard);
@@ -61,7 +66,8 @@ export default function Game({user}: { user: string }) {
     const setUpGame = useGame((state) => state.setUpGame);
     const clearBoard = useGame((state) => state.clearBoard);
     const distributeCards = useGame((state) => state.distributeCards);
-    const getUpdatedGame = useGame((state) => state.getUpdatedGame);
+    const getMyFieldAsString = useGame((state) => state.getMyFieldAsString);
+    const updateOpponentField = useGame((state) => state.updateOpponentField);
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
 
     const moveCard = useGame((state) => state.moveCard);
@@ -69,12 +75,13 @@ export default function Game({user}: { user: string }) {
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
+    const mySleeve = useGame((state) => state.mySleeve);
+    const opponentSleeve = useGame((state) => state.opponentSleeve);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
+    const [endScreen, setEndScreen] = useState<boolean>(false);
+    const [endScreenMessage, setEndScreenMessage] = useState<string>("");
     const [surrenderOpen, setSurrenderOpen] = useState<boolean>(false);
-    const [timerOpen, setTimerOpen] = useState<boolean>(false);
-    const [timer, setTimer] = useState<number>(5);
-    const [opponentLeft, setOpponentLeft] = useState<boolean>(false);
     const [deckMoodle, setDeckMoodle] = useState<boolean>(false);
     const [eggDeckMoodle, setEggDeckMoodle] = useState<boolean>(false);
     const [securityMoodle, setSecurityMoodle] = useState<boolean>(false);
@@ -95,8 +102,8 @@ export default function Game({user}: { user: string }) {
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
     const [restartObj, setRestartObj] = useState<{ me: Player, opponent: Player }>({
-        me: {username: "", avatarName: ""},
-        opponent: {username: "", avatarName: ""}
+        me: {username: "", avatarName: "", sleeveName: ""},
+        opponent: {username: "", avatarName: "", sleeveName: ""}
     });
     const [userCount, setUserCount] = useState<number>(0);
 
@@ -154,7 +161,7 @@ export default function Game({user}: { user: string }) {
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
 
-    let interval: any;
+    let interval: ReturnType<typeof setInterval>;
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
@@ -178,6 +185,12 @@ export default function Game({user}: { user: string }) {
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const newGame: GameDistribution = JSON.parse(event.data.substring("[DISTRIBUTE_CARDS]:".length));
                 distributeCards(user, newGame, gameId);
+                return;
+            }
+
+            if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
+                const opponentGameJson: OneSideDistribution = JSON.parse(event.data.substring("[UPDATE_OPPONENT]:".length));
+                updateOpponentField(opponentGameJson);
                 return;
             }
 
@@ -280,7 +293,8 @@ export default function Game({user}: { user: string }) {
 
             switch (event.data) {
                 case "[SURRENDER]": {
-                    startTimer();
+                    setEndScreen(true);
+                    setEndScreenMessage("🎉 Your opponent surrendered!");
                     break;
                 }
                 case "[SECURITY_VIEWED]": {
@@ -288,8 +302,8 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case "[PLAYER_LEFT]": {
-                    setOpponentLeft(true);
-                    startTimer();
+                    setEndScreen(true);
+                    setEndScreenMessage("Your opponent left.");
                     break;
                 }
                 case ("[RESTART]"): {
@@ -302,6 +316,7 @@ export default function Game({user}: { user: string }) {
                 }
                 case ("[ACCEPT_RESTART]"): {
                     clearBoard();
+                    setEndScreen(false);
                     setUpGame(restartObj.me, restartObj.opponent);
                     setGameHasStarted(false);
                     break;
@@ -348,8 +363,7 @@ export default function Game({user}: { user: string }) {
     }
 
     function sendUpdate() {
-        const updatedGame: string = getUpdatedGame(gameId, user);
-        const chunks = chunkString(updatedGame, 1000);
+        const chunks = chunkString(getMyFieldAsString(), 1000);
         const timeoutIds: number[] = [];
         for (const chunk of chunks) {
             const timeoutId = setTimeout(() => {
@@ -403,17 +417,13 @@ export default function Game({user}: { user: string }) {
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
         sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
-        if (from === to){
+        if (from === to) {
             const timer = setTimeout(() => {
                 sendUpdate();
             }, 30);
             return () => clearTimeout(timer);
         } else sendUpdate();
     }
-
-    const { show: showDeckMenu } = useContextMenu({
-        id: "deckMenu"
-    });
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
@@ -428,164 +438,78 @@ export default function Game({user}: { user: string }) {
 
     const moveCardStack = useGame((state) => state.moveCardStack);
 
+    function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
+        if (isCardStack(item)) {
+            const {index, location} = item;
+            moveCardStack(index, location, targetField, handleDropToField);
+        } else {
+            const {id, location, name} = item;
+            handleDropToField(id, location, targetField, name);
+        }
+    }
+
+    function dropCardToDeck(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
+        const {id, location, type, name} = item;
+        if (type === "Token") return;
+        sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? "???" : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck ${topOrBottom}`);
+        sendCardToDeck(topOrBottom, {id, location}, "myDeckField");
+        sendUpdate();
+        playDrawCardSfx();
+    }
+
     const [, dropToDigi1] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi1", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi1', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi1")
     }));
 
     const [, dropToDigi2] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi2", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi2', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi2")
     }));
 
     const [, dropToDigi3] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi3", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi3', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi3")
     }));
 
     const [, dropToDigi4] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi4", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi4', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi4")
     }));
 
     const [, dropToDigi5] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi5", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi5', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi5")
     }));
 
     const [, dropToDigi6] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi6", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi6', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi6")
     }));
 
     const [, dropToDigi7] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi7", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi7', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi7")
     }));
 
     const [, dropToDigi8] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi8", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi8', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi8")
     }));
 
     const [, dropToDigi9] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi9", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi9', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi9")
     }));
 
     const [, dropToDigi10] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myDigi10", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myDigi10', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi10")
+    }));
+
+    const [, dropToBreedingArea] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myBreedingArea")
     }));
 
     const [, dropToHand] = useDrop(() => ({
@@ -596,26 +520,7 @@ export default function Game({user}: { user: string }) {
             sendSingleUpdate(id, location, 'myHand');
             playCardToHandSfx();
             if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
-    }));
-
-    const [, dropToBreedingArea] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myBreedingArea", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myBreedingArea', name);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        }
     }));
 
     const [, dropToTamer] = useDrop(() => ({
@@ -624,10 +529,7 @@ export default function Game({user}: { user: string }) {
             const {id, location, name, type} = item;
             if (type === "Digi-Egg" || type === "Option") return;
             handleDropToField(id, location, 'myTamer', name);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        }
     }));
 
     const [, dropToDelay] = useDrop(() => ({
@@ -635,22 +537,12 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, name} = item;
             handleDropToField(id, location, 'myDelay', name);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        }
     }));
 
     const [{isOverDeckTop}, dropToDeck] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, type, name} = item;
-            if (type === "Token") return;
-            sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? "???" : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck Top`);
-            sendCardToDeck("Top", {id, location}, "myDeckField");
-            sendUpdate();
-            playDrawCardSfx();
-        },
+        drop: (item: DraggedItem) => dropCardToDeck(item, "Top"),
         collect: (monitor) => ({
             isOverDeckTop: !!monitor.isOver(),
         }),
@@ -658,14 +550,7 @@ export default function Game({user}: { user: string }) {
 
     const [{isOverBottom, canDropToDeckBottom}, dropToDeckBottom] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, type, name} = item;
-            if (type === "Token") return;
-            sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? "???" : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck Bottom`);
-            sendCardToDeck("Bottom", {id, location}, "myDeckField");
-            sendUpdate();
-            playDrawCardSfx();
-        },
+        drop: (item: DraggedItem) => dropCardToDeck(item, "Bottom"),
         collect: (monitor) => ({
             isOverBottom: !!monitor.isOver(),
             canDropToDeckBottom: !!monitor.canDrop(),
@@ -681,11 +566,7 @@ export default function Game({user}: { user: string }) {
             setEggDeckMoodle(true);
             setDeckMoodle(false);
             setSecurityMoodle(false);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-            highlighted: monitor.canDrop(),
-        }),
+        }
     }));
 
     const [, dropToSecurity] = useDrop(() => ({
@@ -697,23 +578,12 @@ export default function Game({user}: { user: string }) {
             setSecurityMoodle(true);
             setDeckMoodle(false);
             setEggDeckMoodle(false);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        }
     }));
 
     const [{isOverTrash}, dropToTrash] = useDrop(() => ({
         accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => {
-            if (isCardStack(item)) {
-                const {index, location} = item as DraggedStack;
-                moveCardStack(index, location, "myTrash", handleDropToField);
-            } else {
-                const {id, location, name} = item as DraggedItem;
-                handleDropToField(id, location, 'myTrash', name);
-            }
-        },
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myTrash"),
         collect: (monitor) => ({
             isOverTrash: !!monitor.isOver(),
         }),
@@ -721,128 +591,58 @@ export default function Game({user}: { user: string }) {
 
     const [, dropToOpponentDigi1] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi1');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi1')
     }));
 
     const [, dropToOpponentDigi2] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi2');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi2')
     }));
 
     const [, dropToOpponentDigi3] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi3');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi3')
     }));
 
     const [, dropToOpponentDigi4] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi4');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi4')
     }));
 
     const [, dropToOpponentDigi5] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi5');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi5')
     }));
 
     const [, dropToOpponentDigi6] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi6');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi6')
     }));
 
     const [, dropToOpponentDigi7] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi7');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi7')
     }));
 
     const [, dropToOpponentDigi8] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi8');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi8')
     }));
 
     const [, dropToOpponentDigi9] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi9');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi9')
     }));
 
     const [, dropToOpponentDigi10] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentDigi10');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi10')
     }));
 
     const [, dropToOpponentSecurity] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => {
-            const {location} = item;
-            handleDropToOpponent(location, 'opponentSecurity');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentSecurity')
     }));
-
-    useEffect(() => {
-        if (timer === 0) navigate("/lobby");
-    }, [timer, navigate]);
 
     useEffect(() => {
         setDeckMoodle(false);
@@ -865,55 +665,140 @@ export default function Game({user}: { user: string }) {
 
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
-        startTimer();
+        setSurrenderOpen(false);
+        setEndScreen(true);
+        setEndScreenMessage("🏳️ You surrendered.");
     }
 
     function acceptRestart() {
         clearBoard();
+        setEndScreen(false);
         setRestartMoodle(false);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
         websocket.sendMessage("/restartGame:" + gameId);
     }
 
-    function startTimer() {
-        setTimerOpen(true);
-        const timeoutIDs: number[] = [];
-        for (let i = 5; i > 0; i--) {
-            const timeoutId = setTimeout(() => {
-                setTimer((timer) => timer - 1);
-            }, i * 1000);
-            timeoutIDs.push(timeoutId);
+    function moveDeckCard(to: string, bottomCard?: boolean) {
+        if (!opponentReady) return;
+        const cardId = (bottomCard) ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;
+        switch (to) {
+            case "myReveal":
+                playRevealCardSfx();
+                sendSfx("playRevealSfx");
+                moveCard(cardId, "myDeckField", "myReveal");
+                sendSingleUpdate(cardId, "myDeckField", "myReveal");
+                if (bottomCard) sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
+                else sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
+                break;
+            case "myTrash":
+                playTrashCardSfx();
+                sendSfx("playTrashCardSfx");
+                moveCard(cardId, "myDeckField", "myTrash");
+                sendSingleUpdate(cardId, "myDeckField", "myTrash");
+                sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
+                break;
+            case "mySecurity":
+                playUnsuspendSfx();
+                sendSfx("playUnsuspendCardSfx");
+                sendCardToDeck("Top", {id: cardId, location: "myDeckField"}, "mySecurity");
+                sendUpdate();
+                sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
+                break;
+            case "myHand":
+                playDrawCardSfx();
+                sendSfx("playDrawCardSfx");
+                moveCard(cardId, "myDeckField", "myHand");
+                sendSingleUpdate(cardId, "myDeckField", "myHand");
+                sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
+                break;
         }
-        return () => {
-            timeoutIDs.forEach(clearTimeout)
-        };
     }
+
+    function handleMulligan(mulliganWanted: boolean) {
+        if (mulliganWanted) {
+            mulligan();
+            sendUpdate();
+            playShuffleDeckSfx();
+            sendSfx("playShuffleDeckSfx");
+            sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
+        }
+        setMulliganAllowed(false);
+        websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
+        if (opponentReady) setGameHasStarted(true);
+    }
+
+    function handleOpenSecurity(onOpenOrClose: "onOpen" | "onClose") {
+        if (onOpenOrClose === "onOpen") {
+            setSecurityContentMoodle(true);
+            setTrashMoodle(false);
+            websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
+            sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
+        } else {
+            setSecurityContentMoodle(false);
+            handleShuffleSecurity();
+            sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
+        }
+    }
+
+    function handleShuffleSecurity(){
+        shuffleSecurity();
+        sendUpdate();
+        playShuffleDeckSfx();
+        sendChatMessage(`[FIELD_UPDATE]≔【↻ Security Stack】`);
+        sendSfx("playShuffleDeckSfx");
+    }
+
+    function moveSecurityCard(to: "myTrash" | "myHand", bottomCard?: boolean) {
+        if (!opponentReady) return;
+        const card = (bottomCard) ? mySecurity[mySecurity.length - 1] : mySecurity[0];
+        moveCard(card.id, "mySecurity", to);
+        sendSingleUpdate(card.id, "mySecurity", to);
+        sendChatMessage(`[FIELD_UPDATE]≔【${card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`);
+        sendSfx((to === "myHand") ? "playDrawCardSfx" : "playTrashCardSfx");
+        (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
+    }
+
+    function revealHandCard({props} : ItemParams<HandCardContextMenuItemProps>) {
+        if (!opponentReady || props === undefined) return;
+        moveCard(myHand[props.index].id, "myHand", "myReveal");
+        sendSingleUpdate(myHand[props.index].id, "myHand", "myReveal");
+        sendChatMessage(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕Hand ➟ Reveal`);
+        playRevealCardSfx();
+        sendSfx("playRevealSfx");
+    }
+
+    const {show: showDeckMenu} = useContextMenu({ id: "deckMenu" });
+    const {show: showDetailsImageMenu} = useContextMenu({ id: "detailsImageMenu" });
+    const {show: showHandCardMenu} = useContextMenu({ id: "handCardMenu", props: { index: -1 } });
 
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
 
             <Menu id={"deckMenu"} theme="dark">
-                <Item onClick={() => {
-                    if (!opponentReady) return;
-                    moveCard(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
-                    sendSingleUpdate(myDeckField[myDeckField.length - 1].id, "myDeckField", "myReveal");
-                    playRevealCardSfx();
-                    sendSfx("playRevealSfx");
-                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
-                }}>
-                   Reveal Bottom Deck Card ↺
-                </Item>
+                <Item onClick={() => moveDeckCard("myReveal", true)}>Reveal Bottom Deck Card ↺</Item>
             </Menu>
+
+            <Menu id={"handCardMenu"} theme="dark">
+                <Item onClick={revealHandCard}>Reveal Card 👁️</Item>
+            </Menu>
+
+            {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
+                <Item onClick={() => window.open(selectedCard.image_url, '_blank')}>Open Image in new Tab ↗</Item>
+            </Menu>}
 
             {user === "Kaito" &&
                 <span style={{position: "absolute", top: 15, left: 15}}>users ingame: {userCount}</span>}
+
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
+
             <BackGroundPattern/>
-            {(surrenderOpen || timerOpen) &&
-                <SurrenderMoodle timer={timer} timerOpen={timerOpen} surrenderOpen={surrenderOpen}
-                                 setSurrenderOpen={setSurrenderOpen} opponentLeft={opponentLeft}
-                                 handleSurrender={handleSurrender}/>}
-            {restartMoodle && <RestartMoodle setRestartMoodle={setRestartMoodle} sendAcceptRestart={acceptRestart}/>}
+
+            {surrenderOpen &&
+                <SurrenderRestartWindow setSurrenderOpen={setSurrenderOpen} handleSurrender={handleSurrender}/>}
+            {restartMoodle &&
+                <SurrenderRestartWindow setRestartMoodle={setRestartMoodle} handleAcceptRestart={acceptRestart}/>}
+            {endScreen && <EndWindow message={endScreenMessage}/>}
+
             {showStartingPlayer &&
                 <Fade direction={"right"}
                       style={{zIndex: 1000, position: "absolute", left: "40%", transform: "translateX(-50%)"}}>
@@ -954,6 +839,7 @@ export default function Game({user}: { user: string }) {
                         </a>
                     </InfoSpan>
                     <CardImage onClick={() => selectCard(null)}
+                               onContextMenu={(e) => showDetailsImageMenu({event: e})}
                                src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
                                alt={selectedCard?.name ?? "Card"}/>
                     <CardDetails/>
@@ -980,13 +866,17 @@ export default function Game({user}: { user: string }) {
                                              onClick={() => {
                                                  websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
                                                  notifyRequestedRestart();
-                                             }}
-                                />
+                                             }}/>
                                 <UserName>{opponentName}</UserName>
                             </PlayerContainer>
 
                             <OpponentDeckContainer>
-                                <img alt="deck" src={deckBack} width="105px"/>
+                                {opponentSleeve === "Default"
+                                    ? <img alt="deck" src={deckBack} width="105px"/>
+                                    : <div style={{width:"105px", position: "relative"}}>
+                                        <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
+                                        <img alt="deck" src={deckBack} width="105px"/>
+                                    </div>}
                                 <TrashSpan
                                     style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
                             </OpponentDeckContainer>
@@ -1071,7 +961,7 @@ export default function Game({user}: { user: string }) {
                                            style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
-                                                      key={card.id}><OppenentHandCard alt="card" src={cardBack}/>
+                                                      key={card.id}><OppenentHandCard alt="card" src={getSleeve(opponentSleeve)}/>
                                         </HandListItem>)}
                                 </HandCards>
                                 {opponentHand.length > 5 && <MyHandSpan
@@ -1083,14 +973,8 @@ export default function Game({user}: { user: string }) {
                         <OpponentContainerSide>
                             <EggDeckContainer>
                                 {opponentEggDeck.length !== 0 &&
-                                    <div style={{
-                                        width: "100%",
-                                        display: "flex",
-                                        fontStyle: "italic",
-                                        transform: "translateX(-5px)",
-                                        justifyContent: "center",
-                                        fontFamily: "Awsumsans, sans-serif"
-                                    }}>{opponentEggDeck.length}</div>}
+                                    <EggDeckSpan
+                                        style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
                                 {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
                                                                       style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                             </EggDeckContainer>
@@ -1139,11 +1023,7 @@ export default function Game({user}: { user: string }) {
                                                  sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
                                              }}/>}
                                 {myEggDeck.length !== 0 &&
-                                    <div style={{
-                                        width: "100%", display: "flex", fontStyle: "italic",
-                                        justifyContent: "center", fontFamily: "Awsumsans, sans-serif",
-                                        transform: "translateY(-25px)"
-                                    }}>{myEggDeck.length}</div>}
+                                    <EggDeckSpan>{myEggDeck.length}</EggDeckSpan>}
 
                                 <TokenButton alt="create token" src={hackmonButton} onClick={() => {
                                     createToken();
@@ -1168,74 +1048,30 @@ export default function Game({user}: { user: string }) {
                                 <Lottie animationData={mySecurityAnimation} loop={true}
                                         style={{width: "160px", transform: "translate(23px, -14px)"}}/>
 
-                                {!securityContentMoodle ?
-                                    <SendButton title="Open Security Stack"
-                                                style={{left: 20, top: 10}}
-                                                onClick={() => {
-                                                    setSecurityContentMoodle(true);
-                                                    setTrashMoodle(false);
-                                                    websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
-                                                    sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
-                                                }}
-                                    >🔎</SendButton>
-                                    :
-                                    <SendButton title="Close and shuffle Security Stack"
-                                                style={{left: 20, top: 10}}
-                                                onClick={() => {
-                                                    setSecurityContentMoodle(false);
-                                                    shuffleSecurity();
-                                                    sendUpdate();
-                                                    playShuffleDeckSfx();
-                                                    sendSfx("playShuffleDeckSfx");
-                                                    sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
-                                                }}>❌🔄</SendButton>}
+                                {!securityContentMoodle
+                                    ? <SendButton title="Open Security Stack" style={{left: 20, top: 10}}
+                                                  onClick={() => handleOpenSecurity("onOpen")}>🔎</SendButton>
+                                    : <SendButton title="Close and shuffle Security Stack" style={{left: 20, top: 10}}
+                                                  onClick={() => handleOpenSecurity("onClose")}>❌🔄</SendButton>}
 
-                                <SendButtonSmall title="Trash the top card of your Security Stack"
-                                                 style={{left: 20, top: 45}}
-                                                 onClick={() => {
-                                                     moveCard(mySecurity[0].id, "mySecurity", "myTrash");
-                                                     sendSingleUpdate(mySecurity[0].id, "mySecurity", "myTrash");
-                                                     websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
-                                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security Top ➟ Trash`);
-                                                 }}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
+                                <SendButtonSmall title="Trash the top card of your Security Stack" style={{left: 20, top: 45}}
+                                                 onClick={() => moveSecurityCard("myTrash")}>
+                                    🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButtonSmall title="Trash the bottom card of your Security Stack"
-                                                 style={{left: 20, top: 80}}
-                                                 onClick={() => {
-                                                     moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
-                                                     sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myTrash");
-                                                     websocket.sendMessage(gameId + ":/playTrashCardSfx:" + opponentName);
-                                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[mySecurity.length - 1].name}】﹕Security Bot ➟ Trash`);
-                                                 }}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
+                                <SendButtonSmall title="Trash the bottom card of your Security Stack" style={{left: 20, top: 80}}
+                                                 onClick={() => moveSecurityCard("myTrash", true)}>
+                                    🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButtonSmall title="Take the top card of your Security Stack"
-                                                 style={{left: 50, top: 45}}
-                                                 onClick={() => {
-                                                     moveCard(mySecurity[0].id, "mySecurity", "myHand");
-                                                     sendSingleUpdate(mySecurity[0].id, "mySecurity", "myHand");
-                                                     websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
-                                                     sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Top ➟ Hand`);
-                                                 }}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
+                                <SendButtonSmall title="Take the top card of your Security Stack" style={{left: 50, top: 45}}
+                                                 onClick={() => moveSecurityCard("myHand")}>
+                                    ✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
+                                <SendButtonSmall title="Take the bottom card of your Security Stack" style={{left: 50, top: 80}}
+                                                 onClick={() => moveSecurityCard("myHand", true)}>
+                                    ✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButtonSmall title="Take the bottom card of your Security Stack"
-                                                 style={{left: 50, top: 80}}
-                                                 onClick={() => {
-                                                     moveCard(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
-                                                     sendSingleUpdate(mySecurity[mySecurity.length - 1].id, "mySecurity", "myHand");
-                                                     websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
-                                                     sendChatMessage(`[FIELD_UPDATE]≔【???】﹕Security Bot ➟ Hand`);
-                                                 }}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButton title="Shuffle your Security Stack"
-                                            style={{left: 20, top: 115}}
-                                            onClick={() => {
-                                                shuffleSecurity();
-                                                sendUpdate();
-                                                playShuffleDeckSfx();
-                                                sendChatMessage(`[FIELD_UPDATE]≔【↻ Security Stack】`);
-                                                sendSfx("playShuffleDeckSfx");
-                                            }}>🔄</SendButton>
+                                <SendButton title="Shuffle your Security Stack" style={{left: 20, top: 115}}
+                                            onClick={handleShuffleSecurity}>🔄</SendButton>
 
                                 <MySwitchRowButton1 disabled={showAttackArrow}
                                                     onClick={() => setIsMySecondRowVisible(false)}
@@ -1273,73 +1109,43 @@ export default function Game({user}: { user: string }) {
                                 {mulliganAllowed &&
                                     <>
                                         <MulliganSpan>KEEP HAND?</MulliganSpan>
-                                        <MulliganButton onClick={() => {
-                                            mulligan();
-                                            sendUpdate();
-                                            websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-                                            playShuffleDeckSfx();
-                                            sendSfx("playShuffleDeckSfx");
-                                            sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
-                                            if (opponentReady) setGameHasStarted(true);
-                                        }}>N</MulliganButton>
-                                        <MulliganButton2 onClick={() => {
-                                            setMulliganAllowed(false);
-                                            websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-                                            if (opponentReady) setGameHasStarted(true);
-                                        }}>
-                                            Y
-                                        </MulliganButton2>
+                                        <MulliganButton onClick={() => handleMulligan(true)}>N</MulliganButton>
+                                        <MulliganButton2 onClick={() => handleMulligan(false)}>Y</MulliganButton2>
                                     </>}
 
-                                <TrashSpan style={{transform: gameHasStarted ? "translate(-14px, -40px)" : "translate(-14px, 0)",}}>
+                                <TrashSpan
+                                    style={{transform: gameHasStarted ? "translate(-14px, -50px)" : "translate(-14px, 0)",}}>
                                     {myDeckField.length}</TrashSpan>
-                                <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                {mySleeve === "Default"
+                                    ? <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                       isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
-                                      onClick={() => {
-                                          if (!opponentReady) return;
-                                          moveCard(myDeckField[0].id, "myDeckField", "myHand");
-                                          sendSingleUpdate(myDeckField[0].id, "myDeckField", "myHand");
-                                          playDrawCardSfx();
-                                          sendSfx("playDrawCardSfx");
-                                          sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
-                                      }}/>
-
-                                { gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
-                                    <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑ ⇑</DBZSpan></DeckBottomZone>}
+                                      onClick={() => moveDeckCard("myHand")}/>
+                                    : <div style={{width:"105px", position: "relative"}}>
+                                        <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)} gameHasStarted={gameHasStarted}/>
+                                        <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                              isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
+                                              onClick={() => moveDeckCard("myHand")}/>
+                                      </div>
+                                }
+                                {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
+                                    {/* eslint-disable-next-line no-irregular-whitespace */}
+                                    <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
+                                        ⇑</DBZSpan></DeckBottomZone>}
 
                                 <SendToTrashButton title="Send top card from your deck to Trash"
-                                                   onClick={() => {
-                                                       if (!opponentReady) return;
-                                                       moveCard(myDeckField[0].id, "myDeckField", "myTrash");
-                                                       sendSingleUpdate(myDeckField[0].id, "myDeckField", "myTrash");
-                                                       playTrashCardSfx();
-                                                       sendSfx("playTrashCardSfx");
-                                                       sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
-                                                   }}>↱</SendToTrashButton>
+                                                   onClick={() => moveDeckCard("myTrash")}>↱</SendToTrashButton>
                                 <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
-                                            onClick={() => {
-                                                if (!opponentReady) return;
-                                                const id = myDeckField[0].id;
-                                                const location = "myDeckField";
-                                                sendCardToDeck("Top", {id, location}, "mySecurity");
-                                                sendUpdate();
-                                                websocket.sendMessage(gameId + ":/playDrawCardSfx:" + opponentName);
-                                                sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
-                                            }}>⛊️+1</SendButton>
-                                <SendButton title="Reveal the top card of your deck" onClick={() => {
-                                    if (!opponentReady) return;
-                                    moveCard(myDeckField[0].id, "myDeckField", "myReveal");
-                                    sendSingleUpdate(myDeckField[0].id, "myDeckField", "myReveal");
-                                    playRevealCardSfx();
-                                    sendSfx("playRevealSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
-                                }}
+                                            onClick={() => moveDeckCard("mySecurity")}>⛊️+1</SendButton>
+                                <SendButton title="Reveal the top card of your deck"
+                                            onClick={() => moveDeckCard("myReveal")}
                                             disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
                             </DeckContainer>
 
                             <TrashContainer>
-                                {myTrash.length === 0 ? <TrashPlaceholder ref={dropToTrash} isOver={isOverTrash}>Trash</TrashPlaceholder>
-                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].image_url} alt={"myTrash"}
+                                {myTrash.length === 0 ?
+                                    <TrashPlaceholder ref={dropToTrash} isOver={isOverTrash}>Trash</TrashPlaceholder>
+                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].image_url}
+                                                      alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
                                                           setOpponentTrashMoodle(false);
@@ -1352,42 +1158,52 @@ export default function Game({user}: { user: string }) {
                                          id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi6} location={"myDigi6"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi1} location={"myDigi1"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea1>
                             <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
                                          id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi7} location={"myDigi7"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi2} location={"myDigi2"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea2>
                             <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
                                          id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
                                 {!isMySecondRowVisible && myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi8} location={"myDigi8"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi3} location={"myDigi3"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea3>
                             <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
                                          id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi9} location={"myDigi9"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi4} location={"myDigi4"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea4>
                             <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
                                          id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
                                 {isMySecondRowVisible
                                     ? <CardStack cards={myDigi10} location={"myDigi10"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>
                                     : <CardStack cards={myDigi5} location={"myDigi5"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}  handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea5>
 
                             <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
@@ -1411,8 +1227,10 @@ export default function Game({user}: { user: string }) {
                                 <HandCards cardCount={myHand.length}
                                            style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
-                                        <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}>
-                                            <Card card={card} location={"myHand"}/></HandListItem>)}
+                                        <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}
+                                                      onContextMenu={(e) => showHandCardMenu({event: e, props: {index}})}>
+                                            <Card card={card} location={"myHand"}/>
+                                        </HandListItem>)}
                                 </HandCards>
                                 {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
                             </HandContainer>
@@ -1618,12 +1436,12 @@ const PlayerContainer = styled.div`
   justify-content: center;
 `;
 
-const PlayerImage = styled.img<{opponent?:boolean}>`
+const PlayerImage = styled.img<{ opponent?: boolean }>`
   cursor: pointer;
   width: 160px;
   transition: all 0.1s ease;
   transform: ${({opponent}) => opponent ? "rotateY(180deg)" : "none"};
-  
+
   &:hover {
     filter: drop-shadow(0 0 2px ${({opponent}) => opponent ? "#43d789" : "#bb2848"});
     width: 144px;
@@ -1669,21 +1487,39 @@ const OpponentDeckContainer = styled.div`
   padding: 10px 10px 0 0;
 `;
 
-const Deck = styled.img<{gameHasStarted?: boolean, isOver?: boolean}>`
+const OpponentDeckSleeve = styled.img`
+  width: 100px;
+  height: 140px;
+  position: absolute;
+  border-radius: 5px;
+  transform: translateY(-1px);
+`;
+
+const MyDeckSleeve = styled.img<{gameHasStarted?: boolean}>`
+  width: 99px;
+  height: 140px;
+  position: absolute;
+  border-radius: 5px;
+  z-index: 3;
+  top: ${({gameHasStarted}) => gameHasStarted ? "-47px" : "0"};
+  pointer-events: none;
+  transition: all 0.1s ease;
+`;
+const Deck = styled.img<{ gameHasStarted?: boolean, isOver?: boolean }>`
   width: 105px;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.1s ease;
-  transform: ${({gameHasStarted}) => gameHasStarted ? "translateY(-37px)" : "translateY(0)"};
+  transform: ${({gameHasStarted}) => gameHasStarted ? "translateY(-47px)" : "translateY(0)"};
   z-index: 2;
   filter: ${({isOver}) => isOver ? "drop-shadow(0 0 1px #eceaea) saturate(1.1) brightness(0.95)" : "none"};
-  
+
   &:hover {
     filter: drop-shadow(0 0 1px #eceaea);
   }
 `;
 
-const DeckBottomZone = styled.div<{isOver: boolean}>`
+const DeckBottomZone = styled.div<{ isOver: boolean }>`
   z-index: 1;
   width: 95px;
   margin-left: 5px;
@@ -1699,10 +1535,11 @@ const DeckBottomZone = styled.div<{isOver: boolean}>`
   align-items: center;
 `;
 
-const DBZSpan = styled.span<{isOver: boolean, canDrop: boolean}>`
+const DBZSpan = styled.span<{ isOver: boolean, canDrop: boolean }>`
   visibility: ${({canDrop}) => canDrop ? "visible" : "hidden"};
   color: ${({isOver}) => isOver ? "rgba(218,216,213,0.88)" : "rgba(161, 157, 154, 0.3)"};
   cursor: default;
+  padding-bottom: 5px;
   transition: all 0.1s ease;
   transform: translateY(1px) scale(${({isOver}) => isOver ? "1.05" : "1"});
 `;
@@ -1714,6 +1551,15 @@ const EggDeck = styled(Deck)`
     filter: drop-shadow(0 0 3px #dd33e8);
     outline: #dd33e8 solid 1px;
   }
+`;
+
+const EggDeckSpan = styled.span`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-family: Awsumsans, sans-serif;
+  font-style: italic;
+  transform: translateY(-25px);
 `;
 
 const TrashContainer = styled.div`
@@ -1763,6 +1609,7 @@ const SecuritySpan = styled.span`
   color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
   left: 132px;
+  user-select: none;
 `;
 
 const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
@@ -1834,7 +1681,8 @@ const TrashView = styled.div`
   left: 59.5%;
   top: 27%;
   transform: translate(-50%, -50%);
-
+  
+  scrollbar-width: none;
   ::-webkit-scrollbar {
     visibility: hidden;
     width: 0;
@@ -2098,7 +1946,7 @@ const FieldSpan = styled.span`
   font-family: Naston, sans-serif;
 `;
 
-const TrashPlaceholder = styled.div<{isOver?: boolean}>`
+const TrashPlaceholder = styled.div<{ isOver?: boolean }>`
   width: 105px;
   height: 146px;
   border-radius: 5px;
@@ -2112,12 +1960,13 @@ const TrashPlaceholder = styled.div<{isOver?: boolean}>`
   transition: all 0.1s ease-in-out;
 `;
 
-const TrashCardImage = styled.img<{isOver?: boolean}>`
+const TrashCardImage = styled.img<{ isOver?: boolean }>`
   width: 105px;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.1s ease-in-out;
   filter: drop-shadow(${({isOver}) => isOver ? '0px 0px 1px whitesmoke' : '1px 1px 2px #060e18'});
+
   &:hover {
     filter: drop-shadow(0px 0px 3px #af0c3d) brightness(1.1) saturate(1.2);
   }

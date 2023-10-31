@@ -79,7 +79,8 @@ export type DeckType = {
 
 export type Player = {
     username: string,
-    avatarName: string
+    avatarName: string,
+    sleeveName: string,
 }
 
 export type GameDistribution = {
@@ -130,6 +131,30 @@ export type GameDistribution = {
     player2BreedingArea?: CardTypeGame[]
 }
 
+export type OneSideDistribution = {
+    playerReveal?: CardTypeGame[],
+
+    playerHand: CardTypeGame[],
+    playerDeckField: CardTypeGame[],
+    playerEggDeck: CardTypeGame[],
+    playerTrash?: CardTypeGame[],
+    playerSecurity: CardTypeGame[],
+    playerTamer?: CardTypeGame[],
+    playerDelay?: CardTypeGame[],
+
+    playerDigi1?: CardTypeGame[],
+    playerDigi2?: CardTypeGame[],
+    playerDigi3?: CardTypeGame[],
+    playerDigi4?: CardTypeGame[],
+    playerDigi5?: CardTypeGame[],
+    playerDigi6?: CardTypeGame[],
+    playerDigi7?: CardTypeGame[],
+    playerDigi8?: CardTypeGame[],
+    playerDigi9?: CardTypeGame[],
+    playerDigi10?: CardTypeGame[],
+    playerBreedingArea?: CardTypeGame[],
+}
+
 export type DraggedItem = {
     id: string,
     location: string,
@@ -141,4 +166,13 @@ export type DraggedItem = {
 export type DraggedStack = {
     index: number,
     location: string,
+}
+
+export type HandCardContextMenuItemProps = {
+    index: number;
+}
+
+export type Picture = {
+    name: string,
+    imagePath: string,
 }

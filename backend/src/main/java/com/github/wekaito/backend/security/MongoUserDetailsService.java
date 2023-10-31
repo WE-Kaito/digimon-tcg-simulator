@@ -21,72 +21,152 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     private final IdService idService = new IdService();
 
+    String exceptionMessage = " not found";
+
     public MongoUser getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
+                new UsernameNotFoundException("User " + username + exceptionMessage));
+    }
+
+    private MongoUser getUserByUsername(String username){
+        return mongoUserRepository.findByUsername(username).orElseThrow(() ->
+                new UsernameNotFoundException("User " + username + exceptionMessage));
+    }
+
+    private String getEncodedPassword(String password) {
+        PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 8, 1 << 16, 4);
+        return encoder.encode(password);
+    }
+
+    public String getUserIdByUsername(String username){
+        return getUserByUsername(username).id();
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
-
+        MongoUser mongoUser = getUserByUsername(username);
         return new User(mongoUser.username(), mongoUser.password(), Collections.emptyList());
     }
 
     public String registerNewUser(RegistrationUser registrationUser){
-
-        PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 8, 1 << 16, 4);
-        String encodedPassword = encoder.encode(registrationUser.password());
-
         if (mongoUserRepository.findByUsername(registrationUser.username()).isPresent()) {
             return "Username already exists!";
         }
 
-        MongoUser newUser = new MongoUser(idService.createId() ,registrationUser.username(), encodedPassword, "", "takato");
+        MongoUser newUser = new MongoUser(
+                idService.createId(),
+                registrationUser.username(),
+                getEncodedPassword(registrationUser.password()),
+                registrationUser.question(),
+                registrationUser.answer(),
+                "",
+                "ava1",
+                "Default");
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";
     }
 
-    public String getUserIdByUsername(String username){
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
-        return mongoUser.id();
-    }
-
     public void setActiveDeck(String deckId) {
         MongoUser mongoUser = getCurrentUser();
-        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), deckId, mongoUser.avatarName());
+        MongoUser updatedUser = new MongoUser(
+                mongoUser.id(),
+                mongoUser.username(),
+                mongoUser.password(),
+                mongoUser.question(),
+                mongoUser.answer(),
+                deckId,
+                mongoUser.avatarName(),
+                mongoUser.sleeveName());
         mongoUserRepository.save(updatedUser);
     }
 
-    public String getActiveDeck() {
-        MongoUser mongoUser = getCurrentUser();
-        return mongoUser.activeDeckId();
-    }
+    public String getActiveDeck() { return getCurrentUser().activeDeckId(); }
 
     public String getActiveDeck(String username) {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
-        return mongoUser.activeDeckId();
+        return getUserByUsername(username).activeDeckId();
     }
 
     public void setAvatar(String avatarName) {
         MongoUser mongoUser = getCurrentUser();
-        MongoUser updatedUser = new MongoUser(mongoUser.id(), mongoUser.username(), mongoUser.password(), mongoUser.activeDeckId(), avatarName);
+        MongoUser updatedUser = new MongoUser(
+                mongoUser.id(),
+                mongoUser.username(),
+                mongoUser.password(),
+                mongoUser.question(),
+                mongoUser.answer(),
+                mongoUser.activeDeckId(),
+                avatarName,
+                mongoUser.sleeveName());
         mongoUserRepository.save(updatedUser);
     }
 
-    public String getAvatar() {
-        MongoUser mongoUser = getCurrentUser();
-        return mongoUser.avatarName();
-    }
+    public String getAvatar() { return getCurrentUser().avatarName(); }
 
     public String getAvatar(String username) {
-        MongoUser mongoUser = mongoUserRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User" + username + "not found"));
-        return mongoUser.avatarName();
+        return getUserByUsername(username).avatarName();
+    }
+
+    public void setSleeve(String sleeveName) {
+        MongoUser mongoUser = getCurrentUser();
+        MongoUser updatedUser = new MongoUser(
+                mongoUser.id(),
+                mongoUser.username(),
+                mongoUser.password(),
+                mongoUser.question(),
+                mongoUser.answer(),
+                mongoUser.activeDeckId(),
+                mongoUser.avatarName(),
+                sleeveName);
+        mongoUserRepository.save(updatedUser);
+    }
+
+    public String getSleeve() { return getCurrentUser().sleeveName(); }
+
+    public String getSleeve(String username) {
+        return getUserByUsername(username).sleeveName();
+    }
+
+    public String getRecoveryQuestion(String username) {
+        if (mongoUserRepository.findByUsername(username).isEmpty()) {
+            return "User not found!";
+        }
+        return getUserByUsername(username).question();
+    }
+
+    public String changePassword(PasswordRecovery passwordRecovery) {
+        MongoUser mongoUser = getUserByUsername(passwordRecovery.username());
+        if (!mongoUser.answer().equals(passwordRecovery.answer())) {
+            return "Answer didn't match!";
+        } else {
+            MongoUser updatedUser = new MongoUser(
+                    mongoUser.id(),
+                    mongoUser.username(),
+                    getEncodedPassword(passwordRecovery.newPassword()),
+                    mongoUser.question(),
+                    mongoUser.answer(),
+                    mongoUser.activeDeckId(),
+                    mongoUser.avatarName(),
+                    mongoUser.sleeveName());
+            mongoUserRepository.save(updatedUser);
+            return "Password changed!";
+        }
+    }
+
+    public String changeQuestion(SafetyQuestionChange safetyQuestionChange) {
+        MongoUser mongoUser = getCurrentUser();
+            MongoUser updatedUser = new MongoUser(
+                    mongoUser.id(),
+                    mongoUser.username(),
+                    mongoUser.password(),
+                    safetyQuestionChange.question(),
+                    safetyQuestionChange.answer(),
+                    mongoUser.activeDeckId(),
+                    mongoUser.avatarName(),
+                    mongoUser.sleeveName());
+            mongoUserRepository.save(updatedUser);
+            return "Safety question changed!";
+
     }
 }

@@ -159,6 +159,7 @@ const History = styled.div`
   gap: 6px;
   z-index: 100;
   transform: translate(-1px,-31px);
+  scrollbar-width: thin;
   
   ::-webkit-scrollbar {
     background: rgba(30, 31, 16, 0.5);

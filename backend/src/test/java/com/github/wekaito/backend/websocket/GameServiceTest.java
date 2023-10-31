@@ -32,7 +32,7 @@ class GameServiceTest {
     private DeckService deckService;
     @Mock
     private IdService idService;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
@@ -69,6 +69,8 @@ class GameServiceTest {
         when(mongoUserDetailsService.getActiveDeck(username2)).thenReturn(exampleDeck2.id());
         when(mongoUserDetailsService.getAvatar(username1)).thenReturn("takato");
         when(mongoUserDetailsService.getAvatar(username2)).thenReturn("tai");
+        when(mongoUserDetailsService.getSleeve(username1)).thenReturn("sleeve1");
+        when(mongoUserDetailsService.getSleeve(username2)).thenReturn("sleeve2");
     }
 
     @Test
@@ -83,18 +85,30 @@ class GameServiceTest {
     @Test
     void testGameSetup() throws IOException, InterruptedException {
         // GIVEN
-        Player player1 = new Player(username1, "takato");
-        Player player2 = new Player(username2, "tai");
+        Player player1 = new Player(username1, "takato", "sleeve1");
+        Player player2 = new Player(username2, "tai", "sleeve2");
         Player[] players = {player1, player2};
         String playersJson = new ObjectMapper().writeValueAsString(players);
         TextMessage expectedMessage = new TextMessage("[START_GAME]:" + playersJson);
-        // WHEN
+
+        // WHEN START
         gameService.setUpGame(session1, gameId, username1, username2);
         gameService.setUpGame(session2, gameId, username1, username2);
+        // WHEN RESTART
+        gameService.handleTextMessage(session1, new TextMessage("/restartGame:" + gameId));
         // THEN
-        verify(session1, times(1)).sendMessage(expectedMessage);
+        verify(session1, times(2)).sendMessage(expectedMessage);
         verify(session2, times(1)).sendMessage(expectedMessage);
         assertThat(gameService.getGameRooms().get(gameId)).contains(session1).contains(session2);
+        verify(session1, times(5)).sendMessage(any());
+        verify(session2, times(3)).sendMessage(any());
+
+        // WHEN CLOSING
+        gameService.afterConnectionClosed(session1, null);
+        gameService.afterConnectionClosed(session2, null);
+        // THEN
+        verify(session2, times(1)).sendMessage(new TextMessage("[PLAYER_LEFT]"));
+        assertThat(gameService.getGameRooms().get(gameId)).isNull();
     }
 
     @Test
@@ -168,7 +182,7 @@ class GameServiceTest {
     @Test
     void testProcessGameChunks() throws IOException, InterruptedException {
         // GIVEN
-        TextMessage expectedMessage = new TextMessage("[DISTRIBUTE_CARDS]:{test}");
+        TextMessage expectedMessage = new TextMessage("[UPDATE_OPPONENT]:{test}");
         TextMessage updateFromClient = new TextMessage(gameId + ":/updateGame:{test}");
         putPlayersToGameRoom();
         // WHEN

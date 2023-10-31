@@ -3,6 +3,8 @@ import {useStore} from "../hooks/useStore.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
 
 export default function LoginPage() {
 
@@ -16,9 +18,11 @@ export default function LoginPage() {
     const [userNameReg, setUserNameReg] = useState("");
     const [passwordReg, setPasswordReg] = useState("");
     const [repeatedPassword, setRepeatedPassword] = useState("");
+    const [question, setQuestion] = useState("");
+    const [answer, setAnswer] = useState("");
     const register = useStore((state) => state.register);
-    const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,20}$/;
-    const forbiddenCharacters = [":","‗","【","】","﹕","≔"," "]
+    const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
+    const forbiddenCharacters = [":", "‗", "【", "】", "﹕", "≔", " "]
     const validUserName = userNameReg.length >= 3 && userNameReg.length <= 16 && !containsForbiddenCharacters();
 
     function handleSubmitLogin(event: FormEvent<HTMLFormElement>) {
@@ -28,16 +32,18 @@ export default function LoginPage() {
 
     function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if(!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword) return;
-        register(userNameReg, passwordReg, setRegisterPage, navigate);
+        if (!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword || !question || !answer) return;
+        register(userNameReg, passwordReg, question, answer, setRegisterPage, navigate);
         setPasswordReg("");
         setRepeatedPassword("");
         setUserNameReg("");
+        setQuestion("");
+        setAnswer("");
     }
 
-    function containsForbiddenCharacters(){
-        for(const char of forbiddenCharacters) {
-            if (userNameReg.includes(char)){
+    function containsForbiddenCharacters() {
+        for (const char of forbiddenCharacters) {
+            if (userNameReg.includes(char)) {
                 return true;
             }
         }
@@ -77,16 +83,22 @@ export default function LoginPage() {
         }
     }
 
+    const questionColor = question.length > 0 ? "#6ed298" : "ghostwhite";
+    const answerColor = answer.length > 0 ? "#6ed298" : "ghostwhite";
+
     return (
         <Wrapper className="login-background">
+            <ParticlesBackground options={blueTriangles}/>
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
                             type="text" name="userName" placeholder="username" maxLength={16}/>
-
-                <InputField value={password} onChange={(e) => setPassword(e.target.value)}
-                            type="password" name="password" placeholder="password" maxLength={20}/>
-
+                <div>
+                    <InputField value={password} onChange={(e) => setPassword(e.target.value)}
+                                type="password" name="password" placeholder="password"/>
+                    <br/>
+                    <StyledInfo2 onClick={() => navigate("/recover-password")}>Forgot your password?</StyledInfo2>
+                </div>
                 <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
                 <RegisterButton style={{marginTop: "50px"}} type="button"
                                 onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
@@ -95,28 +107,32 @@ export default function LoginPage() {
             {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
 
                 <div>
-                    <InputField value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
-                                type="text" name="userName" placeholder="username" maxLength={16}
-                                style={{backgroundColor: `${userNameColor()}`}}
+                    <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
+                                        type="text" name="userName" placeholder="username" maxLength={16}
+                                        style={{backgroundColor: `${userNameColor()}`}}
                     />
                     <br/>
-                    <StyledInfo>at least 3 characters</StyledInfo>
+                    <StyledInfo>3 - 16 characters</StyledInfo>
                 </div>
                 <div>
-                    <InputField value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
-                                type="password" name="password" placeholder="password" maxLength={20}
-                                style={{backgroundColor: `${passWordColor()}`}}
+                    <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
+                                        type="password" name="password" placeholder="password"
+                                        style={{backgroundColor: `${passWordColor()}`}}
                     />
                     <br/>
                     <StyledInfo>
-                        at least 6 characters;
-                        <br/>
-                        numbers and letters
+                        6+ characters, cont. numbers & letters
                     </StyledInfo>
                 </div>
-                <InputField value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
-                            type="password" name="RepeatPassword" placeholder="repeat password" maxLength={20}
-                            style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
+                <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
+                                    type="password" name="RepeatPassword" placeholder="repeat password"
+                                    style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
+                <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
+                                    type="text" name="Question" placeholder="safety question"
+                                    style={{backgroundColor: `${questionColor}`}}/>
+                <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
+                                    type="text" name="Answer" placeholder="answer (pw recovery)"
+                                    style={{backgroundColor: `${answerColor}`}}/>
                 <ButtonContainer>
                     <BackButton type="button"
                                 onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
@@ -130,11 +146,12 @@ export default function LoginPage() {
 
 const Wrapper = styled.div`
   height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transform: translateY(-20px);
+  transform: translate(0px, 0px); // has to be here for the particles to work ???
 `;
 
 export const LoginPageButton = styled.button`
@@ -187,6 +204,12 @@ export const InputField = styled.input`
 
 `;
 
+export const InputFieldRegister = styled(InputField)`
+  font-size: 22px;
+  width: 300px;
+  height: 50px;
+`;
+
 const StyledForm = styled.form`
   margin-top: 70px;
   width: 100%;
@@ -201,14 +224,14 @@ const StyledForm = styled.form`
 `;
 
 const StyledForm2 = styled.form`
-  margin-top: 70px;
+  margin-top: 45px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 20px;
   align-items: center;
   justify-content: center;
-  
+
   @media (max-width: 767px) {
     gap: 20px;
     margin-top: 35px;
@@ -218,6 +241,22 @@ const StyledForm2 = styled.form`
 const StyledInfo = styled.span`
   font-family: 'Naston', sans-serif;
   font-size: 15px;
+`;
+
+const StyledInfo2 = styled.span`
+  font-family: 'Naston', sans-serif;
+  font-size: 14px;
+  margin-top: 2px;
+  color: #646cff;
+  user-select: none;
+  cursor: pointer;
+  &:hover {
+    color: #ff880d;
+  }
+
+  &:active {
+    color: #ff310d;
+  }
 `;
 
 const RegisterButton = styled(LoginPageButton)`
@@ -246,7 +285,7 @@ const ButtonSpan = styled.span`
 `;
 
 const ButtonContainer = styled.div`
-margin-top: 50px;
+  margin-top: 50px;
   @media (max-width: 767px) {
     margin-top: 32px;
   }

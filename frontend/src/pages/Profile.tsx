@@ -1,11 +1,15 @@
 import styled from "@emotion/styled";
 import {useStore} from "../hooks/useStore.ts";
 import {useEffect} from "react";
-import ProfileDeck from "../components/ProfileDeck.tsx";
+import ProfileDeck from "../components/profile/ProfileDeck.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
-import ChooseAvatar from "../components/ChooseAvatar.tsx";
-import {Loading} from "../components/FetchedCards.tsx";
+import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
+import {Loading} from "../components/deckbuilder/FetchedCards.tsx";
+import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
+import UserSettings from "../components/profile/UserSettings.tsx";
 
 export default function Profile({user}: { user: string }) {
 
@@ -25,37 +29,59 @@ export default function Profile({user}: { user: string }) {
 
     return (
         <Wrapper>
+            <ParticlesBackground options={blueTriangles}/>
+
             <Header>
                 <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
             </Header>
-            <ChooseAvatar/>
+
+            <UserSettings/>
+
+            <Personalization>
+                <ChooseAvatar/>
+                <ChooseCardSleeve/>
+            </Personalization>
+
             <Container>
                 {isLoading && <Loading/>}
-                {!isLoading && decks?.map((deck, index) => <ProfileDeck key={index} deck={deck}/>)}
+                {!isLoading && decks?.map((deck) => <ProfileDeck key={deck.id} deck={deck}/>)}
             </Container>
         </Wrapper>
     );
 }
 
+const Personalization = styled.div`
+  display: flex;
+  flex-direction: row;
+  @media (max-width: 1050px) {
+    flex-direction: column;
+  }
+`;
+
 const Wrapper = styled.div`
   display: flex;
   height: 100vh;
+  width: 100vw;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  transform: translate(0px, 0px); // has to be here for the particles to work ???
 `;
 
 const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5vw;
+  gap: 3px;
   align-items: flex-start;
-  background: #0e0e0e;
+  background: rgba(0,0,0,0);
   border-radius: 10px;
   width: 100vw + 5px;
   height: 410px;
-  max-width: 1010px;
   overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 1px;
+  border: 1px solid #1d7dfc;
+  scrollbar-width: thin;
   
   &::-webkit-scrollbar {
     width: 3px;
@@ -63,16 +89,18 @@ const Container = styled.div`
   
   &::-webkit-scrollbar-thumb {
     background-color: #C5C5C5;
-    border-radius: 2px;
+    -moz-border-radius-topright: 15px;
+    -moz-border-radius-bottomright: 15px;
   }
 
   @media (min-width: 1000px) {
-    width: 1010px;
+    width: 1032px;
     gap: 19px;
+    padding: 5px;
   }
   
   @media (min-width: 1600px) {
-    gap: 20px;
+    gap: 23px;
   }
   
   @media (min-width: 1600px) and (min-height: 1000px) {
@@ -84,10 +112,12 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  margin-top: 5vh;
-
-  @media (max-width: 766px) {
-    margin-top: 1.5vh;
+  margin-top: 20px;
+  margin-bottom: 140px;
+  width: 1040px;
+  @media (max-width: 1000px) {
+    margin-bottom: 40px;
+    width: 96.5vw;
   }
 `;
 

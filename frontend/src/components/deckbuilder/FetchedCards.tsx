@@ -1,13 +1,13 @@
 import styled from '@emotion/styled';
 import Lottie from "lottie-react";
-import loadingAnimation from "../assets/lotties/loading.json";
-import noCardsFoundAnimation from "../assets/lotties/noCardsFound.json";
-import gatchmon from "../assets/gatchmon.png";
-import {useStore} from "../hooks/useStore.ts";
-import {CardTypeWithId} from "../utils/types.ts";
+import loadingAnimation from "../../assets/lotties/loading.json";
+import noCardsFoundAnimation from "../../assets/lotties/noCardsFound.json";
+import gatchmon from "../../assets/gatchmon.png";
+import {useStore} from "../../hooks/useStore.ts";
+import {CardTypeWithId} from "../../utils/types.ts";
 import {lazy, Suspense} from 'react';
 
-const Card = lazy(() => import('./Card.tsx'));
+const Card = lazy(() => import('../Card.tsx'));
 
 export const Loading = () => <LoadingContainer>
     <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
@@ -52,14 +52,15 @@ export default function FetchedCards() {
 
 const FetchContainer = styled.div`
 
-  background-color: rgba(18, 17, 17, 0.985);
+  background-color: rgba(18, 17, 17, 0.7);
   width: 97%;
   padding: 1.5%;
   border-radius: 5px;
   height: 35.8vh;
 
-  @media (max-width: 700px) and (min-height: 800px) {
-    height: 42.9vh;
+  @media (max-width: 700px) and (max-height: 800px) {
+    max-height: 42vh;
+    width: 96%;
   }
   @media (max-width: 700px) and (min-height: 900px) {
     height: 47.155vh;
@@ -81,11 +82,10 @@ const StyledFieldset = styled.fieldset`
   border-radius: 5px;
   margin-top: 2px;
   transform: translateX(0.5px);
-
+  scrollbar-width: thin;
   display: flex;
   flex-flow: row wrap;
   gap: 1.8vw;
-
   overflow: auto;
 
   &::-webkit-scrollbar {

@@ -1,13 +1,15 @@
 import styled from '@emotion/styled';
 import {useEffect, useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
-import FetchedCards from "../components/FetchedCards.tsx";
-import SearchForm from "../components/SearchForm.tsx";
+import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
+import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
-import DeckSelection from "../components/DeckSelection.tsx";
+import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
-import DeckImport from "../components/DeckImport.tsx";
+import DeckImport from "../components/deckbuilder/DeckImport.tsx";
+import {blueTriangles} from "../assets/particles.ts";
+import ParticlesBackground from "../components/ParticlesBackground.tsx";
 
 export default function Deckbuilder() {
 
@@ -28,9 +30,11 @@ export default function Deckbuilder() {
         clearDeck();
         fetchDecks();
         filterCards("", "", "", "", "", "", null, null, null, null, "");
+
         function handleResize() {
             setShouldRender(window.innerWidth >= 1000);
         }
+
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);
@@ -38,44 +42,59 @@ export default function Deckbuilder() {
     }, [clearDeck, fetchDecks, filterCards]);
 
     useEffect(() => {
-        if(fetchedCards.length === 0) fetchCards();
+        if (fetchedCards.length === 0) fetchCards();
     }, []);
 
     return (
-        <OuterContainer>
-            <DeckNameContainer>
-                <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
-            </DeckNameContainer>
-            <ButtonContainer>
-                <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={() => {
-                    saveDeck(deckName)
-                }}><StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : `SAVE [${decks.length}/16]`}</StyledSpanSaveDeck></SaveDeckButton>
-                <BackButton/>
-            </ButtonContainer>
+        <Wrapper>
+            <ParticlesBackground options={blueTriangles}/>
+            <OuterContainer>
+                <ParticlesBackground options={blueTriangles}/>
+                <DeckNameContainer>
+                    <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
+                </DeckNameContainer>
+                <ButtonContainer>
+                    <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={() => {
+                        saveDeck(deckName)
+                    }}><StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : `SAVE [${decks.length}/16]`}</StyledSpanSaveDeck></SaveDeckButton>
+                    <BackButton/>
+                </ButtonContainer>
 
-            <ContainerUpperLeftQuarter>
-                <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
-                           alt={selectedCard?.name ?? "Card"}/>
-            </ContainerUpperLeftQuarter>
+                <ContainerUpperLeftQuarter>
+                    <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
+                               alt={selectedCard?.name ?? "Card"}/>
+                </ContainerUpperLeftQuarter>
 
-            <ContainerUpperRightQuarter>
-                <CardDetails/>
-            </ContainerUpperRightQuarter>
+                <ContainerUpperRightQuarter>
+                    <CardDetails/>
+                </ContainerUpperRightQuarter>
 
-            <ContainerBottomLeftQuarter>
-                {shouldRender && <DeckImport/>}
-                <DeckSelection/>
-            </ContainerBottomLeftQuarter>
+                <ContainerBottomLeftQuarter>
+                    {shouldRender && <DeckImport/>}
+                    <DeckSelection/>
+                </ContainerBottomLeftQuarter>
 
-            <ContainerBottomRightQuarter>
-                <SearchForm/>
-                <FetchedCards/>
-            </ContainerBottomRightQuarter>
-        </OuterContainer>
+                <ContainerBottomRightQuarter>
+                    <SearchForm/>
+                    <FetchedCards/>
+                </ContainerBottomRightQuarter>
+            </OuterContainer>
+        </Wrapper>
     );
 }
+export const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  transform: translateY(0);
+  overflow: hidden;
+`;
 
 export const OuterContainer = styled.div`
+  position: absolute;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 0.1fr 1fr 1fr;
@@ -225,6 +244,7 @@ const ButtonContainer = styled.div`
   justify-content: space-between;
   @media (min-width: 767px) {
     transform: translateY(12px);
+    position: relative;
   }
 `;
 
@@ -235,7 +255,13 @@ export const StyledSpanSaveDeck = styled.span`
   margin: 0;
   letter-spacing: 2px;
   color: #0e1625;
-  margin-bottom: 10px;
+  @media (max-width: 500px) {
+    font-size: 0.75em;
+    line-height: 15px;
+    position: absolute;
+    left: 4px;
+    top: 4px;
+  }
 `;
 
 export const DeckNameContainer = styled.div`

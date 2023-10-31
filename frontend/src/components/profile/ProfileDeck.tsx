@@ -1,9 +1,9 @@
-import {DeckType} from "../utils/types.ts";
+import {DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
-import deckBack from '../assets/deckBack.png';
+import deckBack from '../../assets/deckBack.png';
 import {useNavigate} from "react-router-dom";
-import {useStore} from "../hooks/useStore.ts";
-import {playButtonClickSfx, playDrawCardSfx} from "../utils/sound.ts";
+import {useStore} from "../../hooks/useStore.ts";
+import {playButtonClickSfx, playDrawCardSfx} from "../../utils/sound.ts";
 
 function ColoredDeckImage(color:string | null, id: string) {
 
@@ -33,7 +33,7 @@ function ColoredDeckImage(color:string | null, id: string) {
     }
 }
 
-export default function ProfileDeck({deck}:{deck:DeckType}) {
+export default function ProfileDeck({deck}:{readonly deck:DeckType}) {
 
     const setActiveDeck = useStore(state => state.setActiveDeck);
     const activeDeckId = useStore(state => state.activeDeckId);
@@ -72,7 +72,7 @@ const Container = styled.div`
   @media (max-width: 500px) {
     width: 160px;
     padding: 6px;
-    margin: 6px;
+    margin: 4px;
   }
 
 `;

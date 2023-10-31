@@ -1,15 +1,15 @@
 import styled from "@emotion/styled";
-import eggIcon from "../assets/cardtype_icons/egg.png";
-import digimonIcon from "../assets/cardtype_icons/gammamon.png";
-import tamerIcon from "../assets/cardtype_icons/tamer.png";
-import optionIcon from "../assets/cardtype_icons/option.png";
-import loadingAnimation from "../assets/lotties/loading.json";
+import eggIcon from "../../assets/cardtype_icons/egg.png";
+import digimonIcon from "../../assets/cardtype_icons/gammamon.png";
+import tamerIcon from "../../assets/cardtype_icons/tamer.png";
+import optionIcon from "../../assets/cardtype_icons/option.png";
+import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
-import {useStore} from "../hooks/useStore.ts";
-import {CardTypeWithId} from "../utils/types.ts";
-import Card from "./Card.tsx";
-import {sortCards} from "../utils/functions.ts";
-import {playPlaceCardSfx, playTrashCardSfx} from "../utils/sound.ts";
+import {useStore} from "../../hooks/useStore.ts";
+import {CardTypeWithId} from "../../utils/types.ts";
+import Card from "../Card.tsx";
+import {sortCards} from "../../utils/functions.ts";
+import {playPlaceCardSfx, playTrashCardSfx} from "../../utils/sound.ts";
 
 export default function DeckSelection() {
 
@@ -35,12 +35,12 @@ export default function DeckSelection() {
         cardGroups[cardnumber].push(card);
     });
 
-    const filteredDeckLength = deckCards.length - deckCards.filter((card) => card.type === "Digi-Egg").length;
+    const filteredDeckLength = deckCards.length - eggLength;
     const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
     function getAddAllowed(card: CardTypeWithId, lastIndex: boolean) {
-        return ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints))
-            && !!hoverCard
-            && filteredDeckLength < 50
+        return !!hoverCard
+            && ((hoverCard === card))
+            && (filteredDeckLength < 50 || (card.type === "Digi-Egg" && eggLength < 5))
             && (lastIndex || cardsWithoutLimit.includes(card.cardnumber))
             && (deckCards.filter(c => c.cardnumber === card.cardnumber).length < 4
                 || cardsWithoutLimit.includes(card.cardnumber))
@@ -102,7 +102,7 @@ export default function DeckSelection() {
                 <InnerDeckList>
                 {!loadingDeck
                    ? Object.values(cardGroups).map((group, groupIndex) => {
-                        return <div key={groupIndex} style={{position: "relative", marginRight:27, height:"fit-content"}}>
+                        return <GroupContainer key={groupIndex}>
                             {(group.length > 1) && <CardstackCount>×{group.length}</CardstackCount>}
                             {(group.length > 1) && <CountBox/>}
                             {group.map((card: CardTypeWithId, index) => {
@@ -111,19 +111,19 @@ export default function DeckSelection() {
                                         if (group[index - 4]?.cardnumber === card.cardnumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
                                             {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
-                                            {(hoverCard?.id === card.id) && (group.length === index + 1) && DeleteButton(card.id)}
+                                            {(hoverCard?.id === card.id) && (group.length === index + 1
+                                                || cardsWithoutLimit.includes(card.cardnumber)) && DeleteButton(card.id)}
                                             <Card card={card} location={"deck"}/>
                                         </div>
                                     }
                                 }
                                 return <div key={card.id} >
-                                    {getAddAllowed(card, deckCards.filter(c => c.cardnumber === card.cardnumber).length === 1)
-                                        && AddButton(card)}
+                                    {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
                                     {(hoverCard?.id === card.id) && (group.length === index + 1) && DeleteButton(card.id)}
                                     <Card card={card} location={"deck"}/>
                                 </div>
                             })}
-                            </div>
+                            </GroupContainer>
                     })
                     : <Lottie animationData={loadingAnimation} loop={true}
                               style={{width: "130px", marginLeft: "50%", transform: "translateX(-50%)"}}/>
@@ -135,6 +135,15 @@ export default function DeckSelection() {
     );
 }
 
+const GroupContainer = styled.div`
+  position: relative;
+  margin-right: 27px;
+  height: fit-content;
+  @media (max-width: 400px) and (min-height: 600px) {
+    margin-right: 3px;
+  }
+`;
+
 const CardstackCount = styled.span`
   position: absolute;
   top: 83px;
@@ -144,6 +153,11 @@ const CardstackCount = styled.span`
   font-size: 1.6em;
   z-index: 1000;
   pointer-events: none;
+  @media (max-width: 400px) and (min-height: 600px) {
+    top: 75px;
+    left: 53px;
+    font-size: 1.55em;
+  }
 `;
 
 const CountBox = styled.div`
@@ -157,10 +171,14 @@ const CountBox = styled.div`
   z-index: 999;
   filter: drop-shadow(0 0 5px ghostwhite) blur(3px);
   pointer-events: none;
+  @media (max-width: 400px) and (min-height: 600px) {
+    top: 75px;
+    left: 50px;
+  }
 `;
 
 const DeckContainer = styled.div`
-  background-color: rgba(40, 82, 67, 0.985);
+  background-color: rgba(40, 82, 67, 0.7);
   width: 97%;
   margin-left: 1.5%;
   margin-right: 1.5%;
@@ -173,6 +191,11 @@ const DeckContainer = styled.div`
   display: flex;
   align-items: center;
   flex-direction: column;
+
+  @media (max-width: 400px) and (min-height: 600px) {
+    height: 100%;
+    max-height: 51.5vh;
+  }
 
   @media (max-width: 766px) {
     transform: translateY(-0.5px);
@@ -196,12 +219,12 @@ const DeckContainer = styled.div`
 
   @media (min-width: 1000px) {
     height: 79.25%;
-    background-color: rgba(40, 82, 67, 0.825);
+    background-color: rgba(40, 82, 67, 0.7);
   }
 
   @media (min-width: 1500px) and (min-height: 1100px) {
     height: 81.5%;
-    background-color: rgba(40, 82, 67, 0.825);
+    background-color: rgba(40, 82, 67, 0.7);
   }
 `;
 
@@ -257,6 +280,8 @@ const DeckList = styled.fieldset`
   display: flex;
   justify-content: flex-start;
   overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-width: thin;
 
   &::-webkit-scrollbar {
     background-color: rgba(28, 58, 47, 0.98);
@@ -272,6 +297,9 @@ const DeckList = styled.fieldset`
     width: 83.5%;
     font-size: 10px;
     gap: 9px;
+    &::-webkit-scrollbar {
+      width: 3px;
+    }
   };
 
   @media (max-height: 765px) {
@@ -318,6 +346,7 @@ const AddIcon = styled.div`
   pointer-events: auto;
   transition: all 0.075s ease-in;
   filter: drop-shadow(0 0 1px #C71E78E5);
+  user-select: none;
 
   &:hover {
     z-index: 1000;
@@ -332,8 +361,35 @@ const AddIcon = styled.div`
     transform: scale(1.15);
     filter: drop-shadow(0 0 3px mediumaquamarine) sepia(100%) hue-rotate(90deg) saturate(1.5);
   }
+  
+  @media (max-width: 400px) and (min-height: 600px) {
+    right: -5px;
+    bottom: 65px;
+    transform: scale(1.45);
+    filter: drop-shadow(0 0 2px black) sepia(100%) hue-rotate(155deg) brightness(1.45) saturate(6);
+    &:hover {
+      filter: drop-shadow(0 0 2px black) sepia(100%) hue-rotate(155deg) brightness(1.45) saturate(6);
+    }
+    &:active {
+      filter: drop-shadow(0 0 2px black) sepia(100%) hue-rotate(155deg) brightness(1.45) saturate(6);
+    }
+  }
 `;
 
 const DeleteIcon = styled(AddIcon)`
   right: 67px;
+  @media (max-width: 400px) and (min-height: 600px) {
+    right: 45px;
+    bottom: 65px;
+    transform: none;
+    filter: drop-shadow(0 0 2px black);
+    &:hover {
+      transform: none;
+      filter: drop-shadow(0 0 2px black);
+    }
+    &:active {
+      transform: none;
+      filter: drop-shadow(0 0 2px black);
+    }
+  }
 `;

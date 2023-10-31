@@ -52,4 +52,29 @@ public class MongoUserController {
         return mongoUserDetailsService.getAvatar();
     }
 
+    @PutMapping("/sleeve/{sleeveName}")
+    public void setSleeve(@PathVariable String sleeveName){
+        mongoUserDetailsService.setSleeve(sleeveName);
+    }
+
+    @GetMapping("/sleeve")
+    public String getSleeve() {
+        return mongoUserDetailsService.getSleeve();
+    }
+
+    @GetMapping("/recovery/{username}")
+    public String getRecoveryQuestion(@PathVariable String username) {
+        return mongoUserDetailsService.getRecoveryQuestion(username);
+    }
+
+    @PutMapping("/recovery")
+    public String changePassword(@RequestBody PasswordRecovery passwordRecovery) {
+        return mongoUserDetailsService.changePassword(passwordRecovery);
+    }
+
+    @PutMapping("/change-question")
+    public String changeQuestion(@RequestBody SafetyQuestionChange safetyQuestionChange) {
+        return mongoUserDetailsService.changeQuestion(safetyQuestionChange);
+    }
+
 }

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import {useState} from "react";
-import {useStore} from "../hooks/useStore.ts";
+import {useStore} from "../../hooks/useStore.ts";
 export default function DeckImport() {
 
     const [deckString, setDeckString] = useState<string>("");

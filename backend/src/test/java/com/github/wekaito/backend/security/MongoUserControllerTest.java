@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -19,6 +20,15 @@ class MongoUserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    String testUserWithoutId = """
+                {
+                    "username": "testUser",
+                    "password": "testPassWord1",
+                    "question": "question?",
+                    "answer": "answer!"
+                }
+            """;
 
     @Test
     void getAnonymousUser_whenGetUserName() throws Exception {
@@ -44,12 +54,20 @@ class MongoUserControllerTest {
     @Test
     @WithMockUser(username = "testUser", password = "testPassword")
     void getUserName_whenLogin() throws Exception {
-        // GIVEN that user is logged in
         // WHEN
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login").with(csrf()))
                 // THEN
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("testUser"));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", password = "testPassword")
+    void getStatusOk_whenLogout() throws Exception {
+        // WHEN
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/logout").with(csrf()))
+                // THEN
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
@@ -65,13 +83,6 @@ class MongoUserControllerTest {
 
     @Test
     void expectRegistration_whenRegisterUser() throws Exception {
-        //GIVEN
-        String testUserWithoutId = """
-                    {
-                        "username": "newTestUser",
-                        "password": "secretPass3"
-                    }
-                """;
 
         //WHEN
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
@@ -84,15 +95,9 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     @WithMockUser(username = "testUser", password = "testPassword")
     void expectActiveDeck_AfterSetActiveDeck() throws Exception {
-
-        String testUserWithoutId = """
-                {
-                    "username": "testUser",
-                    "password": "testPassWord1"
-                }
-            """;
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -115,15 +120,9 @@ class MongoUserControllerTest {
     }
 
     @Test
+    @DirtiesContext
     @WithMockUser(username = "testUser", password = "testPassword")
     void expectTestAvatar_AfterSetAvatar() throws Exception {
-
-        String testUserWithoutId = """
-                {
-                    "username": "testUser",
-                    "password": "testPassWord1"
-                }
-            """;
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -134,7 +133,7 @@ class MongoUserControllerTest {
                 .with(csrf())
         ).andExpect(MockMvcResultMatchers.status().isOk());
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/avatar/test")
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/avatar/test-avatar")
                         .with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
@@ -142,6 +141,101 @@ class MongoUserControllerTest {
                         .with(csrf()))
                 //THEN
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("test"));
+                .andExpect(MockMvcResultMatchers.content().string("test-avatar"));
+    }
+
+    @Test
+    @DirtiesContext
+    @WithMockUser(username = "testUser", password = "testPassword")
+    void expectTestSleeve_AfterSetSleeve() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testUserWithoutId)
+                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login")
+                .with(csrf())
+        ).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/sleeve/test-sleeve")
+                        .with(csrf()))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/user/sleeve")
+                        .with(csrf()))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("test-sleeve"));
+    }
+
+    @Test
+    @DirtiesContext
+    void expectQuestion_AfterGetRecoveryQuestion() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testUserWithoutId)
+                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login")
+                .with(csrf())
+        ).andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/user/recovery/testUser")
+                        .with(csrf()))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("question?"));
+    }
+
+    @Test
+    @DirtiesContext
+    void expectMessage_AfterChangePassword() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testUserWithoutId)
+                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
+
+        String testRecoveryObject = """
+                {
+                    "username": "testUser",
+                    "answer": "answer!",
+                    "newPassword": "testPassword2"
+                }
+            """;
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/recovery")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testRecoveryObject)
+                .with(csrf()))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("Password changed!"));
+    }
+
+    @Test
+    @DirtiesContext
+    @WithMockUser(username = "testUser", password = "testPassword")
+    void expectMessage_AfterChangeQuestion() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testUserWithoutId)
+                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
+
+        String testSafetyQuestionChange = """
+                {
+                    "question": "Cutest Digimon?",
+                    "answer": "Gammamon!"
+                }
+            """;
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/change-question")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(testSafetyQuestionChange)
+                        .with(csrf()))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("Safety question changed!"));
     }
 }

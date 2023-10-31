@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import {useState} from "react";
-import {useStore} from "../hooks/useStore.ts";
+import {useStore} from "../../hooks/useStore.ts";
 
 export default function SearchForm() {
 
@@ -314,7 +314,7 @@ export default function SearchForm() {
 
 const StyledForm = styled.form`
 
-  background-color: rgba(102, 62, 71, 0.985);
+  background-color: rgba(102, 62, 71, 0.75);
   width: 97%;
   height: 13vh;
   max-height: 110px;
@@ -331,6 +331,10 @@ const StyledForm = styled.form`
     "level stage digitype digitype"
     "attribute cardnumber submit submit";
   overflow: hidden;
+
+  @media (max-width: 600px) {
+    width: 96%;
+  }
 
   @media (min-width: 768px) {
     grid-gap: 5px;

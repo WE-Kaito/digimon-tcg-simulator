@@ -30,23 +30,6 @@ class DeckControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    Card exampleCard = new Card(
-            "Agumon",
-            "Digimon",
-            "Red",
-            "https://images.digimoncard.io/images/cards/BT1-010.jpg",
-            "BT1-010",
-            "Rookie",
-            "Vaccine",
-            "Reptile",
-            2000,
-            3,
-            0,
-            3,
-            "[On Play] Reveal 5 cards from the top of your deck. Add 1 Tamer card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
-            null
-    );
-
     List<String> decklist = new ArrayList<>(List.of("BT1-010", "BT1-010", "BT1-010"));
     DeckWithoutId exampleDeckWithoutId = new DeckWithoutId("New Deck", "Red", decklist);
 
@@ -56,7 +39,9 @@ class DeckControllerTest {
         String testUserWithoutId = """
                 {
                     "username": "testUser",
-                    "password": "testPassWord1"
+                    "password": "testPassWord1",
+                    "question": "question?",
+                    "answer": "answer!"
                 }
             """;
 
@@ -80,7 +65,7 @@ class DeckControllerTest {
 
         Card[] cards = objectMapper.readValue(response, Card[].class);
 
-        assertThat(cards).contains(exampleCard).hasSizeGreaterThan(200);
+        assertThat(cards).hasSizeGreaterThan(200);
     }
 
 

@@ -8,9 +8,9 @@ import {
     notifyDelete,
     notifyError, notifyGeneralError, notifyInvalidImport,
     notifyLength,
-    notifyName, notifyRegistered,
+    notifyName, notifyPasswordChanged, notifyQuestionChanged, notifyRegistered,
     notifySuccess,
-    notifyUpdate
+    notifyUpdate, notifyWrongAnswer
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
 import {addStarterDecks, mostFrequentColor, sortCards} from "../utils/functions.ts";
@@ -28,6 +28,7 @@ type State = {
     activeDeckId: string,
     isSaving: boolean,
     avatarName: string,
+    sleeveName: string,
     gameId: string,
 
     fetchCards: () => void,
@@ -45,14 +46,23 @@ type State = {
     clearDeck: () => void,
     login: (userName: string, password: string, navigate: NavigateFunction) => void,
     me: () => void,
-    register: (userName: string, password: string, setRegisterPage: (state: boolean) => void, navigate: NavigateFunction) => void,
+    register: (userName: string, password: string, question: string, answer:string,
+               setRegisterPage: (state: boolean) => void, navigate: NavigateFunction) => void,
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
     getAvatar: () => string,
+    setSleeve: (avatarName: string) => void,
+    getActiveSleeve: () => string,
     setGameId: (gameId: string) => void,
     importDeck: (decklist: string[]) => void,
     exportDeck: () => string,
+
+    usernameForRecovery: string,
+    recoveryQuestion: string,
+    getRecoveryQuestion: (userName: string) => void,
+    recoverPassword: (answer: string, newPassword: string, navigate: NavigateFunction) => void,
+    changeSafetyQuestion: (question: string, answer: string) => void,
 };
 
 export const useStore = create<State>((set, get) => ({
@@ -69,8 +79,11 @@ export const useStore = create<State>((set, get) => ({
     activeDeckId: "",
     isSaving: false,
     avatarName: "",
+    sleeveName: "Default",
     gameId: "",
     loadingDeck: false,
+    usernameForRecovery: "",
+    recoveryQuestion: "",
 
     fetchCards: () => {
         if (get().fetchedCards.length > 0) return;
@@ -121,14 +134,9 @@ export const useStore = create<State>((set, get) => ({
         set({filteredCards: filteredData, isLoading: false});
     },
 
-    selectCard: (card) => {
-        set({selectedCard: card});
-        console.log(card);
-    },
+    selectCard: (card) => set({selectedCard: card}),
 
-    setHoverCard: (card: CardTypeWithId | null) => {
-        set({hoverCard: card});
-    },
+    setHoverCard: (card: CardTypeWithId | null) => set({hoverCard: card}),
 
     addCardToDeck: (cardnumber, type) => {
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
@@ -203,12 +211,14 @@ export const useStore = create<State>((set, get) => ({
                 }
                 throw error;
             })
-            .then(() =>
-                notifySuccess() &&
+            .then((data) => {
+                if (data === "There was an error while saving the deck.") notifyGeneralError();
+                else  notifySuccess();
                 setTimeout(function () {
                     window.location.reload();
                     set({isSaving: false});
-                }, 3000));
+                }, 2900)
+            });
     },
 
     fetchDecks: () => {
@@ -316,15 +326,16 @@ export const useStore = create<State>((set, get) => ({
             .then(response => set({user: response.data}))
     },
 
-    register: (userName, password, setRegisterPage, navigate) => {
+    register: (userName, password, question, answer, setRegisterPage, navigate) => {
         const newUserData = {
             "username": `${userName}`,
-            "password": `${password}`
+            "password": `${password}`,
+            "question": `${question}`,
+            "answer": `${answer}`
         }
 
         axios.post("/api/user/register", newUserData)
             .then(response => {
-                console.error(response)
                 setRegisterPage(false);
                 if (response.data === "Username already exists!") {
                     notifyAlreadyExists();
@@ -336,9 +347,6 @@ export const useStore = create<State>((set, get) => ({
                         addStarterDecks();
                     }, 3000);
                 }
-            })
-            .catch((e) => {
-                console.error(e);
             });
     },
 
@@ -368,7 +376,6 @@ export const useStore = create<State>((set, get) => ({
         axios.get("/api/user/avatar")
             .then(response => set({avatarName: response.data}))
             .catch(console.error);
-
         return get().avatarName;
     },
 
@@ -411,6 +418,66 @@ export const useStore = create<State>((set, get) => ({
     exportDeck: (): string => {
         const decklist = get().deckCards.map((card) => card.cardnumber);
         return JSON.stringify(decklist);
+    },
+
+    setSleeve: (sleeveName) => {
+        axios.put(`/api/user/sleeve/${sleeveName}`, null)
+            .catch(console.error)
+            .finally(() => {
+                set({sleeveName: sleeveName});
+            });
+    },
+
+    getActiveSleeve: () => {
+        axios.get("/api/user/sleeve")
+            .then(response => set({sleeveName: response.data === "" ? "Default" : response.data}))
+            .catch(console.error);
+        return get().sleeveName;
+    },
+
+    getRecoveryQuestion: (username) => {
+        axios.get(`/api/user/recovery/${username}`)
+            .then(response =>  response?.data )
+            .catch(console.error)
+            .then(data => {
+                set({recoveryQuestion: data, usernameForRecovery: username});
+            });
+    },
+
+    recoverPassword: (answer, password, navigate) => {
+        const passwordRecovery = {
+            "username": `${get().usernameForRecovery}`,
+            "answer": `${answer}`,
+            "newPassword": `${password}`
+        }
+
+        axios.put("/api/user/recovery", passwordRecovery)
+            .then(response => {
+                if (response.data === "Answer didn't match!") {
+                    notifyWrongAnswer();
+                }
+                if (response.data === "Password changed!") {
+                    notifyPasswordChanged();
+                    navigate("/login");
+                }
+            });
+    },
+
+    changeSafetyQuestion: (question, answer) => {
+        const safetyQuestionChange = {
+            "question": `${question}`,
+            "answer": `${answer}`
+        }
+
+        axios.put("/api/user/change-question", safetyQuestionChange)
+            .then(response => {
+                if (response.data === "Safety question changed!") {
+                    notifyQuestionChanged();
+                }
+                else {
+                    notifyGeneralError();
+                }
+            });
     }
 
 }));
