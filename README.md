@@ -1,19 +1,21 @@
 Digimon TCG Simulator
 ---
 
-This started as a graduation project for the [neuefische](https://www.neuefische.de/en) java/full-stack bootcamp.
+This started as a graduation project for a full stack coding bootcamp.
 It was always a dream of mine to make some sort of Digimon fan game, so why not making the still missing sim for [its card game](https://world.digimoncard.com/)?
 
 Feel free to use the code to improve upon. Reviews, bug-reports and feature-requests are also very welcome!
 
 **Features**:
 - [x] Register with a unique username + password to use the App.
+- [X] Password Recovery with a safety question + answer.
 - [x] Deckbuilder using [digimoncard.io's API](https://documenter.getpostman.com/view/14059948/TzecB4fH).
-- [x] Drag and drop cards. 
-- [x] Edit your decks and set your avatar and active deck on the profile page.
+- [X] Import / Export your deck list. (Currently TTS format only)
+- [x] Drag and drop cards and card-stacks.
+- [x] Edit your decks and set your avatar, card sleeve and active deck on the profile page.
 - [x] Chat with other players and invite your friends in the Lobby.
-- [x] Mobile compatible (Game page currently not optimized).
-- [X] Manual simulation of the *Digimon Card Game* with audio and animations
+- [x] Mobile compatible (Game page currently not too optimized).
+- [X] Manual simulation of the *Digimon Card Game* with audio and animations and a Log
 
 **Try it on [www.digi-tcg.online](https://www.digi-tcg.online/)**
 
@@ -27,7 +29,7 @@ Join our discord community! https://discord.gg/sBdByGAh2y
 
 - **Frontend:** React with Vite, Axios, Zustand, Emotion, react-dnd, react-use-websocket
 
-- - **Other libraries:** react-router-dom, react-awesome-reveal, react-arrows, lottie-react, react-toastify
+- - **Other libraries:** react-router-dom, react-awesome-reveal, react-arrows, lottie-react, react-toastify, react-particles
   - **Design:** Figma, Excalidraw
 
 - **Backend:** Spring Boot with Spring WebFlux, WebSocket, Security + MongoDB
