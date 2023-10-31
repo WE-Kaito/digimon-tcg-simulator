@@ -1,4 +1,4 @@
-export default function Pen({scale}: { scale?: number }) {
+export default function Pen({scale}: { readonly scale?: number }) {
     return (
         <div style={{position: "absolute", transform:"translate(-15px, 2px)"}}>
         <svg width={scale ? (scale * 140) : 140} height={scale ? (scale * 220) : 220}
