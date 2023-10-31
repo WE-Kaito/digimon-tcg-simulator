@@ -3,8 +3,8 @@ import tsunomon from "../assets/sleeves/BT6_006_TSUNOMON.png";
 import agumon from "../assets/sleeves/BT1_010_AGUMON.png";
 import gabumon from "../assets/sleeves/BT2_069_GABUMON.png";
 import tanemon from "../assets/sleeves/BT11_004_TANEMON.png";
-import togemon from "../assets/sleeves/BT1_074_TOGEMON.png";
 import rosemon from "../assets/sleeves/BT1_082_ROSEMON.png";
+import gaomon from "../assets/sleeves/BT4_021_GAOMON.png";
 import tapirmon from "../assets/sleeves/BT2_070_TAPIRMON.png";
 import seadramon from "../assets/sleeves/BT2_024_SEADRAMON.png";
 import upamon from "../assets/sleeves/BT1_003_UPAMON.png";
@@ -40,10 +40,10 @@ export const sleeves: Picture[] = [
     {name: "Agumon", imagePath: agumon},
     {name: "Gabumon", imagePath: gabumon},
     {name: "Tanemon", imagePath: tanemon},
-    {name: "Togemon", imagePath: togemon},
     {name: "Rosemon", imagePath: rosemon},
     {name: "Seadramon", imagePath: seadramon},
     {name: "Upamon", imagePath: upamon},
+    {name: "Gaomon", imagePath: gaomon},
     {name: "Tapirmon", imagePath: tapirmon},
     {name: "Boltmon", imagePath: boltmon},
     {name: "Beelstarmon", imagePath: beelstarmon},

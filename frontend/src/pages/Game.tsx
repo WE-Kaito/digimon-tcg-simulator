@@ -1681,7 +1681,8 @@ const TrashView = styled.div`
   left: 59.5%;
   top: 27%;
   transform: translate(-50%, -50%);
-
+  
+  scrollbar-width: none;
   ::-webkit-scrollbar {
     visibility: hidden;
     width: 0;
