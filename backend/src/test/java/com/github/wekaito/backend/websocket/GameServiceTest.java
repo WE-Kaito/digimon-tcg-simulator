@@ -182,7 +182,7 @@ class GameServiceTest {
     @Test
     void testProcessGameChunks() throws IOException, InterruptedException {
         // GIVEN
-        TextMessage expectedMessage = new TextMessage("[DISTRIBUTE_CARDS]:{test}");
+        TextMessage expectedMessage = new TextMessage("[UPDATE_OPPONENT]:{test}");
         TextMessage updateFromClient = new TextMessage(gameId + ":/updateGame:{test}");
         putPlayersToGameRoom();
         // WHEN

@@ -1488,10 +1488,11 @@ const OpponentDeckContainer = styled.div`
 `;
 
 const OpponentDeckSleeve = styled.img`
-  width: 99px;
+  width: 100px;
   height: 140px;
   position: absolute;
   border-radius: 5px;
+  transform: translateY(-1px);
 `;
 
 const MyDeckSleeve = styled.img<{gameHasStarted?: boolean}>`
