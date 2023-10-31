@@ -134,14 +134,9 @@ export const useStore = create<State>((set, get) => ({
         set({filteredCards: filteredData, isLoading: false});
     },
 
-    selectCard: (card) => {
-        set({selectedCard: card});
-        console.log(card);
-    },
+    selectCard: (card) => set({selectedCard: card}),
 
-    setHoverCard: (card: CardTypeWithId | null) => {
-        set({hoverCard: card});
-    },
+    setHoverCard: (card: CardTypeWithId | null) => set({hoverCard: card}),
 
     addCardToDeck: (cardnumber, type) => {
         const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;

@@ -122,18 +122,21 @@ export default function CardDetails() {
             >
                 <SimpleBar
                     className={css`
-                  width: 145px;
-                  height: 45px;
-                  overflow-y: scroll;
-                  overflow-x: hidden;
-                  ::-webkit-scrollbar {
-                    display: none;
-                  }
-                  @media (min-width: 767px) {
-                    width: ${inGame ? "290px" : "475px"};
-                    height: ${inGame ? "100px" : "85px"};
-                  }
-                `}> {highlightedMainEffect}</SimpleBar>
+                      width: 145px;
+                      height: 45px;
+                      overflow-y: scroll;
+                      overflow-x: hidden;
+                      scrollbar-width: none;
+                      font-size: 14px;
+                      ::-webkit-scrollbar {
+                        display: none;
+                      }
+
+                      @media (min-width: 767px) {
+                        width: ${inGame ? "290px" : "475px"};
+                        height: ${inGame ? "100px" : "85px"};
+                      }
+                    `}> {highlightedMainEffect}</SimpleBar>
             </MainEffect>
 
 
@@ -143,18 +146,21 @@ export default function CardDetails() {
             >
                 <SimpleBar
                     className={css`
-                  width: 145px;
-                  height: 45px;
-                  overflow-y: scroll;
-                  overflow-x: hidden;
-                  ::-webkit-scrollbar {
-                    display: none;
-                  }
-                  @media (min-width: 767px) {
-                    width: ${inGame ? "290px" : "475px"};
-                    height: ${inGame ? "94px" : "85px"};
-                  }
-                `}> {highlightedSoureEffect}</SimpleBar>
+                      width: 145px;
+                      height: 45px;
+                      overflow-y: scroll;
+                      overflow-x: hidden;
+                      scrollbar-width: none;
+                      font-size: 14px;
+                      ::-webkit-scrollbar {
+                        display: none;
+                      }
+
+                      @media (min-width: 767px) {
+                        width: ${inGame ? "290px" : "475px"};
+                        height: ${inGame ? "94px" : "85px"};
+                      }
+                    `}> {highlightedSoureEffect}</SimpleBar>
             </SoureEffect>
 
         </Container>
@@ -345,12 +351,12 @@ const StyledParagraph = styled.p<{inGame:boolean}>`
 `;
 
 const MainEffect = styled(StyledParagraph)<{inGame:boolean}>`
-
+  
 `;
 
 const SoureEffect = styled(StyledParagraph)<{inGame:boolean}>`
   top: 173px;
-
+  
   @media (min-width: 767px) {
     top: ${({inGame}) => inGame ? 353:  292.5}px;
   }

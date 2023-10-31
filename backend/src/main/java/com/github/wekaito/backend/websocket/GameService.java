@@ -331,17 +331,17 @@ public class GameService extends TextWebSocketHandler {
         gameChunks.get(gameId).append(chunk);
 
         if (chunk.length() < 1000 && chunk.endsWith("}")) {
-            String fullGameJson = gameChunks.get(gameId).toString();
+            String opponentGameJson = gameChunks.get(gameId).toString();
             gameChunks.remove(gameId);
-            synchronizeGame(session, gameRoom, fullGameJson);
+            synchronizeGame(session, gameRoom, opponentGameJson);
         }
     }
 
-    void synchronizeGame(WebSocketSession session, Set<WebSocketSession> gameRoom, String fullGameJson) throws IOException {
+    void synchronizeGame(WebSocketSession session, Set<WebSocketSession> gameRoom, String opponentGameJson) throws IOException {
         if (gameRoom == null) return;
         for (WebSocketSession s : gameRoom) {
             if (s.isOpen() && !s.equals(session)) {
-                sendTextMessage(s, "[DISTRIBUTE_CARDS]:" + fullGameJson);
+                sendTextMessage(s, "[UPDATE_OPPONENT]:" + opponentGameJson);
             }
         }
     }

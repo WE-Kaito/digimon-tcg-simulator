@@ -76,5 +76,4 @@ class MongoUserDetailsServiceTest {
             mongoUserDetailsService.getUserIdByUsername("notExistingUser");
         });
     }
-
 }

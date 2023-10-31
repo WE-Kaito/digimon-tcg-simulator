@@ -1,5 +1,5 @@
 import {create} from "zustand";
-import {CardTypeGame, GameDistribution, Player} from "../utils/types.ts";
+import {CardTypeGame, GameDistribution, OneSideDistribution, Player} from "../utils/types.ts";
 import {uid} from "uid";
 import {playTrashCardSfx} from "../utils/sound.ts";
 import tokenImage from "../assets/tokenCard.jpg";
@@ -69,7 +69,8 @@ type State = {
     clearBoard: () => void,
     distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
-    getUpdatedGame: (gameId: string, user: string) => string,
+    getMyFieldAsString: () => string,
+    updateOpponentField: (field: OneSideDistribution) => void,
 
     sendCardToDeck: (topOrBottom: "Top" | "Bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
@@ -331,99 +332,53 @@ export const useGame = create<State>((set, get) => ({
         }
     },
 
-    getUpdatedGame: (gameId, user) => {
-
-        const player1 = gameId.split("‗")[0];
-        let updatedGame: GameDistribution;
-
-        if (user === player1) {
-            updatedGame = {
-                player1Memory: get().myMemory,
-                player1Reveal: get().myReveal,
-                player1Hand: get().myHand,
-                player1DeckField: get().myDeckField,
-                player1EggDeck: get().myEggDeck,
-                player1Trash: get().myTrash,
-                player1Security: get().mySecurity,
-                player1Tamer: get().myTamer,
-                player1Delay: get().myDelay,
-                player1Digi1: get().myDigi1,
-                player1Digi2: get().myDigi2,
-                player1Digi3: get().myDigi3,
-                player1Digi4: get().myDigi4,
-                player1Digi5: get().myDigi5,
-                player1Digi6: get().myDigi6,
-                player1Digi7: get().myDigi7,
-                player1Digi8: get().myDigi8,
-                player1Digi9: get().myDigi9,
-                player1Digi10: get().myDigi10,
-                player1BreedingArea: get().myBreedingArea,
-                player2Memory: get().opponentMemory,
-                player2Reveal: get().opponentReveal,
-                player2Hand: get().opponentHand,
-                player2DeckField: get().opponentDeckField,
-                player2EggDeck: get().opponentEggDeck,
-                player2Trash: get().opponentTrash,
-                player2Security: get().opponentSecurity,
-                player2Tamer: get().opponentTamer,
-                player2Delay: get().opponentDelay,
-                player2Digi1: get().opponentDigi1,
-                player2Digi2: get().opponentDigi2,
-                player2Digi3: get().opponentDigi3,
-                player2Digi4: get().opponentDigi4,
-                player2Digi5: get().opponentDigi5,
-                player2Digi6: get().opponentDigi6,
-                player2Digi7: get().opponentDigi7,
-                player2Digi8: get().opponentDigi8,
-                player2Digi9: get().opponentDigi9,
-                player2Digi10: get().opponentDigi10,
-                player2BreedingArea: get().opponentBreedingArea
+    getMyFieldAsString: () => {
+        const updatedGame: OneSideDistribution = {
+                playerReveal: get().myReveal,
+                playerHand: get().myHand,
+                playerDeckField: get().myDeckField,
+                playerEggDeck: get().myEggDeck,
+                playerTrash: get().myTrash,
+                playerSecurity: get().mySecurity,
+                playerTamer: get().myTamer,
+                playerDelay: get().myDelay,
+                playerDigi1: get().myDigi1,
+                playerDigi2: get().myDigi2,
+                playerDigi3: get().myDigi3,
+                playerDigi4: get().myDigi4,
+                playerDigi5: get().myDigi5,
+                playerDigi6: get().myDigi6,
+                playerDigi7: get().myDigi7,
+                playerDigi8: get().myDigi8,
+                playerDigi9: get().myDigi9,
+                playerDigi10: get().myDigi10,
+                playerBreedingArea: get().myBreedingArea,
             };
-        } else {
-            updatedGame = {
-                player1Memory: get().opponentMemory,
-                player1Reveal: get().opponentReveal,
-                player1Hand: get().opponentHand,
-                player1DeckField: get().opponentDeckField,
-                player1EggDeck: get().opponentEggDeck,
-                player1Trash: get().opponentTrash,
-                player1Security: get().opponentSecurity,
-                player1Tamer: get().opponentTamer,
-                player1Delay: get().opponentDelay,
-                player1Digi1: get().opponentDigi1,
-                player1Digi2: get().opponentDigi2,
-                player1Digi3: get().opponentDigi3,
-                player1Digi4: get().opponentDigi4,
-                player1Digi5: get().opponentDigi5,
-                player1Digi6: get().opponentDigi6,
-                player1Digi7: get().opponentDigi7,
-                player1Digi8: get().opponentDigi8,
-                player1Digi9: get().opponentDigi9,
-                player1Digi10: get().opponentDigi10,
-                player1BreedingArea: get().opponentBreedingArea,
-                player2Memory: get().myMemory,
-                player2Reveal: get().myReveal,
-                player2Hand: get().myHand,
-                player2DeckField: get().myDeckField,
-                player2EggDeck: get().myEggDeck,
-                player2Trash: get().myTrash,
-                player2Security: get().mySecurity,
-                player2Tamer: get().myTamer,
-                player2Delay: get().myDelay,
-                player2Digi1: get().myDigi1,
-                player2Digi2: get().myDigi2,
-                player2Digi3: get().myDigi3,
-                player2Digi4: get().myDigi4,
-                player2Digi5: get().myDigi5,
-                player2Digi6: get().myDigi6,
-                player2Digi7: get().myDigi7,
-                player2Digi8: get().myDigi8,
-                player2Digi9: get().myDigi9,
-                player2Digi10: get().myDigi10,
-                player2BreedingArea: get().myBreedingArea
-            };
-        }
         return JSON.stringify(updatedGame);
+    },
+
+    updateOpponentField: (field: OneSideDistribution) => {
+        set ({
+            opponentReveal: field.playerReveal,
+            opponentHand: field.playerHand,
+            opponentDeckField: field.playerDeckField,
+            opponentEggDeck: field.playerEggDeck,
+            opponentTrash: field.playerTrash,
+            opponentSecurity: field.playerSecurity,
+            opponentTamer: field.playerTamer,
+            opponentDelay: field.playerDelay,
+            opponentDigi1: field.playerDigi1,
+            opponentDigi2: field.playerDigi2,
+            opponentDigi3: field.playerDigi3,
+            opponentDigi4: field.playerDigi4,
+            opponentDigi5: field.playerDigi5,
+            opponentDigi6: field.playerDigi6,
+            opponentDigi7: field.playerDigi7,
+            opponentDigi8: field.playerDigi8,
+            opponentDigi9: field.playerDigi9,
+            opponentDigi10: field.playerDigi10,
+            opponentBreedingArea: field.playerBreedingArea,
+        });
     },
 
     moveCard: (cardId, from, to) => {

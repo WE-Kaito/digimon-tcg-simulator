@@ -4,7 +4,7 @@ import {
     CardTypeGame,
     DraggedItem,
     DraggedStack,
-    GameDistribution, HandCardContextMenuItemProps,
+    GameDistribution, HandCardContextMenuItemProps, OneSideDistribution,
     Player
 } from "../utils/types.ts";
 import {profilePicture} from "../utils/avatars.ts";
@@ -66,7 +66,8 @@ export default function Game({user}: { user: string }) {
     const setUpGame = useGame((state) => state.setUpGame);
     const clearBoard = useGame((state) => state.clearBoard);
     const distributeCards = useGame((state) => state.distributeCards);
-    const getUpdatedGame = useGame((state) => state.getUpdatedGame);
+    const getMyFieldAsString = useGame((state) => state.getMyFieldAsString);
+    const updateOpponentField = useGame((state) => state.updateOpponentField);
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
 
     const moveCard = useGame((state) => state.moveCard);
@@ -184,6 +185,12 @@ export default function Game({user}: { user: string }) {
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const newGame: GameDistribution = JSON.parse(event.data.substring("[DISTRIBUTE_CARDS]:".length));
                 distributeCards(user, newGame, gameId);
+                return;
+            }
+
+            if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
+                const opponentGameJson: OneSideDistribution = JSON.parse(event.data.substring("[UPDATE_OPPONENT]:".length));
+                updateOpponentField(opponentGameJson);
                 return;
             }
 
@@ -356,8 +363,7 @@ export default function Game({user}: { user: string }) {
     }
 
     function sendUpdate() {
-        const updatedGame: string = getUpdatedGame(gameId, user);
-        const chunks = chunkString(updatedGame, 1000);
+        const chunks = chunkString(getMyFieldAsString(), 1000);
         const timeoutIds: number[] = [];
         for (const chunk of chunks) {
             const timeoutId = setTimeout(() => {
