@@ -95,8 +95,6 @@ export type GameDistribution = {
     player1EggDeck: CardTypeGame[],
     player1Trash?: CardTypeGame[],
     player1Security: CardTypeGame[],
-    player1Tamer?: CardTypeGame[],
-    player1Delay?: CardTypeGame[],
 
     player1Digi1?: CardTypeGame[],
     player1Digi2?: CardTypeGame[],
@@ -108,6 +106,11 @@ export type GameDistribution = {
     player1Digi8?: CardTypeGame[],
     player1Digi9?: CardTypeGame[],
     player1Digi10?: CardTypeGame[],
+    player1Digi11?: CardTypeGame[],
+    player1Digi12?: CardTypeGame[],
+    player1Digi13?: CardTypeGame[],
+    player1Digi14?: CardTypeGame[],
+    player1Digi15?: CardTypeGame[],
     player1BreedingArea?: CardTypeGame[],
 
     player2Hand: CardTypeGame[],
@@ -115,8 +118,6 @@ export type GameDistribution = {
     player2EggDeck: CardTypeGame[],
     player2Trash?: CardTypeGame[],
     player2Security: CardTypeGame[],
-    player2Tamer?: CardTypeGame[],
-    player2Delay?: CardTypeGame[],
 
     player2Digi1?: CardTypeGame[],
     player2Digi2?: CardTypeGame[],
@@ -128,6 +129,11 @@ export type GameDistribution = {
     player2Digi8?: CardTypeGame[],
     player2Digi9?: CardTypeGame[],
     player2Digi10?: CardTypeGame[],
+    player2Digi11?: CardTypeGame[],
+    player2Digi12?: CardTypeGame[],
+    player2Digi13?: CardTypeGame[],
+    player2Digi14?: CardTypeGame[],
+    player2Digi15?: CardTypeGame[],
     player2BreedingArea?: CardTypeGame[]
 }
 
@@ -139,8 +145,6 @@ export type OneSideDistribution = {
     playerEggDeck: CardTypeGame[],
     playerTrash?: CardTypeGame[],
     playerSecurity: CardTypeGame[],
-    playerTamer?: CardTypeGame[],
-    playerDelay?: CardTypeGame[],
 
     playerDigi1?: CardTypeGame[],
     playerDigi2?: CardTypeGame[],
@@ -152,6 +156,11 @@ export type OneSideDistribution = {
     playerDigi8?: CardTypeGame[],
     playerDigi9?: CardTypeGame[],
     playerDigi10?: CardTypeGame[],
+    playerDigi11?: CardTypeGame[],
+    playerDigi12?: CardTypeGame[],
+    playerDigi13?: CardTypeGame[],
+    playerDigi14?: CardTypeGame[],
+    playerDigi15?: CardTypeGame[],
     playerBreedingArea?: CardTypeGame[],
 }
 
