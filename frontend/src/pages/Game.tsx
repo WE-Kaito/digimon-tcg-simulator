@@ -507,6 +507,31 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi10")
     }));
 
+    const [, dropToDigi11] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi11")
+    }));
+
+    const [, dropToDigi12] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi12")
+    }));
+
+    const [, dropToDigi13] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi13")
+    }));
+
+    const [, dropToDigi14] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi14")
+    }));
+
+    const [, dropToDigi15] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi15")
+    }));
+
     const [, dropToBreedingArea] = useDrop(() => ({
         accept: ["card", "card-stack"],
         drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myBreedingArea")
@@ -520,23 +545,6 @@ export default function Game({user}: { user: string }) {
             sendSingleUpdate(id, location, 'myHand');
             playCardToHandSfx();
             if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
-        }
-    }));
-
-    const [, dropToTamer] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name, type} = item;
-            if (type === "Digi-Egg" || type === "Option") return;
-            handleDropToField(id, location, 'myTamer', name);
-        }
-    }));
-
-    const [, dropToDelay] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDelay', name);
         }
     }));
 
@@ -637,6 +645,31 @@ export default function Game({user}: { user: string }) {
     const [, dropToOpponentDigi10] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi10')
+    }));
+
+    const [, dropToOpponentDigi11] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi11')
+    }));
+
+    const [, dropToOpponentDigi12] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi12')
+    }));
+
+    const [, dropToOpponentDigi13] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi13')
+    }));
+
+    const [, dropToOpponentDigi14] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi14')
+    }));
+
+    const [, dropToOpponentDigi15] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi15')
     }));
 
     const [, dropToOpponentSecurity] = useDrop(() => ({
@@ -1206,22 +1239,11 @@ export default function Game({user}: { user: string }) {
                                                  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea5>
 
-                            <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
-                                {myDelay.map((card, index) =>
-                                    <DelayCardContainer key={card.id} cardIndex={index}>
-                                        <Card card={card} location={"myDelay"}/></DelayCardContainer>)}
-                                {myDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
-                            </DelayAreaContainer>
-
-                            <TamerAreaContainer ref={dropToTamer}>
-                                {myTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}
-                                                        digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
-                                                        tamerIndex={getTamerCardIndex(card, myTamer)}>
-                                        <Card card={card} location={"myTamer"}
-                                              sendSfx={sendSfx} sendUpdate={sendUpdate}/></TamerCardContainer>)}
-                                {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
-                            </TamerAreaContainer>
+                            <BattleArea11 ref={dropToDigi11} id={"myDigi11"}>
+                                <CardStack cards={myDigi11} location={"myDigi11"} sendSfx={sendSfx}
+                                                 sendUpdate={sendUpdate}
+                                                 handleDropToStackBottom={handleDropToStackBottom}/>
+                            </BattleArea11>
 
                             <HandContainer ref={dropToHand}>
                                 <HandCards cardCount={myHand.length}
