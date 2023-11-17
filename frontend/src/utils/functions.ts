@@ -121,7 +121,8 @@ export function calculateCardOffsetX(handCardLength: number, index: number) {
 export function topCardInfo(card: CardTypeGame, location:string, locationCards: CardTypeGame[]){
     const locationsWithInfo = ["myBreedingArea", "opponentBreedingArea",
         "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
-        "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
+        "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6",
+        "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
     if (!locationsWithInfo.find((l => l === location))) return undefined;
 
     let effectInfo = "Inherited effects: \n";
@@ -226,8 +227,6 @@ export function getCardSize(location: string) {
             return "102px";
         case "fetchedData":
             return "110px";
-        case "myTamer":
-            return "85px";
         default:
             return "95px";
     }
@@ -265,8 +264,6 @@ export function convertForLog(location: string) {
         myEggDeck: "Egg-Deck",
         myTrash: "Trash",
         mySecurity: "Security",
-        myTamer: "Tamers",
-        myDelay: "Delay",
         myBreedingArea: "Breeding",
         myDigi1: "BA 1",
         myDigi2: "BA 2",
@@ -278,6 +275,11 @@ export function convertForLog(location: string) {
         myDigi8: "BA 8",
         myDigi9: "BA 9",
         myDigi10: "BA 10",
+        myDigi11: "Tamer 1",
+        myDigi12: "Tamer 2",
+        myDigi13: "Tamer 3",
+        myDigi14: "Tamer 4",
+        myDigi15: "Tamer 5",
         myReveal: "Reveal",
     };
     return locationMappings[location] || location;

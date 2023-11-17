@@ -18,8 +18,6 @@ type State = {
     myEggDeck: CardTypeGame[],
     myTrash: CardTypeGame[],
     mySecurity: CardTypeGame[],
-    myTamer: CardTypeGame[],
-    myDelay: CardTypeGame[],
 
     myDigi1: CardTypeGame[],
     myDigi2: CardTypeGame[],
@@ -31,6 +29,11 @@ type State = {
     myDigi8: CardTypeGame[],
     myDigi9: CardTypeGame[],
     myDigi10: CardTypeGame[],
+    myDigi11: CardTypeGame[],
+    myDigi12: CardTypeGame[],
+    myDigi13: CardTypeGame[],
+    myDigi14: CardTypeGame[],
+    myDigi15: CardTypeGame[],
     myBreedingArea: CardTypeGame[],
 
     opponentMemory: number,
@@ -54,6 +57,11 @@ type State = {
     opponentDigi8: CardTypeGame[],
     opponentDigi9: CardTypeGame[],
     opponentDigi10: CardTypeGame[],
+    opponentDigi11: CardTypeGame[],
+    opponentDigi12: CardTypeGame[],
+    opponentDigi13: CardTypeGame[],
+    opponentDigi14: CardTypeGame[],
+    opponentDigi15: CardTypeGame[],
     opponentBreedingArea: CardTypeGame[],
 
     messages: string[],
@@ -87,12 +95,13 @@ type State = {
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
-    "myEggDeck", "myBreedingArea", "opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity",
+    "myEggDeck", "myBreedingArea", "opponentHand", "opponentSecurity",
     "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
 
-const opponentLocations = ["opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity", "opponentDeckField",
-    "opponentEggDeck", "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
-    "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentReveal"];
+const opponentLocations = ["opponentHand", "opponentSecurity", "opponentDeckField", "opponentEggDeck",
+    "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
+    "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10",
+    "opponentDigi11","opponentDigi12","opponentDigi13","opponentDigi14","opponentDigi15", "opponentReveal"];
 
 export const useGame = create<State>((set, get) => ({
 
