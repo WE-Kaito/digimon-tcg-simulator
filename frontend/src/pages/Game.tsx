@@ -12,7 +12,8 @@ import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx, getConsecutiveDigimonIndex, getTamerCardIndex, convertForLog
+    getOpponentSfx,
+    convertForLog
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -121,8 +122,6 @@ export default function Game({user}: { user: string }) {
     const myEggDeck = useGame((state) => state.myEggDeck);
     const myTrash = useGame((state) => state.myTrash);
     const mySecurity = useGame((state) => state.mySecurity);
-    const myTamer = useGame((state) => state.myTamer);
-    const myDelay = useGame((state) => state.myDelay);
     const myReveal = useGame((state) => state.myReveal);
 
     const myDigi1 = useGame((state) => state.myDigi1);
@@ -135,6 +134,11 @@ export default function Game({user}: { user: string }) {
     const myDigi8 = useGame((state) => state.myDigi8);
     const myDigi9 = useGame((state) => state.myDigi9);
     const myDigi10 = useGame((state) => state.myDigi10);
+    const myDigi11 = useGame((state) => state.myDigi11);
+    const myDigi12 = useGame((state) => state.myDigi12);
+    const myDigi13 = useGame((state) => state.myDigi13);
+    const myDigi14 = useGame((state) => state.myDigi14);
+    const myDigi15 = useGame((state) => state.myDigi15);
     const myBreedingArea = useGame((state) => state.myBreedingArea);
 
     const opponentHand = useGame((state) => state.opponentHand);
@@ -142,8 +146,6 @@ export default function Game({user}: { user: string }) {
     const opponentEggDeck = useGame((state) => state.opponentEggDeck);
     const opponentTrash = useGame((state) => state.opponentTrash);
     const opponentSecurity = useGame((state) => state.opponentSecurity);
-    const opponentTamer = useGame((state) => state.opponentTamer);
-    const opponentDelay = useGame((state) => state.opponentDelay);
     const opponentReveal = useGame((state) => state.opponentReveal);
 
     const opponentDigi1 = useGame((state) => state.opponentDigi1);
@@ -156,6 +158,11 @@ export default function Game({user}: { user: string }) {
     const opponentDigi8 = useGame((state) => state.opponentDigi8);
     const opponentDigi9 = useGame((state) => state.opponentDigi9);
     const opponentDigi10 = useGame((state) => state.opponentDigi10);
+    const opponentDigi11 = useGame((state) => state.opponentDigi11);
+    const opponentDigi12 = useGame((state) => state.opponentDigi12);
+    const opponentDigi13 = useGame((state) => state.opponentDigi13);
+    const opponentDigi14 = useGame((state) => state.opponentDigi14);
+    const opponentDigi15 = useGame((state) => state.opponentDigi15);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
@@ -687,7 +694,10 @@ export default function Game({user}: { user: string }) {
         if (myTrash.length === 0) {
             setTrashMoodle(false);
         }
-    }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myReveal, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10]);
+    }, [
+        myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myReveal, myDigi1, myDigi2, myDigi3, myDigi4,
+        myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10, myDigi11, myDigi12, myDigi13, myDigi14, myDigi15
+    ]);
 
     useEffect(() => {
         clearBoard();
@@ -773,7 +783,7 @@ export default function Game({user}: { user: string }) {
         }
     }
 
-    function handleShuffleSecurity(){
+    function handleShuffleSecurity() {
         shuffleSecurity();
         sendUpdate();
         playShuffleDeckSfx();
@@ -791,7 +801,7 @@ export default function Game({user}: { user: string }) {
         (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
     }
 
-    function revealHandCard({props} : ItemParams<HandCardContextMenuItemProps>) {
+    function revealHandCard({props}: ItemParams<HandCardContextMenuItemProps>) {
         if (!opponentReady || props === undefined) return;
         moveCard(myHand[props.index].id, "myHand", "myReveal");
         sendSingleUpdate(myHand[props.index].id, "myHand", "myReveal");
@@ -800,9 +810,9 @@ export default function Game({user}: { user: string }) {
         sendSfx("playRevealSfx");
     }
 
-    const {show: showDeckMenu} = useContextMenu({ id: "deckMenu" });
-    const {show: showDetailsImageMenu} = useContextMenu({ id: "detailsImageMenu" });
-    const {show: showHandCardMenu} = useContextMenu({ id: "handCardMenu", props: { index: -1 } });
+    const {show: showDeckMenu} = useContextMenu({id: "deckMenu"});
+    const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
+    const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
 
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
@@ -894,19 +904,10 @@ export default function Game({user}: { user: string }) {
                     <div style={{display: "flex"}}>
                         <OpponentContainerMain>
 
-                            <PlayerContainer>
-                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
-                                             onClick={() => {
-                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
-                                                 notifyRequestedRestart();
-                                             }}/>
-                                <UserName>{opponentName}</UserName>
-                            </PlayerContainer>
-
                             <OpponentDeckContainer>
                                 {opponentSleeve === "Default"
                                     ? <img alt="deck" src={deckBack} width="105px"/>
-                                    : <div style={{width:"105px", position: "relative"}}>
+                                    : <div style={{width: "105px", position: "relative"}}>
                                         <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
                                         <img alt="deck" src={deckBack} width="105px"/>
                                     </div>}
@@ -925,6 +926,29 @@ export default function Game({user}: { user: string }) {
                                                       }}
                                                       title="Open opponents trash"/>}
                             </OpponentTrashContainer>
+
+                            <OpponentLowerBattleArea>
+                                <BattleArea15 ref={dropToOpponentDigi15} id={"opponentDigi15"}>
+                                    <CardStack cards={opponentDigi15} location={"opponentDigi15"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea15>
+                                <BattleArea14 ref={dropToOpponentDigi14} id={"opponentDigi14"}>
+                                    <CardStack cards={opponentDigi14} location={"opponentDigi14"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea14>
+                                <BattleArea13 ref={dropToOpponentDigi13} id={"opponentDigi13"}>
+                                    <CardStack cards={opponentDigi13} location={"opponentDigi13"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea13>
+                                <BattleArea12 ref={dropToOpponentDigi12} id={"opponentDigi12"}>
+                                    <CardStack cards={opponentDigi12} location={"opponentDigi12"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea12>
+                                <BattleArea11 ref={dropToOpponentDigi11} id={"opponentDigi11"}>
+                                    <CardStack cards={opponentDigi11} location={"opponentDigi11"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea11>
+                            </OpponentLowerBattleArea>
 
                             <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
                                          id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
@@ -969,32 +993,13 @@ export default function Game({user}: { user: string }) {
                                                  sendUpdate={sendUpdate} opponentSide={true}/>}
                             </BattleArea1>
 
-                            <DelayAreaContainer style={{marginTop: "1px", height: "205px"}}>
-                                {opponentDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
-                                {opponentDelay.map((card, index) =>
-                                    <DelayCardContainer key={card.id} cardIndex={index}>
-                                        <Fade direction={"down"} duration={500}>
-                                            <Card card={card} location={"opponentDelay"}/>
-                                        </Fade></DelayCardContainer>)}
-                            </DelayAreaContainer>
-
-                            <TamerAreaContainer style={{height: "205px"}}>
-                                {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
-                                {opponentTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}
-                                                        digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
-                                                        tamerIndex={getTamerCardIndex(card, opponentTamer)}>
-                                        <Fade direction={"left"} duration={500}>
-                                            <Card card={card} location={"opponentTamer"}/>
-                                        </Fade></TamerCardContainer>)}
-                            </TamerAreaContainer>
-
                             <OpponentHandContainer>
                                 <HandCards cardCount={opponentHand.length}
                                            style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
-                                                      key={card.id}><OppenentHandCard alt="card" src={getSleeve(opponentSleeve)}/>
+                                                      key={card.id}><OppenentHandCard alt="card"
+                                                                                      src={getSleeve(opponentSleeve)}/>
                                         </HandListItem>)}
                                 </HandCards>
                                 {opponentHand.length > 5 && <MyHandSpan
@@ -1004,6 +1009,7 @@ export default function Game({user}: { user: string }) {
                         </OpponentContainerMain>
 
                         <OpponentContainerSide>
+
                             <EggDeckContainer>
                                 {opponentEggDeck.length !== 0 &&
                                     <EggDeckSpan
@@ -1016,7 +1022,7 @@ export default function Game({user}: { user: string }) {
                                 <SecuritySpan style={{cursor: "default"}}
                                               id="opponentSecurity">{opponentSecurity.length}</SecuritySpan>
                                 <Lottie animationData={opponentSecurityAnimation} loop={true}
-                                        style={{width: "160px"}}/>
+                                        style={{width: "160px", position: "absolute", left: 5, bottom: -25}}/>
                                 <OpponentSwitchRowButton1 disabled={showAttackArrow}
                                                           onClick={() => setIsOpponentSecondRowVisible(false)}
                                                           secondRowVisible={!isOpponentSecondRowVisible}/>
@@ -1025,6 +1031,15 @@ export default function Game({user}: { user: string }) {
                                                           secondRowVisible={isOpponentSecondRowVisible}/>
                                 {opponentSecondRowWarning && <OpponentSecondRowWarning>!</OpponentSecondRowWarning>}
                             </SecurityStackContainer>
+
+                            <PlayerContainer>
+                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
+                                             onClick={() => {
+                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
+                                                 notifyRequestedRestart();
+                                             }}/>
+                                <UserName>{opponentName}</UserName>
+                            </PlayerContainer>
 
                             <BreedingAreaContainer>
                                 <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
@@ -1041,6 +1056,13 @@ export default function Game({user}: { user: string }) {
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
+                            <PlayerContainer>
+                                <UserName>{user}</UserName>
+                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
+                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
+                                             title="Surrender"/>
+                            </PlayerContainer>
+
                             <EggDeckContainer ref={dropToEggDeck}>
                                 {eggDeckMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
@@ -1087,19 +1109,23 @@ export default function Game({user}: { user: string }) {
                                     : <SendButton title="Close and shuffle Security Stack" style={{left: 20, top: 10}}
                                                   onClick={() => handleOpenSecurity("onClose")}>❌🔄</SendButton>}
 
-                                <SendButtonSmall title="Trash the top card of your Security Stack" style={{left: 20, top: 45}}
+                                <SendButtonSmall title="Trash the top card of your Security Stack"
+                                                 style={{left: 20, top: 45}}
                                                  onClick={() => moveSecurityCard("myTrash")}>
                                     🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButtonSmall title="Trash the bottom card of your Security Stack" style={{left: 20, top: 80}}
+                                <SendButtonSmall title="Trash the bottom card of your Security Stack"
+                                                 style={{left: 20, top: 80}}
                                                  onClick={() => moveSecurityCard("myTrash", true)}>
                                     🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButtonSmall title="Take the top card of your Security Stack" style={{left: 50, top: 45}}
+                                <SendButtonSmall title="Take the top card of your Security Stack"
+                                                 style={{left: 50, top: 45}}
                                                  onClick={() => moveSecurityCard("myHand")}>
                                     ✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
 
-                                <SendButtonSmall title="Take the bottom card of your Security Stack" style={{left: 50, top: 80}}
+                                <SendButtonSmall title="Take the bottom card of your Security Stack"
+                                                 style={{left: 50, top: 80}}
                                                  onClick={() => moveSecurityCard("myHand", true)}>
                                     ✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
 
@@ -1124,13 +1150,6 @@ export default function Game({user}: { user: string }) {
 
                         <MyContainerMain>
 
-                            <PlayerContainer>
-                                <UserName>{user}</UserName>
-                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
-                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
-                                             title="Surrender"/>
-                            </PlayerContainer>
-
                             <DeckContainer>
 
                                 {deckMoodle &&
@@ -1151,14 +1170,15 @@ export default function Game({user}: { user: string }) {
                                     {myDeckField.length}</TrashSpan>
                                 {mySleeve === "Default"
                                     ? <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
-                                      isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
-                                      onClick={() => moveDeckCard("myHand")}/>
-                                    : <div style={{width:"105px", position: "relative"}}>
-                                        <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)} gameHasStarted={gameHasStarted}/>
+                                            isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
+                                            onClick={() => moveDeckCard("myHand")}/>
+                                    : <div style={{width: "105px", position: "relative"}}>
+                                        <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
+                                                      gameHasStarted={gameHasStarted}/>
                                         <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                               isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                               onClick={() => moveDeckCard("myHand")}/>
-                                      </div>
+                                    </div>
                                 }
                                 {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
                                     {/* eslint-disable-next-line no-irregular-whitespace */}
@@ -1239,18 +1259,43 @@ export default function Game({user}: { user: string }) {
                                                  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea5>
 
-                            <BattleArea11 ref={dropToDigi11} id={"myDigi11"}>
-                                <CardStack cards={myDigi11} location={"myDigi11"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>
-                            </BattleArea11>
+                            <LowerBattleArea>
+                                <BattleArea11 ref={dropToDigi11} id={"myDigi11"}>
+                                    <CardStack cards={myDigi11} location={"myDigi11"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea11>
+                                <BattleArea12 ref={dropToDigi12} id={"myDigi12"}>
+                                    <CardStack cards={myDigi12} location={"myDigi12"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea12>
+                                <BattleArea13 ref={dropToDigi13} id={"myDigi13"}>
+                                    <CardStack cards={myDigi13} location={"myDigi13"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea13>
+                                <BattleArea14 ref={dropToDigi14} id={"myDigi14"}>
+                                    <CardStack cards={myDigi14} location={"myDigi14"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea14>
+                                <BattleArea15 ref={dropToDigi15} id={"myDigi15"}>
+                                    <CardStack cards={myDigi15} location={"myDigi15"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea15>
+                            </LowerBattleArea>
 
                             <HandContainer ref={dropToHand}>
                                 <HandCards cardCount={myHand.length}
                                            style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}
-                                                      onContextMenu={(e) => showHandCardMenu({event: e, props: {index}})}>
+                                                      onContextMenu={(e) => showHandCardMenu({
+                                                          event: e,
+                                                          props: {index}
+                                                      })}>
                                             <Card card={card} location={"myHand"}/>
                                         </HandListItem>)}
                                 </HandCards>
@@ -1265,25 +1310,80 @@ export default function Game({user}: { user: string }) {
     );
 }
 
-const MyContainerMain = styled.div`
-  height: 450px;
-  width: 1005px;
-  display: grid;
-  grid-template-columns: repeat(14, 1fr);
-  grid-template-rows: 1.2fr 1fr;
-  grid-template-areas: "digi1 digi1 digi2 digi2 digi3 digi3 digi4 digi4 digi5 digi5 trash trash deck deck"
-                        "delay delay tamer tamer tamer hand hand hand hand hand hand player player player";
-`;
-
 const OpponentContainerMain = styled.div`
   height: 450px;
   width: 1005px;
   display: grid;
-  grid-template-columns: repeat(14, 1fr);
+  grid-template-columns: repeat(28, 1fr);
   grid-template-rows: 1fr 1.2fr;
-  grid-template-areas: "player player player hand hand hand hand hand hand tamer tamer tamer delay delay"
-                        "deck deck trash trash digi5 digi5 digi4 digi4 digi3 digi3 digi2 digi2 digi1 digi1";
+  grid-template-areas: "hand hand hand hand hand hand hand hand hand hand hand hand hand ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba"
+                        "deck deck deck deck trash trash trash trash digi5 digi5 digi5 digi5 digi4 digi4 digi4 digi4 digi3 digi3 digi3 digi3 digi2 digi2 digi2 digi2 digi1 digi1 digi1 digi1";
 `;
+
+const MyContainerMain = styled.div`
+  height: 450px;
+  width: 1005px;
+  display: grid;
+  grid-template-columns: repeat(28, 1fr);
+  grid-template-rows: 1.2fr 1fr;
+  grid-template-areas: "digi1 digi1 digi1 digi1 digi2 digi2 digi2 digi2 digi3 digi3 digi3 digi3 digi4 digi4 digi4 digi4 digi5 digi5 digi5 digi5 trash trash trash trash deck deck deck deck"
+                        "ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba hand hand hand hand hand hand hand hand hand hand hand hand hand";
+`;
+
+const LowerBattleArea = styled.div`
+  grid-area: ba;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-areas: "digi11 digi12 digi13 digi14 digi15";
+`;
+
+const OpponentLowerBattleArea = styled(LowerBattleArea)`
+  grid-template-areas: "digi15 digi14 digi13 digi12 digi11";
+`;
+
+const BattleAreaContainer = styled.div`
+  position: relative;
+  height: 100%;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  outline: rgba(119, 145, 197, 0.6) solid 1px;
+`;
+
+const BattleArea1 = styled(BattleAreaContainer)`
+  grid-area: digi1;`;
+
+const BattleArea2 = styled(BattleAreaContainer)`
+  grid-area: digi2;`;
+
+const BattleArea3 = styled(BattleAreaContainer)`
+  grid-area: digi3;`;
+
+const BattleArea4 = styled(BattleAreaContainer)`
+  grid-area: digi4;`;
+
+const BattleArea5 = styled(BattleAreaContainer)`
+  grid-area: digi5;`;
+
+const BattleArea11 = styled(BattleAreaContainer)`
+  grid-area: digi11;`;
+
+const BattleArea12 = styled(BattleAreaContainer)`
+  grid-area: digi12;`;
+
+const BattleArea13 = styled(BattleAreaContainer)`
+  grid-area: digi13;`;
+
+const BattleArea14 = styled(BattleAreaContainer)`
+  grid-area: digi14;`;
+
+const BattleArea15 = styled(BattleAreaContainer)`
+  grid-area: digi15;`;
 
 const SwitchRowButton = styled.button<{ secondRowVisible: boolean }>`
   width: 10px;
@@ -1335,6 +1435,7 @@ const OpponentSwitchRowButton2 = styled(SwitchRowButton)`
 `;
 
 const MyContainerSide = styled.div`
+  position: relative;
   height: 450px;
   width: 285px;
   display: grid;
@@ -1344,11 +1445,7 @@ const MyContainerSide = styled.div`
                         "egg-deck breed";
 `;
 
-const OpponentContainerSide = styled.div`
-  height: 450px;
-  width: 285px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+const OpponentContainerSide = styled(MyContainerSide)`
   grid-template-rows: 1.5fr 1fr;
   grid-template-areas: "breed egg-deck"
                         "security-stack security-stack";
@@ -1453,22 +1550,23 @@ const MiniArrowSpan = styled.span`
 const PlayerContainer = styled.div`
   display: flex;
   flex-direction: column;
-  grid-area: player;
   align-items: center;
   justify-content: center;
+  z-index: 60;
+  
+  position: absolute;
+  bottom: -24px;
+  left: 160px;
 `;
 
 const PlayerImage = styled.img<{ opponent?: boolean }>`
   cursor: pointer;
-  width: 160px;
+  width: 112px;
   transition: all 0.1s ease;
-  transform: ${({opponent}) => opponent ? "rotateY(180deg)" : "none"};
+  transform: ${({opponent}) => opponent ? "none" : "rotateY(180deg)"};
 
   &:hover {
     filter: drop-shadow(0 0 2px ${({opponent}) => opponent ? "#43d789" : "#bb2848"});
-    width: 144px;
-    margin-left: 8px;
-    padding: 8px;
   }
 `;
 
@@ -1517,7 +1615,7 @@ const OpponentDeckSleeve = styled.img`
   transform: translateY(-1px);
 `;
 
-const MyDeckSleeve = styled.img<{gameHasStarted?: boolean}>`
+const MyDeckSleeve = styled.img<{ gameHasStarted?: boolean }>`
   width: 99px;
   height: 140px;
   position: absolute;
@@ -1630,7 +1728,8 @@ const SecuritySpan = styled.span`
   font-size: 35px;
   color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
-  left: 132px;
+  left: 75px;
+  bottom: 30px;
   user-select: none;
 `;
 
@@ -1653,36 +1752,6 @@ const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
       transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 22}px, -14px);
     }
   }
-
-`;
-
-const TamerCardContainer = styled.div<{ cardIndex: number, digimonIndex: number, tamerIndex: number }>`
-  position: absolute;
-  top: 10px;
-  left: ${({tamerIndex}) => (tamerIndex * 40) + 5}px;
-  z-index: ${({cardIndex}) => 20 - cardIndex};
-  transform: ${({digimonIndex, cardIndex}) =>
-          cardIndex !== 0 ? (digimonIndex !== 0 ? `translate(-40px, ${digimonIndex * 25}px)` : "none") : "none"};
-
-  &:hover {
-    z-index: 100;
-  }
-`;
-
-const DelayCardContainer = styled.div<{ cardIndex: number }>`
-  position: absolute;
-  bottom: ${props => (props.cardIndex * 35) + 10}px;
-`;
-
-const BattleAreaContainer = styled.div`
-  position: relative;
-  height: 100%;
-  border-radius: 2px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  outline: rgba(119, 145, 197, 0.6) solid 1px;
 `;
 
 const TrashView = styled.div`
@@ -1703,8 +1772,9 @@ const TrashView = styled.div`
   left: 59.5%;
   top: 27%;
   transform: translate(-50%, -50%);
-  
+
   scrollbar-width: none;
+
   ::-webkit-scrollbar {
     visibility: hidden;
     width: 0;
@@ -1840,34 +1910,9 @@ const SendToTrashButton = styled.div`
   }
 `;
 
-const BattleArea1 = styled(BattleAreaContainer)`
-  grid-area: digi1;`;
-
-const BattleArea2 = styled(BattleAreaContainer)`
-  grid-area: digi2;`;
-
-const BattleArea3 = styled(BattleAreaContainer)`
-  grid-area: digi3;`;
-
-const BattleArea4 = styled(BattleAreaContainer)`
-  grid-area: digi4;`;
-
-const BattleArea5 = styled(BattleAreaContainer)`
-  grid-area: digi5;`;
-
 const BreedingAreaContainer = styled(BattleAreaContainer)`
   margin: 1px;
   grid-area: breed;
-`;
-
-const DelayAreaContainer = styled(BattleAreaContainer)`
-  grid-area: delay;
-`;
-
-const TamerAreaContainer = styled(BattleAreaContainer)`
-  margin: 1px 0 1px 0;
-  grid-area: tamer;
-  flex-direction: row;
 `;
 
 const HandContainer = styled.div`
@@ -1879,6 +1924,7 @@ const HandContainer = styled.div`
   width: 100%;
   height: 100%;
   padding: 5px;
+  transform: translate(10px, -2px);
 `;
 
 const OpponentHandContainer = styled(HandContainer)`

@@ -20,9 +20,9 @@ type CardProps = {
 }
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-    "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
-const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
+    "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi10",
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
 
 export default function Card({
                                  card,
@@ -95,7 +95,7 @@ export default function Card({
 
     function handleTiltCard() {
         if (location === "myTamer" && card.type !== "Tamer") return;
-        if (tiltLocations.includes(location) && card === locationCards[locationCards.length - 1]
+        if (location !== "myBreedingArea" && card === locationCards[locationCards.length - 1]
             && sendSfx && sendUpdate && selectedCard === card) {
             tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
             sendUpdate();
@@ -191,7 +191,6 @@ const StyledImage = styled.img<StyledImageProps>`
   @media (max-width: 390px) {
     width: 61px;
   }
-  
 `;
 
 const DragIcon = styled.img`

@@ -232,31 +232,6 @@ export function getCardSize(location: string) {
     }
 }
 
-export function getConsecutiveDigimonIndex(card: CardTypeGame, locationCards: CardTypeGame[]): number {
-    if (card.type !== "Digimon") return 0;
-    const cardIndex = locationCards.findIndex((c) => c.id === card.id);
-    let i = 1;
-    for (let j = cardIndex - 1; j >= 0; j--) {
-        if (locationCards[j].type === "Digimon") {
-            i++;
-        } else {
-            break;
-        }
-    }
-    return i;
-}
-
-export function getTamerCardIndex(card: CardTypeGame, locationCards: CardTypeGame[]): number {
-    const cardIndex = locationCards.findIndex((c) => c.id === card.id);
-    let count = 0;
-    for (let i = 0; i < cardIndex; i++) {
-        if (locationCards[i].type === "Tamer") {
-            count++;
-        }
-    }
-    return count;
-}
-
 export function convertForLog(location: string) {
     const locationMappings: Record<string, string> = {
         myHand: "Hand",

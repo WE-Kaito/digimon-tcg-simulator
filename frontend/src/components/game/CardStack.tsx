@@ -19,7 +19,7 @@ export default function CardStack({cards, location, sendUpdate, sendSfx, opponen
     const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15"];
 
     if (tamerLocations.includes(location)) {
-        return <div style={{position: "absolute", width: "100%", height: "100%"}}>
+        return <CorrectionWrapper cardCount={cards.length}>
             {!opponentSide
 
                 ? cards?.map((card, index) =>
@@ -34,13 +34,13 @@ export default function CardStack({cards, location, sendUpdate, sendSfx, opponen
                     <TamerCardContainer cardCount={cards.length} key={card.id} cardIndex={index}
                                    id={index === cards.length - 1 ? location : ""}>
                         <Fade direction={"down"} duration={500}>
-                            <Card card={card} location={location}/>
+                            <Card card={card} location={location} index={index}/>
                         </Fade></TamerCardContainer>)
             }
-        </div>
+        </CorrectionWrapper>
     }
 
-    return <div style={{position: "absolute", width: "100%", height: "100%"}}>
+    return <>
         {!opponentSide
 
             ? cards?.map((card, index) =>
@@ -58,7 +58,7 @@ export default function CardStack({cards, location, sendUpdate, sendSfx, opponen
                         <Card card={card} location={location}/>
                     </Fade></CardContainer>)
         }
-    </div>
+    </>
 }
 
 const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
@@ -70,8 +70,14 @@ const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
 
 const TamerCardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
   position: absolute;
-  top: ${({cardIndex, cardCount}) =>  (cardIndex * (cardCount > 6 ? 10 : 20)) + 5}px;
-  z-index: 20 - cardIndex;
+  bottom: ${({cardIndex, cardCount}) =>  (cardIndex * (cardCount > 4 ? 10 : 20)) + 5}px;
   left: 50%;
   transform: translateX(-50%);
+`;
+
+const CorrectionWrapper = styled.div<{ cardCount: number }>`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: ${({cardCount}) => cardCount > 4 ? 140 + (cardCount * 10) : 130 + (cardCount * 20)}px;
 `;
