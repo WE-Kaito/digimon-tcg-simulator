@@ -813,6 +813,7 @@ export default function Game({user}: { user: string }) {
     const {show: showDeckMenu} = useContextMenu({id: "deckMenu"});
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
+    const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
@@ -823,6 +824,21 @@ export default function Game({user}: { user: string }) {
 
             <Menu id={"handCardMenu"} theme="dark">
                 <Item onClick={revealHandCard}>Reveal Card 👁️</Item>
+            </Menu>
+
+            <Menu id={"securityStackMenu"} theme="dark">
+                <Item onClick={() => handleOpenSecurity("onOpen")}>Open Security Stack 🔎</Item>
+                <Item onClick={() => moveSecurityCard("myTrash")}>Trash Top Card
+                    <div style={{position:"relative"}}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
+                {/* eslint-disable-next-line no-irregular-whitespace */}
+                <Item onClick={() => moveSecurityCard("myTrash", true)}>Trash Bot  Card
+                    <div style={{position:"relative"}}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
+                <Item onClick={() => moveSecurityCard("myHand")}>Take Top Card to Hand
+                    <div style={{position:"relative"}}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
+                {/* eslint-disable-next-line no-irregular-whitespace */}
+                <Item onClick={() => moveSecurityCard("myHand", true)}>Take Bot  Card to Hand
+                    <div style={{position:"relative"}}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
+                <Item onClick={handleShuffleSecurity}>Shuffle Security Stack 🔄</Item>
             </Menu>
 
             {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
@@ -898,6 +914,7 @@ export default function Game({user}: { user: string }) {
 
                 {securityContentMoodle && <SecurityView>
                     {mySecurity.map((card) => <Card key={card.id} card={card} location="mySecurity"/>)}
+                    <SendButton onClick={() => handleOpenSecurity("onClose")}>❌<br/>🔄</SendButton>
                 </SecurityView>}
 
                 <FieldContainer>
@@ -1056,12 +1073,6 @@ export default function Game({user}: { user: string }) {
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
-                            <PlayerContainer>
-                                <UserName>{user}</UserName>
-                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
-                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
-                                             title="Surrender"/>
-                            </PlayerContainer>
 
                             <EggDeckContainer ref={dropToEggDeck}>
                                 {eggDeckMoodle &&
@@ -1090,47 +1101,24 @@ export default function Game({user}: { user: string }) {
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToSecurity}>
+
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
-                                <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
+                                <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
+                                                id="mySecurity" cardCount={mySecurity.length}
+                                                onClick={() => {
                                     if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                     sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
                                     playSecurityRevealSfx();
                                     sendSfx("playSecurityRevealSfx");
                                     sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
-                                }}>{mySecurity.length}</MySecuritySpan>
+                                }}>
+                                    {mySecurity.length}
+                                </MySecuritySpan>
                                 <Lottie animationData={mySecurityAnimation} loop={true}
-                                        style={{width: "160px", transform: "translate(23px, -14px)"}}/>
-
-                                {!securityContentMoodle
-                                    ? <SendButton title="Open Security Stack" style={{left: 20, top: 10}}
-                                                  onClick={() => handleOpenSecurity("onOpen")}>🔎</SendButton>
-                                    : <SendButton title="Close and shuffle Security Stack" style={{left: 20, top: 10}}
-                                                  onClick={() => handleOpenSecurity("onClose")}>❌🔄</SendButton>}
-
-                                <SendButtonSmall title="Trash the top card of your Security Stack"
-                                                 style={{left: 20, top: 45}}
-                                                 onClick={() => moveSecurityCard("myTrash")}>
-                                    🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButtonSmall title="Trash the bottom card of your Security Stack"
-                                                 style={{left: 20, top: 80}}
-                                                 onClick={() => moveSecurityCard("myTrash", true)}>
-                                    🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButtonSmall title="Take the top card of your Security Stack"
-                                                 style={{left: 50, top: 45}}
-                                                 onClick={() => moveSecurityCard("myHand")}>
-                                    ✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButtonSmall title="Take the bottom card of your Security Stack"
-                                                 style={{left: 50, top: 80}}
-                                                 onClick={() => moveSecurityCard("myHand", true)}>
-                                    ✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButton title="Shuffle your Security Stack" style={{left: 20, top: 115}}
-                                            onClick={handleShuffleSecurity}>🔄</SendButton>
+                                        style={{width: "160px", position: "absolute", right: 7, top: -32}}
+                                        onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
 
                                 <MySwitchRowButton1 disabled={showAttackArrow}
                                                     onClick={() => setIsMySecondRowVisible(false)}
@@ -1139,7 +1127,16 @@ export default function Game({user}: { user: string }) {
                                                     onClick={() => setIsMySecondRowVisible(true)}
                                                     secondRowVisible={isMySecondRowVisible}/>
                                 {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
+                                {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
+
                             </SecurityStackContainer>
+
+                            <MyPlayerContainer>
+                                <UserName>{user}</UserName>
+                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
+                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
+                                             title="Surrender"/>
+                            </MyPlayerContainer>
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
                                 {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
@@ -1559,6 +1556,13 @@ const PlayerContainer = styled.div`
   left: 160px;
 `;
 
+const MyPlayerContainer = styled(PlayerContainer)`
+  bottom: unset;
+  left: unset;
+    top: -24px;
+    right: 160px;
+`;
+
 const PlayerImage = styled.img<{ opponent?: boolean }>`
   cursor: pointer;
   width: 112px;
@@ -1737,19 +1741,24 @@ const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
   cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
-  transform: translate(${({cardCount}) => cardCount === 1 ? 28 : 23}px, -13px);
-
+  left: unset;
+  right: 77px;
+  bottom: unset;
+  top: 25px;
+  transform: translateX(${({cardCount}) => cardCount === 1 ? -6 : 0}px);
+  
   &:hover {
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
     font-size: 42px;
     color: #f9f9f9;
-    transform: translate(${({cardCount}) => cardCount === 1 ? 28 : 21}px, -14px);
+    right: 76px;
+    top: 20px;
   }
-
+  
   @media (min-width: 2000px) {
-    transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 24}px, -13px);
+    right: 77px;
     &:hover {
-      transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 22}px, -14px);
+      right: 75px;
     }
   }
 `;
@@ -1801,7 +1810,7 @@ const TrashSpan = styled.span`
 
 const SendButton = styled.button`
   position: absolute;
-  width: 55px;
+  width: 52px;
   height: 30px;
   z-index: 10;
   padding: 0;
@@ -1812,11 +1821,6 @@ const SendButton = styled.button`
     opacity: 1;
     border-color: #e8a71b;
   }
-`;
-
-const SendButtonSmall = styled(SendButton)`
-  width: 25px;
-  font-size: 0.9em;
 `;
 
 const MulliganButton = styled.div`
