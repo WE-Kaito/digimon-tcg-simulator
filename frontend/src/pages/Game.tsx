@@ -829,15 +829,15 @@ export default function Game({user}: { user: string }) {
             <Menu id={"securityStackMenu"} theme="dark">
                 <Item onClick={() => handleOpenSecurity("onOpen")}>Open Security Stack 🔎</Item>
                 <Item onClick={() => moveSecurityCard("myTrash")}>Trash Top Card
-                    <div style={{position:"relative"}}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
+                    <div style={{position: "relative"}}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
                 {/* eslint-disable-next-line no-irregular-whitespace */}
-                <Item onClick={() => moveSecurityCard("myTrash", true)}>Trash Bot  Card
-                    <div style={{position:"relative"}}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
+                <Item onClick={() => moveSecurityCard("myTrash", true)}>Trash Bot Card
+                    <div style={{position: "relative"}}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
                 <Item onClick={() => moveSecurityCard("myHand")}>Take Top Card to Hand
-                    <div style={{position:"relative"}}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
+                    <div style={{position: "relative"}}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
                 {/* eslint-disable-next-line no-irregular-whitespace */}
-                <Item onClick={() => moveSecurityCard("myHand", true)}>Take Bot  Card to Hand
-                    <div style={{position:"relative"}}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
+                <Item onClick={() => moveSecurityCard("myHand", true)}>Take Bot Card to Hand
+                    <div style={{position: "relative"}}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
                 <Item onClick={handleShuffleSecurity}>Shuffle Security Stack 🔄</Item>
             </Menu>
 
@@ -1036,10 +1036,11 @@ export default function Game({user}: { user: string }) {
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToOpponentSecurity}>
-                                <SecuritySpan style={{cursor: "default"}}
-                                              id="opponentSecurity">{opponentSecurity.length}</SecuritySpan>
-                                <Lottie animationData={opponentSecurityAnimation} loop={true}
-                                        style={{width: "160px", position: "absolute", left: 5, bottom: -25}}/>
+                                <OpponentSecurityStack>
+                                    <SecuritySpan style={{cursor: "default"}} id="opponentSecurity">
+                                        {opponentSecurity.length}</SecuritySpan>
+                                    <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true} />
+                                </OpponentSecurityStack>
                                 <OpponentSwitchRowButton1 disabled={showAttackArrow}
                                                           onClick={() => setIsOpponentSecondRowVisible(false)}
                                                           secondRowVisible={!isOpponentSecondRowVisible}/>
@@ -1105,20 +1106,21 @@ export default function Game({user}: { user: string }) {
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
-                                <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
-                                                id="mySecurity" cardCount={mySecurity.length}
-                                                onClick={() => {
-                                    if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                    sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
-                                    playSecurityRevealSfx();
-                                    sendSfx("playSecurityRevealSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
-                                }}>
-                                    {mySecurity.length}
-                                </MySecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true}
-                                        style={{width: "160px", position: "absolute", right: 7, top: -32}}
-                                        onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
+                                <SecurityStack>
+                                    <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
+                                                    id="mySecurity"
+                                                    onClick={() => {
+                                                        if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+                                                        sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
+                                                        playSecurityRevealSfx();
+                                                        sendSfx("playSecurityRevealSfx");
+                                                        sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
+                                                    }}>
+                                        {mySecurity.length}
+                                    </MySecuritySpan>
+                                    <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
+                                                         onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
+                                </SecurityStack>
 
                                 <MySwitchRowButton1 disabled={showAttackArrow}
                                                     onClick={() => setIsMySecondRowVisible(false)}
@@ -1550,7 +1552,7 @@ const PlayerContainer = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 60;
-  
+
   position: absolute;
   bottom: -24px;
   left: 160px;
@@ -1559,8 +1561,8 @@ const PlayerContainer = styled.div`
 const MyPlayerContainer = styled(PlayerContainer)`
   bottom: unset;
   left: unset;
-    top: -24px;
-    right: 160px;
+  top: -24px;
+  right: 160px;
 `;
 
 const PlayerImage = styled.img<{ opponent?: boolean }>`
@@ -1732,35 +1734,50 @@ const SecuritySpan = styled.span`
   font-size: 35px;
   color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
-  left: 75px;
-  bottom: 30px;
+  left: 50%;
+  bottom: 50%;
   user-select: none;
+  transform: translate(-49.5%, 50%);
 `;
 
-const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
+const MySecuritySpan = styled(SecuritySpan)`
   cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
   left: unset;
-  right: 77px;
+  right: 50%;
   bottom: unset;
-  top: 25px;
-  transform: translateX(${({cardCount}) => cardCount === 1 ? -6 : 0}px);
-  
+  top: 50%;
+  transform: translate(49.5%, -50%);
+
   &:hover {
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
     font-size: 42px;
     color: #f9f9f9;
-    right: 76px;
-    top: 20px;
   }
-  
-  @media (min-width: 2000px) {
-    right: 77px;
-    &:hover {
-      right: 75px;
-    }
-  }
+`;
+
+const SecurityStack = styled.div`
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  right: 7px;
+  top: -32px;
+`;
+
+const OpponentSecurityStack = styled(SecurityStack)`
+  right: unset;
+  top: unset;
+  left: 7px;
+  bottom:-32px;
+`;
+
+const SecurityStackLottie = styled(Lottie)`
+  width: 160px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 `;
 
 const TrashView = styled.div`
