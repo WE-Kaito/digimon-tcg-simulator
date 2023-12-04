@@ -53,6 +53,17 @@ import CardStack from "../components/game/CardStack.tsx";
 import {Menu, Item, useContextMenu, ItemParams} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import {getSleeve} from "../utils/sleeves.ts";
+import {Button as MuiButton} from "@mui/material";
+import {
+    DeleteForever as TrashIcon,
+    Pageview as OpenSecurityIcon,
+    ShuffleOnOutlined as ShuffleIcon,
+    BackHand as HandIcon,
+    AddModerator as RecoveryIcon,
+    Curtains as RevealIcon,
+    RestoreFromTrash as TrashFromDeckIcon
+} from '@mui/icons-material';
+import {blue, deepOrange} from "@mui/material/colors";
 
 export default function Game({user}: { user: string }) {
 
@@ -295,6 +306,7 @@ export default function Game({user}: { user: string }) {
             if (event.data.startsWith("[USER_COUNT]:")) {
                 const userCount = event.data.substring("[USER_COUNT]:".length);
                 setUserCount(parseInt(userCount));
+                console.log("usercount updated")
                 return;
             }
 
@@ -329,6 +341,7 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[HEARTBEAT]"): {
+                    console.log("heartbeat received")
                     break;
                 }
                 case ("[PLAYER_READY]"): {
@@ -815,6 +828,8 @@ export default function Game({user}: { user: string }) {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
+    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole" ]
+
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
 
@@ -823,30 +838,50 @@ export default function Game({user}: { user: string }) {
             </Menu>
 
             <Menu id={"handCardMenu"} theme="dark">
-                <Item onClick={revealHandCard}>Reveal Card 👁️</Item>
+                <Item onClick={revealHandCard}>Reveal Card <RevealIcon/></Item>
             </Menu>
 
             <Menu id={"securityStackMenu"} theme="dark">
-                <Item onClick={() => handleOpenSecurity("onOpen")}>Open Security Stack 🔎</Item>
-                <Item onClick={() => moveSecurityCard("myTrash")}>Trash Top Card
-                    <div style={{position: "relative"}}>🗑️<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
-                {/* eslint-disable-next-line no-irregular-whitespace */}
-                <Item onClick={() => moveSecurityCard("myTrash", true)}>Trash Bot Card
-                    <div style={{position: "relative"}}>🗑️<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
-                <Item onClick={() => moveSecurityCard("myHand")}>Take Top Card to Hand
-                    <div style={{position: "relative"}}>✋🏻<MiniArrowSpan>▲</MiniArrowSpan></div></Item>
-                {/* eslint-disable-next-line no-irregular-whitespace */}
-                <Item onClick={() => moveSecurityCard("myHand", true)}>Take Bot Card to Hand
-                    <div style={{position: "relative"}}>✋🏻<MiniArrowSpan>▼</MiniArrowSpan></div></Item>
-                <Item onClick={handleShuffleSecurity}>Shuffle Security Stack 🔄</Item>
+                <Item onClick={() => handleOpenSecurity("onOpen")}>
+                    <OpenSecurityIcon color={"warning"} sx={{marginRight: 1}}/> Open Security Stack
+                </Item>
+                <Item onClick={() => moveSecurityCard("myTrash")}>
+                    <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
+                        <TrashIcon color={"error"}/><MiniArrowSpan>▲</MiniArrowSpan>
+                    </div>
+                    Trash Top Card
+                </Item>
+                <Item onClick={() => moveSecurityCard("myTrash", true)}>
+                    <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
+                        <TrashIcon color={"error"}/><MiniArrowSpan>▼</MiniArrowSpan>
+                    </div>
+                    Trash Bot Card
+                </Item>
+                <Item onClick={() => moveSecurityCard("myHand")}>
+                    <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
+                        <HandIcon fontSize="inherit" sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                        <MiniArrowSpanHand>▲</MiniArrowSpanHand>
+                    </div>
+                    Take Top Card to Hand
+                </Item>
+                <Item onClick={() => moveSecurityCard("myHand", true)}>
+                    <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
+                        <HandIcon fontSize="inherit" sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                        <MiniArrowSpanHand>▼</MiniArrowSpanHand>
+                    </div>
+                    Take Bot Card to Hand
+                </Item>
+                <Item onClick={handleShuffleSecurity}>
+                    <ShuffleIcon sx={{color: blue[400], fontSize: 20, marginRight: 1.6}}/>Shuffle Security Stack
+                </Item>
             </Menu>
 
             {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
                 <Item onClick={() => window.open(selectedCard.image_url, '_blank')}>Open Image in new Tab ↗</Item>
             </Menu>}
 
-            {user === "Kaito" &&
-                <span style={{position: "absolute", top: 15, left: 15}}>users ingame: {userCount}</span>}
+            {modNames.includes(user) &&
+                <span style={{position: "absolute", top: 10, left: 10}}>users ingame: {userCount}</span>}
 
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
 
@@ -864,6 +899,10 @@ export default function Game({user}: { user: string }) {
                     <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
             <Wrapper chatOpen={isChatOpen}>
+
+                <UserName>{opponentName}</UserName>
+                <UserName style={{top: "unset", bottom: -30}}>{user}</UserName>
+
                 <ChatSideBar chatOpen={isChatOpen} onClick={() => setIsChatOpen(true)}>
                     {isChatOpen ? <GameChat user={user} sendChatMessage={sendChatMessage}
                                             closeChat={() => setIsChatOpen(false)}/> : <span>›</span>}
@@ -912,10 +951,13 @@ export default function Game({user}: { user: string }) {
                     {opponentTrash.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
                 </TrashView>}
 
-                {securityContentMoodle && <SecurityView>
-                    {mySecurity.map((card) => <Card key={card.id} card={card} location="mySecurity"/>)}
-                    <SendButton onClick={() => handleOpenSecurity("onClose")}>❌<br/>🔄</SendButton>
-                </SecurityView>}
+                {securityContentMoodle
+                    && <SecurityView>
+                        {mySecurity.map((card) => <Card key={card.id} card={card} location="mySecurity"/>)}
+                    </SecurityView>}
+                {securityContentMoodle
+                    && <CloseSecurityButton variant="contained" onClick={() => handleOpenSecurity("onClose")}>
+                        Shuffle & Close</CloseSecurityButton>}
 
                 <FieldContainer>
                     <div style={{display: "flex"}}>
@@ -1031,7 +1073,7 @@ export default function Game({user}: { user: string }) {
                                 {opponentEggDeck.length !== 0 &&
                                     <EggDeckSpan
                                         style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
-                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
+                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="95px"
                                                                       style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                             </EggDeckContainer>
 
@@ -1039,7 +1081,7 @@ export default function Game({user}: { user: string }) {
                                 <OpponentSecurityStack>
                                     <SecuritySpan style={{cursor: "default"}} id="opponentSecurity">
                                         {opponentSecurity.length}</SecuritySpan>
-                                    <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true} />
+                                    <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true}/>
                                 </OpponentSecurityStack>
                                 <OpponentSwitchRowButton1 disabled={showAttackArrow}
                                                           onClick={() => setIsOpponentSecondRowVisible(false)}
@@ -1050,14 +1092,12 @@ export default function Game({user}: { user: string }) {
                                 {opponentSecondRowWarning && <OpponentSecondRowWarning>!</OpponentSecondRowWarning>}
                             </SecurityStackContainer>
 
-                            <PlayerContainer>
-                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
-                                             onClick={() => {
-                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
-                                                 notifyRequestedRestart();
-                                             }}/>
-                                <UserName>{opponentName}</UserName>
-                            </PlayerContainer>
+                            <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
+                                         style={{top: "unset", left: "unset", right: 20, bottom: 0}}
+                                         onClick={() => {
+                                             websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
+                                             notifyRequestedRestart();
+                                         }}/>
 
                             <BreedingAreaContainer>
                                 <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
@@ -1133,12 +1173,10 @@ export default function Game({user}: { user: string }) {
 
                             </SecurityStackContainer>
 
-                            <MyPlayerContainer>
-                                <UserName>{user}</UserName>
-                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
-                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
-                                             title="Surrender"/>
-                            </MyPlayerContainer>
+                            <PlayerImage alt="me" src={profilePicture(myAvatar)}
+                                         onClick={() => setSurrenderOpen(!surrenderOpen)}
+                                         title="Surrender"/>
+
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
                                 {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
@@ -1184,13 +1222,19 @@ export default function Game({user}: { user: string }) {
                                     <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
                                         ⇑</DBZSpan></DeckBottomZone>}
 
-                                <SendToTrashButton title="Send top card from your deck to Trash"
-                                                   onClick={() => moveDeckCard("myTrash")}>↱</SendToTrashButton>
-                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
-                                            onClick={() => moveDeckCard("mySecurity")}>⛊️+1</SendButton>
+                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -131}}
+                                            onClick={() => moveDeckCard("mySecurity")}>
+                                    <RecoveryIcon sx={{fontSize: 36}}/>
+                                </SendButton>
+                                <SendButton title="Send top card from your deck to Trash" style={{left: -84}}
+                                            onClick={() => moveDeckCard("myTrash")}>
+                                    <TrashFromDeckIcon sx={{fontSize: 41}}/>
+                                </SendButton>
                                 <SendButton title="Reveal the top card of your deck"
                                             onClick={() => moveDeckCard("myReveal")}
-                                            disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
+                                            disabled={opponentReveal.length > 0} style={{left: -37}}
+                                ><RevealIcon sx={{fontSize: 41}}/>
+                                </SendButton>
                             </DeckContainer>
 
                             <TrashContainer>
@@ -1540,36 +1584,26 @@ const ChatSideBar = styled.div<{ chatOpen: boolean }>`
 
 const MiniArrowSpan = styled.span`
   position: absolute;
-  left: 13px;
+  left: 14px;
   top: 0;
   font-size: 10px;
+  color: #646cff;
   filter: drop-shadow(0 0 2px #000000);
 `;
 
-const PlayerContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 60;
-
-  position: absolute;
-  bottom: -24px;
-  left: 160px;
-`;
-
-const MyPlayerContainer = styled(PlayerContainer)`
-  bottom: unset;
-  left: unset;
-  top: -24px;
-  right: 160px;
+const MiniArrowSpanHand = styled(MiniArrowSpan)`
+  left: 11px;
 `;
 
 const PlayerImage = styled.img<{ opponent?: boolean }>`
+  position: absolute;
   cursor: pointer;
   width: 112px;
   transition: all 0.1s ease;
   transform: ${({opponent}) => opponent ? "none" : "rotateY(180deg)"};
+
+  top: 0;
+  left: 20px;
 
   &:hover {
     filter: drop-shadow(0 0 2px ${({opponent}) => opponent ? "#43d789" : "#bb2848"});
@@ -1577,10 +1611,13 @@ const PlayerImage = styled.img<{ opponent?: boolean }>`
 `;
 
 const UserName = styled.span`
+  position: absolute;
   font-size: 20px;
-  align-self: flex-start;
-  margin-left: 27px;
   font-family: 'Cousine', sans-serif;
+  top: -27px;
+  left: 60%;
+  transform: translateX(-50%);
+  opacity: 50%;
 `;
 
 const MyHandSpan = styled.span`
@@ -1671,6 +1708,7 @@ const DBZSpan = styled.span<{ isOver: boolean, canDrop: boolean }>`
 `;
 
 const EggDeck = styled(Deck)`
+  width: 95px;
   transform: translateY(-25px);
 
   &:hover {
@@ -1769,7 +1807,7 @@ const OpponentSecurityStack = styled(SecurityStack)`
   right: unset;
   top: unset;
   left: 7px;
-  bottom:-32px;
+  bottom: -32px;
 `;
 
 const SecurityStackLottie = styled(Lottie)`
@@ -1827,16 +1865,26 @@ const TrashSpan = styled.span`
 
 const SendButton = styled.button`
   position: absolute;
-  width: 52px;
-  height: 30px;
+  width: 43px;
+  height: 45px;
   z-index: 10;
   padding: 0;
   border-radius: 5px;
   opacity: 0.65;
+  bottom: 5px;
+  background: none;
+  border: none;
+  outline: none;
 
   &:hover {
     opacity: 1;
-    border-color: #e8a71b;
+    color: #fff289;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+    color: #4bf8c9;
   }
 `;
 
@@ -1902,32 +1950,6 @@ const TokenButton = styled.img`
     width: 52px;
     height: 52px;
     transform: translateX(-1px);
-  }
-`;
-
-const SendToTrashButton = styled.div`
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  font-size: 40px;
-  z-index: 10;
-  left: -49px;
-  bottom: 48px;
-  color: #e0e0e0;
-  transform: rotate(-90deg);
-  opacity: 0.65;
-
-  &:hover {
-    opacity: 1;
-    cursor: pointer;
-    color: #e8a71b;
-  }
-
-  &:active {
-    opacity: 1;
-    color: #e0e0e0;
-    filter: drop-shadow(0 0 2px #e8a71b);
-    transform: translateX(1px) rotate(-90deg);
   }
 `;
 
@@ -2198,3 +2220,11 @@ const BackGroundPattern = styled.div`
     }
   }
 `;
+
+const CloseSecurityButton = styled(MuiButton)`
+  position: fixed;
+  height: 28px;
+  right: 292px;
+  bottom: 540px;
+  z-index: 1000;
+  font-family: Naston, sans-serif;;`
