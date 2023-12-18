@@ -3,26 +3,27 @@ package com.github.wekaito.backend;
 import java.util.List;
 
 public record Card(
+        String uniqueCardNumber,
         String name,
-        String image_url,
-        String card_type,
+        String imgUrl,
+        String cardType,
         List<String> color,
         String attribute,
-        String cardnumber,
-        List<DigivolveCondition> digivolve_conditions,
-        String special_digivolve,
+        String cardNumber,
+        List<DigivolveCondition> digivolveConditions,
+        String specialDigivolve,
         String stage,
-        List<String> digi_type,
+        List<String> digiType,
         Integer dp,
-        Integer play_cost,
+        Integer playCost,
         Integer level,
-        String main_effect,
-        String inherited_effect,
-        String ace_effect,
-        String burst_digivolve,
-        String digi_xros,
-        String dna_digivolve,
-        String security_effect,
+        String mainEffect,
+        String inheritedEffect,
+        String aceEffect,
+        String burstDigivolve,
+        String digiXros,
+        String dnaDigivolve,
+        String securityEffect,
         String restriction_en,
         String restriction_jp,
         String illustrator
@@ -31,10 +32,3 @@ public record Card(
 
 }
 
-record DigivolveCondition(
-        String color,
-        Integer cost,
-        Integer level
-) {
-
-}

@@ -31,8 +31,8 @@ public class CardService {
         return cardCollection;
     }
 
-    public Card getCardByCardumber(String cardnumber) {
-        return cardCollection.stream().filter(card -> cardnumber.equals(card.cardnumber())).findFirst().orElse(null);
+    public Card getCardByUniqueCardNumber(String uniqueCardNumber) {
+        return cardCollection.stream().filter(card -> uniqueCardNumber.equals(card.uniqueCardNumber())).findFirst().orElse(null);
     }
 
     private final WebClient webClient = WebClient.builder()
@@ -83,6 +83,7 @@ public class CardService {
             List<String> colors = Arrays.stream(card.color().split("/")).toList();
 
             cards.add(new Card(
+                    card.id(),
                     card.name().english(),
                     baseUrl + card.cardImage(),
                     card.cardType(),

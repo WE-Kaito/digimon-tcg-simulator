@@ -5,7 +5,7 @@ import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
-import CardDetails from "../components/CardDetails.tsx";
+//import CardDetails from "../components/CardDetails.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {
@@ -21,6 +21,7 @@ import {
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
+import CardDetails from "../components/CardDetails.tsx";
 
 export default function EditDeck() {
 
@@ -41,7 +42,7 @@ export default function EditDeck() {
     useEffect(() => {
         setDeckById(id);
         fetchCards();
-        filterCards("", "", "", "", "", "", null, null, null, null, "");
+        filterCards("", "", "", "", "", "", "", null, null, null, "", "");
         setDeckName(nameOfDeckToEdit);
         function handleResize() {
             setShouldRender(window.innerWidth >= 1000);
@@ -83,7 +84,7 @@ export default function EditDeck() {
             </ButtonContainer>
 
             <ContainerUpperLeftQuarter>
-                <CardImage src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
+                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
                            alt={selectedCard?.name ?? "Card"}/>
             </ContainerUpperLeftQuarter>
 

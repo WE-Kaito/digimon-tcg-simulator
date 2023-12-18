@@ -56,8 +56,8 @@ public class DeckService {
         List<Card> cards = new ArrayList<>();
         if (optionalDeck.isPresent()) {
             Deck deck = optionalDeck.get();
-            for (String cardnumber : deck.decklist()) {
-               cards.add(cardService.getCardByCardumber(cardnumber));
+            for (String uniqueCardNumber : deck.decklist()) {
+               cards.add(cardService.getCardByUniqueCardNumber(uniqueCardNumber));
             }
         }
         return cards;

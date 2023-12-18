@@ -1,73 +1,53 @@
 export type CardType = {
-
+    uniqueCardNumber: string,
     name: string,
-    type: string,
-    color: string,
-    image_url: string,
-    cardnumber: string,
-    stage?: string | null,
-    attribute?: string | null,
-    digi_type?: string | null,
-    dp?: number | null,
-    play_cost?: number | null,
-    evolution_cost?: number | null,
-    level?: number | null,
-    maineffect?: string | null,
-    soureeffect?: string | null,
-
+    imgUrl: string,
+    cardType: string,
+    color: string[],
+    attribute?: string,
+    cardNumber: string,
+    digivolveConditions?: DigivolveCondition[],
+    specialDigivolve?: string,
+    stage?: string,
+    digiType?: string[],
+    dp?: number,
+    playCost?: number,
+    level?: number,
+    mainEffect?: string,
+    inheritedEffect?: string,
+    aceEffect?: string,
+    burstDigivolve?: string,
+    digiXros?: string,
+    dnaDigivolve?: string,
+    securityEffect?: string,
+    restriction_en: string,
+    restriction_jp: string,
+    illustrator: string
 }
 
-export type CardTypeWithId = {
-
-    name: string,
-    type: string,
+type DigivolveCondition = {
     color: string,
-    image_url: string,
-    cardnumber: string,
-    stage?: string | null,
-    attribute?: string | null,
-    digi_type?: string | null,
-    dp?: number | null,
-    play_cost?: number | null,
-    evolution_cost?: number | null,
-    level?: number | null,
-    maineffect?: string | null,
-    soureeffect?: string | null,
-    id: string
-
+    cost: number,
+    level: number,
 }
 
-export type CardTypeGame = {
-    name: string,
-    type: string,
-    color: string,
-    image_url: string,
-    cardnumber: string,
-    stage: string | null,
-    attribute: string | null,
-    digi_type: string | null,
-    dp: number | null,
-    play_cost: number | null,
-    evolution_cost: number | null,
-    level: number | null,
-    maineffect: string | null,
-    soureeffect: string | null,
-    id: string,
-    isTilted: boolean
-}
+export type CardTypeWithId = CardType & { id: string };
+
+export type CardTypeGame = CardTypeWithId & { isTilted: boolean };
 
 export type SearchCards = (
     name: string | null,
+    cardType: string | null,
     color: string | null,
-    type: string | null,
-    stage: string | null,
     attribute: string | null,
-    digi_type: string | null,
+    cardNumber: string | null,
+    stage: string | null,
+    digiType: string | null,
     dp: number | null,
-    play_cost: number | null,
-    evolution_cost: number | null,
+    playCost: number | null,
     level: number | null,
-    cardnumber: string | null) => void;
+    mainEffect: string | null,
+    inheritedEffect: string | null) => void;
 
 export type DeckType = {
     id: string,

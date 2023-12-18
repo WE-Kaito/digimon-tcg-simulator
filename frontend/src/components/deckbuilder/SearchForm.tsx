@@ -20,7 +20,7 @@ export default function SearchForm() {
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        filterCards(cardname, color, type, stage, attribute, digitype, dp, playcost, digivolutioncost, level, cardnumber);
+        filterCards(cardname, type, color, attribute, cardnumber, stage, digitype, dp, playcost, level, "", "");
     }
 
     return (
@@ -111,7 +111,6 @@ export default function SearchForm() {
                 setStage(e.target.value !== "Stage" ? e.target.value : null)
             }}>
                 <option>Stage</option>
-                <option>Baby</option>
                 <option>In-Training</option>
                 <option>Rookie</option>
                 <option>Champion</option>
@@ -287,6 +286,7 @@ export default function SearchForm() {
                 <option>Weapon</option>
                 <option>Wizard</option>
                 <option>X Antibody</option>
+                <option>X Program</option>
                 <option>Xros Heart</option>
             </DigitypeSelect>
 

@@ -20,19 +20,19 @@ export default function DeckSelection() {
     const addCardToDeck = useStore((state) => state.addCardToDeck);
     const deleteFromDeck = useStore((state) => state.deleteFromDeck);
 
-    const digimonLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digimon").length;
-    const tamerLength = deckCards.filter((card: CardTypeWithId) => card.type === "Tamer").length;
-    const optionLength = deckCards.filter((card: CardTypeWithId) => card.type === "Option").length;
-    const eggLength = deckCards.filter((card: CardTypeWithId) => card.type === "Digi-Egg").length;
+    const digimonLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Digimon").length;
+    const tamerLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Tamer").length;
+    const optionLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Option").length;
+    const eggLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Digi-Egg").length;
 
     const sortedDeck = sortCards(deckCards);
     const cardGroups: { [key: string]: CardTypeWithId[] } = {};
     sortedDeck.forEach((card) => {
-        const cardnumber = card.cardnumber;
-        if (!cardGroups[cardnumber]) {
-            cardGroups[cardnumber] = [];
+        const uniqueCardNumber = card.uniqueCardNumber;
+        if (!cardGroups[uniqueCardNumber]) {
+            cardGroups[uniqueCardNumber] = [];
         }
-        cardGroups[cardnumber].push(card);
+        cardGroups[uniqueCardNumber].push(card);
     });
 
     const filteredDeckLength = deckCards.length - eggLength;
@@ -40,16 +40,16 @@ export default function DeckSelection() {
     function getAddAllowed(card: CardTypeWithId, lastIndex: boolean) {
         return !!hoverCard
             && ((hoverCard === card))
-            && (filteredDeckLength < 50 || (card.type === "Digi-Egg" && eggLength < 5))
-            && (lastIndex || cardsWithoutLimit.includes(card.cardnumber))
-            && (deckCards.filter(c => c.cardnumber === card.cardnumber).length < 4
-                || cardsWithoutLimit.includes(card.cardnumber))
+            && (filteredDeckLength < 50 || (card.cardType === "Digi-Egg" && eggLength < 5))
+            && (lastIndex || cardsWithoutLimit.includes(card.cardNumber))
+            && (deckCards.filter(c => c.cardNumber === card.cardNumber).length < 4
+                || cardsWithoutLimit.includes(card.cardNumber))
     }
 
     function AddButton(card: CardTypeWithId) {
         return <AddIcon
             onClick={() => {
-                addCardToDeck(card.cardnumber, card.type);
+                addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
                 playPlaceCardSfx();
             }}
             onMouseEnter={() => setHoverCard(hoverCard)}
@@ -107,12 +107,12 @@ export default function DeckSelection() {
                             {(group.length > 1) && <CountBox/>}
                             {group.map((card: CardTypeWithId, index) => {
                                 if (index > 0) {
-                                    if (group[index - 1]?.cardnumber === card.cardnumber) {
-                                        if (group[index - 4]?.cardnumber === card.cardnumber) return;
+                                    if (group[index - 1]?.uniqueCardNumber === card.uniqueCardNumber) {
+                                        if (group[index - 4]?.uniqueCardNumber === card.uniqueCardNumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
                                             {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
                                             {(hoverCard?.id === card.id) && (group.length === index + 1
-                                                || cardsWithoutLimit.includes(card.cardnumber)) && DeleteButton(card.id)}
+                                                || cardsWithoutLimit.includes(card.cardNumber)) && DeleteButton(card.id)}
                                             <Card card={card} location={"deck"}/>
                                         </div>
                                     }

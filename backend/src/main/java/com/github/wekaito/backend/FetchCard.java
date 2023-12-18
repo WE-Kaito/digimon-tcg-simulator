@@ -3,6 +3,7 @@ package com.github.wekaito.backend;
 import java.util.List;
 
 public record FetchCard(
+        String id,
         Name name,
         String cardImage,
         String cardType,

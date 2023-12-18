@@ -4,7 +4,11 @@ import vaccineImage from '../assets/attribute_icons/vaccine.png';
 import freeImage from '../assets/attribute_icons/free.png';
 import unknownImage from '../assets/attribute_icons/unknown.png';
 import variableImage from '../assets/attribute_icons/variable.png';
-import {CardType, CardTypeGame, CardTypeWithId} from "./types.ts";
+import digimonImage from '../assets/cardtype_icons/gammamon.png';
+import optionImage from '../assets/cardtype_icons/option.png';
+import tamerImage from '../assets/cardtype_icons/tamer.png';
+import eggImage from '../assets/cardtype_icons/egg.png';
+import {CardTypeGame, CardTypeWithId} from "./types.ts";
 import {
     playButtonClickSfx,
     playDrawCardSfx,
@@ -15,70 +19,6 @@ import {
 } from "./sound.ts";
 import axios from "axios";
 import {starterBeelzemon, starterGallantmon} from "./starterDecks.ts";
-
-export function getBackgroundColor(color: string) {
-    switch (color) {
-        case 'Red':
-            return "#b02626";
-        case 'Yellow':
-            return "#b0a325";
-        case 'Green':
-            return "#095E1C";
-        case 'Blue':
-            return "#085e8c";
-        case 'Purple':
-            return "#46136D";
-        case 'Black':
-            return "#070707";
-        case 'White':
-            return "#DBDBDB";
-        case "default":
-            return "rgba(0, 0, 0, 0)";
-    }
-}
-
-export function getAttributeImage(attribute: string) {
-    switch (attribute) {
-        case 'Virus':
-            return virusImage;
-        case 'Data':
-            return dataImage;
-        case 'Vaccine':
-            return vaccineImage;
-        case 'Free':
-            return freeImage;
-        case 'Variable':
-            return variableImage;
-        case 'Unknown':
-            return unknownImage;
-        case 'default':
-            return;
-    }
-}
-
-export function getStrokeColor(hoverCard: CardType | null, selectedCard: CardType | null) {
-    if (hoverCard) {
-        switch (hoverCard.color) {
-            case 'White':
-                return "#070707";
-            case 'Yellow':
-                return "#070707";
-            default:
-                return "#C5C5C5";
-        }
-    }
-    if (selectedCard) {
-        switch (selectedCard.color) {
-            case 'White':
-                return "#070707";
-            case 'Yellow':
-                return "#070707";
-            default:
-                return "#C5C5C5";
-        }
-    }
-    return "#C5C5C5";
-}
 
 export function calculateCardRotation(handCardLength: number, index: number) {
     const middleIndex = Math.floor(handCardLength / 2);
@@ -92,7 +32,7 @@ export function calculateCardRotation(handCardLength: number, index: number) {
 }
 
 export function calculateCardOffsetY(handCardLength: number, index: number) {
-    if(handCardLength === 3 && index === 1) return "-5px";
+    if (handCardLength === 3 && index === 1) return "-5px";
     if (handCardLength <= 3) return "0px";
 
     const middleIndex = Math.floor(handCardLength / 2);
@@ -108,7 +48,7 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
     const distanceToMiddle = Math.abs(index - middleIndex);
     let offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
     if (index === middleIndex && handCardLength % 2 === 0) offset -= (2 + handCardLength / 6);
-    return (index === middleIndex|| index === 0 && handCardLength == 6) ? offset + 10 - handCardLength/3 + handCardLength/10 + "px" : offset + "px";
+    return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 10 - handCardLength / 3 + handCardLength / 10 + "px" : offset + "px";
 }
 
 export function calculateCardOffsetX(handCardLength: number, index: number) {
@@ -118,7 +58,7 @@ export function calculateCardOffsetX(handCardLength: number, index: number) {
     if (handCardLength >= 4) return (index * 400) / handCardLength + "px";
 }
 
-export function topCardInfo(card: CardTypeGame, location:string, locationCards: CardTypeGame[]){
+export function topCardInfo(card: CardTypeGame, location: string, locationCards: CardTypeGame[]) {
     const locationsWithInfo = ["myBreedingArea", "opponentBreedingArea",
         "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
         "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6",
@@ -127,16 +67,16 @@ export function topCardInfo(card: CardTypeGame, location:string, locationCards: 
 
     let effectInfo = "Inherited effects: \n";
     locationCards.forEach((card, index) => {
-        if (index === locationCards.length -1) return;
-        if (card.soureeffect === null) return;
-        effectInfo += "• " + card.soureeffect + "\n";
+        if (index === locationCards.length - 1) return;
+        if (card.inheritedEffect === null) return;
+        effectInfo += "• " + card.inheritedEffect + "\n";
     });
 
-    return card === locationCards[locationCards.length -1] ? effectInfo : undefined;
+    return card === locationCards[locationCards.length - 1] ? effectInfo : undefined;
 }
 
 export function getOpponentSfx(command: string) {
-    switch(command){
+    switch (command) {
         case ("[REVEAL_SFX]"): {
             playRevealCardSfx();
             break;
@@ -176,7 +116,7 @@ export function getOpponentSfx(command: string) {
     }
 }
 
-export function sortCards(deck: CardTypeWithId[]){
+export function sortCards(deck: CardTypeWithId[]) {
     const newDeck = [...deck];
     newDeck.sort(compareCardNumbers);
     newDeck.sort(compareCardLevels);
@@ -184,13 +124,13 @@ export function sortCards(deck: CardTypeWithId[]){
     return newDeck;
 }
 
-function compareCardNumbers(a: CardTypeWithId, b: CardTypeWithId){
-    if (a.cardnumber < b.cardnumber) return -1;
-    if (a.cardnumber > b.cardnumber) return 1;
+function compareCardNumbers(a: CardTypeWithId, b: CardTypeWithId) {
+    if (a.cardNumber < b.cardNumber) return -1;
+    if (a.cardNumber > b.cardNumber) return 1;
     return 0;
 }
 
-function compareCardLevels(a: CardTypeWithId, b: CardTypeWithId){
+function compareCardLevels(a: CardTypeWithId, b: CardTypeWithId) {
     if (a.level === null && b.level === null) return 0;
     if (a.level === null) return -1;
     if (b.level === null) return 1;
@@ -206,8 +146,8 @@ function compareCardTypes(a: CardTypeWithId, b: CardTypeWithId) {
         "Tamer": 2,
         "Digimon": 3
     };
-    const aTypeOrder = typeOrder[a.type];
-    const bTypeOrder = typeOrder[b.type];
+    const aTypeOrder = typeOrder[a.cardType];
+    const bTypeOrder = typeOrder[b.cardType];
 
     if (aTypeOrder < bTypeOrder) return -1;
     if (aTypeOrder > bTypeOrder) return 1;
@@ -260,7 +200,7 @@ export function convertForLog(location: string) {
     return locationMappings[location] || location;
 }
 
-function saveStarterDeck(name:string, color: string, decklist: string[]){
+function saveStarterDeck(name: string, color: string, decklist: string[]) {
 
     const deckToSave = {
         name: name,
@@ -278,16 +218,16 @@ function saveStarterDeck(name:string, color: string, decklist: string[]){
         });
 }
 
-export function addStarterDecks(){
-    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon","Purple", starterBeelzemon), 100);
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon","Red", starterGallantmon), 200);
+export function addStarterDecks() {
+    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", "Purple", starterBeelzemon), 100);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", "Red", starterGallantmon), 200);
 }
 
-export function mostFrequentColor(deckCards: CardTypeWithId[]){
+export function mostFrequentColor(deckCards: CardTypeWithId[]) {
     const colorOccurrences = {};
 
     for (const card of deckCards) {
-        const color = card.color;
+        const color = card.color[0];
         // @ts-ignore
         if (colorOccurrences[color]) {
             // @ts-ignore
@@ -311,4 +251,80 @@ export function mostFrequentColor(deckCards: CardTypeWithId[]){
     }
 
     return mostFrequentColor;
+}
+
+export function getCardColor(color: string): [string, string] {
+    switch (color) {
+        case 'Red':
+            return ["#b02626", "🔴"];
+        case 'Yellow':
+            return ["#b0a325", "🟡"];
+        case 'Green':
+            return ["#095E1C", "🟢"];
+        case 'Blue':
+            return ["#017fc2", "🔵"];
+        case 'Purple':
+            return ["#7f2dbd", "🟣"];
+        case 'Black':
+            return ["#484848", "⚫"];
+        case 'White':
+            return ["#DBDBDB", "⚪"];
+        default:
+            return ["transparent", ""];
+    }
+}
+
+export function getDnaColor(word: string): string {
+    switch (word) {
+        case 'red':
+            return "🔴";
+        case 'yellow':
+            return "🟡";
+        case 'green':
+            return "🟢";
+        case 'blue':
+            return "🔵";
+        case 'purple':
+            return "🟣";
+        case 'black':
+            return "⚫";
+        case 'white':
+            return "⚪";
+        default:
+            return word + " ";
+    }
+}
+
+export function getAttributeImage(attribute: string) {
+    switch (attribute) {
+        case 'Virus':
+            return virusImage;
+        case 'Data':
+            return dataImage;
+        case 'Vaccine':
+            return vaccineImage;
+        case 'Free':
+            return freeImage;
+        case 'Variable':
+            return variableImage;
+        case 'Unknown':
+            return unknownImage;
+        case 'default':
+            return;
+    }
+}
+
+export function getCardTypeImage(cardType: string) {
+    switch (cardType) {
+        case 'Digimon':
+            return digimonImage;
+        case 'Option':
+            return optionImage;
+        case 'Tamer':
+            return tamerImage;
+        case 'Digi-Egg':
+            return eggImage;
+        case 'default':
+            return;
+    }
 }

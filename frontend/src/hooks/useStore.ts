@@ -35,8 +35,8 @@ type State = {
     filterCards: SearchCards,
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
     hoverCard: CardTypeWithId | null,
-    setHoverCard: (card: CardTypeWithId | null) => void,
-    addCardToDeck: (cardnumber: string, type: string) => void,
+    setHoverCard: (card: CardTypeWithId | CardTypeGame | null) => void,
+    addCardToDeck: (cardnumber: string, type: string, uniqueCardNumber: string) => void,
     deleteFromDeck: (id: string) => void,
     saveDeck: (name: string) => void,
     fetchDecks: () => void,
@@ -103,16 +103,17 @@ export const useStore = create<State>((set, get) => ({
     },
 
     filterCards: (name,
+                  cardType,
                   color,
-                  type,
-                  stage,
                   attribute,
-                  digi_type,
+                  cardNumber,
+                  stage,
+                  digiType,
                   dp,
-                  play_cost,
-                  evolution_cost,
+                  playCost,
                   level,
-                  cardnumber
+                  mainEffect,
+                  inheritedEffect
     ) => {
 
         set({isLoading: true})
@@ -120,41 +121,43 @@ export const useStore = create<State>((set, get) => ({
         let filteredData = get().fetchedCards;
 
         if (name) filteredData = filteredData.filter((card) => card.name.toUpperCase().includes(name.toUpperCase()));
-        if (color) filteredData = filteredData.filter((card) => card.color === color);
-        if (type) filteredData = filteredData.filter((card) => card.type === type);
+        if (color) filteredData = filteredData.filter((card) => card.color.includes(color));
+        if (cardType) filteredData = filteredData.filter((card) => card.cardType === cardType);
         if (stage) filteredData = filteredData.filter((card) => card.stage === stage);
         if (attribute) filteredData = filteredData.filter((card) => card.attribute === attribute);
-        if (digi_type) filteredData = filteredData.filter((card) => card.digi_type === digi_type);
+        if (digiType) filteredData = filteredData.filter((card) => card.digiType?.includes(digiType));
         if (dp) filteredData = filteredData.filter((card) => card.dp === dp);
-        if (play_cost) filteredData = filteredData.filter((card) => card.play_cost === play_cost);
-        if (evolution_cost) filteredData = filteredData.filter((card) => card.evolution_cost === evolution_cost);
+        if (playCost) filteredData = filteredData.filter((card) => card.playCost === playCost);
         if (level) filteredData = filteredData.filter((card) => card.level === level);
-        if (cardnumber) filteredData = filteredData.filter((card) => card.cardnumber.toUpperCase().includes(cardnumber.toUpperCase()));
+        if (cardNumber) filteredData = filteredData.filter((card) => card.cardNumber.toUpperCase().includes(cardNumber.toUpperCase()));
+        if (mainEffect) filteredData = filteredData.filter((card) => card.mainEffect?.toUpperCase().includes(mainEffect.toUpperCase()));
+        if (inheritedEffect) filteredData = filteredData.filter((card) => card.inheritedEffect?.toUpperCase().includes(inheritedEffect.toUpperCase()));
+
 
         set({filteredCards: filteredData, isLoading: false});
     },
 
     selectCard: (card) => set({selectedCard: card}),
 
-    setHoverCard: (card: CardTypeWithId | null) => set({hoverCard: card}),
+    setHoverCard: (card) => set({hoverCard: card}),
 
-    addCardToDeck: (cardnumber, type) => {
-        const digiEggsInDeck = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
-        const cardOfIdInDeck = get().deckCards.filter((card) => card.cardnumber === cardnumber).length;
-        const cardToAdd = {...get().fetchedCards.filter((card) => card.cardnumber === cardnumber)[0], id: uid()};
+    addCardToDeck: (cardNumber, type, uniqueCardNumber) => {
+        const digiEggsInDeck = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
+        const cardOfIdInDeck = get().deckCards.filter((card) => card.cardNumber === cardNumber).length;
+        const cardToAdd = {...get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0], id: uid()};
 
         if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4) {
             set({deckCards: [cardToAdd, ...get().deckCards]});
             return;
         }
 
-        const eggCardLength = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
+        const eggCardLength = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = get().deckCards.length - eggCardLength; // 50 deck-cards & max 5 eggs
 
         if (filteredLength >= 50) return;
 
         const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
-        if (cardsWithoutLimit.includes(cardnumber)) {     // unique effect
+        if (cardsWithoutLimit.includes(cardNumber)) {     // unique effect
             set({deckCards: [cardToAdd, ...get().deckCards]});
             return;
         }
@@ -169,7 +172,7 @@ export const useStore = create<State>((set, get) => ({
     },
 
     saveDeck: (name) => {
-        const eggCardLength = get().deckCards.filter((card) => card.type === "Digi-Egg").length;
+        const eggCardLength = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = get().deckCards.length - eggCardLength;
 
         if (filteredLength !== 50) {
@@ -189,7 +192,7 @@ export const useStore = create<State>((set, get) => ({
         const deckToSave = {
             name: name,
             color: mostFrequentColor(sortedDeck),
-            decklist: sortedDeck.map((card) => card.cardnumber),
+            decklist: sortedDeck.map((card) => card.uniqueCardNumber),
             deckStatus: "INACTIVE"
         }
 
@@ -237,7 +240,7 @@ export const useStore = create<State>((set, get) => ({
         const deckWithoutId = {
             name: name,
             color: mostFrequentColor(sortedDeck),
-            decklist: sortedDeck.map((card) => card.cardnumber)
+            decklist: sortedDeck.map((card) => card.uniqueCardNumber)
         }
 
         axios
@@ -263,8 +266,8 @@ export const useStore = create<State>((set, get) => ({
             .catch(console.error)
             .then((data: DeckType) => {
 
-                const cardsWithId: CardTypeWithId[] = data.decklist.map((cardnumber: string) => ({
-                    ...get().fetchedCards.filter((card) => card.cardnumber === cardnumber)[0],
+                const cardsWithId: CardTypeWithId[] = data.decklist.map((uniqueCardNumber) => ({
+                    ...get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0],
                     id: uid(),
                 }));
 
@@ -382,16 +385,16 @@ export const useStore = create<State>((set, get) => ({
     setGameId: (gameId) => {
         set({gameId: gameId});
     },
-
+// TODO: ?? export / import uniqueCardNumber, compatibility with .dev / .app...
     importDeck: (decklist) => {
         set({loadingDeck: true});
         const cardsWithId: CardTypeWithId[] = decklist
             .map((cardnumber: string) => ({
-            ...get().fetchedCards.filter((card) => card.cardnumber === cardnumber)[0],
+            ...get().fetchedCards.filter((card) => card.cardNumber === cardnumber)[0],
             id: uid()}))
             .filter((card) => card.name !== undefined);
         // --- check if deck is valid ---
-        const eggCardLength = cardsWithId.filter((card) => card.type === "Digi-Egg").length;
+        const eggCardLength = cardsWithId.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = cardsWithId.length - eggCardLength;
         if (eggCardLength > 5 || filteredLength > 50) {
             notifyInvalidImport();
@@ -400,8 +403,8 @@ export const useStore = create<State>((set, get) => ({
         }
         const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
         for (const card of cardsWithId) {
-            const cardOfIdInDeck = cardsWithId.filter((c) => c.cardnumber === card.cardnumber).length;
-            if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardnumber)) {
+            const cardOfIdInDeck = cardsWithId.filter((c) => c.cardNumber === card.cardNumber).length;
+            if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardNumber)) {
                 notifyInvalidImport();
                 set({ loadingDeck: false });
                 return;
@@ -416,7 +419,7 @@ export const useStore = create<State>((set, get) => ({
     },
 
     exportDeck: (): string => {
-        const decklist = get().deckCards.map((card) => card.cardnumber);
+        const decklist = get().deckCards.map((card) => card.cardNumber);
         return JSON.stringify(decklist);
     },
 

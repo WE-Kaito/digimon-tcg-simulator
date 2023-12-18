@@ -1,363 +1,315 @@
-import DetailsOutline from "../assets/DetailsOutline.tsx";
 import styled from "@emotion/styled";
-import { css } from '@emotion/css';
 import {useStore} from "../hooks/useStore.ts";
-import {getBackgroundColor, getAttributeImage, getStrokeColor} from "../utils/functions.ts";
+import HighlightedKeyWords from "./cardDetails/HighlightedKeyWords.tsx";
 import {useEffect, useState} from "react";
-import SimpleBar from "simplebar-react";
-import 'simplebar-react/dist/simplebar.min.css';
+
+import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
+import DetailsHeader from "./cardDetails/DetailsHeader.tsx";
+import EffectCard, {EffectText} from "./cardDetails/EffectCard.tsx";
+import {Stack} from "@mui/material";
+import {getDnaColor} from "../utils/functions.ts";
+import {CardTypeGame, CardTypeWithId} from "../utils/types.ts";
 import {useLocation} from "react-router-dom";
+
+const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama"];
 
 export default function CardDetails() {
 
     const location = useLocation();
     const inGame = location.pathname === "/game";
 
-    const selectedCard = useStore((state) => state.selectedCard);
-    const hoverCard = useStore((state) => state.hoverCard);
-    const currentAttr = hoverCard ? hoverCard.attribute : (selectedCard?.attribute || null)
-    const currentDigiType = hoverCard ? hoverCard.digi_type : selectedCard?.digi_type;
-    const longDigiType = currentDigiType && (currentDigiType?.length >= 14);
-    const longName = hoverCard ? (hoverCard.name?.length >= 14) : (selectedCard && (selectedCard?.name.length >= 14));
-    const strokeColor = getStrokeColor(hoverCard, selectedCard);
-    const mainEffectText = hoverCard ? (hoverCard.maineffect ?? "") : (selectedCard?.maineffect ?? "");
-    const soureEffectText = hoverCard ? (hoverCard.soureeffect ?? "") : (selectedCard?.soureeffect ?? "");
+    const selectedCard : CardTypeWithId | CardTypeGame | null = useStore((state) => state.selectedCard);
+    const hoverCard : CardTypeWithId | CardTypeGame | null  = useStore((state) => state.hoverCard);
 
-    const [highlightedMainEffect, setHighlightedMainEffect] = useState<any>("");
-    const [highlightedSoureEffect, setHighlightedSoureEffect] = useState<any>("");
+    // First Tab
+    const name = hoverCard?.name ?? selectedCard?.name;
+    const cardType = hoverCard?.cardType ?? selectedCard?.cardType;
+    const mainEffectText = hoverCard?.mainEffect ?? (!hoverCard ? (selectedCard?.mainEffect ?? "") : "");
+    const inheritedEffectText = hoverCard?.inheritedEffect ?? (!hoverCard ? (selectedCard?.inheritedEffect ?? "") : "");
+    const securityEffectText = hoverCard?.securityEffect ?? (!hoverCard ? (selectedCard?.securityEffect ?? "") : "");
+    const specialDigivolveText = hoverCard?.specialDigivolve ?? (!hoverCard ? (selectedCard?.specialDigivolve ?? "") : "");
+    const burstDigivolveText = hoverCard?.burstDigivolve ?? (!hoverCard ? (selectedCard?.burstDigivolve ?? "") : "");
+    const digiXrosText = hoverCard?.digiXros ?? (!hoverCard ? (selectedCard?.digiXros ?? "") : "");
+    const dnaDigivolutionText = hoverCard?.dnaDigivolve ?? (!hoverCard ? (selectedCard?.dnaDigivolve ?? "") : "");
+
+    // Second Tab
+    const cardNumber = hoverCard?.cardNumber ?? selectedCard?.cardNumber;
+    const level = hoverCard?.level ?? (!hoverCard ? (selectedCard?.level ?? 0) : 0);
+    const playCost = hoverCard?.playCost ?? (!hoverCard ? (selectedCard?.playCost ?? 0) : 0);
+    const digivolveConditions = hoverCard?.digivolveConditions ?? (!hoverCard ? (selectedCard?.digivolveConditions ?? []) : []);
+    const dp = hoverCard?.dp ?? (!hoverCard ? (selectedCard?.dp ?? 0) : 0);
+    const stage = hoverCard?.stage ?? (!hoverCard ? (selectedCard?.stage ?? "") : "");
+    const illustrator = hoverCard?.illustrator ?? (!hoverCard ? (selectedCard?.illustrator ?? "") : "");
+    const rulingsUrl = `https://digimoncardgame.fandom.com/wiki/${cardNumber}/Rulings`;
+
+    const [highlightedMainEffect, setHighlightedMainEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedInheritedEffect, setHighlightedInheritedEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedSecurityEffect, sethighlightedSecurityEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedSpecialDigivolve, setHighlightedSpecialDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedBurstDigivolve, setHighlightedBurstDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedDigiXros, setHighightedDigiXros] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedDNADigivolution, setHighlightedDNADigivolution] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [selectedTab, setSelectedTab] = useState("effects");
+
     useEffect(() => {
-        setHighlightedMainEffect(highlightBracketedWords(mainEffectText));
-        setHighlightedSoureEffect(highlightBracketedWords(soureEffectText));
+        setHighlightedMainEffect(HighlightedKeyWords({text: mainEffectText}));
+        setHighlightedInheritedEffect(HighlightedKeyWords({text: inheritedEffectText}));
+        sethighlightedSecurityEffect(HighlightedKeyWords({text: securityEffectText}));
+        setHighlightedSpecialDigivolve(HighlightedKeyWords({text: specialDigivolveText}));
+        setHighlightedBurstDigivolve(HighlightedKeyWords({text: burstDigivolveText}));
+        setHighightedDigiXros(HighlightedKeyWords({text: digiXrosText}));
+        setHighlightedDNADigivolution(HighlightedKeyWords({text: dnaDigivolutionText}));
+
+        setHighlightedSpecialDigivolve((prev): (JSX.Element | JSX.Element[])[] => {
+            prev.shift();
+            return prev
+        });
+        setHighlightedBurstDigivolve((prev): (JSX.Element | JSX.Element[])[] => {
+            prev.shift();
+            return prev
+        });
+        setHighightedDigiXros((prev): (JSX.Element | JSX.Element[])[] => {
+            prev.shift();
+            return prev
+        });
+        setHighlightedDNADigivolution((prev): (JSX.Element | JSX.Element[])[] => {
+            prev.shift();
+            return prev
+        });
+        // sethighlightedSecurityEffect(highlightKeyWords({text: securityEffectText}));
     }, [selectedCard, hoverCard]);
 
-
-    function highlightBracketedWords(text:string) {
-        const regex = /(\[([^\]]+)\]|＜([^＞]+)＞)/g;
-        let match;
-        let lastIndex = 0;
-        const highlightedParts = [];
-
-        while ((match = regex.exec(text)) !== null) {
-            const prefix = text.slice(lastIndex, match.index);
-            const bracketedWord = match[0];
-
-            highlightedParts.push(prefix);
-
-            if (bracketedWord[0] === '[') {
-                highlightedParts.push(
-                    <span className="highlight-square" key={highlightedParts.length}>
-          {" " + match[2] + " "}
-        </span>
-                );
-            } else {
-                highlightedParts.push(
-                    <span className="highlight-angle" key={highlightedParts.length}>
-          {" " + match[3] + " "}
-        </span>
-                );
-            }
-
-            lastIndex = regex.lastIndex;
-        }
-
-        if (lastIndex < text.length) {
-            highlightedParts.push(text.slice(lastIndex));
-        }
-
-        return highlightedParts;
-    }
-
+    if (!selectedCard && !hoverCard) return <div style={{height: "100%"}}/>;
     return (
-        <Container inGame={inGame} color={hoverCard?.color || selectedCard?.color || "default"}>
-            <DetailsOutline/>
-            <Name longName={longName} inGame={inGame} className={css`color:${strokeColor};`}>
-                {hoverCard?.name || selectedCard?.name || null}
-            </Name>
+        <Wrapper>
 
-            <CardNumber inGame={inGame}  className={css`color:${strokeColor};`}>
-                {hoverCard ? hoverCard.cardnumber : (selectedCard?.cardnumber || null)}
-            </CardNumber>
+            <DetailsHeader/>
 
-            {currentAttr && <Type inGame={inGame} src={getAttributeImage(currentAttr)} alt={currentAttr}/>}
+            <Tabs selectedItem={selectedTab} style={{position: "relative"}} onChange={setSelectedTab}>
+                <TabList style={{marginBottom: 0}}>
+                    <StyledTab selectedTab={selectedTab} item="effects">
+                        <TabLabel1 tab="effects">Effects</TabLabel1>
+                    </StyledTab>
+                    <StyledTab selectedTab={selectedTab} item="details">
+                        <TabLabel2 tab="details">Details</TabLabel2>
+                    </StyledTab>
+                </TabList>
 
-            <PlayCost inGame={inGame} className={css`color:${strokeColor}`}>
-                {hoverCard ? hoverCard.play_cost : (selectedCard?.play_cost || null)}
-            </PlayCost>
+                <TabPanel item="effects">
+                    <TabContainer inGame={inGame}>
 
-            <DP inGame={inGame} className={css`color:${strokeColor}`}>
-                {hoverCard ? hoverCard.dp : (selectedCard?.dp || null)}
-            </DP>
+                        {dnaDigivolutionText && <EffectCard variant={"DNA Digivolution"}>
+                            {highlightedDNADigivolution}
+                        </EffectCard>}
 
-            <DigivCost inGame={inGame} className={css`color:${strokeColor}`}>
-                {hoverCard ? hoverCard.evolution_cost : (selectedCard?.evolution_cost || null)}
-            </DigivCost>
+                        {digiXrosText && <EffectCard variant={"DigiXros"}>
+                            {highlightedDigiXros}
+                        </EffectCard>}
 
-            <Level inGame={inGame} className={css`color:${strokeColor}`}>
-                {hoverCard ? hoverCard.level : (selectedCard?.level || null)}
-            </Level>
+                        {burstDigivolveText && <EffectCard variant={"Burst Digivolve"}>
+                            {highlightedBurstDigivolve}
+                        </EffectCard>}
 
-            <Stage inGame={inGame} className={css`color:${strokeColor}`}>
-                {hoverCard ? hoverCard.stage : (selectedCard?.stage || null)}
-            </Stage>
+                        {specialDigivolveText && <EffectCard variant={cardType === "Option" ? "security" : "Digivolve"}>
+                            {highlightedSpecialDigivolve}
+                        </EffectCard>}
 
-            <DigiType inGame={inGame} className={css`
-              color:${strokeColor};
-              font-size: ${longDigiType ? 12 : 18}px;
-              @media (max-width: 766px) {
-                transform: scale(0.7) translateX(-12px) translateY(${longDigiType ? -9 : 4}px);
-                line-height: 0.8;
-              }
-              @media (min-width: 767px) {
-                transform: translateX(-50%) translateY(${longDigiType ? 9 : 2}px);
-                font-size: ${longDigiType ? `${inGame?8:12}` : `${inGame?16:21}`}px;
-              }
-            `}>
-                {currentDigiType || null}
-            </DigiType>
+                        {mainEffectText && <EffectCard variant={"main"}>
+                            {highlightedMainEffect}
+                        </EffectCard>}
 
+                        {inheritedEffectText && <EffectCard
+                            variant={(cardType === "Option" || (cardType === "Tamer" && !HybridNames.includes(String(name)))) ? "security" : "inherited"}>
+                            {highlightedInheritedEffect}
+                        </EffectCard>}
 
-            <MainEffect
-                inGame={inGame}
-                className={css`color:${strokeColor}`}
-            >
-                <SimpleBar
-                    className={css`
-                      width: 145px;
-                      height: 45px;
-                      overflow-y: scroll;
-                      overflow-x: hidden;
-                      scrollbar-width: none;
-                      font-size: 14px;
-                      ::-webkit-scrollbar {
-                        display: none;
-                      }
+                        {securityEffectText && <EffectCard variant={"security"}>
+                            {highlightedSecurityEffect}
+                        </EffectCard>}
+                    </TabContainer>
+                </TabPanel>
 
-                      @media (min-width: 767px) {
-                        width: ${inGame ? "290px" : "475px"};
-                        height: ${inGame ? "100px" : "85px"};
-                      }
-                    `}> {highlightedMainEffect}</SimpleBar>
-            </MainEffect>
+                <TabPanel item="details">
 
+                    <TabContainer2 inGame={inGame}>
+                        <Stack spacing={2} width={"98.5%"} direction={"row"} sx={{marginRight: 10}}>
+                            <DetailCard>
+                                <DetailText>
+                                    <DetailMetric>{cardNumber}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>
 
-            <SoureEffect
-                inGame={inGame}
-                className={css`color:${strokeColor}`}
-            >
-                <SimpleBar
-                    className={css`
-                      width: 145px;
-                      height: 45px;
-                      overflow-y: scroll;
-                      overflow-x: hidden;
-                      scrollbar-width: none;
-                      font-size: 14px;
-                      ::-webkit-scrollbar {
-                        display: none;
-                      }
+                            {["Digimon", "Digi-Egg"].includes(String(cardType)) && <DetailCard>
+                                <DetailText>
+                                    Lv.
+                                    <DetailMetric>{level}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>}
 
-                      @media (min-width: 767px) {
-                        width: ${inGame ? "290px" : "475px"};
-                        height: ${inGame ? "94px" : "85px"};
-                      }
-                    `}> {highlightedSoureEffect}</SimpleBar>
-            </SoureEffect>
+                            {cardType !== "Digi-Egg" && <DetailCard>
+                                <DetailText>
+                                    {cardType === "Option" ? "Cost: " : "Play: "}
+                                    <DetailMetric>{playCost}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>}
+                        </Stack>
 
-        </Container>
+                        {digivolveConditions[0] && <DetailCard>
+                            <DetailText style={{display: "flex", width: "97%", justifyContent: "space-between"}}>
+                                <div>
+                                <span>{"Digivolve Cost: "}</span>
+                                <DetailMetric>{digivolveConditions[0]?.cost}</DetailMetric>
+                                </div>
+                                <div>
+                                    <span style={{fontSize: "0.7em"}}>{" from "}</span>
+                                    {digivolveConditions?.map((condition, index) =>
+                                        <span key={condition.color}>
+                                        {(index !== 0) && " | "}
+                                            {getDnaColor(condition.color.toLowerCase())}
+                                    </span>)}
+                                    {" Lv."}
+                                    <DetailMetric>{digivolveConditions[0]?.level}</DetailMetric>
+                                </div>
+                            </DetailText>
+                        </DetailCard>}
+
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: (!dp && stage) ? "1fr 1fr" : "1fr 2fr",
+                            gap: 15,
+                            width: "98.5%"
+                        }}>
+                            {!!dp && <DetailCard>
+                                <DetailText>
+                                    DP: <DetailMetric>{dp}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>}
+
+                            {!!stage && <DetailCard>
+                                <DetailText>
+                                    {"Stage: "}
+                                    <DetailMetric>{stage}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>}
+                        </div>
+
+                        <DetailCard>
+                            <DetailText>
+                                {"Illustrator: "}
+                                <DetailMetric>{illustrator}</DetailMetric>
+                            </DetailText>
+                        </DetailCard>
+
+                        <DetailText>
+                            <StyledLink href={rulingsUrl}  target="_blank" rel="noopener noreferrer">
+                                🛈 Rulings
+                            </StyledLink>
+                        </DetailText>
+
+                    </TabContainer2>
+
+                </TabPanel>
+            </Tabs>
+        </Wrapper>
     );
 }
 
-type ContainerProps = {
-    color: string
-    inGame: boolean
-}
+const Wrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  padding: 5px;
+  border-radius: 5px;
+`;
 
-const Container = styled.div<ContainerProps>`
-  margin-left: 2px;
-  margin-top: 8px;
+const StyledTab = styled(Tab)<{ item: string, selectedTab: string }>`
+  margin: 0;
+  padding: 0;
+  width: 38.75%;
+  height: 0.5rem;
   position: relative;
-  width: 166px;
-  height: ${({inGame}) => inGame ? 500 : 244}px;
-  border-radius: ${({inGame}) => inGame ? 12 : 5}px;
-  padding-top: 3px;
-  max-width: 100%;
+  border: none !important;
+  color: ${({item, selectedTab}) => item === selectedTab ? "black" : "whitesmoke"} !important;
+  background-color: ${({item, selectedTab}) => item === selectedTab ? "whitesmoke" : "rgba(0, 0, 0, 0)"};
+  border-top-right-radius: ${({item}) => item === "effects" ? "25px" : "5px"};
+  border-top-left-radius: ${({item}) => item === "details" ? "25px" : "5px"};
+  transition: all 0.2s ease-in-out !important;
 
-  background: ${({color}) => getBackgroundColor(color)};
-
-  @media (min-width: 767px) {
-    width: 500px;
-    height: ${({inGame}) => inGame ? 462 : 398}px;
-    margin-top: 0;
+  &:hover {
+    span {
+      color: #156cd0;
+    }
   }
-`
-const StyledSpan = styled.span`
+`;
+
+const TabLabel1 = styled.span<{ tab: string }>`
   position: absolute;
-  font-family: 'Cousine', sans-serif;
+  top: 0.1rem;
+  font-size: 1rem;
+  font-family: Verdana, sans-serif;
+  font-weight: 600;
+
+  left: 5px;
 `;
 
-const Name = styled(StyledSpan)<{inGame:boolean, longName:boolean|null}>`
-  top: ${({longName}) => longName ? 6 : 11}px;
-  left: 13px;
-  font-size: 13px;
-  max-width: 102px;
-  max-height: 26px;
-  overflow-x: scroll;
-  overflow-y: hidden;
+const TabLabel2 = styled(TabLabel1)`
+  left: unset;
+  right: 5px;
+`;
 
-  @media (min-width: 767px) {
-    max-width: ${({inGame}) => inGame ? 200 : 306}px;
-    overflow-x: hidden;
-    font-size: ${({longName}) => longName ? 17 : 24}px;
-    left: ${({inGame}) => inGame ? 10 : 182}px;
-    transform: ${({inGame}) => inGame ? "translateY(8px)" : "translateX(-50%) translateY(14px)"};
-    max-height: ${({inGame}) => inGame ? 50 : 40}px;
+const TabContainer = styled.div<{ inGame : boolean }>`
+  width: 100%;
+  height: ${({inGame}) => inGame ? "100%" : "251px"};
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  padding: 5px 0 5px 0;
+  gap: 6px;
+
+  ::-webkit-scrollbar {
+    width: 5px;
   }
-`;
 
-const CardNumber = styled(StyledSpan)<{inGame:boolean}>`
-  left: 100px;
-  top: 45px;
-  font-size: 10px;
-  max-width: 102px;
-  max-height: 26px;
-  visibility: hidden;
-
-  @media (min-width: 767px) {
-    visibility: visible;
-    max-width: ${({inGame}) => inGame ? 200 : 306}px;
-    left: ${({inGame}) => inGame ? 165 : 250}px;
-    transform: ${({inGame}) => inGame ? "translateY(8px)" : "translateX(50px) translateY(6px)"};
-    max-height: ${({inGame}) => inGame ? 50 : 40}px;
+  ::-webkit-scrollbar-thumb {
+    background: rgba(250, 250, 250, 0.65);
   }
 `;
 
-const Type = styled.img<{inGame:boolean}>`
-  position: absolute;
-  width: 33px;
-  right: 11px;
-  top: 7px;
-  @media (min-width: 767px) {
-    width: 50px;
-    right: ${({inGame}) => inGame ? 20 : 60}px;
-    top: ${({inGame}) => inGame ? 10 : 16}px;
-  }
+const TabContainer2 = styled.div<{ inGame : boolean }>`
+  width: 100%;
+  height: ${({inGame}) => inGame ? "100%" : "251px"};
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 5px;
+  gap: 15px;
 `;
 
-const PlayCost = styled(StyledSpan)<{inGame:boolean}>`
-  left: 19px;
-  top: 53px;
-  @media (min-width: 767px) {
-    left: ${({inGame}) => inGame ? 35 : 70}px;
-    top: ${({inGame}) => inGame ? 100 : 90}px;
-    font-size: 22px;
-  }
+const DetailCard = styled.div`
+  width: 98.5%;
+  background: #0c0c0c;
+  filter: drop-shadow(0 0 1px ghostwhite);
 `;
 
-const DP = styled(StyledSpan)<{inGame:boolean}>`
-  left: 62px;
-  top: 53px;
-  @media (min-width: 767px) {
-    left: ${({inGame}) => inGame ? 132 : 224}px;
-    top: ${({inGame}) => inGame ? 100 : 90}px;
-    font-size: 22px;
-  }
+const DetailText = styled(EffectText)`
+  font-size: 1.5rem;
+  line-height: 1.4rem;
+  transform: translateY(0.1rem);
 `;
 
-const DigivCost = styled(StyledSpan)<{inGame:boolean}>`
-  left: 133px;
-  top: 53px;
-  @media (min-width: 767px) {
-    left: ${({inGame}) => inGame ? 258 : 410}px;
-    top: ${({inGame}) => inGame ? 100 : 90}px;
-    font-size: 22px;
-  }
-
+const DetailMetric = styled.span`
+  font-size: 0.95em;
+  font-family: Awsumsans, sans-serif;
+  color: lightcyan;
 `;
 
-const Level = styled(StyledSpan)<{inGame:boolean}>`
-  left: 19px;
-  top: 92px;
-  @media (min-width: 767px) {
-    left: ${({inGame}) => inGame ? 35 : 70}px;
-    top: ${({inGame}) => inGame ? 175 : 150}px;
-    font-size: 22px;
-  }
-`;
-
-const Stage = styled(StyledSpan)<{inGame:boolean}>`
-  left: 53.5px;
-  top: 92px;
-  font-size: 13px;
-
-  @media (max-width: 766px) {
-    max-width: 49.5px;
-    overflow: hidden;
-  }
-
-  @media (min-width: 767px) {
-    left: ${({inGame}) => inGame ? 142 : 232}px;
-    transform: translateX(-50%);
-    top: ${({inGame}) => inGame ? 178 : 150}px;
-    font-size: ${({inGame}) => inGame ? 16 : 21}px;
-  }
-`;
-
-const DigiType = styled(StyledSpan)<{inGame:boolean}>`
-  left: 107px;
-  top: 92px;
-  @media (min-width: 767px) {
-    left: ${({inGame}) => inGame ? 255 : 402}px;
-    width: 300px;
-    top: ${({inGame}) => inGame ? 178 : 150}px;
-  }
-`;
-
-const StyledParagraph = styled.p<{inGame:boolean}>`
-  position: absolute;
-  padding-top: 3px;
-  font-family: 'Cousine', sans-serif;
-  font-size: 12px;
-  line-height: 0.95;
-  top: 110px;
-  left: ${({inGame}) => inGame ? 8 : 14}px;
-  text-align: left;
-  max-width: 80px;
-  max-height: 49px;
-
-  .highlight-square {
-    color: #e7e7e7;
-    background: #535bf2;
-    border-radius: 3px;
-    display: inline-block;
-    padding-top: 2px;
-  }
-
-  .highlight-angle {
-    color: #e7e7e7;
-    background: #b64602;
-    border-radius: 3px;
-    display: inline-block;
-    padding-top: 2px;
-  }
-
-  @media (min-width: 767px) {
-    max-width: 470px;
-    font-size: 13px;
-    line-height: 1;
-    top: ${({inGame}) => inGame ? 229 : 190}px;
-    
-  }
-
-`;
-
-const MainEffect = styled(StyledParagraph)<{inGame:boolean}>`
-  
-`;
-
-const SoureEffect = styled(StyledParagraph)<{inGame:boolean}>`
-  top: 173px;
-  
-  @media (min-width: 767px) {
-    top: ${({inGame}) => inGame ? 353:  292.5}px;
-  }
+const StyledLink = styled.a`
+  font-weight: 400;
+  color: lightcyan;
+    &:hover {
+        color: #14d591;
+    }
 `;

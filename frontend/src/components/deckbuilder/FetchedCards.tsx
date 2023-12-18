@@ -5,9 +5,8 @@ import noCardsFoundAnimation from "../../assets/lotties/noCardsFound.json";
 import gatchmon from "../../assets/gatchmon.png";
 import {useStore} from "../../hooks/useStore.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
-import {lazy, Suspense} from 'react';
-
-const Card = lazy(() => import('../Card.tsx'));
+import {Suspense} from 'react';
+import FetchCard from "./FetchCard.tsx";
 
 export const Loading = () => <LoadingContainer>
     <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
@@ -27,20 +26,19 @@ export default function FetchedCards() {
 
                     {isLoading && <Loading/>}
 
-                    {!isLoading && (filteredCards !== fetchedCards) && filteredCards?.map((card: CardTypeWithId) => (
-                            <Card key={card.cardnumber} card={card} location={"fetchedData"}/>
-                        ))}
+                    {(!isLoading && (filteredCards.length < 2000) && (filteredCards !== fetchedCards))
+                        ? filteredCards?.map((card: CardTypeWithId) => (
+                            <FetchCard card={card} key={card.uniqueCardNumber}/>
+                        ))
+                        : <LoadingContainer>
+                            <img alt="gatchmon" src={gatchmon} width={100} height={120}/>
+                        </LoadingContainer>
+                    }
 
                     {!isLoading && (filteredCards.length === 0) && (
                         <LoadingContainer>
                             <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
                             <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
-                        </LoadingContainer>
-                    )}
-
-                    {!isLoading && (filteredCards.length > 2000) && (
-                        <LoadingContainer>
-                            <img alt="gatchmon" src={gatchmon} width={100} height={120}/>
                         </LoadingContainer>
                     )}
 

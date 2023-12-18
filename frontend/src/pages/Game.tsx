@@ -306,7 +306,6 @@ export default function Game({user}: { user: string }) {
             if (event.data.startsWith("[USER_COUNT]:")) {
                 const userCount = event.data.substring("[USER_COUNT]:".length);
                 setUserCount(parseInt(userCount));
-                console.log("usercount updated")
                 return;
             }
 
@@ -340,10 +339,7 @@ export default function Game({user}: { user: string }) {
                     setGameHasStarted(false);
                     break;
                 }
-                case ("[HEARTBEAT]"): {
-                    console.log("heartbeat received")
-                    break;
-                }
+                case ("[HEARTBEAT]"): break;
                 case ("[PLAYER_READY]"): {
                     setOpponentReady(true);
                     if (!mulliganAllowed) setGameHasStarted(true);
@@ -828,7 +824,7 @@ export default function Game({user}: { user: string }) {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
-    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole" ]
+    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt" ]
 
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
@@ -877,7 +873,7 @@ export default function Game({user}: { user: string }) {
             </Menu>
 
             {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
-                <Item onClick={() => window.open(selectedCard.image_url, '_blank')}>Open Image in new Tab ↗</Item>
+                <Item onClick={() => window.open(selectedCard.imgUrl, '_blank')}>Open Image in new Tab ↗</Item>
             </Menu>}
 
             {modNames.includes(user) &&
@@ -938,7 +934,7 @@ export default function Game({user}: { user: string }) {
                     </InfoSpan>
                     <CardImage onClick={() => selectCard(null)}
                                onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                               src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
+                               src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
                                alt={selectedCard?.name ?? "Card"}/>
                     <CardDetails/>
                 </InfoContainer>
@@ -977,7 +973,7 @@ export default function Game({user}: { user: string }) {
                             <OpponentTrashContainer>
                                 <TrashSpan style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
                                 {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
-                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].image_url}
+                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].imgUrl}
                                                       alt={"opponentTrash"}
                                                       onClick={() => {
                                                           setOpponentTrashMoodle(!opponentTrashMoodle);
@@ -1240,7 +1236,7 @@ export default function Game({user}: { user: string }) {
                             <TrashContainer>
                                 {myTrash.length === 0 ?
                                     <TrashPlaceholder ref={dropToTrash} isOver={isOverTrash}>Trash</TrashPlaceholder>
-                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].image_url}
+                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].imgUrl}
                                                       alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
@@ -1496,12 +1492,12 @@ const OpponentContainerSide = styled(MyContainerSide)`
 
 const InfoContainer = styled.div`
   height: 1000px;
-  width: 310px;
+  width: 500px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: grid;
+
   align-items: center;
+  padding: 10px;
 `;
 
 const FieldContainer = styled.div`
@@ -1512,39 +1508,39 @@ const FieldContainer = styled.div`
 const Wrapper = styled.div<{ chatOpen: boolean }>`
   position: relative;
   height: 1000px;
-  width: 1600px;
+  width: 1840px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
-  transform: translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  transform: translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
   transition: transform 0.4s ease-in-out;
 
   @media (max-height: 1199px) {
-    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
   }
   @media (max-height: 1080px) {
-    transform: scale(0.9) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(0.885) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
   }
   @media (max-height: 900px) {
-    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
   }
   @media (min-height: 1200px) {
-    transform: scale(1.2) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(1.15) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
   }
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-150px" : "0"});
   }
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-120px" : "-20px"});
+    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-170px" : "-20px"});
   }
 `;
 
 const ChatSideBar = styled.div<{ chatOpen: boolean }>`
   position: absolute;
-  right: ${({chatOpen}) => chatOpen ? "-250px" : "-25px"};
+  right: ${({chatOpen}) => chatOpen ? "-300px" : "-25px"};
   top: 0;
   height: 100%;
-  width: ${({chatOpen}) => chatOpen ? "280px" : "40px"};
+  width: ${({chatOpen}) => chatOpen ? "330px" : "40px"};
   background: linear-gradient(to right, rgba(15, 15, 15, 0) 5%, ${({chatOpen}) => chatOpen ? "rgba(30, 30, 30, 0.5) 10%" : "rgba(15, 15, 15, 0.15) 35%"});
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
@@ -2227,4 +2223,5 @@ const CloseSecurityButton = styled(MuiButton)`
   right: 292px;
   bottom: 540px;
   z-index: 1000;
-  font-family: Naston, sans-serif;;`
+  font-family: Naston, sans-serif;
+;`

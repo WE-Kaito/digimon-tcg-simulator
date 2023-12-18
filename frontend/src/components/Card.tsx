@@ -16,7 +16,8 @@ type CardProps = {
     index?: number,
     draggedCards?: CardTypeGame[],
     setDraggedCards?: (cards: CardTypeGame[]) => void
-    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void
+    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void,
+    setImageError?: (imageError: boolean) => void
 }
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
@@ -32,7 +33,8 @@ export default function Card({
                                  index,
                                  draggedCards,
                                  setDraggedCards,
-                                 handleDropToStackBottom
+                                 handleDropToStackBottom,
+                                 setImageError
                              }: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
@@ -46,7 +48,7 @@ export default function Card({
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
-        item: {id: card.id, location: location, cardnumber: card.cardnumber, type: card.type, name: card.name},
+        item: {id: card.id, location: location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name},
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -94,7 +96,7 @@ export default function Card({
     }, [canDrop, canDropToStackBottom, setCanDropToStackBottom]);
 
     function handleTiltCard() {
-        if (location === "myTamer" && card.type !== "Tamer") return;
+        if (location === "myTamer" && card.cardType !== "Tamer") return;
         if (location !== "myBreedingArea" && card === locationCards[locationCards.length - 1]
             && sendSfx && sendUpdate && selectedCard === card) {
             tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
@@ -104,7 +106,7 @@ export default function Card({
 
     function handleClick() {
         if (location === "fetchedData") {
-            addCardToDeck(card.cardnumber, card.type);
+            addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
             playPlaceCardSfx();
 
             if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
@@ -134,12 +136,13 @@ export default function Card({
                 onMouseEnter={() => setHoverCard(card)}
                 onMouseOver={() => setHoverCard(card)}
                 onMouseLeave={() => setHoverCard(null)}
-                alt={card.name + " " + card.cardnumber}
-                src={card.image_url}
+                alt={card.name + " " + card.uniqueCardNumber}
+                src={card.imgUrl}
                 isDragging={isDragging || dragStackEffect}
                 location={location}
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 title={topCardInfo(card as CardTypeGame, location, locationCards)}
+                onError={() => setImageError && setImageError(true)}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}

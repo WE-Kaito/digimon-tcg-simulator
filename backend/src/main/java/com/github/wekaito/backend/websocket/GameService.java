@@ -278,7 +278,7 @@ public class GameService extends TextWebSocketHandler {
         List<GameCard> newDeck2 = createGameDeck(deck2);
 
         List<GameCard> player1EggDeck = newDeck1.stream()
-                .filter(card -> card.type().equals("Digi-Egg")).toList();
+                .filter(card -> card.cardType().equals("Digi-Egg")).toList();
         newDeck1.removeAll(player1EggDeck);
 
         List<GameCard> player1Hand = newDeck1.stream()
@@ -290,7 +290,7 @@ public class GameService extends TextWebSocketHandler {
         newDeck1.removeAll(player1Security);
 
         List<GameCard> player2EggDeck = newDeck2.stream()
-                .filter(card -> card.type().equals("Digi-Egg")).toList();
+                .filter(card -> card.cardType().equals("Digi-Egg")).toList();
         newDeck2.removeAll(player2EggDeck);
 
         List<GameCard> player2Security = newDeck2.stream()
@@ -322,8 +322,35 @@ public class GameService extends TextWebSocketHandler {
         }
 
         for (Card card : deck) {
-            //GameCard newCard = new GameCard(idService.createId(), false, card.name(), card.type(), card.color(), card.image_url(), card.cardnumber(), card.stage(), card.attribute(), card.digi_type(), card.dp(), card.play_cost(), card.evolution_cost(), card.level(), card.maineffect(), card.soureeffect());
-           // gameDeck.add(newCard);
+            GameCard newCard = new GameCard(
+                    card.uniqueCardNumber(),
+                    card.name(),
+                    card.imgUrl(),
+                    card.cardType(),
+                    card.color(),
+                    card.attribute(),
+                    card.cardNumber(),
+                    card.digivolveConditions(),
+                    card.specialDigivolve(),
+                    card.stage(),
+                    card.digiType(),
+                    card.dp(),
+                    card.playCost(),
+                    card.level(),
+                    card.mainEffect(),
+                    card.inheritedEffect(),
+                    card.aceEffect(),
+                    card.burstDigivolve(),
+                    card.digiXros(),
+                    card.dnaDigivolve(),
+                    card.securityEffect(),
+                    card.restriction_en(),
+                    card.restriction_jp(),
+                    card.illustrator(),
+                    false,
+                    idService.createId());
+
+            gameDeck.add(newCard);
         }
 
         return gameDeck;
