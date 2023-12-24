@@ -432,7 +432,7 @@ export const useStore = create<State>((set, get) => ({
             const uniqueCards = Array.from(uniqueCardsMap.values());
             const decklist = uniqueCards.map((card) => {
                 const cardCount = deckCards.filter((c) => c.cardNumber === card.cardNumber).length
-                return `${cardCount} × ${card.name}${card.name.length > 25 ? " " : " ".repeat(25 - card.name.length)}${card.cardNumber}`;
+                return `${cardCount} ${card.name} ${card.cardNumber}`;
             }).join("\n");
             return `// ${deckName}\n\n${decklist}`;
         }
