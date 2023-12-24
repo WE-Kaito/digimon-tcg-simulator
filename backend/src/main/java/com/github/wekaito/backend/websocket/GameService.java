@@ -52,14 +52,17 @@ public class GameService extends TextWebSocketHandler {
         map.put("myDigi8", "opponentDigi8");
         map.put("myDigi9", "opponentDigi9");
         map.put("myDigi10", "opponentDigi10");
+        map.put("myDigi11", "opponentDigi11");
+        map.put("myDigi12", "opponentDigi12");
+        map.put("myDigi13", "opponentDigi13");
+        map.put("myDigi14", "opponentDigi14");
+        map.put("myDigi15", "opponentDigi15");
         map.put("mySecurity", "opponentSecurity");
         map.put("myHand", "opponentHand");
         map.put("myDeckField", "opponentDeckField");
         map.put("myEggDeck", "opponentEggDeck");
         map.put("myBreedingArea", "opponentBreedingArea");
         map.put("myTrash", "opponentTrash");
-        map.put("myTamer", "opponentTamer");
-        map.put("myDelay", "opponentDelay");
         map.put("myReveal", "opponentReveal");
         map.put("opponentDigi1", "myDigi1");
         map.put("opponentDigi2", "myDigi2");
@@ -71,14 +74,17 @@ public class GameService extends TextWebSocketHandler {
         map.put("opponentDigi8", "myDigi8");
         map.put("opponentDigi9", "myDigi9");
         map.put("opponentDigi10", "myDigi10");
+        map.put("opponentDigi11", "myDigi11");
+        map.put("opponentDigi12", "myDigi12");
+        map.put("opponentDigi13", "myDigi13");
+        map.put("opponentDigi14", "myDigi14");
+        map.put("opponentDigi15", "myDigi15");
         map.put("opponentSecurity", "mySecurity");
         map.put("opponentHand", "myHand");
         map.put("opponentDeckField", "myDeckField");
         map.put("opponentEggDeck", "myEggDeck");
         map.put("opponentBreedingArea", "myBreedingArea");
         map.put("opponentTrash", "myTrash");
-        map.put("opponentTamer", "myTamer");
-        map.put("opponentDelay", "myDelay");
         map.put("opponentReveal", "myReveal");
         return map;
     }
@@ -272,7 +278,7 @@ public class GameService extends TextWebSocketHandler {
         List<GameCard> newDeck2 = createGameDeck(deck2);
 
         List<GameCard> player1EggDeck = newDeck1.stream()
-                .filter(card -> card.type().equals("Digi-Egg")).toList();
+                .filter(card -> card.cardType().equals("Digi-Egg")).toList();
         newDeck1.removeAll(player1EggDeck);
 
         List<GameCard> player1Hand = newDeck1.stream()
@@ -284,7 +290,7 @@ public class GameService extends TextWebSocketHandler {
         newDeck1.removeAll(player1Security);
 
         List<GameCard> player2EggDeck = newDeck2.stream()
-                .filter(card -> card.type().equals("Digi-Egg")).toList();
+                .filter(card -> card.cardType().equals("Digi-Egg")).toList();
         newDeck2.removeAll(player2EggDeck);
 
         List<GameCard> player2Security = newDeck2.stream()
@@ -316,7 +322,34 @@ public class GameService extends TextWebSocketHandler {
         }
 
         for (Card card : deck) {
-            GameCard newCard = new GameCard(idService.createId(), false, card.name(), card.type(), card.color(), card.image_url(), card.cardnumber(), card.stage(), card.attribute(), card.digi_type(), card.dp(), card.play_cost(), card.evolution_cost(), card.level(), card.maineffect(), card.soureeffect());
+            GameCard newCard = new GameCard(
+                    card.uniqueCardNumber(),
+                    card.name(),
+                    card.imgUrl(),
+                    card.cardType(),
+                    card.color(),
+                    card.attribute(),
+                    card.cardNumber(),
+                    card.digivolveConditions(),
+                    card.specialDigivolve(),
+                    card.stage(),
+                    card.digiType(),
+                    card.dp(),
+                    card.playCost(),
+                    card.level(),
+                    card.mainEffect(),
+                    card.inheritedEffect(),
+                    card.aceEffect(),
+                    card.burstDigivolve(),
+                    card.digiXros(),
+                    card.dnaDigivolve(),
+                    card.securityEffect(),
+                    card.restriction_en(),
+                    card.restriction_jp(),
+                    card.illustrator(),
+                    false,
+                    idService.createId());
+
             gameDeck.add(newCard);
         }
 

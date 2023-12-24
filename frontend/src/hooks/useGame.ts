@@ -18,8 +18,6 @@ type State = {
     myEggDeck: CardTypeGame[],
     myTrash: CardTypeGame[],
     mySecurity: CardTypeGame[],
-    myTamer: CardTypeGame[],
-    myDelay: CardTypeGame[],
 
     myDigi1: CardTypeGame[],
     myDigi2: CardTypeGame[],
@@ -31,6 +29,11 @@ type State = {
     myDigi8: CardTypeGame[],
     myDigi9: CardTypeGame[],
     myDigi10: CardTypeGame[],
+    myDigi11: CardTypeGame[],
+    myDigi12: CardTypeGame[],
+    myDigi13: CardTypeGame[],
+    myDigi14: CardTypeGame[],
+    myDigi15: CardTypeGame[],
     myBreedingArea: CardTypeGame[],
 
     opponentMemory: number,
@@ -41,8 +44,6 @@ type State = {
     opponentEggDeck: CardTypeGame[],
     opponentTrash: CardTypeGame[],
     opponentSecurity: CardTypeGame[],
-    opponentTamer: CardTypeGame[],
-    opponentDelay: CardTypeGame[],
 
     opponentDigi1: CardTypeGame[],
     opponentDigi2: CardTypeGame[],
@@ -54,6 +55,11 @@ type State = {
     opponentDigi8: CardTypeGame[],
     opponentDigi9: CardTypeGame[],
     opponentDigi10: CardTypeGame[],
+    opponentDigi11: CardTypeGame[],
+    opponentDigi12: CardTypeGame[],
+    opponentDigi13: CardTypeGame[],
+    opponentDigi14: CardTypeGame[],
+    opponentDigi15: CardTypeGame[],
     opponentBreedingArea: CardTypeGame[],
 
     messages: string[],
@@ -87,12 +93,13 @@ type State = {
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
-    "myEggDeck", "myBreedingArea", "opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity",
+    "myEggDeck", "myBreedingArea", "opponentHand", "opponentSecurity",
     "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
 
-const opponentLocations = ["opponentHand", "opponentTamer", "opponentDelay", "opponentSecurity", "opponentDeckField",
-    "opponentEggDeck", "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
-    "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentReveal"];
+const opponentLocations = ["opponentHand", "opponentSecurity", "opponentDeckField", "opponentEggDeck",
+    "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
+    "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10",
+    "opponentDigi11","opponentDigi12","opponentDigi13","opponentDigi14","opponentDigi15", "opponentReveal"];
 
 export const useGame = create<State>((set, get) => ({
 
@@ -109,8 +116,6 @@ export const useGame = create<State>((set, get) => ({
     myEggDeck: [],
     myTrash: [],
     mySecurity: [],
-    myTamer: [],
-    myDelay: [],
 
     myDigi1: [],
     myDigi2: [],
@@ -122,6 +127,11 @@ export const useGame = create<State>((set, get) => ({
     myDigi8: [],
     myDigi9: [],
     myDigi10: [],
+    myDigi11: [],
+    myDigi12: [],
+    myDigi13: [],
+    myDigi14: [],
+    myDigi15: [],
     myBreedingArea: [],
 
     opponentMemory: 0,
@@ -132,8 +142,6 @@ export const useGame = create<State>((set, get) => ({
     opponentEggDeck: [],
     opponentTrash: [],
     opponentSecurity: [],
-    opponentTamer: [],
-    opponentDelay: [],
 
     opponentDigi1: [],
     opponentDigi2: [],
@@ -145,6 +153,11 @@ export const useGame = create<State>((set, get) => ({
     opponentDigi8: [],
     opponentDigi9: [],
     opponentDigi10: [],
+    opponentDigi11: [],
+    opponentDigi12: [],
+    opponentDigi13: [],
+    opponentDigi14: [],
+    opponentDigi15: [],
     opponentBreedingArea: [],
 
     messages: [],
@@ -177,8 +190,6 @@ export const useGame = create<State>((set, get) => ({
             myEggDeck: [],
             myTrash: [],
             mySecurity: [],
-            myTamer: [],
-            myDelay: [],
             myDigi1: [],
             myDigi2: [],
             myDigi3: [],
@@ -189,6 +200,11 @@ export const useGame = create<State>((set, get) => ({
             myDigi8: [],
             myDigi9: [],
             myDigi10: [],
+            myDigi11: [],
+            myDigi12: [],
+            myDigi13: [],
+            myDigi14: [],
+            myDigi15: [],
             myBreedingArea: [],
             opponentMemory: 0,
             opponentReveal: [],
@@ -197,8 +213,6 @@ export const useGame = create<State>((set, get) => ({
             opponentEggDeck: [],
             opponentTrash: [],
             opponentSecurity: [],
-            opponentTamer: [],
-            opponentDelay: [],
             opponentDigi1: [],
             opponentDigi2: [],
             opponentDigi3: [],
@@ -209,6 +223,11 @@ export const useGame = create<State>((set, get) => ({
             opponentDigi8: [],
             opponentDigi9: [],
             opponentDigi10: [],
+            opponentDigi11: [],
+            opponentDigi12: [],
+            opponentDigi13: [],
+            opponentDigi14: [],
+            opponentDigi15: [],
             opponentBreedingArea: [],
         });
     },
@@ -217,7 +236,6 @@ export const useGame = create<State>((set, get) => ({
 
         const player1 = gameId.split("‗")[0];
 
-        if (game.player1Reveal === undefined) {
             if (user === player1) {
                 set({
                     myHand: game.player1Hand,
@@ -240,120 +258,35 @@ export const useGame = create<State>((set, get) => ({
                     opponentEggDeck: game.player1EggDeck,
                     opponentSecurity: game.player1Security,
                 });
-            }
-        } else {
-            if (user === player1) {
-                set({
-                    myMemory: game.player1Memory,
-                    myReveal: game.player1Reveal,
-                    myHand: game.player1Hand,
-                    myDeckField: game.player1DeckField,
-                    myEggDeck: game.player1EggDeck,
-                    myTrash: game.player1Trash,
-                    mySecurity: game.player1Security,
-                    myTamer: game.player1Tamer,
-                    myDelay: game.player1Delay,
-                    myDigi1: game.player1Digi1,
-                    myDigi2: game.player1Digi2,
-                    myDigi3: game.player1Digi3,
-                    myDigi4: game.player1Digi4,
-                    myDigi5: game.player1Digi5,
-                    myDigi6: game.player1Digi6,
-                    myDigi7: game.player1Digi7,
-                    myDigi8: game.player1Digi8,
-                    myDigi9: game.player1Digi9,
-                    myDigi10: game.player1Digi10,
-                    myBreedingArea: game.player1BreedingArea,
-                    opponentMemory: game.player2Memory,
-                    opponentReveal: game.player2Reveal,
-                    opponentHand: game.player2Hand,
-                    opponentDeckField: game.player2DeckField,
-                    opponentEggDeck: game.player2EggDeck,
-                    opponentTrash: game.player2Trash,
-                    opponentSecurity: game.player2Security,
-                    opponentTamer: game.player2Tamer,
-                    opponentDelay: game.player2Delay,
-                    opponentDigi1: game.player2Digi1,
-                    opponentDigi2: game.player2Digi2,
-                    opponentDigi3: game.player2Digi3,
-                    opponentDigi4: game.player2Digi4,
-                    opponentDigi5: game.player2Digi5,
-                    opponentDigi6: game.player2Digi6,
-                    opponentDigi7: game.player2Digi7,
-                    opponentDigi8: game.player2Digi8,
-                    opponentDigi9: game.player2Digi9,
-                    opponentDigi10: game.player2Digi10,
-                    opponentBreedingArea: game.player2BreedingArea,
-                });
-            } else {
-                set({
-                    myMemory: game.player2Memory,
-                    myReveal: game.player2Reveal,
-                    myHand: game.player2Hand,
-                    myDeckField: game.player2DeckField,
-                    myEggDeck: game.player2EggDeck,
-                    myTrash: game.player2Trash,
-                    mySecurity: game.player2Security,
-                    myTamer: game.player2Tamer,
-                    myDelay: game.player2Delay,
-                    myDigi1: game.player2Digi1,
-                    myDigi2: game.player2Digi2,
-                    myDigi3: game.player2Digi3,
-                    myDigi4: game.player2Digi4,
-                    myDigi5: game.player2Digi5,
-                    myDigi6: game.player2Digi6,
-                    myDigi7: game.player2Digi7,
-                    myDigi8: game.player2Digi8,
-                    myDigi9: game.player2Digi9,
-                    myDigi10: game.player2Digi10,
-                    myBreedingArea: game.player2BreedingArea,
-                    opponentMemory: game.player1Memory,
-                    opponentReveal: game.player1Reveal,
-                    opponentHand: game.player1Hand,
-                    opponentDeckField: game.player1DeckField,
-                    opponentEggDeck: game.player1EggDeck,
-                    opponentTrash: game.player1Trash,
-                    opponentSecurity: game.player1Security,
-                    opponentTamer: game.player1Tamer,
-                    opponentDelay: game.player1Delay,
-                    opponentDigi1: game.player1Digi1,
-                    opponentDigi2: game.player1Digi2,
-                    opponentDigi3: game.player1Digi3,
-                    opponentDigi4: game.player1Digi4,
-                    opponentDigi5: game.player1Digi5,
-                    opponentDigi6: game.player1Digi6,
-                    opponentDigi7: game.player1Digi7,
-                    opponentDigi8: game.player1Digi8,
-                    opponentDigi9: game.player1Digi9,
-                    opponentDigi10: game.player1Digi10,
-                    opponentBreedingArea: game.player1BreedingArea,
-                });
-            }
         }
     },
 
     getMyFieldAsString: () => {
         const updatedGame: OneSideDistribution = {
-                playerReveal: get().myReveal,
-                playerHand: get().myHand,
-                playerDeckField: get().myDeckField,
-                playerEggDeck: get().myEggDeck,
-                playerTrash: get().myTrash,
-                playerSecurity: get().mySecurity,
-                playerTamer: get().myTamer,
-                playerDelay: get().myDelay,
-                playerDigi1: get().myDigi1,
-                playerDigi2: get().myDigi2,
-                playerDigi3: get().myDigi3,
-                playerDigi4: get().myDigi4,
-                playerDigi5: get().myDigi5,
-                playerDigi6: get().myDigi6,
-                playerDigi7: get().myDigi7,
-                playerDigi8: get().myDigi8,
-                playerDigi9: get().myDigi9,
-                playerDigi10: get().myDigi10,
-                playerBreedingArea: get().myBreedingArea,
-            };
+            playerReveal: get().myReveal,
+            playerHand: get().myHand,
+            playerDeckField: get().myDeckField,
+            playerEggDeck: get().myEggDeck,
+            playerTrash: get().myTrash,
+            playerSecurity: get().mySecurity,
+            playerDigi1: get().myDigi1,
+            playerDigi2: get().myDigi2,
+            playerDigi3: get().myDigi3,
+            playerDigi4: get().myDigi4,
+            playerDigi5: get().myDigi5,
+            playerDigi6: get().myDigi6,
+            playerDigi7: get().myDigi7,
+            playerDigi8: get().myDigi8,
+            playerDigi9: get().myDigi9,
+            playerDigi10: get().myDigi10,
+            playerDigi11: get().myDigi11,
+            playerDigi12: get().myDigi12,
+            playerDigi13: get().myDigi13,
+            playerDigi14: get().myDigi14,
+            playerDigi15: get().myDigi15,
+
+            playerBreedingArea: get().myBreedingArea,
+        };
         return JSON.stringify(updatedGame);
     },
 
@@ -365,8 +298,6 @@ export const useGame = create<State>((set, get) => ({
             opponentEggDeck: field.playerEggDeck,
             opponentTrash: field.playerTrash,
             opponentSecurity: field.playerSecurity,
-            opponentTamer: field.playerTamer,
-            opponentDelay: field.playerDelay,
             opponentDigi1: field.playerDigi1,
             opponentDigi2: field.playerDigi2,
             opponentDigi3: field.playerDigi3,
@@ -377,6 +308,11 @@ export const useGame = create<State>((set, get) => ({
             opponentDigi8: field.playerDigi8,
             opponentDigi9: field.playerDigi9,
             opponentDigi10: field.playerDigi10,
+            opponentDigi11: field.playerDigi11,
+            opponentDigi12: field.playerDigi12,
+            opponentDigi13: field.playerDigi13,
+            opponentDigi14: field.playerDigi14,
+            opponentDigi15: field.playerDigi15,
             opponentBreedingArea: field.playerBreedingArea,
         });
     },
@@ -391,7 +327,8 @@ export const useGame = create<State>((set, get) => ({
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
-        if (toState.length > 0 && toState[toState.length - 1].isTilted && to !== "myTamer" && to !== "opponentTamer") {
+
+        if (toState.length > 0 && toState[toState.length - 1].isTilted) {
             toState[toState.length - 1].isTilted = false;
             card.isTilted = true;
         } else {
@@ -407,7 +344,7 @@ export const useGame = create<State>((set, get) => ({
             set({mulliganAllowed: false});
         }
 
-        if (destroyTokenLocations.includes(to) && card.type === "Token") {
+        if (destroyTokenLocations.includes(to) && card.uniqueCardNumber === "Token") {
             if (to !== "myTrash") playTrashCardSfx();
             set({[from]: updatedFromState});
             return;
@@ -417,7 +354,6 @@ export const useGame = create<State>((set, get) => ({
         set({
             [from]: updatedFromState,
             [to]: updatedToState
-
         });
     },
 
@@ -427,6 +363,8 @@ export const useGame = create<State>((set, get) => ({
         const locationCards = get()[cardToSendToDeck.location as keyof State] as CardTypeGame[];
         const card = locationCards.find((card: CardTypeGame) => card.id === cardToSendToDeck.id);
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardToSendToDeck.id);
+
+        if (topOrBottom === "Top" && card) card.isTilted = false;
 
         if(cardToSendToDeck.location === to){
             set ({
@@ -524,23 +462,26 @@ export const useGame = create<State>((set, get) => ({
     createToken: () => {
         if (!get().opponentReady) return;
         const token: CardTypeGame = {
+            uniqueCardNumber: "Token",
             name: "Token",
-            type: "Token",
-            color: "White",
-            image_url: tokenImage,
-            cardnumber: "",
-            stage: null,
+            imgUrl: tokenImage,
+            cardType: "Digimon",
+            color: ["Unknown"],
             attribute: "Unknown",
-            digi_type: null,
-            dp: null,
-            play_cost: null,
-            evolution_cost: null,
-            level: null,
-            maineffect: null,
-            soureeffect: null,
+            cardNumber: "",
+            stage: undefined,
+            digiType: undefined,
+            dp: undefined,
+            playCost: undefined,
+            level: undefined,
+            mainEffect: undefined,
+            inheritedEffect: undefined,
+            illustrator: "",
+            restriction_en: "",
+            restriction_jp: "",
             id: uid(),
             isTilted: false
-        }
+        };
         set((state) => {
             for (let i = 1; i <= 10; i++) {
                 const digiKey = `myDigi${i}` as keyof State;

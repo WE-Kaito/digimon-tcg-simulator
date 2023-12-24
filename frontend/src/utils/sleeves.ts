@@ -30,6 +30,15 @@ import lopmon from "../assets/sleeves/ST10_03_LOPMON.png";
 import terriermon from "../assets/sleeves/BT8_046_TERRIERMON.png";
 import angewomon from "../assets/sleeves/EX3_034_ANGEWOMON.png";
 import ladydevimon from "../assets/sleeves/BT3_088_LADYDEVIMON.png";
+import astamon from "../assets/sleeves/BT13_084_ASTAMON.png";
+import kokuwamon from "../assets/sleeves/BT10_045_KOKUWAMON.png";
+import penguinmon from "../assets/sleeves/BT11_024_PENGUINMON.png";
+import angoramon from "../assets/sleeves/RB1_020_ANGORAMON.png";
+import spadamon from "../assets/sleeves/BT10_059_SPADAMON.png";
+import commandramon from "../assets/sleeves/BT4_063_COMMANDRAMON.png";
+import veemon from "../assets/sleeves/BT2_021_VEEMON.png";
+import guilmon from "../assets/sleeves/EX3_056_GUILMON.png";
+import renamon from "../assets/sleeves/BT5_036_RENAMON.png";
 import cardBack from "../assets/cardBack.jpg";
 import {Picture} from "./types.ts";
 
@@ -67,6 +76,15 @@ export const sleeves: Picture[] = [
     {name: "Terriermon", imagePath: terriermon},
     {name: "Angewomon", imagePath: angewomon},
     {name: "Ladydevimon", imagePath: ladydevimon},
+    {name: "Astamon", imagePath: astamon},
+    {name: "Kokuwamon", imagePath: kokuwamon},
+    {name: "Penguinmon", imagePath: penguinmon},
+    {name: "Angoramon", imagePath: angoramon},
+    {name: "Spadamon", imagePath: spadamon},
+    {name: "Commandramon", imagePath: commandramon},
+    {name: "Veemon", imagePath: veemon},
+    {name: "Guilmon", imagePath: guilmon},
+    {name: "Renamon", imagePath: renamon},
 ];
 
 export function getSleeve(sleeveName: string): string {

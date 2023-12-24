@@ -16,13 +16,14 @@ type CardProps = {
     index?: number,
     draggedCards?: CardTypeGame[],
     setDraggedCards?: (cards: CardTypeGame[]) => void
-    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void
+    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void,
+    setImageError?: (imageError: boolean) => void
 }
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-    "opponentTamer", "opponentDelay", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentBreedingArea"];
-const tiltLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10", "myTamer"];
+    "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi10",
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
 
 export default function Card({
                                  card,
@@ -32,7 +33,8 @@ export default function Card({
                                  index,
                                  draggedCards,
                                  setDraggedCards,
-                                 handleDropToStackBottom
+                                 handleDropToStackBottom,
+                                 setImageError
                              }: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
@@ -46,7 +48,7 @@ export default function Card({
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
-        item: {id: card.id, location: location, cardnumber: card.cardnumber, type: card.type, name: card.name},
+        item: {id: card.id, location: location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name},
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -94,8 +96,8 @@ export default function Card({
     }, [canDrop, canDropToStackBottom, setCanDropToStackBottom]);
 
     function handleTiltCard() {
-        if (location === "myTamer" && card.type !== "Tamer") return;
-        if (tiltLocations.includes(location) && card === locationCards[locationCards.length - 1]
+        if (location === "myTamer" && card.cardType !== "Tamer") return;
+        if (location !== "myBreedingArea" && card === locationCards[locationCards.length - 1]
             && sendSfx && sendUpdate && selectedCard === card) {
             tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
             sendUpdate();
@@ -104,7 +106,7 @@ export default function Card({
 
     function handleClick() {
         if (location === "fetchedData") {
-            addCardToDeck(card.cardnumber, card.type);
+            addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
             playPlaceCardSfx();
 
             if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
@@ -134,12 +136,13 @@ export default function Card({
                 onMouseEnter={() => setHoverCard(card)}
                 onMouseOver={() => setHoverCard(card)}
                 onMouseLeave={() => setHoverCard(null)}
-                alt={card.name + " " + card.cardnumber}
-                src={card.image_url}
+                alt={card.name + " " + card.uniqueCardNumber}
+                src={card.imgUrl}
                 isDragging={isDragging || dragStackEffect}
                 location={location}
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 title={topCardInfo(card as CardTypeGame, location, locationCards)}
+                onError={() => setImageError && setImageError(true)}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
@@ -154,7 +157,6 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
   width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
-  max-height: 150px;
   border-radius: 5px;
   transition: all 0.15s ease-out;
   cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
@@ -176,6 +178,9 @@ const StyledImage = styled.img<StyledImageProps>`
       filter: drop-shadow(0 0 4px #ff2190) brightness(0.65) saturate(1.5);
     }
   }
+  @media (min-width: 500px) {
+    min-width: 85px;
+  }
 
   @media (min-width: 768px) {
     width: ${(props) => ((props.location === "myTrash" || props.location === "opponentTrash") ? "105px" : "95px")};
@@ -191,7 +196,6 @@ const StyledImage = styled.img<StyledImageProps>`
   @media (max-width: 390px) {
     width: 61px;
   }
-  
 `;
 
 const DragIcon = styled.img`

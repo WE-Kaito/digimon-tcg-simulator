@@ -4,5 +4,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CardRepo extends MongoRepository<Card, String> {
-    Card findByCardnumber(String cardnumber);
+
 }

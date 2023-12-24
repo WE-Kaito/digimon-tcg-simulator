@@ -69,22 +69,18 @@ export const StyledSpan2 = styled(StyledSpan)`
 
 function getTop(to: string) {
     switch (to) {
-        case "myDeckField":
-            return "35px";
         case "myEggDeck":
             return "-37px";
         case "mySecurity":
-            return "122px";
+            return "100px";
     }
 }
 
 function getLeft(to: string) {
     switch (to) {
-        case "myDeckField":
-            return "11px";
         case "myEggDeck":
-            return "24px";
+            return "25px";
         case "mySecurity":
-            return "115px";
+            return "145px";
     }
 }

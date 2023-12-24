@@ -37,7 +37,7 @@ const GridContainer = styled.div`
   height: fit-content;
   display: grid;
   grid-template-columns: repeat(11, 63px);
-  grid-template-rows: repeat(3, 84px);
+  grid-template-rows: repeat(4, 84px);
   gap: 2px;
   position: relative;
   padding: 3px;
@@ -47,13 +47,28 @@ const GridContainer = styled.div`
   margin-left: 10px;
   transform: translateY(-2px);
   transition: all 0.2s ease-in-out;
+
+  scrollbar-width: thin;
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    background: rgba(139, 200, 255, 0.5);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1e77ea;
+    border-radius: 3px;
+  }
+
   @media (max-width: 1050px) {
-    grid-template-columns: repeat(11, 40px);
+    grid-template-columns: repeat(14, 40px);
     grid-template-rows: repeat(3, 53px);
     gap: 1px;
     padding: 2px;
     margin: 10px 2px 0 2px;
     max-width: 97.24vw;
+    overflow-y: hidden;
     overflow-x: scroll;
   }
 `;

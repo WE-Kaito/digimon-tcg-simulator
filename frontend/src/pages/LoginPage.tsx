@@ -5,6 +5,7 @@ import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
+import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
 
 export default function LoginPage() {
 
@@ -86,61 +87,63 @@ export default function LoginPage() {
     const questionColor = question.length > 0 ? "#6ed298" : "ghostwhite";
     const answerColor = answer.length > 0 ? "#6ed298" : "ghostwhite";
 
-    return (
-        <Wrapper className="login-background">
-            <ParticlesBackground options={blueTriangles}/>
-            <Header/>
-            {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
-                <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
-                            type="text" name="userName" placeholder="username" maxLength={16}/>
-                <div>
-                    <InputField value={password} onChange={(e) => setPassword(e.target.value)}
-                                type="password" name="password" placeholder="password"/>
-                    <br/>
-                    <StyledInfo2 onClick={() => navigate("/recover-password")}>Forgot your password?</StyledInfo2>
-                </div>
-                <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
-                <RegisterButton style={{marginTop: "50px"}} type="button"
-                                onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
-            </StyledForm>}
+    return (<>
+            <Wrapper className="login-background">
+                <ParticlesBackground options={blueTriangles}/>
+                <Header/>
+                {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
+                    <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
+                                type="text" name="userName" placeholder="username" maxLength={16}/>
+                    <div>
+                        <InputField value={password} onChange={(e) => setPassword(e.target.value)}
+                                    type="password" name="password" placeholder="password"/>
+                        <br/>
+                        <StyledInfo2 onClick={() => navigate("/recover-password")}>Forgot your password?</StyledInfo2>
+                    </div>
+                    <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
+                    <RegisterButton style={{marginTop: "50px"}} type="button"
+                                    onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
+                </StyledForm>}
 
-            {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
+                {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
 
-                <div>
-                    <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
-                                        type="text" name="userName" placeholder="username" maxLength={16}
-                                        style={{backgroundColor: `${userNameColor()}`}}
-                    />
-                    <br/>
-                    <StyledInfo>3 - 16 characters</StyledInfo>
-                </div>
-                <div>
-                    <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
-                                        type="password" name="password" placeholder="password"
-                                        style={{backgroundColor: `${passWordColor()}`}}
-                    />
-                    <br/>
-                    <StyledInfo>
-                        6+ characters, cont. numbers & letters
-                    </StyledInfo>
-                </div>
-                <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
-                                    type="password" name="RepeatPassword" placeholder="repeat password"
-                                    style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
-                <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
-                                    type="text" name="Question" placeholder="safety question"
-                                    style={{backgroundColor: `${questionColor}`}}/>
-                <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
-                                    type="text" name="Answer" placeholder="answer (pw recovery)"
-                                    style={{backgroundColor: `${answerColor}`}}/>
-                <ButtonContainer>
-                    <BackButton type="button"
-                                onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
-                    <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
-                </ButtonContainer>
+                    <div>
+                        <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
+                                            type="text" name="userName" placeholder="username" maxLength={16}
+                                            style={{backgroundColor: `${userNameColor()}`}}
+                        />
+                        <br/>
+                        <StyledInfo>3 - 16 characters</StyledInfo>
+                    </div>
+                    <div>
+                        <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
+                                            type="password" name="password" placeholder="password"
+                                            style={{backgroundColor: `${passWordColor()}`}}
+                        />
+                        <br/>
+                        <StyledInfo>
+                            6+ characters, cont. numbers & letters
+                        </StyledInfo>
+                    </div>
+                    <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
+                                        type="password" name="RepeatPassword" placeholder="repeat password"
+                                        style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
+                    <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
+                                        type="text" name="Question" placeholder="safety question"
+                                        style={{backgroundColor: `${questionColor}`}}/>
+                    <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
+                                        type="text" name="Answer" placeholder="answer (pw recovery)"
+                                        style={{backgroundColor: `${answerColor}`}}/>
+                    <ButtonContainer>
+                        <BackButton type="button"
+                                    onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
+                        <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
+                    </ButtonContainer>
 
-            </StyledForm2>}
-        </Wrapper>
+                </StyledForm2>}
+            </Wrapper>
+            {!registerPage && <PatchnotesAndDisclaimer/>}
+        </>
     );
 }
 
@@ -250,6 +253,7 @@ const StyledInfo2 = styled.span`
   color: #646cff;
   user-select: none;
   cursor: pointer;
+
   &:hover {
     color: #ff880d;
   }

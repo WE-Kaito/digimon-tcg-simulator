@@ -20,7 +20,7 @@ export default function SurrenderRestartWindow({setRestartMoodle, handleAcceptRe
 
             {(setSurrenderOpen && handleSurrender) &&
             <Container>
-                <StyledSpan>Opponent requested a rematch</StyledSpan>
+                <StyledSpan>Do you want to surrender?</StyledSpan>
                 <div style={{width: 390, display: "flex", justifyContent: "space-between"}}>
                     <SurrenderButton onClick={handleSurrender}>SURRENDER</SurrenderButton>
                     <CancelSurrenderButton onClick={() => setSurrenderOpen(false)}>CANCEL</CancelSurrenderButton>

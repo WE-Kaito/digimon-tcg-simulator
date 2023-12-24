@@ -1,22 +1,36 @@
 package com.github.wekaito.backend.websocket;
 
-public record GameCard(
-        String id,
-        Boolean isTilted,
+import com.github.wekaito.backend.DigivolveCondition;
+
+import java.util.List;
+
+public record GameCard (
+        String uniqueCardNumber,
         String name,
-        String type,
-        String color,
-        String image_url,
-        String cardnumber,
-        String stage,
+        String imgUrl,
+        String cardType,
+        List<String> color,
         String attribute,
-        String digi_type,
+        String cardNumber,
+        List<DigivolveCondition> digivolveConditions,
+        String specialDigivolve,
+        String stage,
+        List<String> digiType,
         Integer dp,
-        Integer play_cost,
-        Integer evolution_cost,
+        Integer playCost,
         Integer level,
-        String maineffect,
-        String soureeffect
+        String mainEffect,
+        String inheritedEffect,
+        String aceEffect,
+        String burstDigivolve,
+        String digiXros,
+        String dnaDigivolve,
+        String securityEffect,
+        String restriction_en,
+        String restriction_jp,
+        String illustrator,
+        Boolean isTilted,
+        String id
 
 ) {
 

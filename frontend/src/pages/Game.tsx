@@ -12,7 +12,8 @@ import {
     calculateCardRotation,
     calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx, getConsecutiveDigimonIndex, getTamerCardIndex, convertForLog
+    getOpponentSfx,
+    convertForLog
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -25,7 +26,7 @@ import Card from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import noiseBG from "../assets/noiseBG.png";
 import hackmonButton from "../assets/hackmon-chip.png";
-import CardDetails from "../components/CardDetails.tsx";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
@@ -52,6 +53,17 @@ import CardStack from "../components/game/CardStack.tsx";
 import {Menu, Item, useContextMenu, ItemParams} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import {getSleeve} from "../utils/sleeves.ts";
+import {Button as MuiButton} from "@mui/material";
+import {
+    DeleteForever as TrashIcon,
+    Pageview as OpenSecurityIcon,
+    ShuffleOnOutlined as ShuffleIcon,
+    BackHand as HandIcon,
+    AddModerator as RecoveryIcon,
+    Curtains as RevealIcon,
+    RestoreFromTrash as TrashFromDeckIcon
+} from '@mui/icons-material';
+import {blue, deepOrange} from "@mui/material/colors";
 
 export default function Game({user}: { user: string }) {
 
@@ -121,8 +133,6 @@ export default function Game({user}: { user: string }) {
     const myEggDeck = useGame((state) => state.myEggDeck);
     const myTrash = useGame((state) => state.myTrash);
     const mySecurity = useGame((state) => state.mySecurity);
-    const myTamer = useGame((state) => state.myTamer);
-    const myDelay = useGame((state) => state.myDelay);
     const myReveal = useGame((state) => state.myReveal);
 
     const myDigi1 = useGame((state) => state.myDigi1);
@@ -135,6 +145,11 @@ export default function Game({user}: { user: string }) {
     const myDigi8 = useGame((state) => state.myDigi8);
     const myDigi9 = useGame((state) => state.myDigi9);
     const myDigi10 = useGame((state) => state.myDigi10);
+    const myDigi11 = useGame((state) => state.myDigi11);
+    const myDigi12 = useGame((state) => state.myDigi12);
+    const myDigi13 = useGame((state) => state.myDigi13);
+    const myDigi14 = useGame((state) => state.myDigi14);
+    const myDigi15 = useGame((state) => state.myDigi15);
     const myBreedingArea = useGame((state) => state.myBreedingArea);
 
     const opponentHand = useGame((state) => state.opponentHand);
@@ -142,8 +157,6 @@ export default function Game({user}: { user: string }) {
     const opponentEggDeck = useGame((state) => state.opponentEggDeck);
     const opponentTrash = useGame((state) => state.opponentTrash);
     const opponentSecurity = useGame((state) => state.opponentSecurity);
-    const opponentTamer = useGame((state) => state.opponentTamer);
-    const opponentDelay = useGame((state) => state.opponentDelay);
     const opponentReveal = useGame((state) => state.opponentReveal);
 
     const opponentDigi1 = useGame((state) => state.opponentDigi1);
@@ -156,6 +169,11 @@ export default function Game({user}: { user: string }) {
     const opponentDigi8 = useGame((state) => state.opponentDigi8);
     const opponentDigi9 = useGame((state) => state.opponentDigi9);
     const opponentDigi10 = useGame((state) => state.opponentDigi10);
+    const opponentDigi11 = useGame((state) => state.opponentDigi11);
+    const opponentDigi12 = useGame((state) => state.opponentDigi12);
+    const opponentDigi13 = useGame((state) => state.opponentDigi13);
+    const opponentDigi14 = useGame((state) => state.opponentDigi14);
+    const opponentDigi15 = useGame((state) => state.opponentDigi15);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
@@ -321,9 +339,7 @@ export default function Game({user}: { user: string }) {
                     setGameHasStarted(false);
                     break;
                 }
-                case ("[HEARTBEAT]"): {
-                    break;
-                }
+                case ("[HEARTBEAT]"): break;
                 case ("[PLAYER_READY]"): {
                     setOpponentReady(true);
                     if (!mulliganAllowed) setGameHasStarted(true);
@@ -507,6 +523,31 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi10")
     }));
 
+    const [, dropToDigi11] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi11")
+    }));
+
+    const [, dropToDigi12] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi12")
+    }));
+
+    const [, dropToDigi13] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi13")
+    }));
+
+    const [, dropToDigi14] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi14")
+    }));
+
+    const [, dropToDigi15] = useDrop(() => ({
+        accept: ["card", "card-stack"],
+        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi15")
+    }));
+
     const [, dropToBreedingArea] = useDrop(() => ({
         accept: ["card", "card-stack"],
         drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myBreedingArea")
@@ -520,23 +561,6 @@ export default function Game({user}: { user: string }) {
             sendSingleUpdate(id, location, 'myHand');
             playCardToHandSfx();
             if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
-        }
-    }));
-
-    const [, dropToTamer] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name, type} = item;
-            if (type === "Digi-Egg" || type === "Option") return;
-            handleDropToField(id, location, 'myTamer', name);
-        }
-    }));
-
-    const [, dropToDelay] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            handleDropToField(id, location, 'myDelay', name);
         }
     }));
 
@@ -639,6 +663,31 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi10')
     }));
 
+    const [, dropToOpponentDigi11] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi11')
+    }));
+
+    const [, dropToOpponentDigi12] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi12')
+    }));
+
+    const [, dropToOpponentDigi13] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi13')
+    }));
+
+    const [, dropToOpponentDigi14] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi14')
+    }));
+
+    const [, dropToOpponentDigi15] = useDrop(() => ({
+        accept: "card",
+        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi15')
+    }));
+
     const [, dropToOpponentSecurity] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentSecurity')
@@ -654,7 +703,10 @@ export default function Game({user}: { user: string }) {
         if (myTrash.length === 0) {
             setTrashMoodle(false);
         }
-    }, [myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myTamer, myDelay, myReveal, myDigi1, myDigi2, myDigi3, myDigi4, myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10]);
+    }, [
+        myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myReveal, myDigi1, myDigi2, myDigi3, myDigi4,
+        myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10, myDigi11, myDigi12, myDigi13, myDigi14, myDigi15
+    ]);
 
     useEffect(() => {
         clearBoard();
@@ -740,7 +792,7 @@ export default function Game({user}: { user: string }) {
         }
     }
 
-    function handleShuffleSecurity(){
+    function handleShuffleSecurity() {
         shuffleSecurity();
         sendUpdate();
         playShuffleDeckSfx();
@@ -758,7 +810,7 @@ export default function Game({user}: { user: string }) {
         (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
     }
 
-    function revealHandCard({props} : ItemParams<HandCardContextMenuItemProps>) {
+    function revealHandCard({props}: ItemParams<HandCardContextMenuItemProps>) {
         if (!opponentReady || props === undefined) return;
         moveCard(myHand[props.index].id, "myHand", "myReveal");
         sendSingleUpdate(myHand[props.index].id, "myHand", "myReveal");
@@ -767,9 +819,12 @@ export default function Game({user}: { user: string }) {
         sendSfx("playRevealSfx");
     }
 
-    const {show: showDeckMenu} = useContextMenu({ id: "deckMenu" });
-    const {show: showDetailsImageMenu} = useContextMenu({ id: "detailsImageMenu" });
-    const {show: showHandCardMenu} = useContextMenu({ id: "handCardMenu", props: { index: -1 } });
+    const {show: showDeckMenu} = useContextMenu({id: "deckMenu"});
+    const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
+    const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
+    const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
+
+    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott" ]
 
     return (
         <BackGround onContextMenu={(e) => e.preventDefault()}>
@@ -779,15 +834,50 @@ export default function Game({user}: { user: string }) {
             </Menu>
 
             <Menu id={"handCardMenu"} theme="dark">
-                <Item onClick={revealHandCard}>Reveal Card 👁️</Item>
+                <Item onClick={revealHandCard}>Reveal Card <RevealIcon/></Item>
+            </Menu>
+
+            <Menu id={"securityStackMenu"} theme="dark">
+                <Item onClick={() => handleOpenSecurity("onOpen")}>
+                    <OpenSecurityIcon color={"warning"} sx={{marginRight: 1}}/> Open Security Stack
+                </Item>
+                <Item onClick={() => moveSecurityCard("myTrash")}>
+                    <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
+                        <TrashIcon color={"error"}/><MiniArrowSpan>▲</MiniArrowSpan>
+                    </div>
+                    Trash Top Card
+                </Item>
+                <Item onClick={() => moveSecurityCard("myTrash", true)}>
+                    <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
+                        <TrashIcon color={"error"}/><MiniArrowSpan>▼</MiniArrowSpan>
+                    </div>
+                    Trash Bot Card
+                </Item>
+                <Item onClick={() => moveSecurityCard("myHand")}>
+                    <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
+                        <HandIcon fontSize="inherit" sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                        <MiniArrowSpanHand>▲</MiniArrowSpanHand>
+                    </div>
+                    Take Top Card to Hand
+                </Item>
+                <Item onClick={() => moveSecurityCard("myHand", true)}>
+                    <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
+                        <HandIcon fontSize="inherit" sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                        <MiniArrowSpanHand>▼</MiniArrowSpanHand>
+                    </div>
+                    Take Bot Card to Hand
+                </Item>
+                <Item onClick={handleShuffleSecurity}>
+                    <ShuffleIcon sx={{color: blue[400], fontSize: 20, marginRight: 1.6}}/>Shuffle Security Stack
+                </Item>
             </Menu>
 
             {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
-                <Item onClick={() => window.open(selectedCard.image_url, '_blank')}>Open Image in new Tab ↗</Item>
+                <Item onClick={() => window.open(selectedCard.imgUrl, '_blank')}>Open Image in new Tab ↗</Item>
             </Menu>}
 
-            {user === "Kaito" &&
-                <span style={{position: "absolute", top: 15, left: 15}}>users ingame: {userCount}</span>}
+            {modNames.includes(user) &&
+                <span style={{position: "absolute", top: 10, left: 10}}>users ingame: {userCount}</span>}
 
             {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
 
@@ -805,6 +895,10 @@ export default function Game({user}: { user: string }) {
                     <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
             <Wrapper chatOpen={isChatOpen}>
+
+                <UserName>{opponentName}</UserName>
+                <UserName style={{top: "unset", bottom: -30}}>{user}</UserName>
+
                 <ChatSideBar chatOpen={isChatOpen} onClick={() => setIsChatOpen(true)}>
                     {isChatOpen ? <GameChat user={user} sendChatMessage={sendChatMessage}
                                             closeChat={() => setIsChatOpen(false)}/> : <span>›</span>}
@@ -832,7 +926,7 @@ export default function Game({user}: { user: string }) {
                            rel="noopener noreferrer">
                             <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                         </a>
-                        <a style={{position: "absolute", left: 32, top: 33}}
+                        <a
                            href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F" target="_blank"
                            rel="noopener noreferrer">
                             <span style={{color: "dodgerblue"}}>🛈 </span>Controls
@@ -840,7 +934,7 @@ export default function Game({user}: { user: string }) {
                     </InfoSpan>
                     <CardImage onClick={() => selectCard(null)}
                                onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                               src={(hoverCard ?? selectedCard)?.image_url ?? cardBack}
+                               src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
                                alt={selectedCard?.name ?? "Card"}/>
                     <CardDetails/>
                 </InfoContainer>
@@ -853,27 +947,22 @@ export default function Game({user}: { user: string }) {
                     {opponentTrash.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
                 </TrashView>}
 
-                {securityContentMoodle && <SecurityView>
-                    {mySecurity.map((card) => <Card key={card.id} card={card} location="mySecurity"/>)}
-                </SecurityView>}
+                {securityContentMoodle
+                    && <SecurityView>
+                        {mySecurity.map((card) => <Card key={card.id} card={card} location="mySecurity"/>)}
+                    </SecurityView>}
+                {securityContentMoodle
+                    && <CloseSecurityButton variant="contained" onClick={() => handleOpenSecurity("onClose")}>
+                        Shuffle & Close</CloseSecurityButton>}
 
                 <FieldContainer>
                     <div style={{display: "flex"}}>
                         <OpponentContainerMain>
 
-                            <PlayerContainer>
-                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
-                                             onClick={() => {
-                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
-                                                 notifyRequestedRestart();
-                                             }}/>
-                                <UserName>{opponentName}</UserName>
-                            </PlayerContainer>
-
                             <OpponentDeckContainer>
                                 {opponentSleeve === "Default"
                                     ? <img alt="deck" src={deckBack} width="105px"/>
-                                    : <div style={{width:"105px", position: "relative"}}>
+                                    : <div style={{width: "105px", position: "relative"}}>
                                         <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
                                         <img alt="deck" src={deckBack} width="105px"/>
                                     </div>}
@@ -884,7 +973,7 @@ export default function Game({user}: { user: string }) {
                             <OpponentTrashContainer>
                                 <TrashSpan style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
                                 {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
-                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].image_url}
+                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].imgUrl}
                                                       alt={"opponentTrash"}
                                                       onClick={() => {
                                                           setOpponentTrashMoodle(!opponentTrashMoodle);
@@ -892,6 +981,29 @@ export default function Game({user}: { user: string }) {
                                                       }}
                                                       title="Open opponents trash"/>}
                             </OpponentTrashContainer>
+
+                            <OpponentLowerBattleArea>
+                                <BattleArea15 ref={dropToOpponentDigi15} id={"opponentDigi15"}>
+                                    <CardStack cards={opponentDigi15} location={"opponentDigi15"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea15>
+                                <BattleArea14 ref={dropToOpponentDigi14} id={"opponentDigi14"}>
+                                    <CardStack cards={opponentDigi14} location={"opponentDigi14"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea14>
+                                <BattleArea13 ref={dropToOpponentDigi13} id={"opponentDigi13"}>
+                                    <CardStack cards={opponentDigi13} location={"opponentDigi13"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea13>
+                                <BattleArea12 ref={dropToOpponentDigi12} id={"opponentDigi12"}>
+                                    <CardStack cards={opponentDigi12} location={"opponentDigi12"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea12>
+                                <BattleArea11 ref={dropToOpponentDigi11} id={"opponentDigi11"}>
+                                    <CardStack cards={opponentDigi11} location={"opponentDigi11"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate} opponentSide={true}/>
+                                </BattleArea11>
+                            </OpponentLowerBattleArea>
 
                             <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
                                          id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
@@ -936,32 +1048,13 @@ export default function Game({user}: { user: string }) {
                                                  sendUpdate={sendUpdate} opponentSide={true}/>}
                             </BattleArea1>
 
-                            <DelayAreaContainer style={{marginTop: "1px", height: "205px"}}>
-                                {opponentDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
-                                {opponentDelay.map((card, index) =>
-                                    <DelayCardContainer key={card.id} cardIndex={index}>
-                                        <Fade direction={"down"} duration={500}>
-                                            <Card card={card} location={"opponentDelay"}/>
-                                        </Fade></DelayCardContainer>)}
-                            </DelayAreaContainer>
-
-                            <TamerAreaContainer style={{height: "205px"}}>
-                                {opponentTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
-                                {opponentTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}
-                                                        digimonIndex={getConsecutiveDigimonIndex(card, opponentTamer)}
-                                                        tamerIndex={getTamerCardIndex(card, opponentTamer)}>
-                                        <Fade direction={"left"} duration={500}>
-                                            <Card card={card} location={"opponentTamer"}/>
-                                        </Fade></TamerCardContainer>)}
-                            </TamerAreaContainer>
-
                             <OpponentHandContainer>
                                 <HandCards cardCount={opponentHand.length}
                                            style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                     {opponentHand.map((card, index) =>
                                         <HandListItem cardCount={opponentHand.length} cardIndex={index}
-                                                      key={card.id}><OppenentHandCard alt="card" src={getSleeve(opponentSleeve)}/>
+                                                      key={card.id}><OppenentHandCard alt="card"
+                                                                                      src={getSleeve(opponentSleeve)}/>
                                         </HandListItem>)}
                                 </HandCards>
                                 {opponentHand.length > 5 && <MyHandSpan
@@ -971,19 +1064,21 @@ export default function Game({user}: { user: string }) {
                         </OpponentContainerMain>
 
                         <OpponentContainerSide>
+
                             <EggDeckContainer>
                                 {opponentEggDeck.length !== 0 &&
                                     <EggDeckSpan
                                         style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
-                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="105px"
+                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="95px"
                                                                       style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToOpponentSecurity}>
-                                <SecuritySpan style={{cursor: "default"}}
-                                              id="opponentSecurity">{opponentSecurity.length}</SecuritySpan>
-                                <Lottie animationData={opponentSecurityAnimation} loop={true}
-                                        style={{width: "160px"}}/>
+                                <OpponentSecurityStack>
+                                    <SecuritySpan style={{cursor: "default"}} id="opponentSecurity">
+                                        {opponentSecurity.length}</SecuritySpan>
+                                    <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true}/>
+                                </OpponentSecurityStack>
                                 <OpponentSwitchRowButton1 disabled={showAttackArrow}
                                                           onClick={() => setIsOpponentSecondRowVisible(false)}
                                                           secondRowVisible={!isOpponentSecondRowVisible}/>
@@ -992,6 +1087,13 @@ export default function Game({user}: { user: string }) {
                                                           secondRowVisible={isOpponentSecondRowVisible}/>
                                 {opponentSecondRowWarning && <OpponentSecondRowWarning>!</OpponentSecondRowWarning>}
                             </SecurityStackContainer>
+
+                            <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
+                                         style={{top: "unset", left: "unset", right: 20, bottom: 0}}
+                                         onClick={() => {
+                                             websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
+                                             notifyRequestedRestart();
+                                         }}/>
 
                             <BreedingAreaContainer>
                                 <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
@@ -1008,6 +1110,7 @@ export default function Game({user}: { user: string }) {
 
                     <div style={{display: "flex"}}>
                         <MyContainerSide>
+
                             <EggDeckContainer ref={dropToEggDeck}>
                                 {eggDeckMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
@@ -1035,43 +1138,25 @@ export default function Game({user}: { user: string }) {
                             </EggDeckContainer>
 
                             <SecurityStackContainer ref={dropToSecurity}>
+
                                 {securityMoodle &&
                                     <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
                                                 setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
-                                <MySecuritySpan id="mySecurity" cardCount={mySecurity.length} onClick={() => {
-                                    if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                    sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
-                                    playSecurityRevealSfx();
-                                    sendSfx("playSecurityRevealSfx");
-                                    sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
-                                }}>{mySecurity.length}</MySecuritySpan>
-                                <Lottie animationData={mySecurityAnimation} loop={true}
-                                        style={{width: "160px", transform: "translate(23px, -14px)"}}/>
-
-                                {!securityContentMoodle
-                                    ? <SendButton title="Open Security Stack" style={{left: 20, top: 10}}
-                                                  onClick={() => handleOpenSecurity("onOpen")}>🔎</SendButton>
-                                    : <SendButton title="Close and shuffle Security Stack" style={{left: 20, top: 10}}
-                                                  onClick={() => handleOpenSecurity("onClose")}>❌🔄</SendButton>}
-
-                                <SendButtonSmall title="Trash the top card of your Security Stack" style={{left: 20, top: 45}}
-                                                 onClick={() => moveSecurityCard("myTrash")}>
-                                    🗑️<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButtonSmall title="Trash the bottom card of your Security Stack" style={{left: 20, top: 80}}
-                                                 onClick={() => moveSecurityCard("myTrash", true)}>
-                                    🗑️<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButtonSmall title="Take the top card of your Security Stack" style={{left: 50, top: 45}}
-                                                 onClick={() => moveSecurityCard("myHand")}>
-                                    ✋🏻<MiniArrowSpan>▲</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButtonSmall title="Take the bottom card of your Security Stack" style={{left: 50, top: 80}}
-                                                 onClick={() => moveSecurityCard("myHand", true)}>
-                                    ✋🏻<MiniArrowSpan>▼</MiniArrowSpan></SendButtonSmall>
-
-                                <SendButton title="Shuffle your Security Stack" style={{left: 20, top: 115}}
-                                            onClick={handleShuffleSecurity}>🔄</SendButton>
+                                <SecurityStack>
+                                    <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
+                                                    id="mySecurity"
+                                                    onClick={() => {
+                                                        if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+                                                        sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
+                                                        playSecurityRevealSfx();
+                                                        sendSfx("playSecurityRevealSfx");
+                                                        sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
+                                                    }}>
+                                        {mySecurity.length}
+                                    </MySecuritySpan>
+                                    <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
+                                                         onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
+                                </SecurityStack>
 
                                 <MySwitchRowButton1 disabled={showAttackArrow}
                                                     onClick={() => setIsMySecondRowVisible(false)}
@@ -1080,7 +1165,14 @@ export default function Game({user}: { user: string }) {
                                                     onClick={() => setIsMySecondRowVisible(true)}
                                                     secondRowVisible={isMySecondRowVisible}/>
                                 {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
+                                {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
+
                             </SecurityStackContainer>
+
+                            <PlayerImage alt="me" src={profilePicture(myAvatar)}
+                                         onClick={() => setSurrenderOpen(!surrenderOpen)}
+                                         title="Surrender"/>
+
 
                             <BreedingAreaContainer ref={dropToBreedingArea}>
                                 {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
@@ -1090,13 +1182,6 @@ export default function Game({user}: { user: string }) {
                         </MyContainerSide>
 
                         <MyContainerMain>
-
-                            <PlayerContainer>
-                                <UserName>{user}</UserName>
-                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
-                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
-                                             title="Surrender"/>
-                            </PlayerContainer>
 
                             <DeckContainer>
 
@@ -1118,33 +1203,40 @@ export default function Game({user}: { user: string }) {
                                     {myDeckField.length}</TrashSpan>
                                 {mySleeve === "Default"
                                     ? <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
-                                      isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
-                                      onClick={() => moveDeckCard("myHand")}/>
-                                    : <div style={{width:"105px", position: "relative"}}>
-                                        <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)} gameHasStarted={gameHasStarted}/>
+                                            isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
+                                            onClick={() => moveDeckCard("myHand")}/>
+                                    : <div style={{width: "105px", position: "relative"}}>
+                                        <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
+                                                      gameHasStarted={gameHasStarted}/>
                                         <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                               isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                               onClick={() => moveDeckCard("myHand")}/>
-                                      </div>
+                                    </div>
                                 }
                                 {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
                                     {/* eslint-disable-next-line no-irregular-whitespace */}
                                     <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
                                         ⇑</DBZSpan></DeckBottomZone>}
 
-                                <SendToTrashButton title="Send top card from your deck to Trash"
-                                                   onClick={() => moveDeckCard("myTrash")}>↱</SendToTrashButton>
-                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -115}}
-                                            onClick={() => moveDeckCard("mySecurity")}>⛊️+1</SendButton>
+                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -131}}
+                                            onClick={() => moveDeckCard("mySecurity")}>
+                                    <RecoveryIcon sx={{fontSize: 36}}/>
+                                </SendButton>
+                                <SendButton title="Send top card from your deck to Trash" style={{left: -84}}
+                                            onClick={() => moveDeckCard("myTrash")}>
+                                    <TrashFromDeckIcon sx={{fontSize: 41}}/>
+                                </SendButton>
                                 <SendButton title="Reveal the top card of your deck"
                                             onClick={() => moveDeckCard("myReveal")}
-                                            disabled={opponentReveal.length > 0} style={{left: -52}}>👁️+1</SendButton>
+                                            disabled={opponentReveal.length > 0} style={{left: -37}}
+                                ><RevealIcon sx={{fontSize: 41}}/>
+                                </SendButton>
                             </DeckContainer>
 
                             <TrashContainer>
                                 {myTrash.length === 0 ?
                                     <TrashPlaceholder ref={dropToTrash} isOver={isOverTrash}>Trash</TrashPlaceholder>
-                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].image_url}
+                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].imgUrl}
                                                       alt={"myTrash"}
                                                       onClick={() => {
                                                           setTrashMoodle(!trashMoodle);
@@ -1206,29 +1298,43 @@ export default function Game({user}: { user: string }) {
                                                  handleDropToStackBottom={handleDropToStackBottom}/>}
                             </BattleArea5>
 
-                            <DelayAreaContainer ref={dropToDelay} style={{transform: "translateY(1px)"}}>
-                                {myDelay.map((card, index) =>
-                                    <DelayCardContainer key={card.id} cardIndex={index}>
-                                        <Card card={card} location={"myDelay"}/></DelayCardContainer>)}
-                                {myDelay.length === 0 && <FieldSpan>Delay</FieldSpan>}
-                            </DelayAreaContainer>
-
-                            <TamerAreaContainer ref={dropToTamer}>
-                                {myTamer.map((card, index) =>
-                                    <TamerCardContainer key={card.id} cardIndex={index}
-                                                        digimonIndex={getConsecutiveDigimonIndex(card, myTamer)}
-                                                        tamerIndex={getTamerCardIndex(card, myTamer)}>
-                                        <Card card={card} location={"myTamer"}
-                                              sendSfx={sendSfx} sendUpdate={sendUpdate}/></TamerCardContainer>)}
-                                {myTamer.length === 0 && <FieldSpan>Tamers</FieldSpan>}
-                            </TamerAreaContainer>
+                            <LowerBattleArea>
+                                <BattleArea11 ref={dropToDigi11} id={"myDigi11"}>
+                                    <CardStack cards={myDigi11} location={"myDigi11"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea11>
+                                <BattleArea12 ref={dropToDigi12} id={"myDigi12"}>
+                                    <CardStack cards={myDigi12} location={"myDigi12"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea12>
+                                <BattleArea13 ref={dropToDigi13} id={"myDigi13"}>
+                                    <CardStack cards={myDigi13} location={"myDigi13"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea13>
+                                <BattleArea14 ref={dropToDigi14} id={"myDigi14"}>
+                                    <CardStack cards={myDigi14} location={"myDigi14"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea14>
+                                <BattleArea15 ref={dropToDigi15} id={"myDigi15"}>
+                                    <CardStack cards={myDigi15} location={"myDigi15"} sendSfx={sendSfx}
+                                               sendUpdate={sendUpdate}
+                                               handleDropToStackBottom={handleDropToStackBottom}/>
+                                </BattleArea15>
+                            </LowerBattleArea>
 
                             <HandContainer ref={dropToHand}>
                                 <HandCards cardCount={myHand.length}
                                            style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
                                     {myHand.map((card, index) =>
                                         <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}
-                                                      onContextMenu={(e) => showHandCardMenu({event: e, props: {index}})}>
+                                                      onContextMenu={(e) => showHandCardMenu({
+                                                          event: e,
+                                                          props: {index}
+                                                      })}>
                                             <Card card={card} location={"myHand"}/>
                                         </HandListItem>)}
                                 </HandCards>
@@ -1243,25 +1349,80 @@ export default function Game({user}: { user: string }) {
     );
 }
 
-const MyContainerMain = styled.div`
-  height: 450px;
-  width: 1005px;
-  display: grid;
-  grid-template-columns: repeat(14, 1fr);
-  grid-template-rows: 1.2fr 1fr;
-  grid-template-areas: "digi1 digi1 digi2 digi2 digi3 digi3 digi4 digi4 digi5 digi5 trash trash deck deck"
-                        "delay delay tamer tamer tamer hand hand hand hand hand hand player player player";
-`;
-
 const OpponentContainerMain = styled.div`
   height: 450px;
   width: 1005px;
   display: grid;
-  grid-template-columns: repeat(14, 1fr);
+  grid-template-columns: repeat(28, 1fr);
   grid-template-rows: 1fr 1.2fr;
-  grid-template-areas: "player player player hand hand hand hand hand hand tamer tamer tamer delay delay"
-                        "deck deck trash trash digi5 digi5 digi4 digi4 digi3 digi3 digi2 digi2 digi1 digi1";
+  grid-template-areas: "hand hand hand hand hand hand hand hand hand hand hand hand hand ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba"
+                        "deck deck deck deck trash trash trash trash digi5 digi5 digi5 digi5 digi4 digi4 digi4 digi4 digi3 digi3 digi3 digi3 digi2 digi2 digi2 digi2 digi1 digi1 digi1 digi1";
 `;
+
+const MyContainerMain = styled.div`
+  height: 450px;
+  width: 1005px;
+  display: grid;
+  grid-template-columns: repeat(28, 1fr);
+  grid-template-rows: 1.2fr 1fr;
+  grid-template-areas: "digi1 digi1 digi1 digi1 digi2 digi2 digi2 digi2 digi3 digi3 digi3 digi3 digi4 digi4 digi4 digi4 digi5 digi5 digi5 digi5 trash trash trash trash deck deck deck deck"
+                        "ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba hand hand hand hand hand hand hand hand hand hand hand hand hand";
+`;
+
+const LowerBattleArea = styled.div`
+  grid-area: ba;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-areas: "digi11 digi12 digi13 digi14 digi15";
+`;
+
+const OpponentLowerBattleArea = styled(LowerBattleArea)`
+  grid-template-areas: "digi15 digi14 digi13 digi12 digi11";
+`;
+
+const BattleAreaContainer = styled.div`
+  position: relative;
+  height: 100%;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  outline: rgba(119, 145, 197, 0.6) solid 1px;
+`;
+
+const BattleArea1 = styled(BattleAreaContainer)`
+  grid-area: digi1;`;
+
+const BattleArea2 = styled(BattleAreaContainer)`
+  grid-area: digi2;`;
+
+const BattleArea3 = styled(BattleAreaContainer)`
+  grid-area: digi3;`;
+
+const BattleArea4 = styled(BattleAreaContainer)`
+  grid-area: digi4;`;
+
+const BattleArea5 = styled(BattleAreaContainer)`
+  grid-area: digi5;`;
+
+const BattleArea11 = styled(BattleAreaContainer)`
+  grid-area: digi11;`;
+
+const BattleArea12 = styled(BattleAreaContainer)`
+  grid-area: digi12;`;
+
+const BattleArea13 = styled(BattleAreaContainer)`
+  grid-area: digi13;`;
+
+const BattleArea14 = styled(BattleAreaContainer)`
+  grid-area: digi14;`;
+
+const BattleArea15 = styled(BattleAreaContainer)`
+  grid-area: digi15;`;
 
 const SwitchRowButton = styled.button<{ secondRowVisible: boolean }>`
   width: 10px;
@@ -1313,6 +1474,7 @@ const OpponentSwitchRowButton2 = styled(SwitchRowButton)`
 `;
 
 const MyContainerSide = styled.div`
+  position: relative;
   height: 450px;
   width: 285px;
   display: grid;
@@ -1322,24 +1484,27 @@ const MyContainerSide = styled.div`
                         "egg-deck breed";
 `;
 
-const OpponentContainerSide = styled.div`
-  height: 450px;
-  width: 285px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+const OpponentContainerSide = styled(MyContainerSide)`
   grid-template-rows: 1.5fr 1fr;
   grid-template-areas: "breed egg-deck"
                         "security-stack security-stack";
 `;
 
 const InfoContainer = styled.div`
-  height: 1000px;
-  width: 310px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  height: 980px;
+  width: 500px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 0.1fr 1fr 1fr;
+    grid-template-areas: "info info info"
+                        "image image phase"  
+                          "details details details"; 
   align-items: center;
+  padding: 10px;
+  
+  background: linear-gradient(to right, rgba(12,12,12, 0.25) 98.25%, transparent 100%);
+  border-bottom-left-radius: 15px;
+  border-top-left-radius: 15px;
 `;
 
 const FieldContainer = styled.div`
@@ -1350,39 +1515,46 @@ const FieldContainer = styled.div`
 const Wrapper = styled.div<{ chatOpen: boolean }>`
   position: relative;
   height: 1000px;
-  width: 1600px;
+  width: 1840px;
+  max-height: 1000px;
+  max-width: 1840px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
-  transform: translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+  transform: translateX(${({chatOpen}) => chatOpen ? "-145px" : "-20px"});
   transition: transform 0.4s ease-in-out;
 
   @media (max-height: 1199px) {
-    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media (max-height: 1080px) {
-    transform: scale(0.9) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(0.87) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media (max-height: 900px) {
-    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
+  }
+  @media (max-height: 750px) {
+    transform: scale(0.55) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media (min-height: 1200px) {
-    transform: scale(1.2) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(1.15) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-100px" : "0"});
+    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
   }
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-120px" : "-20px"});
+    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-165px" : "-60px"});
   }
+  
+  @container
 `;
 
 const ChatSideBar = styled.div<{ chatOpen: boolean }>`
   position: absolute;
-  right: ${({chatOpen}) => chatOpen ? "-250px" : "-25px"};
+  right: ${({chatOpen}) => chatOpen ? "-290px" : "-25px"};
   top: 0;
   height: 100%;
-  width: ${({chatOpen}) => chatOpen ? "280px" : "40px"};
+  width: ${({chatOpen}) => chatOpen ? "330px" : "40px"};
   background: linear-gradient(to right, rgba(15, 15, 15, 0) 5%, ${({chatOpen}) => chatOpen ? "rgba(30, 30, 30, 0.5) 10%" : "rgba(15, 15, 15, 0.15) 35%"});
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
@@ -1422,39 +1594,40 @@ const ChatSideBar = styled.div<{ chatOpen: boolean }>`
 
 const MiniArrowSpan = styled.span`
   position: absolute;
-  left: 13px;
+  left: 14px;
   top: 0;
   font-size: 10px;
+  color: #646cff;
   filter: drop-shadow(0 0 2px #000000);
 `;
 
-const PlayerContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  grid-area: player;
-  align-items: center;
-  justify-content: center;
+const MiniArrowSpanHand = styled(MiniArrowSpan)`
+  left: 11px;
 `;
 
 const PlayerImage = styled.img<{ opponent?: boolean }>`
+  position: absolute;
   cursor: pointer;
-  width: 160px;
+  width: 112px;
   transition: all 0.1s ease;
-  transform: ${({opponent}) => opponent ? "rotateY(180deg)" : "none"};
+  transform: ${({opponent}) => opponent ? "none" : "rotateY(180deg)"};
+
+  top: 0;
+  left: 20px;
 
   &:hover {
     filter: drop-shadow(0 0 2px ${({opponent}) => opponent ? "#43d789" : "#bb2848"});
-    width: 144px;
-    margin-left: 8px;
-    padding: 8px;
   }
 `;
 
 const UserName = styled.span`
+  position: absolute;
   font-size: 20px;
-  align-self: flex-start;
-  margin-left: 27px;
   font-family: 'Cousine', sans-serif;
+  top: -27px;
+  left: 60%;
+  transform: translateX(-50%);
+  opacity: 50%;
 `;
 
 const MyHandSpan = styled.span`
@@ -1495,7 +1668,7 @@ const OpponentDeckSleeve = styled.img`
   transform: translateY(-1px);
 `;
 
-const MyDeckSleeve = styled.img<{gameHasStarted?: boolean}>`
+const MyDeckSleeve = styled.img<{ gameHasStarted?: boolean }>`
   width: 99px;
   height: 140px;
   position: absolute;
@@ -1545,6 +1718,7 @@ const DBZSpan = styled.span<{ isOver: boolean, canDrop: boolean }>`
 `;
 
 const EggDeck = styled(Deck)`
+  width: 95px;
   transform: translateY(-25px);
 
   &:hover {
@@ -1608,59 +1782,50 @@ const SecuritySpan = styled.span`
   font-size: 35px;
   color: #cb6377;
   text-shadow: #111921 1px 1px 1px;
-  left: 132px;
+  left: 50%;
+  bottom: 50%;
   user-select: none;
+  transform: translate(-49.5%, 50%);
 `;
 
-const MySecuritySpan = styled(SecuritySpan)<{ cardCount: number }>`
+const MySecuritySpan = styled(SecuritySpan)`
   cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
-  transform: translate(${({cardCount}) => cardCount === 1 ? 28 : 23}px, -13px);
+  left: unset;
+  right: 50%;
+  bottom: unset;
+  top: 50%;
+  transform: translate(49.5%, -50%);
 
   &:hover {
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
     font-size: 42px;
     color: #f9f9f9;
-    transform: translate(${({cardCount}) => cardCount === 1 ? 28 : 21}px, -14px);
   }
-
-  @media (min-width: 2000px) {
-    transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 24}px, -13px);
-    &:hover {
-      transform: translate(${({cardCount}) => cardCount === 1 ? 29 : 22}px, -14px);
-    }
-  }
-
 `;
 
-const TamerCardContainer = styled.div<{ cardIndex: number, digimonIndex: number, tamerIndex: number }>`
+const SecurityStack = styled.div`
   position: absolute;
-  top: 10px;
-  left: ${({tamerIndex}) => (tamerIndex * 40) + 5}px;
-  z-index: ${({cardIndex}) => 20 - cardIndex};
-  transform: ${({digimonIndex, cardIndex}) =>
-          cardIndex !== 0 ? (digimonIndex !== 0 ? `translate(-40px, ${digimonIndex * 25}px)` : "none") : "none"};
-
-  &:hover {
-    z-index: 100;
-  }
+  width: 160px;
+  height: 160px;
+  right: 7px;
+  top: -32px;
 `;
 
-const DelayCardContainer = styled.div<{ cardIndex: number }>`
+const OpponentSecurityStack = styled(SecurityStack)`
+  right: unset;
+  top: unset;
+  left: 7px;
+  bottom: -32px;
+`;
+
+const SecurityStackLottie = styled(Lottie)`
+  width: 160px;
   position: absolute;
-  bottom: ${props => (props.cardIndex * 35) + 10}px;
-`;
-
-const BattleAreaContainer = styled.div`
-  position: relative;
-  height: 100%;
-  border-radius: 2px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  outline: rgba(119, 145, 197, 0.6) solid 1px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 `;
 
 const TrashView = styled.div`
@@ -1681,8 +1846,9 @@ const TrashView = styled.div`
   left: 59.5%;
   top: 27%;
   transform: translate(-50%, -50%);
-  
+
   scrollbar-width: none;
+
   ::-webkit-scrollbar {
     visibility: hidden;
     width: 0;
@@ -1709,22 +1875,27 @@ const TrashSpan = styled.span`
 
 const SendButton = styled.button`
   position: absolute;
-  width: 55px;
-  height: 30px;
+  width: 43px;
+  height: 45px;
   z-index: 10;
   padding: 0;
   border-radius: 5px;
   opacity: 0.65;
+  bottom: 5px;
+  background: none;
+  border: none;
+  outline: none;
 
   &:hover {
     opacity: 1;
-    border-color: #e8a71b;
+    color: #fff289;
+    transform: scale(1.05);
   }
-`;
 
-const SendButtonSmall = styled(SendButton)`
-  width: 25px;
-  font-size: 0.9em;
+  &:active {
+    transform: scale(0.95);
+    color: #4bf8c9;
+  }
 `;
 
 const MulliganButton = styled.div`
@@ -1740,7 +1911,7 @@ const MulliganButton = styled.div`
   justify-content: center;
   align-items: center;
   font-family: Sansation, sans-serif;
-  text-shadow: 0px 0px 1px #111921;
+  text-shadow: 0 0 1px #111921;
   font-size: 1.4em;
   filter: drop-shadow(3px 3px 1px #131313);
   transition: all 0.05s ease;
@@ -1792,60 +1963,9 @@ const TokenButton = styled.img`
   }
 `;
 
-const SendToTrashButton = styled.div`
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  font-size: 40px;
-  z-index: 10;
-  left: -49px;
-  bottom: 48px;
-  color: #e0e0e0;
-  transform: rotate(-90deg);
-  opacity: 0.65;
-
-  &:hover {
-    opacity: 1;
-    cursor: pointer;
-    color: #e8a71b;
-  }
-
-  &:active {
-    opacity: 1;
-    color: #e0e0e0;
-    filter: drop-shadow(0 0 2px #e8a71b);
-    transform: translateX(1px) rotate(-90deg);
-  }
-`;
-
-const BattleArea1 = styled(BattleAreaContainer)`
-  grid-area: digi1;`;
-
-const BattleArea2 = styled(BattleAreaContainer)`
-  grid-area: digi2;`;
-
-const BattleArea3 = styled(BattleAreaContainer)`
-  grid-area: digi3;`;
-
-const BattleArea4 = styled(BattleAreaContainer)`
-  grid-area: digi4;`;
-
-const BattleArea5 = styled(BattleAreaContainer)`
-  grid-area: digi5;`;
-
 const BreedingAreaContainer = styled(BattleAreaContainer)`
   margin: 1px;
   grid-area: breed;
-`;
-
-const DelayAreaContainer = styled(BattleAreaContainer)`
-  grid-area: delay;
-`;
-
-const TamerAreaContainer = styled(BattleAreaContainer)`
-  margin: 1px 0 1px 0;
-  grid-area: tamer;
-  flex-direction: row;
 `;
 
 const HandContainer = styled.div`
@@ -1857,6 +1977,7 @@ const HandContainer = styled.div`
   width: 100%;
   height: 100%;
   padding: 5px;
+  transform: translate(10px, -2px);
 `;
 
 const OpponentHandContainer = styled(HandContainer)`
@@ -1916,14 +2037,16 @@ const OppenentHandCard = styled.img`
 `;
 
 export const CardImage = styled.img`
-  width: 307px;
+  width: 100%;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
   outline: #0c0c0c solid 1px;
   transform: translateY(2px);
+  grid-area: image;
 `;
 
 const InfoSpan = styled.span`
+  grid-area: info;
   width: 100%;
   display: flex;
   justify-content: space-evenly;
@@ -1935,7 +2058,7 @@ const InfoSpan = styled.span`
     color: ghostwhite;
 
     &:hover {
-      color: dodgerblue;
+      color: #14d591;
       opacity: 1;
     }
   }
@@ -2015,11 +2138,15 @@ const BackGround = styled.div`
   align-items: center;
   width: 100vw;
   height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
   background: linear-gradient(253deg, #193131, #092d4b, #4a1f64);
   background-size: 300% 300%;
   -webkit-animation: Background 25s ease infinite;
   -moz-animation: Background 25s ease infinite;
   animation: Background 25s ease infinite;
+  
+  overflow: hidden!important;
 
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
     width: 310vw;
@@ -2027,38 +2154,39 @@ const BackGround = styled.div`
 
   @-webkit-keyframes Background {
     0% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
     50% {
       background-position: 100% 50%
     }
     100% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
   }
 
   @-moz-keyframes Background {
     0% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
     50% {
       background-position: 100% 50%
     }
     100% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
   }
 
   @keyframes Background {
     0% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
     50% {
       background-position: 100% 50%
     }
     100% {
-      background-position: 0% 50%
+      background-position: 0 50%
     }
+  }
 `;
 
 const BackGroundPattern = styled.div`
@@ -2068,7 +2196,6 @@ const BackGroundPattern = styled.div`
   width: 200vw;
   height: 200vh;
   background: transparent url(${noiseBG}) repeat 0 0;
-  background-repeat: repeat;
   animation: bg-animation .2s infinite;
   opacity: .4;
   z-index: 0;
@@ -2109,3 +2236,12 @@ const BackGroundPattern = styled.div`
     }
   }
 `;
+
+const CloseSecurityButton = styled(MuiButton)`
+  position: fixed;
+  height: 28px;
+  right: 292px;
+  bottom: 540px;
+  z-index: 1000;
+  font-family: Naston, sans-serif;
+;`

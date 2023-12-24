@@ -61,7 +61,7 @@ public class MongoUserDetailsService implements UserDetailsService {
                 registrationUser.question(),
                 registrationUser.answer(),
                 "",
-                "ava1",
+                "AncientIrismon",
                 "Default");
         mongoUserRepository.save(newUser);
 
