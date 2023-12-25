@@ -55,8 +55,8 @@ type State = {
     setSleeve: (avatarName: string) => void,
     getActiveSleeve: () => string,
     setGameId: (gameId: string) => void,
-    importDeck: (decklist: string[]) => void,
-    exportDeck: (exportFormat: string, deckName: string) => string,
+    importDeck: (decklist: string | string[], format: string) => void,
+    exportDeck: (exportFormat: string) => string,
 
     usernameForRecovery: string,
     recoveryQuestion: string,
@@ -390,10 +390,23 @@ export const useStore = create<State>((set, get) => ({
     setGameId: (gameId) => {
         set({gameId: gameId});
     },
-// TODO: ?? export / import uniqueCardNumber, compatibility with .dev / .app...
-    importDeck: (decklist) => {
+
+    importDeck: (decklist, format) => {
         set({loadingDeck: true});
-        const cardsWithId: CardTypeWithId[] = decklist
+
+        const constructedDecklist: string[] = [];
+        if (format === "text") {
+            (decklist as string).split("\n").map((line) => {
+                const linesSplits = line.split(" ");
+                const amount = Number(linesSplits[0]);
+                const cardnumber = linesSplits[linesSplits.length - 1];
+                for (let i = 0; i < amount; i++) {
+                    constructedDecklist.push(cardnumber);
+                }
+            });
+        }
+
+        const cardsWithId: CardTypeWithId[] = (format === "text" ? constructedDecklist : decklist as string[])
             .map((cardnumber: string) => ({
             ...get().fetchedCards.filter((card) => card.uniqueCardNumber === cardnumber)[0],
             id: uid()}))
@@ -423,7 +436,7 @@ export const useStore = create<State>((set, get) => ({
         return () => clearTimeout(timeout);
     },
 
-    exportDeck: (exportFormat, deckName): string => {
+    exportDeck: (exportFormat): string => {
 
         if (exportFormat === "text") {
             const deckCards = get().deckCards;
@@ -434,7 +447,7 @@ export const useStore = create<State>((set, get) => ({
                 const cardCount = deckCards.filter((c) => c.cardNumber === card.cardNumber).length
                 return `${cardCount} ${card.name} ${card.cardNumber}`;
             }).join("\n");
-            return `// ${deckName}\n\n${decklist}`;
+            return decklist;
         }
 
         if (exportFormat === "tts") {

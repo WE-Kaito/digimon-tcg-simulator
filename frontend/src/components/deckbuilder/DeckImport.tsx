@@ -3,7 +3,7 @@ import {ChangeEvent, useState} from "react";
 import {useStore} from "../../hooks/useStore.ts";
 import {Radio} from "@mui/material";
 
-export default function DeckImport({ deckName }:{ deckName: string }) {
+export default function DeckImport() {
 
     const [deckString, setDeckString] = useState<string>("");
     const importDeck = useStore((state) => state.importDeck);
@@ -14,14 +14,18 @@ export default function DeckImport({ deckName }:{ deckName: string }) {
     const [exportFormat, setExportFormat] = useState('pd');
 
     function handleImport() {
+        if (exportFormat === 'text') {
+            importDeck(deckString, exportFormat);
+            return;
+        }
+
         try {
             const deckToImport = JSON.parse(deckString);
             if (!deckToImport.every((cardNumber: string) => fetchedCards.some((card) => card.cardNumber === cardNumber))) {
                 invalidImport();
             }
             if (Array.isArray(deckToImport) && deckToImport.every(item => typeof item === 'string')) {
-                console.log(deckToImport);
-                importDeck(deckToImport);
+                importDeck(deckToImport, exportFormat);
                 setDeckString("");
             } else {
                 invalidImport();
@@ -40,7 +44,7 @@ export default function DeckImport({ deckName }:{ deckName: string }) {
     }
 
     function handleExport() {
-        const newDeckString = exportDeck(exportFormat, deckName);
+        const newDeckString = exportDeck(exportFormat);
         setDeckString(newDeckString);
         navigator.clipboard.writeText(newDeckString)
             .then(() => {

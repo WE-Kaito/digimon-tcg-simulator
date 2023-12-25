@@ -49,7 +49,7 @@ export default function Deckbuilder() {
                     <BackButton/>
                 </ButtonContainer>
 
-                <DeckImport deckName={deckName}/>
+                <DeckImport/>
 
                 <DeckNameContainer>
                     <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
