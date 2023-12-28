@@ -18,6 +18,11 @@ If you're testing on an external device, you can specify the websocket URL (defa
 
 - Go inside the frontend and build the react app:
 `cd frontend`
+
+- Install packages with:
+`npm install`
+
+- Build frontend with:
 `npm run build`
 
 - Copy the `dist` folder inside the backend app folder:
@@ -45,6 +50,12 @@ If not, follow the instructions on how to install [OpenJDK](https://openjdk.org/
 `mvn -B package --file backend/pom.xml`
 
 `digimon-tcg-sim.jar` file will be created in `backend/target/` folder.
+
+However, for running in local, we suggest to run
+
+`npm run dev`.
+
+This will start the frontend on your local machine and it will properly manage connections to the localhost server.
 
 ### Run the application
 
