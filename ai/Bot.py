@@ -7,6 +7,7 @@ from pprint import pprint
 
 import requests
 import websockets
+
 from decouple import config
 
 FIELD_UPDATE_MAP = {
@@ -36,6 +37,8 @@ class Bot(ABC):
 
     host = config('HOST')
     password = config('BOT_PASSWORD')
+    question = config('BOT_QUESTION')
+    answer = config('BOT_ANSWER')
     deck_path = config('DECK_PATH')
 
     def __init__(self, username):
@@ -73,7 +76,7 @@ class Bot(ABC):
         return self.handle_response(login, 200, 'Login succeded!', f'Login failed with status code {login.status_code}')
 
     def register(self):
-        data={'username': self.username, 'password': self.password}
+        data={'username': self.username, 'password': self.password, 'question': self.question, 'answer': self.answer}
         register = self.s.post(f'http://{self.host}/api/user/register', headers=self.headers, data=json.dumps(data))
         return self.handle_response(register, 200, 'Registration succeded!', f'Registration failed with status code {register.status_code}, exiting...')
 
@@ -149,6 +152,14 @@ class Bot(ABC):
         index = int(location[-1])
         location = GAME_LOCATIONS_MAP[location[:-1]]
         return self.game[location][index]
+    
+    def get_empty_slot_in_battle_area(self):
+        found = False
+        for i in range(len(self.game['player2Digi'])):
+            if self.game['player2Digi'][i] is not None:
+                return i
+        if not found:
+            raise RuntimeError('Field is full, cannot currently handle more than 5 digimon on battlefield!')
 
     async def field_update(self, ws, card_name, fr, to):
         if fr[-1].isdigit():
@@ -188,6 +199,12 @@ class Bot(ABC):
         await self.field_update(ws, card_name, fr, to)
         await self.play_place_card_sfx(ws)
 
+    async def play_card(self, ws, card_index):
+        i = self.get_empty_slot_in_battle_area()
+        card = self.game['player2Hand'].pop(card_index)
+        self.game['player2Digi'][i] = card
+        await self.set_memory(ws, f"-{card['playCost']}")
+
     async def send_player_ready(self, ws):
         await ws.send(f'{self.game_name}:/playerReady:{self.opponent}')
 
@@ -224,6 +241,10 @@ class Bot(ABC):
     async def hatch(self, ws):
         self.breeding_area.append(self.game['player2EggDeck'].pop(0))
         await self.move_card(ws, 'myEggDeck0', 'myBreedingArea0')
+
+    async def promote(self, ws):
+        i = self.get_empty_slot_in_battle_area()
+        self.move_card('myBreedingArea0', f'myDigi{i}')
 
     async def draw(self, ws, n_cards):
         for i in range(n_cards):

@@ -1,10 +1,10 @@
 from decouple import config
 
-from RedHybridBot import RedHybridBot
+from BeelzemonXBot import BeelzemonXBot
 
 def main():
     
-    bot = RedHybridBot(config('BOT_USERNAME'))
+    bot = BeelzemonXBot(config('BOT_USERNAME'))
     login_response = bot.login()
     print(login_response)
     if not login_response:
