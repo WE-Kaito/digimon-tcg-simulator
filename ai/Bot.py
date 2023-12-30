@@ -121,7 +121,7 @@ class Bot(ABC):
                 if(message.startswith('[INVITATION]:')):
                     challenger = message.removeprefix('[INVITATION]:')
                     print(f'Challenger: {challenger}')
-                    await ws.send(f'/acceptInvite:{challenger}')
+                    await ws.send(f"/acceptInvite:{challenger}")
                     message = await ws.recv()
                     return challenger
                 time.sleep(1)
@@ -206,16 +206,16 @@ class Bot(ABC):
         await self.set_memory(ws, f"-{card['playCost']}")
 
     async def send_player_ready(self, ws):
-        await ws.send(f'{self.game_name}:/playerReady:{self.opponent}')
+        await ws.send(f"{self.game_name}:/playerReady:{self.opponent}")
 
     async def play_shuffle_deck_sfx(self, ws):
-        await ws.send(f'{self.game_name}:/playShuffleDeckSfx:{self.opponent}')
+        await ws.send(f"{self.game_name}:/playShuffleDeckSfx:{self.opponent}")
     
     async def play_place_card_sfx(self, ws):
-        await ws.send(f'{self.game_name}:/playPlaceCardSfx:{self.opponent}')
+        await ws.send(f"{self.game_name}:/playPlaceCardSfx:{self.opponent}")
 
     async def play_button_click_sfx(self, ws):
-        await ws.send(f'{self.game_name}:/playButtonClickSfx:{self.opponent}')
+        await ws.send(f"{self.game_name}:/playButtonClickSfx:{self.opponent}")
 
     async def hi(self, ws, message):
         if not message.startswith('[START_GAME]:'):
@@ -226,17 +226,42 @@ class Bot(ABC):
                 await self.send_game_chat_message(ws, f"Hi {player['username']}, good luck with the game!")
                 break
     
-    async def update_game(self, ws):
+    async def update_game(self, ws, update):
         n = config('WS_CHUNK_SIZE', cast=int)
-        g = json.dumps(self.game)
+        g = json.dumps(update)
         chunks = [g[i:i+n] for i in range(0, len(g), n)]
         for chunk in chunks:
-            await ws.send(f'{self.game_name}:/updateGame:{chunk}')
+            await ws.send(f"{self.game_name}:/updateGame:{chunk}")
 
     async def mulligan(self, ws):
+        update = {}
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
+        self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
+        random.shuffle(self.game['player2DeckField'])
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
-        await self.update_game(ws)
+        update['playerHand'] = self.game['player2Hand']
+        update['playerDeckField'] = self.game['player2DeckField']
+        update['playerReveal'] = []
+        update['playerDigi1'] = []
+        update['playerDigi2'] = []
+        update['playerDigi3'] = []
+        update['playerDigi4'] = []
+        update['playerDigi5'] = []
+        update['playerDigi6'] = []
+        update['playerDigi7'] = []
+        update['playerDigi8'] = []
+        update['playerDigi9'] = []
+        update['playerDigi10'] = []
+        update['playerDigi11'] = []
+        update['playerDigi12'] = []
+        update['playerDigi13'] = []
+        update['playerDigi14'] = []
+        update['playerDigi15'] = []
+        update['playerBreedingArea'] = []
+        update['playerEggDeck'] = self.game['player2EggDeck']
+        update['playerSecurity'] = self.game['player2Security']
+        update['playerTrash'] = []
+        await self.update_game(ws, update)
     
     async def hatch(self, ws):
         self.breeding_area.append(self.game['player2EggDeck'].pop(0))
@@ -253,17 +278,17 @@ class Bot(ABC):
 
     async def set_memory(self, ws, value):
         self.memory += int(value)
-        await ws.send(f'{self.game_name}:/updateMemory:{self.opponent}:{value}')
+        await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{value}")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【MEMORY】﹕{value}')
 
     async def play(self):
         self.game_name = f'{self.opponent}‗{self.username}'
         async with websockets.connect(self.game_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
-            await ws.send(f'/startGame:{self.game_name}')
+            await ws.send(f"/startGame:{self.game_name}")
             opponent_ready = False
             done_mulligan = False
             while True:
-                await ws.send(f'/heartbeat/')
+                await ws.send("/heartbeat/")
                 message = await ws.recv()
                 if message.startswith('[START_GAME]:'):
                     await self.hi(ws, message)
@@ -272,9 +297,9 @@ class Bot(ABC):
                     if not done_mulligan:
                         if self.mulligan_strategy():
                             await self.mulligan(ws)
-                            await self.send_game_chat_message(ws, 'I mulligan my hand')
+                            await self.send_game_chat_message(ws, "I mulligan my hand")
                         else:
-                            await self.send_game_chat_message(ws, 'I keep my hand')
+                            await self.send_game_chat_message(ws, "I keep my hand")
                         await self.send_player_ready(ws)
                         done_mulligan = True
                 if message.startswith('[STARTING_PLAYER]:'):

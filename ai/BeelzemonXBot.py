@@ -19,15 +19,12 @@ class BeelzemonXBot(Bot):
     def not_egg_in_breeding_and_can_digivolve(self):
         not_egg = False
         has_digivolution_in_hand = False
-        breeding = self.breeding_area[0].card
-        if breeding['level'] != 'Egg':
+        breeding = self.breeding_area[0]
+        if breeding['level'] != 2:
             not_egg = True
         else:
             return False
-        target_level = 'Rookie' if breeding['level'] == 'Egg' else None
-        target_level = 'Champion' if breeding['level'] == 'Rookie' else None
-        target_level = 'Ultimate' if breeding['level'] == 'Champion' else None
-        target_level = 'Mega' if breeding['level'] == 'Ultimate' else None
+        target_level = breeding['level'] + 1
         for i in range(len(self.game['player2Hand'])):
             if self.game['player2Hand'][i].card['level'] == target_level:
                 has_digivolution_in_hand = True
@@ -39,6 +36,9 @@ class BeelzemonXBot(Bot):
             await self.hatch(ws)
         elif self.not_egg_in_breeding_and_can_digivolve():
             await self.promote(ws)
+    
+    async def main_phase_strategy(self, ws):
+        print('hi')
     
     async def end_turn(self, ws):
         await self.send_game_chat_message(ws, 'I end my turn!')
@@ -54,5 +54,12 @@ class BeelzemonXBot(Bot):
             await self.draw(ws, 1)
         
         # Breeding phase
-        await self.breeding_phase_strategy(self, ws)
+        await self.breeding_phase_strategy(ws)
+
+        # Main phase
+        await self.main_phase_strategy(ws)
+
+        # End turn
+        await self.end_turn(ws)
+
         time.sleep(1)
