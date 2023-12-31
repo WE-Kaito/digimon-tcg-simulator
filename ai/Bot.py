@@ -7,8 +7,9 @@ from pprint import pprint
 
 import requests
 import websockets
-
 from decouple import config
+
+from Digimon import Digimon
 
 FIELD_UPDATE_MAP = {
     'myHand': 'Hand',
@@ -55,8 +56,6 @@ class Bot(ABC):
         self.username = username
         self.game_ws = f'ws://{self.host}/api/ws/game'
         self.chat_ws = f'ws://{self.host}/api/ws/chat'
-        self.hand = []
-        self.breeding_area = []
         self.memory = 0
         self.my_turn = False
         self.first_turn = False
@@ -104,8 +103,8 @@ class Bot(ABC):
 
     def initialize_game(self, starting_game):
         self.game = starting_game
-        self.game['player1Digi'] = [None, None, None, None, None]
         self.game['player2Digi'] = [None, None, None, None, None]
+        self.game['player2BreedingArea'] = []
 
     async def enter_lobby_message(self, message):
         async with websockets.connect(self.chat_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
@@ -199,12 +198,6 @@ class Bot(ABC):
         await self.field_update(ws, card_name, fr, to)
         await self.play_place_card_sfx(ws)
 
-    async def play_card(self, ws, card_index):
-        i = self.get_empty_slot_in_battle_area()
-        card = self.game['player2Hand'].pop(card_index)
-        self.game['player2Digi'][i] = card
-        await self.set_memory(ws, f"-{card['playCost']}")
-
     async def send_player_ready(self, ws):
         await ws.send(f"{self.game_name}:/playerReady:{self.opponent}")
 
@@ -264,17 +257,31 @@ class Bot(ABC):
         await self.update_game(ws, update)
     
     async def hatch(self, ws):
-        self.breeding_area.append(self.game['player2EggDeck'].pop(0))
         await self.move_card(ws, 'myEggDeck0', 'myBreedingArea0')
+        self.game['player2BreedingArea'].append(self.game['player2EggDeck'].pop(0))
+    
+    async def digivolve(self, ws, digimon_location, digivolution_card_location, digivolution_card_index):
+        await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', f'my{digimon_location}')
+        digivolution_card = self.game[f'player2{digivolution_card_location}'].pop(digivolution_card_index)
+        self.game[f'player2{digimon_location}'].append(digivolution_card)
+        await self.draw(ws, 1)
+
+    async def play_card(self, ws, card_index):
+        i = self.get_empty_slot_in_battle_area()
+        card = self.game['player2Hand'].pop(card_index)
+        self.game['myDigi'][i] = card
+        await self.set_memory(ws, f"-{card['playCost']}")
 
     async def promote(self, ws):
         i = self.get_empty_slot_in_battle_area()
-        self.move_card('myBreedingArea0', f'myDigi{i}')
+        self.move_card('myBreedingArea', f'myDigi{i}')
+        self.game[f'player2Digi{i}'] = self.game['player2BreedingArea']
+        self.game['player2BreedingArea'] = []
 
     async def draw(self, ws, n_cards):
         for i in range(n_cards):
-            self.game['player2Hand'].append(self.game['player2DeckField'].pop(0))
             await self.move_card(ws, 'myDeckField0', 'myHand0')
+            self.game['player2Hand'].append(self.game['player2DeckField'].pop(0))
 
     async def set_memory(self, ws, value):
         self.memory += int(value)
