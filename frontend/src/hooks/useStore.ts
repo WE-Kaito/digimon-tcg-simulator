@@ -14,6 +14,7 @@ import {
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
 import {addStarterDecks, compareEffectText, mostFrequentColor, sortCards} from "../utils/functions.ts";
+import {avatars} from "../utils/avatars.ts";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -56,7 +57,7 @@ type State = {
     getActiveSleeve: () => string,
     setGameId: (gameId: string) => void,
     importDeck: (decklist: string | string[], format: string) => void,
-    exportDeck: (exportFormat: string) => string,
+    exportDeck: (exportFormat: string, deckname: string) => string,
 
     usernameForRecovery: string,
     recoveryQuestion: string,
@@ -67,7 +68,7 @@ type State = {
 
 export const useStore = create<State>((set, get) => ({
 
-    fetchedCards: [],
+    fetchedCards: JSON.parse(localStorage.getItem('fetchedCards') || '[]'),
     filteredCards: [],
     isLoading: false,
     selectedCard: null,
@@ -98,6 +99,7 @@ export const useStore = create<State>((set, get) => ({
                     fetchedCards: cardsWithId,
                     filteredCards: cardsWithId
                 });
+                localStorage.setItem('fetchedCards', JSON.stringify(cardsWithId));
             })
             .finally(() => set({isLoading: false}));
     },
@@ -382,7 +384,7 @@ export const useStore = create<State>((set, get) => ({
 
     getAvatar: () => {
         axios.get("/api/user/avatar")
-            .then(response => set({avatarName: response.data}))
+            .then(response => set({avatarName: avatars.some((avatar) => avatar.name.includes(response.data)) ? response.data : "AncientIrismon"}))
             .catch(console.error);
         return get().avatarName;
     },
@@ -396,8 +398,9 @@ export const useStore = create<State>((set, get) => ({
 
         const constructedDecklist: string[] = [];
         if (format === "text") {
-            (decklist as string).split("\n").map((line) => {
+            (decklist as string).split("\n").forEach((line) => {
                 const linesSplits = line.split(" ");
+                if (linesSplits.length < 2 || !Number(linesSplits[0])) return;
                 const amount = Number(linesSplits[0]);
                 const cardnumber = linesSplits[linesSplits.length - 1];
                 for (let i = 0; i < amount; i++) {
@@ -436,7 +439,7 @@ export const useStore = create<State>((set, get) => ({
         return () => clearTimeout(timeout);
     },
 
-    exportDeck: (exportFormat): string => {
+    exportDeck: (exportFormat, deckname): string => {
 
         if (exportFormat === "text") {
             const deckCards = get().deckCards;
@@ -447,7 +450,7 @@ export const useStore = create<State>((set, get) => ({
                 const cardCount = deckCards.filter((c) => c.cardNumber === card.cardNumber).length
                 return `${cardCount} ${card.name} ${card.cardNumber}`;
             }).join("\n");
-            return decklist;
+            return `// ${deckname}\n\n${decklist}`;
         }
 
         if (exportFormat === "tts") {

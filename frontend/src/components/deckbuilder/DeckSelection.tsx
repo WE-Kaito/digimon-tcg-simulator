@@ -103,23 +103,25 @@ export default function DeckSelection() {
                 {!loadingDeck
                    ? Object.values(cardGroups).map((group, groupIndex) => {
                         return <GroupContainer key={groupIndex}>
-                            {(group.length > 1) && <CardstackCount>×{group.length}</CardstackCount>}
-                            {(group.length > 1) && <CountBox/>}
+
                             {group.map((card: CardTypeWithId, index) => {
+                                const isFrontCard = group.length === index + 1;
                                 if (index > 0) {
                                     if (group[index - 1]?.uniqueCardNumber === card.uniqueCardNumber) {
                                         if (group[index - 4]?.uniqueCardNumber === card.uniqueCardNumber) return;
                                         return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
-                                            {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
-                                            {(hoverCard?.id === card.id) && (group.length === index + 1
+                                            {getAddAllowed(card, isFrontCard) && AddButton(card)}
+                                            {(hoverCard?.id === card.id) && ( isFrontCard
                                                 || cardsWithoutLimit.includes(card.cardNumber)) && DeleteButton(card.id)}
                                             <Card card={card} location={"deck"}/>
+                                            {(group.length > 1) && isFrontCard && <CardstackCount>×{group.length}</CardstackCount>}
+                                            {(group.length > 1) && isFrontCard && <CountBox/>}
                                         </div>
                                     }
                                 }
                                 return <div key={card.id} >
-                                    {getAddAllowed(card, group.length === index + 1) && AddButton(card)}
-                                    {(hoverCard?.id === card.id) && (group.length === index + 1) && DeleteButton(card.id)}
+                                    {getAddAllowed(card, isFrontCard) && AddButton(card)}
+                                    {(hoverCard?.id === card.id) && isFrontCard && DeleteButton(card.id)}
                                     <Card card={card} location={"deck"}/>
                                 </div>
                             })}
@@ -146,8 +148,8 @@ const GroupContainer = styled.div`
 
 const CardstackCount = styled.span`
   position: absolute;
-  top: 83px;
-  left: 70px;
+  top: 55%;
+  left: 66%;
   color: black;
   text-shadow: 0 0 3px #C71E78E5;
   font-size: 1.6em;
@@ -166,8 +168,8 @@ const CountBox = styled.div`
   border-radius: 50%;
   background: ghostwhite;
   position: absolute;
-  top: 89px;
-  left: 74px;
+  top: 57%;
+  left: 67%;
   z-index: 999;
   filter: drop-shadow(0 0 5px ghostwhite) blur(3px);
   pointer-events: none;
@@ -291,8 +293,8 @@ const AddIcon = styled.div`
   font-size: 22px;
   position: absolute;
   z-index: 1;
-  bottom: 5px;
-  right: 6px;
+  bottom: 3%;
+  right: 4%;
   pointer-events: auto;
   transition: all 0.075s ease-in;
   filter: drop-shadow(0 0 1px #C71E78E5);
@@ -327,7 +329,7 @@ const AddIcon = styled.div`
 `;
 
 const DeleteIcon = styled(AddIcon)`
-  right: 67px;
+  right: 70%;
   @media (max-width: 400px) and (min-height: 600px) {
     right: 45px;
     bottom: 65px;

@@ -112,7 +112,6 @@ export default function Game({user}: { user: string }) {
     const [gameHasStarted, setGameHasStarted] = useState<boolean>(false);
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
-    const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
     const [restartObj, setRestartObj] = useState<{ me: Player, opponent: Player }>({
         me: {username: "", avatarName: "", sleeveName: ""},
         opponent: {username: "", avatarName: "", sleeveName: ""}
@@ -220,7 +219,6 @@ export default function Game({user}: { user: string }) {
                 playStartSfx();
                 const timeout1 = setTimeout(() => {
                     playDrawCardSfx();
-                    setIsChatOpen(true);
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                     setMulliganAllowed(true);
                     setOpponentReady(false);
@@ -339,7 +337,8 @@ export default function Game({user}: { user: string }) {
                     setGameHasStarted(false);
                     break;
                 }
-                case ("[HEARTBEAT]"): break;
+                case ("[HEARTBEAT]"):
+                    break;
                 case ("[PLAYER_READY]"): {
                     setOpponentReady(true);
                     if (!mulliganAllowed) setGameHasStarted(true);
@@ -824,529 +823,591 @@ export default function Game({user}: { user: string }) {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
-    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott" ]
+    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott"]
 
-    return (
-        <BackGround onContextMenu={(e) => e.preventDefault()}>
+    return <>
+        <BackGroundPattern/>
+        <BackGround/>
+        <div style={{
+            position: "relative",
+            width: "100vw",
+            height: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            containerType: "inline-size",
+            overflow: "scroll",
+            scrollbarWidth: "thin"
+        }}>
+            <OuterWrapper>
 
-            <Menu id={"deckMenu"} theme="dark">
-                <Item onClick={() => moveDeckCard("myReveal", true)}>Reveal Bottom Deck Card ↺</Item>
-            </Menu>
+                <Menu id={"deckMenu"} theme="dark">
+                    <Item onClick={() => moveDeckCard("myReveal", true)}>Reveal Bottom Deck Card ↺</Item>
+                </Menu>
 
-            <Menu id={"handCardMenu"} theme="dark">
-                <Item onClick={revealHandCard}>Reveal Card <RevealIcon/></Item>
-            </Menu>
+                <Menu id={"handCardMenu"} theme="dark">
+                    <Item onClick={revealHandCard}>Reveal Card <RevealIcon/></Item>
+                </Menu>
 
-            <Menu id={"securityStackMenu"} theme="dark">
-                <Item onClick={() => handleOpenSecurity("onOpen")}>
-                    <OpenSecurityIcon color={"warning"} sx={{marginRight: 1}}/> Open Security Stack
-                </Item>
-                <Item onClick={() => moveSecurityCard("myTrash")}>
-                    <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
-                        <TrashIcon color={"error"}/><MiniArrowSpan>▲</MiniArrowSpan>
-                    </div>
-                    Trash Top Card
-                </Item>
-                <Item onClick={() => moveSecurityCard("myTrash", true)}>
-                    <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
-                        <TrashIcon color={"error"}/><MiniArrowSpan>▼</MiniArrowSpan>
-                    </div>
-                    Trash Bot Card
-                </Item>
-                <Item onClick={() => moveSecurityCard("myHand")}>
-                    <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
-                        <HandIcon fontSize="inherit" sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
-                        <MiniArrowSpanHand>▲</MiniArrowSpanHand>
-                    </div>
-                    Take Top Card to Hand
-                </Item>
-                <Item onClick={() => moveSecurityCard("myHand", true)}>
-                    <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
-                        <HandIcon fontSize="inherit" sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
-                        <MiniArrowSpanHand>▼</MiniArrowSpanHand>
-                    </div>
-                    Take Bot Card to Hand
-                </Item>
-                <Item onClick={handleShuffleSecurity}>
-                    <ShuffleIcon sx={{color: blue[400], fontSize: 20, marginRight: 1.6}}/>Shuffle Security Stack
-                </Item>
-            </Menu>
+                <Menu id={"securityStackMenu"} theme="dark">
+                    <Item onClick={() => handleOpenSecurity("onOpen")}>
+                        <OpenSecurityIcon color={"warning"} sx={{marginRight: 1}}/> Open Security Stack
+                    </Item>
+                    <Item onClick={() => moveSecurityCard("myTrash")}>
+                        <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
+                            <TrashIcon color={"error"}/><MiniArrowSpan>▲</MiniArrowSpan>
+                        </div>
+                        Trash Top Card
+                    </Item>
+                    <Item onClick={() => moveSecurityCard("myTrash", true)}>
+                        <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
+                            <TrashIcon color={"error"}/><MiniArrowSpan>▼</MiniArrowSpan>
+                        </div>
+                        Trash Bot Card
+                    </Item>
+                    <Item onClick={() => moveSecurityCard("myHand")}>
+                        <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
+                            <HandIcon fontSize="inherit"
+                                      sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                            <MiniArrowSpanHand>▲</MiniArrowSpanHand>
+                        </div>
+                        Take Top Card to Hand
+                    </Item>
+                    <Item onClick={() => moveSecurityCard("myHand", true)}>
+                        <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
+                            <HandIcon fontSize="inherit"
+                                      sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                            <MiniArrowSpanHand>▼</MiniArrowSpanHand>
+                        </div>
+                        Take Bot Card to Hand
+                    </Item>
+                    <Item onClick={handleShuffleSecurity}>
+                        <ShuffleIcon sx={{color: blue[400], fontSize: 20, marginRight: 1.6}}/>Shuffle Security Stack
+                    </Item>
+                </Menu>
 
-            {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
-                <Item onClick={() => window.open(selectedCard.imgUrl, '_blank')}>Open Image in new Tab ↗</Item>
-            </Menu>}
+                {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
+                    <Item onClick={() => window.open(selectedCard.imgUrl, '_blank')}>Open Image in new Tab ↗</Item>
+                </Menu>}
 
-            {modNames.includes(user) &&
-                <span style={{position: "absolute", top: 10, left: 10}}>users ingame: {userCount}</span>}
+                {modNames.includes(user) &&
+                    <span style={{position: "absolute", top: 10, left: 10}}>users ingame: {userCount}</span>}
 
-            {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
+                {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
 
-            <BackGroundPattern/>
+                {surrenderOpen &&
+                    <SurrenderRestartWindow setSurrenderOpen={setSurrenderOpen} handleSurrender={handleSurrender}/>}
+                {restartMoodle &&
+                    <SurrenderRestartWindow setRestartMoodle={setRestartMoodle} handleAcceptRestart={acceptRestart}/>}
+                {endScreen && <EndWindow message={endScreenMessage}/>}
 
-            {surrenderOpen &&
-                <SurrenderRestartWindow setSurrenderOpen={setSurrenderOpen} handleSurrender={handleSurrender}/>}
-            {restartMoodle &&
-                <SurrenderRestartWindow setRestartMoodle={setRestartMoodle} handleAcceptRestart={acceptRestart}/>}
-            {endScreen && <EndWindow message={endScreenMessage}/>}
+                {showStartingPlayer &&
+                    <Fade direction={"right"}
+                          style={{zIndex: 1000, position: "absolute", left: "40%", transform: "translateX(-50%)"}}>
+                        <StartingName>1st: {startingPlayer}</StartingName></Fade>}
 
-            {showStartingPlayer &&
-                <Fade direction={"right"}
-                      style={{zIndex: 1000, position: "absolute", left: "40%", transform: "translateX(-50%)"}}>
-                    <StartingName>1st: {startingPlayer}</StartingName></Fade>}
+                <Wrapper>
 
-            <Wrapper chatOpen={isChatOpen}>
+                    <UserName>{opponentName}</UserName>
+                    <UserName style={{top: "unset", bottom: -30}}>{user}</UserName>
 
-                <UserName>{opponentName}</UserName>
-                <UserName style={{top: "unset", bottom: -30}}>{user}</UserName>
+                    {myReveal.length > 0 &&
+                        <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
+                            {myReveal?.map((card) =>
+                                <Flip key={card.id}><Card card={card} location="myReveal"
+                                                          sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
+                        </RevealContainer>}
+                    {opponentReveal.length > 0 && <RevealContainer>
+                        {opponentReveal?.map((card) =>
+                            <Flip key={card.id}><Card card={card} location="opponentReveal"
+                                                      sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
+                    </RevealContainer>}
 
-                <ChatSideBar chatOpen={isChatOpen} onClick={() => setIsChatOpen(true)}>
-                    {isChatOpen ? <GameChat user={user} sendChatMessage={sendChatMessage}
-                                            closeChat={() => setIsChatOpen(false)}/> : <span>›</span>}
-                </ChatSideBar>
+                    <InfoContainer>
+                        <InfoSpan>
+                            <a href="https://www.youtube.com/watch?v=ghZYuIi5mu4&ab_channel=OfficialBandaiCardGamesChannel"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <span style={{color: "dodgerblue"}}>🛈 </span>Tutorial
+                            </a>
+                            <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
+                               rel="noopener noreferrer">
+                                <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
+                            </a>
+                            <a
+                                href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F"
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <span style={{color: "dodgerblue"}}>🛈 </span>Controls
+                            </a>
+                        </InfoSpan>
+                        <CardImage onClick={() => selectCard(null)}
+                                   onContextMenu={(e) => showDetailsImageMenu({event: e})}
+                                   src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
+                                   alt={selectedCard?.name ?? "Card"}/>
+                        <CardDetails/>
+                    </InfoContainer>
 
-                {myReveal.length > 0 && <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
-                    {myReveal?.map((card) =>
-                        <Flip key={card.id}><Card card={card} location="myReveal"
-                                                  sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
-                </RevealContainer>}
-                {opponentReveal.length > 0 && <RevealContainer>
-                    {opponentReveal?.map((card) =>
-                        <Flip key={card.id}><Card card={card} location="opponentReveal"
-                                                  sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
-                </RevealContainer>}
+                    {trashMoodle && <TrashView>
+                        {myTrash.map((card) => <Card key={card.id} card={card} location="myTrash"/>)}
+                    </TrashView>}
 
-                <InfoContainer>
-                    <InfoSpan>
-                        <a href="https://www.youtube.com/watch?v=ghZYuIi5mu4&ab_channel=OfficialBandaiCardGamesChannel"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                            <span style={{color: "dodgerblue"}}>🛈 </span>Tutorial
-                        </a>
-                        <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
-                           rel="noopener noreferrer">
-                            <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
-                        </a>
-                        <a
-                           href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F" target="_blank"
-                           rel="noopener noreferrer">
-                            <span style={{color: "dodgerblue"}}>🛈 </span>Controls
-                        </a>
-                    </InfoSpan>
-                    <CardImage onClick={() => selectCard(null)}
-                               onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                               src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
-                               alt={selectedCard?.name ?? "Card"}/>
-                    <CardDetails/>
-                </InfoContainer>
+                    {opponentTrashMoodle && <TrashView>
+                        {opponentTrash.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
+                    </TrashView>}
 
-                {trashMoodle && <TrashView>
-                    {myTrash.map((card) => <Card key={card.id} card={card} location="myTrash"/>)}
-                </TrashView>}
+                    {securityContentMoodle
+                        && <SecurityView>
+                            {mySecurity.map((card) => <Card key={card.id} card={card} location="mySecurity"/>)}
+                        </SecurityView>}
+                    {securityContentMoodle
+                        && <CloseSecurityButton variant="contained" onClick={() => handleOpenSecurity("onClose")}>
+                            Shuffle & Close</CloseSecurityButton>}
 
-                {opponentTrashMoodle && <TrashView>
-                    {opponentTrash.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
-                </TrashView>}
+                    <FieldContainer>
+                        <div style={{display: "flex"}}>
+                            <OpponentContainerMain>
 
-                {securityContentMoodle
-                    && <SecurityView>
-                        {mySecurity.map((card) => <Card key={card.id} card={card} location="mySecurity"/>)}
-                    </SecurityView>}
-                {securityContentMoodle
-                    && <CloseSecurityButton variant="contained" onClick={() => handleOpenSecurity("onClose")}>
-                        Shuffle & Close</CloseSecurityButton>}
+                                <OpponentDeckContainer>
+                                    {opponentSleeve === "Default"
+                                        ? <img alt="deck" src={deckBack} width="105px"/>
+                                        : <div style={{width: "105px", position: "relative"}}>
+                                            <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
+                                            <img alt="deck" src={deckBack} width="105px"/>
+                                        </div>}
+                                    <TrashSpan
+                                        style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
+                                </OpponentDeckContainer>
 
-                <FieldContainer>
-                    <div style={{display: "flex"}}>
-                        <OpponentContainerMain>
+                                <OpponentTrashContainer>
+                                    <TrashSpan
+                                        style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
+                                    {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
+                                        : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].imgUrl}
+                                                          alt={"opponentTrash"}
+                                                          onClick={() => {
+                                                              setOpponentTrashMoodle(!opponentTrashMoodle);
+                                                              setTrashMoodle(false);
+                                                          }}
+                                                          title="Open opponents trash"/>}
+                                </OpponentTrashContainer>
 
-                            <OpponentDeckContainer>
-                                {opponentSleeve === "Default"
-                                    ? <img alt="deck" src={deckBack} width="105px"/>
-                                    : <div style={{width: "105px", position: "relative"}}>
-                                        <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
-                                        <img alt="deck" src={deckBack} width="105px"/>
-                                    </div>}
-                                <TrashSpan
-                                    style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
-                            </OpponentDeckContainer>
+                                <OpponentLowerBattleArea>
+                                    <BattleArea15 ref={dropToOpponentDigi15} id={"opponentDigi15"}>
+                                        <CardStack cards={opponentDigi15} location={"opponentDigi15"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                    </BattleArea15>
+                                    <BattleArea14 ref={dropToOpponentDigi14} id={"opponentDigi14"}>
+                                        <CardStack cards={opponentDigi14} location={"opponentDigi14"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                    </BattleArea14>
+                                    <BattleArea13 ref={dropToOpponentDigi13} id={"opponentDigi13"}>
+                                        <CardStack cards={opponentDigi13} location={"opponentDigi13"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                    </BattleArea13>
+                                    <BattleArea12 ref={dropToOpponentDigi12} id={"opponentDigi12"}>
+                                        <CardStack cards={opponentDigi12} location={"opponentDigi12"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                    </BattleArea12>
+                                    <BattleArea11 ref={dropToOpponentDigi11} id={"opponentDigi11"}>
+                                        <CardStack cards={opponentDigi11} location={"opponentDigi11"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                    </BattleArea11>
+                                </OpponentLowerBattleArea>
 
-                            <OpponentTrashContainer>
-                                <TrashSpan style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
-                                {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
-                                    : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].imgUrl}
-                                                      alt={"opponentTrash"}
-                                                      onClick={() => {
-                                                          setOpponentTrashMoodle(!opponentTrashMoodle);
-                                                          setTrashMoodle(false);
-                                                      }}
-                                                      title="Open opponents trash"/>}
-                            </OpponentTrashContainer>
+                                <BattleArea5
+                                    ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
+                                    id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
+                                    {isOpponentSecondRowVisible
+                                        ?
+                                        <CardStack cards={opponentDigi10} location={"opponentDigi10"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                        : <CardStack cards={opponentDigi5} location={"opponentDigi5"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                </BattleArea5>
+                                <BattleArea4
+                                    ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}
+                                    id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
+                                    {isOpponentSecondRowVisible
+                                        ? <CardStack cards={opponentDigi9} location={"opponentDigi9"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>
+                                        : <CardStack cards={opponentDigi4} location={"opponentDigi4"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                </BattleArea4>
+                                <BattleArea3
+                                    ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}
+                                    id={getFieldId(true, opponentDigi3, opponentDigi8, "opponentDigi3", "opponentDigi8")}>
+                                    {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
+                                        <FieldSpan>Battle Area</FieldSpan>}
+                                    {isOpponentSecondRowVisible
+                                        ? <CardStack cards={opponentDigi8} location={"opponentDigi8"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>
+                                        : <CardStack cards={opponentDigi3} location={"opponentDigi3"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                </BattleArea3>
+                                <BattleArea2
+                                    ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}
+                                    id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
+                                    {isOpponentSecondRowVisible
+                                        ? <CardStack cards={opponentDigi7} location={"opponentDigi7"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>
+                                        : <CardStack cards={opponentDigi2} location={"opponentDigi2"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                </BattleArea2>
+                                <BattleArea1
+                                    ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}
+                                    id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
+                                    {isOpponentSecondRowVisible
+                                        ? <CardStack cards={opponentDigi6} location={"opponentDigi6"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>
+                                        : <CardStack cards={opponentDigi1} location={"opponentDigi1"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                </BattleArea1>
 
-                            <OpponentLowerBattleArea>
-                                <BattleArea15 ref={dropToOpponentDigi15} id={"opponentDigi15"}>
-                                    <CardStack cards={opponentDigi15} location={"opponentDigi15"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate} opponentSide={true}/>
-                                </BattleArea15>
-                                <BattleArea14 ref={dropToOpponentDigi14} id={"opponentDigi14"}>
-                                    <CardStack cards={opponentDigi14} location={"opponentDigi14"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate} opponentSide={true}/>
-                                </BattleArea14>
-                                <BattleArea13 ref={dropToOpponentDigi13} id={"opponentDigi13"}>
-                                    <CardStack cards={opponentDigi13} location={"opponentDigi13"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate} opponentSide={true}/>
-                                </BattleArea13>
-                                <BattleArea12 ref={dropToOpponentDigi12} id={"opponentDigi12"}>
-                                    <CardStack cards={opponentDigi12} location={"opponentDigi12"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate} opponentSide={true}/>
-                                </BattleArea12>
-                                <BattleArea11 ref={dropToOpponentDigi11} id={"opponentDigi11"}>
-                                    <CardStack cards={opponentDigi11} location={"opponentDigi11"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate} opponentSide={true}/>
-                                </BattleArea11>
-                            </OpponentLowerBattleArea>
+                                <OpponentHandContainer>
+                                    <HandCards cardCount={opponentHand.length}
+                                               style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
+                                        {opponentHand.map((card, index) =>
+                                            <HandListItem cardCount={opponentHand.length} cardIndex={index}
+                                                          key={card.id}><OppenentHandCard alt="card"
+                                                                                          src={getSleeve(opponentSleeve)}/>
+                                            </HandListItem>)}
+                                    </HandCards>
+                                    {opponentHand.length > 5 && <MyHandSpan
+                                        style={{transform: "rotate(180deg)"}}>{opponentHand.length}</MyHandSpan>}
+                                </OpponentHandContainer>
 
-                            <BattleArea5 ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
-                                         id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
-                                {isOpponentSecondRowVisible
-                                    ? <CardStack cards={opponentDigi10} location={"opponentDigi10"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>
-                                    : <CardStack cards={opponentDigi5} location={"opponentDigi5"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
-                            </BattleArea5>
-                            <BattleArea4 ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}
-                                         id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
-                                {isOpponentSecondRowVisible
-                                    ? <CardStack cards={opponentDigi9} location={"opponentDigi9"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>
-                                    : <CardStack cards={opponentDigi4} location={"opponentDigi4"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
-                            </BattleArea4>
-                            <BattleArea3 ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}
-                                         id={getFieldId(true, opponentDigi3, opponentDigi8, "opponentDigi3", "opponentDigi8")}>
-                                {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
-                                    <FieldSpan>Battle Area</FieldSpan>}
-                                {isOpponentSecondRowVisible
-                                    ? <CardStack cards={opponentDigi8} location={"opponentDigi8"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>
-                                    : <CardStack cards={opponentDigi3} location={"opponentDigi3"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
-                            </BattleArea3>
-                            <BattleArea2 ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}
-                                         id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
-                                {isOpponentSecondRowVisible
-                                    ? <CardStack cards={opponentDigi7} location={"opponentDigi7"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>
-                                    : <CardStack cards={opponentDigi2} location={"opponentDigi2"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
-                            </BattleArea2>
-                            <BattleArea1 ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}
-                                         id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
-                                {isOpponentSecondRowVisible
-                                    ? <CardStack cards={opponentDigi6} location={"opponentDigi6"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>
-                                    : <CardStack cards={opponentDigi1} location={"opponentDigi1"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate} opponentSide={true}/>}
-                            </BattleArea1>
+                            </OpponentContainerMain>
 
-                            <OpponentHandContainer>
-                                <HandCards cardCount={opponentHand.length}
-                                           style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
-                                    {opponentHand.map((card, index) =>
-                                        <HandListItem cardCount={opponentHand.length} cardIndex={index}
-                                                      key={card.id}><OppenentHandCard alt="card"
-                                                                                      src={getSleeve(opponentSleeve)}/>
-                                        </HandListItem>)}
-                                </HandCards>
-                                {opponentHand.length > 5 && <MyHandSpan
-                                    style={{transform: "rotate(180deg)"}}>{opponentHand.length}</MyHandSpan>}
-                            </OpponentHandContainer>
+                            <OpponentContainerSide>
 
-                        </OpponentContainerMain>
+                                <EggDeckContainer>
+                                    {opponentEggDeck.length !== 0 &&
+                                        <EggDeckSpan
+                                            style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
+                                    {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="95px"
+                                                                          style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
+                                </EggDeckContainer>
 
-                        <OpponentContainerSide>
+                                <SecurityStackContainer ref={dropToOpponentSecurity}>
+                                    <OpponentSecurityStack>
+                                        <SecuritySpan style={{cursor: "default"}} id="opponentSecurity">
+                                            {opponentSecurity.length}</SecuritySpan>
+                                        <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true}/>
+                                    </OpponentSecurityStack>
+                                    <OpponentSwitchRowButton1 disabled={showAttackArrow}
+                                                              onClick={() => setIsOpponentSecondRowVisible(false)}
+                                                              secondRowVisible={!isOpponentSecondRowVisible}/>
+                                    <OpponentSwitchRowButton2 disabled={showAttackArrow}
+                                                              onClick={() => setIsOpponentSecondRowVisible(true)}
+                                                              secondRowVisible={isOpponentSecondRowVisible}/>
+                                    {opponentSecondRowWarning && <OpponentSecondRowWarning>!</OpponentSecondRowWarning>}
+                                </SecurityStackContainer>
 
-                            <EggDeckContainer>
-                                {opponentEggDeck.length !== 0 &&
-                                    <EggDeckSpan
-                                        style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
-                                {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="95px"
-                                                                      style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
-                            </EggDeckContainer>
-
-                            <SecurityStackContainer ref={dropToOpponentSecurity}>
-                                <OpponentSecurityStack>
-                                    <SecuritySpan style={{cursor: "default"}} id="opponentSecurity">
-                                        {opponentSecurity.length}</SecuritySpan>
-                                    <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true}/>
-                                </OpponentSecurityStack>
-                                <OpponentSwitchRowButton1 disabled={showAttackArrow}
-                                                          onClick={() => setIsOpponentSecondRowVisible(false)}
-                                                          secondRowVisible={!isOpponentSecondRowVisible}/>
-                                <OpponentSwitchRowButton2 disabled={showAttackArrow}
-                                                          onClick={() => setIsOpponentSecondRowVisible(true)}
-                                                          secondRowVisible={isOpponentSecondRowVisible}/>
-                                {opponentSecondRowWarning && <OpponentSecondRowWarning>!</OpponentSecondRowWarning>}
-                            </SecurityStackContainer>
-
-                            <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
-                                         style={{top: "unset", left: "unset", right: 20, bottom: 0}}
-                                         onClick={() => {
-                                             websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
-                                             notifyRequestedRestart();
-                                         }}/>
-
-                            <BreedingAreaContainer>
-                                <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
-                                           sendSfx={sendSfx} sendUpdate={sendUpdate} opponentSide={true}/>
-                                {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
-                            </BreedingAreaContainer>
-
-                        </OpponentContainerSide>
-                    </div>
-
-                    {memoryBarLoading ? <div style={{height: "100px"}}/> :
-                        <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}
-                                         sendChatMessage={sendChatMessage}/></Zoom>}
-
-                    <div style={{display: "flex"}}>
-                        <MyContainerSide>
-
-                            <EggDeckContainer ref={dropToEggDeck}>
-                                {eggDeckMoodle &&
-                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
-                                                setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
-                                {myEggDeck.length !== 0 &&
-                                    <EggDeck alt="egg-deck" src={eggBack}
+                                <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
+                                             style={{top: "unset", left: "unset", right: 20, bottom: 0}}
                                              onClick={() => {
-                                                 if (!opponentReady) return;
-                                                 moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
-                                                 sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
-                                                 playDrawCardSfx();
-                                                 sendSfx("playPlaceCardSfx");
-                                                 sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
-                                             }}/>}
-                                {myEggDeck.length !== 0 &&
-                                    <EggDeckSpan>{myEggDeck.length}</EggDeckSpan>}
+                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
+                                                 notifyRequestedRestart();
+                                             }}/>
 
-                                <TokenButton alt="create token" src={hackmonButton} onClick={() => {
-                                    createToken();
-                                    playPlaceCardSfx();
-                                    sendUpdate();
-                                    sendSfx("playPlaceCardSfx");
-                                    sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");
-                                }}/>
-                            </EggDeckContainer>
+                                <BreedingAreaContainer>
+                                    <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
+                                               sendSfx={sendSfx} sendUpdate={sendUpdate} opponentSide={true}/>
+                                    {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
+                                </BreedingAreaContainer>
 
-                            <SecurityStackContainer ref={dropToSecurity}>
+                            </OpponentContainerSide>
+                        </div>
 
-                                {securityMoodle &&
-                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
-                                                setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
-                                <SecurityStack>
-                                    <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
-                                                    id="mySecurity"
-                                                    onClick={() => {
-                                                        if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                                        sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
-                                                        playSecurityRevealSfx();
-                                                        sendSfx("playSecurityRevealSfx");
-                                                        sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
-                                                    }}>
-                                        {mySecurity.length}
-                                    </MySecuritySpan>
-                                    <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
-                                                         onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
-                                </SecurityStack>
+                        {memoryBarLoading ? <div style={{height: "100px"}}/> :
+                            <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}
+                                             sendChatMessage={sendChatMessage}/></Zoom>}
 
-                                <MySwitchRowButton1 disabled={showAttackArrow}
-                                                    onClick={() => setIsMySecondRowVisible(false)}
-                                                    secondRowVisible={!isMySecondRowVisible}/>
-                                <MySwitchRowButton2 disabled={showAttackArrow}
-                                                    onClick={() => setIsMySecondRowVisible(true)}
-                                                    secondRowVisible={isMySecondRowVisible}/>
-                                {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
-                                {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
+                        <div style={{display: "flex"}}>
+                            <MyContainerSide>
 
-                            </SecurityStackContainer>
+                                <EggDeckContainer ref={dropToEggDeck}>
+                                    {eggDeckMoodle &&
+                                        <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
+                                                    setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
+                                    {myEggDeck.length !== 0 &&
+                                        <EggDeck alt="egg-deck" src={eggBack}
+                                                 onClick={() => {
+                                                     if (!opponentReady) return;
+                                                     moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
+                                                     sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
+                                                     playDrawCardSfx();
+                                                     sendSfx("playPlaceCardSfx");
+                                                     sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
+                                                 }}/>}
+                                    {myEggDeck.length !== 0 &&
+                                        <EggDeckSpan>{myEggDeck.length}</EggDeckSpan>}
 
-                            <PlayerImage alt="me" src={profilePicture(myAvatar)}
-                                         onClick={() => setSurrenderOpen(!surrenderOpen)}
-                                         title="Surrender"/>
+                                    <TokenButton alt="create token" src={hackmonButton} onClick={() => {
+                                        createToken();
+                                        playPlaceCardSfx();
+                                        sendUpdate();
+                                        sendSfx("playPlaceCardSfx");
+                                        sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");
+                                    }}/>
+                                </EggDeckContainer>
+
+                                <SecurityStackContainer ref={dropToSecurity}>
+
+                                    {securityMoodle &&
+                                        <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
+                                                    setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
+                                    <SecurityStack>
+                                        <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
+                                                        id="mySecurity"
+                                                        onClick={() => {
+                                                            if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+                                                            sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
+                                                            playSecurityRevealSfx();
+                                                            sendSfx("playSecurityRevealSfx");
+                                                            sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
+                                                        }}>
+                                            {mySecurity.length}
+                                        </MySecuritySpan>
+                                        <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
+                                                             onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
+                                    </SecurityStack>
 
 
-                            <BreedingAreaContainer ref={dropToBreedingArea}>
-                                {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
-                                            sendUpdate={sendUpdate}/>}
-                                {myBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
-                            </BreedingAreaContainer>
-                        </MyContainerSide>
 
-                        <MyContainerMain>
+                                    <MySwitchRowButton1 disabled={showAttackArrow}
+                                                        onClick={() => setIsMySecondRowVisible(false)}
+                                                        secondRowVisible={!isMySecondRowVisible}/>
+                                    <MySwitchRowButton2 disabled={showAttackArrow}
+                                                        onClick={() => setIsMySecondRowVisible(true)}
+                                                        secondRowVisible={isMySecondRowVisible}/>
+                                    {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
+                                    {mySecondRowWarning && <MySecondRowWarning>!</MySecondRowWarning>}
 
-                            <DeckContainer>
+                                </SecurityStackContainer>
 
-                                {deckMoodle &&
-                                    <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}
-                                                setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
+                                <PlayerImage alt="me" src={profilePicture(myAvatar)}
+                                             onClick={() => setSurrenderOpen(!surrenderOpen)}
+                                             title="Surrender"/>
 
-                                {!mulliganAllowed && !opponentReady &&
-                                    <MulliganSpan style={{top: 3}}>Waiting for opponent...</MulliganSpan>}
-                                {mulliganAllowed &&
-                                    <>
-                                        <MulliganSpan>KEEP HAND?</MulliganSpan>
-                                        <MulliganButton onClick={() => handleMulligan(true)}>N</MulliganButton>
-                                        <MulliganButton2 onClick={() => handleMulligan(false)}>Y</MulliganButton2>
-                                    </>}
+                                {('ontouchstart' in window && !!navigator.maxTouchPoints) &&
+                                    <div style={{ position: "absolute", display: "flex", gap: 3, top: 130}}>
+                                    <MobileSSButton onClick={() => handleOpenSecurity("onOpen")}>
+                                        <OpenSecurityIcon style={{transform: "translateY(1px)"}} color={"warning"}/>
+                                    </MobileSSButton>
+                                    <MobileSSButton onClick={() => moveSecurityCard("myTrash")}>
+                                <div style={{position: "relative", transform: "translate(-1px, 2px)"}}>
+                                    <TrashIcon color={"error"}/><MiniArrowSpan style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▲</MiniArrowSpan>
+                                </div>
+                            </MobileSSButton>
+                            <MobileSSButton onClick={() => moveSecurityCard("myTrash", true)}>
+                                <div style={{position: "relative", transform: "translate(-1px, 2px)"}}>
+                                    <TrashIcon color={"error"}/><MiniArrowSpan style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▼</MiniArrowSpan>
+                                </div>
+                            </MobileSSButton>
+                            <MobileSSButton onClick={() => moveSecurityCard("myHand")}>
+                                <div style={{position: "relative", marginLeft: 2}}>
+                                    ✋🏻
+                                    <MiniArrowSpanHand style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▲</MiniArrowSpanHand>
+                                </div>
+                            </MobileSSButton>
+                            <MobileSSButton onClick={() => moveSecurityCard("myHand", true)}>
+                                <div style={{position: "relative", marginLeft: 2}}>
+                                    ✋🏻
+                                    <MiniArrowSpanHand style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▼</MiniArrowSpanHand>
+                                </div>
+                            </MobileSSButton>
 
-                                <TrashSpan
-                                    style={{transform: gameHasStarted ? "translate(-14px, -50px)" : "translate(-14px, 0)",}}>
-                                    {myDeckField.length}</TrashSpan>
-                                {mySleeve === "Default"
-                                    ? <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
-                                            isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
-                                            onClick={() => moveDeckCard("myHand")}/>
-                                    : <div style={{width: "105px", position: "relative"}}>
-                                        <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
-                                                      gameHasStarted={gameHasStarted}/>
+                        <MobileSSButton onClick={handleShuffleSecurity}>
+                                <ShuffleIcon sx={{color: blue[400], fontSize: 20}}/>
+                        </MobileSSButton>
+
+                                </div>
+                                }
+
+                                <BreedingAreaContainer ref={dropToBreedingArea}>
+                                    {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
+                                                sendUpdate={sendUpdate}/>}
+                                    {myBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
+                                </BreedingAreaContainer>
+                            </MyContainerSide>
+
+                            <MyContainerMain>
+
+                                <DeckContainer>
+
+                                    {deckMoodle &&
+                                        <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}
+                                                    setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
+
+                                    {!mulliganAllowed && !opponentReady &&
+                                        <MulliganSpan style={{top: 3}}>Waiting for opponent...</MulliganSpan>}
+                                    {mulliganAllowed &&
+                                        <>
+                                            <MulliganSpan>KEEP HAND?</MulliganSpan>
+                                            <MulliganButton onClick={() => handleMulligan(true)}>N</MulliganButton>
+                                            <MulliganButton2 onClick={() => handleMulligan(false)}>Y</MulliganButton2>
+                                        </>}
+
+                                    <TrashSpan
+                                        style={{transform: gameHasStarted ? "translate(-14px, -50px)" : "translate(-14px, 0)",}}>
+                                        {myDeckField.length}</TrashSpan>
+                                    {mySleeve === "Default"
+                                        ?
                                         <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                               isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                               onClick={() => moveDeckCard("myHand")}/>
-                                    </div>
-                                }
-                                {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
-                                    {/* eslint-disable-next-line no-irregular-whitespace */}
-                                    <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
-                                        ⇑</DBZSpan></DeckBottomZone>}
+                                        : <div style={{width: "105px", position: "relative"}}>
+                                            <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
+                                                          gameHasStarted={gameHasStarted}/>
+                                            <Deck ref={dropToDeck} alt="deck" src={deckBack}
+                                                  gameHasStarted={gameHasStarted}
+                                                  isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
+                                                  onClick={() => moveDeckCard("myHand")}/>
+                                        </div>
+                                    }
+                                    {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
+                                        {/* eslint-disable-next-line no-irregular-whitespace */}
+                                        <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
+                                            ⇑</DBZSpan></DeckBottomZone>}
 
-                                <SendButton title="Send top card from your deck to Security Stack" style={{left: -131}}
-                                            onClick={() => moveDeckCard("mySecurity")}>
-                                    <RecoveryIcon sx={{fontSize: 36}}/>
-                                </SendButton>
-                                <SendButton title="Send top card from your deck to Trash" style={{left: -84}}
-                                            onClick={() => moveDeckCard("myTrash")}>
-                                    <TrashFromDeckIcon sx={{fontSize: 41}}/>
-                                </SendButton>
-                                <SendButton title="Reveal the top card of your deck"
-                                            onClick={() => moveDeckCard("myReveal")}
-                                            disabled={opponentReveal.length > 0} style={{left: -37}}
-                                ><RevealIcon sx={{fontSize: 41}}/>
-                                </SendButton>
-                            </DeckContainer>
+                                    <SendButton title="Send top card from your deck to Security Stack"
+                                                style={{left: -131}}
+                                                onClick={() => moveDeckCard("mySecurity")}>
+                                        <RecoveryIcon sx={{fontSize: 36}}/>
+                                    </SendButton>
+                                    <SendButton title="Send top card from your deck to Trash" style={{left: -84}}
+                                                onClick={() => moveDeckCard("myTrash")}>
+                                        <TrashFromDeckIcon sx={{fontSize: 41}}/>
+                                    </SendButton>
+                                    <SendButton title="Reveal the top card of your deck"
+                                                onClick={() => moveDeckCard("myReveal")}
+                                                disabled={opponentReveal.length > 0} style={{left: -37}}
+                                    ><RevealIcon sx={{fontSize: 41}}/>
+                                    </SendButton>
+                                </DeckContainer>
 
-                            <TrashContainer>
-                                {myTrash.length === 0 ?
-                                    <TrashPlaceholder ref={dropToTrash} isOver={isOverTrash}>Trash</TrashPlaceholder>
-                                    : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].imgUrl}
-                                                      alt={"myTrash"}
-                                                      onClick={() => {
-                                                          setTrashMoodle(!trashMoodle);
-                                                          setOpponentTrashMoodle(false);
-                                                      }}
-                                                      title="Open your trash" isOver={isOverTrash}/>}
-                                <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
-                            </TrashContainer>
+                                <TrashContainer>
+                                    {myTrash.length === 0 ?
+                                        <TrashPlaceholder ref={dropToTrash}
+                                                          isOver={isOverTrash}>Trash</TrashPlaceholder>
+                                        : <TrashCardImage ref={dropToTrash} src={myTrash[myTrash.length - 1].imgUrl}
+                                                          alt={"myTrash"}
+                                                          onClick={() => {
+                                                              setTrashMoodle(!trashMoodle);
+                                                              setOpponentTrashMoodle(false);
+                                                          }}
+                                                          title="Open your trash" isOver={isOverTrash}/>}
+                                    <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
+                                </TrashContainer>
 
-                            <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1}
-                                         id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
-                                {isMySecondRowVisible
-                                    ? <CardStack cards={myDigi6} location={"myDigi6"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>
-                                    : <CardStack cards={myDigi1} location={"myDigi1"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
-                            </BattleArea1>
-                            <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
-                                         id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
-                                {isMySecondRowVisible
-                                    ? <CardStack cards={myDigi7} location={"myDigi7"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>
-                                    : <CardStack cards={myDigi2} location={"myDigi2"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
-                            </BattleArea2>
-                            <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
-                                         id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
-                                {!isMySecondRowVisible && myDigi3.length === 0 && <FieldSpan>Battle Area</FieldSpan>}
-                                {isMySecondRowVisible
-                                    ? <CardStack cards={myDigi8} location={"myDigi8"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>
-                                    : <CardStack cards={myDigi3} location={"myDigi3"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
-                            </BattleArea3>
-                            <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
-                                         id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
-                                {isMySecondRowVisible
-                                    ? <CardStack cards={myDigi9} location={"myDigi9"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>
-                                    : <CardStack cards={myDigi4} location={"myDigi4"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
-                            </BattleArea4>
-                            <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
-                                         id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
-                                {isMySecondRowVisible
-                                    ? <CardStack cards={myDigi10} location={"myDigi10"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>
-                                    : <CardStack cards={myDigi5} location={"myDigi5"} sendSfx={sendSfx}
-                                                 sendUpdate={sendUpdate}
-                                                 handleDropToStackBottom={handleDropToStackBottom}/>}
-                            </BattleArea5>
+                                <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1}
+                                             id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
+                                    {isMySecondRowVisible
+                                        ? <CardStack cards={myDigi6} location={"myDigi6"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                        : <CardStack cards={myDigi1} location={"myDigi1"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                </BattleArea1>
+                                <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
+                                             id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
+                                    {isMySecondRowVisible
+                                        ? <CardStack cards={myDigi7} location={"myDigi7"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                        : <CardStack cards={myDigi2} location={"myDigi2"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                </BattleArea2>
+                                <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
+                                             id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
+                                    {!isMySecondRowVisible && myDigi3.length === 0 &&
+                                        <FieldSpan>Battle Area</FieldSpan>}
+                                    {isMySecondRowVisible
+                                        ? <CardStack cards={myDigi8} location={"myDigi8"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                        : <CardStack cards={myDigi3} location={"myDigi3"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                </BattleArea3>
+                                <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
+                                             id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
+                                    {isMySecondRowVisible
+                                        ? <CardStack cards={myDigi9} location={"myDigi9"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                        : <CardStack cards={myDigi4} location={"myDigi4"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                </BattleArea4>
+                                <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
+                                             id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
+                                    {isMySecondRowVisible
+                                        ? <CardStack cards={myDigi10} location={"myDigi10"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                        : <CardStack cards={myDigi5} location={"myDigi5"} sendSfx={sendSfx}
+                                                     sendUpdate={sendUpdate}
+                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                </BattleArea5>
 
-                            <LowerBattleArea>
-                                <BattleArea11 ref={dropToDigi11} id={"myDigi11"}>
-                                    <CardStack cards={myDigi11} location={"myDigi11"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate}
-                                               handleDropToStackBottom={handleDropToStackBottom}/>
-                                </BattleArea11>
-                                <BattleArea12 ref={dropToDigi12} id={"myDigi12"}>
-                                    <CardStack cards={myDigi12} location={"myDigi12"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate}
-                                               handleDropToStackBottom={handleDropToStackBottom}/>
-                                </BattleArea12>
-                                <BattleArea13 ref={dropToDigi13} id={"myDigi13"}>
-                                    <CardStack cards={myDigi13} location={"myDigi13"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate}
-                                               handleDropToStackBottom={handleDropToStackBottom}/>
-                                </BattleArea13>
-                                <BattleArea14 ref={dropToDigi14} id={"myDigi14"}>
-                                    <CardStack cards={myDigi14} location={"myDigi14"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate}
-                                               handleDropToStackBottom={handleDropToStackBottom}/>
-                                </BattleArea14>
-                                <BattleArea15 ref={dropToDigi15} id={"myDigi15"}>
-                                    <CardStack cards={myDigi15} location={"myDigi15"} sendSfx={sendSfx}
-                                               sendUpdate={sendUpdate}
-                                               handleDropToStackBottom={handleDropToStackBottom}/>
-                                </BattleArea15>
-                            </LowerBattleArea>
+                                <LowerBattleArea>
+                                    <BattleArea11 ref={dropToDigi11} id={"myDigi11"}>
+                                        <CardStack cards={myDigi11} location={"myDigi11"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate}
+                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                    </BattleArea11>
+                                    <BattleArea12 ref={dropToDigi12} id={"myDigi12"}>
+                                        <CardStack cards={myDigi12} location={"myDigi12"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate}
+                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                    </BattleArea12>
+                                    <BattleArea13 ref={dropToDigi13} id={"myDigi13"}>
+                                        <CardStack cards={myDigi13} location={"myDigi13"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate}
+                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                    </BattleArea13>
+                                    <BattleArea14 ref={dropToDigi14} id={"myDigi14"}>
+                                        <CardStack cards={myDigi14} location={"myDigi14"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate}
+                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                    </BattleArea14>
+                                    <BattleArea15 ref={dropToDigi15} id={"myDigi15"}>
+                                        <CardStack cards={myDigi15} location={"myDigi15"} sendSfx={sendSfx}
+                                                   sendUpdate={sendUpdate}
+                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                    </BattleArea15>
+                                </LowerBattleArea>
 
-                            <HandContainer ref={dropToHand}>
-                                <HandCards cardCount={myHand.length}
-                                           style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
-                                    {myHand.map((card, index) =>
-                                        <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}
-                                                      onContextMenu={(e) => showHandCardMenu({
-                                                          event: e,
-                                                          props: {index}
-                                                      })}>
-                                            <Card card={card} location={"myHand"}/>
-                                        </HandListItem>)}
-                                </HandCards>
-                                {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
-                            </HandContainer>
+                                <HandContainer ref={dropToHand}>
+                                    <HandCards cardCount={myHand.length}
+                                               style={{transform: `translateX(-${myHand.length > 12 ? (myHand.length * 0.5) : 0}px)`}}>
+                                        {myHand.map((card, index) =>
+                                            <HandListItem cardCount={myHand.length} cardIndex={index} key={card.id}
+                                                          onContextMenu={(e) => showHandCardMenu({
+                                                              event: e,
+                                                              props: {index}
+                                                          })}>
+                                                <Card card={card} location={"myHand"}/>
+                                            </HandListItem>)}
+                                    </HandCards>
+                                    {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
+                                </HandContainer>
 
-                        </MyContainerMain>
-                    </div>
-                </FieldContainer>
-            </Wrapper>
-        </BackGround>
-    );
+                            </MyContainerMain>
+                        </div>
+                    </FieldContainer>
+
+                    <GameChat user={user} sendChatMessage={sendChatMessage}/>
+
+                </Wrapper>
+            </OuterWrapper>
+        </div>
+    </>
 }
 
 const OpponentContainerMain = styled.div`
@@ -1496,13 +1557,13 @@ const InfoContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 0.1fr 1fr 1fr;
-    grid-template-areas: "info info info"
+  grid-template-areas: "info info info"
                         "image image phase"  
-                          "details details details"; 
+                          "details details details";
   align-items: center;
   padding: 10px;
-  
-  background: linear-gradient(to right, rgba(12,12,12, 0.25) 98.25%, transparent 100%);
+
+  background: linear-gradient(to right, rgba(12, 12, 12, 0.25) 98.25%, transparent 100%);
   border-bottom-left-radius: 15px;
   border-top-left-radius: 15px;
 `;
@@ -1512,84 +1573,72 @@ const FieldContainer = styled.div`
   flex-direction: column;
 `;
 
-const Wrapper = styled.div<{ chatOpen: boolean }>`
+const Wrapper = styled.div`
   position: relative;
   height: 1000px;
-  width: 1840px;
+  width: 2170px;
   max-height: 1000px;
-  max-width: 1840px;
+  max-width: 2170px;
   display: flex;
   background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
-  transform: translateX(${({chatOpen}) => chatOpen ? "-145px" : "-20px"});
-  transition: transform 0.4s ease-in-out;
+  transition: transform 0.3s ease-in-out;
 
-  @media (max-height: 1199px) {
-    transform: scale(1) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
-  }
-  @media (max-height: 1080px) {
-    transform: scale(0.87) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
-  }
-  @media (max-height: 900px) {
-    transform: scale(0.7) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
-  }
-  @media (max-height: 750px) {
-    transform: scale(0.55) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
-  }
-  @media (min-height: 1200px) {
-    transform: scale(1.15) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
-  }
-  @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.35) translateX(${({chatOpen}) => chatOpen ? "-145px" : "-40px"});
-  }
-  @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
-    transform: scale(0.6) translateX(${({chatOpen}) => chatOpen ? "-165px" : "-60px"});
-  }
+
+@container (width > 2225px) {
+  transform: scale(1.075);
+}
+
+@container (width > 2450px) {
+  transform: scale(1.125);
+}
+
+@container (width <= 2170px) {
+  transform: scale(0.95);
+}
+
+@container (width <= 2040px) {
+  transform: scale(0.875);
+}
+
+@container (width <= 1950px) {
+  transform: scale(0.86);
+}
+
+@container (width <= 1900px) {
+  transform: scale(0.83);
+}
+
+@container (width <= 1800px) {
+  transform: scale(0.78);
+}
+
+@container (width <= 1700px) {
+  transform: scale(0.7325);
+}
+
+@container (width <= 1600px) {
+  transform: scale(0.685);
+}
+
+@container (width <= 1500px) {
+  transform: scale(0.64);
+}
   
-  @container
-`;
-
-const ChatSideBar = styled.div<{ chatOpen: boolean }>`
-  position: absolute;
-  right: ${({chatOpen}) => chatOpen ? "-290px" : "-25px"};
-  top: 0;
-  height: 100%;
-  width: ${({chatOpen}) => chatOpen ? "330px" : "40px"};
-  background: linear-gradient(to right, rgba(15, 15, 15, 0) 5%, ${({chatOpen}) => chatOpen ? "rgba(30, 30, 30, 0.5) 10%" : "rgba(15, 15, 15, 0.15) 35%"});
-  border-top-right-radius: 15px;
-  border-bottom-right-radius: 15px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: ${({chatOpen}) => chatOpen ? "default" : "pointer"};
-  transition: all 0.4s ease-out;
-
-  span {
-    visibility: ${({chatOpen}) => chatOpen ? "hidden" : "visible"};
-    transition: all 0.15s ease;
-    cursor: pointer;
-    opacity: 0.1;
-    font-size: 44px;
-    margin-bottom: 10px;
-    margin-left: 12px;
-  }
-
-  &:hover {
-    ${({chatOpen}) =>
-            !chatOpen &&
-            `
-      background: linear-gradient(to right, rgba(25, 25, 25, 0) 5%, rgba(25, 25, 25, 0.5) 30%);
-      width: 50px;
-      right: -35px;
-      
-      span {
-        margin-left: 14px;
-        opacity: 0.6;
-        font-size: 54px;
-      }
-    `}
-  }
+@container (width <= 1400px) {
+    transform: scale(0.595);
+}
+  
+@container (width <= 1300px) {
+    transform: scale(0.5475);
+}
+  
+@container (width <= 1200px) {
+    transform: scale(0.5);
+}
+  
+  
+  
 `;
 
 const MiniArrowSpan = styled.span`
@@ -1843,7 +1892,7 @@ const TrashView = styled.div`
   border: 2px solid crimson;
   box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.5);
 
-  left: 59.5%;
+  left: 53.3%;
   top: 27%;
   transform: translate(-50%, -50%);
 
@@ -2097,14 +2146,14 @@ const TrashCardImage = styled.img<{ isOver?: boolean }>`
 
 const RevealContainer = styled.div`
   position: absolute;
-  left: 760px;
+  left: 50%;
   top: 435px;
   z-index: 300;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 5px;
-  transform: scale(2);
+  transform: scale(2) translateX(-17.5%);
 `;
 
 const StartingName = styled.span`
@@ -2132,24 +2181,21 @@ const StartingName = styled.span`
 `;
 
 const BackGround = styled.div`
-  display: flex;
+  position: fixed;
   z-index: -10;
-  justify-content: center;
-  align-items: center;
   width: 100vw;
   height: 100vh;
   max-width: 100vw;
   max-height: 100vh;
   background: linear-gradient(253deg, #193131, #092d4b, #4a1f64);
-  background-size: 300% 300%;
+  background-size: 200% 200%;
   -webkit-animation: Background 25s ease infinite;
   -moz-animation: Background 25s ease infinite;
   animation: Background 25s ease infinite;
-  
-  overflow: hidden!important;
 
   @media only screen and (min-device-width: 300px) and (max-device-width: 550px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
-    width: 310vw;
+    width: 360vw;
+    height: 300vh;
   }
 
   @-webkit-keyframes Background {
@@ -2199,6 +2245,7 @@ const BackGroundPattern = styled.div`
   animation: bg-animation .2s infinite;
   opacity: .4;
   z-index: 0;
+  overflow: hidden;
 
   @keyframes bg-animation {
     0% {
@@ -2240,8 +2287,57 @@ const BackGroundPattern = styled.div`
 const CloseSecurityButton = styled(MuiButton)`
   position: fixed;
   height: 28px;
-  right: 292px;
+  right: 657px;
   bottom: 540px;
   z-index: 1000;
-  font-family: Naston, sans-serif;
-;`
+  font-family: Naston, sans-serif;`
+
+const OuterWrapper = styled.div`
+  max-height: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+@container (width <= 1000px) {
+  position: absolute;
+  left: 100px;
+}
+
+@container (width <= 850px) {
+  position: absolute;
+  left: 200px;
+}
+
+@container (width <= 675px) {
+  position: absolute;
+  left: 250px;
+}
+  
+  @container (width <= 500px) {
+  position: absolute;
+  left: 300px;
+  }
+
+@container (width <= 400px) {
+  position: absolute;
+  left: 350px;
+  transform: translateX(-10px);
+}
+
+  @media (max-height: 700px) {
+    position: absolute;
+    top: 50px;
+  }
+  
+  @media (max-height: 450px) {
+    position: absolute;
+    top: 90px;
+  }
+`;
+
+const MobileSSButton = styled.button`
+  width: 42px;
+  height: 42px;
+  padding: 0;
+`;

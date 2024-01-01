@@ -2,11 +2,11 @@ import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
 import {playButtonClickSfx} from "../utils/sound.ts";
 
-export default function BackButton() {
+export default function BackButton( {isOnEditPage}: {isOnEditPage?: boolean}) {
     const navigate = useNavigate();
 
     function handleClick() {
-        navigate("/");
+        navigate(isOnEditPage ? "/profile" : "/");
         playButtonClickSfx();
     }
 

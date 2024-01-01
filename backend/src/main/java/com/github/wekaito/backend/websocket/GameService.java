@@ -17,6 +17,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -219,7 +220,8 @@ public class GameService extends TextWebSocketHandler {
     synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null) return;
         if (session.isOpen()) {
-            session.sendMessage(new TextMessage(message));
+            byte[] utf8Bytes = message.getBytes(StandardCharsets.UTF_8);
+            session.sendMessage(new TextMessage(utf8Bytes));
         }
     }
 

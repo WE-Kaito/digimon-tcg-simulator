@@ -11,7 +11,8 @@ import {getDnaColor} from "../../utils/functions.ts";
 import {CardTypeGame, CardTypeWithId} from "../../utils/types.ts";
 import {useLocation} from "react-router-dom";
 
-const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama"];
+const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama",
+                "Satsuki Tamahime", "Eiji Nagasumi", "Marvin Jackson", "Xu Yulin", "Hacker Judge", "Kosuke Kisakata"];
 
 export default function CardDetails() {
 
@@ -60,24 +61,6 @@ export default function CardDetails() {
         setHighlightedBurstDigivolve(HighlightedKeyWords({text: burstDigivolveText}));
         setHighightedDigiXros(HighlightedKeyWords({text: digiXrosText}));
         setHighlightedDNADigivolution(HighlightedKeyWords({text: dnaDigivolutionText}));
-
-        setHighlightedSpecialDigivolve((prev): (JSX.Element | JSX.Element[])[] => {
-            prev.shift();
-            return prev
-        });
-        setHighlightedBurstDigivolve((prev): (JSX.Element | JSX.Element[])[] => {
-            prev.shift();
-            return prev
-        });
-        setHighightedDigiXros((prev): (JSX.Element | JSX.Element[])[] => {
-            prev.shift();
-            return prev
-        });
-        setHighlightedDNADigivolution((prev): (JSX.Element | JSX.Element[])[] => {
-            prev.shift();
-            return prev
-        });
-        // sethighlightedSecurityEffect(highlightKeyWords({text: securityEffectText}));
     }, [selectedCard, hoverCard]);
 
     if (!selectedCard && !hoverCard) return <div style={{height: "100%"}}/>;
@@ -99,19 +82,19 @@ export default function CardDetails() {
                 <TabPanel item="effects">
                     <TabContainer inGame={inGame} isNameLong={isNameLong}>
 
-                        {dnaDigivolutionText && <EffectCard variant={"DNA Digivolution"}>
+                        {dnaDigivolutionText && <EffectCard variant={"special"}>
                             {highlightedDNADigivolution}
                         </EffectCard>}
 
-                        {digiXrosText && <EffectCard variant={"DigiXros"}>
+                        {digiXrosText && <EffectCard variant={"special"}>
                             {highlightedDigiXros}
                         </EffectCard>}
 
-                        {burstDigivolveText && <EffectCard variant={"Burst Digivolve"}>
+                        {burstDigivolveText && <EffectCard variant={"special"}>
                             {highlightedBurstDigivolve}
                         </EffectCard>}
 
-                        {specialDigivolveText && <EffectCard variant={cardType === "Option" ? "security" : "Digivolve"}>
+                        {specialDigivolveText && <EffectCard variant={"special"}>
                             {highlightedSpecialDigivolve}
                         </EffectCard>}
 
@@ -164,7 +147,7 @@ export default function CardDetails() {
                                 <div>
                                     <span style={{fontSize: "0.7em"}}>{" from "}</span>
                                     {digivolveConditions?.map((condition, index) =>
-                                        <span key={condition.color}>
+                                        <span key={condition.color + index}>
                                         {(index !== 0) && " | "}
                                             {getDnaColor(condition.color.toLowerCase())}
                                     </span>)}

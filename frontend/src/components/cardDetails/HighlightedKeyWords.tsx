@@ -5,7 +5,17 @@ import KeywordTooltip from "./KeywordTooltip.tsx";
 
 export default function HighlightedKeyWords({text}: { text: string }): (JSX.Element | JSX.Element[])[] {
 
-    if (text.startsWith("[DNA Digivolve]")) return text?.split(" ")?.map((word) => <span>{getDnaColor(word)}</span>);
+    const specialEffects = ["DigiXros -1", "DigiXros -2", "DigiXros -3", "DigiXros -4", "Digivolve", "Burst Digivolve", "DNA Digivolution"];
+    if (text.startsWith("[DNA Digivolve]")) return text?.split(" ")?.map((word, index) => {
+        if (index === 0) return <HighlightedSpecialEffect key={word + index}>DNA Digivolution</HighlightedSpecialEffect>;
+        if (index === 1) return <></>;
+        return <span key={word + index}>{getDnaColor(word)}</span>;
+    });
+
+    if (text.startsWith("＜Burst Digivolve:")) {
+        const burstEffect = text.substring(17, text.length - 1);
+        return [<HighlightedSpecialEffect key={"burst"}>Burst Digivolve</HighlightedSpecialEffect>, <HighlightedKeyWords key={"burstEffect"} text={burstEffect}/>]
+    }
 
     const regex = /(\[([^\]]+)\]|＜([^＞]+)＞)/g;
     let match;
@@ -20,9 +30,9 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
 
         if (bracketedWord[0] === '[') { // [keywords]
 
-            if (match[2].includes("mon") && !match[2].includes("Demon Lord")) {
+            if (timings.includes(match[2])) {
                 highlightedParts.push(
-                    <HighlightedDigimonName key={highlightedParts.length}>{match[2]}</HighlightedDigimonName>
+                    <HighlightedSquare word={match[2]} key={highlightedParts.length}>{match[2]}</HighlightedSquare>
                 );
             } else if (match[2] === "Rule") {
                 highlightedParts.push(
@@ -32,9 +42,13 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
                 highlightedParts.push(
                     <HighlightedTrait key={highlightedParts.length}>{match[2]}</HighlightedTrait>
                 );
+            } else if (specialEffects.includes(match[2])) {
+                highlightedParts.push(
+                <HighlightedSpecialEffect key={highlightedParts.length}>{match[2]}</HighlightedSpecialEffect>
+                );
             } else {
                 highlightedParts.push(
-                    <HighlightedSquare word={match[2]} key={highlightedParts.length}>{match[2]}</HighlightedSquare>
+                    <HighlightedDigimonName key={highlightedParts.length}>{match[2]}</HighlightedDigimonName>
                 );
             }
 
@@ -101,6 +115,20 @@ const HighlightedRule = styled(HighlightedSquare)`
   background: ghostwhite;
   font-weight: 700;
 `;
+
+const HighlightedSpecialEffect = styled.span`
+  font-weight: 400;
+  background: linear-gradient(0deg, rgb(35, 140, 81) 0%, rgb(11, 105, 68) 100%);
+  padding: 4px 3px 2px 3px;
+  border-radius: 2px;
+  color: ghostwhite;
+  margin-right: 4px;
+`;
+
+const timings = ["On Play", "When Digivolving", "When Attacking", "End of Attack", "On Deletion", "Your Turn", "All Turns",
+    "Opponent's Turn", "Start of Your Turn", "End of Your Turn", "Enf of Opponent's Turn", "Security", "Main",
+    "Start of Your Main Phase", "Start of Opponent's Main Phase", "Once Per Turn", "Twice Per Turn", "Hand", "Breeding",
+    "Counter", "End of All Turns"];
 
 function isTrait(trait: string) {
     switch (trait) {
@@ -246,6 +274,7 @@ function isTrait(trait: string) {
         case "Parasite":
         case "Perfect":
         case "Pixie":
+        case "Plant":
         case "Plesiosaur":
         case "Puppet":
         case "Rare Animal":
