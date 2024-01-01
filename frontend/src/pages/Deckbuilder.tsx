@@ -49,7 +49,7 @@ export default function Deckbuilder() {
                     <BackButton/>
                 </ButtonContainer>
 
-                <DeckImport/>
+                <DeckImport deckName={deckName}/>
 
                 <DeckNameContainer>
                     <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
@@ -67,6 +67,7 @@ export default function Deckbuilder() {
                 <CardImageContainer >
                 <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
                            alt={selectedCard?.name ?? "Card"}/>
+                    <CardNumberSpan>{selectedCard?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>
 
             </OuterContainer>
@@ -233,4 +234,19 @@ export const CardImageContainer = styled.div`
   justify-content: center;
   align-items: center;
   padding-top: 5px;
+  position: relative;
+`;
+
+export const CardNumberSpan = styled.span`
+  position: absolute;
+  font-weight: 400;
+  background: #0c0c0c;
+  padding: 0px 3px 0px 3px;
+  bottom: 0;
+  right: 7%;
+  border-radius: 5px;
+  
+  @media (max-width: 450px) {
+    visibility: hidden;
+  }
 `;

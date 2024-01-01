@@ -5,11 +5,10 @@ import sendIcon from "../../assets/sendIcon.svg";
 
 type Props = {
     user: string,
-    sendChatMessage: (message: string) => void,
-    closeChat: () => void
+    sendChatMessage: (message: string) => void
 }
 
-export default function GameChat({user, sendChatMessage, closeChat}: Props) {
+export default function GameChat({user, sendChatMessage}: Props) {
 
     const messages = useGame(state => state.messages);
     const [myMessage, setMyMessage] = useState<string>("");
@@ -21,12 +20,9 @@ export default function GameChat({user, sendChatMessage, closeChat}: Props) {
     }
 
     return (
+        <div style={{width: 365, borderRadius: 15, background: "linear-gradient(to right, rgba(15, 15, 15, 0) 0%, rgba(30, 30, 30, 0.5) 5%)"}}>
         <Wrapper>
-            <CloseButton onClick={(e) => {
-                e.stopPropagation();
-                closeChat();
-            }}>«««</CloseButton>
-
+            <Overlay/>
             <History>
                 {messages.map((message, index) => {
                     if (message.startsWith("[STARTING_PLAYER]≔")) {
@@ -81,18 +77,19 @@ export default function GameChat({user, sendChatMessage, closeChat}: Props) {
                 <StyledButton><img alt="send" src={sendIcon}/></StyledButton>
             </InputContainer>
         </Wrapper>
+        </div>
     );
 }
 
 const Wrapper = styled.div`
-  height: 96%;
-  width: 90%;
-  margin-left: 10%;
+  height: 980px;
+  width: 350px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
   position: relative;
+  transform: translateX(10px);
 `;
 
 const Message = styled.div<{isMyMessage:boolean}>`
@@ -151,14 +148,14 @@ const History = styled.div`
   flex-direction: column-reverse;
   align-items: flex-start;
   justify-content: flex-start;
-  height: 95.5%;
+  height: 95.75%;
   width: 96%;
   margin-left: 5%;
   overflow-y: scroll;
   overflow-x: hidden;
   gap: 6px;
   z-index: 100;
-  transform: translate(-1px,-31px);
+  transform: translateY(-31px);
   scrollbar-width: thin;
   
   ::-webkit-scrollbar {
@@ -240,27 +237,14 @@ const InputContainer = styled.form`
   transform: translate(-5px, 13px);
 `;
 
-const CloseButton = styled.div`
-  background: linear-gradient(to right, rgba(0,0,0,0),rgba(5, 5, 5, 0.5) 5%);
+const Overlay = styled.div`
+  background: linear-gradient(to bottom, rgb(25, 25, 25) 30%, rgba(25, 25, 25, 0.3) 75%, transparent 100%);
   align-self: flex-end;
-  width: 100%;
-  height: 29px;
-  padding-bottom: 2px;
-  padding-right: 5px;
-  border-top-right-radius: 10px;
-  text-align: right;
-  font-family: Cousine, sans-serif;
-  letter-spacing: 5px;
-  font-size: 24px;
-  cursor: pointer;
-  transform: translateY(-20px);
-  transition: all 1.2s ease;
-  
-  &:hover {
-    background: linear-gradient(to right, rgba(0,0,0,0),rgba(5, 5, 5, 0.5) 5%);
-    padding-right: 30px;
-    width: 90%;
-    letter-spacing: 15px;
-    color: #fccb0b;
-  }
+  width: 336px;
+  height: 40px;
+  border-top-right-radius: 13px;
+  z-index: 200;
+  position: absolute;
+  top: 0;
+  transform: translateX(2px);
 `;

@@ -41,6 +41,9 @@ export default function KeywordTooltip({children, keyword}: Props) {
 }
 
 function getExplanation(keyword: string) {
+
+    if (keyword.startsWith("De-Digivolve")) return "Trash up to X cards from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards."
+
     switch (keyword) {
         case "Blocker":
             return "When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.";
@@ -58,8 +61,6 @@ function getExplanation(keyword: string) {
             return "When one of your Digimon digivolves into this card from your hand, you may suspend of your 1 Digimon to reduce the memory cost of the digivolution by X.";
         case "Reboot":
             return "Unsuspend this Digimon during your opponent's unsuspend phase.";
-        case "De-Digivolve":
-            return "Trash up to X cards from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.";
         case "Retaliation":
             return "When this Digimon is deleted after losing a battle, delete the Digimon it was battling.";
         case "Digi-Burst":

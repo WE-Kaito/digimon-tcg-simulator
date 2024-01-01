@@ -13,7 +13,7 @@ import {
     OuterContainer,
     CardImage,
     StyledSpanSaveDeck,
-    DeckNameContainer, DetailsContainer, ButtonContainer, CardImageContainer
+    DeckNameContainer, DetailsContainer, ButtonContainer, CardImageContainer, CardNumberSpan
 } from "./Deckbuilder.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import {blueTriangles} from "../assets/particles.ts";
@@ -70,10 +70,10 @@ export default function EditDeck() {
                         if (isDeleting && id) deleteDeck(id, navigate);
                         setIsDeleting(!isDeleting)
                     }}>{getDeleteString()}</DeleteDeckButton>
-                    <BackButton/>
+                    <BackButton isOnEditPage/>
                 </ButtonContainer>
 
-                <DeckImport/>
+                <DeckImport deckName={deckName}/>
 
                 <DeckNameContainer>
                     <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
@@ -92,6 +92,7 @@ export default function EditDeck() {
                 <CardImageContainer>
                 <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
                            alt={selectedCard?.name ?? "Card"}/>
+                    <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>
             </OuterContainer>
         </Wrapper>

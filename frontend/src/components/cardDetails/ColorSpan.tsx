@@ -13,9 +13,9 @@ export default function ColorSpan() {
                       spacing={currentColors?.length === 3 && !!aceEffect ? 1 : 2.5}
                       divider={<StyledDivider translation={1}/>}
     >
-        {currentColors?.map((color: string) => {
+        {currentColors?.map((color: string, index) => {
 
-            return <div key={color}>
+            return <div key={color + index}>
                 <StyledSpan
                     style={{fontSize: "1.2rem", transform: "translateY(0.09rem)"}}>{getCardColor(color)[1]}</StyledSpan>
                 <StyledSpan style={{color: getCardColor(color)[0]}}>

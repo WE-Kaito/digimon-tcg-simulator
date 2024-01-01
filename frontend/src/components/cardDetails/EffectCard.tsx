@@ -3,7 +3,7 @@ import {Lock as SecurityIcon, CallMade as InheritedIcon} from '@mui/icons-materi
 import {useLocation} from "react-router-dom";
 
 type Props = {
-    variant: "main" | "inherited" | "security" | "DigiXros" | "Digivolve" | "Burst Digivolve" | "DNA Digivolution"
+    variant: "main" | "inherited" | "security" | "special"
     children: (JSX.Element | JSX.Element[])[]
 }
 
@@ -14,7 +14,7 @@ export default function EffectCard({children, variant}: Props) {
 
     return (
         <Wrapper>
-            {["main", "inherited", "security"].includes(variant)
+            {variant !== "special"
                 ? <EffectText inGame={inGame}>
                     <EffectHeader>
                         {variant.toUpperCase()} EFFECT
@@ -29,7 +29,6 @@ export default function EffectCard({children, variant}: Props) {
                     {...children}
                 </EffectText>
                 : <EffectText style={{padding: "3px 5px 0 5px"}} inGame={inGame}>
-                    <SpecialKey>{variant}:</SpecialKey>
                     {...children}
                 </EffectText>}
         </Wrapper>
@@ -59,13 +58,4 @@ const EffectHeader = styled.div`
   text-align: start;
   line-height: 0.4;
   transform: translateY(0.35rem);
-`;
-
-const SpecialKey = styled.span`
-  font-weight: 400;
-  background: linear-gradient(0deg, rgb(35, 140, 81) 0%, rgb(11, 105, 68) 100%);
-  padding: 4px 3px 2px 3px;
-  border-radius: 2px;
-  color: ghostwhite;
-  margin-right: 4px;
 `;

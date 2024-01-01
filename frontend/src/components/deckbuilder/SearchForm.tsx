@@ -45,6 +45,26 @@ export default function SearchForm() {
         filterCards(cardname, type, color, color2, color3, attribute, cardnumber, stage, digitype, dp, playcost, level, illustrator, effect, hasAce);
     }
 
+    function handleClear() {
+        setCardname(null);
+        setColor(null);
+        setColor2(null);
+        setColor3(null);
+        setType(null);
+        setPlaycost(null);
+        setDp(null);
+        setDigivolutioncost(null);
+        setLevel(null);
+        setStage(null);
+        setDigitype(null);
+        setAttribute(null);
+        setCardnumber(null);
+        setIllustrator(null);
+        setEffect(null);
+        setHasAce(false);
+        filterCards(null, null, null, null, null, null, null, null, null, null, null, null, null, null, false);
+    }
+
     return (
         <StyledForm onSubmit={handleSubmit}>
 
@@ -354,6 +374,7 @@ export default function SearchForm() {
             </div>
 
             <SubmitButton>SEARCH</SubmitButton>
+            <ClearButton type={"button"} onClick={handleClear}>CLEAR</ClearButton>
 
         </StyledForm>
     );
@@ -377,7 +398,7 @@ const StyledForm = styled.form`
     "cardnumber cardnumber cardname cardname cardname cardname color color"
     "type type attribute attribute level dp playcost digivolutioncost"
     "stage stage digitype digitype digitype digitype illustrator illustrator"
-    "effect effect effect effect effect ace submit submit";
+    "effect effect effect effect ace submit submit clear";
   
   @media (max-height: 1080px) {
     height: 82%;
@@ -521,6 +542,20 @@ const SubmitButton = styled.button`
 
   @media (min-width: 768px) {
     height: 20px;
+  }
+
+  @media (max-width: 700px) {
+    font-size: 0.5rem;
+  }
+`;
+
+const ClearButton = styled(SubmitButton)`
+  grid-area: clear;
+  background: #aa5af6;
+
+  &:hover {
+    background: #a34ee8;
+    filter: drop-shadow(0.5px 1px 1px rgba(255, 255, 255, 0.325));
   }
 `;
 

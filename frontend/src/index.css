@@ -212,7 +212,6 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #0c0c0c;
   transition: background-image 0.3s;
 }
 

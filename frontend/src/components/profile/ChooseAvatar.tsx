@@ -13,7 +13,6 @@ export default function ChooseAvatar() {
 
     useEffect(() => {
         getAvatar();
-        if (!avatars.find((avatar) => avatar.name === avatarName)) setAvatar("AncientIrismon");
     }, [getAvatar, avatarName]);
 
     return (

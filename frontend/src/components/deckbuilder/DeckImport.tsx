@@ -3,7 +3,7 @@ import {ChangeEvent, useState} from "react";
 import {useStore} from "../../hooks/useStore.ts";
 import {Radio} from "@mui/material";
 
-export default function DeckImport() {
+export default function DeckImport({ deckName }:{ deckName: string}) {
 
     const [deckString, setDeckString] = useState<string>("");
     const importDeck = useStore((state) => state.importDeck);
@@ -44,7 +44,7 @@ export default function DeckImport() {
     }
 
     function handleExport() {
-        const newDeckString = exportDeck(exportFormat);
+        const newDeckString = exportDeck(exportFormat, deckName);
         setDeckString(newDeckString);
         navigator.clipboard.writeText(newDeckString)
             .then(() => {
@@ -60,7 +60,7 @@ export default function DeckImport() {
     return (
         <Container>
             <StyledFieldset>
-                <TextArea value={deckString} placeholder={'TTS: ["BT1-001", "BT1-001", "EX5-023", ...]\nPD:  ["BT1-001_P1", ...] (incl. AAs)\n! no text import'}
+                <TextArea value={deckString} placeholder={'PD:  ["BT1-001_P1", ...] (includes Alternate Arts)\nTTS: ["BT1-001", "BT1-001", "EX5-023", ...]\nText: digimoncard.dev text format'}
                           onChange={(e) => setDeckString(e.target.value)}/>
                 {!invalidButton && <ImportButton onClick={handleImport}>IMPORT</ImportButton>}
                 {invalidButton && <ImportButton style={{background: "crimson"}}>INVALID!</ImportButton>}

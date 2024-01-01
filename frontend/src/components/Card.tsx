@@ -96,12 +96,10 @@ export default function Card({
     }, [canDrop, canDropToStackBottom, setCanDropToStackBottom]);
 
     function handleTiltCard() {
-        if (location === "myTamer" && card.cardType !== "Tamer") return;
-        if (location !== "myBreedingArea" && card === locationCards[locationCards.length - 1]
-            && sendSfx && sendUpdate && selectedCard === card) {
-            tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
-            sendUpdate();
-        }
+        if (["myReveal", "opponentReveal", "myBreedingArea"].includes(location)) return;
+        if (card !== locationCards[locationCards.length - 1] && card.cardType !== "Tamer") return;
+        sendSfx && tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
+        sendUpdate?.();
     }
 
     function handleClick() {
@@ -142,7 +140,7 @@ export default function Card({
                 location={location}
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 title={topCardInfo(card as CardTypeGame, location, locationCards)}
-                onError={() => setImageError && setImageError(true)}
+                onError={() => setImageError?.(true)}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
@@ -157,6 +155,7 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
   width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
+  max-width: ${({location}) => (location === "deck" ? "130px" : "unset")};
   border-radius: 5px;
   transition: all 0.15s ease-out;
   cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
