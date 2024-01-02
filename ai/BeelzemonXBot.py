@@ -70,9 +70,9 @@ class BeelzemonXBot(Bot):
                 c = self.game['player2Hand'][i]
                 if c['cardType'] == 'Digimon':
                     target_levels.discard(c['level'])
-            print(memory_boost_in_hand_index)
             await self.play_card_from_hand(ws, memory_boost_in_hand_index)
-            ##await memory_boost.main_effect(ws, target_levels)
+            time.sleep(2)
+            await memory_boost.main_effect(ws, target_levels)
 
     async def main_phase_strategy(self, ws):
         await self.prepare_rookies(ws)

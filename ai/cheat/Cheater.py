@@ -12,7 +12,7 @@ class Cheater():
                 card_index = i
                 break
         if card_index is None:
-            print('CANNOT FIND CARD WHEN CHEATING')
+            raise RuntimeError('Could not find card when cheating.')
             return
         self.game['player2Hand'].append(self.game['player2DeckField'].pop(card_index))
         await self.bot.update_game(ws)
