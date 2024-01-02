@@ -31,7 +31,7 @@ GAME_LOCATIONS_MAP = {
     'myTamer': 'Tamers',
     'myDelay': 'Delay',
     'mySecurity': 'player2Security',
-    'myReveal': 'Reveal'    
+    'myReveal': 'player2Reveal'    
 }
 
 class Bot(ABC):
@@ -105,6 +105,7 @@ class Bot(ABC):
         self.game = starting_game
         self.game['player2Digi'] = [None, None, None, None, None]
         self.game['player2BreedingArea'] = []
+        self.game['player2Reveal'] = []
 
     async def enter_lobby_message(self, message):
         async with websockets.connect(self.chat_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
@@ -155,7 +156,7 @@ class Bot(ABC):
     def get_empty_slot_in_battle_area(self):
         found = False
         for i in range(len(self.game['player2Digi'])):
-            if self.game['player2Digi'][i] is not None:
+            if self.game['player2Digi'][i] is None:
                 return i
         if not found:
             raise RuntimeError('Field is full, cannot currently handle more than 5 digimon on battlefield!')
@@ -181,6 +182,8 @@ class Bot(ABC):
             fr = 'myHand'
         if to.startswith('myHand'):
             to = 'myHand'
+        if fr.startswith('myReveal'):
+            fr = 'myReveal'
         if fr.startswith('myEggDeck'):
             fr = 'myEggDeck'
         if to.startswith('myEggDeck'):
@@ -219,22 +222,11 @@ class Bot(ABC):
                 await self.send_game_chat_message(ws, f"Hi {player['username']}, good luck with the game!")
                 break
     
-    async def update_game(self, ws, update):
-        n = config('WS_CHUNK_SIZE', cast=int)
-        g = json.dumps(update)
-        chunks = [g[i:i+n] for i in range(0, len(g), n)]
-        for chunk in chunks:
-            await ws.send(f"{self.game_name}:/updateGame:{chunk}")
-
-    async def mulligan(self, ws):
+    async def update_game(self, ws):
         update = {}
-        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
-        self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
-        random.shuffle(self.game['player2DeckField'])
-        self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
         update['playerHand'] = self.game['player2Hand']
         update['playerDeckField'] = self.game['player2DeckField']
-        update['playerReveal'] = []
+        update['playerReveal'] = self.game['player2Reveal']
         update['playerDigi1'] = []
         update['playerDigi2'] = []
         update['playerDigi3'] = []
@@ -254,7 +246,41 @@ class Bot(ABC):
         update['playerEggDeck'] = self.game['player2EggDeck']
         update['playerSecurity'] = self.game['player2Security']
         update['playerTrash'] = []
-        await self.update_game(ws, update)
+        n = config('WS_CHUNK_SIZE', cast=int)
+        g = json.dumps(update)
+        chunks = [g[i:i+n] for i in range(0, len(g), n)]
+        for chunk in chunks:
+            await ws.send(f"{self.game_name}:/updateGame:{chunk}")
+
+    async def mulligan(self, ws):
+        update = {}
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
+        self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
+        random.shuffle(self.game['player2DeckField'])
+        self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
+        update['playerHand'] = self.game['player2Hand']
+        update['playerDeckField'] = self.game['player2DeckField']
+        update['playerReveal'] = self.game['player2Reveal']
+        update['playerDigi1'] = []
+        update['playerDigi2'] = []
+        update['playerDigi3'] = []
+        update['playerDigi4'] = []
+        update['playerDigi5'] = []
+        update['playerDigi6'] = []
+        update['playerDigi7'] = []
+        update['playerDigi8'] = []
+        update['playerDigi9'] = []
+        update['playerDigi10'] = []
+        update['playerDigi11'] = []
+        update['playerDigi12'] = []
+        update['playerDigi13'] = []
+        update['playerDigi14'] = []
+        update['playerDigi15'] = []
+        update['playerBreedingArea'] = []
+        update['playerEggDeck'] = self.game['player2EggDeck']
+        update['playerSecurity'] = self.game['player2Security']
+        update['playerTrash'] = []
+        await self.update_game(ws)
     
     async def hatch(self, ws):
         await self.move_card(ws, 'myEggDeck0', 'myBreedingArea0')
@@ -266,15 +292,16 @@ class Bot(ABC):
         self.game[f'player2{digimon_location}'].append(digivolution_card)
         await self.draw(ws, 1)
 
-    async def play_card(self, ws, card_index):
+    async def play_card_from_hand(self, ws, card_index):
         i = self.get_empty_slot_in_battle_area()
+        await self.move_card(ws, f'myHand{card_index}', f'myDigi{i+1}')
         card = self.game['player2Hand'].pop(card_index)
-        self.game['myDigi'][i] = card
+        self.game['player2Digi'][i] = card
         await self.set_memory(ws, f"-{card['playCost']}")
 
     async def promote(self, ws):
         i = self.get_empty_slot_in_battle_area()
-        self.move_card('myBreedingArea', f'myDigi{i}')
+        self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
         self.game[f'player2Digi{i}'] = self.game['player2BreedingArea']
         self.game['player2BreedingArea'] = []
 
@@ -282,6 +309,18 @@ class Bot(ABC):
         for i in range(n_cards):
             await self.move_card(ws, 'myDeckField0', 'myHand0')
             self.game['player2Hand'].append(self.game['player2DeckField'].pop(0))
+    
+    async def reveal_top_from_deck(self, ws, n_cards):
+        for i in range(n_cards):
+            await self.move_card(ws, 'myDeckField0', 'myReveal')
+            self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
+
+    async def put_card_to_bottom_of_deck(self, ws, card_location, card_index):
+        card = self.game[f'player2{card_location}'].pop(card_index)
+        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
+        self.game['player2DeckField'].append(card)
+        await self.update_game(ws)
+        
 
     async def set_memory(self, ws, value):
         self.memory += int(value)

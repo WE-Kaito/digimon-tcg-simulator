@@ -4,6 +4,8 @@ from pprint import pprint
 import websockets
 
 from Bot import Bot
+from cheat.Cheater import Cheater
+from card.PurpleMemoryBoost import PurpleMemoryBoost
 
 class BeelzemonXBot(Bot):
     
@@ -24,9 +26,9 @@ class BeelzemonXBot(Bot):
         return None
     
     def memory_boost_in_hand(self):
-        for i in range(len(self.game['player2Hand'][i])):
+        for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
-            if card['cardType']== 'Option' and card['name'] == 'Purple Memory Boost':
+            if card['cardType']== 'Option' and card['name'] == 'Purple Memory Boost!':
                 return i
         return None
         
@@ -58,13 +60,23 @@ class BeelzemonXBot(Bot):
     
     async def avoid_brick(self, ws):
         memory_boost_in_hand_index = self.memory_boost_in_hand()
-        if memory_boost_in_hand_index is not None:
-            self.play_card()
-        
-    
+        if memory_boost_in_hand_index is None:
+            return
+        else:
+            card = self.game['player2Hand'][memory_boost_in_hand_index]
+            memory_boost = PurpleMemoryBoost(self, self.game)
+            target_levels = set([3,4,5,6])
+            for i in range(len(self.game['player2Hand'])):
+                c = self.game['player2Hand'][i]
+                if c['cardType'] == 'Digimon':
+                    target_levels.discard(c['level'])
+            print(memory_boost_in_hand_index)
+            await self.play_card_from_hand(ws, memory_boost_in_hand_index)
+            ##await memory_boost.main_effect(ws, target_levels)
+
     async def main_phase_strategy(self, ws):
         await self.prepare_rookies(ws)
-        # self.avoid_brick(ws)
+        await self.avoid_brick(ws)
     
     async def end_turn(self, ws):
         await self.send_game_chat_message(ws, 'I end my turn!')
@@ -82,7 +94,10 @@ class BeelzemonXBot(Bot):
         # Breeding phase
         await self.breeding_phase_strategy(ws)
 
-        
+        # Cheat for testing
+        cheater = Cheater(self, self.game)
+        await cheater.get_card_from_deck_in_hand(ws, 'P-040', 'Purple Memory Boost!')
+        pprint(self.game['player2Hand'])
 
         # Main phase
         await self.main_phase_strategy(ws)
