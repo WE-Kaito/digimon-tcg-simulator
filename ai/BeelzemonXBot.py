@@ -47,6 +47,9 @@ class BeelzemonXBot(Bot):
                 break
         return not_egg and has_digivolution_in_hand
 
+    def digivolution_cost(self, card):
+        card['digivolveConditions'][0]['cost']
+
     async def breeding_phase_strategy(self, ws):
         if len(self.game['player2BreedingArea']) == 0:
             await self.hatch(ws)
@@ -55,8 +58,9 @@ class BeelzemonXBot(Bot):
 
     async def prepare_rookies(self, ws):
         rookie_in_hand_index = self.digimon_of_level_in_hand(3)
+        card = self.game['player2Hand'][rookie_in_hand_index]
         if rookie_in_hand_index is not None:
-            await self.digivolve(ws, 'BreedingArea', 'Hand', rookie_in_hand_index)
+            await self.digivolve(ws, 'BreedingArea', 'Hand', rookie_in_hand_index, self.digivolution_cost(card))
     
     async def avoid_brick(self, ws):
         memory_boost_in_hand_index = self.memory_boost_in_hand()
@@ -70,7 +74,7 @@ class BeelzemonXBot(Bot):
                 c = self.game['player2Hand'][i]
                 if c['cardType'] == 'Digimon':
                     target_levels.discard(c['level'])
-            await self.play_card_from_hand(ws, memory_boost_in_hand_index)
+            await self.play_card_from_hand(ws, memory_boost_in_hand_index, card['playCost'])
             time.sleep(2)
             await memory_boost.main_effect(ws, target_levels)
 

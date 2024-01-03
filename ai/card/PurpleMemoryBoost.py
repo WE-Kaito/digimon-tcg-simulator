@@ -31,3 +31,4 @@ class PurpleMemoryBoost():
             time.sleep(2)
             for i in range(len(self.game['player2Reveal'])):
                 await self.bot.put_card_to_bottom_of_deck(ws, 'Reveal', 0)
+

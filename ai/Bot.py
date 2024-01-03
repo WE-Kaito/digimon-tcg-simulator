@@ -103,7 +103,7 @@ class Bot(ABC):
 
     def initialize_game(self, starting_game):
         self.game = starting_game
-        self.game['player2Digi'] = [None, None, None, None, None]
+        self.game['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.game['player2BreedingArea'] = []
         self.game['player2Reveal'] = []
 
@@ -156,10 +156,10 @@ class Bot(ABC):
     def get_empty_slot_in_battle_area(self):
         found = False
         for i in range(len(self.game['player2Digi'])):
-            if self.game['player2Digi'][i] is None:
+            if len(self.game['player2Digi'][i]) == 0:
                 return i
         if not found:
-            raise RuntimeError('Field is full, cannot currently handle more than 5 digimon on battlefield!')
+            raise RuntimeError('Field is full, cannot currently handle more than 15 digimon on battlefield!')
 
     async def field_update(self, ws, card_name, fr, to):
         if fr[-1].isdigit():
@@ -227,22 +227,9 @@ class Bot(ABC):
         update['playerHand'] = self.game['player2Hand']
         update['playerDeckField'] = self.game['player2DeckField']
         update['playerReveal'] = self.game['player2Reveal']
-        update['playerDigi1'] = []
-        update['playerDigi2'] = []
-        update['playerDigi3'] = []
-        update['playerDigi4'] = []
-        update['playerDigi5'] = []
-        update['playerDigi6'] = []
-        update['playerDigi7'] = []
-        update['playerDigi8'] = []
-        update['playerDigi9'] = []
-        update['playerDigi10'] = []
-        update['playerDigi11'] = []
-        update['playerDigi12'] = []
-        update['playerDigi13'] = []
-        update['playerDigi14'] = []
-        update['playerDigi15'] = []
-        update['playerBreedingArea'] = []
+        for i in range(1, len(self.game['player2Digi']) + 1):
+            update[f'playerDigi{i}'] = self.game['player2Digi'][i-1]
+        update['playerBreedingArea'] = self.game['player2BreedingArea']
         update['playerEggDeck'] = self.game['player2EggDeck']
         update['playerSecurity'] = self.game['player2Security']
         update['playerTrash'] = []
@@ -253,56 +240,33 @@ class Bot(ABC):
             await ws.send(f"{self.game_name}:/updateGame:{chunk}")
 
     async def mulligan(self, ws):
-        update = {}
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
         self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
         random.shuffle(self.game['player2DeckField'])
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
-        update['playerHand'] = self.game['player2Hand']
-        update['playerDeckField'] = self.game['player2DeckField']
-        update['playerReveal'] = self.game['player2Reveal']
-        update['playerDigi1'] = []
-        update['playerDigi2'] = []
-        update['playerDigi3'] = []
-        update['playerDigi4'] = []
-        update['playerDigi5'] = []
-        update['playerDigi6'] = []
-        update['playerDigi7'] = []
-        update['playerDigi8'] = []
-        update['playerDigi9'] = []
-        update['playerDigi10'] = []
-        update['playerDigi11'] = []
-        update['playerDigi12'] = []
-        update['playerDigi13'] = []
-        update['playerDigi14'] = []
-        update['playerDigi15'] = []
-        update['playerBreedingArea'] = []
-        update['playerEggDeck'] = self.game['player2EggDeck']
-        update['playerSecurity'] = self.game['player2Security']
-        update['playerTrash'] = []
         await self.update_game(ws)
     
     async def hatch(self, ws):
         await self.move_card(ws, 'myEggDeck0', 'myBreedingArea0')
         self.game['player2BreedingArea'].append(self.game['player2EggDeck'].pop(0))
     
-    async def digivolve(self, ws, digimon_location, digivolution_card_location, digivolution_card_index):
+    async def digivolve(self, ws, digimon_location, digivolution_card_location, digivolution_card_index, cost):
         await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', f'my{digimon_location}')
         digivolution_card = self.game[f'player2{digivolution_card_location}'].pop(digivolution_card_index)
         self.game[f'player2{digimon_location}'].append(digivolution_card)
         await self.draw(ws, 1)
 
-    async def play_card_from_hand(self, ws, card_index):
+    async def play_card_from_hand(self, ws, card_index, cost):
         i = self.get_empty_slot_in_battle_area()
         await self.move_card(ws, f'myHand{card_index}', f'myDigi{i+1}')
         card = self.game['player2Hand'].pop(card_index)
-        self.game['player2Digi'][i] = card
-        await self.set_memory(ws, f"-{card['playCost']}")
+        self.game['player2Digi'][i].append(card)
+        await self.set_memory(ws, f"-{cost}")
 
     async def promote(self, ws):
         i = self.get_empty_slot_in_battle_area()
         self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
-        self.game[f'player2Digi{i}'] = self.game['player2BreedingArea']
+        self.game[f'player2Digi{i}'].append(self.game['player2BreedingArea'])
         self.game['player2BreedingArea'] = []
 
     async def draw(self, ws, n_cards):
