@@ -56,7 +56,6 @@ class Bot(ABC):
         self.username = username
         self.game_ws = f'ws://{self.host}/api/ws/game'
         self.chat_ws = f'ws://{self.host}/api/ws/chat'
-        self.memory = 0
         self.my_turn = False
         self.first_turn = False
 
@@ -106,6 +105,7 @@ class Bot(ABC):
         self.game['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.game['player2BreedingArea'] = []
         self.game['player2Reveal'] = []
+        self.game['memory'] = 0
 
     async def enter_lobby_message(self, message):
         async with websockets.connect(self.chat_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
@@ -139,7 +139,7 @@ class Bot(ABC):
 
     async def send_game_chat_message(self, ws, message):
         await ws.send(f"{self.game_name}:/chatMessage:{self.opponent}:{message}")
-    
+
     async def send_game_chat_update_memory(self, ws, message):
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{message}")
 
@@ -152,7 +152,7 @@ class Bot(ABC):
         index = int(location[-1])
         location = GAME_LOCATIONS_MAP[location[:-1]]
         return self.game[location][index]
-    
+
     def get_empty_slot_in_battle_area(self):
         found = False
         for i in range(len(self.game['player2Digi'])):
@@ -206,7 +206,7 @@ class Bot(ABC):
 
     async def play_shuffle_deck_sfx(self, ws):
         await ws.send(f"{self.game_name}:/playShuffleDeckSfx:{self.opponent}")
-    
+
     async def play_place_card_sfx(self, ws):
         await ws.send(f"{self.game_name}:/playPlaceCardSfx:{self.opponent}")
 
@@ -221,7 +221,7 @@ class Bot(ABC):
             if player['username'] != self.username:
                 await self.send_game_chat_message(ws, f"Hi {player['username']}, good luck with the game!")
                 break
-    
+
     async def update_game(self, ws):
         update = {}
         update['playerHand'] = self.game['player2Hand']
@@ -245,11 +245,48 @@ class Bot(ABC):
         random.shuffle(self.game['player2DeckField'])
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
         await self.update_game(ws)
-    
+
     async def hatch(self, ws):
         await self.move_card(ws, 'myEggDeck0', 'myBreedingArea0')
         self.game['player2BreedingArea'].append(self.game['player2EggDeck'].pop(0))
+
+    def card_in_hand(self, unique_card_number, card_name):
+        for i in range(len(self.game['player2Hand'])):
+            card = self.game['player2Hand'][i]
+            if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
+                return i
+        return None
+
+    def digimon_of_level_in_hand(self, level):
+        for i in range(len(self.game['player2Hand'])):
+            card = self.game['player2Hand'][i]
+            if card['cardType'] == 'Digimon' and card['level'] == level:
+                return i
+        return False
+
+    def digimon_of_level_in_battle_area(self, level):
+        for i in range(len(self.game['player2Digi'])):
+            card = self.game['player2Digi'][i][-1]
+            if card['cardType'] == 'Digimon' and card['level'] == level:
+                return i
+        return False
     
+    def no_digimon_in_battle_area(self):
+        for digi in self.game['player2Digi']:
+            if len(digi) > 0 and digi[-1]['cardType'] == 'Digimon':
+                return False
+        return True
+    
+    def attack_with_any_digimon(self):
+        for i in range(len(self.game['player2Digi'])):
+            card = self.game['player2Digi'][i][-1]
+            if card['cardType'] == 'Digimon':
+                self.attack_with_digimon(i)
+        print('No Digimon to attack with')
+
+    def attack_with_digimon(self):
+        pass
+
     async def digivolve(self, ws, digimon_location, digivolution_card_location, digivolution_card_index, cost):
         await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', f'my{digimon_location}')
         digivolution_card = self.game[f'player2{digivolution_card_location}'].pop(digivolution_card_index)
@@ -261,6 +298,7 @@ class Bot(ABC):
         await self.move_card(ws, f'myHand{card_index}', f'myDigi{i+1}')
         card = self.game['player2Hand'].pop(card_index)
         self.game['player2Digi'][i].append(card)
+        self.game['memory'] -= cost
         await self.set_memory(ws, f"-{cost}")
 
     async def promote(self, ws):
@@ -273,7 +311,7 @@ class Bot(ABC):
         for i in range(n_cards):
             await self.move_card(ws, 'myDeckField0', 'myHand0')
             self.game['player2Hand'].append(self.game['player2DeckField'].pop(0))
-    
+
     async def reveal_top_from_deck(self, ws, n_cards):
         for i in range(n_cards):
             await self.move_card(ws, 'myDeckField0', 'myReveal')
@@ -284,10 +322,9 @@ class Bot(ABC):
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         self.game['player2DeckField'].append(card)
         await self.update_game(ws)
-        
 
     async def set_memory(self, ws, value):
-        self.memory += int(value)
+        self.game['memory'] += int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{value}")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【MEMORY】﹕{value}')
 
@@ -326,5 +363,4 @@ class Bot(ABC):
 
     @abstractmethod
     def mulligan_strategy(self):
-        pass
-            
+        pass            
