@@ -33,9 +33,6 @@ class BeelzemonXBot(Bot):
                 break
         return not_egg and has_digivolution_in_hand
 
-    def digivolution_cost(self, card):
-        card['digivolveConditions'][0]['cost']
-
     async def breeding_phase_strategy(self, ws):
         if len(self.game['player2BreedingArea']) == 0:
             await self.hatch(ws)
@@ -43,41 +40,58 @@ class BeelzemonXBot(Bot):
             await self.promote(ws)
 
     async def prepare_rookies(self, ws):
+        breeding = self.game['player2BreedingArea']
+        if len(breeding) == 0 or breeding[-1]['level'] > 2:
+            return
         rookie_in_hand_index = self.digimon_of_level_in_hand(3)
         card = self.game['player2Hand'][rookie_in_hand_index]
         if rookie_in_hand_index:
-            await self.digivolve(ws, 'BreedingArea', 'Hand', rookie_in_hand_index, self.digivolution_cost(card))
+            await self.digivolve(ws, 'BreedingArea', 0, 'Hand', rookie_in_hand_index, self.digivolution_cost(card))
 
     async def promote_strategy(self, ws):
         if len(self.game['player2BreedingArea']) == 0:
-            return
+            return False
         breed_level = self.game['player2BreedingArea'][-1]['level']
         if breed_level < 3:
-            return
+            return False
         if not self.digimon_of_level_in_hand(breed_level + 1):
-            return
+            return False
         await self.promote(ws)
+        return True
 
-    async def attack_with_digimon(self,digimon_index):
-        
+    async def digivolve_strategy(self, ws):
+        for digimon_index in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][digimon_index]) > 0:
+                card = self.game['player2Digi'][digimon_index][-1]
+                if card['cardType'] == 'Digimon':
+                    level = card['level']
+                    digivolution_index = self.digimon_of_level_in_hand(level + 1)
+                    if digivolution_index:
+                        digivolution_card = self.game['player2Hand'][digivolution_index]
+                        await self.digivolve(
+                            ws, 'Digi', digimon_index, 'Hand',
+                            digivolution_index, self.digivolution_cost(digivolution_card)
+                        )
+                        return True
+        return False
 
     # TODO: Check for blockers, this is complex as needs to determine when an opponent digimon has gained blocker
     async def attack_strategy(self, ws):
         if self.no_digimon_in_battle_area():
-            return
+            return False
         if len(self.game['player1Security']) == 0:
             self.attack_with_any_digimon()
         digimon_index = self.digimon_of_level_in_battle_area(6)
         if not digimon_index:
             digimon_index = self.digimon_of_level_in_battle_area(5)
         if not digimon_index:
-            return
-        self.attack_with_digimon(digimon_index)
+            return False
+        self.attack_with_digimon(ws, digimon_index)
 
     async def avoid_brick(self, ws):
         memory_boost_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
         if memory_boost_in_hand_index is None:
-            return
+            return False
         else:
             card = self.game['player2Hand'][memory_boost_in_hand_index]
             memory_boost = PurpleMemoryBoost(self, self.game)
@@ -89,14 +103,18 @@ class BeelzemonXBot(Bot):
             await self.play_card_from_hand(ws, memory_boost_in_hand_index, card['playCost'])
             time.sleep(2)
             await memory_boost.main_effect(ws, target_levels)
+            return True
 
     async def main_phase_strategy(self, ws):
+        pprint([c['name'] for c in self.game['player2Hand']])
         await self.promote_strategy(ws)
-        await self.attack_strategy(ws)
         await self.prepare_rookies(ws)
-        await self.avoid_brick(ws)
-        if self.game['memory'] < 0:
-            return
+        some_action = True
+        while(self.game['memory'] >= 0 and some_action):
+            some_action = await self.avoid_brick(ws)
+            some_action = await self.attack_strategy(ws)
+            some_action = await self.digivolve_strategy(ws)
+        return
 
     async def end_turn(self, ws):
         await self.send_game_chat_message(ws, 'I end my turn!')
@@ -106,6 +124,7 @@ class BeelzemonXBot(Bot):
 
     async def turn(self, ws):
         # Unsuspend phase
+        await self.unsuspend_all(ws)
 
         # Draw phase
         if not self.first_turn:
@@ -116,7 +135,8 @@ class BeelzemonXBot(Bot):
 
         # Cheat for testing
         cheater = Cheater(self, self.game)
-        await cheater.get_card_from_deck_in_hand(ws, 'P-040', 'Purple Memory Boost!')
+        await cheater.get_card_from_deck_in_hand(ws, 'BT12-073', 'Impmon (X Antibody)')
+        await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
 
         # Main phase
         await self.main_phase_strategy(ws)

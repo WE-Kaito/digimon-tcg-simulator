@@ -27,11 +27,12 @@ GAME_LOCATIONS_MAP = {
     'myHand': 'player2Hand',
     'myDeckField': 'player2DeckField',
     'myEggDeck': 'player2EggDeck',
-    'myBreedingArea': 'Breeding',
+    'myBreedingArea': 'player2BreedingArea',
     'myTamer': 'Tamers',
     'myDelay': 'Delay',
     'mySecurity': 'player2Security',
-    'myReveal': 'player2Reveal'    
+    'myReveal': 'player2Reveal',
+    'myDigi': 'player2Digi'
 }
 
 class Bot(ABC):
@@ -148,10 +149,16 @@ class Bot(ABC):
         random.shuffle(self.game['player2DeckField'])
         await self.play_shuffle_deck_sfx(ws)
 
-    def get_card(self, location):
-        index = int(location[-1])
-        location = GAME_LOCATIONS_MAP[location[:-1]]
-        return self.game[location][index]
+    def get_stack(self, location):
+        stack = None
+        if 'BreedingArea' in location:
+            location = GAME_LOCATIONS_MAP[location]
+            stack = self.game[location]
+        else:
+            index = int(location[-1])
+            location = GAME_LOCATIONS_MAP[location[:-1]]
+            stack = self.game[location][index]
+        return stack
 
     def get_empty_slot_in_battle_area(self):
         found = False
@@ -175,31 +182,35 @@ class Bot(ABC):
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
 
     async def move_card(self, ws, fr, to):
-        card = self.get_card(fr)
-        card_id = card['id']
-        card_name = card['name']
-        if fr.startswith('myHand'):
-            fr = 'myHand'
-        if to.startswith('myHand'):
-            to = 'myHand'
-        if fr.startswith('myReveal'):
-            fr = 'myReveal'
-        if fr.startswith('myEggDeck'):
-            fr = 'myEggDeck'
-        if to.startswith('myEggDeck'):
-            to = 'myEggDeck'
-        if fr.startswith('myBreedingArea'):
-            fr = 'myBreedingArea'
-        if to.startswith('myBreedingArea'):
-            to = 'myBreedingArea'
-        if fr.startswith('myDeckField'):
-            fr = 'myDeckField'
-        if to.startswith('myDeckField'):
-            to = 'myDeckField'
-        
-        await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
-        await self.field_update(ws, card_name, fr, to)
-        await self.play_place_card_sfx(ws)
+        stack = self.get_stack(fr)
+        if type(stack) == dict:
+            stack = [stack]
+        for card in stack:
+            card_id = card['id']
+            card_name = card['name']
+            if fr.startswith('myHand'):
+                fr = 'myHand'
+            if to.startswith('myHand'):
+                to = 'myHand'
+            if fr.startswith('myReveal'):
+                fr = 'myReveal'
+            if fr.startswith('myEggDeck'):
+                fr = 'myEggDeck'
+            if to.startswith('myEggDeck'):
+                to = 'myEggDeck'
+            if fr.startswith('myBreedingArea'):
+                fr = 'myBreedingArea'
+            if to.startswith('myBreedingArea'):
+                to = 'myBreedingArea'
+            if fr.startswith('myDeckField'):
+                fr = 'myDeckField'
+            if to.startswith('myDeckField'):
+                to = 'myDeckField'
+            
+            await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
+            await self.field_update(ws, card_name, fr, to)
+            await self.play_place_card_sfx(ws)
+            time.sleep(0.5)
 
     async def send_player_ready(self, ws):
         await ws.send(f"{self.game_name}:/playerReady:{self.opponent}")
@@ -212,6 +223,12 @@ class Bot(ABC):
 
     async def play_button_click_sfx(self, ws):
         await ws.send(f"{self.game_name}:/playButtonClickSfx:{self.opponent}")
+
+    async def play_suspend_card_sfx(self, ws):
+        await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
+
+    async def play_unsuspend_card_sfx(self, ws):
+        await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
 
     async def hi(self, ws, message):
         if not message.startswith('[START_GAME]:'):
@@ -257,6 +274,9 @@ class Bot(ABC):
                 return i
         return None
 
+    def digivolution_cost(self, card):
+        return card['digivolveConditions'][0]['cost']
+
     def digimon_of_level_in_hand(self, level):
         for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
@@ -266,9 +286,10 @@ class Bot(ABC):
 
     def digimon_of_level_in_battle_area(self, level):
         for i in range(len(self.game['player2Digi'])):
-            card = self.game['player2Digi'][i][-1]
-            if card['cardType'] == 'Digimon' and card['level'] == level:
-                return i
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['cardType'] == 'Digimon' and card['level'] == level:
+                    return i
         return False
     
     def no_digimon_in_battle_area(self):
@@ -284,13 +305,36 @@ class Bot(ABC):
                 self.attack_with_digimon(i)
         print('No Digimon to attack with')
 
-    def attack_with_digimon(self):
-        pass
+    async def attack_with_digimon(self, ws, digimon_index):
+        self.game['player2Digi'][digimon_index][-1]['isTilted'] = True
+        self.update_game(ws)
+        await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
 
-    async def digivolve(self, ws, digimon_location, digivolution_card_location, digivolution_card_index, cost):
-        await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', f'my{digimon_location}')
+    async def unsuspend_all(self, ws):
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                self.game['player2Digi'][i][-1]['isTilted'] = False
+        await self.update_game(ws)
+        await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
+
+    async def unsuspend_digimon(self, ws, digimon_index):
+        self.game['player2Digi'][digimon_index][-1]['isTilted'] = False
+        self.update_game(ws)
+        await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
+
+    ## TODO: Potentially split this into two methods, one for breeding area and one for battle area
+    async def digivolve(self, ws, digimon_location, digimon_card_index, digivolution_card_location, digivolution_card_index, cost):
+        if digimon_location == 'BreedingArea':
+            dest = f'my{digimon_location}'
+        else:
+            dest = f'my{digimon_location}{digimon_card_index+1}'
+        await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', dest)
         digivolution_card = self.game[f'player2{digivolution_card_location}'].pop(digivolution_card_index)
-        self.game[f'player2{digimon_location}'].append(digivolution_card)
+        if digimon_location == 'BreedingArea':
+            self.game[f'player2{digimon_location}'].append(digivolution_card)
+        else:
+            self.game[f'player2{digimon_location}'][digimon_card_index].append(digivolution_card)
+        await self.set_memory(ws, f"{self.game['memory'] - cost}")
         await self.draw(ws, 1)
 
     async def play_card_from_hand(self, ws, card_index, cost):
@@ -298,13 +342,12 @@ class Bot(ABC):
         await self.move_card(ws, f'myHand{card_index}', f'myDigi{i+1}')
         card = self.game['player2Hand'].pop(card_index)
         self.game['player2Digi'][i].append(card)
-        self.game['memory'] -= cost
-        await self.set_memory(ws, f"-{cost}")
+        await self.set_memory(ws, f"{self.game['memory'] - cost}")
 
     async def promote(self, ws):
         i = self.get_empty_slot_in_battle_area()
-        self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
-        self.game[f'player2Digi{i}'].append(self.game['player2BreedingArea'])
+        await self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
+        self.game[f'player2Digi'][i].extend(self.game['player2BreedingArea'])
         self.game['player2BreedingArea'] = []
 
     async def draw(self, ws, n_cards):
@@ -324,7 +367,7 @@ class Bot(ABC):
         await self.update_game(ws)
 
     async def set_memory(self, ws, value):
-        self.game['memory'] += int(value)
+        self.game['memory'] = int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{value}")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【MEMORY】﹕{value}')
 
@@ -337,6 +380,7 @@ class Bot(ABC):
             while True:
                 await ws.send("/heartbeat/")
                 message = await ws.recv()
+                print(message)
                 if message.startswith('[START_GAME]:'):
                     await self.hi(ws, message)
                 if message.startswith('[DISTRIBUTE_CARDS]:'):
@@ -354,6 +398,8 @@ class Bot(ABC):
                     if starting_player == self.username:
                        self.first_turn = True
                        self.my_turn = True
+                if message.startswith(f'[UPDATE_MEMORY]:'):
+                    self.game['memory'] = int(message[-1])
                 if message.startswith('[PLAYER_READY]'):
                     opponent_ready = True
                 if message.startswith(f'[CHAT_MESSAGE]:{self.opponent}﹕Done'):
@@ -364,3 +410,4 @@ class Bot(ABC):
     @abstractmethod
     def mulligan_strategy(self):
         pass            
+    
