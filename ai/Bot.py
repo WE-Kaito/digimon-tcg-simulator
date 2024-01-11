@@ -20,7 +20,8 @@ FIELD_UPDATE_MAP = {
     'myTamer': 'Tamers',
     'myDelay': 'Delay',
     'mySecurity': 'Security',
-    'myReveal': 'Reveal'    
+    'myReveal': 'Reveal',
+    'myTrash': 'Trash'
 }
 
 GAME_LOCATIONS_MAP = {
@@ -32,7 +33,8 @@ GAME_LOCATIONS_MAP = {
     'myDelay': 'Delay',
     'mySecurity': 'player2Security',
     'myReveal': 'player2Reveal',
-    'myDigi': 'player2Digi'
+    'myDigi': 'player2Digi',
+    'myTrash': 'player2Trash'
 }
 
 class Bot(ABC):
@@ -284,6 +286,13 @@ class Bot(ABC):
                 return i
         return False
 
+    def card_of_type_in_hand(self, type):
+        for i in range(len(self.game['player2Hand'])):
+            card = self.game['player2Hand'][i]
+            if card['cardType'] == type:
+                return i
+        return False
+
     def digimon_of_level_in_battle_area(self, level):
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
@@ -334,7 +343,7 @@ class Bot(ABC):
             self.game[f'player2{digimon_location}'].append(digivolution_card)
         else:
             self.game[f'player2{digimon_location}'][digimon_card_index].append(digivolution_card)
-        await self.set_memory(ws, f"{self.game['memory'] - cost}")
+        await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
 
     async def play_card_from_hand(self, ws, card_index, cost):
@@ -342,7 +351,7 @@ class Bot(ABC):
         await self.move_card(ws, f'myHand{card_index}', f'myDigi{i+1}')
         card = self.game['player2Hand'].pop(card_index)
         self.game['player2Digi'][i].append(card)
-        await self.set_memory(ws, f"{self.game['memory'] - cost}")
+        await self.decrease_memory_by(ws, cost)
 
     async def promote(self, ws):
         i = self.get_empty_slot_in_battle_area()
@@ -365,11 +374,28 @@ class Bot(ABC):
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         self.game['player2DeckField'].append(card)
         await self.update_game(ws)
+    
+    async def trash_top_card_of_deck(self, ws):
+        card = self.game[f'player2DeckField'].pop(0)
+        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Trash')
+        self.game['player2Trash'].insert(0, card)
+        await self.update_game(ws)
+        return card
 
-    async def set_memory(self, ws, value):
+    async def set_memory_to(self, ws, value):
         self.game['memory'] = int(value)
-        await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{value}")
-        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【MEMORY】﹕{value}')
+        await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
+
+    async def increase_memory_by(self, ws, value):
+        self.game['memory'] += int(value)
+        await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
+    
+    async def decrease_memory_by(self, ws, value):
+        self.game['memory'] -= int(value)
+        await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
 
     async def play(self):
         self.game_name = f'{self.opponent}‗{self.username}'

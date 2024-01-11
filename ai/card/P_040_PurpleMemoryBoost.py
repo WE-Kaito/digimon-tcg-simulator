@@ -1,7 +1,9 @@
 import time
 
+from Card import Card
 
-class PurpleMemoryBoost():
+
+class P_040_PurpleMemoryBoost(Card):
 
     def __init__(self, bot, game):
         self.bot = bot

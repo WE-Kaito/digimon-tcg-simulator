@@ -5,12 +5,14 @@ import websockets
 
 from Bot import Bot
 from cheat.Cheater import Cheater
-from card.PurpleMemoryBoost import PurpleMemoryBoost
+from ai.card.P_040_PurpleMemoryBoost import P_040_PurpleMemoryBoost
+from ai.card.CardFactory import CardFactory
 
 class BeelzemonXBot(Bot):
 
     def __init__(self, username):
         super().__init__(username)
+        self.card_factory = CardFactory(self, self.game)
 
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
@@ -72,6 +74,8 @@ class BeelzemonXBot(Bot):
                             ws, 'Digi', digimon_index, 'Hand',
                             digivolution_index, self.digivolution_cost(digivolution_card)
                         )
+                        digivolution_card_obj = self.card_factory.get_card(digivolution_card['uniqueCardNumber'])
+                        digivolution_card_obj.when_digivolving_effect()
                         return True
         return False
 
@@ -94,7 +98,7 @@ class BeelzemonXBot(Bot):
             return False
         else:
             card = self.game['player2Hand'][memory_boost_in_hand_index]
-            memory_boost = PurpleMemoryBoost(self, self.game)
+            memory_boost = P_040_PurpleMemoryBoost(self, self.game)
             target_levels = set([3,4,5,6])
             for i in range(len(self.game['player2Hand'])):
                 c = self.game['player2Hand'][i]
