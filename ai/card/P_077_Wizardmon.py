@@ -8,5 +8,5 @@ class P_077_Wizardmon(Card):
         self.game = game
 
     async def when_trashed_effect(self, ws):
-        self.bot.increase_memory_by(1)
-       
+        self.bot.increase_memory_by(ws, 1)
+

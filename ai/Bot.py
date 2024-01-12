@@ -61,6 +61,9 @@ class Bot(ABC):
         self.chat_ws = f'ws://{self.host}/api/ws/chat'
         self.my_turn = False
         self.first_turn = False
+        self.effects = {}
+        self.effects['endOfOpponentTurnEffects']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+        self.effects['endOfTurnEffect']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
         if response.status_code == expected_status_code:
@@ -274,7 +277,28 @@ class Bot(ABC):
             card = self.game['player2Hand'][i]
             if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
                 return i
-        return None
+        return False
+    
+    def card_on_battle_area(self, unique_card_number, card_name):
+        for i in range(len(self.game['player2Digi'])):
+            card = self.game['player2Digi'][i][-1]
+            if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
+                return i
+        return False
+    
+    def card_in_trash(self, unique_card_number, card_name):
+        for i in range(len(self.game['player2Trash'])):
+            card = self.game['player2Trash'][i]
+            if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
+                return i
+        return False
+    
+    def card_has_name_in_trash(self, name):
+        for i in range(len(self.game['player2Trash'])):
+            card = self.game['player2Trash'][i]
+            if card['name'] == name:
+                return i
+        return False
 
     def digivolution_cost(self, card):
         return card['digivolveConditions'][0]['cost']
@@ -346,12 +370,34 @@ class Bot(ABC):
         await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
 
-    async def play_card_from_hand(self, ws, card_index, cost):
+    async def play_card(self, ws, card_location, card_index, cost):
         i = self.get_empty_slot_in_battle_area()
-        await self.move_card(ws, f'myHand{card_index}', f'myDigi{i+1}')
-        card = self.game['player2Hand'].pop(card_index)
+        await self.move_card(ws, f'my{card_location}{card_index}', f'myDigi{i+1}')
+        card = self.game[f'player2{card_location}'].pop(card_index)
         self.game['player2Digi'][i].append(card)
         await self.decrease_memory_by(ws, cost)
+
+    async def trash_card_from_hand(self, ws, card_index):
+        await self.move_card(ws, f'myHand{card_index}', f'myTrash')
+        card = self.game['player2Hand'].pop(card_index)
+        self.game['player2Trash'].insert(0, card)
+    
+    async def return_to_bottom_of_deck_from_trash(self, ws, card_index):
+        card = self.game[f'player2Trash'].pop(card_index)
+        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Trash')
+        self.game['player2Deck'].append(card)
+        await self.update_game(ws)
+        return card
+    
+    async def delete_from_opponent_battle_area(self, ws, card_index):
+        await self.move_card(ws, f'opponentDigi{card_index}', f'myTrash')
+        card = self.game['player1Digi'].pop(card_index)
+        self.game['player1Trash'].insert(0, card)
+    
+    async def delete_from_opponent_battle_area(self, ws, card_index):
+        await self.move_card(ws, f'player1Digi{card_index}', f'myTrash')
+        card = self.game['player1Digi'].pop(card_index)
+        self.game['player1Trash'].insert(0, card)
 
     async def promote(self, ws):
         i = self.get_empty_slot_in_battle_area()
@@ -360,14 +406,22 @@ class Bot(ABC):
         self.game['player2BreedingArea'] = []
 
     async def draw(self, ws, n_cards):
-        for i in range(n_cards):
+        for i in range(min(n_cards, len(self.game['player2DeckField']))):
             await self.move_card(ws, 'myDeckField0', 'myHand0')
-            self.game['player2Hand'].append(self.game['player2DeckField'].pop(0))
+            self.game['player2Hand'].insert(0, self.game['player2DeckField'].pop(0))
+
+    async def return_card_from_trash_to_hand(self, ws, card_index):
+            await self.move_card(ws, f'myDeckField{card_index}', 'myHand0')
+            self.game['player2Hand'].insert(0, self.game['player2Trash'].pop(card_index))
 
     async def reveal_top_from_deck(self, ws, n_cards):
         for i in range(n_cards):
             await self.move_card(ws, 'myDeckField0', 'myReveal')
             self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
+    
+    async def put_cards_to_bottom_of_deck(self, ws):
+        for i in range(len(self.game['player2Reveal'])):
+            await self.bot.put_card_to_bottom_of_deck(ws, 'Reveal', 0)
 
     async def put_card_to_bottom_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)

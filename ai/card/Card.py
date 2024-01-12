@@ -19,3 +19,9 @@ class Card(ABC):
     
     def on_deletion_effect():
         pass
+
+    def all_turns_effect():
+        pass
+
+    def trash_effect():
+        pass

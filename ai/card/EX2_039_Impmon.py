@@ -23,7 +23,7 @@ class EX2_039_Impmon(Card):
                 trashed_cards.append(self.bot.trash_top_card_of_deck(ws))
         for trashed_card in trashed_card:
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'])
-            card_obj.when_trashed_effect()
+            card_obj.when_trashed_effect(ws)
 
     async def on_play_effect(self, ws):
         await self.bot.reveal_top_from_deck(ws, 4)
