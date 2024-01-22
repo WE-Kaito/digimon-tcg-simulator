@@ -1,66 +1,29 @@
 import {create} from "zustand";
-import {CardTypeGame, GameDistribution, OneSideDistribution, Player} from "../utils/types.ts";
+import {
+    AttackPhase,
+    BoardState,
+    CardTypeGame,
+    GameDistribution,
+    OneSideDistribution,
+    Phase,
+    Player
+} from "../utils/types.ts";
 import {uid} from "uid";
 import {playTrashCardSfx} from "../utils/sound.ts";
 import tokenImage from "../assets/tokenCard.jpg";
 
-type State = {
+export type State = BoardState & {
+    initialDistributionState: string;
     myAvatar: string,
     opponentAvatar: string,
     mySleeve: string,
     opponentSleeve: string,
 
-    myMemory: number,
-    myReveal: CardTypeGame[],
-
-    myHand: CardTypeGame[],
-    myDeckField: CardTypeGame[],
-    myEggDeck: CardTypeGame[],
-    myTrash: CardTypeGame[],
-    mySecurity: CardTypeGame[],
-
-    myDigi1: CardTypeGame[],
-    myDigi2: CardTypeGame[],
-    myDigi3: CardTypeGame[],
-    myDigi4: CardTypeGame[],
-    myDigi5: CardTypeGame[],
-    myDigi6: CardTypeGame[],
-    myDigi7: CardTypeGame[],
-    myDigi8: CardTypeGame[],
-    myDigi9: CardTypeGame[],
-    myDigi10: CardTypeGame[],
-    myDigi11: CardTypeGame[],
-    myDigi12: CardTypeGame[],
-    myDigi13: CardTypeGame[],
-    myDigi14: CardTypeGame[],
-    myDigi15: CardTypeGame[],
-    myBreedingArea: CardTypeGame[],
-
-    opponentMemory: number,
-    opponentReveal: CardTypeGame[],
-
-    opponentHand: CardTypeGame[],
-    opponentDeckField: CardTypeGame[],
-    opponentEggDeck: CardTypeGame[],
-    opponentTrash: CardTypeGame[],
-    opponentSecurity: CardTypeGame[],
-
-    opponentDigi1: CardTypeGame[],
-    opponentDigi2: CardTypeGame[],
-    opponentDigi3: CardTypeGame[],
-    opponentDigi4: CardTypeGame[],
-    opponentDigi5: CardTypeGame[],
-    opponentDigi6: CardTypeGame[],
-    opponentDigi7: CardTypeGame[],
-    opponentDigi8: CardTypeGame[],
-    opponentDigi9: CardTypeGame[],
-    opponentDigi10: CardTypeGame[],
-    opponentDigi11: CardTypeGame[],
-    opponentDigi12: CardTypeGame[],
-    opponentDigi13: CardTypeGame[],
-    opponentDigi14: CardTypeGame[],
-    opponentDigi15: CardTypeGame[],
-    opponentBreedingArea: CardTypeGame[],
+    phase: Phase,
+    isMyTurn: boolean,
+    myAttackPhase: AttackPhase | false,
+    opponentAttackPhase: AttackPhase | false,
+    opponentGameState: string,
 
     messages: string[],
     setMessages: (message: string) => void,
@@ -73,13 +36,15 @@ type State = {
 
     setUpGame: (me: Player, opponent: Player) => void,
     clearBoard: () => void,
-    distributeCards: (user: string, game: GameDistribution, gameId: string) => void,
+    distributeCards: (user: string, chunk: string, gameId: string) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getMyFieldAsString: () => string,
-    updateOpponentField: (field: OneSideDistribution) => void,
+    updateOpponentField: (chunk: string) => void,
 
     sendCardToDeck: (topOrBottom: "Top" | "Bottom", cardToSend: { id: string, location: string }, to: string) => void,
     setMemory: (memory: number) => void,
+    setPhase: () => void,
+    setTurn: (isMyTurn: boolean) => void,
     shuffleSecurity: () => void,
     tiltCard: (cardId: string,
                location: string,
@@ -89,7 +54,16 @@ type State = {
     createToken: () => void,
     moveCardStack: (index: number, from: string, to: string,
                     handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
-
+    areCardsSuspended: (from?: string) => boolean,
+    nextPhaseTrigger: (nextPhaseFunction: () => void, trigger?: string) => void,
+    unsuspendAll: () => void,
+    getIsMyTurn: () => boolean,
+    getMyAttackPhase: () => AttackPhase | false,
+    getOpponentAttackPhase: () => AttackPhase | false,
+    setMyAttackPhase: (phase: AttackPhase | false) => void,
+    setOpponentAttackPhase: (phase: AttackPhase | false) => void,
+    getOpponentReady: () => boolean,
+    getDigimonNumber: (location: string) => string,
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
@@ -99,10 +73,11 @@ const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySec
 const opponentLocations = ["opponentHand", "opponentSecurity", "opponentDeckField", "opponentEggDeck",
     "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
     "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10",
-    "opponentDigi11","opponentDigi12","opponentDigi13","opponentDigi14","opponentDigi15", "opponentReveal"];
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15", "opponentReveal"];
 
 export const useGame = create<State>((set, get) => ({
 
+    initialDistributionState: "",
     myAvatar: "",
     opponentAvatar: "",
     mySleeve: "",
@@ -159,6 +134,12 @@ export const useGame = create<State>((set, get) => ({
     opponentDigi14: [],
     opponentDigi15: [],
     opponentBreedingArea: [],
+
+    phase: Phase.BREEDING,
+    isMyTurn: false,
+    myAttackPhase: false,
+    opponentAttackPhase: false,
+    opponentGameState: "",
 
     messages: [],
     mulliganAllowed: true,
@@ -229,12 +210,18 @@ export const useGame = create<State>((set, get) => ({
             opponentDigi14: [],
             opponentDigi15: [],
             opponentBreedingArea: [],
+            phase: Phase.BREEDING,
+            isMyTurn: false,
         });
     },
 
-    distributeCards: (user, game, gameId) => {
+    distributeCards: (user, chunk, gameId) => {
+        set(state => { return { initialDistributionState: state.initialDistributionState + chunk } });
 
-        const player1 = gameId.split("‗")[0];
+        if (chunk.length < 1000 && chunk.endsWith("}")) {
+
+            const player1 = gameId.split("‗")[0];
+            const game: GameDistribution = JSON.parse(get().initialDistributionState);
 
             if (user === player1) {
                 set({
@@ -258,6 +245,8 @@ export const useGame = create<State>((set, get) => ({
                     opponentEggDeck: game.player1EggDeck,
                     opponentSecurity: game.player1Security,
                 });
+            }
+            set({ initialDistributionState: "" });
         }
     },
 
@@ -290,31 +279,42 @@ export const useGame = create<State>((set, get) => ({
         return JSON.stringify(updatedGame);
     },
 
-    updateOpponentField: (field: OneSideDistribution) => {
-        set ({
-            opponentReveal: field.playerReveal,
-            opponentHand: field.playerHand,
-            opponentDeckField: field.playerDeckField,
-            opponentEggDeck: field.playerEggDeck,
-            opponentTrash: field.playerTrash,
-            opponentSecurity: field.playerSecurity,
-            opponentDigi1: field.playerDigi1,
-            opponentDigi2: field.playerDigi2,
-            opponentDigi3: field.playerDigi3,
-            opponentDigi4: field.playerDigi4,
-            opponentDigi5: field.playerDigi5,
-            opponentDigi6: field.playerDigi6,
-            opponentDigi7: field.playerDigi7,
-            opponentDigi8: field.playerDigi8,
-            opponentDigi9: field.playerDigi9,
-            opponentDigi10: field.playerDigi10,
-            opponentDigi11: field.playerDigi11,
-            opponentDigi12: field.playerDigi12,
-            opponentDigi13: field.playerDigi13,
-            opponentDigi14: field.playerDigi14,
-            opponentDigi15: field.playerDigi15,
-            opponentBreedingArea: field.playerBreedingArea,
+    updateOpponentField: (chunk) => {
+        set(state => {
+            return {opponentGameState: state.opponentGameState + chunk}
         });
+
+        if (chunk.length < 1000 && chunk.endsWith("}")) {
+
+            const opponentGameJson: OneSideDistribution = JSON.parse(get().opponentGameState);
+
+            set({
+                opponentReveal: opponentGameJson.playerReveal,
+                opponentHand: opponentGameJson.playerHand,
+                opponentDeckField: opponentGameJson.playerDeckField,
+                opponentEggDeck: opponentGameJson.playerEggDeck,
+                opponentTrash: opponentGameJson.playerTrash,
+                opponentSecurity: opponentGameJson.playerSecurity,
+                opponentDigi1: opponentGameJson.playerDigi1,
+                opponentDigi2: opponentGameJson.playerDigi2,
+                opponentDigi3: opponentGameJson.playerDigi3,
+                opponentDigi4: opponentGameJson.playerDigi4,
+                opponentDigi5: opponentGameJson.playerDigi5,
+                opponentDigi6: opponentGameJson.playerDigi6,
+                opponentDigi7: opponentGameJson.playerDigi7,
+                opponentDigi8: opponentGameJson.playerDigi8,
+                opponentDigi9: opponentGameJson.playerDigi9,
+                opponentDigi10: opponentGameJson.playerDigi10,
+                opponentDigi11: opponentGameJson.playerDigi11,
+                opponentDigi12: opponentGameJson.playerDigi12,
+                opponentDigi13: opponentGameJson.playerDigi13,
+                opponentDigi14: opponentGameJson.playerDigi14,
+                opponentDigi15: opponentGameJson.playerDigi15,
+                opponentBreedingArea: opponentGameJson.playerBreedingArea,
+
+                opponentGameState: ""
+            });
+        }
     },
 
     moveCard: (cardId, from, to) => {
@@ -366,24 +366,24 @@ export const useGame = create<State>((set, get) => ({
 
         if (topOrBottom === "Top" && card) card.isTilted = false;
 
-        if(cardToSendToDeck.location === to){
-            set ({
+        if (cardToSendToDeck.location === to) {
+            set({
                 [cardToSendToDeck.location]: []
             });
             const timer1 = setTimeout(() => {
-                set ({[to]: [card, ...updatedLocationCards]});
+                set({[to]: [card, ...updatedLocationCards]});
             }, 10);
             return () => clearTimeout(timer1);
         } else
 
-        set(state => {
-            const toDeck = state[to as keyof State] as CardTypeGame[];
-            const updatedDeck = topOrBottom === "Top" ? [card, ...toDeck] : [...toDeck, card];
-            return {
-                [cardToSendToDeck.location]: updatedLocationCards,
-                [to]: updatedDeck
-            }
-        })
+            set(state => {
+                const toDeck = state[to as keyof State] as CardTypeGame[];
+                const updatedDeck = topOrBottom === "Top" ? [card, ...toDeck] : [...toDeck, card];
+                return {
+                    [cardToSendToDeck.location]: updatedLocationCards,
+                    [to]: updatedDeck
+                }
+            })
     },
 
     setMemory: (memory: number) => {
@@ -392,6 +392,26 @@ export const useGame = create<State>((set, get) => ({
             opponentMemory: -memory
         })
     },
+
+    setPhase: () => {
+        const phase = get().phase;
+        switch (phase) {
+            case Phase.UNSUSPEND:
+                set({phase: Phase.DRAW});
+                return;
+            case Phase.DRAW:
+                set({phase: Phase.BREEDING});
+                return;
+            case Phase.BREEDING:
+                set({phase: Phase.MAIN});
+                return;
+            case Phase.MAIN:
+                set({phase: Phase.UNSUSPEND});
+                return;
+        }
+    },
+
+    setTurn: (isMyTurn: boolean) => set({isMyTurn}),
 
     shuffleSecurity: () => {
         set(state => {
@@ -431,17 +451,15 @@ export const useGame = create<State>((set, get) => ({
         })
     },
 
-    setMulliganAllowed: (mulliganAllowed: boolean) => {
-        set({mulliganAllowed})
-    },
+    setMulliganAllowed: (mulliganAllowed: boolean) => set({mulliganAllowed}),
 
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx, sendSfx) => {
         set(state => {
             return {
                 [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
                     if (card.id === cardId) {
-                        const isTilted = !card.isTilted;
-                        card.isTilted = isTilted;
+                        const isTilted = card.isTilted;
+                        card.isTilted = !isTilted;
                         isTilted ? playUnsuspendSfx() : playSuspendSfx();
                         isTilted ? sendSfx("playUnsuspendCardSfx") : sendSfx("playSuspendCardSfx");
                     }
@@ -501,5 +519,118 @@ export const useGame = create<State>((set, get) => ({
         for (const card of cards) {
             handleDropToField(card.id, from, to, card.name);
         }
-    }
+    },
+
+    areCardsSuspended: (from) => {
+
+        if (from) return (get()[from as keyof State] as CardTypeGame[]).some(card => card.isTilted)
+
+        return get().myDigi1.some(card => card.isTilted)
+            || get().myDigi2.some(card => card.isTilted) || get().myDigi3.some(card => card.isTilted)
+            || get().myDigi4.some(card => card.isTilted) || get().myDigi5.some(card => card.isTilted)
+            || get().myDigi6.some(card => card.isTilted) || get().myDigi7.some(card => card.isTilted)
+            || get().myDigi8.some(card => card.isTilted) || get().myDigi9.some(card => card.isTilted)
+            || get().myDigi10.some(card => card.isTilted) || get().myDigi11.some(card => card.isTilted)
+            || get().myDigi12.some(card => card.isTilted) || get().myDigi13.some(card => card.isTilted)
+            || get().myDigi14.some(card => card.isTilted) || get().myDigi15.some(card => card.isTilted)
+    },
+
+    nextPhaseTrigger: (nextPhaseFunction, trigger) => {
+        //Workaround for problems with checking phase due to render cycle
+        if (get().phase === Phase.MAIN || !get().isMyTurn) return;
+
+        if (get().phase === Phase.BREEDING && trigger === Phase.BREEDING) {
+            nextPhaseFunction();
+            return;
+        }
+// maybe add case for empty eggs & breeding, but could double trigger nextPhaseFunction()
+        if (get().phase === Phase.DRAW && trigger === Phase.DRAW) {
+            nextPhaseFunction();
+            return;
+        }
+
+        if (get().phase === Phase.UNSUSPEND && !get().areCardsSuspended()) nextPhaseFunction()
+    },
+
+    unsuspendAll: () => {
+        set(state => {
+            return {
+                myDigi1: state.myDigi1.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi2: state.myDigi2.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi3: state.myDigi3.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi4: state.myDigi4.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi5: state.myDigi5.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi6: state.myDigi6.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi7: state.myDigi7.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi8: state.myDigi8.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi9: state.myDigi9.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi10: state.myDigi10.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi11: state.myDigi11.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi12: state.myDigi12.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi13: state.myDigi13.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi14: state.myDigi14.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+                myDigi15: state.myDigi15.map(card => {
+                    card.isTilted = false;
+                    return card;
+                }),
+            }
+        })
+    },
+
+    getIsMyTurn: () => get().isMyTurn,
+
+    getMyAttackPhase: () => get().myAttackPhase,
+
+    getOpponentAttackPhase: () => get().opponentAttackPhase,
+
+    setMyAttackPhase: (phase) => set({myAttackPhase: phase}),
+
+    setOpponentAttackPhase: (phase) => set({opponentAttackPhase: phase}),
+
+    getOpponentReady: () => get().opponentReady,
+
+    getDigimonNumber: (location) => (get()[location as keyof State] as CardTypeGame[])[0].cardNumber,
+
 }));

@@ -23,7 +23,7 @@ export default function SearchForm() {
 
     const filterCards = useStore((state) => state.filterCards);
 
-    const [cardname, setCardname] = useState<string | null>(null);
+    const [name, setName] = useState<string | null>(null);
     const [color, setColor] = useState<string | null>(null);
     const [color2, setColor2] = useState<string | null>(null);
     const [color3, setColor3] = useState<string | null>(null);
@@ -35,18 +35,18 @@ export default function SearchForm() {
     const [stage, setStage] = useState<string | null>(null);
     const [digitype, setDigitype] = useState<string | null>(null);
     const [attribute, setAttribute] = useState<string | null>(null);
-    const [cardnumber, setCardnumber] = useState<string | null>(null);
+    const [number, setNumber] = useState<string | null>(null);
     const [illustrator, setIllustrator] = useState<string | null>(null);
     const [effect, setEffect] = useState<string | null>(null);
     const [hasAce, setHasAce] = useState<boolean>(false);
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        filterCards(cardname, type, color, color2, color3, attribute, cardnumber, stage, digitype, dp, playcost, level, illustrator, effect, hasAce);
+        filterCards(name, type, color, color2, color3, attribute, number, stage, digitype, dp, playcost, level, illustrator, effect, hasAce);
     }
 
     function handleClear() {
-        setCardname(null);
+        setName("");
         setColor(null);
         setColor2(null);
         setColor3(null);
@@ -58,23 +58,21 @@ export default function SearchForm() {
         setStage(null);
         setDigitype(null);
         setAttribute(null);
-        setCardnumber(null);
-        setIllustrator(null);
-        setEffect(null);
+        setNumber("");
+        setIllustrator("");
+        setEffect("");
         setHasAce(false);
-        filterCards(null, null, null, null, null, null, null, null, null, null, null, null, null, null, false);
+        filterCards("", null, null, null, null, null, "", null, null, null, null, null, "", "", false);
     }
 
     return (
         <StyledForm onSubmit={handleSubmit}>
 
-            <CardNumberInput placeholder={"Card Number"} value={cardnumber ?? undefined} onChange={(e) => {
-                setCardnumber(e.target.value)
+            <SetNumberInput placeholder={"Set Number"} value={number ?? undefined} onChange={(e) => {
+                setNumber(e.target.value)
             }}/>
 
-            <CardNameInput placeholder={"Card Name"} value={cardname ?? undefined} onChange={(e) => {
-                setCardname(e.target.value)
-            }}/>
+            <NameInput placeholder={"Name"} value={name ?? undefined} onChange={(e) => setName(e.target.value)}/>
 
             <ColorSelectionContainer>
                 <ColorSelect value={color ?? ""} style={{gridArea: "one"}}
@@ -177,6 +175,7 @@ export default function SearchForm() {
                 <option>AA Defense Agent</option>
                 <option>Ability Synthesis Agent</option>
                 <option>Abnormal</option>
+                <option>Abadin Electronics</option>
                 <option>Alien</option>
                 <option>Alien Humanoid</option>
                 <option>Amphibian</option>
@@ -395,7 +394,7 @@ const StyledForm = styled.form`
   grid-template-rows: repeat(4, 1fr);
   grid-gap: 5px;
   grid-template-areas:
-    "cardnumber cardnumber cardname cardname cardname cardname color color"
+    "setnumber setnumber name name name name color color"
     "type type attribute attribute level dp playcost digivolutioncost"
     "stage stage digitype digitype digitype digitype illustrator illustrator"
     "effect effect effect effect ace submit submit clear";
@@ -427,12 +426,12 @@ const StyledInput = styled.input`
   }
 `;
 
-const CardNameInput = styled(StyledInput)`
-  grid-area: cardname;
+const NameInput = styled(StyledInput)`
+  grid-area: name;
 `;
 
-const CardNumberInput = styled(StyledInput)`
-  grid-area: cardnumber;
+const SetNumberInput = styled(StyledInput)`
+  grid-area: setnumber;
 `;
 
 const EffectInput = styled(StyledInput)`

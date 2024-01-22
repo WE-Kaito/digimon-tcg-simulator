@@ -62,7 +62,7 @@ const GridContainer = styled.div`
   }
 
   @media (max-width: 1050px) {
-    grid-template-columns: repeat(14, 40px);
+    grid-template-columns: repeat(15, 40px);
     grid-template-rows: repeat(3, 53px);
     gap: 1px;
     padding: 2px;

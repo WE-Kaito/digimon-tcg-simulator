@@ -11,8 +11,8 @@ import eggImage from '../assets/cardtype_icons/egg.png';
 import {CardTypeGame, CardTypeWithId} from "./types.ts";
 import {
     playButtonClickSfx,
-    playDrawCardSfx,
-    playOpponentPlaceCardSfx,
+    playDrawCardSfx, playNextPhaseSfx,
+    playOpponentPlaceCardSfx, playPassTurnSfx,
     playRevealCardSfx,
     playSecurityRevealSfx, playShuffleDeckSfx,
     playSuspendSfx, playTrashCardSfx, playUnsuspendSfx
@@ -111,6 +111,14 @@ export function getOpponentSfx(command: string) {
         }
         case ("[SHUFFLE_DECK_SFX]"): {
             playShuffleDeckSfx();
+            break;
+        }
+        case ("[NEXT_PHASE_SFX]"): {
+            playNextPhaseSfx();
+            break;
+        }
+        case ("[PASS_TURN_SFX]"): {
+            playPassTurnSfx();
             break;
         }
     }
@@ -290,6 +298,8 @@ export function getDnaColor(word: string): string {
             return "⚫";
         case 'white':
             return "⚪";
+        case 'all':
+            return "ALL 🌈";
         default:
             return word + " ";
     }

@@ -63,7 +63,7 @@ export default function CardDetails() {
         setHighlightedDNADigivolution(HighlightedKeyWords({text: dnaDigivolutionText}));
     }, [selectedCard, hoverCard]);
 
-    if (!selectedCard && !hoverCard) return <div style={{height: "100%"}}/>;
+    if (!selectedCard && !hoverCard) return <div style={{height: 500}}/>;
     return (
         <Wrapper inGame={inGame}>
 
@@ -274,7 +274,7 @@ const TabLabel2 = styled(TabLabel1)`
 
 const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
   width: 100%;
-  height: ${({inGame, isNameLong}) => inGame ? (isNameLong ? "298px" : "327px") : ("100%")};
+  height: ${({inGame, isNameLong}) => inGame ? (isNameLong ? "343px" : "372px") : ("100%")};
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -296,7 +296,7 @@ const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
 
 const TabContainer2 = styled.div<{ inGame : boolean }>`
   width: 100%;
-  height: ${({inGame}) => inGame ? "327px" : "251px"};
+  height: ${({inGame}) => inGame ? "372px" : "251px"};
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

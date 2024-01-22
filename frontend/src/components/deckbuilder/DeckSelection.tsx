@@ -106,16 +106,18 @@ export default function DeckSelection() {
 
                             {group.map((card: CardTypeWithId, index) => {
                                 const isFrontCard = group.length === index + 1;
+                                const countTransform = index >= 4 ? "translate(67px, 85px)" : "unset";
+                                const countBGTransform = index >= 4 ? index < 9 ? "translate(69px, 89px)" :  "translate(63px, 80px)" : "unset";
                                 if (index > 0) {
                                     if (group[index - 1]?.uniqueCardNumber === card.uniqueCardNumber) {
-                                        if (group[index - 4]?.uniqueCardNumber === card.uniqueCardNumber) return;
-                                        return <div key={card.id} style={{position: "absolute", left: 4*index, top: 4*index}}>
+                                        const pos = index < 3 ? 4*index : 4*3;
+                                        return <div key={card.id} style={{position: "absolute", left: pos, top: pos}}>
                                             {getAddAllowed(card, isFrontCard) && AddButton(card)}
                                             {(hoverCard?.id === card.id) && ( isFrontCard
                                                 || cardsWithoutLimit.includes(card.cardNumber)) && DeleteButton(card.id)}
-                                            <Card card={card} location={"deck"}/>
-                                            {(group.length > 1) && isFrontCard && <CardstackCount>×{group.length}</CardstackCount>}
-                                            {(group.length > 1) && isFrontCard && <CountBox/>}
+                                            {index < 4 && <Card card={card} location={"deck"}/>}
+                                            {(group.length > 1) && isFrontCard && <CardstackCount style={{transform: countTransform}} length={group.length}>×{group.length}</CardstackCount>}
+                                            {(group.length > 1) && isFrontCard && <CountBox style={{transform: countBGTransform}} length={group.length}/>}
                                         </div>
                                     }
                                 }
@@ -146,14 +148,14 @@ const GroupContainer = styled.div`
   }
 `;
 
-const CardstackCount = styled.span`
+const CardstackCount = styled.span<{ length: number }>`
   position: absolute;
   top: 55%;
-  left: 66%;
+  left: ${props => props.length > 9 ? "63.5%" : "66%"};
   color: black;
   text-shadow: 0 0 3px #C71E78E5;
   font-size: 1.6em;
-  z-index: 1000;
+  z-index: 1000!important;
   pointer-events: none;
   @media (max-width: 400px) and (min-height: 600px) {
     top: 75px;
@@ -162,14 +164,15 @@ const CardstackCount = styled.span`
   }
 `;
 
-const CountBox = styled.div`
+const CountBox = styled.div<{ length: number }>`
   width: 22px;
   height: 22px;
   border-radius: 50%;
   background: ghostwhite;
   position: absolute;
   top: 57%;
-  left: 67%;
+  left: ${props => props.length > 9 ? "70.75%" : "67%"};
+  scale: ${props => props.length > 9 ? "1.15" : "unset"};
   z-index: 999;
   filter: drop-shadow(0 0 5px ghostwhite) blur(3px);
   pointer-events: none;

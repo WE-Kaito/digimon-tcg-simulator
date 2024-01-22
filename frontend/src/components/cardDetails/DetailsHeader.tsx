@@ -5,10 +5,9 @@ import styled from "@emotion/styled";
 import {getAttributeImage, getCardTypeImage} from "../../utils/functions.ts";
 import {styled as muiStyled} from "@mui/material/styles";
 import {indigo} from "@mui/material/colors";
-
 export function StyledDivider({translation}: { translation?: number }) {
     return <Divider orientation="vertical"
-                    sx={{transform: `scaleY(0.75) translateY(${translation ?? 0}px)`, borderColor: "whitesmoke"}}
+                    sx={{transform: `scaleY(0.75) translateY(${translation ?? 0}px)`, borderColor: "whitesmoke", width: 2}}
                     flexItem/>;
 }
 
@@ -79,7 +78,7 @@ export default function DetailsHeader() {
 
             <TypeStack direction="row"
                        spacing={2.5}
-                       divider={<StyledDivider/>}
+                       divider={<StyledDivider translation={1}/>}
             >
                 {digiTypes?.map((type: string) => <TypeSpan key={type}>{type}</TypeSpan>)}
             </TypeStack>
