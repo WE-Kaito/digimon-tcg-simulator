@@ -95,7 +95,7 @@ class GameServiceTest {
         gameService.setUpGame(session1, gameId, username1, username2);
         gameService.setUpGame(session2, gameId, username1, username2);
         // WHEN RESTART
-        gameService.handleTextMessage(session1, new TextMessage("/restartGame:" + gameId));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/restartGame:" + username1));
         // THEN
         verify(session1, times(2)).sendMessage(expectedMessage);
         verify(session2, times(1)).sendMessage(expectedMessage);
@@ -127,7 +127,7 @@ class GameServiceTest {
     @Test
     void testSendMessageToOpponent() throws IOException, InterruptedException {
         //Given
-        TextMessage expectedMessage1 = new TextMessage("[RESTART]");
+        TextMessage expectedMessage1 = new TextMessage("[RESTART_AS_FIRST]");
         TextMessage expectedMessage2 = new TextMessage("[SECURITY_VIEWED]");
         TextMessage expectedMessage3 = new TextMessage("[REVEAL_SFX]");
         TextMessage expectedMessage4 = new TextMessage("[SECURITY_REVEAL_SFX]");
@@ -142,7 +142,7 @@ class GameServiceTest {
 
         putPlayersToGameRoom();
         // WHEN
-        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/restartRequest:" + username2));
+        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/restartRequestAsFirst:" + username2));
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/openedSecurity:" + username2));
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playRevealSfx:" + username2));
         gameService.handleTextMessage(session1, new TextMessage(gameId + ":/playSecurityRevealSfx:" + username2));
@@ -290,6 +290,6 @@ class GameServiceTest {
         // THEN
         verify(session1, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
         verify(session2, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
-        verify(session1, times(1)).sendMessage(any());
+        verify(session1, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
     }
 }
