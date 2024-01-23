@@ -168,4 +168,73 @@ export type HandCardContextMenuItemProps = {
 export type Picture = {
     name: string,
     imagePath: string,
+    artist: string,
+}
+
+export enum Phase {
+    UNSUSPEND = "Unsuspend",
+    DRAW = "Draw",
+    BREEDING = "Breeding",
+    MAIN = "Main"
+}
+
+export enum AttackPhase {
+    SUSPEND_FIRST = "Suspend First!",
+    WHEN_ATTACKING = "When Attacking",
+    COUNTER_BLOCK = "Counter › Block",
+    RESOLVE_ATTACK = "Resolve Attack"
+}
+
+export type BoardState = {
+    myMemory: number,
+    myReveal: CardTypeGame[],
+
+    myHand: CardTypeGame[],
+    myDeckField: CardTypeGame[],
+    myEggDeck: CardTypeGame[],
+    myTrash: CardTypeGame[],
+    mySecurity: CardTypeGame[],
+
+    myDigi1: CardTypeGame[],
+    myDigi2: CardTypeGame[],
+    myDigi3: CardTypeGame[],
+    myDigi4: CardTypeGame[],
+    myDigi5: CardTypeGame[],
+    myDigi6: CardTypeGame[],
+    myDigi7: CardTypeGame[],
+    myDigi8: CardTypeGame[],
+    myDigi9: CardTypeGame[],
+    myDigi10: CardTypeGame[],
+    myDigi11: CardTypeGame[],
+    myDigi12: CardTypeGame[],
+    myDigi13: CardTypeGame[],
+    myDigi14: CardTypeGame[],
+    myDigi15: CardTypeGame[],
+    myBreedingArea: CardTypeGame[],
+
+    opponentMemory: number,
+    opponentReveal: CardTypeGame[],
+
+    opponentHand: CardTypeGame[],
+    opponentDeckField: CardTypeGame[],
+    opponentEggDeck: CardTypeGame[],
+    opponentTrash: CardTypeGame[],
+    opponentSecurity: CardTypeGame[],
+
+    opponentDigi1: CardTypeGame[],
+    opponentDigi2: CardTypeGame[],
+    opponentDigi3: CardTypeGame[],
+    opponentDigi4: CardTypeGame[],
+    opponentDigi5: CardTypeGame[],
+    opponentDigi6: CardTypeGame[],
+    opponentDigi7: CardTypeGame[],
+    opponentDigi8: CardTypeGame[],
+    opponentDigi9: CardTypeGame[],
+    opponentDigi10: CardTypeGame[],
+    opponentDigi11: CardTypeGame[],
+    opponentDigi12: CardTypeGame[],
+    opponentDigi13: CardTypeGame[],
+    opponentDigi14: CardTypeGame[],
+    opponentDigi15: CardTypeGame[],
+    opponentBreedingArea: CardTypeGame[],
 }

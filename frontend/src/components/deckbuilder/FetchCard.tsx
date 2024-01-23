@@ -11,8 +11,6 @@ export default function FetchCard({card}: { card: CardTypeWithId }) {
 
     const [imageError, setImageError] = useState(false);
 
-    console.log(card.restriction_en);
-
     return (
         !imageError
             ? <div style={{ position: "relative", height: "fit-content", width: "fit-content" }}>

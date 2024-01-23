@@ -149,6 +149,8 @@ function isTrait(trait: string) {
         case "AA Defense Agent":
         case "Ability Synthesis Agent":
         case "Abnormal":
+        case "AE Corp.":
+        case "Abadin Electronics":
         case "Alien":
         case "Alien Humanoid":
         case "Amphibian":

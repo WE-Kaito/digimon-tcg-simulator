@@ -1,19 +1,21 @@
 import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {
+    AttackPhase,
     CardTypeGame,
     DraggedItem,
     DraggedStack,
-    GameDistribution, HandCardContextMenuItemProps, OneSideDistribution,
+    HandCardContextMenuItemProps,
+    Phase,
     Player
 } from "../utils/types.ts";
 import {profilePicture} from "../utils/avatars.ts";
 import {
-    calculateCardRotation,
-    calculateCardOffsetY,
     calculateCardOffsetX,
-    getOpponentSfx,
-    convertForLog
+    calculateCardOffsetY,
+    calculateCardRotation,
+    convertForLog,
+    getOpponentSfx
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useEffect, useState} from "react";
@@ -38,32 +40,41 @@ import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import {
     playAttackSfx,
-    playDrawCardSfx,
     playCardToHandSfx,
-    playRevealCardSfx,
+    playDrawCardSfx,
+    playLoadMemorybarSfx,
+    playNextAttackPhaseSfx,
+    playNextPhaseSfx,
     playPlaceCardSfx,
-    playTrashCardSfx,
-    playStartSfx,
+    playRevealCardSfx,
     playSecurityRevealSfx,
     playShuffleDeckSfx,
-    playLoadMemorybarSfx, playUnsuspendSfx
+    playStartSfx,
+    playTrashCardSfx,
+    playUnsuspendSfx
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
-import {Menu, Item, useContextMenu, ItemParams} from "react-contexify";
+import {Item, ItemParams, Menu, useContextMenu} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import {getSleeve} from "../utils/sleeves.ts";
 import {Button as MuiButton} from "@mui/material";
 import {
+    AddModerator as RecoveryIcon,
+    BackHand as HandIcon,
+    Curtains as RevealIcon,
     DeleteForever as TrashIcon,
     Pageview as OpenSecurityIcon,
+    RestoreFromTrash as TrashFromDeckIcon,
     ShuffleOnOutlined as ShuffleIcon,
-    BackHand as HandIcon,
-    AddModerator as RecoveryIcon,
-    Curtains as RevealIcon,
-    RestoreFromTrash as TrashFromDeckIcon
+    Wifi as ConnectingIcon,
+    WifiOff as OfflineIcon,
 } from '@mui/icons-material';
 import {blue, deepOrange} from "@mui/material/colors";
+import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
+import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
+import RestartPrompt from "../components/game/RestartPrompt.tsx";
+import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -94,7 +105,6 @@ export default function Game({user}: { user: string }) {
     const [endScreen, setEndScreen] = useState<boolean>(false);
     const [endScreenMessage, setEndScreenMessage] = useState<string>("");
     const [surrenderOpen, setSurrenderOpen] = useState<boolean>(false);
-    const [deckMoodle, setDeckMoodle] = useState<boolean>(false);
     const [eggDeckMoodle, setEggDeckMoodle] = useState<boolean>(false);
     const [securityMoodle, setSecurityMoodle] = useState<boolean>(false);
     const [cardToSend, setCardToSend] = useState<{ id: string, location: string }>({id: "", location: ""});
@@ -102,6 +112,7 @@ export default function Game({user}: { user: string }) {
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
     const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
     const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
+    const [restartPromptModal, setRestartPromptModal] = useState<boolean>(false);
     const [startingPlayer, setStartingPlayer] = useState<string>("");
     const [showStartingPlayer, setShowStartingPlayer] = useState<boolean>(false);
     const [memoryBarLoading, setMemoryBarLoading] = useState<boolean>(true);
@@ -116,6 +127,7 @@ export default function Game({user}: { user: string }) {
         me: {username: "", avatarName: "", sleeveName: ""},
         opponent: {username: "", avatarName: "", sleeveName: ""}
     });
+    const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
     const [userCount, setUserCount] = useState<number>(0);
 
     const setMessages = useGame((state) => state.setMessages);
@@ -124,8 +136,23 @@ export default function Game({user}: { user: string }) {
     const setMulliganAllowed = useGame((state) => state.setMulliganAllowed);
     const createToken = useGame((state) => state.createToken);
     const setMemory = useGame(state => state.setMemory);
-    const opponentReady = useGame(state => state.opponentReady);
+    const setPhase = useGame(state => state.setPhase);
+    const setTurn = useGame(state => state.setTurn);
+    const getOpponentReady = useGame(state => state.getOpponentReady);
     const setOpponentReady = useGame(state => state.setOpponentReady);
+    const nextPhaseTrigger = useGame(state => state.nextPhaseTrigger);
+    const areCardsSuspended = useGame(state => state.areCardsSuspended);
+    const getDigimonNumber = useGame(state => state.getDigimonNumber);
+
+    const isMyTurn = useGame(state => state.isMyTurn);
+    const getIsMyTurn = useGame(state => state.getIsMyTurn);
+    const phase = useGame(state => state.phase);
+    const setMyAttackPhase = useGame(state => state.setMyAttackPhase);
+    const setOpponentAttackPhase = useGame(state => state.setOpponentAttackPhase);
+    const myAttackPhase = useGame(state => state.myAttackPhase);
+    const opponentAttackPhase = useGame(state => state.opponentAttackPhase);
+    const getMyAttackPhase = useGame(state => state.getMyAttackPhase);
+    const getOpponentAttackPhase = useGame(state => state.getOpponentAttackPhase);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -179,6 +206,7 @@ export default function Game({user}: { user: string }) {
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
 
     let interval: ReturnType<typeof setInterval>;
+
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
@@ -189,25 +217,28 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[START_GAME]:")) {
                 setStartingPlayer("");
+                setOpponentReady(false);
                 const playersJson = event.data.substring("[START_GAME]:".length);
                 const players = JSON.parse(playersJson);
                 const me = players.slice().filter((player: Player) => player.username === user)[0];
                 const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
                 setGameHasStarted(false);
+                setMyAttackPhase(false);
+                setOpponentAttackPhase(false);
                 setRestartObj({me, opponent});
                 return;
             }
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
-                const newGame: GameDistribution = JSON.parse(event.data.substring("[DISTRIBUTE_CARDS]:".length));
-                distributeCards(user, newGame, gameId);
+                const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
+                distributeCards(user, chunk, gameId);
                 return;
             }
 
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
-                const opponentGameJson: OneSideDistribution = JSON.parse(event.data.substring("[UPDATE_OPPONENT]:".length));
-                updateOpponentField(opponentGameJson);
+                const chunk = event.data.substring("[UPDATE_OPPONENT]:".length);
+                updateOpponentField(chunk);
                 return;
             }
 
@@ -220,6 +251,7 @@ export default function Game({user}: { user: string }) {
                 const timeout1 = setTimeout(() => {
                     playDrawCardSfx();
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
+                    if (firstPlayer === user) setTurn(true);
                     setMulliganAllowed(true);
                     setOpponentReady(false);
                 }, 4300);
@@ -243,7 +275,9 @@ export default function Game({user}: { user: string }) {
                 const from = parts[1];
                 const to = parts[2];
                 moveCard(cardId, from, to);
-                if (!opponentReady) setOpponentReady(true);
+                console.log("move card", cardId, from, to);
+                if (!getOpponentReady()) setOpponentReady(true);
+                if (!gameHasStarted && getOpponentReady() && !mulliganAllowed) setGameHasStarted(true);
                 return;
             }
 
@@ -322,15 +356,19 @@ export default function Game({user}: { user: string }) {
                     setEndScreenMessage("Your opponent left.");
                     break;
                 }
-                case ("[RESTART]"): {
+                case ("[RESTART_AS_FIRST]"): {
+                    setRestartOrder("second");
                     setRestartMoodle(true);
                     break;
                 }
-                case ("[SEND_UPDATE]"): {
-                    sendUpdate();
+                case ("[RESTART_AS_SECOND]"): {
+                    setRestartOrder("first");
+                    setRestartMoodle(true);
                     break;
                 }
                 case ("[ACCEPT_RESTART]"): {
+                    setMyAttackPhase(false);
+                    setOpponentAttackPhase(false);
                     clearBoard();
                     setEndScreen(false);
                     setUpGame(restartObj.me, restartObj.opponent);
@@ -342,6 +380,19 @@ export default function Game({user}: { user: string }) {
                 case ("[PLAYER_READY]"): {
                     setOpponentReady(true);
                     if (!mulliganAllowed) setGameHasStarted(true);
+                    break;
+                }
+                case ("[UPDATE_PHASE]"): {
+                    if (phase === Phase.MAIN) setTurn(true);
+                    setPhase();
+                    break;
+                }
+                case ("[OPPONENT_ATTACK_PHASE]"): {
+                    if (myAttackPhase === AttackPhase.COUNTER_BLOCK){
+                        nextAttackPhase("me");
+                    } else {
+                        nextAttackPhase("opponent");
+                    }
                     break;
                 }
                 default: {
@@ -386,7 +437,7 @@ export default function Game({user}: { user: string }) {
             }, 10);
             timeoutIds.push(timeoutId);
         }
-        if (!gameHasStarted && opponentReady && !mulliganAllowed) setGameHasStarted(true);
+
         return () => {
             timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
         };
@@ -394,11 +445,19 @@ export default function Game({user}: { user: string }) {
 
     function sendSingleUpdate(cardId: string, from: string, to: string) {
         websocket.sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
-        if (!gameHasStarted && opponentReady) setGameHasStarted(true);
+        if (!gameHasStarted && getOpponentReady() && !mulliganAllowed) setGameHasStarted(true);
     }
 
     function sendMemoryUpdate(memory: number) {
         websocket.sendMessage(`${gameId}:/updateMemory:${opponentName}:${memory}`);
+    }
+
+    function sendPhaseUpdate() {
+        websocket.sendMessage(`${gameId}:/updatePhase:${opponentName}`);
+    }
+
+    function sendAttackPhaseUpdate() {
+        websocket.sendMessage(`${gameId}:/updateAttackPhase:${opponentName}`);
     }
 
     function sendSfx(sfx: string) {
@@ -409,12 +468,22 @@ export default function Game({user}: { user: string }) {
     }
 
     function handleDropToOpponent(from: string, to: string) {
-        if (!from || !to) return;
+        const myTurn = getIsMyTurn();
+        console.log("in Drop: ", myTurn)
+        if (!myTurn || !from || !to) return;
+
+        if (!areCardsSuspended(from) && (getDigimonNumber(from) !== "BT12-083")){
+            setMyAttackPhase(AttackPhase.SUSPEND_FIRST);
+            setTimeout(() => setMyAttackPhase(false), 1000);
+            return;
+        }
+
         setArrowFrom(from);
         setArrowTo(to);
         setShowAttackArrow(true);
         websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to);
         endAttackAnimation();
+        nextAttackPhase("me");
     }
 
     function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
@@ -454,6 +523,7 @@ export default function Game({user}: { user: string }) {
     const moveCardStack = useGame((state) => state.moveCardStack);
 
     function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
+        if (item.location === "myBreedingArea") nextPhaseTrigger(nextPhase, Phase.BREEDING);
         if (isCardStack(item)) {
             const {index, location} = item;
             moveCardStack(index, location, targetField, handleDropToField);
@@ -587,7 +657,6 @@ export default function Game({user}: { user: string }) {
             if (type === "Token") return;
             setCardToSend({id, location});
             setEggDeckMoodle(true);
-            setDeckMoodle(false);
             setSecurityMoodle(false);
         }
     }));
@@ -599,7 +668,6 @@ export default function Game({user}: { user: string }) {
             if (type === "Token") return;
             setCardToSend({id, location});
             setSecurityMoodle(true);
-            setDeckMoodle(false);
             setEggDeckMoodle(false);
         }
     }));
@@ -692,26 +760,74 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentSecurity')
     }));
 
+    function nextPhase(){
+        const timer = setTimeout(() => {
+            setPhase();
+            sendPhaseUpdate();
+            playNextPhaseSfx();
+            sendSfx("playNextPhaseSfx");
+        }, 920);
+        return () => clearTimeout(timer);
+    }
+
+    function nextAttackPhase(attacker: "me" | "opponent"){
+        if (attacker === "me"){
+            const attackPhase = getMyAttackPhase();
+            if (!attackPhase) {
+                setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
+                sendAttackPhaseUpdate();
+                return;
+            }
+            if (attackPhase === AttackPhase.WHEN_ATTACKING) setMyAttackPhase(AttackPhase.COUNTER_BLOCK);
+            if (attackPhase === AttackPhase.COUNTER_BLOCK) {
+                setMyAttackPhase(AttackPhase.RESOLVE_ATTACK);
+                return;
+            }
+            if (attackPhase === AttackPhase.RESOLVE_ATTACK) setMyAttackPhase(false);
+            sendAttackPhaseUpdate();
+            playNextAttackPhaseSfx();
+            sendSfx("playNextAttackPhaseSfx");
+
+        } else {
+            const attackPhase = getOpponentAttackPhase();
+            if (!attackPhase) {
+                setOpponentAttackPhase(AttackPhase.WHEN_ATTACKING);
+                return;
+            }
+            if (attackPhase === AttackPhase.WHEN_ATTACKING) setOpponentAttackPhase(AttackPhase.COUNTER_BLOCK);
+            if (attackPhase === AttackPhase.COUNTER_BLOCK) {
+                setOpponentAttackPhase(AttackPhase.RESOLVE_ATTACK);
+                sendAttackPhaseUpdate();
+                sendSfx("playNextAttackPhaseSfx");
+            }
+            if (attackPhase === AttackPhase.RESOLVE_ATTACK) setOpponentAttackPhase(false);
+            playNextAttackPhaseSfx();
+        }
+    }
+
     useEffect(() => {
-        setDeckMoodle(false);
         setEggDeckMoodle(false);
         setSecurityMoodle(false);
-        if (opponentTrash.length === 0) {
-            setOpponentTrashMoodle(false);
+        if (opponentTrash.length === 0) setOpponentTrashMoodle(false);
+        if (myTrash.length === 0) setTrashMoodle(false);
+
+        if ((!!getMyAttackPhase() && !!getOpponentAttackPhase())
+            || (getIsMyTurn() && !!getOpponentAttackPhase())
+            || (!getIsMyTurn() && !!getMyAttackPhase())) {
+            setMyAttackPhase(false);
+            setOpponentAttackPhase(false);
         }
-        if (myTrash.length === 0) {
-            setTrashMoodle(false);
-        }
+
+        nextPhaseTrigger(nextPhase);
+
     }, [
         myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myReveal, myDigi1, myDigi2, myDigi3, myDigi4,
-        myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10, myDigi11, myDigi12, myDigi13, myDigi14, myDigi15
+        myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10, myDigi11, myDigi12, myDigi13, myDigi14, myDigi15, isMyTurn
     ]);
 
     useEffect(() => {
         clearBoard();
-        return () => {
-            clearInterval(interval);
-        };
+        return () => clearInterval(interval);
     }, []);
 
     function handleSurrender() {
@@ -723,14 +839,15 @@ export default function Game({user}: { user: string }) {
 
     function acceptRestart() {
         clearBoard();
+        setGameHasStarted(false);
         setEndScreen(false);
         setRestartMoodle(false);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
-        websocket.sendMessage("/restartGame:" + gameId);
+        websocket.sendMessage(`${gameId}:/restartGame:${restartOrder === "first" ? user : opponentName}`);
     }
 
     function moveDeckCard(to: string, bottomCard?: boolean) {
-        if (!opponentReady) return;
+        if (!getOpponentReady()) return;
         const cardId = (bottomCard) ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;
         switch (to) {
             case "myReveal":
@@ -775,7 +892,7 @@ export default function Game({user}: { user: string }) {
         }
         setMulliganAllowed(false);
         websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-        if (opponentReady) setGameHasStarted(true);
+        if (getOpponentReady()) setGameHasStarted(true);
     }
 
     function handleOpenSecurity(onOpenOrClose: "onOpen" | "onClose") {
@@ -800,17 +917,17 @@ export default function Game({user}: { user: string }) {
     }
 
     function moveSecurityCard(to: "myTrash" | "myHand", bottomCard?: boolean) {
-        if (!opponentReady) return;
+        if (!getOpponentReady()) return;
         const card = (bottomCard) ? mySecurity[mySecurity.length - 1] : mySecurity[0];
         moveCard(card.id, "mySecurity", to);
         sendSingleUpdate(card.id, "mySecurity", to);
-        sendChatMessage(`[FIELD_UPDATE]≔【${card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`);
+        sendChatMessage(`[FIELD_UPDATE]≔【${to === "myHand" ? "Card" : card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`);
         sendSfx((to === "myHand") ? "playDrawCardSfx" : "playTrashCardSfx");
         (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
     }
 
     function revealHandCard({props}: ItemParams<HandCardContextMenuItemProps>) {
-        if (!opponentReady || props === undefined) return;
+        if (!getOpponentReady() || props === undefined) return;
         moveCard(myHand[props.index].id, "myHand", "myReveal");
         sendSingleUpdate(myHand[props.index].id, "myHand", "myReveal");
         sendChatMessage(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕Hand ➟ Reveal`);
@@ -824,10 +941,14 @@ export default function Game({user}: { user: string }) {
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
     const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott"]
+    const color1 = localStorage.getItem("color1") ?? "#214d44";
+    const color2 = localStorage.getItem("color2") ?? "#0b3d65";
+    const color3 = localStorage.getItem("color3") ?? "#522170";
 
     return <>
         <BackGroundPattern/>
-        <BackGround/>
+        <BackGround color1={color1} color2={color2} color3={color3}/>
+
         <div style={{
             position: "relative",
             width: "100vw",
@@ -891,15 +1012,21 @@ export default function Game({user}: { user: string }) {
                 </Menu>}
 
                 {modNames.includes(user) &&
-                    <span style={{position: "absolute", top: 10, left: 10}}>users ingame: {userCount}</span>}
+                    <span style={{position: "absolute", top: 10, left: 25, opacity: 0.5}}>users ingame: {userCount}</span>}
 
                 {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
 
                 {surrenderOpen &&
                     <SurrenderRestartWindow setSurrenderOpen={setSurrenderOpen} handleSurrender={handleSurrender}/>}
                 {restartMoodle &&
-                    <SurrenderRestartWindow setRestartMoodle={setRestartMoodle} handleAcceptRestart={acceptRestart}/>}
+                    <SurrenderRestartWindow restartOrder={restartOrder} setRestartMoodle={setRestartMoodle} handleAcceptRestart={acceptRestart}/>}
                 {endScreen && <EndWindow message={endScreenMessage}/>}
+
+                {restartPromptModal && <RestartPrompt closeModal={() => setRestartPromptModal(false)} sendRequest={(request: "AsSecond" | "AsFirst") => {
+                    websocket.sendMessage(`${gameId}:/restartRequest${request}:${opponentName}`);
+                    notifyRequestedRestart();
+                    setRestartPromptModal(false);
+                }}/>}
 
                 {showStartingPlayer &&
                     <Fade direction={"right"}
@@ -909,7 +1036,11 @@ export default function Game({user}: { user: string }) {
                 <Wrapper>
 
                     <UserName>{opponentName}</UserName>
-                    <UserName style={{top: "unset", bottom: -30}}>{user}</UserName>
+                    <UserName style={{top: "unset", bottom: -30}}>
+                        {websocket.readyState === 2 && <ConnectingIcon sx={{transform: "translate(-2px,4px)"}} color={"warning"}/>}
+                        {websocket.readyState === 3 && <OfflineIcon sx={{transform: "translate(-2px,4px)"}} color={"error"}/>}
+                        {user}
+                    </UserName>
 
                     {myReveal.length > 0 &&
                         <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
@@ -941,10 +1072,12 @@ export default function Game({user}: { user: string }) {
                                 <span style={{color: "dodgerblue"}}>🛈 </span>Controls
                             </a>
                         </InfoSpan>
+
                         <CardImage onClick={() => selectCard(null)}
                                    onContextMenu={(e) => showDetailsImageMenu({event: e})}
                                    src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
                                    alt={selectedCard?.name ?? "Card"}/>
+
                         <CardDetails/>
                     </InfoContainer>
 
@@ -968,6 +1101,8 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex"}}>
                             <OpponentContainerMain>
 
+                                {!memoryBarLoading && <PhaseIndicator sendPhaseUpdate={sendPhaseUpdate} sendSfx={sendSfx} gameHasStarted={gameHasStarted} />}
+
                                 <OpponentDeckContainer>
                                     {opponentSleeve === "Default"
                                         ? <img alt="deck" src={deckBack} width="105px"/>
@@ -981,7 +1116,7 @@ export default function Game({user}: { user: string }) {
 
                                 <OpponentTrashContainer>
                                     <TrashSpan
-                                        style={{transform: "translateX(-9px)"}}>{opponentTrash.length}</TrashSpan>
+                                        style={{transform: "translate(-9px, -2px)"}}>{opponentTrash.length}</TrashSpan>
                                     {opponentTrash.length === 0 ? <TrashPlaceholder>Trash</TrashPlaceholder>
                                         : <TrashCardImage src={opponentTrash[opponentTrash.length - 1].imgUrl}
                                                           alt={"opponentTrash"}
@@ -990,6 +1125,7 @@ export default function Game({user}: { user: string }) {
                                                               setTrashMoodle(false);
                                                           }}
                                                           title="Open opponents trash"/>}
+
                                 </OpponentTrashContainer>
 
                                 <OpponentLowerBattleArea>
@@ -1081,6 +1217,8 @@ export default function Game({user}: { user: string }) {
 
                             <OpponentContainerSide>
 
+                                {getMyAttackPhase() && <AttackResolveButton nextAttackPhase={() => nextAttackPhase("me")} myAttackPhase={myAttackPhase} /> }
+
                                 <EggDeckContainer>
                                     {opponentEggDeck.length !== 0 &&
                                         <EggDeckSpan
@@ -1106,10 +1244,7 @@ export default function Game({user}: { user: string }) {
 
                                 <PlayerImage alt="opponent" src={profilePicture(opponentAvatar)} opponent={true}
                                              style={{top: "unset", left: "unset", right: 20, bottom: 0}}
-                                             onClick={() => {
-                                                 websocket.sendMessage(`${gameId}:/restartRequest:${opponentName}`);
-                                                 notifyRequestedRestart();
-                                             }}/>
+                                             onClick={() => setRestartPromptModal(true)}/>
 
                                 <BreedingAreaContainer>
                                     <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
@@ -1127,6 +1262,10 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex"}}>
                             <MyContainerSide>
 
+                                {getOpponentAttackPhase() && <AttackResolveButton nextAttackPhase={() => nextAttackPhase("opponent")} opponentAttackPhase={opponentAttackPhase}/>}
+
+                                <UnsuspendAllButton sendSfx={sendSfx} sendUpdate={sendUpdate}/>
+
                                 <EggDeckContainer ref={dropToEggDeck}>
                                     {eggDeckMoodle &&
                                         <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
@@ -1134,12 +1273,13 @@ export default function Game({user}: { user: string }) {
                                     {myEggDeck.length !== 0 &&
                                         <EggDeck alt="egg-deck" src={eggBack}
                                                  onClick={() => {
-                                                     if (!opponentReady) return;
+                                                     if (!getOpponentReady()) return;
                                                      moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                      sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                      playDrawCardSfx();
                                                      sendSfx("playPlaceCardSfx");
                                                      sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
+                                                     nextPhaseTrigger(nextPhase, Phase.BREEDING);
                                                  }}/>}
                                     {myEggDeck.length !== 0 &&
                                         <EggDeckSpan>{myEggDeck.length}</EggDeckSpan>}
@@ -1237,11 +1377,7 @@ export default function Game({user}: { user: string }) {
 
                                 <DeckContainer>
 
-                                    {deckMoodle &&
-                                        <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myDeckField"}
-                                                    setMoodle={setDeckMoodle} sendChatMessage={sendChatMessage}/>}
-
-                                    {!mulliganAllowed && !opponentReady &&
+                                    {!mulliganAllowed && !getOpponentReady() &&
                                         <MulliganSpan style={{top: 3}}>Waiting for opponent...</MulliganSpan>}
                                     {mulliganAllowed &&
                                         <>
@@ -1257,14 +1393,20 @@ export default function Game({user}: { user: string }) {
                                         ?
                                         <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
                                               isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
-                                              onClick={() => moveDeckCard("myHand")}/>
+                                              onClick={() => {
+                                                  nextPhaseTrigger(nextPhase, Phase.DRAW);
+                                                  moveDeckCard("myHand")
+                                              }}/>
                                         : <div style={{width: "105px", position: "relative"}}>
                                             <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
                                                           gameHasStarted={gameHasStarted}/>
                                             <Deck ref={dropToDeck} alt="deck" src={deckBack}
                                                   gameHasStarted={gameHasStarted}
                                                   isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
-                                                  onClick={() => moveDeckCard("myHand")}/>
+                                                  onClick={() => {
+                                                      if (phase === Phase.DRAW && isMyTurn) nextPhase();
+                                                      moveDeckCard("myHand")
+                                                  }}/>
                                         </div>
                                     }
                                     {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
@@ -1411,6 +1553,7 @@ export default function Game({user}: { user: string }) {
 }
 
 const OpponentContainerMain = styled.div`
+  position: relative;
   height: 450px;
   width: 1005px;
   display: grid;
@@ -1558,7 +1701,7 @@ const InfoContainer = styled.div`
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 0.1fr 1fr 1fr;
   grid-template-areas: "info info info"
-                        "image image phase"  
+                        "img img img"  
                           "details details details";
   align-items: center;
   padding: 10px;
@@ -1800,9 +1943,10 @@ const OpponentTrashContainer = styled.div`
   display: flex;
   position: relative;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: flex-start;
   padding: 0 0 10px 10px;
+  transform: translateY(4px);
 `;
 
 const EggDeckContainer = styled.div`
@@ -2086,12 +2230,13 @@ const OppenentHandCard = styled.img`
 `;
 
 export const CardImage = styled.img`
-  width: 100%;
+  grid-area: img;
+  height: 420px;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
   outline: #0c0c0c solid 1px;
   transform: translateY(2px);
-  grid-area: image;
+  justify-self:center;
 `;
 
 const InfoSpan = styled.span`
@@ -2180,14 +2325,14 @@ const StartingName = styled.span`
   }
 `;
 
-const BackGround = styled.div`
+const BackGround = styled.div<{color1: string, color2: string, color3:string}>`
   position: fixed;
   z-index: -10;
   width: 100vw;
   height: 100vh;
   max-width: 100vw;
   max-height: 100vh;
-  background: linear-gradient(253deg, #193131, #092d4b, #4a1f64);
+  background: linear-gradient(253deg, ${({color1}) => color1}, ${({color2}) => color2}, ${({color3}) => color3});
   background-size: 200% 200%;
   -webkit-animation: Background 25s ease infinite;
   -moz-animation: Background 25s ease infinite;

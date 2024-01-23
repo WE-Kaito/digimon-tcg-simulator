@@ -12,8 +12,10 @@ import suspendSfx from "../assets/sounds/suspend.mp3";
 import unsuspendSfx from "../assets/sounds/unsuspend.mp3";
 import opponentPlaceCardSfx from "../assets/sounds/opponent-place-card.mp3";
 import loadMemorybarSfx from "../assets/sounds/load-memorybar.mp3";
-// import buttonHoverSfx from "../assets/sounds/button-hover.mp3";
 import invitationSfx from "../assets/sounds/invite.mp3";
+import nextPhaseSfx from "../assets/sounds/next-phase.mp3";
+import passTurnSfx from "../assets/sounds/pass-turn.mp3";
+import nextAttackPhaseSfx from "../assets/sounds/next-attack-phase.mp3";
 
 export function playDrawCardSfx() {
     const audio = new Audio(drawCardSfx);
@@ -83,7 +85,7 @@ export function playSuspendSfx() {
 
 export function playUnsuspendSfx() {
     const audio = new Audio(unsuspendSfx);
-    audio.volume = 0.25;
+    audio.volume = 0.15;
     audio.addEventListener('canplay', () => audio.play());
 }
 
@@ -101,15 +103,27 @@ export const playLoadMemorybarSfx = () => {
     audio.volume = 0.7;
     audio.addEventListener('canplay', () => audio.play());
 }
-/*
-export const playButtonHoverSfx = () => {
-    const audio = new Audio(buttonHoverSfx);
-    audio.volume = 0.2;
-    audio.addEventListener('canplay', () => audio.play());
-}
-*/
+
 export const playInvitationSfx = () => {
     const audio = new Audio(invitationSfx);
     audio.volume = 0.8;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playNextPhaseSfx = () => {
+    const audio = new Audio(nextPhaseSfx);
+    audio.volume = 0.25;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playPassTurnSfx = () => {
+    const audio = new Audio(passTurnSfx);
+    audio.volume = 0.7;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playNextAttackPhaseSfx = () => {
+    const audio = new Audio(nextAttackPhaseSfx);
+    audio.volume = 1;
     audio.addEventListener('canplay', () => audio.play());
 }

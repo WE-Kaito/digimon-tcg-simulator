@@ -5,16 +5,17 @@ type Props = {
     readonly handleAcceptRestart?: () => void,
     readonly setSurrenderOpen?: (surrenderOpen:boolean) => void,
     readonly handleSurrender?: () => void,
+    readonly restartOrder?: "first" | "second",
 }
 
-export default function SurrenderRestartWindow({setRestartMoodle, handleAcceptRestart, setSurrenderOpen, handleSurrender}:Props) {
+export default function SurrenderRestartWindow({setRestartMoodle, handleAcceptRestart, setSurrenderOpen, handleSurrender, restartOrder}:Props) {
     return (<>
             {(setRestartMoodle && handleAcceptRestart) &&
             <Container>
                 <StyledSpan>Opponent requested a rematch</StyledSpan>
-                <div style={{width: 390, display: "flex", justifyContent: "space-between"}}>
+                <div style={{width: 480, display: "flex", justifyContent: "space-between"}}>
                     <SurrenderButton onClick={() => setRestartMoodle(false)}>DENY</SurrenderButton>
-                    <AcceptButton onClick={handleAcceptRestart}>ACCEPT</AcceptButton>
+                    <AcceptButton style={{width: 300}} onClick={handleAcceptRestart}>ACCEPT ► GOING {restartOrder}</AcceptButton>
                 </div>
             </Container>}
 
@@ -30,7 +31,7 @@ export default function SurrenderRestartWindow({setRestartMoodle, handleAcceptRe
     );
 }
 
-const Container = styled.div`
+export const Container = styled.div`
   z-index: 10000;
   position: absolute;
   width: 560px;
@@ -43,18 +44,18 @@ const Container = styled.div`
   background: #0c0c0c;
   transition: all 0.2s ease;
 
-  left: 50%;
+  left: 53.5%;
   top: 50%;
   transform: translate(-50%, -50%);
 `;
 
-const StyledSpan = styled.span`
+export const StyledSpan = styled.span`
   font-family: Pixel Digivolve, sans-serif;
   font-size: 24px;
   text-shadow: black 2px 4px 2px;
 `;
 
-const CancelSurrenderButton = styled.button`
+export const CancelSurrenderButton = styled.button`
   cursor: pointer;
   width: 160px;
   height: 50px;
@@ -96,8 +97,9 @@ const SurrenderButton = styled(CancelSurrenderButton)`
   }
 `;
 
-const AcceptButton = styled(CancelSurrenderButton)`
+export const AcceptButton = styled(CancelSurrenderButton)`
   background-color: #27c06e;
+  padding: 0;
   &:hover {
     background: #3bdab5;
   }

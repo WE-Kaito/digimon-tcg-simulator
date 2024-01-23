@@ -87,7 +87,6 @@ export const useStore = create<State>((set, get) => ({
     recoveryQuestion: "",
 
     fetchCards: () => {
-        if (get().fetchedCards.length > 0) return;
         set({isLoading: true})
         axios
             .get("/api/profile/cards")
@@ -207,18 +206,8 @@ export const useStore = create<State>((set, get) => ({
             .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
             .catch((error) => {
-                if (error.response) {
-                    console.error(error.response.status + " " + error.response.data.message);
-                    notifyGeneralError();
-                } else if (error.request) {
-                    // The request was made, but no response was received
-                    console.error("No response received from the server");
-                    notifyGeneralError();
-                } else {
-                    // Something happened in setting up the request that triggered an error
-                    console.error("Request setup error: " + error.message);
-                    notifyGeneralError();
-                }
+                console.error(error.message);
+                notifyGeneralError();
                 throw error;
             })
             .then((data) => {
@@ -243,6 +232,20 @@ export const useStore = create<State>((set, get) => ({
     },
 
     updateDeck: (id, name) => {
+
+        const eggCardLength = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
+        const filteredLength = get().deckCards.length - eggCardLength;
+
+        if (filteredLength !== 50) {
+            notifyLength();
+            return;
+        }
+
+        if (name === "") {
+            notifyName();
+            return;
+        }
+
         const sortedDeck = sortCards(get().deckCards);
         const deckWithoutId = {
             name: name,

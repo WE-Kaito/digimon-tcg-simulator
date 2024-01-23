@@ -28,40 +28,52 @@ import airdramon from "../assets/profile_pictures/Airdramon.png";
 import tailmon from "../assets/profile_pictures/Tailmon.png";
 import togemonX from "../assets/profile_pictures/TogemonX.png";
 import wizardmonX from "../assets/profile_pictures/WizardmonX.png";
+import dorumon from "../assets/profile_pictures/Dorumon.png";
+import lunamon from "../assets/profile_pictures/Lunamon.png";
+import pinochimon from "../assets/profile_pictures/Pinochimon.png";
+import princeMamemon from "../assets/profile_pictures/PrinceMamemon.png";
+import lilithmonX from "../assets/profile_pictures/Lilithmon_X.png";
+import numemon from "../assets/profile_pictures/Numemon.png";
 import placeholder from "../assets/profile_pictures/Placeholder.png";
 import {Picture} from "./types.ts";
 
 export const avatars: Picture[] = [
-    { name: "AncientIrismon", imagePath: ancientIrismon },
-    { name: "Bearmon", imagePath: bearmon },
-    { name: "Belphemon", imagePath: belphemon },
-    { name: "BloomLordmon", imagePath: bloomLordmon },
-    { name: "Commandramon", imagePath: commandramon },
-    { name: "DarkKnightmon X", imagePath: darkKnightmonX },
-    { name: "Diablomon", imagePath: diablomon },
-    { name: "Guilmon", imagePath: guilmon },
-    { name: "Hexeblaumon", imagePath: hexeblaumon },
-    { name: "Impmon", imagePath: impmon },
-    { name: "KaiserGreymon", imagePath: kaiserGreymon },
-    { name: "Omegamon", imagePath: omegamon },
-    { name: "Sakuyamon", imagePath: sakuyamon },
-    { name: "Silphymon", imagePath: silphymon },
-    { name: "Solarmon", imagePath: solarmon },
-    { name: "Stingmon", imagePath: stingmon },
-    { name: "Superstarmon", imagePath: superstarmon },
-    { name: "Tyrannomon", imagePath: tyrannomon },
-    { name: "V-Mon", imagePath: vMon },
-    { name: "WereGarurumon", imagePath: wereGarurumon },
-    { name: "Gammamon", imagePath: gammamon },
-    { name: "Justimon", imagePath: justimon },
-    { name: "Coronamon", imagePath: coronamon },
-    { name: "Hackmon", imagePath: hackmon },
-    { name: "ClearAgumon", imagePath: clearAgumon },
-    { name: "Terriermon", imagePath: terriermon },
-    { name: "Airdramon", imagePath: airdramon },
-    { name: "Tailmon", imagePath: tailmon },
-    { name: "Togemon X", imagePath: togemonX },
-    { name: "Wizardmon X", imagePath: wizardmonX },
+    { name: "AncientIrismon", imagePath: ancientIrismon, artist: "Tortoiseshel" },
+    { name: "Bearmon", imagePath: bearmon, artist: "Tortoiseshel" },
+    { name: "Belphemon", imagePath: belphemon, artist: "Tortoiseshel" },
+    { name: "BloomLordmon", imagePath: bloomLordmon, artist: "Tortoiseshel" },
+    { name: "Commandramon", imagePath: commandramon, artist: "Tortoiseshel" },
+    { name: "DarkKnightmon X", imagePath: darkKnightmonX, artist: "Tortoiseshel" },
+    { name: "Diablomon", imagePath: diablomon, artist: "Tortoiseshel" },
+    { name: "Guilmon", imagePath: guilmon, artist: "Tortoiseshel" },
+    { name: "Hexeblaumon", imagePath: hexeblaumon, artist: "Tortoiseshel" },
+    { name: "Impmon", imagePath: impmon, artist: "Tortoiseshel" },
+    { name: "KaiserGreymon", imagePath: kaiserGreymon, artist: "Tortoiseshel" },
+    { name: "Omegamon", imagePath: omegamon, artist: "Tortoiseshel" },
+    { name: "Sakuyamon", imagePath: sakuyamon, artist: "Tortoiseshel" },
+    { name: "Silphymon", imagePath: silphymon, artist: "Tortoiseshel" },
+    { name: "Solarmon", imagePath: solarmon, artist: "Tortoiseshel" },
+    { name: "Stingmon", imagePath: stingmon, artist: "Tortoiseshel" },
+    { name: "Superstarmon", imagePath: superstarmon, artist: "Tortoiseshel" },
+    { name: "Tyrannomon", imagePath: tyrannomon, artist: "Tortoiseshel" },
+    { name: "V-Mon", imagePath: vMon, artist: "Tortoiseshel" },
+    { name: "WereGarurumon", imagePath: wereGarurumon, artist: "Tortoiseshel" },
+    { name: "Gammamon", imagePath: gammamon, artist: "Tortoiseshel" },
+    { name: "Justimon", imagePath: justimon, artist: "Tortoiseshel" },
+    { name: "Coronamon", imagePath: coronamon, artist: "Tortoiseshel" },
+    { name: "Hackmon", imagePath: hackmon, artist: "Tortoiseshel" },
+    { name: "ClearAgumon", imagePath: clearAgumon, artist: "Tortoiseshel" },
+    { name: "Terriermon", imagePath: terriermon, artist: "Tortoiseshel" },
+    { name: "Airdramon", imagePath: airdramon, artist: "Tortoiseshel" },
+    { name: "Tailmon", imagePath: tailmon, artist: "Tortoiseshel" },
+    { name: "Togemon X", imagePath: togemonX, artist: "Tortoiseshel" },
+    { name: "Wizardmon X", imagePath: wizardmonX, artist: "Tortoiseshel" },
+    { name: "Dorumon", imagePath: dorumon, artist: "Tortoiseshel" },
+    { name: "Lunamon", imagePath: lunamon, artist: "Tortoiseshel" },
+    { name: "Pinochimon", imagePath: pinochimon, artist: "Tortoiseshel" },
+    { name: "PrinceMamemon", imagePath: princeMamemon, artist: "Tortoiseshel" },
+    { name: "Lilithmon X", imagePath: lilithmonX, artist: "Tortoiseshel" },
+    { name: "Numemon", imagePath: numemon, artist: "Tortoiseshel" }
 ]
 
 export function profilePicture(avatarName: string) : string {
