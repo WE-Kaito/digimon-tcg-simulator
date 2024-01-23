@@ -40,6 +40,7 @@ export default function EditDeck() {
         fetchCards();
         filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false);
         setDeckName(nameOfDeckToEdit);
+        return;
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 
     const mobileSize = window.innerWidth < 500;

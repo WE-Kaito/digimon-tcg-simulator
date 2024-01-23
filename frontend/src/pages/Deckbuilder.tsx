@@ -23,16 +23,17 @@ export default function Deckbuilder() {
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
     const fetchCards = useStore((state) => state.fetchCards);
-    const fetchedCards = useStore((state) => state.fetchedCards);
 
     useEffect(() => {
         clearDeck();
         fetchDecks();
         filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false);
+        return;
     }, [clearDeck, fetchDecks, filterCards]);
 
     useEffect(() => {
-        if (fetchedCards.length === 0) fetchCards();
+        fetchCards();
+        return;
     }, []);
 
     return (
