@@ -6,14 +6,13 @@ import websockets
 
 from Bot import Bot
 from cheat.Cheater import Cheater
-from ai.card.P_040_Purple_Memory_Boost import P_040_PurpleMemoryBoost
-from ai.card.CardFactory import CardFactory
+from card.CardFactory import CardFactory
 
 class BeelzemonXBot(Bot):
 
     def __init__(self, username):
         super().__init__(username)
-        self.card_factory = CardFactory(self, self.game)
+        self.card_factory = CardFactory(self)
 
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
@@ -38,7 +37,8 @@ class BeelzemonXBot(Bot):
 
     async def breeding_phase_strategy(self, ws):
         if len(self.game['player2BreedingArea']) == 0:
-            await self.hatch(ws)
+            if len(self.game['player2EggDeck']) > 0:
+                await self.hatch(ws)
         elif self.not_egg_in_breeding_and_can_digivolve():
             await self.promote(ws)
 
@@ -76,7 +76,7 @@ class BeelzemonXBot(Bot):
                             digivolution_index, self.digivolution_cost(digivolution_card)
                         )
                         digivolution_card_obj = self.card_factory.get_card(digivolution_card['uniqueCardNumber'])
-                        digivolution_card_obj.when_digivolving_effect()
+                        await digivolution_card_obj.when_digivolving_effect(ws)
                         return True
         return False
 
@@ -94,7 +94,7 @@ class BeelzemonXBot(Bot):
         self.attack_with_digimon(ws, digimon_index)
         card_obj = self.card_factory.get_card(self.game['player2Digi'][digimon_index][-1]['uniqueCardNumber'])
         # TODO: Need to consider inherited effects and strategy for triggers
-        card_obj.when_attacking_effect()
+        await card_obj.when_attacking_effect()
 
     # TODO: More clever choice of Beelzemon to evolve to
     async def st14_02_impmon_strategy(self, ws, digimon_index):
@@ -148,7 +148,7 @@ class BeelzemonXBot(Bot):
                 trashed_cards.append(self.bot.trash_top_card_of_deck(ws))
         for trashed_card in trashed_card:
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'])
-            card_obj.when_trashed_effect(ws)
+            await card_obj.when_trashed_effect(ws)
     
     async def bt10_081_baalmon_deleted_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-08', 'Beelzemon')
@@ -185,7 +185,8 @@ class BeelzemonXBot(Bot):
                     candidates.append((card['level'], i))
         if len(digimon) == 0:
             time.sleep(2)
-            await self.put_cards_to_bottom_of_deck(ws)
+            await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
+            return
         if len(candidates) == 0:
             card_index = digimon[0]
         else:
@@ -193,7 +194,7 @@ class BeelzemonXBot(Bot):
         await self.move_card(ws, f'myReveal{card_index}', f'myHand')
         self.game['player2Hand'].append(self.game['player2Reveal'].pop(card_index))
         time.sleep(2)
-        await self.put_cards_to_bottom_of_deck(ws)
+        await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
     
     async def ex2_044_beelzemon_when_digivolving_when_attacking_stategy(self, ws):
         if len(self.game['player1Digi']) == 0:
@@ -283,7 +284,7 @@ class BeelzemonXBot(Bot):
             return False
         else:
             card = self.game['player2Hand'][memory_boost_in_hand_index]
-            memory_boost = P_040_PurpleMemoryBoost(self, self.game)
+            memory_boost = self.card_factory.get_card(card['uniqueCardNumber'])
             await self.play_card(ws, 'Hand', memory_boost_in_hand_index, card['playCost'])
             time.sleep(2)
             await memory_boost.main_effect(ws)
@@ -318,7 +319,7 @@ class BeelzemonXBot(Bot):
         await self.breeding_phase_strategy(ws)
 
         # Cheat for testing
-        cheater = Cheater(self, self.game)
+        cheater = Cheater(self)
         await cheater.get_card_from_deck_in_hand(ws, 'BT12-073', 'Impmon (X Antibody)')
         await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
 

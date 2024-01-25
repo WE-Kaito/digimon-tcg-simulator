@@ -61,8 +61,11 @@ class Bot(ABC):
         self.chat_ws = f'ws://{self.host}/api/ws/chat'
         self.my_turn = False
         self.first_turn = False
+        self.game = {}
         self.effects = {}
+        self.effects['endOfOpponentTurnEffects'] = {}
         self.effects['endOfOpponentTurnEffects']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+        self.effects['endOfTurnEffect'] = {}
         self.effects['endOfTurnEffect']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
@@ -111,6 +114,7 @@ class Bot(ABC):
         self.game['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.game['player2BreedingArea'] = []
         self.game['player2Reveal'] = []
+        self.game['player2Trash'] = []
         self.game['memory'] = 0
 
     async def enter_lobby_message(self, message):
@@ -154,14 +158,20 @@ class Bot(ABC):
         random.shuffle(self.game['player2DeckField'])
         await self.play_shuffle_deck_sfx(ws)
 
+    def get_first_digit_index(self, s):
+        for i in range(len(s)):
+            if s[i].isdigit():
+                return i
+
     def get_stack(self, location):
         stack = None
         if 'BreedingArea' in location:
             location = GAME_LOCATIONS_MAP[location]
             stack = self.game[location]
         else:
-            index = int(location[-1])
-            location = GAME_LOCATIONS_MAP[location[:-1]]
+            first_digit_index = self.get_first_digit_index(location)
+            index = int(location[first_digit_index:])
+            location = GAME_LOCATIONS_MAP[location[:first_digit_index]]
             stack = self.game[location][index]
         return stack
 
@@ -301,6 +311,10 @@ class Bot(ABC):
         return False
 
     def digivolution_cost(self, card):
+        # EX2-039 Impmon card does not contain digivolution cost information
+        if card['uniqueCardNumber'] == 'EX2-039':
+            return 0
+        print(card['digivolveConditions'])
         return card['digivolveConditions'][0]['cost']
 
     def digimon_of_level_in_hand(self, level):
@@ -389,6 +403,13 @@ class Bot(ABC):
         await self.update_game(ws)
         return card
     
+    async def move_card_to_battle_area_from_trash(self, ws, card_index):
+        i = self.get_empty_slot_in_battle_area()
+        await self.move_card(ws, f'myTrash{card_index}', f'myDigi{i+1}')
+        card = self.game[f'player2Trash'].pop(card_index)
+        self.game['player2Digi'][i].append(card)
+        return card
+    
     async def delete_from_opponent_battle_area(self, ws, card_index):
         await self.move_card(ws, f'opponentDigi{card_index}', f'myTrash')
         card = self.game['player1Digi'].pop(card_index)
@@ -421,7 +442,7 @@ class Bot(ABC):
     
     async def put_cards_to_bottom_of_deck(self, ws, cards_location):
         for i in range(len(self.game[f'player2{cards_location}'])):
-            await self.bot.put_card_to_bottom_of_deck(ws, cards_location, 0)
+            await self.put_card_to_bottom_of_deck(ws, cards_location, 0)
 
     async def put_card_to_bottom_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
@@ -431,7 +452,7 @@ class Bot(ABC):
 
     async def put_cards_on_top_of_deck(self, ws, cards_location):
         for i in range(len(self.game[f'player2{cards_location}'])):
-            await self.bot.put_card_on_top_of_deck(ws, cards_location, 0)
+            await self.put_card_on_top_of_deck(ws, cards_location, 0)
 
     async def put_card_on_top_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
@@ -440,10 +461,9 @@ class Bot(ABC):
         await self.update_game(ws)
     
     async def trash_top_card_of_deck(self, ws):
+        await self.move_card(ws, 'myDeckField0', 'myTrash')
         card = self.game[f'player2DeckField'].pop(0)
-        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Trash')
         self.game['player2Trash'].insert(0, card)
-        await self.update_game(ws)
         return card
 
     async def set_memory_to(self, ws, value):

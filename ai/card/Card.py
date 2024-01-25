@@ -2,29 +2,29 @@ from abc import ABC
 
 class Card(ABC):
     
-    def main_effect():
+    async def main_effect(self, ws):
         pass
 
-    def on_play_effect():
+    async def on_play_effect(self, ws):
         pass
     
-    def when_attacking_effect():
+    async def when_attacking_effect(self, ws):
         pass
 
-    def when_digivolving_effect():
+    async def when_digivolving_effect(self, ws):
         pass
 
-    def when_trashed_effect():
+    async def when_trashed_effect(self, ws):
         pass
     
-    def on_deletion_effect():
+    async def on_deletion_effect(self, ws):
         pass
 
-    def your_turn_effect():
+    async def your_turn_effect(self, ws):
         pass
 
-    def all_turns_effect():
+    async def all_turns_effect(self, ws):
         pass
 
-    def trash_effect():
+    async def trash_effect(self, ws):
         pass
