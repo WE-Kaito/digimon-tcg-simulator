@@ -6,7 +6,7 @@ import websockets
 
 from Bot import Bot
 from cheat.Cheater import Cheater
-from ai.card.P_040_PurpleMemoryBoost import P_040_PurpleMemoryBoost
+from ai.card.P_040_Purple_Memory_Boost import P_040_PurpleMemoryBoost
 from ai.card.CardFactory import CardFactory
 
 class BeelzemonXBot(Bot):
@@ -179,9 +179,9 @@ class BeelzemonXBot(Bot):
                     target_levels.discard(c['level'])
         for i in range(len(self.game['player2Reveal'])):
             card = self.game['player2Reveal'][i]
-            if card['cardType'] == 'Digimon':
+            if card['cardType'] == 'Digimon' and 'Purple' in card['color']:
                 digimon.append(i)
-                if card['cardType'] == 'Digimon' and 'Purple' in card['color'] and card['level'] in target_levels:
+                if card['level'] in target_levels:
                     candidates.append((card['level'], i))
         if len(digimon) == 0:
             time.sleep(2)
@@ -231,6 +231,51 @@ class BeelzemonXBot(Bot):
         card_in_trash_index = self.card_in_trash('EX2-039', 'Impmon')
         if card_in_trash_index:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
+    
+    async def st14_011_ai_and_mako_on_play_strategy(self, ws):
+        candidates = []
+        digimon = []
+        target_levels = set([3,4,5,6])
+        target_traits = set(['Evil','Wizard', 'Demon Lord'])
+        for i in range(len(self.game['player2Hand'])):
+                c = self.game['player2Hand'][i]
+                if c['cardType'] == 'Digimon':
+                    target_levels.discard(c['level'])
+        for i in range(len(self.game['player2Reveal'])):
+            card = self.game['player2Reveal'][i]
+            if card['cardType'] == 'Digimon' and len(set(card['digiTraits']).intersection(target_traits)) > 0:
+                digimon.append(i)
+                if card['level'] in target_levels:
+                    candidates.append((card['level'], i))
+        if len(digimon) == 0:
+            time.sleep(2)
+            await self.put_cards_to_bottom_of_deck(ws)
+        if len(candidates) == 0:
+            card_index = digimon[0]
+        else:
+            card_index = min(candidates)[1]
+        await self.move_card(ws, f'myReveal{card_index}', f'myHand')
+        self.game['player2Hand'].append(self.game['player2Reveal'].pop(card_index))
+        time.sleep(2)
+        await self.put_cards_to_bottom_of_deck(ws)
+    
+    async def st14_011_ai_and_mako_your_turn_strategy(self, ws):
+        death_slinger_index = self.card_in_hand('EX2-071', 'Death Slinger')
+        if death_slinger_index:
+            self.put_card_on_top_of_deck(ws, 'Hand', death_slinger_index)
+            self.increase_memory_by(1)
+        p_077_wizardmon_index = self.card_in_hand('P-077', 'Wizardmon')
+        if p_077_wizardmon_index:
+            self.put_card_on_top_of_deck(ws, 'Hand', p_077_wizardmon_index)
+            self.increase_memory_by(1)
+        ex2_039_impmon_index = self.card_in_hand('EX2-039', 'Impmon')
+        if ex2_039_impmon_index:
+            self.put_card_on_top_of_deck(ws, 'Hand', ex2_039_impmon_index)
+            self.increase_memory_by(1)
+        ex2_044_beelzemon_index = self.card_in_hand('EX2-044', 'Beelzemon')
+        if ex2_044_beelzemon_index:
+            self.put_card_on_top_of_deck(ws, 'Hand', ex2_044_beelzemon_index)
+            self.increase_memory_by(1)
 
     async def avoid_brick(self, ws):
         memory_boost_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
@@ -245,7 +290,7 @@ class BeelzemonXBot(Bot):
             return True
 
     async def main_phase_strategy(self, ws):
-        pprint([c['name'] for c in self.game['player2Hand']])
+        print([c['name'] for c in self.game['player2Hand']])
         await self.promote_strategy(ws)
         await self.prepare_rookies(ws)
         some_action = True

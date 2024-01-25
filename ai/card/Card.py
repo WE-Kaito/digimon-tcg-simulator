@@ -20,6 +20,9 @@ class Card(ABC):
     def on_deletion_effect():
         pass
 
+    def your_turn_effect():
+        pass
+
     def all_turns_effect():
         pass
 

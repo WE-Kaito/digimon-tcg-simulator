@@ -419,14 +419,24 @@ class Bot(ABC):
             await self.move_card(ws, 'myDeckField0', 'myReveal')
             self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
     
-    async def put_cards_to_bottom_of_deck(self, ws):
-        for i in range(len(self.game['player2Reveal'])):
-            await self.bot.put_card_to_bottom_of_deck(ws, 'Reveal', 0)
+    async def put_cards_to_bottom_of_deck(self, ws, cards_location):
+        for i in range(len(self.game[f'player2{cards_location}'])):
+            await self.bot.put_card_to_bottom_of_deck(ws, cards_location, 0)
 
     async def put_card_to_bottom_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         self.game['player2DeckField'].append(card)
+        await self.update_game(ws)
+
+    async def put_cards_on_top_of_deck(self, ws, cards_location):
+        for i in range(len(self.game[f'player2{cards_location}'])):
+            await self.bot.put_card_on_top_of_deck(ws, cards_location, 0)
+
+    async def put_card_on_top_of_deck(self, ws, card_location, card_index):
+        card = self.game[f'player2{card_location}'].pop(card_index)
+        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
+        self.game['player2DeckField'].insert(0, card)
         await self.update_game(ws)
     
     async def trash_top_card_of_deck(self, ws):
