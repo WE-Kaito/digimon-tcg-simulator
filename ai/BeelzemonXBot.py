@@ -306,17 +306,21 @@ class BeelzemonXBot(Bot):
         if self.first_turn:
             self.first_turn = False
         self.my_turn = False
+        await self.pass_turn(ws)
 
     async def turn(self, ws):
-        # Unsuspend phase
-        await self.unsuspend_all(ws)
-
-        # Draw phase
         if not self.first_turn:
+            # Unsuspend phase
+            await self.unsuspend_all(ws)
+            await self.update_phase(ws)
+
+            # Draw phase
             await self.draw(ws, 1)
+            await self.update_phase(ws)
         
         # Breeding phase
         await self.breeding_phase_strategy(ws)
+        await self.update_phase(ws)
 
         # Cheat for testing
         cheater = Cheater(self)

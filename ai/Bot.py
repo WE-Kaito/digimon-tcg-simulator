@@ -152,6 +152,14 @@ class Bot(ABC):
 
     async def send_game_chat_update_memory(self, ws, message):
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{message}")
+    
+    async def update_phase(self, ws):
+        await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
+        await ws.send(f"{self.game_name}:/playNextPhasedSfx:{self.opponent}")
+    
+    async def pass_turn(self, ws):
+        await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
+        await ws.send(f"{self.game_name}:/playPassTurnSfx:{self.opponent}")
 
     async def shuffle_deck(self, ws):
         self.game['player2DeckField'] += list(self.game['player2Hand'])
@@ -483,6 +491,7 @@ class Bot(ABC):
 
     async def play(self):
         self.game_name = f'{self.opponent}‗{self.username}'
+        starting_game = ''
         async with websockets.connect(self.game_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
             await ws.send(f"/startGame:{self.game_name}")
             opponent_ready = False
@@ -494,15 +503,19 @@ class Bot(ABC):
                 if message.startswith('[START_GAME]:'):
                     await self.hi(ws, message)
                 if message.startswith('[DISTRIBUTE_CARDS]:'):
-                    self.initialize_game(json.loads(message.removeprefix('[DISTRIBUTE_CARDS]:')))
-                    if not done_mulligan:
-                        if self.mulligan_strategy():
-                            await self.mulligan(ws)
-                            await self.send_game_chat_message(ws, "I mulligan my hand")
-                        else:
-                            await self.send_game_chat_message(ws, "I keep my hand")
-                        await self.send_player_ready(ws)
-                        done_mulligan = True
+                    starting_game += message.removeprefix('[DISTRIBUTE_CARDS]:')
+                else:
+                    if starting_game != '':
+                        print('START!')
+                        self.initialize_game(json.loads(starting_game))
+                        if not done_mulligan:
+                            if self.mulligan_strategy():
+                                await self.mulligan(ws)
+                                await self.send_game_chat_message(ws, "I mulligan my hand")
+                            else:
+                                await self.send_game_chat_message(ws, "I keep my hand")
+                            await self.send_player_ready(ws)
+                            done_mulligan = True
                 if message.startswith('[STARTING_PLAYER]:'):
                     starting_player = message.removeprefix('[STARTING_PLAYER]:')
                     if starting_player == self.username:
@@ -512,7 +525,7 @@ class Bot(ABC):
                     self.game['memory'] = int(message[-1])
                 if message.startswith('[PLAYER_READY]'):
                     opponent_ready = True
-                if message.startswith(f'[CHAT_MESSAGE]:{self.opponent}﹕Done'):
+                if message.startswith(f'[PASS_TURN_SFX]'):
                     self.my_turn = True
                 if self.my_turn and opponent_ready:
                     await self.turn(ws)
