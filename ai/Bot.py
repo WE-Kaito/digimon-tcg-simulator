@@ -272,7 +272,7 @@ class Bot(ABC):
         update['playerBreedingArea'] = self.game['player2BreedingArea']
         update['playerEggDeck'] = self.game['player2EggDeck']
         update['playerSecurity'] = self.game['player2Security']
-        update['playerTrash'] = []
+        update['playerTrash'] = self.game['player2Trash']
         n = config('WS_CHUNK_SIZE', cast=int)
         g = json.dumps(update)
         chunks = [g[i:i+n] for i in range(0, len(g), n)]
@@ -299,9 +299,18 @@ class Bot(ABC):
     
     def card_on_battle_area(self, unique_card_number, card_name):
         for i in range(len(self.game['player2Digi'])):
-            card = self.game['player2Digi'][i][-1]
-            if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
-                return i
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
+                    return i
+        return False
+    
+    def card_on_battle_area_with_name(self, card_name):
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['name'] == card_name:
+                    return i
         return False
     
     def card_in_trash(self, unique_card_number, card_name):
@@ -353,11 +362,18 @@ class Bot(ABC):
                 return False
         return True
     
-    def attack_with_any_digimon(self):
+    def any_suspended_card_on_field(self):
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                if self.game['player2Digi'][i][-1]['isTilted']:
+                    return True
+        return False
+    
+    async def attack_with_any_digimon(self):
         for i in range(len(self.game['player2Digi'])):
             card = self.game['player2Digi'][i][-1]
             if card['cardType'] == 'Digimon':
-                self.attack_with_digimon(i)
+                await self.attack_with_digimon(i)
         print('No Digimon to attack with')
 
     async def attack_with_digimon(self, ws, digimon_index):

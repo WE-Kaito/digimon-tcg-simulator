@@ -40,7 +40,7 @@ class BeelzemonXBot(Bot):
             if len(self.game['player2EggDeck']) > 0:
                 await self.hatch(ws)
         elif self.not_egg_in_breeding_and_can_digivolve():
-            await self.promote(ws)
+            await self.promote_strategy(ws)
 
     async def prepare_rookies(self, ws):
         breeding = self.game['player2BreedingArea']
@@ -63,6 +63,17 @@ class BeelzemonXBot(Bot):
         return True
 
     async def digivolve_strategy(self, ws):
+        beelzemon_x_antibody_in_hand_index = self.card_in_hand('BT12-085', 'Beelzemon (X Antibody)')
+        if beelzemon_x_antibody_in_hand_index:
+            beelzemon_on_field_index = self.card_on_battle_area_with_name('Beelzemon')
+            if beelzemon_on_field_index and len(self.game['player2Trash']) >=10:
+                await self.digivolve(
+                    ws, 'Digi', beelzemon_on_field_index, 'Hand',
+                    beelzemon_x_antibody_in_hand_index, 1
+                )
+                digivolution_card_obj = self.card_factory.get_card(self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['uniqueCardNumber'])
+                await digivolution_card_obj.when_digivolving_effect(ws)
+
         for digimon_index in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][digimon_index]) > 0:
                 card = self.game['player2Digi'][digimon_index][-1]
@@ -79,6 +90,13 @@ class BeelzemonXBot(Bot):
                         await digivolution_card_obj.when_digivolving_effect(ws)
                         return True
         return False
+    
+    async def when_attacking_effects_strategy(self, digimon_index):
+        preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
+        attacking_stack_objs = [(c['uniqueCardNumber'], CardFactory.get_card(c['uniqueCardNumber'])) for c in self.game['player2Digi'][digimon_index]]
+        attacking_stack_objs.sort(key=lambda x:preferred_trigger_order.index(x[0]))
+        for attacking_card in attacking_stack_objs:
+            await attacking_card.when_attacking_effect()
 
     # TODO: Check for blockers, this is complex as needs to determine when an opponent digimon has gained blocker
     async def attack_strategy(self, ws):
@@ -91,10 +109,8 @@ class BeelzemonXBot(Bot):
             digimon_index = self.digimon_of_level_in_battle_area(5)
         if not digimon_index:
             return False
-        self.attack_with_digimon(ws, digimon_index)
-        card_obj = self.card_factory.get_card(self.game['player2Digi'][digimon_index][-1]['uniqueCardNumber'])
-        # TODO: Need to consider inherited effects and strategy for triggers
-        await card_obj.when_attacking_effect()
+        await self.attack_with_digimon(ws, digimon_index)
+        await self.when_attacking_effects_strategy()
 
     # TODO: More clever choice of Beelzemon to evolve to
     async def st14_02_impmon_strategy(self, ws, digimon_index):
@@ -292,7 +308,6 @@ class BeelzemonXBot(Bot):
 
     async def main_phase_strategy(self, ws):
         print([c['name'] for c in self.game['player2Hand']])
-        await self.promote_strategy(ws)
         await self.prepare_rookies(ws)
         some_action = True
         while(self.game['memory'] >= 0 and some_action):
@@ -311,7 +326,8 @@ class BeelzemonXBot(Bot):
     async def turn(self, ws):
         if not self.first_turn:
             # Unsuspend phase
-            await self.unsuspend_all(ws)
+            if self.any_suspended_card_on_field():
+                await self.unsuspend_all(ws)
             await self.update_phase(ws)
 
             # Draw phase
