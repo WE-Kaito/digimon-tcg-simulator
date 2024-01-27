@@ -15,3 +15,7 @@ class Cheater():
             return
         self.bot.game['player2Hand'].append(self.bot.game['player2DeckField'].pop(card_index))
         await self.bot.update_game(ws)
+    
+    async def trash_all_cards_from_hand(self, ws):
+        for i in range(len(self.bot.game['player2Hand'])):
+            await self.bot.trash_card_from_hand(ws, 0)

@@ -299,7 +299,7 @@ class Bot(ABC):
             card = self.game['player2Hand'][i]
             if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
                 return i
-        return False
+        return -1
     
     def card_on_battle_area(self, unique_card_number, card_name):
         for i in range(len(self.game['player2Digi'])):
@@ -307,7 +307,7 @@ class Bot(ABC):
                 card = self.game['player2Digi'][i][-1]
                 if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
                     return i
-        return False
+        return -1
     
     def card_on_battle_area_with_name(self, card_name):
         for i in range(len(self.game['player2Digi'])):
@@ -315,21 +315,21 @@ class Bot(ABC):
                 card = self.game['player2Digi'][i][-1]
                 if card['name'] == card_name:
                     return i
-        return False
+        return -1
     
     def card_in_trash(self, unique_card_number, card_name):
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
             if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
                 return i
-        return False
+        return -1
     
     def card_has_name_in_trash(self, name):
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
             if card['name'] == name:
                 return i
-        return False
+        return -1
 
     def digivolution_cost(self, card):
         # EX2-039 Impmon card does not contain digivolution cost information
@@ -344,14 +344,14 @@ class Bot(ABC):
             card = self.game['player2Hand'][i]
             if card['cardType'] == 'Digimon' and card['level'] == level:
                 return i
-        return False
+        return -1
 
     def card_of_type_in_hand(self, type):
         for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
             if card['cardType'] == type:
                 return i
-        return False
+        return -1
 
     def digimon_of_level_in_battle_area(self, level):
         for i in range(len(self.game['player2Digi'])):
@@ -359,7 +359,7 @@ class Bot(ABC):
                 card = self.game['player2Digi'][i][-1]
                 if card['cardType'] == 'Digimon' and card['level'] == level:
                     return i
-        return False
+        return -1
     
     def no_digimon_in_battle_area(self):
         for digi in self.game['player2Digi']:
@@ -527,7 +527,6 @@ class Bot(ABC):
                     starting_game += message.removeprefix('[DISTRIBUTE_CARDS]:')
                 else:
                     if starting_game != '':
-                        print('START!')
                         self.initialize_game(json.loads(starting_game))
                         if not done_mulligan:
                             if self.mulligan_strategy():
