@@ -155,7 +155,7 @@ class Bot(ABC):
     
     async def update_phase(self, ws):
         await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
-        await ws.send(f"{self.game_name}:/playNextPhasedSfx:{self.opponent}")
+        await ws.send(f"{self.game_name}:/playNextPhaseSfx:{self.opponent}")
     
     async def pass_turn(self, ws):
         await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
@@ -229,6 +229,10 @@ class Bot(ABC):
                 fr = 'myDeckField'
             if to.startswith('myDeckField'):
                 to = 'myDeckField'
+            if fr.startswith('myTrash'):
+                fr = 'myTrash'
+            if to.startswith('myTrash'):
+                to = 'myTrash'
             
             await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
             await self.field_update(ws, card_name, fr, to)
@@ -331,6 +335,7 @@ class Bot(ABC):
         # EX2-039 Impmon card does not contain digivolution cost information
         if card['uniqueCardNumber'] == 'EX2-039':
             return 0
+        print(card)
         print(card['digivolveConditions'])
         return card['digivolveConditions'][0]['cost']
 
@@ -532,6 +537,8 @@ class Bot(ABC):
                                 await self.send_game_chat_message(ws, "I keep my hand")
                             await self.send_player_ready(ws)
                             done_mulligan = True
+                        ### TODO: Improve game initialization
+                        starting_game = ''
                 if message.startswith('[STARTING_PLAYER]:'):
                     starting_player = message.removeprefix('[STARTING_PLAYER]:')
                     if starting_player == self.username:

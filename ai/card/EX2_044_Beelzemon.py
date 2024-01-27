@@ -19,7 +19,7 @@ class EX2_044_Beelzemon(Card):
         for i in range(3):
             if len(self.bot.game['player2DeckField']) > 0:
                 time.sleep(0.3)
-                trashed_cards.append(self.bot.trash_top_card_of_deck(ws))
+                trashed_cards.append(await self.bot.trash_top_card_of_deck(ws))
         for trashed_card in trashed_card:
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'])
             await card_obj.when_trashed_effect(ws)

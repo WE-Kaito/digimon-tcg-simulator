@@ -23,4 +23,4 @@ class ST14_07_Baalmon(Card):
         for trashed_card in trashed_cards:
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'])
             await card_obj.when_trashed_effect(ws)
-        self.bot.effects['endOfOpponentTurnEffects']['player2Digi'][self.extra_args['digimon_index']].append(self.on_deletion_effect(ws, self.extra_args['digimon_index']))
+        self.bot.effects['endOfOpponentTurnEffects']['player2Digi'][self.extra_args['digimon_index']].append(lambda: self.on_deletion_effect(ws, self.extra_args['digimon_index']))

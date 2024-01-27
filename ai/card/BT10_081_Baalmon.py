@@ -3,8 +3,9 @@ from card.Card import Card
 
 class BT10_081_Baalmon(Card):
 
-    def __init__(self, bot):
+    def __init__(self, bot, **kwargs):
         self.bot = bot
+        self.extra_args = kwargs
 
     ## TODO: Can target strategy to 
     async def when_attacking_effect(self, ws):

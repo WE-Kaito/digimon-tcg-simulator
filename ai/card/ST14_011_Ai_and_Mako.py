@@ -7,6 +7,7 @@ class ST14_011_Ai_and_Mako(Card):
 
     def __init__(self, bot, **kwargs):
         self.bot = bot
+        self.extra_args = kwargs
 
     async def on_play_effect(self, ws):
         await self.bot.reveal_top_from_deck(ws, 4)

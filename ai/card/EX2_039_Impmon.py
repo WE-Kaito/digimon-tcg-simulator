@@ -5,8 +5,9 @@ from card.Card import Card
 
 class EX2_039_Impmon(Card):
 
-    def __init__(self, bot):
+    def __init__(self, bot, **kwargs):
         self.bot = bot
+        self.extra_args = kwargs
 
     async def put_cards_to_bottom_of_deck(self, ws):
         time.sleep(2)
@@ -19,9 +20,9 @@ class EX2_039_Impmon(Card):
         for i in range(3):
             if len(self.bot.game['player2DeckField']) > 0:
                 time.sleep(0.3)
-                trashed_cards.append(self.bot.trash_top_card_of_deck(ws))
-        for trashed_card in trashed_card:
-            card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'])
+                trashed_cards.append(await self.bot.trash_top_card_of_deck(ws))
+        for i in range(len(trashed_cards)):
+            card_obj = self.bot.card_factory.get_card(trashed_cards[i]['uniqueCardNumber'], trash_index=i)
             await card_obj.when_trashed_effect(ws)
 
     async def on_play_effect(self, ws):

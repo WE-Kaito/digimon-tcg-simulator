@@ -71,7 +71,7 @@ class BeelzemonXBot(Bot):
                     ws, 'Digi', beelzemon_on_field_index, 'Hand',
                     beelzemon_x_antibody_in_hand_index, 1
                 )
-                digivolution_card_obj = self.card_factory.get_card(self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['uniqueCardNumber'])
+                digivolution_card_obj = self.card_factory.get_card(self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['uniqueCardNumber'], digimon_index=beelzemon_on_field_index)
                 await digivolution_card_obj.when_digivolving_effect(ws)
 
         for digimon_index in range(len(self.game['player2Digi'])):
@@ -86,17 +86,17 @@ class BeelzemonXBot(Bot):
                             ws, 'Digi', digimon_index, 'Hand',
                             digivolution_index, self.digivolution_cost(digivolution_card)
                         )
-                        digivolution_card_obj = self.card_factory.get_card(digivolution_card['uniqueCardNumber'])
+                        digivolution_card_obj = self.card_factory.get_card(digivolution_card['uniqueCardNumber'], digimon_index=digimon_index)
                         await digivolution_card_obj.when_digivolving_effect(ws)
                         return True
         return False
     
-    async def when_attacking_effects_strategy(self, digimon_index):
+    async def when_attacking_effects_strategy(self, ws, digimon_index):
         preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
-        attacking_stack_objs = [(c['uniqueCardNumber'], CardFactory.get_card(c['uniqueCardNumber'])) for c in self.game['player2Digi'][digimon_index]]
+        attacking_stack_objs = [(c['uniqueCardNumber'], self.card_factory.get_card(c['uniqueCardNumber'])) for c in self.game['player2Digi'][digimon_index]]
         attacking_stack_objs.sort(key=lambda x:preferred_trigger_order.index(x[0]))
         for attacking_card in attacking_stack_objs:
-            await attacking_card.when_attacking_effect()
+            await attacking_card.when_attacking_effect(ws)
 
     # TODO: Check for blockers, this is complex as needs to determine when an opponent digimon has gained blocker
     async def attack_strategy(self, ws):
@@ -110,7 +110,7 @@ class BeelzemonXBot(Bot):
         if not digimon_index:
             return False
         await self.attack_with_digimon(ws, digimon_index)
-        await self.when_attacking_effects_strategy()
+        await self.when_attacking_effects_strategy(ws, digimon_index)
 
     # TODO: More clever choice of Beelzemon to evolve to
     async def st14_02_impmon_strategy(self, ws, digimon_index):
@@ -120,6 +120,8 @@ class BeelzemonXBot(Bot):
                 ws, 'Digi', digimon_index, 'Trash',
                 card_in_trash_index, 4
             )
+            digivolution_card_obj = self.card_factory.get_card(self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'], digimon_index=digimon_index)
+            await digivolution_card_obj.when_digivolving_effect(ws)
             return
         card_in_trash_index = self.card_in_trash('EX2-044', 'Beelzemon')
         if card_in_trash_index:
@@ -127,6 +129,9 @@ class BeelzemonXBot(Bot):
                 ws, 'Digi', digimon_index, 'Trash',
                 card_in_trash_index, 4
             )
+            digivolution_card_obj = self.card_factory.get_card(self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'], digimon_index=digimon_index)
+            await digivolution_card_obj.when_digivolving_effect(ws)
+            
 
     ## TODO: Currently only searching for Beelzemons. Can make strategy to help avoid bricking.
     async def bt12_073_impmon_x_antibody_strategy(self, ws):
@@ -333,18 +338,19 @@ class BeelzemonXBot(Bot):
             # Draw phase
             await self.draw(ws, 1)
             await self.update_phase(ws)
+
         
         # Breeding phase
         await self.breeding_phase_strategy(ws)
         await self.update_phase(ws)
 
-        # Cheat for testing
         cheater = Cheater(self)
         await cheater.get_card_from_deck_in_hand(ws, 'BT12-073', 'Impmon (X Antibody)')
         await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
 
         # Main phase
         await self.main_phase_strategy(ws)
+
 
         # End turn
         await self.end_turn(ws)

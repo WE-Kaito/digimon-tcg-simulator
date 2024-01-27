@@ -7,6 +7,7 @@ class BT12_110_Seventh_Full_Cluster(Card):
 
     def __init__(self, bot, **kwargs):
         self.bot = bot
+        self.extra_args = kwargs
 
     async def delete_opponent_digimon_lowest_level(self, ws):
         opponent_digimons = []

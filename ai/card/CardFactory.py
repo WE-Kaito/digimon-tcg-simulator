@@ -17,7 +17,7 @@ from card.EX2_071_Death_Slinger import EX2_071_Death_Slinger
 
 class CardFactory():
 
-    def __init__(self, bot):
+    def __init__(self, bot, **kwargs):
         self.cards =  {
             'BT2-068': BT2_068_Impmon,
             'BT10-081': BT10_081_Baalmon,
@@ -38,5 +38,5 @@ class CardFactory():
         }
         self.bot = bot
     
-    def get_card(self, unique_card_number):
-        return self.cards[unique_card_number](self.bot)
+    def get_card(self, unique_card_number, **kwargs):
+        return self.cards[unique_card_number](self.bot, **kwargs)
