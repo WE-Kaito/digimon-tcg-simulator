@@ -608,9 +608,15 @@ export const useGame = create<State>((set, get) => ({
 
     getOpponentReady: () => get().opponentReady,
 
-    getDigimonNumber: (location) => (get()[location as keyof State] as CardTypeGame[])[0].cardNumber,
+    getDigimonNumber: (location) => {
+        const locationState = (get()[location as keyof State] as CardTypeGame[]);
+        return locationState[locationState.length -1].cardNumber;
+    },
 
-    getCardType: (location) => (get()[location as keyof State] as CardTypeGame[])[0].cardType,
+    getCardType: (location) => {
+        const locationState = (get()[location as keyof State] as CardTypeGame[]);
+        return locationState[locationState.length -1].cardType;
+    },
 
     getPhase: () => get().phase,
 
