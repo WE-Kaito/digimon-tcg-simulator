@@ -7,11 +7,15 @@ import {getCardSize, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
+import cardBack from "../assets/cardBack.jpg";
+import Lottie from "lottie-react";
+import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
+import targetAnimation from "../assets/lotties/target-animation.json";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
     location: string,
-    sendUpdate?: () => void
+    sendTiltCard?: (cardId: string, location: string) => void,
     sendSfx?: (sfx: string) => void,
     index?: number,
     draggedCards?: CardTypeGame[],
@@ -28,7 +32,7 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
 export default function Card({
                                  card,
                                  location,
-                                 sendUpdate,
+                                 sendTiltCard,
                                  sendSfx,
                                  index,
                                  draggedCards,
@@ -44,7 +48,16 @@ export default function Card({
     const addCardToDeck = useStore((state) => state.addCardToDeck);
     const opponentReady = useGame((state) => state.opponentReady);
     const hoverCard = useStore((state) => state.hoverCard)
+    const cardIdWithEffect = useGame((state) => state.cardIdWithEffect);
+    const getIsCardEffect = useGame((state) => state.getIsCardEffect);
+    const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
+    const getIsCardTarget = useGame((state) => state.getIsCardTarget);
+
     const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
+    const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
+
+    const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
+    const [renderTargetAnimation, setRenderTargetAnimation] = useState(false);
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
@@ -95,11 +108,14 @@ export default function Card({
         if (canDropToStackBottom && !canDrop) setCanDropToStackBottom(false)
     }, [canDrop, canDropToStackBottom, setCanDropToStackBottom]);
 
+    useEffect(() => setRenderEffectAnimation(getIsCardEffect(card.id)), [cardIdWithEffect])
+    useEffect(() => setRenderTargetAnimation(getIsCardTarget(card.id)), [cardIdWithTarget])
+
     function handleTiltCard() {
-        if (["myReveal", "opponentReveal", "myBreedingArea"].includes(location)) return;
+        if (["myReveal", "opponentReveal", "myBreedingArea", "deck", "fetchedData"].includes(location)) return;
         if (card !== locationCards[locationCards.length - 1] && card.cardType !== "Tamer") return;
-        sendSfx && tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx, sendSfx);
-        sendUpdate?.();
+        sendSfx && tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx);
+        sendTiltCard?.(card.id, location);
     }
 
     function handleClick() {
@@ -108,7 +124,7 @@ export default function Card({
             playPlaceCardSfx();
 
             if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
-            && card.id === selectedCard?.id) handleTiltCard(); // 'double click' on mobile
+                && card.id === selectedCard?.id) handleTiltCard(); // 'double click' on mobile
         } else selectCard(card);
     }
 
@@ -124,6 +140,14 @@ export default function Card({
                     onMouseLeave={() => setHoverCard(null)}
                     src={stackIcon} alt={"stack"}
                 />}
+            {renderEffectAnimation &&
+                <CardAnimationContainer style={{ overflow: "hidden", transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"}}>
+                    <Lottie animationData={activateEffectAnimation} loop={true}/>
+                </CardAnimationContainer>}
+            {renderTargetAnimation &&
+                <CardAnimationContainer >
+                    <Lottie animationData={targetAnimation} loop={true} />
+                </CardAnimationContainer>}
             <StyledImage
                 ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
                 onClick={(e) => {
@@ -135,12 +159,17 @@ export default function Card({
                 onMouseOver={() => setHoverCard(card)}
                 onMouseLeave={() => setHoverCard(null)}
                 alt={card.name + " " + card.uniqueCardNumber}
-                src={card.imgUrl}
+                src={cardImageUrl}
                 isDragging={isDragging || dragStackEffect}
                 location={location}
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+                activeEffect={renderEffectAnimation}
+                targeted={renderTargetAnimation}
                 title={topCardInfo(card as CardTypeGame, location, locationCards)}
-                onError={() => setImageError?.(true)}
+                onError={() => {
+                    setImageError?.(true);
+                    setCardImageUrl(cardBack);
+                }}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
@@ -149,8 +178,10 @@ export default function Card({
 
 type StyledImageProps = {
     isDragging: boolean,
-    location: string
-    isTilted: boolean
+    location: string,
+    isTilted: boolean,
+    activeEffect: boolean,
+    targeted?: boolean,
 }
 
 const StyledImage = styled.img<StyledImageProps>`
@@ -162,11 +193,24 @@ const StyledImage = styled.img<StyledImageProps>`
   opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
   filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
   transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
-  animation: ${({isTilted}) => (isTilted ? "pulsate 5s ease-in-out infinite" : "")};
+  animation: ${({
+                  isTilted,
+                  activeEffect,
+                  targeted
+                }) => (targeted ? "target-pulsate 0.95s ease-in-out infinite" : activeEffect ? "effect 0.85s ease-in-out infinite" : isTilted ? "pulsate 5s ease-in-out infinite" : "")};
 
   &:hover {
     filter: drop-shadow(0 0 1.5px ghostwhite) ${({isTilted}) => (isTilted ? "brightness(0.5)" : "")};
     transform: scale(1.1) ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
+  }
+
+  @keyframes effect {
+    0%, 40%, 100% {
+      filter: drop-shadow(0 0 0px #004567) brightness(0.9) saturate(1.3);
+    }
+    70% {
+      filter: drop-shadow(0 0 4px #0fe3b1) brightness(0.9) saturate(1.3);
+    }
   }
 
   @keyframes pulsate {
@@ -177,6 +221,16 @@ const StyledImage = styled.img<StyledImageProps>`
       filter: drop-shadow(0 0 4px #ff2190) brightness(0.65) saturate(1.5);
     }
   }
+
+  @keyframes target-pulsate {
+    0%, 30%, 100% {
+      filter: drop-shadow(0 0 0px rgba(171, 138, 31, 0.25)) brightness(0.7) saturate(0.8);
+    }
+    70% {
+      filter: drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1);
+    }
+  }
+
   @media (min-width: 500px) {
     min-width: 85px;
   }
@@ -224,4 +278,14 @@ const DTSBZone = styled.div<{ isOver: boolean }>`
   background: rgba(236, 148, 241, ${({isOver}) => (isOver ? "0.25" : "0")});
   border-radius: 5px;
   transition: all 0.15s ease-in-out;
+`;
+
+export const CardAnimationContainer = styled.div`
+display: flex;
+align-items: center;
+justify-content: center;
+position: absolute;
+top: 20px;
+z-index: 10;
+  pointer-events: none;
 `;

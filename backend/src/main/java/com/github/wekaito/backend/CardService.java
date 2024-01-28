@@ -46,14 +46,12 @@ public class CardService {
                     .build())
             .build();
 
-
     @PostConstruct
     public void init() {
         fetchCards();
     }
 
-    @Scheduled(fixedRate = 43200000)
-        // 12 hours
+    @Scheduled(fixedRate = 10800000) // 3 hours
     void fetchCards() {
         String responseBody = webClient.get()
                 .uri("assets/cardlists/PreparedDigimonCardsENG.json")

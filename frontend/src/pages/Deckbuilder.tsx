@@ -67,8 +67,8 @@ export default function Deckbuilder() {
 
                 <CardImageContainer >
                 <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
-                           alt={selectedCard?.name ?? "Card"}/>
-                    <CardNumberSpan>{selectedCard?.cardNumber}</CardNumberSpan>
+                           alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
+                    <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>
 
             </OuterContainer>

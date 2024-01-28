@@ -40,7 +40,6 @@ export default function EditDeck() {
         fetchCards();
         filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false);
         setDeckName(nameOfDeckToEdit);
-        return;
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 
     const mobileSize = window.innerWidth < 500;
@@ -92,7 +91,7 @@ export default function EditDeck() {
 
                 <CardImageContainer>
                 <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
-                           alt={selectedCard?.name ?? "Card"}/>
+                           alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
                     <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>
             </OuterContainer>

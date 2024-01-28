@@ -2,26 +2,27 @@ import styled from "@emotion/styled";
 import {useGame} from "../../hooks/useGame.ts";
 import {playDrawCardSfx} from "../../utils/sound.ts";
 import {convertForLog} from "../../utils/functions.ts";
+import {SendToDeckFunction} from "../../utils/types.ts";
 
 type DeckMoodleProps = {
     cardToSend: {id: string, location:string},
-    sendUpdate: () => void,
+    sendCardToDeck: SendToDeckFunction,
     to: string,
     setMoodle: (isOpen: boolean) => void,
     sendChatMessage: (message: string) => void,
 }
 
-export default function DeckMoodle({cardToSend, sendUpdate, to, setMoodle, sendChatMessage} : DeckMoodleProps) {
+export default function DeckMoodle({cardToSend, sendCardToDeck, to, setMoodle, sendChatMessage} : DeckMoodleProps) {
 
-    const sendCardToDeck = useGame((state) => state.sendCardToDeck);
+    const cardToDeck = useGame((state) => state.cardToDeck);
     // @ts-ignore
     const cardName = useGame((state) => state[cardToSend.location as keyof typeof state].find(card => card.id === cardToSend.id)?.name);
     const hiddenMove = cardToSend.location === "myHand" && (to === "myDeckField" || to === "mySecurity");
 
     const handleClick = (topOrBottom: "Top" | "Bottom") => {
         sendChatMessage(`[FIELD_UPDATE]≔【${hiddenMove ? "???" : cardName}】﹕${convertForLog(cardToSend.location)} ➟ ${convertForLog(to)} ${topOrBottom}`);
-        sendCardToDeck(topOrBottom, cardToSend, to);
-        sendUpdate();
+        cardToDeck(topOrBottom, cardToSend.id, cardToSend.location, to);
+        sendCardToDeck(topOrBottom, cardToSend.id, cardToSend.location, to);
         setMoodle(false);
         playDrawCardSfx();
     }

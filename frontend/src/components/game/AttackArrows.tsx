@@ -5,13 +5,15 @@ import Arrow, {DIRECTION, HEAD} from "react-arrows";
 type Props = {
     fromOpponent: boolean,
     from: string,
-    to: string
+    to: string,
+    isEffect: boolean
 }
 
-export default function AttackArrows({fromOpponent, from, to}: Props) {
+export default function AttackArrows({fromOpponent, from, to, isEffect}: Props) {
 
         return <StyledArrow
             fromOpponent={fromOpponent}
+            isEffect={isEffect}
             from={{
                 direction: fromOpponent ? DIRECTION.BOTTOM : DIRECTION.TOP,
                 node: () => document.getElementById(from),
@@ -25,11 +27,11 @@ export default function AttackArrows({fromOpponent, from, to}: Props) {
             head={HEAD.NONE}/>
 }
 
-const StyledArrow = styled(Arrow)<{fromOpponent: boolean}>`
+const StyledArrow = styled(Arrow)<{fromOpponent: boolean, isEffect: boolean}>`
   position: relative;
   pointer-events: none;
-  stroke: ${({fromOpponent}) => fromOpponent ? "crimson" : "#007fff"};
-  fill: ${({fromOpponent}) => fromOpponent ? "crimson" : "#007fff"};
+  stroke: ${({fromOpponent, isEffect}) => fromOpponent ? (isEffect ? "#ECAA4D" : "crimson") : (isEffect ? "aquamarine" : "#007fff")};
+  fill: ${({fromOpponent, isEffect}) => fromOpponent ? (isEffect ? "#ECAA4D" : "crimson") :  (isEffect ? "aquamarine" : "#007fff")};
   filter: drop-shadow(0 0 3px ${({fromOpponent}) => fromOpponent ? "crimson" : "#007fff"});
   stroke-linecap: round;
   transform: scale(0.95);
@@ -37,7 +39,7 @@ const StyledArrow = styled(Arrow)<{fromOpponent: boolean}>`
 
   path {
     fill: transparent;
-    stroke-dasharray: 0;
+    stroke-dasharray: ${({isEffect}) => isEffect ? 15 : 0};
     stroke-width: 10px;
   }
 

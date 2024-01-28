@@ -12,7 +12,7 @@ export default function FetchCard({card}: { card: CardTypeWithId }) {
     const [imageError, setImageError] = useState(false);
 
     return (
-        !imageError
+        !imageError || card.cardNumber === card.uniqueCardNumber
             ? <div style={{ position: "relative", height: "fit-content", width: "fit-content" }}>
                 <Card key={card.uniqueCardNumber} card={card} location={"fetchedData"} setImageError={setImageError}/>
                 {card.restriction_en === "Restricted to 1" && <RestrictedIcon color={card.color.includes("Red") ? "warning" : "error"} fontSize={"large"} sx={{background: "rgba(8,8,8,0.5)", borderRadius: "5px", position: "absolute", bottom: 8, right: 3, pointerEvents: "none"}}/>}

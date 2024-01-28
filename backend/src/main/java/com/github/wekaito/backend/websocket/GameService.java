@@ -166,11 +166,23 @@ public class GameService extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, roomMessage);
 
-        if (roomMessage.startsWith("/moveCard:")) handleSingleUpdate(gameRoom, roomMessage);
+        if (roomMessage.startsWith("/moveCard:")) handleSendMoveCard(gameRoom, roomMessage);
+
+        if(roomMessage.startsWith("/moveCardToDeck:")) handleSendMoveToDeck(gameRoom, roomMessage);
+
+        if(roomMessage.startsWith("/tiltCard:")) handleTiltCard(gameRoom, roomMessage);
+
+        if(roomMessage.startsWith("/createToken:")) handleCreateToken(gameRoom, roomMessage);
 
         if (roomMessage.startsWith("/updateMemory:")) handleMemoryUpdate(gameRoom, roomMessage);
 
         if (roomMessage.startsWith("/chatMessage:")) sendChatMessage(gameRoom, userName, roomMessage);
+
+        if(roomMessage.startsWith("/updateAttackPhase:")) handleAttackPhaseUpdate(gameRoom, roomMessage);
+
+        if(roomMessage.startsWith("/activateEffect:")) handleActivateEffect(gameRoom, roomMessage);
+
+        if(roomMessage.startsWith("/activateTarget:")) handleActivateTarget(gameRoom, roomMessage);
 
         else {
             String[] roomMessageParts = roomMessage.split(":", 2);
@@ -208,7 +220,10 @@ public class GameService extends TextWebSocketHandler {
             case "/playPassTurnSfx" -> "[PASS_TURN_SFX]";
             case "/playerReady" -> "[PLAYER_READY]";
             case "/updatePhase" -> "[UPDATE_PHASE]";
-            case "/updateAttackPhase" -> "[OPPONENT_ATTACK_PHASE]";
+            case "/unsuspendAll" -> "[UNSUSPEND_ALL]";
+            case "/resolveCounterBlock" -> "[RESOLVE_COUNTER_BLOCK]";
+            case "/loaded" -> "[LOADED]";
+            case "/online" -> "[OPPONENT_ONLINE]";
             default -> "";
         };
     }
@@ -316,7 +331,6 @@ public class GameService extends TextWebSocketHandler {
 
             int end = Math.min(length, i + chunkSize);
             String chunk = newGameJson.substring(i, end);
-            System.out.println(chunk);
             for (WebSocketSession s : gameRoom) {
                 sendTextMessage(s, "[DISTRIBUTE_CARDS]:" + chunk);
             }
@@ -381,19 +395,20 @@ public class GameService extends TextWebSocketHandler {
     }
 
     void handleAttack(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
-        if (roomMessage.split(":").length < 4) return;
-        String[] parts = roomMessage.split(":", 4);
+        if (roomMessage.split(":").length < 5) return;
+        String[] parts = roomMessage.split(":", 5);
         String opponentName = parts[1];
         String from = parts[2];
         String to = parts[3];
-        sendMessageToOpponent(gameRoom, opponentName, "[ATTACK]:" + getPosition(from) + ":" + getPosition(to));
+        String isEffect = parts[4];
+        sendMessageToOpponent(gameRoom, opponentName, "[ATTACK]:" + getPosition(from) + ":" + getPosition(to) + ":" + isEffect);
     }
 
     private String getPosition(String fromTo) {
         return positionMap.getOrDefault(fromTo, "");
     }
 
-    void handleSingleUpdate(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+    void handleSendMoveCard(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
         if (roomMessage.split(":").length < 5) return;
         String[] parts = roomMessage.split(":", 5);
         String opponentName = parts[1];
@@ -401,6 +416,58 @@ public class GameService extends TextWebSocketHandler {
         String from = parts[3];
         String to = parts[4];
         sendMessageToOpponent(gameRoom, opponentName, "[MOVE_CARD]:" + cardId + ":" + getPosition(from) + ":" + getPosition(to));
+    }
+
+    void handleSendMoveToDeck(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 6) return;
+        String[] parts = roomMessage.split(":", 6);
+        String opponentName = parts[1];
+        String topOrBottom = parts[2];
+        String cardId = parts[3];
+        String from = parts[4];
+        String to = parts[5];
+        sendMessageToOpponent(gameRoom, opponentName, "[MOVE_CARD_TO_DECK]:" + topOrBottom + ":" + cardId + ":" + getPosition(from) + ":" + getPosition(to));
+    }
+
+    void handleTiltCard(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 4) return;
+        String[] parts = roomMessage.split(":", 4);
+        String opponentName = parts[1];
+        String cardId = parts[2];
+        String location = parts[3];
+        sendMessageToOpponent(gameRoom, opponentName, "[TILT_CARD]:" + cardId + ":" + getPosition(location));
+    }
+
+    void handleCreateToken(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 3) return;
+        String[] parts = roomMessage.split(":", 3);
+        String opponentName = parts[1];
+        String newCardId = parts[2];
+        sendMessageToOpponent(gameRoom, opponentName, "[CREATE_TOKEN]:" + newCardId);
+    }
+
+    void handleAttackPhaseUpdate(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 3) return;
+        String[] parts = roomMessage.split(":", 3);
+        String opponentName = parts[1];
+        String attackPhase = parts[2];
+        sendMessageToOpponent(gameRoom, opponentName, "[OPPONENT_ATTACK_PHASE]:" + attackPhase);
+    }
+
+    void handleActivateEffect(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 3) return;
+        String[] parts = roomMessage.split(":", 3);
+        String opponentName = parts[1];
+        String id = parts[2];
+        sendMessageToOpponent(gameRoom, opponentName, "[ACTIVATE_EFFECT]:" + id);
+    }
+
+    void handleActivateTarget(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 3) return;
+        String[] parts = roomMessage.split(":", 3);
+        String opponentName = parts[1];
+        String id = parts[2];
+        sendMessageToOpponent(gameRoom, opponentName, "[ACTIVATE_TARGET]:" + id);
     }
 
     void handleMemoryUpdate(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {

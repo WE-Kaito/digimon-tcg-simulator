@@ -53,6 +53,9 @@ export default function CardDetails() {
     const [highlightedDNADigivolution, setHighlightedDNADigivolution] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [selectedTab, setSelectedTab] = useState("effects");
 
+    const notHybrid =!HybridNames.includes(String(name));
+    const notXAntibody = !["BT9-109", "EX5-070"].includes(String(cardNumber));
+
     useEffect(() => {
         setHighlightedMainEffect(HighlightedKeyWords({text: mainEffectText}));
         setHighlightedInheritedEffect(HighlightedKeyWords({text: inheritedEffectText}));
@@ -103,7 +106,7 @@ export default function CardDetails() {
                         </EffectCard>}
 
                         {inheritedEffectText && <EffectCard
-                            variant={(cardType === "Option" || (cardType === "Tamer" && !HybridNames.includes(String(name)))) ? "security" : "inherited"}>
+                            variant={((cardType === "Option" && notXAntibody)|| (cardType === "Tamer" && notHybrid)) ? "security" : "inherited"}>
                             {highlightedInheritedEffect}
                         </EffectCard>}
 
