@@ -957,6 +957,12 @@ export default function Game({user}: { user: string }) {
         };
     }, []);
 
+    const [cardImageUrl, setCardImageUrl] = useState((hoverCard ?? selectedCard)?.imgUrl ?? cardBack);
+
+    useEffect(() => {
+        setCardImageUrl((hoverCard ?? selectedCard)?.imgUrl ?? cardBack);
+    }, [selectedCard, hoverCard]);
+
     function handleSurrender() {
         websocket.sendMessage(`${gameId}:/surrender:${opponentName}`);
         setSurrenderOpen(false);
@@ -1259,8 +1265,9 @@ export default function Game({user}: { user: string }) {
 
                         <CardImage onClick={() => selectCard(null)}
                                    onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                                   src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
-                                   alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
+                                   src={cardImageUrl}
+                                   alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}
+                                   onError={() => setCardImageUrl(cardBack)}/>
 
                         <CardDetails/>
                     </InfoContainer>
