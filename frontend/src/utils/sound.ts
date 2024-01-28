@@ -16,6 +16,9 @@ import invitationSfx from "../assets/sounds/invite.mp3";
 import nextPhaseSfx from "../assets/sounds/next-phase.mp3";
 import passTurnSfx from "../assets/sounds/pass-turn.mp3";
 import nextAttackPhaseSfx from "../assets/sounds/next-attack-phase.mp3";
+import effectAttackSfx from "../assets/sounds/effect-attack.mp3";
+import activateEffect from "../assets/sounds/activate-effect.mp3";
+import targetCardSfx from "../assets/sounds/effect-target.mp3";
 
 export function playDrawCardSfx() {
     const audio = new Audio(drawCardSfx);
@@ -125,5 +128,23 @@ export const playPassTurnSfx = () => {
 export const playNextAttackPhaseSfx = () => {
     const audio = new Audio(nextAttackPhaseSfx);
     audio.volume = 1;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playEffectAttackSfx = () => {
+    const audio = new Audio(effectAttackSfx);
+    audio.volume = 0.1;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playActivateEffectSfx = () => {
+    const audio = new Audio(activateEffect);
+    audio.volume = 0.55;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playTargetCardSfx = () => {
+    const audio = new Audio(targetCardSfx);
+    audio.volume = 0.25;
     audio.addEventListener('canplay', () => audio.play());
 }

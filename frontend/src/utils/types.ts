@@ -165,6 +165,12 @@ export type HandCardContextMenuItemProps = {
     index: number;
 }
 
+export type FieldCardContextMenuItemProps = HandCardContextMenuItemProps & {
+    location: string;
+    id: string;
+    name: string;
+}
+
 export type Picture = {
     name: string,
     imagePath: string,
@@ -238,3 +244,7 @@ export type BoardState = {
     opponentDigi15: CardTypeGame[],
     opponentBreedingArea: CardTypeGame[],
 }
+
+export type SendToDeckFunction = (topOrBottom: "Top" | "Bottom", cardId: string, cardLocation: string, to: string) => void;
+
+export type Side = "my" | "opponent";

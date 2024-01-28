@@ -129,15 +129,14 @@ const Workaround = styled.div`
 `;
 
 const MuiColorInputStyled = styled(MuiColorInput)`
-  & .css-1q6at85-MuiInputBase-root-MuiOutlinedInput-root {
+  & .MuiOutlinedInput-root {
     height: 32px;
     width: 120px;
-    border: 1px solid #1d7dfc!important;
-    color: ghostwhite!important;
+    border: 1px solid #1d7dfc !important;
+    color: ghostwhite !important;
     padding: 4px;
     transform: translateY(-3px);
   }
-  
 `
 
 const Container = styled.div`

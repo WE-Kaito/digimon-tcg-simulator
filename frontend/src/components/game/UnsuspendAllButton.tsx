@@ -6,10 +6,10 @@ import styled from "@emotion/styled";
 
 type Props = {
     sendSfx: (sfx: string) => void;
-    sendUpdate: () => void;
+    sendUnsuspendAll: () => void;
 }
 
-export default function UnsuspendAllButton({sendSfx, sendUpdate} : Props) {
+export default function UnsuspendAllButton({sendSfx, sendUnsuspendAll} : Props) {
 
     const phase = useGame(state => state.phase);
     const isMyTurn = useGame(state => state.isMyTurn);
@@ -23,8 +23,8 @@ export default function UnsuspendAllButton({sendSfx, sendUpdate} : Props) {
     return (
         <Container>
             <div onClick={() => {
-                unsuspendAll();
-                sendUpdate();
+                unsuspendAll("my");
+                sendUnsuspendAll();
                 playUnsuspendSfx();
                 sendSfx("playUnsuspendSfx");
             }}>

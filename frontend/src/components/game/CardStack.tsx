@@ -1,18 +1,35 @@
-import {CardTypeGame} from "../../utils/types.ts";
+import {CardTypeGame, FieldCardContextMenuItemProps} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import Card from "../Card.tsx";
 import {Fade} from "react-awesome-reveal";
 import {useState} from "react";
+import {ItemParams, ShowContextMenuParams} from "react-contexify";
+
+type MakeOptional<Type, Key extends keyof Type> = Omit<Type, Key> &
+    Partial<Pick<Type, Key>>;
+
 type CardStackProps = {
     cards: CardTypeGame[],
     location: string,
-    sendUpdate?: () => void,
+    sendTiltCard?: (cardId: string, location: string) => void,
     sendSfx?: (sfx: string) => void
     opponentSide?: boolean
-    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void
+    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void,
+    activateEffectAnimation?: ({props}: ItemParams<FieldCardContextMenuItemProps>) => void,
+    showFieldCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void
+    showOpponentCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void
 }
 
-export default function CardStack({cards, location, sendUpdate, sendSfx, opponentSide, handleDropToStackBottom}: CardStackProps) {
+export default function CardStack({
+                                      cards,
+                                      location,
+                                      sendTiltCard,
+                                      sendSfx,
+                                      opponentSide,
+                                      handleDropToStackBottom,
+                                      showFieldCardMenu,
+                                      showOpponentCardMenu
+                                  }: CardStackProps) {
 
     const [draggedCards, setDraggedCards] = useState<CardTypeGame[]>([]);
 
@@ -24,15 +41,23 @@ export default function CardStack({cards, location, sendUpdate, sendSfx, opponen
 
                 ? cards?.map((card, index) =>
                     <TamerCardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                                   id={index === cards.length - 1 ? location : ""}>
-                        <Card card={card} location={location} sendSfx={sendSfx} sendUpdate={sendUpdate}
+                                        id={index === cards.length - 1 ? location : ""}
+                                        onContextMenu={(e) => showFieldCardMenu?.({
+                                            event: e,
+                                            props: {index, location, id: card.id, name: card.name}
+                                        })}>
+                        <Card card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
                               index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
-                              handleDropToStackBottom={handleDropToStackBottom} />
+                              handleDropToStackBottom={handleDropToStackBottom}/>
                     </TamerCardContainer>)
 
                 : cards?.map((card, index) =>
                     <TamerCardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                                   id={index === cards.length - 1 ? location : ""}>
+                                        id={index === cards.length - 1 ? location : ""}
+                                        onContextMenu={(e) => showOpponentCardMenu?.({
+                                            event: e,
+                                            props: {index, location, id: card.id, name: card.name}
+                                        })}>
                         <Fade direction={"down"} duration={500}>
                             <Card card={card} location={location} index={index}/>
                         </Fade></TamerCardContainer>)
@@ -45,15 +70,23 @@ export default function CardStack({cards, location, sendUpdate, sendSfx, opponen
 
             ? cards?.map((card, index) =>
                 <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                               id={index === cards.length - 1 ? location : ""}>
-                    <Card card={card} location={location} sendSfx={sendSfx} sendUpdate={sendUpdate}
+                               id={index === cards.length - 1 ? location : ""}
+                               onContextMenu={(e) => showFieldCardMenu?.({
+                                   event: e,
+                                   props: {index, location, id: card.id, name: card.name}
+                               })}>
+                    <Card card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
                           index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
-                          handleDropToStackBottom={handleDropToStackBottom} />
+                          handleDropToStackBottom={handleDropToStackBottom}/>
                 </CardContainer>)
 
             : cards?.map((card, index) =>
                 <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                               id={index === cards.length - 1 ? location : ""}>
+                               id={index === cards.length - 1 ? location : ""}
+                               onContextMenu={(e) => showOpponentCardMenu?.({
+                                   event: e,
+                                   props: {index, location, id: card.id, name: card.name}
+                               })}>
                     <Fade direction={"down"} duration={500}>
                         <Card card={card} location={location}/>
                     </Fade></CardContainer>)
@@ -70,7 +103,7 @@ const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
 
 const TamerCardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
   position: absolute;
-  bottom: ${({cardIndex, cardCount}) =>  (cardIndex * (cardCount > 4 ? 10 : 20)) + 5}px;
+  bottom: ${({cardIndex, cardCount}) => (cardIndex * (cardCount > 4 ? 10 : 20)) + 5}px;
   left: 50%;
   transform: translateX(-50%);
 `;

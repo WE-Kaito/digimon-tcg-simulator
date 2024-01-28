@@ -2,19 +2,19 @@ import styled from "@emotion/styled";
 import {AttackPhase} from "../../utils/types.ts";
 
 type Props = {
-    nextAttackPhase?: () => void;
+    resolveAttack?: () => void;
     myAttackPhase?: false | AttackPhase;
     opponentAttackPhase?: false | AttackPhase;
 }
 
-export default function AttackResolveButton({ nextAttackPhase, myAttackPhase, opponentAttackPhase } : Props) {
+export default function AttackResolveButton({ resolveAttack, myAttackPhase, opponentAttackPhase } : Props) {
 
     const isDisabled = (opponentAttackPhase && opponentAttackPhase !== AttackPhase.COUNTER_BLOCK) || (myAttackPhase && myAttackPhase === AttackPhase.COUNTER_BLOCK);
 
     return (
         <div style={{position: "absolute", left: 25, top: opponentAttackPhase ? 125 : 280, width: "fit-content"}}>
             <StyledButton opponentAttack={myAttackPhase === AttackPhase.COUNTER_BLOCK || (!!opponentAttackPhase && opponentAttackPhase !== AttackPhase.COUNTER_BLOCK)}
-                          style={{pointerEvents: isDisabled ? "none" : "unset"}} onClick={nextAttackPhase}>
+                          style={{pointerEvents: isDisabled ? "none" : "unset"}} onClick={resolveAttack}>
                 {myAttackPhase ?? opponentAttackPhase}
             </StyledButton>
         </div>

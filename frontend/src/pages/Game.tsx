@@ -4,7 +4,7 @@ import {
     AttackPhase,
     CardTypeGame,
     DraggedItem,
-    DraggedStack,
+    DraggedStack, FieldCardContextMenuItemProps,
     HandCardContextMenuItemProps,
     Phase,
     Player
@@ -18,13 +18,13 @@ import {
     getOpponentSfx
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderRestartWindow from "../components/game/SurrenderRestartWindow.tsx";
 import EndWindow from "../components/game/EndWindow.tsx";
 import deckBack from "../assets/deckBack.png";
 import eggBack from "../assets/eggBack.jpg";
-import Card from "../components/Card.tsx";
+import Card, {CardAnimationContainer} from "../components/Card.tsx";
 import cardBack from "../assets/cardBack.jpg";
 import noiseBG from "../assets/noiseBG.png";
 import hackmonButton from "../assets/hackmon-chip.png";
@@ -39,9 +39,11 @@ import MemoryBar from "../components/game/MemoryBar.tsx";
 import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import {
+    playActivateEffectSfx,
     playAttackSfx,
     playCardToHandSfx,
     playDrawCardSfx,
+    playEffectAttackSfx,
     playLoadMemorybarSfx,
     playNextAttackPhaseSfx,
     playNextPhaseSfx,
@@ -50,6 +52,7 @@ import {
     playSecurityRevealSfx,
     playShuffleDeckSfx,
     playStartSfx,
+    playSuspendSfx, playTargetCardSfx,
     playTrashCardSfx,
     playUnsuspendSfx
 } from "../utils/sound.ts";
@@ -63,18 +66,21 @@ import {
     AddModerator as RecoveryIcon,
     BackHand as HandIcon,
     Curtains as RevealIcon,
-    DeleteForever as TrashIcon,
+    DeleteForever as TrashIcon, LocalFireDepartment as EffectIcon,
     Pageview as OpenSecurityIcon,
     RestoreFromTrash as TrashFromDeckIcon,
     ShuffleOnOutlined as ShuffleIcon,
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon,
+    AdsClick as TargetIcon
 } from '@mui/icons-material';
 import {blue, deepOrange} from "@mui/material/colors";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
 import RestartPrompt from "../components/game/RestartPrompt.tsx";
 import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
+import {uid} from "uid";
+import targetAnimation from "../assets/lotties/target-animation.json";
 
 export default function Game({user}: { user: string }) {
 
@@ -92,9 +98,14 @@ export default function Game({user}: { user: string }) {
     const getMyFieldAsString = useGame((state) => state.getMyFieldAsString);
     const updateOpponentField = useGame((state) => state.updateOpponentField);
     const shuffleSecurity = useGame((state) => state.shuffleSecurity);
+    const setCardIdWithEffect = useGame((state) => state.setCardIdWithEffect);
+    const setCardIdWithTarget = useGame((state) => state.setCardIdWithTarget);
+    const getIsCardTarget = useGame((state) => state.getIsCardTarget);
 
     const moveCard = useGame((state) => state.moveCard);
-    const sendCardToDeck = useGame((state) => state.sendCardToDeck);
+    const cardToDeck = useGame((state) => state.cardToDeck);
+    const tiltCard = useGame((state) => state.tiltCard);
+    const unsuspendAll = useGame((state) => state.unsuspendAll);
 
     const myAvatar = useGame((state) => state.myAvatar);
     const opponentAvatar = useGame((state) => state.opponentAvatar);
@@ -129,6 +140,11 @@ export default function Game({user}: { user: string }) {
     });
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
     const [userCount, setUserCount] = useState<number>(0);
+    const [isEffect, setIsEffect] = useState<boolean>(false);
+    const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [isOpponentOnline, setIsOpponentOnline] = useState(true);
+    const [resetOnlineCheck, setResetOnlineCheck] = useState<(() => void) | null>(null);
 
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
@@ -143,10 +159,14 @@ export default function Game({user}: { user: string }) {
     const nextPhaseTrigger = useGame(state => state.nextPhaseTrigger);
     const areCardsSuspended = useGame(state => state.areCardsSuspended);
     const getDigimonNumber = useGame(state => state.getDigimonNumber);
+    const getCardType = useGame(state => state.getCardType);
+
+    const isLoading = useGame(state => state.isLoading);
+    const setIsLoading = useGame(state => state.setIsLoading);
 
     const isMyTurn = useGame(state => state.isMyTurn);
     const getIsMyTurn = useGame(state => state.getIsMyTurn);
-    const phase = useGame(state => state.phase);
+    const getPhase = useGame(state => state.getPhase);
     const setMyAttackPhase = useGame(state => state.setMyAttackPhase);
     const setOpponentAttackPhase = useGame(state => state.setOpponentAttackPhase);
     const myAttackPhase = useGame(state => state.myAttackPhase);
@@ -238,7 +258,7 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
                 const chunk = event.data.substring("[UPDATE_OPPONENT]:".length);
-                updateOpponentField(chunk);
+                updateOpponentField(chunk, sendLoaded);
                 return;
             }
 
@@ -261,6 +281,8 @@ export default function Game({user}: { user: string }) {
                     playLoadMemorybarSfx();
                     interval = setInterval(() => {
                         websocket.sendMessage("/heartbeat/")
+                        websocket.sendMessage(`${gameId}:/online:${opponentName}`);
+                        setIsOnline(navigator.onLine)
                     }, 5000);
                 }, 5500);
                 return () => {
@@ -275,9 +297,40 @@ export default function Game({user}: { user: string }) {
                 const from = parts[1];
                 const to = parts[2];
                 moveCard(cardId, from, to);
-                console.log("move card", cardId, from, to);
                 if (!getOpponentReady()) setOpponentReady(true);
                 if (!gameHasStarted && getOpponentReady() && !mulliganAllowed) setGameHasStarted(true);
+                return;
+            }
+
+            if (event.data.startsWith("[MOVE_CARD_TO_DECK]:")) {
+                const parts = event.data.substring("[MOVE_CARD_TO_DECK]:".length).split(":");
+                const topOrBottom = parts[0];
+                const cardId = parts[1];
+                const from = parts[2];
+                const to = parts[3];
+                cardToDeck(topOrBottom, cardId, from, to);
+                return;
+            }
+
+            if (event.data.startsWith("[TILT_CARD]:")) {
+                const parts = event.data.substring("[TILT_CARD]:".length).split(":");
+                const cardId = parts[0];
+                const location = parts[1];
+                tiltCard(cardId, location, playSuspendSfx, playUnsuspendSfx);
+                return;
+            }
+
+            if (event.data.startsWith("[ACTIVATE_EFFECT]:")) {
+                const id = event.data.substring("[ACTIVATE_EFFECT]:".length);
+                setCardIdWithEffect(id);
+                clearCardEffect();
+                return;
+            }
+
+            if (event.data.startsWith("[ACTIVATE_TARGET]:")) {
+                const id = event.data.substring("[ACTIVATE_TARGET]:".length);
+                setCardIdWithTarget(id);
+                clearCardTarget();
                 return;
             }
 
@@ -327,11 +380,19 @@ export default function Game({user}: { user: string }) {
                         setIsMySecondRowVisible(true);
                         break;
                 }
+                clearAttackAnimation?.();
                 setArrowFrom(parts[0]);
                 setArrowTo(parts[1]);
+                setIsEffect(parts[2] === "true");
                 setAttackFromOpponent(true);
                 setShowAttackArrow(true);
-                endAttackAnimation();
+                endAttackAnimation(parts[2] === "true");
+                return;
+            }
+
+            if (event.data.startsWith("[OPPONENT_ATTACK_PHASE]:")) {
+                const attackPhase: AttackPhase | "false" = event.data.substring("[OPPONENT_ATTACK_PHASE]:".length);
+                setOpponentAttackPhase(attackPhase === "false" ? false : attackPhase);
                 return;
             }
 
@@ -341,7 +402,18 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
+            if (event.data.startsWith("[CREATE_TOKEN]:")) {
+                const id = event.data.substring("[CREATE_TOKEN]:".length);
+                createToken("opponent", id)
+                return;
+            }
+
             switch (event.data) {
+                case "[OPPONENT_ONLINE]": {
+                    resetOnlineCheck?.();
+                    opponentOnlineCheck?.();
+                    break;
+                }
                 case "[SURRENDER]": {
                     setEndScreen(true);
                     setEndScreenMessage("🎉 Your opponent surrendered!");
@@ -383,16 +455,20 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[UPDATE_PHASE]"): {
-                    if (phase === Phase.MAIN) setTurn(true);
+                    if (getPhase() === Phase.MAIN) setTurn(true);
                     setPhase();
                     break;
                 }
-                case ("[OPPONENT_ATTACK_PHASE]"): {
-                    if (myAttackPhase === AttackPhase.COUNTER_BLOCK){
-                        nextAttackPhase("me");
-                    } else {
-                        nextAttackPhase("opponent");
-                    }
+                case ("[RESOLVE_COUNTER_BLOCK]"): {
+                    setMyAttackPhase(AttackPhase.RESOLVE_ATTACK);
+                    break;
+                }
+                case ("[UNSUSPEND_ALL]"): {
+                    unsuspendAll("opponent");
+                    break;
+                }
+                case ("[LOADED]"): {
+                    setIsLoading(false);
                     break;
                 }
                 default: {
@@ -409,16 +485,53 @@ export default function Game({user}: { user: string }) {
         }
     }
 
-    function endAttackAnimation() {
-        playAttackSfx();
-        const timeout = setTimeout(() => {
+    const timeoutRef = useRef<number | null>(null);
+
+    const endAttackAnimation = useCallback((effect?: boolean) => {
+        if (effect) playEffectAttackSfx();
+        else playAttackSfx();
+
+        const cancelAttackAnimation = () => {
+            if (timeoutRef.current !== null) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+
             setShowAttackArrow(false);
             setArrowFrom('');
             setArrowTo('');
             setAttackFromOpponent(false);
+            setIsEffect(false);
+        };
+
+        timeoutRef.current = setTimeout(() => {
+            setShowAttackArrow(false);
+            setArrowFrom('');
+            setArrowTo('');
+            setAttackFromOpponent(false);
+            setIsEffect(false);
         }, 3500);
-        return () => clearTimeout(timeout);
-    }
+
+        setClearAttackAnimation(() => cancelAttackAnimation);
+    }, [setShowAttackArrow]);
+
+    const onlineCheckTimeoutRef = useRef<number | null>(null);
+
+    const opponentOnlineCheck = useCallback(() => {
+        const cancelSetOffline = () => {
+            if (onlineCheckTimeoutRef.current !== null) {
+                clearTimeout(onlineCheckTimeoutRef.current);
+                onlineCheckTimeoutRef.current = null;
+            }
+            setIsOpponentOnline(true);
+        };
+
+        onlineCheckTimeoutRef.current = setTimeout(() => {
+            setIsOpponentOnline(false);
+        }, 8000);
+
+        setResetOnlineCheck(() => cancelSetOffline);
+    }, [setIsOpponentOnline]);
 
     function chunkString(str: string, size: number): string[] {
         const chunks = [];
@@ -437,15 +550,24 @@ export default function Game({user}: { user: string }) {
             }, 10);
             timeoutIds.push(timeoutId);
         }
-
-        return () => {
-            timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
-        };
+        return () => timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
     }
 
-    function sendSingleUpdate(cardId: string, from: string, to: string) {
+    function sendMoveCard(cardId: string, from: string, to: string) {
         websocket.sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
         if (!gameHasStarted && getOpponentReady() && !mulliganAllowed) setGameHasStarted(true);
+    }
+
+    function sendCardToDeck(topOrBottom: "Top" | "Bottom", cardId: string, location: string, to: string) {
+        websocket.sendMessage(`${gameId}:/moveCardToDeck:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}`);
+    }
+
+    function sendTiltCard(cardId: string, location: string) {
+        websocket.sendMessage(`${gameId}:/tiltCard:${opponentName}:${cardId}:${location}`);
+    }
+
+    function sendUnsuspendAll() {
+        websocket.sendMessage(`${gameId}:/unsuspendAll:${opponentName}`);
     }
 
     function sendMemoryUpdate(memory: number) {
@@ -456,10 +578,6 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/updatePhase:${opponentName}`);
     }
 
-    function sendAttackPhaseUpdate() {
-        websocket.sendMessage(`${gameId}:/updateAttackPhase:${opponentName}`);
-    }
-
     function sendSfx(sfx: string) {
         const timeout = setTimeout(() => {
             websocket.sendMessage(gameId + ":/" + sfx + ":" + opponentName);
@@ -468,45 +586,45 @@ export default function Game({user}: { user: string }) {
     }
 
     function handleDropToOpponent(from: string, to: string) {
+        if (!from || !to) return;
+
         const myTurn = getIsMyTurn();
-        console.log("in Drop: ", myTurn)
-        if (!myTurn || !from || !to) return;
+        const type = getCardType(from);
+        const effect = !myTurn || type !== "Digimon" || getPhase() !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
+        const attackAllowed = areCardsSuspended(from) || (getDigimonNumber(from) === "BT12-083")
 
-        if (!areCardsSuspended(from) && (getDigimonNumber(from) !== "BT12-083")){
-            setMyAttackPhase(AttackPhase.SUSPEND_FIRST);
-            setTimeout(() => setMyAttackPhase(false), 1000);
-            return;
-        }
-
+        clearAttackAnimation?.();
         setArrowFrom(from);
         setArrowTo(to);
+        if (effect) setIsEffect(true);
         setShowAttackArrow(true);
-        websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to);
-        endAttackAnimation();
-        nextAttackPhase("me");
+        websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to + ":" + effect);
+        endAttackAnimation(effect);
+        if (!effect && attackAllowed) resolveMyAttack(true);
     }
 
     function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
         if (!cardId || !from || !to) return;
         moveCard(cardId, from, to);
-        sendSingleUpdate(cardId, from, to);
+        sendMoveCard(cardId, from, to);
         to === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();
         sendSfx(to === "myTrash" ? "playTrashCardSfx" : "playPlaceCardSfx");
-        if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
+        const hiddenCardInfo = (from === "myHand" && ["myTrash", "myDeckField"].includes(to)) ? ` (…${cardId.slice(-5)})` : "";
+        if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
     function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
         if (!cardId || !from || !to) return;
-        sendCardToDeck("Top", {id: cardId, location: from}, to);
+        cardToDeck("Top", cardId, from, to);
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
         sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
         if (from === to) {
             const timer = setTimeout(() => {
-                sendUpdate();
+                sendCardToDeck("Top", cardId, from, to);
             }, 30);
             return () => clearTimeout(timer);
-        } else sendUpdate();
+        } else sendCardToDeck("Top", cardId, from, to);
     }
 
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
@@ -536,9 +654,9 @@ export default function Game({user}: { user: string }) {
     function dropCardToDeck(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
         const {id, location, type, name} = item;
         if (type === "Token") return;
-        sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? "???" : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck ${topOrBottom}`);
-        sendCardToDeck(topOrBottom, {id, location}, "myDeckField");
-        sendUpdate();
+        sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? `???…${id.slice(-5)}` : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck ${topOrBottom}`);
+        cardToDeck(topOrBottom, id, location, "myDeckField");
+        sendCardToDeck(topOrBottom, id, location, "myDeckField");
         playDrawCardSfx();
     }
 
@@ -627,7 +745,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => {
             const {id, location, name} = item;
             moveCard(id, location, 'myHand');
-            sendSingleUpdate(id, location, 'myHand');
+            sendMoveCard(id, location, 'myHand');
             playCardToHandSfx();
             if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
         }
@@ -760,7 +878,7 @@ export default function Game({user}: { user: string }) {
         drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentSecurity')
     }));
 
-    function nextPhase(){
+    function nextPhase() {
         const timer = setTimeout(() => {
             setPhase();
             sendPhaseUpdate();
@@ -770,40 +888,38 @@ export default function Game({user}: { user: string }) {
         return () => clearTimeout(timer);
     }
 
-    function nextAttackPhase(attacker: "me" | "opponent"){
-        if (attacker === "me"){
-            const attackPhase = getMyAttackPhase();
-            if (!attackPhase) {
-                setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
-                sendAttackPhaseUpdate();
-                return;
-            }
-            if (attackPhase === AttackPhase.WHEN_ATTACKING) setMyAttackPhase(AttackPhase.COUNTER_BLOCK);
-            if (attackPhase === AttackPhase.COUNTER_BLOCK) {
-                setMyAttackPhase(AttackPhase.RESOLVE_ATTACK);
-                return;
-            }
-            if (attackPhase === AttackPhase.RESOLVE_ATTACK) setMyAttackPhase(false);
-            sendAttackPhaseUpdate();
-            playNextAttackPhaseSfx();
-            sendSfx("playNextAttackPhaseSfx");
-
-        } else {
-            const attackPhase = getOpponentAttackPhase();
-            if (!attackPhase) {
-                setOpponentAttackPhase(AttackPhase.WHEN_ATTACKING);
-                return;
-            }
-            if (attackPhase === AttackPhase.WHEN_ATTACKING) setOpponentAttackPhase(AttackPhase.COUNTER_BLOCK);
-            if (attackPhase === AttackPhase.COUNTER_BLOCK) {
-                setOpponentAttackPhase(AttackPhase.RESOLVE_ATTACK);
-                sendAttackPhaseUpdate();
-                sendSfx("playNextAttackPhaseSfx");
-            }
-            if (attackPhase === AttackPhase.RESOLVE_ATTACK) setOpponentAttackPhase(false);
-            playNextAttackPhaseSfx();
+    function resolveMyAttack(initiating?: boolean) {
+        if (initiating && getPhase() === Phase.MAIN) {
+            setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
+            sendAttackPhaseUpdate(AttackPhase.WHEN_ATTACKING);
         }
+        else {
+            const attackPhase = getMyAttackPhase();
+            if (!attackPhase) return;
+            else if (attackPhase === AttackPhase.WHEN_ATTACKING) {
+                setMyAttackPhase(AttackPhase.COUNTER_BLOCK);
+                sendAttackPhaseUpdate(AttackPhase.COUNTER_BLOCK);
+            }
+            else if (attackPhase === AttackPhase.RESOLVE_ATTACK) {
+                setMyAttackPhase(false);
+                sendAttackPhaseUpdate(false);
+            }
+        }
+        playNextAttackPhaseSfx();
+        sendSfx("playNextAttackPhaseSfx");
     }
+
+    function sendAttackPhaseUpdate(attackPhase: AttackPhase | false) {
+        websocket.sendMessage(`${gameId}:/updateAttackPhase:${opponentName}:${attackPhase}`);
+    }
+
+    function resolveOpponentAttack() {
+        setOpponentAttackPhase(AttackPhase.RESOLVE_ATTACK);
+        websocket.sendMessage(`${gameId}:/resolveCounterBlock:${opponentName}`);
+        playNextAttackPhaseSfx();
+        sendSfx("playNextAttackPhaseSfx");
+    }
+
 
     useEffect(() => {
         setEggDeckMoodle(false);
@@ -827,7 +943,18 @@ export default function Game({user}: { user: string }) {
 
     useEffect(() => {
         clearBoard();
-        return () => clearInterval(interval);
+        const handleOnlineStatusChange = () => {
+            setIsOnline(navigator.onLine);
+        };
+
+        window.addEventListener('online', handleOnlineStatusChange);
+        window.addEventListener('offline', handleOnlineStatusChange);
+
+        return () => {
+            window.removeEventListener('online', handleOnlineStatusChange);
+            window.removeEventListener('offline', handleOnlineStatusChange);
+            clearInterval(interval);
+        };
     }, []);
 
     function handleSurrender() {
@@ -846,6 +973,10 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/restartGame:${restartOrder === "first" ? user : opponentName}`);
     }
 
+    function sendLoaded() {
+        websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
+    }
+
     function moveDeckCard(to: string, bottomCard?: boolean) {
         if (!getOpponentReady()) return;
         const cardId = (bottomCard) ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;
@@ -854,7 +985,7 @@ export default function Game({user}: { user: string }) {
                 playRevealCardSfx();
                 sendSfx("playRevealSfx");
                 moveCard(cardId, "myDeckField", "myReveal");
-                sendSingleUpdate(cardId, "myDeckField", "myReveal");
+                sendMoveCard(cardId, "myDeckField", "myReveal");
                 if (bottomCard) sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
                 else sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
                 break;
@@ -862,21 +993,21 @@ export default function Game({user}: { user: string }) {
                 playTrashCardSfx();
                 sendSfx("playTrashCardSfx");
                 moveCard(cardId, "myDeckField", "myTrash");
-                sendSingleUpdate(cardId, "myDeckField", "myTrash");
+                sendMoveCard(cardId, "myDeckField", "myTrash");
                 sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
                 break;
             case "mySecurity":
                 playUnsuspendSfx();
                 sendSfx("playUnsuspendCardSfx");
-                sendCardToDeck("Top", {id: cardId, location: "myDeckField"}, "mySecurity");
-                sendUpdate();
+                cardToDeck("Top", cardId, "myDeckField", "mySecurity");
+                sendCardToDeck("Top", cardId, "myDeckField", "mySecurity");
                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
                 break;
             case "myHand":
                 playDrawCardSfx();
                 sendSfx("playDrawCardSfx");
                 moveCard(cardId, "myDeckField", "myHand");
-                sendSingleUpdate(cardId, "myDeckField", "myHand");
+                sendMoveCard(cardId, "myDeckField", "myHand");
                 sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
                 break;
         }
@@ -920,7 +1051,7 @@ export default function Game({user}: { user: string }) {
         if (!getOpponentReady()) return;
         const card = (bottomCard) ? mySecurity[mySecurity.length - 1] : mySecurity[0];
         moveCard(card.id, "mySecurity", to);
-        sendSingleUpdate(card.id, "mySecurity", to);
+        sendMoveCard(card.id, "mySecurity", to);
         sendChatMessage(`[FIELD_UPDATE]≔【${to === "myHand" ? "Card" : card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`);
         sendSfx((to === "myHand") ? "playDrawCardSfx" : "playTrashCardSfx");
         (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
@@ -929,15 +1060,50 @@ export default function Game({user}: { user: string }) {
     function revealHandCard({props}: ItemParams<HandCardContextMenuItemProps>) {
         if (!getOpponentReady() || props === undefined) return;
         moveCard(myHand[props.index].id, "myHand", "myReveal");
-        sendSingleUpdate(myHand[props.index].id, "myHand", "myReveal");
+        sendMoveCard(myHand[props.index].id, "myHand", "myReveal");
         sendChatMessage(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕Hand ➟ Reveal`);
         playRevealCardSfx();
         sendSfx("playRevealSfx");
     }
 
+    function activateEffectAnimation({props}: ItemParams<FieldCardContextMenuItemProps>) {
+        if (!getOpponentReady() || props === undefined) return;
+        const {name, id, location} = props;
+        websocket.sendMessage(`${gameId}:/activateEffect:${opponentName}:${id}`);
+        sendChatMessage(`[FIELD_UPDATE]≔【${name} at ${convertForLog(location)}】﹕✨ EFFECT ✨`);
+        setCardIdWithEffect(id);
+        playActivateEffectSfx();
+        sendSfx("playActivateEffectSfx");
+        clearCardEffect();
+    }
+
+    function clearCardEffect(){
+        const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
+        return () => clearTimeout(timer);
+    }
+
+    function activateTargetAnimation({props}: ItemParams<FieldCardContextMenuItemProps>) {
+        if (!getOpponentReady() || props === undefined) return;
+        const {name, id, location} = props;
+        const logName = (location === "opponentHand") ? `ID: …${id.slice(-5)}` : name;
+        websocket.sendMessage(`${gameId}:/activateTarget:${opponentName}:${id}`);
+        sendChatMessage(`[FIELD_UPDATE]≔【${logName} at ${convertForLog(location)}】﹕💥 TARGETED 💥`);
+        setCardIdWithTarget(id);
+        playTargetCardSfx();
+        sendSfx("playTargetCardSfx");
+        clearCardTarget();
+    }
+
+    function clearCardTarget(){
+        const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
+        return () => clearTimeout(timer);
+    }
+
     const {show: showDeckMenu} = useContextMenu({id: "deckMenu"});
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
+    const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
+    const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
     const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott"]
@@ -946,6 +1112,7 @@ export default function Game({user}: { user: string }) {
     const color3 = localStorage.getItem("color3") ?? "#522170";
 
     return <>
+        {isLoading && <div style={{position: "absolute", height: "100vh", width: "100vw", left:0, top:0, zIndex: 99999, cursor: "wait"}}></div>}
         <BackGroundPattern/>
         <BackGround color1={color1} color2={color2} color3={color3}/>
 
@@ -967,7 +1134,15 @@ export default function Game({user}: { user: string }) {
                 </Menu>
 
                 <Menu id={"handCardMenu"} theme="dark">
-                    <Item onClick={revealHandCard}>Reveal Card <RevealIcon/></Item>
+                    <Item onClick={revealHandCard}><div style={{ display: "flex", justifyContent: "space-between", width: "100%"}}><span>Reveal Card</span> <RevealIcon/></div></Item>
+                </Menu>
+
+                <Menu id={"fieldCardMenu"} theme="dark">
+                    <Item onClick={activateEffectAnimation}><div style={{ display: "flex", justifyContent: "space-between", width: "100%"}}><span>Activate Effect</span> <EffectIcon/></div></Item>
+                </Menu>
+
+                <Menu id={"opponentCardMenu"} theme="dark">
+                    <Item onClick={activateTargetAnimation}><div style={{ display: "flex", justifyContent: "space-between", width: "100%"}}><span>Target Card</span> <TargetIcon/></div></Item>
                 </Menu>
 
                 <Menu id={"securityStackMenu"} theme="dark">
@@ -1012,21 +1187,29 @@ export default function Game({user}: { user: string }) {
                 </Menu>}
 
                 {modNames.includes(user) &&
-                    <span style={{position: "absolute", top: 10, left: 25, opacity: 0.5}}>users ingame: {userCount}</span>}
+                    <span style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 25,
+                        opacity: 0.5
+                    }}>users ingame: {userCount}</span>}
 
-                {showAttackArrow && <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo}/>}
+                {showAttackArrow &&
+                    <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo} isEffect={isEffect}/>}
 
                 {surrenderOpen &&
                     <SurrenderRestartWindow setSurrenderOpen={setSurrenderOpen} handleSurrender={handleSurrender}/>}
                 {restartMoodle &&
-                    <SurrenderRestartWindow restartOrder={restartOrder} setRestartMoodle={setRestartMoodle} handleAcceptRestart={acceptRestart}/>}
+                    <SurrenderRestartWindow restartOrder={restartOrder} setRestartMoodle={setRestartMoodle}
+                                            handleAcceptRestart={acceptRestart}/>}
                 {endScreen && <EndWindow message={endScreenMessage}/>}
 
-                {restartPromptModal && <RestartPrompt closeModal={() => setRestartPromptModal(false)} sendRequest={(request: "AsSecond" | "AsFirst") => {
-                    websocket.sendMessage(`${gameId}:/restartRequest${request}:${opponentName}`);
-                    notifyRequestedRestart();
-                    setRestartPromptModal(false);
-                }}/>}
+                {restartPromptModal && <RestartPrompt closeModal={() => setRestartPromptModal(false)}
+                                                      sendRequest={(request: "AsSecond" | "AsFirst") => {
+                                                          websocket.sendMessage(`${gameId}:/restartRequest${request}:${opponentName}`);
+                                                          notifyRequestedRestart();
+                                                          setRestartPromptModal(false);
+                                                      }}/>}
 
                 {showStartingPlayer &&
                     <Fade direction={"right"}
@@ -1035,23 +1218,24 @@ export default function Game({user}: { user: string }) {
 
                 <Wrapper>
 
-                    <UserName>{opponentName}</UserName>
+                    <UserName>{!isOpponentOnline && isOnline &&
+                        <OfflineIcon sx={{transform: "translate(-2px,4px)"}} color={"error"}/>}{opponentName}</UserName>
                     <UserName style={{top: "unset", bottom: -30}}>
-                        {websocket.readyState === 2 && <ConnectingIcon sx={{transform: "translate(-2px,4px)"}} color={"warning"}/>}
-                        {websocket.readyState === 3 && <OfflineIcon sx={{transform: "translate(-2px,4px)"}} color={"error"}/>}
+                        {[0,2,3].includes(websocket.readyState) &&
+                            <ConnectingIcon sx={{transform: "translate(-2px,4px)"}} color={"warning"}/>}
+                        {!isOnline &&
+                            <OfflineIcon sx={{transform: "translate(-2px,4px)"}} color={"error"}/>}
                         {user}
                     </UserName>
 
                     {myReveal.length > 0 &&
                         <RevealContainer style={{top: opponentReveal.length === 0 ? "435px" : "600px"}}>
                             {myReveal?.map((card) =>
-                                <Flip key={card.id}><Card card={card} location="myReveal"
-                                                          sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
+                                <Flip key={card.id}><Card card={card} location="myReveal" sendSfx={sendSfx}/></Flip>)}
                         </RevealContainer>}
                     {opponentReveal.length > 0 && <RevealContainer>
                         {opponentReveal?.map((card) =>
-                            <Flip key={card.id}><Card card={card} location="opponentReveal"
-                                                      sendSfx={sendSfx} sendUpdate={sendUpdate}/></Flip>)}
+                            <Flip key={card.id}><Card card={card} location="opponentReveal" sendSfx={sendSfx}/></Flip>)}
                     </RevealContainer>}
 
                     <InfoContainer>
@@ -1076,7 +1260,7 @@ export default function Game({user}: { user: string }) {
                         <CardImage onClick={() => selectCard(null)}
                                    onContextMenu={(e) => showDetailsImageMenu({event: e})}
                                    src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
-                                   alt={selectedCard?.name ?? "Card"}/>
+                                   alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
 
                         <CardDetails/>
                     </InfoContainer>
@@ -1101,7 +1285,9 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex"}}>
                             <OpponentContainerMain>
 
-                                {!memoryBarLoading && <PhaseIndicator sendPhaseUpdate={sendPhaseUpdate} sendSfx={sendSfx} gameHasStarted={gameHasStarted} />}
+                                {!memoryBarLoading &&
+                                    <PhaseIndicator sendPhaseUpdate={sendPhaseUpdate} sendSfx={sendSfx}
+                                                    gameHasStarted={gameHasStarted}/>}
 
                                 <OpponentDeckContainer>
                                     {opponentSleeve === "Default"
@@ -1130,24 +1316,29 @@ export default function Game({user}: { user: string }) {
 
                                 <OpponentLowerBattleArea>
                                     <BattleArea15 ref={dropToOpponentDigi15} id={"opponentDigi15"}>
-                                        <CardStack cards={opponentDigi15} location={"opponentDigi15"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                        <CardStack cards={opponentDigi15} location={"opponentDigi15"}
+                                                   showOpponentCardMenu={showOpponentCardMenu}
+                                                   opponentSide={true}/>
                                     </BattleArea15>
                                     <BattleArea14 ref={dropToOpponentDigi14} id={"opponentDigi14"}>
-                                        <CardStack cards={opponentDigi14} location={"opponentDigi14"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                        <CardStack cards={opponentDigi14} location={"opponentDigi14"}
+                                                   showOpponentCardMenu={showOpponentCardMenu}
+                                                   opponentSide={true}/>
                                     </BattleArea14>
                                     <BattleArea13 ref={dropToOpponentDigi13} id={"opponentDigi13"}>
-                                        <CardStack cards={opponentDigi13} location={"opponentDigi13"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                        <CardStack cards={opponentDigi13} location={"opponentDigi13"}
+                                                   showOpponentCardMenu={showOpponentCardMenu}
+                                                   opponentSide={true}/>
                                     </BattleArea13>
                                     <BattleArea12 ref={dropToOpponentDigi12} id={"opponentDigi12"}>
-                                        <CardStack cards={opponentDigi12} location={"opponentDigi12"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                        <CardStack cards={opponentDigi12} location={"opponentDigi12"}
+                                                   showOpponentCardMenu={showOpponentCardMenu}
+                                                   opponentSide={true}/>
                                     </BattleArea12>
                                     <BattleArea11 ref={dropToOpponentDigi11} id={"opponentDigi11"}>
-                                        <CardStack cards={opponentDigi11} location={"opponentDigi11"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate} opponentSide={true}/>
+                                        <CardStack cards={opponentDigi11} location={"opponentDigi11"}
+                                                   showOpponentCardMenu={showOpponentCardMenu}
+                                                   opponentSide={true}/>
                                     </BattleArea11>
                                 </OpponentLowerBattleArea>
 
@@ -1155,20 +1346,19 @@ export default function Game({user}: { user: string }) {
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
                                     id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
                                     {isOpponentSecondRowVisible
-                                        ?
-                                        <CardStack cards={opponentDigi10} location={"opponentDigi10"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate} opponentSide={true}/>
-                                        : <CardStack cards={opponentDigi5} location={"opponentDigi5"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                        ? <CardStack cards={opponentDigi10} location={"opponentDigi10"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>
+                                        : <CardStack cards={opponentDigi5} location={"opponentDigi5"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea5>
                                 <BattleArea4
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}
                                     id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi9} location={"opponentDigi9"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>
-                                        : <CardStack cards={opponentDigi4} location={"opponentDigi4"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                        ? <CardStack cards={opponentDigi9} location={"opponentDigi9"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>
+                                        : <CardStack cards={opponentDigi4} location={"opponentDigi4"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea4>
                                 <BattleArea3
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}
@@ -1176,37 +1366,47 @@ export default function Game({user}: { user: string }) {
                                     {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
                                         <FieldSpan>Battle Area</FieldSpan>}
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi8} location={"opponentDigi8"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>
-                                        : <CardStack cards={opponentDigi3} location={"opponentDigi3"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                        ? <CardStack cards={opponentDigi8} location={"opponentDigi8"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>
+                                        : <CardStack cards={opponentDigi3} location={"opponentDigi3"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea3>
                                 <BattleArea2
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}
                                     id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi7} location={"opponentDigi7"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>
-                                        : <CardStack cards={opponentDigi2} location={"opponentDigi2"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                        ? <CardStack cards={opponentDigi7} location={"opponentDigi7"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>
+                                        : <CardStack cards={opponentDigi2} location={"opponentDigi2"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea2>
                                 <BattleArea1
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}
                                     id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi6} location={"opponentDigi6"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>
-                                        : <CardStack cards={opponentDigi1} location={"opponentDigi1"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate} opponentSide={true}/>}
+                                        ? <CardStack cards={opponentDigi6} location={"opponentDigi6"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>
+                                        : <CardStack cards={opponentDigi1} location={"opponentDigi1"} opponentSide={true}
+                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea1>
 
                                 <OpponentHandContainer>
                                     <HandCards cardCount={opponentHand.length}
                                                style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                         {opponentHand.map((card, index) =>
-                                            <HandListItem cardCount={opponentHand.length} cardIndex={index}
-                                                          key={card.id}><OppenentHandCard alt="card"
-                                                                                          src={getSleeve(opponentSleeve)}/>
+                                            <HandListItem cardCount={opponentHand.length} cardIndex={index} key={card.id}
+                                                          onContextMenu={(e) => showOpponentCardMenu?.({
+                                                              event: e,
+                                                              props: {index, location: "opponentHand", id: card.id, name: card.name}
+                                                          })}>
+                                                <div style={{ position: "relative", filter: getIsCardTarget(card.id) ? "drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1)" : "unset"}}>
+                                                {getIsCardTarget(card.id) &&
+                                                    <CardAnimationContainer>
+                                                        <Lottie animationData={targetAnimation} loop={true}/>
+                                                    </CardAnimationContainer>}
+                                                <OppenentHandCard alt="card"
+                                                                  src={getSleeve(opponentSleeve)}/>
+                                            </div>
                                             </HandListItem>)}
                                     </HandCards>
                                     {opponentHand.length > 5 && <MyHandSpan
@@ -1217,7 +1417,8 @@ export default function Game({user}: { user: string }) {
 
                             <OpponentContainerSide>
 
-                                {getMyAttackPhase() && <AttackResolveButton nextAttackPhase={() => nextAttackPhase("me")} myAttackPhase={myAttackPhase} /> }
+                                {getMyAttackPhase() && <AttackResolveButton resolveAttack={() => resolveMyAttack()}
+                                                                            myAttackPhase={myAttackPhase}/>}
 
                                 <EggDeckContainer>
                                     {opponentEggDeck.length !== 0 &&
@@ -1248,7 +1449,8 @@ export default function Game({user}: { user: string }) {
 
                                 <BreedingAreaContainer>
                                     <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
-                                               sendSfx={sendSfx} sendUpdate={sendUpdate} opponentSide={true}/>
+                                               showOpponentCardMenu={showOpponentCardMenu}
+                                               opponentSide={true}/>
                                     {opponentBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                                 </BreedingAreaContainer>
 
@@ -1262,20 +1464,22 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex"}}>
                             <MyContainerSide>
 
-                                {getOpponentAttackPhase() && <AttackResolveButton nextAttackPhase={() => nextAttackPhase("opponent")} opponentAttackPhase={opponentAttackPhase}/>}
+                                {getOpponentAttackPhase() && <AttackResolveButton resolveAttack={resolveOpponentAttack}
+                                                                                  opponentAttackPhase={opponentAttackPhase}/>}
 
-                                <UnsuspendAllButton sendSfx={sendSfx} sendUpdate={sendUpdate}/>
+                                <UnsuspendAllButton sendSfx={sendSfx} sendUnsuspendAll={sendUnsuspendAll}/>
 
                                 <EggDeckContainer ref={dropToEggDeck}>
                                     {eggDeckMoodle &&
-                                        <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"myEggDeck"}
+                                        <DeckMoodle sendCardToDeck={sendCardToDeck} cardToSend={cardToSend}
+                                                    to={"myEggDeck"}
                                                     setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
                                         <EggDeck alt="egg-deck" src={eggBack}
                                                  onClick={() => {
                                                      if (!getOpponentReady()) return;
                                                      moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
-                                                     sendSingleUpdate(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
+                                                     sendMoveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
                                                      playDrawCardSfx();
                                                      sendSfx("playPlaceCardSfx");
                                                      sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
@@ -1285,9 +1489,10 @@ export default function Game({user}: { user: string }) {
                                         <EggDeckSpan>{myEggDeck.length}</EggDeckSpan>}
 
                                     <TokenButton alt="create token" src={hackmonButton} onClick={() => {
-                                        createToken();
+                                        const id = uid();
+                                        createToken("my", id);
                                         playPlaceCardSfx();
-                                        sendUpdate();
+                                        websocket.sendMessage(`${gameId}:/createToken:${opponentName}:${id}`);
                                         sendSfx("playPlaceCardSfx");
                                         sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");
                                     }}/>
@@ -1296,14 +1501,15 @@ export default function Game({user}: { user: string }) {
                                 <SecurityStackContainer ref={dropToSecurity}>
 
                                     {securityMoodle &&
-                                        <DeckMoodle sendUpdate={sendUpdate} cardToSend={cardToSend} to={"mySecurity"}
+                                        <DeckMoodle sendCardToDeck={sendCardToDeck} cardToSend={cardToSend}
+                                                    to={"mySecurity"}
                                                     setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
                                     <SecurityStack>
                                         <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
                                                         id="mySecurity"
                                                         onClick={() => {
                                                             if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                                            sendSingleUpdate(mySecurity[0].id, "mySecurity", "myReveal");
+                                                            sendMoveCard(mySecurity[0].id, "mySecurity", "myReveal");
                                                             playSecurityRevealSfx();
                                                             sendSfx("playSecurityRevealSfx");
                                                             sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
@@ -1313,7 +1519,6 @@ export default function Game({user}: { user: string }) {
                                         <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
                                                              onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
                                     </SecurityStack>
-
 
 
                                     <MySwitchRowButton1 disabled={showAttackArrow}
@@ -1332,43 +1537,48 @@ export default function Game({user}: { user: string }) {
                                              title="Surrender"/>
 
                                 {('ontouchstart' in window && !!navigator.maxTouchPoints) &&
-                                    <div style={{ position: "absolute", display: "flex", gap: 3, top: 130}}>
-                                    <MobileSSButton onClick={() => handleOpenSecurity("onOpen")}>
-                                        <OpenSecurityIcon style={{transform: "translateY(1px)"}} color={"warning"}/>
-                                    </MobileSSButton>
-                                    <MobileSSButton onClick={() => moveSecurityCard("myTrash")}>
-                                <div style={{position: "relative", transform: "translate(-1px, 2px)"}}>
-                                    <TrashIcon color={"error"}/><MiniArrowSpan style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▲</MiniArrowSpan>
-                                </div>
-                            </MobileSSButton>
-                            <MobileSSButton onClick={() => moveSecurityCard("myTrash", true)}>
-                                <div style={{position: "relative", transform: "translate(-1px, 2px)"}}>
-                                    <TrashIcon color={"error"}/><MiniArrowSpan style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▼</MiniArrowSpan>
-                                </div>
-                            </MobileSSButton>
-                            <MobileSSButton onClick={() => moveSecurityCard("myHand")}>
-                                <div style={{position: "relative", marginLeft: 2}}>
-                                    ✋🏻
-                                    <MiniArrowSpanHand style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▲</MiniArrowSpanHand>
-                                </div>
-                            </MobileSSButton>
-                            <MobileSSButton onClick={() => moveSecurityCard("myHand", true)}>
-                                <div style={{position: "relative", marginLeft: 2}}>
-                                    ✋🏻
-                                    <MiniArrowSpanHand style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▼</MiniArrowSpanHand>
-                                </div>
-                            </MobileSSButton>
+                                    <div style={{position: "absolute", display: "flex", gap: 3, top: 130}}>
+                                        <MobileSSButton onClick={() => handleOpenSecurity("onOpen")}>
+                                            <OpenSecurityIcon style={{transform: "translateY(1px)"}} color={"warning"}/>
+                                        </MobileSSButton>
+                                        <MobileSSButton onClick={() => moveSecurityCard("myTrash")}>
+                                            <div style={{position: "relative", transform: "translate(-1px, 2px)"}}>
+                                                <TrashIcon color={"error"}/><MiniArrowSpan
+                                                style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▲</MiniArrowSpan>
+                                            </div>
+                                        </MobileSSButton>
+                                        <MobileSSButton onClick={() => moveSecurityCard("myTrash", true)}>
+                                            <div style={{position: "relative", transform: "translate(-1px, 2px)"}}>
+                                                <TrashIcon color={"error"}/><MiniArrowSpan
+                                                style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▼</MiniArrowSpan>
+                                            </div>
+                                        </MobileSSButton>
+                                        <MobileSSButton onClick={() => moveSecurityCard("myHand")}>
+                                            <div style={{position: "relative", marginLeft: 2}}>
+                                                ✋🏻
+                                                <MiniArrowSpanHand
+                                                    style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▲</MiniArrowSpanHand>
+                                            </div>
+                                        </MobileSSButton>
+                                        <MobileSSButton onClick={() => moveSecurityCard("myHand", true)}>
+                                            <div style={{position: "relative", marginLeft: 2}}>
+                                                ✋🏻
+                                                <MiniArrowSpanHand
+                                                    style={{transform: "translate(-4px, -4px) scale(1.5)"}}>▼</MiniArrowSpanHand>
+                                            </div>
+                                        </MobileSSButton>
 
-                        <MobileSSButton onClick={handleShuffleSecurity}>
-                                <ShuffleIcon sx={{color: blue[400], fontSize: 20}}/>
-                        </MobileSSButton>
+                                        <MobileSSButton onClick={handleShuffleSecurity}>
+                                            <ShuffleIcon sx={{color: blue[400], fontSize: 20}}/>
+                                        </MobileSSButton>
 
-                                </div>
+                                    </div>
                                 }
 
                                 <BreedingAreaContainer ref={dropToBreedingArea}>
                                     {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
-                                                sendUpdate={sendUpdate}/>}
+                                                showFieldCardMenu={showFieldCardMenu}
+                                                sendTiltCard={sendTiltCard}/>}
                                     {myBreedingArea.length === 0 && <FieldSpan>Breeding<br/>Area</FieldSpan>}
                                 </BreedingAreaContainer>
                             </MyContainerSide>
@@ -1404,7 +1614,7 @@ export default function Game({user}: { user: string }) {
                                                   gameHasStarted={gameHasStarted}
                                                   isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                                   onClick={() => {
-                                                      if (phase === Phase.DRAW && isMyTurn) nextPhase();
+                                                      if (getPhase() === Phase.DRAW && isMyTurn) nextPhase();
                                                       moveDeckCard("myHand")
                                                   }}/>
                                         </div>
@@ -1448,21 +1658,25 @@ export default function Game({user}: { user: string }) {
                                              id={getFieldId(false, myDigi1, myDigi6, "myDigi1", "myDigi6")}>
                                     {isMySecondRowVisible
                                         ? <CardStack cards={myDigi6} location={"myDigi6"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>
                                         : <CardStack cards={myDigi1} location={"myDigi1"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>}
                                 </BattleArea1>
                                 <BattleArea2 ref={isMySecondRowVisible ? dropToDigi7 : dropToDigi2}
                                              id={getFieldId(false, myDigi2, myDigi7, "myDigi2", "myDigi7")}>
                                     {isMySecondRowVisible
                                         ? <CardStack cards={myDigi7} location={"myDigi7"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>
                                         : <CardStack cards={myDigi2} location={"myDigi2"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>}
                                 </BattleArea2>
                                 <BattleArea3 ref={isMySecondRowVisible ? dropToDigi8 : dropToDigi3}
                                              id={getFieldId(false, myDigi3, myDigi8, "myDigi3", "myDigi8")}>
@@ -1470,58 +1684,69 @@ export default function Game({user}: { user: string }) {
                                         <FieldSpan>Battle Area</FieldSpan>}
                                     {isMySecondRowVisible
                                         ? <CardStack cards={myDigi8} location={"myDigi8"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>
                                         : <CardStack cards={myDigi3} location={"myDigi3"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>}
                                 </BattleArea3>
                                 <BattleArea4 ref={isMySecondRowVisible ? dropToDigi9 : dropToDigi4}
                                              id={getFieldId(false, myDigi4, myDigi9, "myDigi4", "myDigi9")}>
                                     {isMySecondRowVisible
                                         ? <CardStack cards={myDigi9} location={"myDigi9"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>
                                         : <CardStack cards={myDigi4} location={"myDigi4"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>}
                                 </BattleArea4>
                                 <BattleArea5 ref={isMySecondRowVisible ? dropToDigi10 : dropToDigi5}
                                              id={getFieldId(false, myDigi5, myDigi10, "myDigi5", "myDigi10")}>
                                     {isMySecondRowVisible
                                         ? <CardStack cards={myDigi10} location={"myDigi10"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>
                                         : <CardStack cards={myDigi5} location={"myDigi5"} sendSfx={sendSfx}
-                                                     sendUpdate={sendUpdate}
-                                                     handleDropToStackBottom={handleDropToStackBottom}/>}
+                                                     sendTiltCard={sendTiltCard}
+                                                     handleDropToStackBottom={handleDropToStackBottom}
+                                                     showFieldCardMenu={showFieldCardMenu}/>}
                                 </BattleArea5>
 
                                 <LowerBattleArea>
                                     <BattleArea11 ref={dropToDigi11} id={"myDigi11"}>
                                         <CardStack cards={myDigi11} location={"myDigi11"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate}
-                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                                   sendTiltCard={sendTiltCard}
+                                                   handleDropToStackBottom={handleDropToStackBottom}
+                                                   showFieldCardMenu={showFieldCardMenu}/>
                                     </BattleArea11>
                                     <BattleArea12 ref={dropToDigi12} id={"myDigi12"}>
                                         <CardStack cards={myDigi12} location={"myDigi12"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate}
-                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                                   sendTiltCard={sendTiltCard}
+                                                   handleDropToStackBottom={handleDropToStackBottom}
+                                                   showFieldCardMenu={showFieldCardMenu}/>
                                     </BattleArea12>
                                     <BattleArea13 ref={dropToDigi13} id={"myDigi13"}>
                                         <CardStack cards={myDigi13} location={"myDigi13"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate}
-                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                                   sendTiltCard={sendTiltCard}
+                                                   handleDropToStackBottom={handleDropToStackBottom}
+                                                   showFieldCardMenu={showFieldCardMenu}/>
                                     </BattleArea13>
                                     <BattleArea14 ref={dropToDigi14} id={"myDigi14"}>
                                         <CardStack cards={myDigi14} location={"myDigi14"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate}
-                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                                   sendTiltCard={sendTiltCard}
+                                                   handleDropToStackBottom={handleDropToStackBottom}
+                                                   showFieldCardMenu={showFieldCardMenu}/>
                                     </BattleArea14>
                                     <BattleArea15 ref={dropToDigi15} id={"myDigi15"}>
                                         <CardStack cards={myDigi15} location={"myDigi15"} sendSfx={sendSfx}
-                                                   sendUpdate={sendUpdate}
-                                                   handleDropToStackBottom={handleDropToStackBottom}/>
+                                                   sendTiltCard={sendTiltCard}
+                                                   handleDropToStackBottom={handleDropToStackBottom}
+                                                   showFieldCardMenu={showFieldCardMenu}/>
                                     </BattleArea15>
                                 </LowerBattleArea>
 
@@ -1779,9 +2004,6 @@ const Wrapper = styled.div`
 @container (width <= 1200px) {
     transform: scale(0.5);
 }
-  
-  
-  
 `;
 
 const MiniArrowSpan = styled.span`
@@ -2236,7 +2458,7 @@ export const CardImage = styled.img`
   filter: drop-shadow(0 0 3px #060e18);
   outline: #0c0c0c solid 1px;
   transform: translateY(2px);
-  justify-self:center;
+  justify-self: center;
 `;
 
 const InfoSpan = styled.span`
@@ -2325,7 +2547,7 @@ const StartingName = styled.span`
   }
 `;
 
-const BackGround = styled.div<{color1: string, color2: string, color3:string}>`
+const BackGround = styled.div<{ color1: string, color2: string, color3: string }>`
   position: fixed;
   z-index: -10;
   width: 100vw;

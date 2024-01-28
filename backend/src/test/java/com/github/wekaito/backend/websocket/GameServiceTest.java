@@ -194,28 +194,28 @@ class GameServiceTest {
     @Test
     void testHandleAttack() throws IOException, InterruptedException {
         // GIVEN
-        TextMessage expectedMessage1 = new TextMessage("[ATTACK]:opponentDigi1:myDigi1");
-        TextMessage attackMessage1 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentDigi1");
-        TextMessage expectedMessage2 = new TextMessage("[ATTACK]:opponentDigi2:myDigi2");
-        TextMessage attackMessage2 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi2:opponentDigi2");
-        TextMessage expectedMessage3 = new TextMessage("[ATTACK]:opponentDigi3:myDigi3");
-        TextMessage attackMessage3 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi3:opponentDigi3");
-        TextMessage expectedMessage4 = new TextMessage("[ATTACK]:opponentDigi4:myDigi4");
-        TextMessage attackMessage4 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi4:opponentDigi4");
-        TextMessage expectedMessage5 = new TextMessage("[ATTACK]:opponentDigi5:myDigi5");
-        TextMessage attackMessage5 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi5:opponentDigi5");
-        TextMessage expectedMessage6 = new TextMessage("[ATTACK]:opponentDigi6:myDigi6");
-        TextMessage attackMessage6 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi6:opponentDigi6");
-        TextMessage expectedMessage7 = new TextMessage("[ATTACK]:opponentDigi7:myDigi7");
-        TextMessage attackMessage7 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi7:opponentDigi7");
-        TextMessage expectedMessage8 = new TextMessage("[ATTACK]:opponentDigi8:myDigi8");
-        TextMessage attackMessage8 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi8:opponentDigi8");
-        TextMessage expectedMessage9 = new TextMessage("[ATTACK]:opponentDigi9:myDigi9");
-        TextMessage attackMessage9 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi9:opponentDigi9");
-        TextMessage expectedMessage10 = new TextMessage("[ATTACK]:opponentDigi10:myDigi10");
-        TextMessage attackMessage10 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi10:opponentDigi10");
-        TextMessage expectedMessage11 = new TextMessage("[ATTACK]:opponentDigi1:mySecurity");
-        TextMessage attackMessage11 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentSecurity");
+        TextMessage expectedMessage1 = new TextMessage("[ATTACK]:opponentDigi1:myDigi1:true");
+        TextMessage attackMessage1 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentDigi1:true");
+        TextMessage expectedMessage2 = new TextMessage("[ATTACK]:opponentDigi2:myDigi2:true");
+        TextMessage attackMessage2 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi2:opponentDigi2:true");
+        TextMessage expectedMessage3 = new TextMessage("[ATTACK]:opponentDigi3:myDigi3:true");
+        TextMessage attackMessage3 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi3:opponentDigi3:true");
+        TextMessage expectedMessage4 = new TextMessage("[ATTACK]:opponentDigi4:myDigi4:true");
+        TextMessage attackMessage4 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi4:opponentDigi4:true");
+        TextMessage expectedMessage5 = new TextMessage("[ATTACK]:opponentDigi5:myDigi5:true");
+        TextMessage attackMessage5 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi5:opponentDigi5:true");
+        TextMessage expectedMessage6 = new TextMessage("[ATTACK]:opponentDigi6:myDigi6:true");
+        TextMessage attackMessage6 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi6:opponentDigi6:true");
+        TextMessage expectedMessage7 = new TextMessage("[ATTACK]:opponentDigi7:myDigi7:true");
+        TextMessage attackMessage7 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi7:opponentDigi7:true");
+        TextMessage expectedMessage8 = new TextMessage("[ATTACK]:opponentDigi8:myDigi8:true");
+        TextMessage attackMessage8 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi8:opponentDigi8:true");
+        TextMessage expectedMessage9 = new TextMessage("[ATTACK]:opponentDigi9:myDigi9:true");
+        TextMessage attackMessage9 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi9:opponentDigi9:true");
+        TextMessage expectedMessage10 = new TextMessage("[ATTACK]:opponentDigi10:myDigi10:true");
+        TextMessage attackMessage10 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi10:opponentDigi10:true");
+        TextMessage expectedMessage11 = new TextMessage("[ATTACK]:opponentDigi1:mySecurity:false");
+        TextMessage attackMessage11 = new TextMessage(gameId + ":/attack:" + username2 + ":myDigi1:opponentSecurity:false");
 
         putPlayersToGameRoom();
         // WHEN
