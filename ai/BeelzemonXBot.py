@@ -13,6 +13,7 @@ class BeelzemonXBot(Bot):
     def __init__(self, username):
         super().__init__(username)
         self.card_factory = CardFactory(self)
+        self.turn_counter = 0
 
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
@@ -50,6 +51,23 @@ class BeelzemonXBot(Bot):
         if rookie_in_hand_index >= 0:
             card = self.game['player2Hand'][rookie_in_hand_index]
             await self.digivolve(ws, 'BreedingArea', 0, 'Hand', rookie_in_hand_index, self.digivolution_cost(card))
+    
+    async def digivolve_in_breed_strategy(self, ws):
+        breeding = self.game['player2BreedingArea']
+        if len(breeding) == 0 or breeding[-1]['level'] > 2:
+            return
+        card_in_hand_index = self.digimon_of_level_in_hand(breeding[-1]['level'] + 1)
+        if card_in_hand_index >= 0:
+            card = self.game['player2Hand'][card_in_hand_index]
+            await self.digivolve(ws, 'BreedingArea', 0, 'Hand', card_in_hand_index, self.digivolution_cost(card))
+        return False
+    
+    async def play_digimon_strategy(self, ws):
+        digimon_in_hand_index = self.card_in_hand('BT2-068', 'Impmon')
+        if digimon_in_hand_index > 0:
+            await self.play_card(digimon_in_hand_index)
+        digimon_in_hand_index = self.cheap_digimon_in_hand(2)
+        return False
 
     async def promote_strategy(self, ws):
         if len(self.game['player2BreedingArea']) == 0:
@@ -73,6 +91,7 @@ class BeelzemonXBot(Bot):
                 )
                 digivolution_card_obj = self.card_factory.get_card(self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['uniqueCardNumber'], digimon_index=beelzemon_on_field_index)
                 await digivolution_card_obj.when_digivolving_effect(ws)
+                return True
 
         for digimon_index in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][digimon_index]) > 0:
@@ -82,6 +101,7 @@ class BeelzemonXBot(Bot):
                     digivolution_index = self.digimon_of_level_in_hand(level + 1)
                     if digivolution_index >= 0:
                         digivolution_card = self.game['player2Hand'][digivolution_index]
+                        print(digivolution_card)
                         await self.digivolve(
                             ws, 'Digi', digimon_index, 'Hand',
                             digivolution_index, self.digivolution_cost(digivolution_card)
@@ -92,25 +112,28 @@ class BeelzemonXBot(Bot):
         return False
     
     async def when_attacking_effects_strategy(self, ws, digimon_index):
+        attacking_stack= self.game['player2Digi'][digimon_index]
         preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
-        attacking_stack_objs = [(c['uniqueCardNumber'], self.card_factory.get_card(c['uniqueCardNumber'])) for c in self.game['player2Digi'][digimon_index]]
+        attacking_stack_objs = [(c['uniqueCardNumber'], self.card_factory.get_card(c['uniqueCardNumber'], attacking_digimon=attacking_stack[-1])) for c in attacking_stack[:-1]]
         attacking_stack_objs.sort(key=lambda x:preferred_trigger_order.index(x[0]))
-        for attacking_card in attacking_stack_objs:
-            await attacking_card.when_attacking_effect(ws)
+        attacking_digimon_obj = self.card_factory.get_card(attacking_stack[-1]['uniqueCardNumber'])
+        for attacking_card_obj in attacking_stack_objs[:-1]:
+            await attacking_card_obj[1].inherited_when_attacking_once_per_turn(ws)
+        attacking_digimon_obj.when_attacking_effect(ws)
 
     # TODO: Check for blockers, this is complex as needs to determine when an opponent digimon has gained blocker
     async def attack_strategy(self, ws):
         if self.no_digimon_in_battle_area():
             return False
         if len(self.game['player1Security']) == 0:
-            self.attack_with_any_digimon()
+            await self.attack_with_any_digimon()
         digimon_index = self.digimon_of_level_in_battle_area(6)
         if digimon_index < 0:
             digimon_index = self.digimon_of_level_in_battle_area(5)
         if digimon_index < 0:
             return False
-        await self.attack_with_digimon(ws, digimon_index)
         await self.when_attacking_effects_strategy(ws, digimon_index)
+        await self.attack_with_digimon(ws, digimon_index)
 
     # TODO: More clever choice of Beelzemon to evolve to
     async def st14_02_impmon_strategy(self, ws, digimon_index):
@@ -284,48 +307,83 @@ class BeelzemonXBot(Bot):
     async def st14_011_ai_and_mako_your_turn_strategy(self, ws):
         death_slinger_index = self.card_in_hand('EX2-071', 'Death Slinger')
         if death_slinger_index >= 0:
-            self.put_card_on_top_of_deck(ws, 'Hand', death_slinger_index)
-            self.increase_memory_by(1)
+            await self.put_card_on_top_of_deck(ws, 'Hand', death_slinger_index)
+            await self.increase_memory_by(1)
         p_077_wizardmon_index = self.card_in_hand('P-077', 'Wizardmon')
         if p_077_wizardmon_index >= 0:
-            self.put_card_on_top_of_deck(ws, 'Hand', p_077_wizardmon_index)
-            self.increase_memory_by(1)
+            await self.put_card_on_top_of_deck(ws, 'Hand', p_077_wizardmon_index)
+            await self.increase_memory_by(1)
         ex2_039_impmon_index = self.card_in_hand('EX2-039', 'Impmon')
         if ex2_039_impmon_index >= 0:
-            self.put_card_on_top_of_deck(ws, 'Hand', ex2_039_impmon_index)
-            self.increase_memory_by(1)
+            await self.put_card_on_top_of_deck(ws, 'Hand', ex2_039_impmon_index)
+            await self.increase_memory_by(1)
         ex2_044_beelzemon_index = self.card_in_hand('EX2-044', 'Beelzemon')
         if ex2_044_beelzemon_index >= 0:
-            self.put_card_on_top_of_deck(ws, 'Hand', ex2_044_beelzemon_index)
-            self.increase_memory_by(1)
+            await self.put_card_on_top_of_deck(ws, 'Hand', ex2_044_beelzemon_index)
+            await self.increase_memory_by(1)
+    
+    async def p_077_inherited_when_attacking_once_per_turn_strategy(self, ws):
+        death_slinger_index = self.card_in_hand('EX2-071', 'Death Slinger')
+        if death_slinger_index >= 0:
+            await self.put_card_on_top_of_deck(ws, 'Hand', death_slinger_index)
+        p_077_wizardmon_index = self.card_in_hand('P-077', 'Wizardmon')
+        if p_077_wizardmon_index >= 0:
+            await self.put_card_on_top_of_deck(ws, 'Hand', p_077_wizardmon_index)
+        ex2_039_impmon_index = self.card_in_hand('EX2-039', 'Impmon')
+        if ex2_039_impmon_index >= 0:
+            await self.put_card_on_top_of_deck(ws, 'Hand', ex2_039_impmon_index)
+        ex2_044_beelzemon_index = self.card_in_hand('EX2-044', 'Beelzemon')
+        if ex2_044_beelzemon_index >= 0:
+            await self.put_card_on_top_of_deck(ws, 'Hand', ex2_044_beelzemon_index)
 
     async def avoid_brick(self, ws):
         memory_boost_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
-        if memory_boost_in_hand_index < 0:
-            return False
-        else:
+        if memory_boost_in_hand_index >= 0:
             card = self.game['player2Hand'][memory_boost_in_hand_index]
             memory_boost = self.card_factory.get_card(card['uniqueCardNumber'])
             await self.play_card(ws, 'Hand', memory_boost_in_hand_index, card['playCost'])
             time.sleep(2)
             await memory_boost.main_effect(ws)
             return True
+        ai_and_mako_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
+        if ai_and_mako_in_hand_index >= 0:
+            card = self.game['player2Hand'][ai_and_mako_in_hand_index]
+            memory_boost = self.card_factory.get_card(card['uniqueCardNumber'])
+            await self.play_card(ws, 'Hand', ai_and_mako_in_hand_index, card['playCost'])
+            time.sleep(2)
+            await memory_boost.on_play_effect(ws)
+            return True
+        return False
 
     async def main_phase_strategy(self, ws):
         await self.prepare_rookies(ws)
         some_action = True
+        ## TODO: Action class/method that checks memory at every action
+        while(some_action):
+            some_action = False
+            if self.game['memory'] >= 0:
+                some_action = await self.avoid_brick(ws)
+            if self.game['memory'] >= 0:
+                some_action = await self.attack_strategy(ws)
+            if self.game['memory'] >= 0:
+                some_action = await self.digivolve_strategy(ws)
+            
+        some_action = True
         while(self.game['memory'] >= 0 and some_action):
-            some_action = await self.avoid_brick(ws)
-            some_action = await self.attack_strategy(ws)
-            some_action = await self.digivolve_strategy(ws)
-        return
+            some_action = await self.digivolve_in_breed_strategy(ws)
+        some_action = True
+        while(self.game['memory'] >= 0 and some_action):
+            some_action = await self.play_digimon_strategy(ws)
 
     async def end_turn(self, ws):
+        if self.game['memory'] >= 0:
+            await self.set_memory_to(ws, -3)
         await self.send_game_chat_message(ws, 'I end my turn!')
         if self.first_turn:
             self.first_turn = False
         self.my_turn = False
         await self.pass_turn(ws)
+        self.turn_counter += 1
 
     async def turn(self, ws):
         if not self.first_turn:
@@ -338,17 +396,18 @@ class BeelzemonXBot(Bot):
             await self.draw(ws, 1)
             await self.update_phase(ws)
 
+        if self.turn_counter == 0:
+            cheater = Cheater(self)
+            await cheater.trash_all_cards_from_hand(ws)
+            await cheater.get_card_from_deck_in_hand(ws, 'BT2-068', 'Impmon')
+            await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
+            await cheater.get_card_from_deck_in_hand(ws, 'ST14-07', 'Baalmon')
+            await cheater.get_card_from_deck_in_hand(ws, 'ST14-08', 'Beelzemon')
         
         # Breeding phase
         await self.breeding_phase_strategy(ws)
         await self.update_phase(ws)
 
-        cheater = Cheater(self)
-        await cheater.trash_all_cards_from_hand(ws)
-        await cheater.get_card_from_deck_in_hand(ws, 'BT2-068', 'Impmon')
-        await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
-        await cheater.get_card_from_deck_in_hand(ws, 'ST14-07', 'Baalmon')
-        await cheater.get_card_from_deck_in_hand(ws, 'ST14-08', 'Beelzemon')
         # await cheater.get_card_from_deck_in_hand(ws, 'P-040', 'Purple Memory Boost!')
 
         # Main phase

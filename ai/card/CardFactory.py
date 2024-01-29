@@ -5,6 +5,7 @@ from card.BT12_073_Impmon_X_Antibody import BT12_073_Impmon_X_Antibody
 from card.BT12_085_Beelzemon_X_Antibody import BT12_085_Beelzemon_X_Antibody
 from card.BT12_110_Seventh_Full_Cluster import BT12_110_Seventh_Full_Cluster
 from card.P_077_Wizardmon import P_077_Wizardmon
+from card.ST14_01_Yaamon import ST14_01_Yaamon
 from card.ST14_02_Impmon import ST14_02_Impmon
 from card.ST14_06_Witchmon import ST14_06_Witchmon
 from card.ST14_07_Baalmon import ST14_07_Baalmon
@@ -26,6 +27,7 @@ class CardFactory():
             'BT12-110': BT12_110_Seventh_Full_Cluster,
             'P-040': P_040_Purple_Memory_Boost,
             'P-077': P_077_Wizardmon,
+            'ST14-01': ST14_01_Yaamon,
             'ST14-02': ST14_02_Impmon,
             'ST14-06': ST14_06_Witchmon,
             'ST14-07': ST14_07_Baalmon,

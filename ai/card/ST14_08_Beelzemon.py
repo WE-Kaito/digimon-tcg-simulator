@@ -20,7 +20,6 @@ class ST14_08_Beelzemon(Card):
         for i in range(len(trashed_cards)):
             card_obj = self.bot.card_factory.get_card(trashed_cards[i]['uniqueCardNumber'], trash_index=i)
             await card_obj.when_trashed_effect(ws)
-        self.bot.game['endOfOpponentEffects']['player2Digi'][self.extra_args['digimon_index']] = lambda: self.on_deletion_effect(ws, self.extra_args['digimon_index'])
     
     async def all_turns_effect(self, ws):
         await self.bot.increase_memory_by(ws, math.floor(len(self.bot.game['player2Trash'])/10))

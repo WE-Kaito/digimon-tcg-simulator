@@ -332,17 +332,25 @@ class Bot(ABC):
         return -1
 
     def digivolution_cost(self, card):
-        # EX2-039 Impmon card does not contain digivolution cost information
+        # EX2-039 and EX2-044 Beelzemon cards do not contain digivolution cost information
         if card['uniqueCardNumber'] == 'EX2-039':
             return 0
-        print(card)
-        print(card['digivolveConditions'])
+        if card['uniqueCardNumber'] == 'EX2-044':
+            return 0
         return card['digivolveConditions'][0]['cost']
 
     def digimon_of_level_in_hand(self, level):
         for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
             if card['cardType'] == 'Digimon' and card['level'] == level:
+                return i
+        return -1
+
+    def cheap_digimon_in_hand(self, max_memory_to_opponent):
+        for i in range(len(self.game['player2Hand'])):
+            card = self.game['player2Hand'][i]
+            final_memory_value = card['playCost'] - self.game['memory']
+            if card['cardType'] == 'Digimon' and final_memory_value < 0 and abs(final_memory_value) <= max_memory_to_opponent:
                 return i
         return -1
 
@@ -383,7 +391,7 @@ class Bot(ABC):
 
     async def attack_with_digimon(self, ws, digimon_index):
         self.game['player2Digi'][digimon_index][-1]['isTilted'] = True
-        self.update_game(ws)
+        await self.update_game(ws)
         await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
 
     async def unsuspend_all(self, ws):

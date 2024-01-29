@@ -28,3 +28,6 @@ class Card(ABC):
 
     async def trash_effect(self, ws):
         pass
+
+    async def inherited_when_attacking_once_per_turn(self, ws):
+        pass
