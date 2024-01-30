@@ -5,6 +5,7 @@ import time
 from abc import ABC, abstractmethod
 from pprint import pprint
 
+import logging
 import requests
 import websockets
 from decouple import config
@@ -67,12 +68,23 @@ class Bot(ABC):
         self.effects['endOfOpponentTurnEffects']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.effects['endOfTurnEffect'] = {}
         self.effects['endOfTurnEffect']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+        
+        self.logger = logging.getLogger(__class__.__name__)
+        self.logger.setLevel(config('LOGLEVEL'))
+        fmt = '%(asctime)s %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
+        fmt_date = '%Y-%m-%dT%T%Z'
+        formatter = logging.Formatter(fmt, fmt_date)
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        
+
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
         if response.status_code == expected_status_code:
-            print(success_message)
+            self.logger.info(success_message)
             return response
-        print(error_message)
+        self.logger.info(error_message)
         return False
 
     def login(self):
@@ -127,10 +139,10 @@ class Bot(ABC):
             while True:
                 await ws.send("/heartbeat/")
                 message = await ws.recv()
-                print(f"Received: {message}")
+                self.logger.debug(f"Received: {message}")
                 if(message.startswith('[INVITATION]:')):
                     challenger = message.removeprefix('[INVITATION]:')
-                    print(f'Challenger: {challenger}')
+                    self.logger.info(f'Challenger: {challenger}')
                     await ws.send(f"/acceptInvite:{challenger}")
                     message = await ws.recv()
                     return challenger
@@ -140,12 +152,12 @@ class Bot(ABC):
         ## Access Lobby and become available for a match
         lobby_response = self.s.get(f'http://{self.host}/lobby', auth=(self.username, self.password))
         if lobby_response.status_code == 200:
-            print('Accessed lobby, saying Hi')
+            self.logger.info('Accessed lobby, saying Hi')
             asyncio.run(self.enter_lobby_message(f'Ciao everyone! I\'m {self.username}!'))
             self.opponent = asyncio.run(self.wait_in_lobby())
             asyncio.run(self.play())
         else:
-            print('Error when accessing/waiting in lobby')
+            self.logger.error('Error when accessing/waiting in lobby')
 
     async def send_game_chat_message(self, ws, message):
         await ws.send(f"{self.game_name}:/chatMessage:{self.opponent}:{message}")
@@ -387,7 +399,7 @@ class Bot(ABC):
             card = self.game['player2Digi'][i][-1]
             if card['cardType'] == 'Digimon':
                 await self.attack_with_digimon(i)
-        print('No Digimon to attack with')
+        self.logger.info('No Digimon to attack with')
 
     async def attack_with_digimon(self, ws, digimon_index):
         self.game['player2Digi'][digimon_index][-1]['isTilted'] = True
@@ -528,7 +540,7 @@ class Bot(ABC):
             while True:
                 await ws.send("/heartbeat/")
                 message = await ws.recv()
-                print(message)
+                self.logger.debug(message)
                 if message.startswith('[START_GAME]:'):
                     await self.hi(ws, message)
                 if message.startswith('[DISTRIBUTE_CARDS]:'):
