@@ -123,6 +123,7 @@ class Bot(ABC):
 
     def initialize_game(self, starting_game):
         self.game = starting_game
+        self.game['player1Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.game['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.game['player2BreedingArea'] = []
         self.game['player2Reveal'] = []
@@ -332,7 +333,7 @@ class Bot(ABC):
     def card_in_trash(self, unique_card_number, card_name):
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
-            if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
+            if card['uniqueCardNumber'] == unique_card_number and card['name'] == card_name:
                 return i
         return -1
     
@@ -402,15 +403,17 @@ class Bot(ABC):
         self.logger.info('No Digimon to attack with')
 
     async def attack_with_digimon(self, ws, digimon_index):
-        self.game['player2Digi'][digimon_index][-1]['isTilted'] = True
+        card = self.game['player2Digi'][digimon_index][-1]
+        card['isTilted'] = True
         await self.update_game(ws)
+        await ws.send(f"{self.game_name}:/tiltcard:{self.opponent}:{card['id']}:myDigi{digimon_index}")
         await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
 
     async def unsuspend_all(self, ws):
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 self.game['player2Digi'][i][-1]['isTilted'] = False
-        await self.update_game(ws)
+        await ws.send(f"{self.game_name}:/unsuspendAll:{self.opponent}")
         await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
 
     async def unsuspend_digimon(self, ws, digimon_index):
@@ -495,9 +498,9 @@ class Bot(ABC):
 
     async def put_card_to_bottom_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
+        await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Bottom:{card['id']}:my{card_location}:myDeckField")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         self.game['player2DeckField'].append(card)
-        await self.update_game(ws)
 
     async def put_cards_on_top_of_deck(self, ws, cards_location):
         for i in range(len(self.game[f'player2{cards_location}'])):
@@ -505,13 +508,13 @@ class Bot(ABC):
 
     async def put_card_on_top_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
+        await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Top:{card['id']}:my{card_location}:myDeckField")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
         self.game['player2DeckField'].insert(0, card)
-        await self.update_game(ws)
     
     async def trash_top_card_of_deck(self, ws):
-        await self.move_card(ws, 'myDeckField0', 'myTrash')
         card = self.game[f'player2DeckField'].pop(0)
+        await self.move_card(ws, 'myDeckField0', 'myTrash')
         self.game['player2Trash'].insert(0, card)
         return card
 
@@ -540,7 +543,7 @@ class Bot(ABC):
             while True:
                 await ws.send("/heartbeat/")
                 message = await ws.recv()
-                self.logger.debug(message)
+                self.logger.debug(f"Received: {message}")
                 if message.startswith('[START_GAME]:'):
                     await self.hi(ws, message)
                 if message.startswith('[DISTRIBUTE_CARDS]:'):

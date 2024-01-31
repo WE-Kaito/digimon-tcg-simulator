@@ -80,15 +80,16 @@ class BeelzemonXBot(Bot):
     
     async def play_digimon_strategy(self, ws):
         digimon_in_hand_index = self.card_in_hand('BT2-068', 'Impmon')
-        if digimon_in_hand_index > 0:
+        if digimon_in_hand_index >= 0:
             self.logger.info(f'Have BT2-068 impmon in hand index {digimon_in_hand_index}')
             self.logger.info(f'Will play it.')
-            await self.play_card(digimon_in_hand_index)
+            await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
         self.logger.info(f'Trying to play cheapest digimon that would give memory <= 2 to opponent.')
         digimon_in_hand_index = self.cheap_digimon_in_hand(2)
         if digimon_in_hand_index >= 0:
-            self.logger.info(f"I play {self.game['player2Hand'][digimon_in_hand_index]}")
-            await self.play_card(digimon_in_hand_index)
+            digimon = self.game['player2Hand'][digimon_in_hand_index]
+            self.logger.info(f"I play {digimon['name']}")
+            await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
         return False
 
     async def promote_strategy(self, ws):
@@ -108,7 +109,7 @@ class BeelzemonXBot(Bot):
     async def digivolve_strategy(self, ws):
         self.logger.info('Check if I have Beelzemon (X Antibody) in my hand.')
         beelzemon_x_antibody_in_hand_index = self.card_in_hand('BT12-085', 'Beelzemon (X Antibody)')
-        if beelzemon_x_antibody_in_hand_index:
+        if beelzemon_x_antibody_in_hand_index >= 0:
             self.logger.info('Have Beelzemon (X Antibody) in my hand. Checking for Beelzemon on the field.')
             beelzemon_on_field_index = self.card_on_battle_area_with_name('Beelzemon')
             if beelzemon_on_field_index >= 0 and len(self.game['player2Trash']) >=10:
@@ -279,13 +280,14 @@ class BeelzemonXBot(Bot):
         await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
     
     async def ex2_044_beelzemon_when_digivolving_when_attacking_stategy(self, ws):
-        if len(self.game['player1Digi']) == 0:
-            return False
         max_level_can_delete = 3 + math.floor(len(self.game['player2Trash'])/10)
         opponent_digimons = []
         for i in range(len(self.game['player1Digi'])):
-            digimon = self.game['player1Digi'][i][-1]
-            opponent_digimons.append(digimon['level'], i, digimon['name'])
+            if len(self.game['player1Digi'][i]) > 0:
+                digimon = self.game['player1Digi'][i][-1]
+                opponent_digimons.append(digimon['level'], i, digimon['name'])
+        if len(opponent_digimons) == 0:
+            return False
         for opponent_digimon in sorted(opponent_digimons, reverse=True):
             if max_level_can_delete <= opponent_digimon[0]:
                 self.delete_from_opponent_battle_area(ws, opponent_digimon[1])
@@ -299,11 +301,12 @@ class BeelzemonXBot(Bot):
         card_in_trash_index = self.card_in_trash('BT2-068', 'Impmon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
+            return
         card_in_trash_index = self.card_in_trash('EX2-039', 'Impmon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
 
-    async def bt12_085_beelzemon_on_deletion_strategy(self, ws):
+    async def bt12_085_beelzemon_x_antibody_on_deletion_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-02', 'Impmon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
@@ -311,9 +314,11 @@ class BeelzemonXBot(Bot):
         card_in_trash_index = self.card_in_trash('BT2-068', 'Impmon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
+            return
         card_in_trash_index = self.card_in_trash('EX2-039', 'Impmon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
+            return
     
     async def st14_011_ai_and_mako_on_play_strategy(self, ws):
         candidates = []
