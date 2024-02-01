@@ -131,6 +131,7 @@ class Bot(ABC):
         self.game['memory'] = 0
 
     async def enter_lobby_message(self, message):
+        self.logger.info('Entered lobby, greeting players.')
         async with websockets.connect(self.chat_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
             await ws.send(message)
             await ws.recv()
@@ -138,6 +139,7 @@ class Bot(ABC):
     async def wait_in_lobby(self):
         async with websockets.connect(self.chat_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
             while True:
+                self.logger.debug('Waiting in lobby.')
                 await ws.send("/heartbeat/")
                 message = await ws.recv()
                 self.logger.debug(f"Received: {message}")
@@ -151,11 +153,13 @@ class Bot(ABC):
 
     def join_lobby(self):
         ## Access Lobby and become available for a match
+        self.logger.info('Entering lobby.')
         lobby_response = self.s.get(f'http://{self.host}/lobby', auth=(self.username, self.password))
         if lobby_response.status_code == 200:
             self.logger.info('Accessed lobby, saying Hi')
             asyncio.run(self.enter_lobby_message(f'Ciao everyone! I\'m {self.username}!'))
             self.opponent = asyncio.run(self.wait_in_lobby())
+            self.logger.info('Opponent found, starting game.')
             asyncio.run(self.play())
         else:
             self.logger.error('Error when accessing/waiting in lobby')
@@ -167,14 +171,17 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{message}")
     
     async def update_phase(self, ws):
+        self.logger.info('Go to next phase.')
         await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
         await ws.send(f"{self.game_name}:/playNextPhaseSfx:{self.opponent}")
     
     async def pass_turn(self, ws):
+        self.logger.info('Pass turn.')
         await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
         await ws.send(f"{self.game_name}:/playPassTurnSfx:{self.opponent}")
 
     async def shuffle_deck(self, ws):
+        self.logger.info('Shuffling deck.')
         self.game['player2DeckField'] += list(self.game['player2Hand'])
         random.shuffle(self.game['player2DeckField'])
         await self.play_shuffle_deck_sfx(ws)
@@ -197,6 +204,7 @@ class Bot(ABC):
         return stack
 
     def get_empty_slot_in_battle_area(self):
+        self.logger.debug('Searching for empty slot in my battle area.')
         found = False
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) == 0:
@@ -218,6 +226,7 @@ class Bot(ABC):
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
 
     async def move_card(self, ws, fr, to):
+        self.logger.debug(f'Moving card from {fr} to {to}.')
         stack = self.get_stack(fr)
         if type(stack) == dict:
             stack = [stack]
@@ -271,6 +280,7 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
 
     async def hi(self, ws, message):
+        self.logger.info('Greeting player.')
         if not message.startswith('[START_GAME]:'):
             raise Exception('Message does not contain [START_GAME] information to say hi!')
         players_info = json.loads(message.removeprefix('[START_GAME]:'))
@@ -280,6 +290,7 @@ class Bot(ABC):
                 break
 
     async def update_game(self, ws):
+        self.logger.debug('Send whole game status.')
         update = {}
         update['playerHand'] = self.game['player2Hand']
         update['playerDeckField'] = self.game['player2DeckField']
@@ -297,6 +308,7 @@ class Bot(ABC):
             await ws.send(f"{self.game_name}:/updateGame:{chunk}")
 
     async def mulligan(self, ws):
+        self.logger.info('I mulligan.')
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
         self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
         random.shuffle(self.game['player2DeckField'])
@@ -304,112 +316,153 @@ class Bot(ABC):
         await self.update_game(ws)
 
     async def hatch(self, ws):
+        self.logger.info('Hatch from breeding area.')
         await self.move_card(ws, 'myEggDeck0', 'myBreedingArea0')
         self.game['player2BreedingArea'].append(self.game['player2EggDeck'].pop(0))
 
     def card_in_hand(self, unique_card_number, card_name):
+        self.logger.info(f'Searching for card {unique_card_number}-{card_name} in hand.')
         for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
             if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
+                self.logger.info(f'Card {unique_card_number}-{card_name} found in hand at position {i}.')
                 return i
+        self.logger.info(f'Card {unique_card_number}-{card_name} not found in hand.')
         return -1
     
     def card_on_battle_area(self, unique_card_number, card_name):
+        self.logger.info(f'Searching for card {unique_card_number}-{card_name} in my battle area.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
                 if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
+                    self.logger.info(f'Card {unique_card_number}-{card_name} found in my battle area at position {i}.')
                     return i
+        self.logger.info(f'Card {unique_card_number}-{card_name} not found in my battle area.')
         return -1
     
     def card_on_battle_area_with_name(self, card_name):
+        self.logger.info(f'Searching for a {card_name} in my battle area.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
                 if card['name'] == card_name:
+                    self.logger.info(f"Card {card['uniqueCardNumber']}-{card_name} found in my battle area at position {i}.")
                     return i
+        self.logger.info(f'No {card_name} not found in my battle area.')
         return -1
     
     def card_in_trash(self, unique_card_number, card_name):
+        self.logger.info(f'Searching for card {unique_card_number}-{card_name} in trash.')
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
             if card['uniqueCardNumber'] == unique_card_number and card['name'] == card_name:
+                self.logger.info(f'Card {unique_card_number}-{card_name} found in trash area at position {i}.')
                 return i
+        self.logger.info(f'Card {unique_card_number}-{card_name} not found in trash.')
         return -1
     
-    def card_has_name_in_trash(self, name):
+    def card_has_name_in_trash(self, card_name):
+        self.logger.info(f'Searching for a {card_name} in trash.')
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
-            if card['name'] == name:
+            if card['name'] == card_name:
+                self.logger.info(f"Card {card['uniqueCardNumber']}-{card_name} found in trash area at position {i}.")
                 return i
+        self.logger.info(f'No {card_name} not found in trash.')
         return -1
 
     def digivolution_cost(self, card):
         # EX2-039 and EX2-044 Beelzemon cards do not contain digivolution cost information
+        self.logger.debug('Get digivolution cost from card.')
         if card['uniqueCardNumber'] == 'EX2-039':
             return 0
         if card['uniqueCardNumber'] == 'EX2-044':
-            return 0
+            return 3
         return card['digivolveConditions'][0]['cost']
 
     def digimon_of_level_in_hand(self, level):
+        self.logger.info(f'Searching for a digimon in hand of level {level}.')
+        self.logger.debug(self.game['player2Hand'])
         for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
             if card['cardType'] == 'Digimon' and card['level'] == level:
+                self.logger.info(f"Found digimon {card['uniqueCardNumber']}-{card['name']} in hand at position {i}.")
                 return i
+        self.logger.info(f"No digimon of level {level} found in hand.")
         return -1
-
-    def cheap_digimon_in_hand(self, max_memory_to_opponent):
-        for i in range(len(self.game['player2Hand'])):
-            card = self.game['player2Hand'][i]
-            final_memory_value = card['playCost'] - self.game['memory']
-            if card['cardType'] == 'Digimon' and final_memory_value < 0 and abs(final_memory_value) <= max_memory_to_opponent:
-                return i
-        return -1
-
-    def card_of_type_in_hand(self, type):
-        for i in range(len(self.game['player2Hand'])):
-            card = self.game['player2Hand'][i]
-            if card['cardType'] == type:
-                return i
-        return -1
-
+   
     def digimon_of_level_in_battle_area(self, level):
+        self.logger.info(f'Searching for a digimon in my battle area of {level}.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
                 if card['cardType'] == 'Digimon' and card['level'] == level:
+                    self.logger.info(f"Found digimon {card['uniqueCardNumber']}-{card['name']} in my battle area at position {i} .")
                     return i
+        self.logger.info(f"No digimon of level {level} found in hand.")
+        return -1
+
+    def cheap_digimon_in_hand_to_play(self, max_memory_to_opponent):
+        self.logger.info(f'Searching for a digimon in hand of that would give max {max_memory_to_opponent} if played.')
+        for i in range(len(self.game['player2Hand'])):
+            card = self.game['player2Hand'][i]
+            final_memory_value = card['playCost'] - self.game['memory']
+            if card['cardType'] == 'Digimon' and final_memory_value < 0 and abs(final_memory_value) <= max_memory_to_opponent:
+                self.logger.info(f"Found digimon {card['uniqueCardNumber']}-{card['name']} in hand at position {i}.")
+                return i
+        self.logger.info('No digimon cheap enough found in hand.')
+        return -1
+
+    def card_of_type_in_hand(self, type):
+        self.logger.info(f'Searching for {type} card in hand.')
+        for i in range(len(self.game['player2Hand'])):
+            card = self.game['player2Hand'][i]
+            if card['cardType'] == type:
+                self.logger.info(f"Found {card['uniqueCardNumber']}-{card['name']} in hand at position {i}.")
+                return i
+        self.logger.info(f'No card of type {type} found')
         return -1
     
     def no_digimon_in_battle_area(self):
+        self.logger.info(f'Checking that there isn\'t any digimon in my battle area.')
         for digi in self.game['player2Digi']:
             if len(digi) > 0 and digi[-1]['cardType'] == 'Digimon':
+                self.logger.info(f"Found {digi[-1]['uniqueCardNumber']}-{digi[-1]['name']}")
                 return False
+        self.logger.info(f"No digimon found in my battle area.")
         return True
     
     def any_suspended_card_on_field(self):
+        self.logger.info(f'Checking if there is any suspended card in my battle area.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
-                if self.game['player2Digi'][i][-1]['isTilted']:
+                card = self.game['player2Digi'][i][-1]
+                if card['isTilted']:
+                    self.logger.info(f"Found {card['uniqueCardNumber']}-{card['name']}.")
                     return True
+        self.logger.info(f'Checking that there isn\'t any digimon in my battle area.')
         return False
     
     async def attack_with_any_digimon(self):
+        self.logger.info(f'Try to attack with any digimon.')
         for i in range(len(self.game['player2Digi'])):
             card = self.game['player2Digi'][i][-1]
             if card['cardType'] == 'Digimon':
+                self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
                 await self.attack_with_digimon(i)
         self.logger.info('No Digimon to attack with')
 
     async def attack_with_digimon(self, ws, digimon_index):
         card = self.game['player2Digi'][digimon_index][-1]
+        self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
         card['isTilted'] = True
         await self.update_game(ws)
         await ws.send(f"{self.game_name}:/tiltcard:{self.opponent}:{card['id']}:myDigi{digimon_index}")
         await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
 
     async def unsuspend_all(self, ws):
+        self.logger.info("Unsuspending all cards in my battle area.")
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 self.game['player2Digi'][i][-1]['isTilted'] = False
@@ -417,7 +470,9 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
 
     async def unsuspend_digimon(self, ws, digimon_index):
-        self.game['player2Digi'][digimon_index][-1]['isTilted'] = False
+        digimon = self.game['player2Digi'][digimon_index][-1]
+        self.logger.info(f"Unsuspending {digimon['uniqueCardNumber']}-{digimon['name']}.")
+        digimon['isTilted'] = False
         self.update_game(ws)
         await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
 
@@ -427,8 +482,10 @@ class Bot(ABC):
             dest = f'my{digimon_location}'
         else:
             dest = f'my{digimon_location}{digimon_card_index+1}'
+        self.logger.info('')
         await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', dest)
         digivolution_card = self.game[f'player2{digivolution_card_location}'].pop(digivolution_card_index)
+        self.logger.info(f"Digivolving into {digivolution_card['uniqueCardNumber']}-{digivolution_card['name']} at position {digimon_card_index} in {digimon_location}.")
         if digimon_location == 'BreedingArea':
             self.game[f'player2{digimon_location}'].append(digivolution_card)
         else:
@@ -440,16 +497,19 @@ class Bot(ABC):
         i = self.get_empty_slot_in_battle_area()
         await self.move_card(ws, f'my{card_location}{card_index}', f'myDigi{i+1}')
         card = self.game[f'player2{card_location}'].pop(card_index)
+        self.logger.info(f"Playing {card['uniqueCardNumber']}-{card['name']}")
         self.game['player2Digi'][i].append(card)
         await self.decrease_memory_by(ws, cost)
 
     async def trash_card_from_hand(self, ws, card_index):
         await self.move_card(ws, f'myHand{card_index}', f'myTrash')
         card = self.game['player2Hand'].pop(card_index)
+        self.logger.info(f"Trashing {card['uniqueCardNumber']}-{card['name']}")
         self.game['player2Trash'].insert(0, card)
     
     async def return_to_bottom_of_deck_from_trash(self, ws, card_index):
         card = self.game[f'player2Trash'].pop(card_index)
+        self.logger.info(f"Return {card['uniqueCardNumber']}-{card['name']} to bottom of deck from trash.")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Trash')
         self.game['player2Deck'].append(card)
         await self.update_game(ws)
@@ -459,50 +519,55 @@ class Bot(ABC):
         i = self.get_empty_slot_in_battle_area()
         await self.move_card(ws, f'myTrash{card_index}', f'myDigi{i+1}')
         card = self.game[f'player2Trash'].pop(card_index)
+        self.logger.info(f"Move {card['uniqueCardNumber']}-{card['name']} to battle area from trash.")
         self.game['player2Digi'][i].append(card)
         return card
     
     async def delete_from_opponent_battle_area(self, ws, card_index):
         await self.move_card(ws, f'opponentDigi{card_index}', f'myTrash')
         card = self.game['player1Digi'].pop(card_index)
-        self.game['player1Trash'].insert(0, card)
-    
-    async def delete_from_opponent_battle_area(self, ws, card_index):
-        await self.move_card(ws, f'player1Digi{card_index}', f'myTrash')
-        card = self.game['player1Digi'].pop(card_index)
+        self.logger.info(f"Delete {card['uniqueCardNumber']}-{card['name']} from opponent's battle area.")
         self.game['player1Trash'].insert(0, card)
 
     async def promote(self, ws):
+        self.logger.info('Promoting from breed area.')
         i = self.get_empty_slot_in_battle_area()
         await self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
         self.game[f'player2Digi'][i].extend(self.game['player2BreedingArea'])
         self.game['player2BreedingArea'] = []
 
     async def draw(self, ws, n_cards):
+        self.logger.info(f'I draw {n_cards}.')
         for i in range(min(n_cards, len(self.game['player2DeckField']))):
             await self.move_card(ws, 'myDeckField0', 'myHand0')
             self.game['player2Hand'].insert(0, self.game['player2DeckField'].pop(0))
 
     async def return_card_from_trash_to_hand(self, ws, card_index):
-            await self.move_card(ws, f'myDeckField{card_index}', 'myHand0')
-            self.game['player2Hand'].insert(0, self.game['player2Trash'].pop(card_index))
+        await self.move_card(ws, f'myDeckField{card_index}', 'myHand0')
+        card = self.game['player2Trash'].pop(card_index)
+        self.logger.info(f"Returning {card['uniqueCardNumber']}-{card['name']} from trash to hand.")
+        self.game['player2Hand'].insert(0, card)
 
     async def reveal_top_from_deck(self, ws, n_cards):
+        self.logger.info(f'Revealing top {n_cards} from deck.')
         for i in range(n_cards):
             await self.move_card(ws, 'myDeckField0', 'myReveal')
             self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
     
     async def put_cards_to_bottom_of_deck(self, ws, cards_location):
+        self.logger.info(f'Put cards from {cards_location} to bottom of deck.')
         for i in range(len(self.game[f'player2{cards_location}'])):
             await self.put_card_to_bottom_of_deck(ws, cards_location, 0)
 
     async def put_card_to_bottom_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
+        self.logger.info(f"Put {card['uniqueCardNumber']}-{card['name']} to bottom of deck.")
         await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Bottom:{card['id']}:my{card_location}:myDeckField")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         self.game['player2DeckField'].append(card)
 
     async def put_cards_on_top_of_deck(self, ws, cards_location):
+        self.logger.info(f'Put cards from {cards_location} on top of deck.')
         for i in range(len(self.game[f'player2{cards_location}'])):
             await self.put_card_on_top_of_deck(ws, cards_location, 0)
 
@@ -511,24 +576,29 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Top:{card['id']}:my{card_location}:myDeckField")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
         self.game['player2DeckField'].insert(0, card)
+        self.logger.info(f"Put {card['uniqueCardNumber']}-{card['name']} on top of deck.")
     
     async def trash_top_card_of_deck(self, ws):
         card = self.game[f'player2DeckField'].pop(0)
+        self.logger.info(f"Trashed {card['uniqueCardNumber']}-{card['name']} from top of deck.")
         await self.move_card(ws, 'myDeckField0', 'myTrash')
         self.game['player2Trash'].insert(0, card)
         return card
 
     async def set_memory_to(self, ws, value):
+        self.logger.info(f'Set memory to {value}')
         self.game['memory'] = int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
 
     async def increase_memory_by(self, ws, value):
+        self.logger.info(f'Increase memory by {value}')
         self.game['memory'] += int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
     
     async def decrease_memory_by(self, ws, value):
+        self.logger.info(f'Decrease memory by {value}')
         self.game['memory'] -= int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
