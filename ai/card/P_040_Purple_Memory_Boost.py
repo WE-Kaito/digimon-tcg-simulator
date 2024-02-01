@@ -6,6 +6,7 @@ from card.Card import Card
 class P_040_Purple_Memory_Boost(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 

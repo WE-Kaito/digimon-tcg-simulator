@@ -70,7 +70,6 @@ class BeelzemonXBot(Bot):
         if len(breeding) == 0 or breeding[-1]['level'] > 2:
             self.logger.info("Cannot digivolve in breed as no level 2 Digimon is there.")
             return
-        self.logger.info(f"Checking for digimon of level {breeding[-1]['level'] + 1}...")
         card_in_hand_index = self.digimon_of_level_in_hand(breeding[-1]['level'] + 1)
         if card_in_hand_index >= 0:
             card = self.game['player2Hand'][card_in_hand_index]
@@ -85,7 +84,7 @@ class BeelzemonXBot(Bot):
             self.logger.info(f'Will play it.')
             await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
         self.logger.info(f'Trying to play cheapest digimon that would give memory <= 2 to opponent.')
-        digimon_in_hand_index = self.cheap_digimon_in_hand(2)
+        digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(2)
         if digimon_in_hand_index >= 0:
             digimon = self.game['player2Hand'][digimon_in_hand_index]
             self.logger.info(f"I play {digimon['name']}")
@@ -100,7 +99,8 @@ class BeelzemonXBot(Bot):
         if breed_level < 3:
             self.logger.info(f"Cannot promote: Digimon is of level < 3 in breeding area: {self.game['player2BreedingArea'][-1]}")
             return False
-        if not self.digimon_of_level_in_hand(breed_level + 1):
+        digimon_of_level_in_hand_index = self.digimon_of_level_in_hand(breed_level + 1)
+        if digimon_of_level_in_hand_index < 0:
             self.logger.info(f"Won't promote: No digimon to digivolve to in hand: {self.game['player2Hand']}")
             return False
         await self.promote(ws)
@@ -152,7 +152,7 @@ class BeelzemonXBot(Bot):
         attacking_digimon_obj = self.card_factory.get_card(attacking_stack[-1]['uniqueCardNumber'])
         for attacking_card_obj in attacking_stack_objs[:-1]:
             await attacking_card_obj[1].inherited_when_attacking_once_per_turn(ws)
-        attacking_digimon_obj.when_attacking_effect(ws)
+        await attacking_digimon_obj.when_attacking_effect(ws)
 
     # TODO: Check for blockers, this is complex as needs to determine when an opponent digimon has gained blocker
     async def attack_strategy(self, ws):
@@ -290,7 +290,6 @@ class BeelzemonXBot(Bot):
             return False
         for opponent_digimon in sorted(opponent_digimons, reverse=True):
             if max_level_can_delete <= opponent_digimon[0]:
-                self.delete_from_opponent_battle_area(ws, opponent_digimon[1])
                 self.send_game_chat_message(f"EX2 Beelzemon effect: Delete {opponent_digimon[2]['name']} in position {opponent_digimon[1]}")
 
     async def ex2_044_beelzemon_when_trashed_stategy(self, ws):
@@ -472,7 +471,7 @@ class BeelzemonXBot(Bot):
 
 
         # End turn
-        self.logger.info(f'---------------------END TURN---------------------')
         await self.end_turn(ws)
+        self.logger.info(f'---------------------END TURN---------------------')
 
         time.sleep(1)

@@ -4,6 +4,7 @@ from card.Card import Card
 class ST14_02_Impmon(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 

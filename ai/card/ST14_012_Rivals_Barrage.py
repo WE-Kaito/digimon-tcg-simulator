@@ -6,6 +6,7 @@ from card.Card import Card
 class ST14_012_Rivals_Barrage(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 
@@ -21,6 +22,7 @@ class ST14_012_Rivals_Barrage(Card):
     ## TODO: Can make this optional
     async def when_trashed_effect(self, ws):
         trash_index = self.extra_args['trash_index']
+        ## TODO: Use id instead of trash_index
         await self.bot.move_card_to_battle_area_from_trash(ws, trash_index)
 
     async def delay_effect(self, ws):

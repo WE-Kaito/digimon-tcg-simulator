@@ -6,6 +6,7 @@ from card.Card import Card
 class BT12_110_Seventh_Full_Cluster(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 

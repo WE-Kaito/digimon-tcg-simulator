@@ -6,6 +6,7 @@ from card.Card import Card
 class ST14_01_Yaamon(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 

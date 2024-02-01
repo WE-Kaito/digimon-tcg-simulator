@@ -6,6 +6,7 @@ from card.Card import Card
 class EX2_071_Death_Slinger(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 

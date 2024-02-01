@@ -199,8 +199,11 @@ class Bot(ABC):
         else:
             first_digit_index = self.get_first_digit_index(location)
             index = int(location[first_digit_index:])
+            self.logger.info(f'Location index: {index}')
             location = GAME_LOCATIONS_MAP[location[:first_digit_index]]
+            self.logger.info(f'Location index: {index}')
             stack = self.game[location][index]
+            self.logger.info(f'STACK:{stack}')
         return stack
 
     def get_empty_slot_in_battle_area(self):
@@ -482,7 +485,6 @@ class Bot(ABC):
             dest = f'my{digimon_location}'
         else:
             dest = f'my{digimon_location}{digimon_card_index+1}'
-        self.logger.info('')
         await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', dest)
         digivolution_card = self.game[f'player2{digivolution_card_location}'].pop(digivolution_card_index)
         self.logger.info(f"Digivolving into {digivolution_card['uniqueCardNumber']}-{digivolution_card['name']} at position {digimon_card_index} in {digimon_location}.")
@@ -579,10 +581,10 @@ class Bot(ABC):
         self.logger.info(f"Put {card['uniqueCardNumber']}-{card['name']} on top of deck.")
     
     async def trash_top_card_of_deck(self, ws):
-        card = self.game[f'player2DeckField'].pop(0)
-        self.logger.info(f"Trashed {card['uniqueCardNumber']}-{card['name']} from top of deck.")
         await self.move_card(ws, 'myDeckField0', 'myTrash')
+        card = self.game[f'player2DeckField'].pop(0)
         self.game['player2Trash'].insert(0, card)
+        self.logger.info(f"Trashed {card['uniqueCardNumber']}-{card['name']} from top of deck.")
         return card
 
     async def set_memory_to(self, ws, value):

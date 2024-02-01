@@ -6,6 +6,7 @@ from card.Card import Card
 class BT12_085_Beelzemon_X_Antibody(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 

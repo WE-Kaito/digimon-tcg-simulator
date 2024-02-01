@@ -4,6 +4,7 @@ from card.Card import Card
 class P_077_Wizardmon(Card):
 
     def __init__(self, bot, **kwargs):
+        super().__init__()
         self.bot = bot
         self.extra_args = kwargs
 
