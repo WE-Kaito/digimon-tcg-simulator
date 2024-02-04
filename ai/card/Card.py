@@ -5,7 +5,7 @@ from decouple import config
 
 class Card(ABC):
 
-    def __init__(self):
+    def __init__(self, bot, **kwargs):
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(config('LOGLEVEL'))
         fmt = '%(asctime)s %(filename)-18s %(levelname)-8s: %(message)s'
@@ -14,6 +14,12 @@ class Card(ABC):
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+        self.bot = bot
+        self.extra_args = kwargs
+    
+    async def send_message(self, ws, message):
+        self.logger.info(message)
+        self.bot.send_game_chat_message(ws, message)
     
     async def main_effect(self, ws):
         pass
@@ -43,4 +49,7 @@ class Card(ABC):
         pass
 
     async def inherited_when_attacking_once_per_turn(self, ws):
+        pass
+
+    async def delay_effect(self, ws):
         pass

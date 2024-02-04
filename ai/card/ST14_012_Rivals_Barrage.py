@@ -5,12 +5,8 @@ from card.Card import Card
 ## TODO: Keep coding from here
 class ST14_012_Rivals_Barrage(Card):
 
-    def __init__(self, bot, **kwargs):
-        super().__init__()
-        self.bot = bot
-        self.extra_args = kwargs
-
     async def delete_opponent_digimon_highest_level(self, ws):
+        await self.bot.send_message(ws, 'ST14-12 Rivals\' Barrage [Main] effect:')
         if len(self.bot.game['player1Digi']) == 0:
             return False
         opponent_digimons = []
@@ -21,11 +17,13 @@ class ST14_012_Rivals_Barrage(Card):
 
     ## TODO: Can make this optional
     async def when_trashed_effect(self, ws):
+        await self.bot.send_message(ws, 'ST14-12 Rivals\' Barrage when trashed effect:')
         trash_index = self.extra_args['trash_index']
         ## TODO: Use id instead of trash_index
         await self.bot.move_card_to_battle_area_from_trash(ws, trash_index)
 
     async def delay_effect(self, ws):
+       await self.bot.send_message(ws, 'ST14-12 Rivals\' Barrage [Delay] effect: Gain 2 memory')
        await self.bot.st14_012_rivals_barrage_delay_strategy(ws)
 
     ## TODO: Code strategy when two or more digimons have the same level

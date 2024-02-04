@@ -3,17 +3,16 @@ from card.Card import Card
 
 class BT10_081_Baalmon(Card):
 
-    def __init__(self, bot, **kwargs):
-        super().__init__()
-        self.bot = bot
-        self.extra_args = kwargs
-
-    ## TODO: Can target strategy to 
+    ## TODO: Make optional to trash up to three cards
     async def when_attacking_effect(self, ws):
+        await self.bot.send_message(ws, 'BT10-081 Baalmon when attacking effect: I may trash 3 cards from top of deck.')
         await self.bt10_081_baalmon_attacking_strategy(ws)
 
-    ## TODO: Make optional to trash up to three cards
     async def on_deletion_effect(self, ws):
+        self.send_message('BT10-081 Baalmon [On Deletion] effect:')
         if len(self.bot.game['player2Trash']) >= 10:
             if self.card_has_name_in_trash('Beelzemon'):
+                await self.bot.send_message('Found Beelzemon in trash and have 10 or more cards in trash:')
                 await self.bt10_081_baalmon_deleted_strategy(ws)
+        else:
+            await self.bot.send_message(ws, 'Not enough cards in trash (<= 10)')

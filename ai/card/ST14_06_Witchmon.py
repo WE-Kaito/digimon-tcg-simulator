@@ -5,12 +5,8 @@ from card.Card import Card
 
 class ST14_06_Witchmon(Card):
 
-    def __init__(self, bot, **kwargs):
-        super().__init__()
-        self.bot = bot
-        self.extra_args = kwargs
-
     async def when_digivolving_effect(self, ws):
+        await self.bot.send_message(ws, 'ST14-06 Witchmon [When Digivolving] effect: I trash the top 3 cards of my deck.')
         trashed_cards = []
         for i in range(3):
             if len(self.bot.game['player2DeckField']) > 0:

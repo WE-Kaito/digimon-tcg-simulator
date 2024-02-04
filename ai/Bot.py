@@ -77,7 +77,6 @@ class Bot(ABC):
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        
 
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
@@ -163,6 +162,15 @@ class Bot(ABC):
             asyncio.run(self.play())
         else:
             self.logger.error('Error when accessing/waiting in lobby')
+    
+    async def wait_for_opponent_confirmation(ws):
+        message = None
+        while message != 'ok':
+            message = await ws.recv().strip().lower()
+    
+    async def send_message(self, ws, message):
+        self.logger.info(message)
+        await self.send_game_chat_message(ws, message)
 
     async def send_game_chat_message(self, ws, message):
         await ws.send(f"{self.game_name}:/chatMessage:{self.opponent}:{message}")
@@ -486,8 +494,13 @@ class Bot(ABC):
         else:
             dest = f'my{digimon_location}{digimon_card_index+1}'
         await self.move_card(ws, f'my{digivolution_card_location}{digivolution_card_index}', dest)
+        if digimon_location == 'BreedingArea':
+            digimon = self.game[f'player2{digimon_location}'][-1]
+        else:
+            digimon = self.game[f'player2{digimon_location}'][digimon_card_index][-1]
         digivolution_card = self.game[f'player2{digivolution_card_location}'].pop(digivolution_card_index)
-        self.logger.info(f"Digivolving into {digivolution_card['uniqueCardNumber']}-{digivolution_card['name']} at position {digimon_card_index} in {digimon_location}.")
+        await self.send_message(ws, f"Digivolving {digimon['uniqueCardNumber']}-{digimon['name']} into {digivolution_card['uniqueCardNumber']}-{digivolution_card['name']} from {digivolution_card_location}")
+        self.logger.info(f"Digivolving {digimon['uniqueCardNumber']}-{digimon['name']} into {digivolution_card['uniqueCardNumber']}-{digivolution_card['name']} at position {digimon_card_index} in {digimon_location}.")
         if digimon_location == 'BreedingArea':
             self.game[f'player2{digimon_location}'].append(digivolution_card)
         else:
@@ -499,20 +512,20 @@ class Bot(ABC):
         i = self.get_empty_slot_in_battle_area()
         await self.move_card(ws, f'my{card_location}{card_index}', f'myDigi{i+1}')
         card = self.game[f'player2{card_location}'].pop(card_index)
-        self.logger.info(f"Playing {card['uniqueCardNumber']}-{card['name']}")
+        self.send_message(ws, f"I play {card['uniqueCardNumber']}-{card['name']} with cost {cost}")
         self.game['player2Digi'][i].append(card)
         await self.decrease_memory_by(ws, cost)
 
     async def trash_card_from_hand(self, ws, card_index):
         await self.move_card(ws, f'myHand{card_index}', f'myTrash')
         card = self.game['player2Hand'].pop(card_index)
-        self.logger.info(f"Trashing {card['uniqueCardNumber']}-{card['name']}")
+        self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']}")
         self.game['player2Trash'].insert(0, card)
     
     async def return_to_bottom_of_deck_from_trash(self, ws, card_index):
         card = self.game[f'player2Trash'].pop(card_index)
         self.logger.info(f"Return {card['uniqueCardNumber']}-{card['name']} to bottom of deck from trash.")
-        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Trash')
+        await self.send_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Trash')
         self.game['player2Deck'].append(card)
         await self.update_game(ws)
         return card
@@ -521,15 +534,15 @@ class Bot(ABC):
         i = self.get_empty_slot_in_battle_area()
         await self.move_card(ws, f'myTrash{card_index}', f'myDigi{i+1}')
         card = self.game[f'player2Trash'].pop(card_index)
-        self.logger.info(f"Move {card['uniqueCardNumber']}-{card['name']} to battle area from trash.")
+        self.send_message(f"Move {card['uniqueCardNumber']}-{card['name']} to battle area from trash.")
         self.game['player2Digi'][i].append(card)
         return card
     
     async def delete_from_opponent_battle_area(self, ws, card_index):
-        await self.move_card(ws, f'opponentDigi{card_index}', f'myTrash')
-        card = self.game['player1Digi'].pop(card_index)
-        self.logger.info(f"Delete {card['uniqueCardNumber']}-{card['name']} from opponent's battle area.")
-        self.game['player1Trash'].insert(0, card)
+        card_name = self.game['player1Digi'][card_index][-1]['name']
+        await self.send_message(f'I\'d like to delete the {card_name}. in position {card_index}')
+        await self.send_message(f'Resolve effects and type Ok to continue.')
+        self.wait_for_opponent_confirmation()
 
     async def promote(self, ws):
         self.logger.info('Promoting from breed area.')
@@ -557,7 +570,7 @@ class Bot(ABC):
             self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
     
     async def put_cards_to_bottom_of_deck(self, ws, cards_location):
-        self.logger.info(f'Put cards from {cards_location} to bottom of deck.')
+        await self.send_message(f'Put cards from {cards_location} to bottom of deck.')
         for i in range(len(self.game[f'player2{cards_location}'])):
             await self.put_card_to_bottom_of_deck(ws, cards_location, 0)
 
@@ -576,7 +589,7 @@ class Bot(ABC):
     async def put_card_on_top_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
         await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Top:{card['id']}:my{card_location}:myDeckField")
-        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
+        await self.send_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
         self.game['player2DeckField'].insert(0, card)
         self.logger.info(f"Put {card['uniqueCardNumber']}-{card['name']} on top of deck.")
     

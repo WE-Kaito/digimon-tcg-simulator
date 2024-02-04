@@ -4,11 +4,6 @@ from card.Card import Card
 
 
 class ST14_07_Baalmon(Card):
-
-    def __init__(self, bot, **kwargs):
-        super().__init__()
-        self.bot = bot
-        self.extra_args = kwargs
     
     async def on_deletion_effect(self, ws, digimon_index):
         if len(self.bot.game['player2Trash']) >= 10:
@@ -16,6 +11,8 @@ class ST14_07_Baalmon(Card):
 
     ## TODO: Can target strategy to 
     async def when_digivolving_effect(self, ws):
+        await self.bot.send_message(ws, 'ST14-07 Baalmon [When Digivolving] effect: I trash the top 3 cards of my deck.')
+        await self.bot.send_message(ws, 'ST14-07 Baalmon [When Digivolving] effect: Gains [On Deletion] Play 1 Beelzemon from trash without paying the cost until the end of opponent\'s turn.')
         trashed_cards = []
         for i in range(3):
             if len(self.bot.game['player2DeckField']) > 0:

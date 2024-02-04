@@ -5,15 +5,11 @@ from card.Card import Card
 
 class ST14_01_Yaamon(Card):
 
-    def __init__(self, bot, **kwargs):
-        super().__init__()
-        self.bot = bot
-        self.extra_args = kwargs
-
     async def inherited_when_attacking_once_per_turn(self, ws):
         trashed_cards = []
         attacking_digimon = self.extra_args['attacking_digimon']
         if 'Evil' in attacking_digimon['digiType'] or 'Wizard' in attacking_digimon['digiType'] or 'Demon Lord' in attacking_digimon['digiType']:
+            await self.bot.send_message(ws, 'ST14-01 Yaamon inherited effect:')
             for i in range(2):
                 if len(self.bot.game['player2DeckField']) > 0:
                     time.sleep(0.3)
