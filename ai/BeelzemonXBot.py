@@ -163,16 +163,16 @@ class BeelzemonXBot(Bot):
             self.logger.info('No cards left in opponent\'s security, attacking with any digimon.')
             await self.attack_with_any_digimon()
         self.logger.info('Checking for level 6 digimons to attack with...')
-        digimon_index = self.digimon_of_level_in_battle_area(6)
+        digimon_index = self.unsuspended_digimon_of_level_in_battle_area(6)
         if digimon_index < 0:
             self.logger.info('Not found. Checking for level 5 digimons to attack with...')
-            digimon_index = self.digimon_of_level_in_battle_area(5)
+            digimon_index = self.unsuspended_digimon_of_level_in_battle_area(5)
         if digimon_index < 0:
             self.logger.info('Not found. Won\'t attack...')
             return False
         self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
-        await self.when_attacking_effects_strategy(ws, digimon_index)
         await self.attack_with_digimon(ws, digimon_index)
+        await self.when_attacking_effects_strategy(ws, digimon_index)
 
     # TODO: More clever choice of Beelzemon to evolve to
     async def st14_02_impmon_strategy(self, ws, digimon_index):
@@ -223,16 +223,16 @@ class BeelzemonXBot(Bot):
             if card_in_trash_index >= 0:
                 self.return_card_from_trash_to_hand(ws, card_in_trash_index)
         else:
-            self.send_message(ws, 'Won\'t trash any option card from my hand.')
+            await self.send_message(ws, 'Won\'t trash any option card from my hand.')
 
     async def bt10_081_baalmon_attacking_strategy(self, ws):
         trashed_cards = []
         for i in range(3):
             if len(self.game['player2DeckField']) >= 0:
                 time.sleep(0.3)
-                trashed_cards.append(self.bot.trash_top_card_of_deck(ws))
-        for trashed_card in trashed_card:
-            card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'])
+                trashed_cards.append(await self.trash_top_card_of_deck(ws))
+        for trashed_card in trashed_cards:
+            card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'])
             await card_obj.when_trashed_effect(ws)
     
     async def bt10_081_baalmon_deleted_strategy(self, ws):
@@ -276,9 +276,7 @@ class BeelzemonXBot(Bot):
             card_index = digimon[0]
         else:
             card_index = min(candidates)[1]
-        await self.move_card(ws, f'myReveal{card_index}', f'myHand')
-        card = self.game['player2Reveal'].pop(card_index)
-        self.game['player2Hand'].append(self.game['player2Reveal'].pop(card_index))
+        await self.add_card_to_hand_from_reveal(ws, card_index)
         await self.send_message(ws, f"I add {card['uniqueCardNumber']}-{card['name']} in my hand.")
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws, 'Reveal')

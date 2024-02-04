@@ -18,9 +18,9 @@ class ST14_012_Rivals_Barrage(Card):
     ## TODO: Can make this optional
     async def when_trashed_effect(self, ws):
         await self.bot.send_message(ws, 'ST14-12 Rivals\' Barrage when trashed effect:')
-        trash_index = self.extra_args['trash_index']
+        card_id = self.extra_args['card_id']
         ## TODO: Use id instead of trash_index
-        await self.bot.move_card_to_battle_area_from_trash(ws, trash_index)
+        await self.bot.move_card_from_trash_to_battle_area(ws, card_id)
 
     async def delay_effect(self, ws):
        await self.bot.send_message(ws, 'ST14-12 Rivals\' Barrage [Delay] effect: Gain 2 memory')
