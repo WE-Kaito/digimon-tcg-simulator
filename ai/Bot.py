@@ -64,6 +64,7 @@ class Bot(ABC):
         self.first_turn = False
         self.game = {}
         self.effects = {}
+        self.placed_this_turn = set()
         self.effects['endOfOpponentTurnEffects'] = {}
         self.effects['endOfOpponentTurnEffects']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.effects['endOfTurnEffect'] = {}
@@ -194,6 +195,9 @@ class Bot(ABC):
         random.shuffle(self.game['player2DeckField'])
         await self.play_shuffle_deck_sfx(ws)
     
+    def is_placed_this_turn(self, card_id):
+        return card_id in self.placed_this_turn
+    
     ## TODO: Remove this method and make the rest of the code work without it
     def find_card_index_by_id_in_trash(self, id):
         for i in range(len(self.game[f'player2Trash'])):
@@ -201,6 +205,13 @@ class Bot(ABC):
             if card['id'] == id:
                 return i
         raise RuntimeError(f'Card with id {id} not found in trash.')
+    
+    def find_card_index_by_id_in_battle_area(self, id):
+        for i in range(len(self.game[f'player2Digi'])):
+            card = self.game[f'player2Digi'][i][-1]
+            if card['id'] == id:
+                return i
+        raise RuntimeError(f'Card with id {id} not found in battle area.')
 
     def get_first_digit_index(self, s):
         for i in range(len(s)):
@@ -243,42 +254,6 @@ class Bot(ABC):
         if fr == 'Deck' and to == 'Hand':
             await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【Draw Card】')
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
-    
-    async def move_card_by_id(self, ws, fr, to):
-        self.logger.debug(f'Moving card from {fr} to {to}.')
-        stack = self.get_stack(fr)
-        if type(stack) == dict:
-            stack = [stack]
-        for card in stack:
-            card_id = card['id']
-            card_name = card['name']
-            if fr.startswith('myHand'):
-                fr = 'myHand'
-            if to.startswith('myHand'):
-                to = 'myHand'
-            if fr.startswith('myReveal'):
-                fr = 'myReveal'
-            if fr.startswith('myEggDeck'):
-                fr = 'myEggDeck'
-            if to.startswith('myEggDeck'):
-                to = 'myEggDeck'
-            if fr.startswith('myBreedingArea'):
-                fr = 'myBreedingArea'
-            if to.startswith('myBreedingArea'):
-                to = 'myBreedingArea'
-            if fr.startswith('myDeckField'):
-                fr = 'myDeckField'
-            if to.startswith('myDeckField'):
-                to = 'myDeckField'
-            if fr.startswith('myTrash'):
-                fr = 'myTrash'
-            if to.startswith('myTrash'):
-                to = 'myTrash'
-            
-            await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
-            await self.field_update(ws, card_name, fr, to)
-            await self.play_place_card_sfx(ws)
-            time.sleep(0.5)
 
     async def move_card(self, ws, fr, to):
         self.logger.debug(f'Moving card from {fr} to {to}.')
@@ -386,7 +361,7 @@ class Bot(ABC):
         self.logger.info(f'Card {unique_card_number}-{card_name} not found in hand.')
         return -1
     
-    def card_on_battle_area(self, unique_card_number, card_name):
+    def card_in_battle_area(self, unique_card_number, card_name):
         self.logger.info(f'Searching for card {unique_card_number}-{card_name} in my battle area.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
@@ -397,7 +372,7 @@ class Bot(ABC):
         self.logger.info(f'Card {unique_card_number}-{card_name} not found in my battle area.')
         return -1
     
-    def card_on_battle_area_with_name(self, card_name):
+    def card_in_battle_area_with_name(self, card_name):
         self.logger.info(f'Searching for a {card_name} in my battle area.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
@@ -589,7 +564,17 @@ class Bot(ABC):
         self.game['player2Digi'][i].append(card)
         return card
     
-    async def delete_from_opponent_battle_area(self, ws, card_index):
+    async def delete_card_from_battle_area(self, ws, card_id):
+        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        await self.move_card(ws, f'myDigi{card_index}', f'myTrash')
+        stack = self.game['player2Digi'][card_index]
+        await self.send_message(ws, f"Deleting {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']}.")
+        for card in stack:
+            self.game['player2Trash'].insert(0, card)
+        self.game['player2Digi'][card_index] = []
+        return card
+    
+    async def delete_card_from_opponent_battle_area(self, ws, card_index):
         card_name = self.game['player1Digi'][card_index][-1]['name']
         await self.send_message(f'I\'d like to delete the {card_name}. in position {card_index}')
         await self.send_message(f'Resolve effects and type Ok to continue.')
@@ -620,9 +605,16 @@ class Bot(ABC):
             await self.move_card(ws, 'myDeckField0', 'myReveal')
             self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
     
-    async def add_card_to_hand_from_reveal(self, ws, card_index):
+    async def add_card_from_reveal_to_hand(self, ws, card_index):
         await self.move_card(ws, f'myReveal{card_index}', 'myHand0')
         card = self.game['player2Reveal'].pop(card_index)
+        self.logger.info(f"Returning {card['uniqueCardNumber']}-{card['name']} from reveal to hand.")
+        self.game['player2Hand'].insert(0, card)
+    
+    async def add_card_from_trash_to_hand(self, ws, card_id):
+        card_index = self.find_card_index_by_id_in_trash(card_id)
+        await self.move_card(ws, f'myTrash{card_index}', 'myHand0')
+        card = self.game['player2Trash'].pop(card_index)
         self.logger.info(f"Returning {card['uniqueCardNumber']}-{card['name']} from trash to hand.")
         self.game['player2Hand'].insert(0, card)
 
@@ -675,6 +667,9 @@ class Bot(ABC):
         self.game['memory'] -= int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
+    
+    async def end_turn(self):
+        self.placed_this_turn.clear()
 
     async def play(self):
         self.game_name = f'{self.opponent}‗{self.username}'
