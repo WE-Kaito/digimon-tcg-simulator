@@ -57,7 +57,18 @@ public class DeckService {
         if (optionalDeck.isPresent()) {
             Deck deck = optionalDeck.get();
             for (String uniqueCardNumber : deck.decklist()) {
-               cards.add(cardService.getCardByUniqueCardNumber(uniqueCardNumber));
+                Card card = cardService.getCardByUniqueCardNumber(uniqueCardNumber);
+
+                // If the alt art card is not found replace it with the regular card
+                if (card == null && uniqueCardNumber.contains("_")) {
+                    String cardNumber = uniqueCardNumber.split("_")[0];
+                    card = cardService.getCardByUniqueCardNumber(cardNumber);
+                }
+
+                // Add the card (either the complete one or the fallback) to the list
+                if (card != null) {
+                    cards.add(card);
+                }
             }
         }
         return cards;

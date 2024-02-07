@@ -47,7 +47,7 @@ type State = {
     clearDeck: () => void,
     login: (userName: string, password: string, navigate: NavigateFunction) => void,
     me: () => void,
-    register: (userName: string, password: string, question: string, answer:string,
+    register: (userName: string, password: string, question: string, answer: string,
                setRegisterPage: (state: boolean) => void, navigate: NavigateFunction) => void,
     setActiveDeck: (deckId: string) => void,
     getActiveDeck: () => void,
@@ -150,7 +150,10 @@ export const useStore = create<State>((set, get) => ({
     addCardToDeck: (cardNumber, type, uniqueCardNumber) => {
         const digiEggsInDeck = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
         const cardOfIdInDeck = get().deckCards.filter((card) => card.cardNumber === cardNumber).length;
-        const cardToAdd = {...get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0], id: uid()};
+        const cardToAdd = {
+            ...get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0],
+            id: uid()
+        };
 
         if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4) {
             set({deckCards: [cardToAdd, ...get().deckCards]});
@@ -212,7 +215,7 @@ export const useStore = create<State>((set, get) => ({
             })
             .then((data) => {
                 if (data === "There was an error while saving the deck.") notifyGeneralError();
-                else  notifySuccess();
+                else notifySuccess();
                 setTimeout(function () {
                     window.location.reload();
                     set({isSaving: false});
@@ -276,10 +279,15 @@ export const useStore = create<State>((set, get) => ({
             .catch(console.error)
             .then((data: DeckType) => {
 
-                const cardsWithId: CardTypeWithId[] = data.decklist.map((uniqueCardNumber) => ({
-                    ...get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0],
-                    id: uid(),
-                }));
+                const cardsWithId: CardTypeWithId[] = data.decklist.map((uniqueCardNumber) => {
+                        const card = get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0];
+                        if (!card) return {
+                            ...get().fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0],
+                            id: uid()
+                        }
+                        else return { ...card, id: uid()}
+                    }
+                );
 
                 set({
                     deckCards: cardsWithId,
@@ -414,15 +422,16 @@ export const useStore = create<State>((set, get) => ({
 
         const cardsWithId: CardTypeWithId[] = (format === "text" ? constructedDecklist : decklist as string[])
             .map((cardnumber: string) => ({
-            ...get().fetchedCards.filter((card) => card.uniqueCardNumber === cardnumber)[0],
-            id: uid()}))
+                ...get().fetchedCards.filter((card) => card.uniqueCardNumber === cardnumber)[0],
+                id: uid()
+            }))
             .filter((card) => card.name !== undefined);
         // --- check if deck is valid ---
         const eggCardLength = cardsWithId.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = cardsWithId.length - eggCardLength;
         if (eggCardLength > 5 || filteredLength > 50) {
             notifyInvalidImport();
-            set ({loadingDeck: false});
+            set({loadingDeck: false});
             return;
         }
         const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
@@ -430,14 +439,14 @@ export const useStore = create<State>((set, get) => ({
             const cardOfIdInDeck = cardsWithId.filter((c) => c.cardNumber === card.cardNumber).length;
             if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardNumber)) {
                 notifyInvalidImport();
-                set({ loadingDeck: false });
+                set({loadingDeck: false});
                 return;
             }
         }
         // ---
-        set({ deckCards: cardsWithId });
+        set({deckCards: cardsWithId});
         const timeout = setTimeout(() => {
-            set({ loadingDeck: false });
+            set({loadingDeck: false});
         }, 700);
         return () => clearTimeout(timeout);
     },
@@ -459,9 +468,7 @@ export const useStore = create<State>((set, get) => ({
         if (exportFormat === "tts") {
             const decklist = get().deckCards.map((card) => card.cardNumber);
             return JSON.stringify(decklist);
-        }
-
-        else {
+        } else {
             const decklist = get().deckCards.map((card) => card.uniqueCardNumber);
             return JSON.stringify(decklist);
         }
@@ -484,7 +491,7 @@ export const useStore = create<State>((set, get) => ({
 
     getRecoveryQuestion: (username) => {
         axios.get(`/api/user/recovery/${username}`)
-            .then(response =>  response?.data )
+            .then(response => response?.data)
             .catch(console.error)
             .then(data => {
                 set({recoveryQuestion: data, usernameForRecovery: username});
@@ -520,8 +527,7 @@ export const useStore = create<State>((set, get) => ({
             .then(response => {
                 if (response.data === "Safety question changed!") {
                     notifyQuestionChanged();
-                }
-                else {
+                } else {
                     notifyGeneralError();
                 }
             });

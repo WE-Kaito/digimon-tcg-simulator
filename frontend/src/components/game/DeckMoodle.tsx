@@ -5,16 +5,16 @@ import {convertForLog} from "../../utils/functions.ts";
 import {SendToDeckFunction} from "../../utils/types.ts";
 
 type DeckMoodleProps = {
-    cardToSend: {id: string, location:string},
     sendCardToDeck: SendToDeckFunction,
     to: string,
     setMoodle: (isOpen: boolean) => void,
     sendChatMessage: (message: string) => void,
 }
 
-export default function DeckMoodle({cardToSend, sendCardToDeck, to, setMoodle, sendChatMessage} : DeckMoodleProps) {
+export default function DeckMoodle({ sendCardToDeck, to, setMoodle, sendChatMessage} : DeckMoodleProps) {
 
     const cardToDeck = useGame((state) => state.cardToDeck);
+    const cardToSend = useGame((state) => state.cardToSend);
     // @ts-ignore
     const cardName = useGame((state) => state[cardToSend.location as keyof typeof state].find(card => card.id === cardToSend.id)?.name);
     const hiddenMove = cardToSend.location === "myHand" && (to === "myDeckField" || to === "mySecurity");
