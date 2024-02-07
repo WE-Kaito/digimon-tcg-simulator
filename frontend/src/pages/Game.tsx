@@ -1767,31 +1767,31 @@ const Wrapper = styled.div`
   transition: transform 0.3s ease-in-out;
 
 
-@container(width > 2225 px) {
+@container(width > 2225px) {
   transform: scale(1.075);
-} @container(width > 2450 px) {
+} @container(width > 2450px) {
   transform: scale(1.125);
-} @container(width <= 2170 px) {
+} @container(width <= 2170px) {
   transform: scale(0.95);
-} @container(width <= 2040 px) {
+} @container(width <= 2040px) {
   transform: scale(0.875);
-} @container(width <= 1950 px) {
+} @container(width <= 1950px) {
   transform: scale(0.86);
-} @container(width <= 1900 px) {
+} @container(width <= 1900px) {
   transform: scale(0.83);
-} @container(width <= 1800 px) {
+} @container(width <= 1800px) {
   transform: scale(0.78);
-} @container(width <= 1700 px) {
+} @container(width <= 1700px) {
   transform: scale(0.7325);
-} @container(width <= 1600 px) {
+} @container(width <= 1600px) {
   transform: scale(0.685);
-} @container(width <= 1500 px) {
+} @container(width <= 1500px) {
   transform: scale(0.64);
-} @container(width <= 1400 px) {
+} @container(width <= 1400px) {
   transform: scale(0.595);
-} @container(width <= 1300 px) {
+} @container(width <= 1300px) {
   transform: scale(0.5475);
-} @container(width <= 1200 px) {
+} @container(width <= 1200px) {
   transform: scale(0.5);
 }
 `;
@@ -2456,19 +2456,19 @@ const OuterWrapper = styled.div`
   justify-content: center;
   align-items: center;
 
-@container(width <= 1000 px) {
+@container(width <= 1000px) {
   position: absolute;
   left: 100px;
-} @container(width <= 850 px) {
+} @container(width <= 850px) {
   position: absolute;
   left: 200px;
-} @container(width <= 675 px) {
+} @container(width <= 675px) {
   position: absolute;
   left: 250px;
-} @container(width <= 500 px) {
+} @container(width <= 500px) {
   position: absolute;
   left: 300px;
-} @container(width <= 400 px) {
+} @container(width <= 400px) {
   position: absolute;
   left: 350px;
   transform: translateX(-10px);
