@@ -16,6 +16,8 @@ export type State = BoardState & {
     cardIdWithEffect: string,
     cardIdWithTarget: string,
 
+    cardToSend: {id: string, location: string},
+
     initialDistributionState: string;
     myAvatar: string,
     opponentAvatar: string,
@@ -73,6 +75,7 @@ export type State = BoardState & {
     getIsCardEffect: (compareCardId: string) => boolean,
     setCardIdWithTarget: (cardId: string) => void,
     getIsCardTarget: (compareCardId: string) => boolean,
+    setCardToSend: (cardId: string, location: string) => void,
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
@@ -88,6 +91,7 @@ export const useGame = create<State>((set, get) => ({
     isLoading: false,
     cardIdWithEffect: "",
     cardIdWithTarget: "",
+    cardToSend: {id: "", location: ""},
 
     initialDistributionState: "",
     myAvatar: "",
@@ -629,5 +633,7 @@ export const useGame = create<State>((set, get) => ({
     setCardIdWithTarget: (cardId) => set({cardIdWithTarget: cardId}),
 
     getIsCardTarget: (compareCardId) => compareCardId === get().cardIdWithTarget,
+
+    setCardToSend: (id, location) => set({cardToSend: {id, location}}),
 
 }));

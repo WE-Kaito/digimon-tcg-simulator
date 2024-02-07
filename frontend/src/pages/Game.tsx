@@ -2,9 +2,7 @@ import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {
     AttackPhase,
-    CardTypeGame,
-    DraggedItem,
-    DraggedStack, FieldCardContextMenuItemProps,
+    CardTypeGame, FieldCardContextMenuItemProps,
     HandCardContextMenuItemProps,
     Phase,
     Player
@@ -29,7 +27,6 @@ import cardBack from "../assets/cardBack.jpg";
 import noiseBG from "../assets/noiseBG.png";
 import hackmonButton from "../assets/hackmon-chip.png";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
-import {useDrop} from "react-dnd";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
@@ -41,7 +38,6 @@ import AttackArrows from "../components/game/AttackArrows.tsx";
 import {
     playActivateEffectSfx,
     playAttackSfx,
-    playCardToHandSfx,
     playDrawCardSfx,
     playEffectAttackSfx,
     playLoadMemorybarSfx,
@@ -81,6 +77,7 @@ import RestartPrompt from "../components/game/RestartPrompt.tsx";
 import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
 import {uid} from "uid";
 import targetAnimation from "../assets/lotties/target-animation.json";
+import useDropZone from "../hooks/useDropZone.tsx";
 
 export default function Game({user}: { user: string }) {
 
@@ -118,7 +115,6 @@ export default function Game({user}: { user: string }) {
     const [surrenderOpen, setSurrenderOpen] = useState<boolean>(false);
     const [eggDeckMoodle, setEggDeckMoodle] = useState<boolean>(false);
     const [securityMoodle, setSecurityMoodle] = useState<boolean>(false);
-    const [cardToSend, setCardToSend] = useState<{ id: string, location: string }>({id: "", location: ""});
     const [trashMoodle, setTrashMoodle] = useState<boolean>(false);
     const [opponentTrashMoodle, setOpponentTrashMoodle] = useState<boolean>(false);
     const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
@@ -157,9 +153,6 @@ export default function Game({user}: { user: string }) {
     const getOpponentReady = useGame(state => state.getOpponentReady);
     const setOpponentReady = useGame(state => state.setOpponentReady);
     const nextPhaseTrigger = useGame(state => state.nextPhaseTrigger);
-    const areCardsSuspended = useGame(state => state.areCardsSuspended);
-    const getDigimonNumber = useGame(state => state.getDigimonNumber);
-    const getCardType = useGame(state => state.getCardType);
 
     const isLoading = useGame(state => state.isLoading);
     const setIsLoading = useGame(state => state.setIsLoading);
@@ -479,10 +472,9 @@ export default function Game({user}: { user: string }) {
     });
 
     function sendChatMessage(message: string) {
-        if (message.length > 0) {
-            setMessages(user + "﹕" + message);
-            websocket.sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
-        }
+        if (message.length <= 0) return;
+        setMessages(user + "﹕" + message);
+        websocket.sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
     }
 
     const timeoutRef = useRef<number | null>(null);
@@ -558,6 +550,10 @@ export default function Game({user}: { user: string }) {
         if (!gameHasStarted && getOpponentReady() && !mulliganAllowed) setGameHasStarted(true);
     }
 
+    function sendAttackArrows(from: string, to: string, isEffect: boolean) {
+        websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to + ":" + isEffect);
+    }
+
     function sendCardToDeck(topOrBottom: "Top" | "Bottom", cardId: string, location: string, to: string) {
         websocket.sendMessage(`${gameId}:/moveCardToDeck:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}`);
     }
@@ -585,298 +581,11 @@ export default function Game({user}: { user: string }) {
         return () => clearTimeout(timeout);
     }
 
-    function handleDropToOpponent(from: string, to: string) {
-        if (!from || !to) return;
-
-        const myTurn = getIsMyTurn();
-        const type = getCardType(from);
-        const effect = !myTurn || type !== "Digimon" || getPhase() !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
-        const attackAllowed = areCardsSuspended(from) || (getDigimonNumber(from) === "BT12-083")
-
-        clearAttackAnimation?.();
-        setArrowFrom(from);
-        setArrowTo(to);
-        if (effect) setIsEffect(true);
-        setShowAttackArrow(true);
-        websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to + ":" + effect);
-        endAttackAnimation(effect);
-        if (!effect && attackAllowed) resolveMyAttack(true);
-    }
-
-    function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
-        if (!cardId || !from || !to) return;
-        moveCard(cardId, from, to);
-        sendMoveCard(cardId, from, to);
-        to === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();
-        sendSfx(to === "myTrash" ? "playTrashCardSfx" : "playPlaceCardSfx");
-        const hiddenCardInfo = (from === "myHand" && ["myTrash", "myDeckField"].includes(to)) ? ` (…${cardId.slice(-5)})` : "";
-        if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
-    }
-
-    function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
-        if (!cardId || !from || !to) return;
-        cardToDeck("Top", cardId, from, to);
-        playPlaceCardSfx();
-        sendSfx("playPlaceCardSfx");
-        sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
-        if (from === to) {
-            const timer = setTimeout(() => {
-                sendCardToDeck("Top", cardId, from, to);
-            }, 30);
-            return () => clearTimeout(timer);
-        } else sendCardToDeck("Top", cardId, from, to);
-    }
-
     function getFieldId(isOpponent: boolean, location1arr: CardTypeGame[], location2arr: CardTypeGame[], location1: string, location2: string): string {
         if (location1arr.length === 0 && (isOpponent ? !isOpponentSecondRowVisible : !isMySecondRowVisible)) return location1;
         if (location2arr.length === 0 && (isOpponent ? isOpponentSecondRowVisible : isMySecondRowVisible)) return location2;
         return "";
     }
-
-    function isCardStack(item: DraggedItem | DraggedStack): item is DraggedStack {
-        const {index} = item as DraggedStack;
-        return index > 0;
-    }
-
-    const moveCardStack = useGame((state) => state.moveCardStack);
-
-    function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
-        if (item.location === "myBreedingArea") nextPhaseTrigger(nextPhase, Phase.BREEDING);
-        if (isCardStack(item)) {
-            const {index, location} = item;
-            moveCardStack(index, location, targetField, handleDropToField);
-        } else {
-            const {id, location, name} = item;
-            handleDropToField(id, location, targetField, name);
-        }
-    }
-
-    function dropCardToDeck(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
-        const {id, location, type, name} = item;
-        if (type === "Token") return;
-        sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? `???…${id.slice(-5)}` : name}】﹕${convertForLog(cardToSend.location)} ➟ Deck ${topOrBottom}`);
-        cardToDeck(topOrBottom, id, location, "myDeckField");
-        sendCardToDeck(topOrBottom, id, location, "myDeckField");
-        playDrawCardSfx();
-    }
-
-    const [, dropToDigi1] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi1")
-    }));
-
-    const [, dropToDigi2] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi2")
-    }));
-
-    const [, dropToDigi3] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi3")
-    }));
-
-    const [, dropToDigi4] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi4")
-    }));
-
-    const [, dropToDigi5] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi5")
-    }));
-
-    const [, dropToDigi6] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi6")
-    }));
-
-    const [, dropToDigi7] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi7")
-    }));
-
-    const [, dropToDigi8] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi8")
-    }));
-
-    const [, dropToDigi9] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi9")
-    }));
-
-    const [, dropToDigi10] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi10")
-    }));
-
-    const [, dropToDigi11] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi11")
-    }));
-
-    const [, dropToDigi12] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi12")
-    }));
-
-    const [, dropToDigi13] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi13")
-    }));
-
-    const [, dropToDigi14] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi14")
-    }));
-
-    const [, dropToDigi15] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi15")
-    }));
-
-    const [, dropToBreedingArea] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myBreedingArea")
-    }));
-
-    const [, dropToHand] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            moveCard(id, location, 'myHand');
-            sendMoveCard(id, location, 'myHand');
-            playCardToHandSfx();
-            if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
-        }
-    }));
-
-    const [{isOverDeckTop}, dropToDeck] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => dropCardToDeck(item, "Top"),
-        collect: (monitor) => ({
-            isOverDeckTop: !!monitor.isOver(),
-        }),
-    }));
-
-    const [{isOverBottom, canDropToDeckBottom}, dropToDeckBottom] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => dropCardToDeck(item, "Bottom"),
-        collect: (monitor) => ({
-            isOverBottom: !!monitor.isOver(),
-            canDropToDeckBottom: !!monitor.canDrop(),
-        }),
-    }));
-
-    const [, dropToEggDeck] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, type} = item;
-            if (type === "Token") return;
-            setCardToSend({id, location});
-            setEggDeckMoodle(true);
-            setSecurityMoodle(false);
-        }
-    }));
-
-    const [, dropToSecurity] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, type} = item;
-            if (type === "Token") return;
-            setCardToSend({id, location});
-            setSecurityMoodle(true);
-            setEggDeckMoodle(false);
-        }
-    }));
-
-    const [{isOverTrash}, dropToTrash] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myTrash"),
-        collect: (monitor) => ({
-            isOverTrash: !!monitor.isOver(),
-        }),
-    }));
-
-    const [, dropToOpponentDigi1] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi1')
-    }));
-
-    const [, dropToOpponentDigi2] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi2')
-    }));
-
-    const [, dropToOpponentDigi3] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi3')
-    }));
-
-    const [, dropToOpponentDigi4] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi4')
-    }));
-
-    const [, dropToOpponentDigi5] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi5')
-    }));
-
-    const [, dropToOpponentDigi6] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi6')
-    }));
-
-    const [, dropToOpponentDigi7] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi7')
-    }));
-
-    const [, dropToOpponentDigi8] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi8')
-    }));
-
-    const [, dropToOpponentDigi9] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi9')
-    }));
-
-    const [, dropToOpponentDigi10] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi10')
-    }));
-
-    const [, dropToOpponentDigi11] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi11')
-    }));
-
-    const [, dropToOpponentDigi12] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi12')
-    }));
-
-    const [, dropToOpponentDigi13] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi13')
-    }));
-
-    const [, dropToOpponentDigi14] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi14')
-    }));
-
-    const [, dropToOpponentDigi15] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi15')
-    }));
-
-    const [, dropToOpponentSecurity] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentSecurity')
-    }));
 
     function nextPhase() {
         const timer = setTimeout(() => {
@@ -892,15 +601,13 @@ export default function Game({user}: { user: string }) {
         if (initiating && getPhase() === Phase.MAIN) {
             setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
             sendAttackPhaseUpdate(AttackPhase.WHEN_ATTACKING);
-        }
-        else {
+        } else {
             const attackPhase = getMyAttackPhase();
             if (!attackPhase) return;
             else if (attackPhase === AttackPhase.WHEN_ATTACKING) {
                 setMyAttackPhase(AttackPhase.COUNTER_BLOCK);
                 sendAttackPhaseUpdate(AttackPhase.COUNTER_BLOCK);
-            }
-            else if (attackPhase === AttackPhase.RESOLVE_ATTACK) {
+            } else if (attackPhase === AttackPhase.RESOLVE_ATTACK) {
                 setMyAttackPhase(false);
                 sendAttackPhaseUpdate(false);
             }
@@ -1083,7 +790,7 @@ export default function Game({user}: { user: string }) {
         clearCardEffect();
     }
 
-    function clearCardEffect(){
+    function clearCardEffect() {
         const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
         return () => clearTimeout(timer);
     }
@@ -1100,16 +807,82 @@ export default function Game({user}: { user: string }) {
         clearCardTarget();
     }
 
-    function clearCardTarget(){
+    function clearCardTarget() {
         const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
         return () => clearTimeout(timer);
     }
+
+    const {
+        dropToDigi1,
+        dropToDigi2,
+        dropToDigi3,
+        dropToDigi4,
+        dropToDigi5,
+        dropToDigi6,
+        dropToDigi7,
+        dropToDigi8,
+        dropToDigi9,
+        dropToDigi10,
+        dropToDigi11,
+        dropToDigi12,
+        dropToDigi13,
+        dropToDigi14,
+        dropToDigi15,
+        dropToHand,
+        dropToBreedingArea,
+        dropToDeck,
+        dropToDeckBottom,
+        dropToEggDeck,
+        dropToSecurity,
+        dropToTrash,
+        handleDropToStackBottom,
+        isOverTrash,
+        isOverDeckTop,
+        isOverBottom,
+        canDropToDeckBottom,
+        dropToOpponentDigi1,
+        dropToOpponentDigi2,
+        dropToOpponentDigi3,
+        dropToOpponentDigi4,
+        dropToOpponentDigi5,
+        dropToOpponentDigi6,
+        dropToOpponentDigi7,
+        dropToOpponentDigi8,
+        dropToOpponentDigi9,
+        dropToOpponentDigi10,
+        dropToOpponentDigi11,
+        dropToOpponentDigi12,
+        dropToOpponentDigi13,
+        dropToOpponentDigi14,
+        dropToOpponentDigi15,
+        dropToOpponentSecurity
+    } = useDropZone({
+        sendCardToDeck,
+        sendChatMessage,
+        nextPhase,
+        setArrowFrom,
+        setArrowTo,
+        setShowAttackArrow,
+        endAttackAnimation,
+        setIsEffect,
+        sendSfx,
+        sendMoveCard,
+        resolveMyAttack,
+        setSecurityMoodle,
+        setEggDeckMoodle,
+        sendAttackArrows,
+        clearAttackAnimation: clearAttackAnimation ?? (() => {
+        })
+    });
 
     const {show: showDeckMenu} = useContextMenu({id: "deckMenu"});
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
-    const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
+    const {show: showOpponentCardMenu} = useContextMenu({
+        id: "opponentCardMenu",
+        props: {index: -1, location: "", id: ""}
+    });
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
     const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott"]
@@ -1118,7 +891,15 @@ export default function Game({user}: { user: string }) {
     const color3 = localStorage.getItem("color3") ?? "#522170";
 
     return <>
-        {isLoading && <div style={{position: "absolute", height: "100vh", width: "100vw", left:0, top:0, zIndex: 99999, cursor: "wait"}}></div>}
+        {isLoading && <div style={{
+            position: "absolute",
+            height: "100vh",
+            width: "100vw",
+            left: 0,
+            top: 0,
+            zIndex: 99999,
+            cursor: "wait"
+        }}></div>}
         <BackGroundPattern/>
         <BackGround color1={color1} color2={color2} color3={color3}/>
 
@@ -1140,15 +921,24 @@ export default function Game({user}: { user: string }) {
                 </Menu>
 
                 <Menu id={"handCardMenu"} theme="dark">
-                    <Item onClick={revealHandCard}><div style={{ display: "flex", justifyContent: "space-between", width: "100%"}}><span>Reveal Card</span> <RevealIcon/></div></Item>
+                    <Item onClick={revealHandCard}>
+                        <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                            <span>Reveal Card</span> <RevealIcon/></div>
+                    </Item>
                 </Menu>
 
                 <Menu id={"fieldCardMenu"} theme="dark">
-                    <Item onClick={activateEffectAnimation}><div style={{ display: "flex", justifyContent: "space-between", width: "100%"}}><span>Activate Effect</span> <EffectIcon/></div></Item>
+                    <Item onClick={activateEffectAnimation}>
+                        <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}><span>Activate Effect</span>
+                            <EffectIcon/></div>
+                    </Item>
                 </Menu>
 
                 <Menu id={"opponentCardMenu"} theme="dark">
-                    <Item onClick={activateTargetAnimation}><div style={{ display: "flex", justifyContent: "space-between", width: "100%"}}><span>Target Card</span> <TargetIcon/></div></Item>
+                    <Item onClick={activateTargetAnimation}>
+                        <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                            <span>Target Card</span> <TargetIcon/></div>
+                    </Item>
                 </Menu>
 
                 <Menu id={"securityStackMenu"} theme="dark">
@@ -1227,7 +1017,7 @@ export default function Game({user}: { user: string }) {
                     <UserName>{!isOpponentOnline && isOnline &&
                         <OfflineIcon sx={{transform: "translate(-2px,4px)"}} color={"error"}/>}{opponentName}</UserName>
                     <UserName style={{top: "unset", bottom: -30}}>
-                        {[0,2,3].includes(websocket.readyState) &&
+                        {[0, 2, 3].includes(websocket.readyState) &&
                             <ConnectingIcon sx={{transform: "translate(-2px,4px)"}} color={"warning"}/>}
                         {!isOnline &&
                             <OfflineIcon sx={{transform: "translate(-2px,4px)"}} color={"error"}/>}
@@ -1353,19 +1143,23 @@ export default function Game({user}: { user: string }) {
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi10 : dropToOpponentDigi5}
                                     id={getFieldId(true, opponentDigi5, opponentDigi10, "opponentDigi5", "opponentDigi10")}>
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi10} location={"opponentDigi10"} opponentSide={true}
+                                        ? <CardStack cards={opponentDigi10} location={"opponentDigi10"}
+                                                     opponentSide={true}
                                                      showOpponentCardMenu={showOpponentCardMenu}/>
-                                        : <CardStack cards={opponentDigi5} location={"opponentDigi5"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
+                                        :
+                                        <CardStack cards={opponentDigi5} location={"opponentDigi5"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea5>
                                 <BattleArea4
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi9 : dropToOpponentDigi4}
                                     id={getFieldId(true, opponentDigi4, opponentDigi9, "opponentDigi4", "opponentDigi9")}>
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi9} location={"opponentDigi9"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>
-                                        : <CardStack cards={opponentDigi4} location={"opponentDigi4"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
+                                        ?
+                                        <CardStack cards={opponentDigi9} location={"opponentDigi9"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>
+                                        :
+                                        <CardStack cards={opponentDigi4} location={"opponentDigi4"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea4>
                                 <BattleArea3
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi8 : dropToOpponentDigi3}
@@ -1373,47 +1167,62 @@ export default function Game({user}: { user: string }) {
                                     {!isOpponentSecondRowVisible && opponentDigi3.length === 0 &&
                                         <FieldSpan>Battle Area</FieldSpan>}
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi8} location={"opponentDigi8"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>
-                                        : <CardStack cards={opponentDigi3} location={"opponentDigi3"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
+                                        ?
+                                        <CardStack cards={opponentDigi8} location={"opponentDigi8"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>
+                                        :
+                                        <CardStack cards={opponentDigi3} location={"opponentDigi3"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea3>
                                 <BattleArea2
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi7 : dropToOpponentDigi2}
                                     id={getFieldId(true, opponentDigi2, opponentDigi7, "opponentDigi2", "opponentDigi7")}>
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi7} location={"opponentDigi7"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>
-                                        : <CardStack cards={opponentDigi2} location={"opponentDigi2"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
+                                        ?
+                                        <CardStack cards={opponentDigi7} location={"opponentDigi7"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>
+                                        :
+                                        <CardStack cards={opponentDigi2} location={"opponentDigi2"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea2>
                                 <BattleArea1
                                     ref={isOpponentSecondRowVisible ? dropToOpponentDigi6 : dropToOpponentDigi1}
                                     id={getFieldId(true, opponentDigi1, opponentDigi6, "opponentDigi1", "opponentDigi6")}>
                                     {isOpponentSecondRowVisible
-                                        ? <CardStack cards={opponentDigi6} location={"opponentDigi6"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>
-                                        : <CardStack cards={opponentDigi1} location={"opponentDigi1"} opponentSide={true}
-                                                     showOpponentCardMenu={showOpponentCardMenu}/>}
+                                        ?
+                                        <CardStack cards={opponentDigi6} location={"opponentDigi6"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>
+                                        :
+                                        <CardStack cards={opponentDigi1} location={"opponentDigi1"} opponentSide={true}
+                                                   showOpponentCardMenu={showOpponentCardMenu}/>}
                                 </BattleArea1>
 
                                 <OpponentHandContainer>
                                     <HandCards cardCount={opponentHand.length}
                                                style={{transform: `translateX(-${opponentHand.length * (opponentHand.length < 11 ? 2.5 : 1.5)}px)`}}>
                                         {opponentHand.map((card, index) =>
-                                            <HandListItem cardCount={opponentHand.length} cardIndex={index} key={card.id}
+                                            <HandListItem cardCount={opponentHand.length} cardIndex={index}
+                                                          key={card.id}
                                                           onContextMenu={(e) => showOpponentCardMenu?.({
                                                               event: e,
-                                                              props: {index, location: "opponentHand", id: card.id, name: card.name}
+                                                              props: {
+                                                                  index,
+                                                                  location: "opponentHand",
+                                                                  id: card.id,
+                                                                  name: card.name
+                                                              }
                                                           })}>
-                                                <div style={{ position: "relative", filter: getIsCardTarget(card.id) ? "drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1)" : "unset"}}>
-                                                {getIsCardTarget(card.id) &&
-                                                    <CardAnimationContainer>
-                                                        <Lottie animationData={targetAnimation} loop={true}/>
-                                                    </CardAnimationContainer>}
-                                                <OppenentHandCard alt="card"
-                                                                  src={getSleeve(opponentSleeve)}/>
-                                            </div>
+                                                <div style={{
+                                                    position: "relative",
+                                                    filter: getIsCardTarget(card.id) ? "drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1)" : "unset"
+                                                }}>
+                                                    {getIsCardTarget(card.id) &&
+                                                        <CardAnimationContainer>
+                                                            <Lottie animationData={targetAnimation} loop={true}/>
+                                                        </CardAnimationContainer>}
+                                                    <OppenentHandCard alt="card"
+                                                                      src={getSleeve(opponentSleeve)}/>
+                                                </div>
                                             </HandListItem>)}
                                     </HandCards>
                                     {opponentHand.length > 5 && <MyHandSpan
@@ -1454,7 +1263,7 @@ export default function Game({user}: { user: string }) {
                                              style={{top: "unset", left: "unset", right: 20, bottom: 0}}
                                              onClick={() => setRestartPromptModal(true)}/>
 
-                                <BreedingAreaContainer>
+                                <BreedingAreaContainer {...(opponentBreedingArea.length === 0 && { id: "opponentBreedingArea" })}>
                                     <CardStack cards={opponentBreedingArea} location={"opponentBreedingArea"}
                                                showOpponentCardMenu={showOpponentCardMenu}
                                                opponentSide={true}/>
@@ -1478,8 +1287,7 @@ export default function Game({user}: { user: string }) {
 
                                 <EggDeckContainer ref={dropToEggDeck}>
                                     {eggDeckMoodle &&
-                                        <DeckMoodle sendCardToDeck={sendCardToDeck} cardToSend={cardToSend}
-                                                    to={"myEggDeck"}
+                                        <DeckMoodle sendCardToDeck={sendCardToDeck} to={"myEggDeck"}
                                                     setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
                                         <EggDeck alt="egg-deck" src={eggBack}
@@ -1508,8 +1316,7 @@ export default function Game({user}: { user: string }) {
                                 <SecurityStackContainer ref={dropToSecurity}>
 
                                     {securityMoodle &&
-                                        <DeckMoodle sendCardToDeck={sendCardToDeck} cardToSend={cardToSend}
-                                                    to={"mySecurity"}
+                                        <DeckMoodle sendCardToDeck={sendCardToDeck} to={"mySecurity"}
                                                     setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
                                     <SecurityStack>
                                         <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
@@ -1582,7 +1389,7 @@ export default function Game({user}: { user: string }) {
                                     </div>
                                 }
 
-                                <BreedingAreaContainer ref={dropToBreedingArea}>
+                                <BreedingAreaContainer ref={dropToBreedingArea}  {...(myBreedingArea.length === 0 && { id: "myBreedingArea" })}>
                                     {<CardStack cards={myBreedingArea} location={"myBreedingArea"} sendSfx={sendSfx}
                                                 showFieldCardMenu={showFieldCardMenu}
                                                 sendTiltCard={sendTiltCard}/>}
@@ -1960,56 +1767,32 @@ const Wrapper = styled.div`
   transition: transform 0.3s ease-in-out;
 
 
-@container (width > 2225px) {
+@container(width > 2225 px) {
   transform: scale(1.075);
-}
-
-@container (width > 2450px) {
+} @container(width > 2450 px) {
   transform: scale(1.125);
-}
-
-@container (width <= 2170px) {
+} @container(width <= 2170 px) {
   transform: scale(0.95);
-}
-
-@container (width <= 2040px) {
+} @container(width <= 2040 px) {
   transform: scale(0.875);
-}
-
-@container (width <= 1950px) {
+} @container(width <= 1950 px) {
   transform: scale(0.86);
-}
-
-@container (width <= 1900px) {
+} @container(width <= 1900 px) {
   transform: scale(0.83);
-}
-
-@container (width <= 1800px) {
+} @container(width <= 1800 px) {
   transform: scale(0.78);
-}
-
-@container (width <= 1700px) {
+} @container(width <= 1700 px) {
   transform: scale(0.7325);
-}
-
-@container (width <= 1600px) {
+} @container(width <= 1600 px) {
   transform: scale(0.685);
-}
-
-@container (width <= 1500px) {
+} @container(width <= 1500 px) {
   transform: scale(0.64);
-}
-  
-@container (width <= 1400px) {
-    transform: scale(0.595);
-}
-  
-@container (width <= 1300px) {
-    transform: scale(0.5475);
-}
-  
-@container (width <= 1200px) {
-    transform: scale(0.5);
+} @container(width <= 1400 px) {
+  transform: scale(0.595);
+} @container(width <= 1300 px) {
+  transform: scale(0.5475);
+} @container(width <= 1200 px) {
+  transform: scale(0.5);
 }
 `;
 
@@ -2673,27 +2456,19 @@ const OuterWrapper = styled.div`
   justify-content: center;
   align-items: center;
 
-@container (width <= 1000px) {
+@container(width <= 1000 px) {
   position: absolute;
   left: 100px;
-}
-
-@container (width <= 850px) {
+} @container(width <= 850 px) {
   position: absolute;
   left: 200px;
-}
-
-@container (width <= 675px) {
+} @container(width <= 675 px) {
   position: absolute;
   left: 250px;
-}
-  
-  @container (width <= 500px) {
+} @container(width <= 500 px) {
   position: absolute;
   left: 300px;
-  }
-
-@container (width <= 400px) {
+} @container(width <= 400 px) {
   position: absolute;
   left: 350px;
   transform: translateX(-10px);
@@ -2703,7 +2478,7 @@ const OuterWrapper = styled.div`
     position: absolute;
     top: 50px;
   }
-  
+
   @media (max-height: 450px) {
     position: absolute;
     top: 90px;
