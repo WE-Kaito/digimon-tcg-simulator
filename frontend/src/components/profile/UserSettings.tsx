@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import {useStore} from "../../hooks/useStore.ts";
-import {FormEvent, useState} from "react";
+import {FormEvent, useMemo, useState} from "react";
 import {MuiColorInput} from "mui-color-input";
 import ResetIcon from '@mui/icons-material/SettingsBackupRestore';
 import {IconButton} from "@mui/material";
@@ -18,10 +18,10 @@ export default function UserSettings() {
     const [value2, setValue2] = useState(getStoredValue('color2', '#0b3d65'));
     const [value3, setValue3] = useState(getStoredValue('color3', '#522170'));
 
-    function handleChange(newValue: string, setValue:  React.Dispatch<React.SetStateAction<string>>, storageKey: string) {
+    const handleChange = useMemo(() => (newValue: string, setValue: React.Dispatch<React.SetStateAction<string>>, storageKey: string) => {
         setValue(newValue);
         localStorage.setItem(storageKey, newValue);
-    }
+    }, []);
 
     const handleChange1 = (newValue: string) => handleChange(newValue, setValue1, 'color1');
     const handleChange2 = (newValue: string) => handleChange(newValue, setValue2, 'color2');

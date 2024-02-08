@@ -1,14 +1,10 @@
 import styled from "@emotion/styled";
-import eggIcon from "../../assets/cardtype_icons/egg.png";
-import digimonIcon from "../../assets/cardtype_icons/gammamon.png";
-import tamerIcon from "../../assets/cardtype_icons/tamer.png";
-import optionIcon from "../../assets/cardtype_icons/option.png";
 import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
 import {useStore} from "../../hooks/useStore.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
 import Card from "../Card.tsx";
-import {sortCards} from "../../utils/functions.ts";
+import {getCardTypeImage, sortCards} from "../../utils/functions.ts";
 import {playPlaceCardSfx, playTrashCardSfx} from "../../utils/sound.ts";
 
 export default function DeckSelection() {
@@ -77,22 +73,22 @@ export default function DeckSelection() {
 
             <Stats>
                 <StatContainer>
-                    <StyledIcon src={digimonIcon} alt="Digimon: "/>
+                    <StyledIcon src={getCardTypeImage("Digimon")} alt="Digimon: "/>
                     <StyledSpan>{digimonLength}</StyledSpan>
                 </StatContainer>
 
                 <StatContainer>
-                    <StyledIcon src={tamerIcon} alt="Tamer: "/>
+                    <StyledIcon src={getCardTypeImage("Tamer")} alt="Tamer: "/>
                     <StyledSpan>{tamerLength}</StyledSpan>
                 </StatContainer>
 
                 <StatContainer>
-                    <StyledIcon src={optionIcon} alt="Option: "/>
+                    <StyledIcon src={getCardTypeImage("Option")} alt="Option: "/>
                     <StyledSpan>{optionLength}</StyledSpan>
                 </StatContainer>
 
                 <StatContainer>
-                    <StyledIcon src={eggIcon} alt="Egg: "/>
+                    <StyledIcon src={getCardTypeImage("Digi-Egg")} alt="Egg: "/>
                     <StyledSpan>{eggLength}</StyledSpan>
                 </StatContainer>
             </Stats>

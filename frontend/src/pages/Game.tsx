@@ -20,10 +20,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderRestartWindow from "../components/game/SurrenderRestartWindow.tsx";
 import EndWindow from "../components/game/EndWindow.tsx";
-import deckBack from "../assets/deckBack.png";
-import eggBack from "../assets/eggBack.jpg";
 import Card, {CardAnimationContainer} from "../components/Card.tsx";
-import cardBack from "../assets/cardBack.jpg";
 import noiseBG from "../assets/noiseBG.png";
 import hackmonButton from "../assets/hackmon-chip.png";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
@@ -78,6 +75,11 @@ import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
 import {uid} from "uid";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import useDropZone from "../hooks/useDropZone.tsx";
+
+const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/";
+const cardBackUrl = assetBaseUrl + "cardBack.jpg";
+const deckBackUrl = assetBaseUrl + "deckBack.png";
+const eggBackUrl = assetBaseUrl + "eggBack.jpg";
 
 export default function Game({user}: { user: string }) {
 
@@ -224,6 +226,7 @@ export default function Game({user}: { user: string }) {
 
         onOpen: () => {
             websocket.sendMessage("/startGame:" + gameId);
+            console.log("called onOpen");
         },
 
         onMessage: (event) => {
@@ -414,11 +417,6 @@ export default function Game({user}: { user: string }) {
                 }
                 case "[SECURITY_VIEWED]": {
                     notifySecurityView();
-                    break;
-                }
-                case "[PLAYER_LEFT]": {
-                    setEndScreen(true);
-                    setEndScreenMessage("Your opponent left.");
                     break;
                 }
                 case ("[RESTART_AS_FIRST]"): {
@@ -664,10 +662,10 @@ export default function Game({user}: { user: string }) {
         };
     }, []);
 
-    const [cardImageUrl, setCardImageUrl] = useState((hoverCard ?? selectedCard)?.imgUrl ?? cardBack);
+    const [cardImageUrl, setCardImageUrl] = useState((hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl);
 
     useEffect(() => {
-        setCardImageUrl((hoverCard ?? selectedCard)?.imgUrl ?? cardBack);
+        setCardImageUrl((hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl);
     }, [selectedCard, hoverCard]);
 
     function handleSurrender() {
@@ -1046,7 +1044,7 @@ export default function Game({user}: { user: string }) {
                                 <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                             </a>
                             <a
-                                href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F"
+                                href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Features-&-Controls#game-%EF%B8%8F"
                                 target="_blank"
                                 rel="noopener noreferrer">
                                 <span style={{color: "dodgerblue"}}>🛈 </span>Controls
@@ -1057,7 +1055,7 @@ export default function Game({user}: { user: string }) {
                                    onContextMenu={(e) => showDetailsImageMenu({event: e})}
                                    src={cardImageUrl}
                                    alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}
-                                   onError={() => setCardImageUrl(cardBack)}/>
+                                   onError={() => setCardImageUrl(cardBackUrl)}/>
 
                         <CardDetails/>
                     </InfoContainer>
@@ -1088,10 +1086,10 @@ export default function Game({user}: { user: string }) {
 
                                 <OpponentDeckContainer>
                                     {opponentSleeve === "Default"
-                                        ? <img alt="deck" src={deckBack} width="105px"/>
+                                        ? <img alt="deck" src={deckBackUrl} width="105px"/>
                                         : <div style={{width: "105px", position: "relative"}}>
                                             <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
-                                            <img alt="deck" src={deckBack} width="105px"/>
+                                            <img alt="deck" src={deckBackUrl} width="105px"/>
                                         </div>}
                                     <TrashSpan
                                         style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
@@ -1240,7 +1238,7 @@ export default function Game({user}: { user: string }) {
                                     {opponentEggDeck.length !== 0 &&
                                         <EggDeckSpan
                                             style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
-                                    {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="95px"
+                                    {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBackUrl} width="95px"
                                                                           style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                                 </EggDeckContainer>
 
@@ -1290,7 +1288,7 @@ export default function Game({user}: { user: string }) {
                                         <DeckMoodle sendCardToDeck={sendCardToDeck} to={"myEggDeck"}
                                                     setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
-                                        <EggDeck alt="egg-deck" src={eggBack}
+                                        <EggDeck alt="egg-deck" src={eggBackUrl}
                                                  onClick={() => {
                                                      if (!getOpponentReady()) return;
                                                      moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
@@ -1415,7 +1413,7 @@ export default function Game({user}: { user: string }) {
                                         {myDeckField.length}</TrashSpan>
                                     {mySleeve === "Default"
                                         ?
-                                        <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                        <Deck ref={dropToDeck} alt="deck" src={deckBackUrl} gameHasStarted={gameHasStarted}
                                               isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                               onClick={() => {
                                                   nextPhaseTrigger(nextPhase, Phase.DRAW);
@@ -1424,7 +1422,7 @@ export default function Game({user}: { user: string }) {
                                         : <div style={{width: "105px", position: "relative"}}>
                                             <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
                                                           gameHasStarted={gameHasStarted}/>
-                                            <Deck ref={dropToDeck} alt="deck" src={deckBack}
+                                            <Deck ref={dropToDeck} alt="deck" src={deckBackUrl}
                                                   gameHasStarted={gameHasStarted}
                                                   isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                                   onClick={() => {

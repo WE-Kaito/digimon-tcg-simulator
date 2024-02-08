@@ -71,6 +71,8 @@ public class DeckService {
                 }
             }
         }
+        else throw new IllegalArgumentException();
+
         return cards;
     }
 
