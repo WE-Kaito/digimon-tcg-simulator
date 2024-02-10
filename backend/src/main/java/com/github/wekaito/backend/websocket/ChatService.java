@@ -4,6 +4,7 @@ import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -27,11 +29,16 @@ public class ChatService extends TextWebSocketHandler {
     private Set<WebSocketSession> activeSessions = new HashSet<>();
     private Set<String> connectedUsernames = new HashSet<>();
 
+    private int totalSessionCount = 0;
+
+    @Autowired
+    private GameService gameService;
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
-        if (activeDeck.equals("") || deckService.getDeckById(activeDeck) == null){
+        if (activeDeck.equals("") || deckService.getDeckById(activeDeck) == null) {
             session.sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
             return;
         }
@@ -43,6 +50,7 @@ public class ChatService extends TextWebSocketHandler {
         connectedUsernames.add(username);
         broadcastConnectedUsernames();
         session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: Join our Discord!"));
+        session.sendMessage(new TextMessage("[USER_COUNT]:" + getTotalSessionCount()));
     }
 
     @Override
@@ -50,35 +58,49 @@ public class ChatService extends TextWebSocketHandler {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         activeSessions.remove(session);
         connectedUsernames.remove(username);
-
         broadcastConnectedUsernames();
     }
 
     @Scheduled(fixedRate = 10000)
-    public synchronized void sendHeartbeat() {
-        for (WebSocketSession session : activeSessions) {
-            try {
-                session.sendMessage(new TextMessage("[HEARTBEAT]"));
-                broadcastConnectedUsernames();
-            } catch (IOException e) {
-                e.getCause();
-            }
-        }
+    public synchronized void sendHeartbeat() throws IOException {
+        broadcastUserCount();
+    }
+
+    @Scheduled(fixedRate = 2000)
+    public synchronized void sendReconnectInfo() throws IOException {
+        checkForRejoinableRoom();
     }
 
     void broadcastConnectedUsernames() throws IOException {
         String userListMessage = String.join(", ", connectedUsernames);
-        TextMessage message = new TextMessage(userListMessage);
-
         for (WebSocketSession session : activeSessions) {
-            session.sendMessage(message);
+            session.sendMessage(new TextMessage(userListMessage));
         }
     }
 
-    WebSocketSession getSessionByUsername(String username){
+    void broadcastUserCount() throws IOException {
+        for (WebSocketSession session : activeSessions) {
+            session.sendMessage(new TextMessage("[USER_COUNT]:" + (getTotalSessionCount())));
+        }
+    }
+
+    void checkForRejoinableRoom() throws IOException {
+        for (WebSocketSession session : activeSessions) {
+            boolean isRejoinable = gameService.gameRooms.keySet().stream().anyMatch(roomId -> roomId.contains(Objects.requireNonNull(session.getPrincipal()).getName()));
+            if (isRejoinable) session.sendMessage(new TextMessage("[RECONNECT_ENABLED]"));
+            else session.sendMessage(new TextMessage("[RECONNECT_DISABLED]"));
+        }
+    }
+
+    WebSocketSession getSessionByUsername(String username) {
         return activeSessions.stream()
                 .filter(s -> username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
+    }
+
+    int getTotalSessionCount() {
+        totalSessionCount = activeSessions.size() + gameService.gameRooms.values().stream().mapToInt(Set::size).sum();
+        return totalSessionCount;
     }
 
     @Override
@@ -125,7 +147,7 @@ public class ChatService extends TextWebSocketHandler {
             WebSocketSession invitingSession = getSessionByUsername(invitingUsername);
 
             if (invitingSession != null) {
-                invitingSession.sendMessage(new TextMessage("[INVITATION_ACCEPTED]:"+username));
+                invitingSession.sendMessage(new TextMessage("[INVITATION_ACCEPTED]:" + username));
             }
 
             connectedUsernames.add(username);

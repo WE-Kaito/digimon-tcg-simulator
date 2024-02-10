@@ -90,7 +90,7 @@ export default function Game({user}: { user: string }) {
     const selectCard = useStore((state) => state.selectCard);
     const hoverCard = useStore((state) => state.hoverCard);
 
-    const gameId = useStore((state) => state.gameId);
+    const gameId = useGame((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
     const clearBoard = useGame((state) => state.clearBoard);
     const distributeCards = useGame((state) => state.distributeCards);
@@ -129,15 +129,10 @@ export default function Game({user}: { user: string }) {
     const [arrowFrom, setArrowFrom] = useState<string>("");
     const [arrowTo, setArrowTo] = useState<string>("");
     const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
-    const [gameHasStarted, setGameHasStarted] = useState<boolean>(false);
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
-    const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
-    const [restartObj, setRestartObj] = useState<{ me: Player, opponent: Player }>({
-        me: {username: "", avatarName: "", sleeveName: ""},
-        opponent: {username: "", avatarName: "", sleeveName: ""}
-    });
+    const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false)
+
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
-    const [userCount, setUserCount] = useState<number>(0);
     const [isEffect, setIsEffect] = useState<boolean>(false);
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -158,6 +153,11 @@ export default function Game({user}: { user: string }) {
 
     const isLoading = useGame(state => state.isLoading);
     const setIsLoading = useGame(state => state.setIsLoading);
+
+    const restartObject = useGame(state => state.restartObject);
+    const setRestartObject = useGame(state => state.setRestartObject);
+    const gameHasStarted = useGame(state => state.gameHasStarted);
+    const setGameHasStarted = useGame(state => state.setGameHasStarted);
 
     const isMyTurn = useGame(state => state.isMyTurn);
     const getIsMyTurn = useGame(state => state.getIsMyTurn);
@@ -225,8 +225,8 @@ export default function Game({user}: { user: string }) {
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
-            websocket.sendMessage("/startGame:" + gameId);
-            console.log("called onOpen");
+            if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
+            else websocket.sendMessage("/startGame:" + gameId);
         },
 
         onMessage: (event) => {
@@ -242,7 +242,7 @@ export default function Game({user}: { user: string }) {
                 setGameHasStarted(false);
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
-                setRestartObj({me, opponent});
+                setRestartObject({me, opponent});
                 return;
             }
 
@@ -275,11 +275,6 @@ export default function Game({user}: { user: string }) {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
-                    interval = setInterval(() => {
-                        websocket.sendMessage("/heartbeat/")
-                        websocket.sendMessage(`${gameId}:/online:${opponentName}`);
-                        setIsOnline(navigator.onLine)
-                    }, 5000);
                 }, 5500);
                 return () => {
                     clearTimeout(timeout1);
@@ -392,12 +387,6 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
-            if (event.data.startsWith("[USER_COUNT]:")) {
-                const userCount = event.data.substring("[USER_COUNT]:".length);
-                setUserCount(parseInt(userCount));
-                return;
-            }
-
             if (event.data.startsWith("[CREATE_TOKEN]:")) {
                 const id = event.data.substring("[CREATE_TOKEN]:".length);
                 createToken("opponent", id)
@@ -434,12 +423,10 @@ export default function Game({user}: { user: string }) {
                     setOpponentAttackPhase(false);
                     clearBoard();
                     setEndScreen(false);
-                    setUpGame(restartObj.me, restartObj.opponent);
+                    setUpGame(restartObject.me, restartObject.opponent);
                     setGameHasStarted(false);
                     break;
                 }
-                case ("[HEARTBEAT]"):
-                    break;
                 case ("[PLAYER_READY]"): {
                     setOpponentReady(true);
                     if (!mulliganAllowed) setGameHasStarted(true);
@@ -460,6 +447,10 @@ export default function Game({user}: { user: string }) {
                 }
                 case ("[LOADED]"): {
                     setIsLoading(false);
+                    break;
+                }
+                case ("[OPPONENT_RECONNECTED]"): {
+                    sendUpdate();
                     break;
                 }
                 default: {
@@ -625,7 +616,6 @@ export default function Game({user}: { user: string }) {
         sendSfx("playNextAttackPhaseSfx");
     }
 
-
     useEffect(() => {
         setEggDeckMoodle(false);
         setSecurityMoodle(false);
@@ -647,13 +637,20 @@ export default function Game({user}: { user: string }) {
     ]);
 
     useEffect(() => {
-        clearBoard();
         const handleOnlineStatusChange = () => {
             setIsOnline(navigator.onLine);
         };
 
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
+
+        if(gameHasStarted) setMemoryBarLoading(false);
+
+        interval = setInterval(() => {
+            websocket.sendMessage(`${gameId}:/online:${opponentName}`);
+            setIsOnline(navigator.onLine)
+            console.log("online check");
+        }, 5000);
 
         return () => {
             window.removeEventListener('online', handleOnlineStatusChange);
@@ -877,13 +874,9 @@ export default function Game({user}: { user: string }) {
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
-    const {show: showOpponentCardMenu} = useContextMenu({
-        id: "opponentCardMenu",
-        props: {index: -1, location: "", id: ""}
-    });
+    const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
-    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott"]
     const color1 = localStorage.getItem("color1") ?? "#214d44";
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";
     const color3 = localStorage.getItem("color3") ?? "#522170";
@@ -979,14 +972,6 @@ export default function Game({user}: { user: string }) {
                 {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
                     <Item onClick={() => window.open(selectedCard.imgUrl, '_blank')}>Open Image in new Tab ↗</Item>
                 </Menu>}
-
-                {modNames.includes(user) &&
-                    <span style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 25,
-                        opacity: 0.5
-                    }}>users ingame: {userCount}</span>}
 
                 {showAttackArrow &&
                     <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo} isEffect={isEffect}/>}

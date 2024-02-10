@@ -2,20 +2,18 @@ package com.github.wekaito.backend.security;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 public record RegistrationUser(
         @NotNull
-        @Size(min=3, max=16, message = "Username must contain between 3 and 16 characters")
+        @Pattern(regexp = "^(?:(?![:_【】﹕≔<>$& ]).){3,16}$", message = "Invalid username")
         String username,
         @NotNull
-        @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).*$", message = "Invalid password")
-        @Size(min=6)
+        @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).{6,128}$", message = "Invalid password")
         String password,
         @NotNull
-        @Size(min=1, max=64)
+        @Pattern(regexp = "^(?:(?![:_【】﹕≔<>$&]).){1,64}$", message = "Invalid question")
         String question,
         @NotNull
-        @Size(min=1, max=64)
+        @Pattern(regexp = "^(?:(?![:_【】﹕≔<>$&]).){1,64}$", message = "Invalid answer")
         String answer) {
 }

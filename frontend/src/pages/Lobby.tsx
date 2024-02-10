@@ -6,12 +6,13 @@ import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
-import {useStore} from "../hooks/useStore.ts";
 import {notifyNoActiveDeck} from "../utils/toasts.ts";
 import {playInvitationSfx} from "../utils/sound.ts";
 import discordIcon from "../assets/discordLogo.png";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
+import {useGame} from "../hooks/useGame.ts";
+import {Button} from "@mui/material";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -23,17 +24,22 @@ export default function Lobby({user}: { user: string }) {
     const [inviteFrom, setInviteFrom] = useState<string>("");
     const [inviteTo, setInviteTo] = useState<string>("");
     const [search, setSearch] = useState<string>("");
+    const [userCount, setUserCount] = useState<number>(0);
+    const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
     const currentPort = window.location.port;
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
 
-    const setGameId = useStore((state) => state.setGameId);
+    const setGameId = useGame((state) => state.setGameId);
+    const clearBoard = useGame((state) => state.clearBoard);
 
     const navigate = useNavigate();
+    const navigateToGame = () => navigate("/game");
 
     const websocket = useWebSocket(websocketURL, {
         onMessage: (event) => {
-            if (event.data.startsWith("[HEARTBEAT]")) {
+            if (event.data === "[HEARTBEAT]") {
                 websocket.sendMessage("/heartbeat/");
+                return;
             }
 
             if (event.data.startsWith("[INVITATION]")) {
@@ -56,7 +62,7 @@ export default function Lobby({user}: { user: string }) {
                 if (acceptedFrom === inviteTo) {
                     const newGameID = user + "‗" + acceptedFrom;
                     setGameId(newGameID);
-                    navigate(`../game`);
+                    navigateToGame();
                 }
                 return;
             }
@@ -67,13 +73,27 @@ export default function Lobby({user}: { user: string }) {
                 return () => clearTimeout(timeout);
             }
 
-            if (event.data.startsWith("[CHAT_MESSAGE]")) {
-                setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+            if (event.data === "[RECONNECT_ENABLED]") {
+                setIsRejoinable(true);
+                return;
             }
 
-            else {
-                setUsernames(event.data.split(", "));
+            if (event.data === "[RECONNECT_DISABLED]") {
+                setIsRejoinable(false);
+                return;
             }
+
+            if (event.data.startsWith("[USER_COUNT]:")) {
+                setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
+                return;
+            }
+
+            if (event.data.startsWith("[CHAT_MESSAGE]")) {
+                setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+                return;
+            }
+
+            setUsernames(event.data.split(", "));
         },
     });
 
@@ -95,6 +115,7 @@ export default function Lobby({user}: { user: string }) {
     }
 
     function handleInvite(invitedUsername: string) {
+        clearBoard();
         setInvitationSent(true);
         setInviteTo(invitedUsername);
         const invitationMessage = `/invite:` + invitedUsername;
@@ -109,10 +130,11 @@ export default function Lobby({user}: { user: string }) {
     }
 
     function handleAcceptInvite() {
+        clearBoard();
         websocket.sendMessage(`/acceptInvite:` + inviteFrom);
         const newGameId = inviteFrom + "‗" + user;
         setGameId(newGameId);
-        navigate(`/game`);
+        navigateToGame();
     }
 
     function userVisible(username: string) {
@@ -143,8 +165,8 @@ export default function Lobby({user}: { user: string }) {
             {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
 
             <Header>
-                <HeadlineSpan>Lobby</HeadlineSpan>
-                <ButtonContainer><BackButton/></ButtonContainer>
+                <HeadlineSpan>Online: {userCount}</HeadlineSpan>
+                <ButtonContainer><Button onClick={navigateToGame} disabled={!isRejoinable} sx={{mr: 10}} variant="outlined" color="success">RECONNECT</Button> <BackButton/></ButtonContainer>
             </Header>
 
             <Container>
@@ -215,14 +237,13 @@ const Wrapper = styled.div`
 `;
 
 const Header = styled.div`
-  display: grid;
+  display: flex;
   grid-template-columns: 1fr 1fr 1fr;
+  justify-content: space-between;
   align-items: center;
-  grid-template-rows: 1fr;
-  justify-content: center;
   margin-top: 5vh;
-  width: 100vw;
-  max-width: 1000px;
+  width: 100%;
+  max-width: 900px;
 
   @media (max-width: 766px) {
     margin-top: 1.5vh;
@@ -236,6 +257,7 @@ const ButtonContainer = styled.div`
   align-self: start;
   margin-left: 30px;
   transform: scale(0.95);
+  display: flex;
 `;
 
 const ConnectionSpanGreen = styled.span`
@@ -523,9 +545,9 @@ const DeclineButton = styled(StyledButton)`
 
 const HeadlineSpan = styled(Headline2)`
   grid-column-start: 2;
-  transform: translate(-300px, -15px);
-    @media (max-width: 768px) {
+    @media (max-width: 766px) {
       transform: translate(-24vw, -6px);
+      margin-left: 0;
     }
 `;
 

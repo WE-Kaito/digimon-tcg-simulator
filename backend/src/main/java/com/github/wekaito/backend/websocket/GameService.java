@@ -17,7 +17,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -32,7 +31,7 @@ public class GameService extends TextWebSocketHandler {
 
     private final IdService idService;
 
-    private final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
+    final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
 
     private final ObjectMapper objectMapper;
 
@@ -98,21 +97,12 @@ public class GameService extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        gameRooms.values().forEach(gameRoom -> gameRoom.removeIf(s -> username.equals(Objects.requireNonNull(s.getPrincipal()).getName())));
-        gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        gameRooms.values().forEach(value -> value.removeIf(s -> username.equals(Objects.requireNonNull(s.getPrincipal()).getName())));
     }
 
-    @Scheduled(fixedRate = 5000)
-    public synchronized void sendHeartbeat() {
-        for (Set<WebSocketSession> gameRoom : gameRooms.values()) {
-            for (WebSocketSession webSocketSession : gameRoom) {
-                try {
-                    webSocketSession.sendMessage(new TextMessage("[USER_COUNT]:" + gameRooms.size() * 2));
-                } catch (IOException e) {
-                    e.getCause();
-                }
-            }
-        }
+    @Scheduled(fixedRate = 2000)
+    public synchronized void cleanUp() {
+        gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
     @Override
@@ -127,25 +117,25 @@ public class GameService extends TextWebSocketHandler {
             String username1 = gameId.split("‗")[0];
             String username2 = gameId.split("‗")[1];
 
-            synchronized (gameRooms) {
-                Set<WebSocketSession> existingGameRoom = gameRooms.get(gameId);
-                if (existingGameRoom != null) {
-                    // If game room exists with 2 users, clean up the room and start a new game
-                    if (existingGameRoom.size() == 2) {
-                        gameRooms.remove(gameId);
-                        handleTextMessage(session, message);
-                        return;
-                    }
-                    existingGameRoom.add(session); // If game room exists with 1 user, re-enter the room
-                    return;
-                }
-            }
-
             setUpGame(session, gameId, username1, username2);
             if (username2.equals(Objects.requireNonNull(session.getPrincipal()).getName())) return;
             Thread.sleep(3600);
             distributeCards(gameId, username1, username2);
             return;
+        }
+
+        if(payload.startsWith("/reconnect:") && parts.length >= 2){
+            synchronized (gameRooms) {
+                String gameId = parts[1].trim();
+                Set<WebSocketSession> existingGameRoom = gameRooms.get(gameId);
+                if (existingGameRoom != null && existingGameRoom.size() == 1) { // reconnect, if room exists with 1 user
+                    WebSocketSession opponentSession = existingGameRoom.iterator().next();
+                    existingGameRoom.add(session);
+                    Thread.sleep(1000);
+                    opponentSession.sendMessage(new TextMessage("[OPPONENT_RECONNECTED]"));
+                    return;
+                }
+            }
         }
 
         String gameId = parts[0];
