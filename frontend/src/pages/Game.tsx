@@ -65,7 +65,8 @@ import {
     ShuffleOnOutlined as ShuffleIcon,
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon,
-    AdsClick as TargetIcon
+    AdsClick as TargetIcon,
+    VisibilityOff as HideHandIcon
 } from '@mui/icons-material';
 import {blue, deepOrange} from "@mui/material/colors";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
@@ -131,6 +132,7 @@ export default function Game({user}: { user: string }) {
     const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false)
+    const [isHandHidden, setIsHandHidden] = useState<boolean>(false);
 
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
     const [isEffect, setIsEffect] = useState<boolean>(false);
@@ -394,6 +396,9 @@ export default function Game({user}: { user: string }) {
             }
 
             switch (event.data) {
+                case "[HEARTBEAT]": {
+                    break;
+                }
                 case "[OPPONENT_ONLINE]": {
                     resetOnlineCheck?.();
                     opponentOnlineCheck?.();
@@ -1556,10 +1561,16 @@ export default function Game({user}: { user: string }) {
                                                               event: e,
                                                               props: {index}
                                                           })}>
-                                                <Card card={card} location={"myHand"}/>
+                                                {isHandHidden
+                                                    ? <OppenentHandCard alt="card" src={getSleeve(mySleeve)}/>
+                                                    : <Card card={card} location={"myHand"}/>}
                                             </HandListItem>)}
                                     </HandCards>
                                     {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
+                                    <HideHandIconButton onClick={() => setIsHandHidden(!isHandHidden)}
+                                                        isActive={isHandHidden} handSize={myHand.length}>
+                                        <HideHandIcon fontSize={"small"}/>
+                                    </HideHandIconButton>
                                 </HandContainer>
 
                             </MyContainerMain>
@@ -1825,7 +1836,29 @@ const MyHandSpan = styled.span`
 
   position: absolute;
   bottom: 0;
-  transform: translateX(7px);
+  transform: translate(-14px, -4px);
+`;
+
+const HideHandIconButton = styled.button<{ isActive: boolean, handSize: number }>`
+  position: absolute;
+  opacity: ${({isActive}) => isActive ? 1 : 0.3};
+  visibility: ${({handSize}) => handSize === 0 ? "hidden" : "visible"};
+  color: ${({isActive}) => isActive ? "#c41148" : "unset"};
+  left: ${({handSize}) => handSize > 5 ? 240 : 200}px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 5px;
+  background: none;
+  border: none;
+  outline: none;
+  transition: all 0.25s ease;
+  bottom: 2px;
+
+  &:hover {
+    color: #d764c1;
+    opacity: 0.75;
+  }
 `;
 
 const DeckContainer = styled.div`

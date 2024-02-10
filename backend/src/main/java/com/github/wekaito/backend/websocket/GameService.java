@@ -105,6 +105,15 @@ public class GameService extends TextWebSocketHandler {
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
+    @Scheduled(fixedRate = 7000)
+    public synchronized void sendHeartbeat() throws IOException {
+        for (Set<WebSocketSession> gameRoom : gameRooms.values()) {
+            for (WebSocketSession webSocketSession : gameRoom) {
+                webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+            }
+        }
+    }
+
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) throws IOException, InterruptedException {
         String userName = Objects.requireNonNull(session.getPrincipal()).getName();
