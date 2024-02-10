@@ -1,9 +1,10 @@
 import {DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
-import deckBack from '../../assets/deckBack.png';
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../../hooks/useStore.ts";
 import {playButtonClickSfx, playDrawCardSfx} from "../../utils/sound.ts";
+
+const deckBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/deckBack.png";
 
 function ColoredDeckImage(color:string | null, id: string) {
 
@@ -15,21 +16,21 @@ function ColoredDeckImage(color:string | null, id: string) {
 
     switch (color) {
         case "Black":
-            return <BlackDeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <BlackDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
         case "White":
-            return <WhiteDeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <WhiteDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
         case "Blue":
-            return <BlueDeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <BlueDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
         case "Green":
-            return <GreenDeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <GreenDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
         case "Purple":
-            return <PurpleDeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <PurpleDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
         case "Red":
-            return <RedDeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <RedDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
         case "Yellow":
-            return <YellowDeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <YellowDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
         default:
-            return <DeckImage onClick={navigateToDeck} src={deckBack}/>;
+            return <DeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
     }
 }
 

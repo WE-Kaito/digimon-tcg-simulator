@@ -7,7 +7,6 @@ import {getCardSize, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
-import cardBack from "../assets/cardBack.jpg";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
@@ -28,6 +27,8 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
     "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi10",
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+
+const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
 export default function Card({
                                  card,
@@ -89,6 +90,9 @@ export default function Card({
         }),
     }));
 
+    const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
+    const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
+
     useEffect(() => {
         if (setDraggedCards) {
             if (isDraggingStack && dragStackItem.index) {
@@ -128,9 +132,6 @@ export default function Card({
         } else selectCard(card);
     }
 
-    const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
-    const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
-
     return (
         <div style={{position: "relative"}}>
             {!isDraggingStack && !!(index) && (index > 0) && utilIcon &&
@@ -168,7 +169,7 @@ export default function Card({
                 title={topCardInfo(card as CardTypeGame, location, locationCards)}
                 onError={() => {
                     setImageError?.(true);
-                    setCardImageUrl(cardBack);
+                    setCardImageUrl(cardBackUrl);
                 }}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&

@@ -30,7 +30,6 @@ type State = {
     isSaving: boolean,
     avatarName: string,
     sleeveName: string,
-    gameId: string,
 
     fetchCards: () => void,
     filterCards: SearchCards,
@@ -55,7 +54,6 @@ type State = {
     getAvatar: () => string,
     setSleeve: (avatarName: string) => void,
     getActiveSleeve: () => string,
-    setGameId: (gameId: string) => void,
     importDeck: (decklist: string | string[], format: string) => void,
     exportDeck: (exportFormat: string, deckname: string) => string,
 
@@ -398,10 +396,6 @@ export const useStore = create<State>((set, get) => ({
             .then(response => set({avatarName: avatars.some((avatar) => avatar.name.includes(response.data)) ? response.data : "AncientIrismon"}))
             .catch(console.error);
         return get().avatarName;
-    },
-
-    setGameId: (gameId) => {
-        set({gameId: gameId});
     },
 
     importDeck: (decklist, format) => {

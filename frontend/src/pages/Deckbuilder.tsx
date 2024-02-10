@@ -3,7 +3,6 @@ import {useEffect, useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
-import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
@@ -23,6 +22,8 @@ export default function Deckbuilder() {
     const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
     const fetchCards = useStore((state) => state.fetchCards);
+
+    const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
     useEffect(() => {
         clearDeck();
@@ -66,7 +67,7 @@ export default function Deckbuilder() {
                 </DetailsContainer>
 
                 <CardImageContainer >
-                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
+                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl}
                            alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
                     <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>

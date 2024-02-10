@@ -20,10 +20,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderRestartWindow from "../components/game/SurrenderRestartWindow.tsx";
 import EndWindow from "../components/game/EndWindow.tsx";
-import deckBack from "../assets/deckBack.png";
-import eggBack from "../assets/eggBack.jpg";
 import Card, {CardAnimationContainer} from "../components/Card.tsx";
-import cardBack from "../assets/cardBack.jpg";
 import noiseBG from "../assets/noiseBG.png";
 import hackmonButton from "../assets/hackmon-chip.png";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
@@ -68,7 +65,8 @@ import {
     ShuffleOnOutlined as ShuffleIcon,
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon,
-    AdsClick as TargetIcon
+    AdsClick as TargetIcon,
+    VisibilityOff as HideHandIcon
 } from '@mui/icons-material';
 import {blue, deepOrange} from "@mui/material/colors";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
@@ -79,6 +77,11 @@ import {uid} from "uid";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import useDropZone from "../hooks/useDropZone.tsx";
 
+const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/";
+const cardBackUrl = assetBaseUrl + "cardBack.jpg";
+const deckBackUrl = assetBaseUrl + "deckBack.png";
+const eggBackUrl = assetBaseUrl + "eggBack.jpg";
+
 export default function Game({user}: { user: string }) {
 
     const currentPort = window.location.port;
@@ -88,7 +91,7 @@ export default function Game({user}: { user: string }) {
     const selectCard = useStore((state) => state.selectCard);
     const hoverCard = useStore((state) => state.hoverCard);
 
-    const gameId = useStore((state) => state.gameId);
+    const gameId = useGame((state) => state.gameId);
     const setUpGame = useGame((state) => state.setUpGame);
     const clearBoard = useGame((state) => state.clearBoard);
     const distributeCards = useGame((state) => state.distributeCards);
@@ -127,15 +130,11 @@ export default function Game({user}: { user: string }) {
     const [arrowFrom, setArrowFrom] = useState<string>("");
     const [arrowTo, setArrowTo] = useState<string>("");
     const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
-    const [gameHasStarted, setGameHasStarted] = useState<boolean>(false);
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
-    const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false);
-    const [restartObj, setRestartObj] = useState<{ me: Player, opponent: Player }>({
-        me: {username: "", avatarName: "", sleeveName: ""},
-        opponent: {username: "", avatarName: "", sleeveName: ""}
-    });
+    const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false)
+    const [isHandHidden, setIsHandHidden] = useState<boolean>(false);
+
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
-    const [userCount, setUserCount] = useState<number>(0);
     const [isEffect, setIsEffect] = useState<boolean>(false);
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -156,6 +155,11 @@ export default function Game({user}: { user: string }) {
 
     const isLoading = useGame(state => state.isLoading);
     const setIsLoading = useGame(state => state.setIsLoading);
+
+    const restartObject = useGame(state => state.restartObject);
+    const setRestartObject = useGame(state => state.setRestartObject);
+    const gameHasStarted = useGame(state => state.gameHasStarted);
+    const setGameHasStarted = useGame(state => state.setGameHasStarted);
 
     const isMyTurn = useGame(state => state.isMyTurn);
     const getIsMyTurn = useGame(state => state.getIsMyTurn);
@@ -223,7 +227,8 @@ export default function Game({user}: { user: string }) {
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
-            websocket.sendMessage("/startGame:" + gameId);
+            if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
+            else websocket.sendMessage("/startGame:" + gameId);
         },
 
         onMessage: (event) => {
@@ -239,7 +244,7 @@ export default function Game({user}: { user: string }) {
                 setGameHasStarted(false);
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
-                setRestartObj({me, opponent});
+                setRestartObject({me, opponent});
                 return;
             }
 
@@ -272,11 +277,6 @@ export default function Game({user}: { user: string }) {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
-                    interval = setInterval(() => {
-                        websocket.sendMessage("/heartbeat/")
-                        websocket.sendMessage(`${gameId}:/online:${opponentName}`);
-                        setIsOnline(navigator.onLine)
-                    }, 5000);
                 }, 5500);
                 return () => {
                     clearTimeout(timeout1);
@@ -389,12 +389,6 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
-            if (event.data.startsWith("[USER_COUNT]:")) {
-                const userCount = event.data.substring("[USER_COUNT]:".length);
-                setUserCount(parseInt(userCount));
-                return;
-            }
-
             if (event.data.startsWith("[CREATE_TOKEN]:")) {
                 const id = event.data.substring("[CREATE_TOKEN]:".length);
                 createToken("opponent", id)
@@ -402,6 +396,9 @@ export default function Game({user}: { user: string }) {
             }
 
             switch (event.data) {
+                case "[HEARTBEAT]": {
+                    break;
+                }
                 case "[OPPONENT_ONLINE]": {
                     resetOnlineCheck?.();
                     opponentOnlineCheck?.();
@@ -414,11 +411,6 @@ export default function Game({user}: { user: string }) {
                 }
                 case "[SECURITY_VIEWED]": {
                     notifySecurityView();
-                    break;
-                }
-                case "[PLAYER_LEFT]": {
-                    setEndScreen(true);
-                    setEndScreenMessage("Your opponent left.");
                     break;
                 }
                 case ("[RESTART_AS_FIRST]"): {
@@ -436,12 +428,10 @@ export default function Game({user}: { user: string }) {
                     setOpponentAttackPhase(false);
                     clearBoard();
                     setEndScreen(false);
-                    setUpGame(restartObj.me, restartObj.opponent);
+                    setUpGame(restartObject.me, restartObject.opponent);
                     setGameHasStarted(false);
                     break;
                 }
-                case ("[HEARTBEAT]"):
-                    break;
                 case ("[PLAYER_READY]"): {
                     setOpponentReady(true);
                     if (!mulliganAllowed) setGameHasStarted(true);
@@ -462,6 +452,10 @@ export default function Game({user}: { user: string }) {
                 }
                 case ("[LOADED]"): {
                     setIsLoading(false);
+                    break;
+                }
+                case ("[OPPONENT_RECONNECTED]"): {
+                    sendUpdate();
                     break;
                 }
                 default: {
@@ -627,7 +621,6 @@ export default function Game({user}: { user: string }) {
         sendSfx("playNextAttackPhaseSfx");
     }
 
-
     useEffect(() => {
         setEggDeckMoodle(false);
         setSecurityMoodle(false);
@@ -649,13 +642,20 @@ export default function Game({user}: { user: string }) {
     ]);
 
     useEffect(() => {
-        clearBoard();
         const handleOnlineStatusChange = () => {
             setIsOnline(navigator.onLine);
         };
 
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
+
+        if(gameHasStarted) setMemoryBarLoading(false);
+
+        interval = setInterval(() => {
+            websocket.sendMessage(`${gameId}:/online:${opponentName}`);
+            setIsOnline(navigator.onLine)
+            console.log("online check");
+        }, 5000);
 
         return () => {
             window.removeEventListener('online', handleOnlineStatusChange);
@@ -664,10 +664,10 @@ export default function Game({user}: { user: string }) {
         };
     }, []);
 
-    const [cardImageUrl, setCardImageUrl] = useState((hoverCard ?? selectedCard)?.imgUrl ?? cardBack);
+    const [cardImageUrl, setCardImageUrl] = useState((hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl);
 
     useEffect(() => {
-        setCardImageUrl((hoverCard ?? selectedCard)?.imgUrl ?? cardBack);
+        setCardImageUrl((hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl);
     }, [selectedCard, hoverCard]);
 
     function handleSurrender() {
@@ -879,13 +879,9 @@ export default function Game({user}: { user: string }) {
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
-    const {show: showOpponentCardMenu} = useContextMenu({
-        id: "opponentCardMenu",
-        props: {index: -1, location: "", id: ""}
-    });
+    const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
-    const modNames = ["Kaito", "StargazerVinny", "EfzPlayer", "Hercole", "GhostTurt", "lar_ott"]
     const color1 = localStorage.getItem("color1") ?? "#214d44";
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";
     const color3 = localStorage.getItem("color3") ?? "#522170";
@@ -982,14 +978,6 @@ export default function Game({user}: { user: string }) {
                     <Item onClick={() => window.open(selectedCard.imgUrl, '_blank')}>Open Image in new Tab ↗</Item>
                 </Menu>}
 
-                {modNames.includes(user) &&
-                    <span style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 25,
-                        opacity: 0.5
-                    }}>users ingame: {userCount}</span>}
-
                 {showAttackArrow &&
                     <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo} isEffect={isEffect}/>}
 
@@ -1046,7 +1034,7 @@ export default function Game({user}: { user: string }) {
                                 <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
                             </a>
                             <a
-                                href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki#game-%EF%B8%8F"
+                                href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Features-&-Controls#game-%EF%B8%8F"
                                 target="_blank"
                                 rel="noopener noreferrer">
                                 <span style={{color: "dodgerblue"}}>🛈 </span>Controls
@@ -1057,7 +1045,7 @@ export default function Game({user}: { user: string }) {
                                    onContextMenu={(e) => showDetailsImageMenu({event: e})}
                                    src={cardImageUrl}
                                    alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}
-                                   onError={() => setCardImageUrl(cardBack)}/>
+                                   onError={() => setCardImageUrl(cardBackUrl)}/>
 
                         <CardDetails/>
                     </InfoContainer>
@@ -1088,10 +1076,10 @@ export default function Game({user}: { user: string }) {
 
                                 <OpponentDeckContainer>
                                     {opponentSleeve === "Default"
-                                        ? <img alt="deck" src={deckBack} width="105px"/>
+                                        ? <img alt="deck" src={deckBackUrl} width="105px"/>
                                         : <div style={{width: "105px", position: "relative"}}>
                                             <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
-                                            <img alt="deck" src={deckBack} width="105px"/>
+                                            <img alt="deck" src={deckBackUrl} width="105px"/>
                                         </div>}
                                     <TrashSpan
                                         style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
@@ -1240,7 +1228,7 @@ export default function Game({user}: { user: string }) {
                                     {opponentEggDeck.length !== 0 &&
                                         <EggDeckSpan
                                             style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
-                                    {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBack} width="95px"
+                                    {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBackUrl} width="95px"
                                                                           style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                                 </EggDeckContainer>
 
@@ -1290,7 +1278,7 @@ export default function Game({user}: { user: string }) {
                                         <DeckMoodle sendCardToDeck={sendCardToDeck} to={"myEggDeck"}
                                                     setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
-                                        <EggDeck alt="egg-deck" src={eggBack}
+                                        <EggDeck alt="egg-deck" src={eggBackUrl}
                                                  onClick={() => {
                                                      if (!getOpponentReady()) return;
                                                      moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
@@ -1415,7 +1403,7 @@ export default function Game({user}: { user: string }) {
                                         {myDeckField.length}</TrashSpan>
                                     {mySleeve === "Default"
                                         ?
-                                        <Deck ref={dropToDeck} alt="deck" src={deckBack} gameHasStarted={gameHasStarted}
+                                        <Deck ref={dropToDeck} alt="deck" src={deckBackUrl} gameHasStarted={gameHasStarted}
                                               isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                               onClick={() => {
                                                   nextPhaseTrigger(nextPhase, Phase.DRAW);
@@ -1424,7 +1412,7 @@ export default function Game({user}: { user: string }) {
                                         : <div style={{width: "105px", position: "relative"}}>
                                             <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
                                                           gameHasStarted={gameHasStarted}/>
-                                            <Deck ref={dropToDeck} alt="deck" src={deckBack}
+                                            <Deck ref={dropToDeck} alt="deck" src={deckBackUrl}
                                                   gameHasStarted={gameHasStarted}
                                                   isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                                   onClick={() => {
@@ -1573,10 +1561,16 @@ export default function Game({user}: { user: string }) {
                                                               event: e,
                                                               props: {index}
                                                           })}>
-                                                <Card card={card} location={"myHand"}/>
+                                                {isHandHidden
+                                                    ? <OppenentHandCard alt="card" src={getSleeve(mySleeve)}/>
+                                                    : <Card card={card} location={"myHand"}/>}
                                             </HandListItem>)}
                                     </HandCards>
                                     {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
+                                    <HideHandIconButton onClick={() => setIsHandHidden(!isHandHidden)}
+                                                        isActive={isHandHidden} handSize={myHand.length}>
+                                        <HideHandIcon fontSize={"small"}/>
+                                    </HideHandIconButton>
                                 </HandContainer>
 
                             </MyContainerMain>
@@ -1842,7 +1836,29 @@ const MyHandSpan = styled.span`
 
   position: absolute;
   bottom: 0;
-  transform: translateX(7px);
+  transform: translate(-14px, -4px);
+`;
+
+const HideHandIconButton = styled.button<{ isActive: boolean, handSize: number }>`
+  position: absolute;
+  opacity: ${({isActive}) => isActive ? 1 : 0.3};
+  visibility: ${({handSize}) => handSize === 0 ? "hidden" : "visible"};
+  color: ${({isActive}) => isActive ? "#c41148" : "unset"};
+  left: ${({handSize}) => handSize > 5 ? 240 : 200}px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 5px;
+  background: none;
+  border: none;
+  outline: none;
+  transition: all 0.25s ease;
+  bottom: 2px;
+
+  &:hover {
+    color: #d764c1;
+    opacity: 0.75;
+  }
 `;
 
 const DeckContainer = styled.div`

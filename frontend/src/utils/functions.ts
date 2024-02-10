@@ -1,13 +1,3 @@
-import dataImage from '../assets/attribute_icons/data.png';
-import virusImage from '../assets/attribute_icons/virus.png';
-import vaccineImage from '../assets/attribute_icons/vaccine.png';
-import freeImage from '../assets/attribute_icons/free.png';
-import unknownImage from '../assets/attribute_icons/unknown.png';
-import variableImage from '../assets/attribute_icons/variable.png';
-import digimonImage from '../assets/cardtype_icons/gammamon.png';
-import optionImage from '../assets/cardtype_icons/option.png';
-import tamerImage from '../assets/cardtype_icons/tamer.png';
-import eggImage from '../assets/cardtype_icons/egg.png';
 import {CardTypeGame, CardTypeWithId} from "./types.ts";
 import {
     playButtonClickSfx,
@@ -328,35 +318,39 @@ export function getDnaColor(word: string): string {
     }
 }
 
+const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/"
+
 export function getAttributeImage(attribute: string | null | undefined) {
+    const baseUrl = assetBaseUrl + "attribute_icons/";
     switch (attribute) {
         case 'Virus':
-            return virusImage;
+            return baseUrl + "virus.png";
         case 'Data':
-            return dataImage;
+            return baseUrl + "data.png";
         case 'Vaccine':
-            return vaccineImage;
+            return baseUrl + "vaccine.png";
         case 'Free':
-            return freeImage;
+            return baseUrl + "free.png";
         case 'Variable':
-            return variableImage;
+            return baseUrl + "variable.png";
         case 'Unknown':
-            return unknownImage;
+            return baseUrl + "unknown.png";
         case 'default':
             return;
     }
 }
 
 export function getCardTypeImage(cardType: string | undefined) {
+    const baseUrl = assetBaseUrl + "cardtype_icons/";
     switch (cardType) {
         case 'Digimon':
-            return digimonImage;
+            return baseUrl + "gammamon.png";
         case 'Option':
-            return optionImage;
+            return baseUrl + "option.png";
         case 'Tamer':
-            return tamerImage;
+            return baseUrl + "tamer.png";
         case 'Digi-Egg':
-            return eggImage;
+            return baseUrl + "egg.png";
         case 'default':
             return;
     }

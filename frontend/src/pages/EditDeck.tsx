@@ -3,7 +3,6 @@ import {useEffect, useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
-import cardBack from "../assets/cardBack.jpg";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
@@ -34,6 +33,8 @@ export default function EditDeck() {
     const [deckName, setDeckName] = useState<string>("");
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
     const navigate = useNavigate();
+
+    const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
     useEffect(() => {
         setDeckById(id);
@@ -90,7 +91,7 @@ export default function EditDeck() {
                 </DetailsContainer>
 
                 <CardImageContainer>
-                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBack}
+                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl}
                            alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
                     <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>

@@ -146,6 +146,10 @@ export type OneSideDistribution = {
     playerDigi14?: CardTypeGame[],
     playerDigi15?: CardTypeGame[],
     playerBreedingArea?: CardTypeGame[],
+
+    playerMemory?: number,
+    playerPhase?: Phase,
+    isPlayerTurn?: boolean,
 }
 
 export type DraggedItem = {

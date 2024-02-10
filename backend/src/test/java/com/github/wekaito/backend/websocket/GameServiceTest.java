@@ -83,35 +83,6 @@ class GameServiceTest {
     }
 
     @Test
-    void testGameSetup() throws IOException, InterruptedException {
-        // GIVEN
-        Player player1 = new Player(username1, "takato", "sleeve1");
-        Player player2 = new Player(username2, "tai", "sleeve2");
-        Player[] players = {player1, player2};
-        String playersJson = new ObjectMapper().writeValueAsString(players);
-        TextMessage expectedMessage = new TextMessage("[START_GAME]:" + playersJson);
-
-        // WHEN START
-        gameService.setUpGame(session1, gameId, username1, username2);
-        gameService.setUpGame(session2, gameId, username1, username2);
-        // WHEN RESTART
-        gameService.handleTextMessage(session1, new TextMessage(gameId + ":/restartGame:" + username1));
-        // THEN
-        verify(session1, times(2)).sendMessage(expectedMessage);
-        verify(session2, times(1)).sendMessage(expectedMessage);
-        assertThat(gameService.getGameRooms().get(gameId)).contains(session1).contains(session2);
-        verify(session1, times(5)).sendMessage(any());
-        verify(session2, times(3)).sendMessage(any());
-
-        // WHEN CLOSING
-        gameService.afterConnectionClosed(session1, null);
-        gameService.afterConnectionClosed(session2, null);
-        // THEN
-        verify(session2, times(1)).sendMessage(new TextMessage("[PLAYER_LEFT]"));
-        assertThat(gameService.getGameRooms().get(gameId)).isNull();
-    }
-
-    @Test
     void testSurrender() throws IOException, InterruptedException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[SURRENDER]");
@@ -280,16 +251,4 @@ class GameServiceTest {
         verify(session2, times(1)).sendMessage(expectedMessage);
     }
 
-    @Test
-    void testSendingAndReceivingHeartbeats() throws IOException, InterruptedException {
-        // GIVEN
-        putPlayersToGameRoom();
-        // WHEN
-        gameService.sendHeartbeat();
-        gameService.handleTextMessage(session1, new TextMessage("/heartbeat/"));
-        // THEN
-        verify(session1, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
-        verify(session2, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
-        verify(session1, times(1)).sendMessage(new TextMessage("[HEARTBEAT]"));
-    }
 }

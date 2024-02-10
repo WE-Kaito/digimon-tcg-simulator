@@ -7,6 +7,13 @@ import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
 
+enum INPUT_TYPE {
+    USERNAME = "username",
+    PASSWORD = "password",
+    REPEATED_PASSWORD = "repeatedPassword",
+    QUESTION = "question",
+}
+
 export default function LoginPage() {
 
     const [userName, setUserName] = useState("");
@@ -23,8 +30,8 @@ export default function LoginPage() {
     const [answer, setAnswer] = useState("");
     const register = useStore((state) => state.register);
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
-    const forbiddenCharacters = [":", "‗", "【", "】", "﹕", "≔", " "]
-    const validUserName = userNameReg.length >= 3 && userNameReg.length <= 16 && !containsForbiddenCharacters();
+    const regexName = /^(?:(?![:_【】﹕≔<>$& ]).){3,16}$/;
+    const regexQuestion = /^(?:(?![:_【】﹕≔<>$&]).){1,64}$/;
 
     function handleSubmitLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -33,7 +40,9 @@ export default function LoginPage() {
 
     function handleSubmitRegistration(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!validUserName || !regex.test(passwordReg) || passwordReg !== repeatedPassword || !question || !answer) return;
+        if (!regexName.test(userNameReg) || !regex.test(passwordReg) || passwordReg !== repeatedPassword
+            || !regexQuestion.test(question) || !regexQuestion.test(answer)) return;
+
         register(userNameReg, passwordReg, question, answer, setRegisterPage, navigate);
         setPasswordReg("");
         setRepeatedPassword("");
@@ -42,50 +51,27 @@ export default function LoginPage() {
         setAnswer("");
     }
 
-    function containsForbiddenCharacters() {
-        for (const char of forbiddenCharacters) {
-            if (userNameReg.includes(char)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    function getInputColor(input: string, type: INPUT_TYPE) {
+        if (input === "") return "ghostwhite";
 
-    function passWordColor() {
-        if (passwordReg === "") {
-            return "ghostwhite";
+        let valid = false;
+        switch (type) {
+            case INPUT_TYPE.USERNAME:
+                valid = regexName.test(input);
+                break;
+            case INPUT_TYPE.PASSWORD:
+                valid = regex.test(input);
+                break;
+            case INPUT_TYPE.QUESTION:
+                valid = regexQuestion.test(input);
+                break;
+            case INPUT_TYPE.REPEATED_PASSWORD:
+                valid = repeatedPassword === passwordReg;
         }
-        if (regex.test(passwordReg)) {
-            return "#6ed298";
-        } else {
-            return "#e17b88";
-        }
-    }
 
-    function repeatedPasswordColor() {
-        if (repeatedPassword === "") {
-            return "ghostwhite";
-        }
-        if (passwordReg === repeatedPassword) {
-            return "#6ed298";
-        } else {
-            return "#e17b88";
-        }
+        if (valid) return "#6ed298";
+        else return "#e17b88";
     }
-
-    function userNameColor() {
-        if (userNameReg === "") {
-            return "ghostwhite";
-        }
-        if (validUserName) {
-            return "#6ed298";
-        } else {
-            return "#e17b88";
-        }
-    }
-
-    const questionColor = question.length > 0 ? "#6ed298" : "ghostwhite";
-    const answerColor = answer.length > 0 ? "#6ed298" : "ghostwhite";
 
     return (<>
             <Wrapper className="login-background">
@@ -110,7 +96,7 @@ export default function LoginPage() {
                     <div>
                         <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
                                             type="text" name="userName" placeholder="username" maxLength={16}
-                                            style={{backgroundColor: `${userNameColor()}`}}
+                                            style={{backgroundColor: `${getInputColor(userNameReg, INPUT_TYPE.USERNAME)}`}}
                         />
                         <br/>
                         <StyledInfo>3 - 16 characters</StyledInfo>
@@ -118,7 +104,7 @@ export default function LoginPage() {
                     <div>
                         <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
                                             type="password" name="password" placeholder="password"
-                                            style={{backgroundColor: `${passWordColor()}`}}
+                                            style={{backgroundColor: `${getInputColor(passwordReg, INPUT_TYPE.PASSWORD)}`}}
                         />
                         <br/>
                         <StyledInfo>
@@ -127,13 +113,13 @@ export default function LoginPage() {
                     </div>
                     <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
                                         type="password" name="RepeatPassword" placeholder="repeat password"
-                                        style={{backgroundColor: `${repeatedPasswordColor()}`}}/>
+                                        style={{backgroundColor: `${getInputColor(repeatedPassword, INPUT_TYPE.REPEATED_PASSWORD)}`}}/>
                     <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
                                         type="text" name="Question" placeholder="safety question"
-                                        style={{backgroundColor: `${questionColor}`}}/>
+                                        style={{backgroundColor: `${getInputColor(question, INPUT_TYPE.QUESTION)}`}}/>
                     <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
                                         type="text" name="Answer" placeholder="answer (pw recovery)"
-                                        style={{backgroundColor: `${answerColor}`}}/>
+                                        style={{backgroundColor: `${getInputColor(answer, INPUT_TYPE.QUESTION)}`}}/>
                     <ButtonContainer>
                         <BackButton type="button"
                                     onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>

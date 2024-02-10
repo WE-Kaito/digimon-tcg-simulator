@@ -17,7 +17,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -32,7 +31,7 @@ public class GameService extends TextWebSocketHandler {
 
     private final IdService idService;
 
-    private final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
+    final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
 
     private final ObjectMapper objectMapper;
 
@@ -96,34 +95,21 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException, InterruptedException {
+    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        Set<WebSocketSession> gameRoom = gameRooms.values().stream()
-                .filter(s -> s.stream().anyMatch(s1 -> username.equals(Objects.requireNonNull(s1.getPrincipal()).getName())))
-                .findFirst().orElse(null);
+        gameRooms.values().forEach(value -> value.removeIf(s -> username.equals(Objects.requireNonNull(s.getPrincipal()).getName())));
+    }
 
-        if (gameRoom == null) return;
-        gameRoom.remove(session);
-        Thread.sleep(3000);
-
-        for (WebSocketSession webSocketSession : gameRoom) {
-            if (webSocketSession != null && gameRoom.size() < 2)
-                webSocketSession.sendMessage(new TextMessage("[PLAYER_LEFT]"));
-        }
-        gameRoom.remove(session);
+    @Scheduled(fixedRate = 2000)
+    public synchronized void cleanUp() {
         gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
-    @Scheduled(fixedRate = 5000)
-    public synchronized void sendHeartbeat() {
+    @Scheduled(fixedRate = 7000)
+    public synchronized void sendHeartbeat() throws IOException {
         for (Set<WebSocketSession> gameRoom : gameRooms.values()) {
             for (WebSocketSession webSocketSession : gameRoom) {
-                try {
-                    webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
-                    webSocketSession.sendMessage(new TextMessage("[USER_COUNT]:" + gameRooms.size() * 2));
-                } catch (IOException e) {
-                    e.getCause();
-                }
+                webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
             }
         }
     }
@@ -139,6 +125,7 @@ public class GameService extends TextWebSocketHandler {
             String gameId = parts[1].trim();
             String username1 = gameId.split("‗")[0];
             String username2 = gameId.split("‗")[1];
+
             setUpGame(session, gameId, username1, username2);
             if (username2.equals(Objects.requireNonNull(session.getPrincipal()).getName())) return;
             Thread.sleep(3600);
@@ -146,11 +133,25 @@ public class GameService extends TextWebSocketHandler {
             return;
         }
 
+        if(payload.startsWith("/reconnect:") && parts.length >= 2){
+            synchronized (gameRooms) {
+                String gameId = parts[1].trim();
+                Set<WebSocketSession> existingGameRoom = gameRooms.get(gameId);
+                if (existingGameRoom != null && existingGameRoom.size() == 1) { // reconnect, if room exists with 1 user
+                    WebSocketSession opponentSession = existingGameRoom.iterator().next();
+                    existingGameRoom.add(session);
+                    Thread.sleep(1000);
+                    opponentSession.sendMessage(new TextMessage("[OPPONENT_RECONNECTED]"));
+                    return;
+                }
+            }
+        }
+
         String gameId = parts[0];
         String roomMessage = parts[1];
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
-        if (roomMessage.startsWith("/restartGame:") && parts.length >= 2) {
+        if (roomMessage.startsWith("/restartGame:")) {
             String username1 = gameId.split("‗")[0];
             String username2 = gameId.split("‗")[1];
             String startingPlayer = roomMessage.split(":")[1];
@@ -237,10 +238,7 @@ public class GameService extends TextWebSocketHandler {
 
     synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null) return;
-        if (session.isOpen()) {
-            byte[] utf8Bytes = message.getBytes(StandardCharsets.UTF_8);
-            session.sendMessage(new TextMessage(utf8Bytes));
-        }
+        if (session.isOpen()) session.sendMessage(new TextMessage(message));
     }
 
     private String getPlayersJson(String username1, String username2) throws JsonProcessingException {
@@ -381,8 +379,6 @@ public class GameService extends TextWebSocketHandler {
 
         return gameDeck;
     }
-
-    private final Map<String, StringBuilder> gameChunks = new HashMap<>();
 
     void processGameChunk(WebSocketSession session, String command, Set<WebSocketSession> gameRoom) throws IOException {
         if (gameRoom == null) return;

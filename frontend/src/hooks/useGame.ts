@@ -1,4 +1,5 @@
 import {create} from "zustand";
+import { devtools, persist } from 'zustand/middleware'
 import {
     AttackPhase,
     BoardState,
@@ -11,13 +12,24 @@ import {
 import {playTrashCardSfx} from "../utils/sound.ts";
 import tokenImage from "../assets/tokenCard.jpg";
 
+const emptyPlayer: Player = {
+    username: "",
+    avatarName: "",
+    sleeveName: "",
+}
+
 export type State = BoardState & {
+    gameId: string,
+
     isLoading: boolean,
     cardIdWithEffect: string,
     cardIdWithTarget: string,
 
     cardToSend: {id: string, location: string},
 
+    gameHasStarted: boolean,
+    restartObject: { me: Player, opponent: Player },
+    
     initialDistributionState: string;
     myAvatar: string,
     opponentAvatar: string,
@@ -76,6 +88,9 @@ export type State = BoardState & {
     setCardIdWithTarget: (cardId: string) => void,
     getIsCardTarget: (compareCardId: string) => boolean,
     setCardToSend: (cardId: string, location: string) => void,
+    setGameHasStarted: (gameHasStarted: boolean) => void,
+    setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
+    setGameId: (gameId: string) => void,
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
@@ -87,11 +102,19 @@ const opponentLocations = ["opponentHand", "opponentSecurity", "opponentDeckFiel
     "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10",
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15", "opponentReveal"];
 
-export const useGame = create<State>((set, get) => ({
+export const useGame = create<State>()(
+    devtools(
+        persist(
+            (set, get) => ({
+    gameId: "",
+
     isLoading: false,
     cardIdWithEffect: "",
     cardIdWithTarget: "",
     cardToSend: {id: "", location: ""},
+
+    gameHasStarted: false,
+    restartObject: { me: emptyPlayer, opponent: emptyPlayer },
 
     initialDistributionState: "",
     myAvatar: "",
@@ -228,6 +251,11 @@ export const useGame = create<State>((set, get) => ({
             opponentBreedingArea: [],
             phase: Phase.BREEDING,
             isMyTurn: false,
+            gameHasStarted: false,
+            restartObject: { me: emptyPlayer, opponent: emptyPlayer },
+            opponentAttackPhase: false,
+            myAttackPhase: false,
+            opponentReady: false,
         });
     },
 
@@ -298,8 +326,11 @@ export const useGame = create<State>((set, get) => ({
             playerDigi13: get().myDigi13,
             playerDigi14: get().myDigi14,
             playerDigi15: get().myDigi15,
-
             playerBreedingArea: get().myBreedingArea,
+
+            playerMemory: get().opponentMemory,
+            playerPhase: get().phase,
+            isPlayerTurn: !(get().isMyTurn),
         };
         return JSON.stringify(updatedGame);
     },
@@ -342,6 +373,10 @@ export const useGame = create<State>((set, get) => ({
                 opponentDigi14: opponentGameJson.playerDigi14,
                 opponentDigi15: opponentGameJson.playerDigi15,
                 opponentBreedingArea: opponentGameJson.playerBreedingArea,
+
+                myMemory: opponentGameJson.playerMemory,
+                phase: opponentGameJson.playerPhase,
+                isMyTurn: opponentGameJson.isPlayerTurn,
 
                 opponentGameState: "",
                 isLoading: false
@@ -577,7 +612,7 @@ export const useGame = create<State>((set, get) => ({
             nextPhaseFunction();
             return;
         }
-// maybe add case for empty eggs & breeding, but could double trigger nextPhaseFunction()
+
         if (get().phase === Phase.DRAW && trigger === Phase.DRAW) {
             nextPhaseFunction();
             return;
@@ -626,14 +661,23 @@ export const useGame = create<State>((set, get) => ({
 
     setIsLoading: (isLoading) => set({isLoading}),
 
-    setCardIdWithEffect: (cardId) => set({cardIdWithEffect: cardId}),
+    setCardIdWithEffect: (cardIdWithEffect) => set({cardIdWithEffect}),
 
     getIsCardEffect: (compareCardId) => compareCardId === get().cardIdWithEffect,
 
-    setCardIdWithTarget: (cardId) => set({cardIdWithTarget: cardId}),
+    setCardIdWithTarget: (cardIdWithTarget) => set({cardIdWithTarget}),
 
     getIsCardTarget: (compareCardId) => compareCardId === get().cardIdWithTarget,
 
     setCardToSend: (id, location) => set({cardToSend: {id, location}}),
 
-}));
+    setGameHasStarted: (gameHasStarted) => set({gameHasStarted}),
+
+    setRestartObject: (restartObject) => set({restartObject}),
+
+    setGameId: (gameId) => set({gameId}),
+            }),
+            { name: 'bearStore' },
+        ),
+    ),
+)
