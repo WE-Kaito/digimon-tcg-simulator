@@ -1,7 +1,14 @@
-## Run the platform in your local environment
+# Run the platform in your local environment 
 
-<b>NOTE:</b>: It is strongly advised to run the platform in a docker container by building the Dockerfile.
-However, for development purposes and faster development, it can be desirable run Project Drasil on your Pc by following the guide below.
+<b>NOTE:</b> It is strongly advised to run the platform using docker compose.
+However, Project Drasil can also be run outside of docker if required (see [Manual Setup](#manual-setup))
+
+## Docker compose
+
+Run `docker compose up -d` to create all required containers. The application will be available at [http://localhost:5173](http://localhost:5173).
+NOTE: Windows users will need to share the root directory of the repo with Docker by going to `Settings > Resources > File Sharing`, adding the repo directory path and hitting `Apply & Restart`
+
+## Manual Setup
 
 ### Build Frontend
 

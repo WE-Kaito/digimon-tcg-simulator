@@ -1,0 +1,12 @@
+FROM openjdk:20
+
+ENV ENVIRONMENT=dev
+ENV MONGO_DB_URI=mongodb://mongodb
+ENV MONGO_DB_PORT=27017
+ENV PORT=8080
+
+WORKDIR /app
+COPY . .
+RUN ./mvnw package
+
+EXPOSE 8080
