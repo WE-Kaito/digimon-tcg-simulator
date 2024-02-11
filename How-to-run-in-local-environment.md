@@ -5,8 +5,10 @@ However, Project Drasil can also be run outside of docker if required (see [Manu
 
 ## Docker compose
 
-Run `docker compose up -d` to create all required containers. The application will be available at [http://localhost:5173](http://localhost:5173).
+Run `docker compose up -d` to create all required containers.
 NOTE: Windows users will need to share the root directory of the repo with Docker by going to `Settings > Resources > File Sharing`, adding the repo directory path and hitting `Apply & Restart`
+
+The application will be available at [http://localhost:5173](http://localhost:5173). Vite's hot reload should work out of the box. Any changes to the backend won't be applied until the container is re-created, which can be done by running `./compile-backend.sh`. All database data is stored in an external volume, so bringing down the mongodb container will not delete database data, but dropping volumes <b>will</b>.
 
 ## Manual Setup
 
