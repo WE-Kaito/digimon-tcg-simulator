@@ -13,6 +13,9 @@ services:
     command: java -DServer.port=$PORT -jar /app/target/digimon-tcg-sim.jar
     depends_on:
     - mongodb
+    environment:
+    - ENVIRONMENT=dev
+    - PORT=8080
     ports:
     - '8080:8080'
 
@@ -21,6 +24,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     command: npm run dev
+    environment:      
+    - BACKEND_URL=http://backend:8080
+    - ENVIRONMENT=dev
+    - NODE_ENV=development
     ports:
     - '5173:5173'
     volumes:
