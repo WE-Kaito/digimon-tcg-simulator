@@ -83,9 +83,7 @@ const deckBackUrl = assetBaseUrl + "deckBack.png";
 const eggBackUrl = assetBaseUrl + "eggBack.jpg";
 
 export default function Game({user}: { user: string }) {
-
-    const currentPort = window.location.port;
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://www.digi-tcg.online/api/ws/game";
+    const websocketURL = `${__WEBSOCKET_URL__}api/ws/game`;
 
     const selectedCard = useStore((state) => state.selectedCard);
     const selectCard = useStore((state) => state.selectCard);

@@ -26,8 +26,7 @@ export default function Lobby({user}: { user: string }) {
     const [search, setSearch] = useState<string>("");
     const [userCount, setUserCount] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
-    const currentPort = window.location.port;
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
+    const websocketURL = `${__WEBSOCKET_URL__}api/ws/chat`;
 
     const setGameId = useGame((state) => state.setGameId);
     const clearBoard = useGame((state) => state.clearBoard);

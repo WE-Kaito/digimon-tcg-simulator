@@ -25,7 +25,7 @@ services:
       dockerfile: Dockerfile.dev
     command: npm run dev
     environment:      
-    - BACKEND_URL=http://backend:8080
+    - BACKEND_URL=backend:8080
     - ENVIRONMENT=dev
     - NODE_ENV=development
     ports:
