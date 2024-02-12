@@ -8,7 +8,7 @@ if (process.env.BACKEND_URL) {
 
 let websocketUrl = "wss://www.digi-tcg.online/";
 if (process.env.NODE_ENV === "development") {
-  websocketUrl = `ws://localhost:8080/`;
+  websocketUrl = process.env.WEBSOCKET_URL || `ws://localhost:8080/`;
 }
 
 // https://vitejs.dev/config/

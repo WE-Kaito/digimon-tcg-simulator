@@ -26,6 +26,7 @@ services:
     command: npm run dev
     environment:      
     - BACKEND_URL=backend:8080
+    - WEBSOCKET_URL=${WEBSOCKET_URL}
     - ENVIRONMENT=dev
     - NODE_ENV=development
     ports:
