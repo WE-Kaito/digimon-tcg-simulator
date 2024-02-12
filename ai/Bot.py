@@ -10,7 +10,6 @@ import requests
 import websockets
 from decouple import config
 
-from Digimon import Digimon
 
 FIELD_UPDATE_MAP = {
     'myHand': 'Hand',
@@ -255,7 +254,7 @@ class Bot(ABC):
             await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【Draw Card】')
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
 
-    async def move_card(self, ws, fr, to):
+    async def move_card(self, ws, fr, to, field_update=True):
         self.logger.debug(f'Moving card from {fr} to {to}.')
         stack = self.get_stack(fr)
         if type(stack) == dict:
@@ -287,7 +286,8 @@ class Bot(ABC):
                 to = 'myTrash'
             
             await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
-            await self.field_update(ws, card_name, fr, to)
+            if field_update:
+                await self.field_update(ws, card_name, fr, to)
             await self.play_place_card_sfx(ws)
             time.sleep(0.5)
 
@@ -590,7 +590,7 @@ class Bot(ABC):
     async def draw(self, ws, n_cards):
         self.logger.info(f'I draw {n_cards}.')
         for i in range(min(n_cards, len(self.game['player2DeckField']))):
-            await self.move_card(ws, 'myDeckField0', 'myHand0')
+            await self.move_card(ws, 'myDeckField0', 'myHand0', field_update=False)
             self.game['player2Hand'].insert(0, self.game['player2DeckField'].pop(0))
 
     async def return_card_from_trash_to_hand(self, ws, card_index):

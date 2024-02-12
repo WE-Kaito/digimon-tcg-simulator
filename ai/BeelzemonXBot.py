@@ -108,6 +108,28 @@ class BeelzemonXBot(Bot):
         await self.promote(ws)
         return True
 
+    async def use_memory_boost_if_possible_and_needed(self, ws, cost):
+        purple_memory_boost_in_battle_area_index = self.card_in_battle_area('P-040', 'Purple Memory Boost!')
+        if purple_memory_boost_in_battle_area_index < 0:
+            return
+        if cost <= self.game['memory']:
+            return
+        card = self.game['player2Digi'][purple_memory_boost_in_battle_area_index][-1]
+        if card['id'] in self.placed_this_turn:
+            return
+        purple_memory_boost = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+        await purple_memory_boost.delay_effect(ws)
+        time.sleep(2)
+
+    async def use_seventh_full_cluster_trash_if_possible(self, ws, cost):
+        sevent_full_cluster_in_trash_index = self.card_in_trash('BT12-110', 'Seventh Full Cluster')
+        if sevent_full_cluster_in_trash_index < 0:
+            return
+        card = self.game['player2Digi'][sevent_full_cluster_in_trash_index][-1]
+        sevent_full_cluster = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+        await sevent_full_cluster.trash_effect(ws)
+        time.sleep(2)
+
     async def digivolve_strategy(self, ws):
         self.logger.info('Check if I have Beelzemon (X Antibody) in my hand.')
         beelzemon_x_antibody_in_hand_index = self.card_in_hand('BT12-085', 'Beelzemon (X Antibody)')
@@ -115,12 +137,14 @@ class BeelzemonXBot(Bot):
             self.logger.info('Have Beelzemon (X Antibody) in my hand. Checking for Beelzemon on the field.')
             beelzemon_on_field_index = self.card_in_battle_area_with_name('Beelzemon')
             if beelzemon_on_field_index >= 0 and len(self.game['player2Trash']) >=10:
+                await self.use_memory_boost_if_possible_and_needed(ws, 1)
                 await self.digivolve(
                     ws, 'Digi', beelzemon_on_field_index, 'Hand',
                     beelzemon_x_antibody_in_hand_index, 1
                 )
                 digivolution_card_obj = self.card_factory.get_card(self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['uniqueCardNumber'], digimon_index=beelzemon_on_field_index)
                 await digivolution_card_obj.when_digivolving_effect(ws)
+                await self.use_seventh_full_cluster_trash_if_possible(ws)
                 return True
             self.logger.info('No Beelzemon on fields, won\'t digivolve to Beelzemon (X Antibody).')
 
@@ -135,6 +159,7 @@ class BeelzemonXBot(Bot):
                     if digivolution_index >= 0:
                         digivolution_card = self.game['player2Hand'][digivolution_index]
                         self.logger.info(f'Found digivolution: {digivolution_card}')
+                        await self.use_memory_boost_if_possible_and_needed(ws, 1)
                         await self.digivolve(
                             ws, 'Digi', digimon_index, 'Hand',
                             digivolution_index, self.digivolution_cost(digivolution_card)
@@ -260,9 +285,9 @@ class BeelzemonXBot(Bot):
         digimon = []
         target_levels = set([3,4,5,6])
         for i in range(len(self.game['player2Hand'])):
-                c = self.game['player2Hand'][i]
-                if c['cardType'] == 'Digimon':
-                    target_levels.discard(c['level'])
+            c = self.game['player2Hand'][i]
+            if c['cardType'] == 'Digimon':
+                target_levels.discard(c['level'])
         for i in range(len(self.game['player2Reveal'])):
             card = self.game['player2Reveal'][i]
             if card['cardType'] == 'Digimon' and 'Purple' in card['color']:
