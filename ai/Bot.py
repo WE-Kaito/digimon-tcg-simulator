@@ -163,10 +163,14 @@ class Bot(ABC):
         else:
             self.logger.error('Error when accessing/waiting in lobby')
     
-    async def wait_for_opponent_confirmation(ws):
+    async def wait_for_opponent(self, ws):
+        chat_message_prefix = f'[CHAT_MESSAGE]:{self.opponent}﹕'
+        await self.send_message(ws, 'Perform Counter and Blocking time, then type "Ok" in Chat')
         message = None
-        while message != 'ok':
-            message = await ws.recv().strip().lower()
+        while message != f'ok':
+            message = await ws.recv()
+            if message.startswith(chat_message_prefix):
+                message = message.replace(chat_message_prefix, '').strip().lower()
     
     async def send_message(self, ws, message):
         self.logger.info(message)
@@ -490,7 +494,7 @@ class Bot(ABC):
         card['isTilted'] = True
         await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{digimon_index+1}")
         await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
-        time.sleep(2)
+        await self.wait_for_opponent(ws)
 
     async def unsuspend_all(self, ws):
         self.logger.info("Unsuspending all cards in my battle area.")
@@ -576,9 +580,9 @@ class Bot(ABC):
     
     async def delete_card_from_opponent_battle_area(self, ws, card_index):
         card_name = self.game['player1Digi'][card_index][-1]['name']
-        await self.send_message(f'I\'d like to delete the {card_name}. in position {card_index}')
-        await self.send_message(f'Resolve effects and type Ok to continue.')
-        self.wait_for_opponent_confirmation()
+        await self.send_message(ws, f'I\'d like to delete the {card_name}. in position {card_index}')
+        await self.send_message(ws, f'Resolve effects and type Ok to continue.')
+        await self.wait_for_opponent(ws)
 
     async def promote(self, ws):
         self.logger.info('Promoting from breed area.')
