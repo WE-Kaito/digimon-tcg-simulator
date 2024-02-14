@@ -24,7 +24,7 @@ class EX2_039_Impmon(Card):
 
     async def on_play_effect(self, ws):
         await self.bot.send_message(ws, f"EX2-039 Impmon [On Play] effect: Reveal 4.")
-        await self.bot.reveal_top_from_deck(ws, 4)
+        await self.bot.reveal_card_from_top_from_deck(ws, 4)
         time.sleep(3)
         beelzemon_candidates = []
         ai_and_mako_candidates = []
