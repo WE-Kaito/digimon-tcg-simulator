@@ -430,6 +430,6 @@ public class GameService extends TextWebSocketHandler {
         String command = parts[0];
         String opponentName = parts[1];
         String id = parts[2];
-        sendMessageToOpponent(gameRoom, opponentName, convertCommand(command) + id);
+        sendMessageToOpponent(gameRoom, opponentName, convertCommand(command) + ":" + id);
     }
 }
