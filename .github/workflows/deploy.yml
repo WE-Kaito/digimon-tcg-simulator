@@ -59,6 +59,6 @@ jobs:
       - name: Login to Heroku
         run: heroku container:login
       - name: Push Docker Container
-        run: heroku container:push web -a digimon-tcg
+        run: heroku container:push web -a digimon-tcg  --context backend
       - name: Release Docker Container
         run: heroku container:release web -a digimon-tcg
