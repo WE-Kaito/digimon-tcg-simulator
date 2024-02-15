@@ -1,0 +1,11 @@
+FROM node:20-alpine
+
+ENV ENVIRONMENT=dev
+ENV NODE_ENV=development
+ENV BACKEND_URL=http://backend:8080
+
+WORKDIR /app
+COPY index.html public package.json package-lock.json tsconfig.json tsconfig.node.json vite.config.ts  .
+RUN npm install
+
+EXPOSE 5173

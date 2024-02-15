@@ -1,7 +1,18 @@
-## Run the platform in your local environment
+# Run the platform in your local environment 
 
-<b>NOTE:</b>: It is strongly advised to run the platform in a docker container by building the Dockerfile.
-However, for development purposes and faster development, it can be desirable run Project Drasil on your Pc by following the guide below.
+<b>NOTE:</b> It is strongly advised to run the platform using docker compose.
+However, Project Drasil can also be run outside of docker if required (see [Manual Setup](#manual-setup))
+
+## Docker compose
+
+Run `docker compose up -d` to create all required containers.
+NOTE: Windows users will need to share the root directory of the repo with Docker by going to `Settings > Resources > File Sharing`, adding the repo directory path and hitting `Apply & Restart`
+
+The application will be available at [http://localhost:5173](http://localhost:5173). Vite's hot reload should work out of the box. Any changes to the backend won't be applied until the container is re-created, which can be done by running `./compile-backend.sh`. All database data is stored in an external volume, so bringing down the mongodb container will not delete database data, but dropping volumes <b>will</b>.
+
+If you're testing on an external device, you can specify the websocket URL (default: `ws://localhost:8080`). Set the WEBSOCKET_URL env var before running `docker compose up -d` for that change to be applied. `WEBSOCKET_URL="ws://192.168.1.2:8080/" docker compose up -d` for linux, and `$env:WEBSOCKET_URL="ws://192.168.1.2:8080/"; docker compose up -d` for windows powershell. Make sure to replace the IP with your host machine's local network IP.
+
+## Manual Setup
 
 ### Build Frontend
 
