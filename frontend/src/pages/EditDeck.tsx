@@ -39,7 +39,7 @@ export default function EditDeck() {
     useEffect(() => {
         setDeckById(id);
         fetchCards();
-        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false);
+        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
         setDeckName(nameOfDeckToEdit);
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
 

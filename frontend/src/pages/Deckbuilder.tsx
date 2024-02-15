@@ -28,7 +28,7 @@ export default function Deckbuilder() {
     useEffect(() => {
         clearDeck();
         fetchDecks();
-        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false);
+        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
         return;
     }, [clearDeck, fetchDecks, filterCards]);
 
