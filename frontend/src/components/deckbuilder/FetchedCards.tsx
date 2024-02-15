@@ -5,7 +5,7 @@ import noCardsFoundAnimation from "../../assets/lotties/noCardsFound.json";
 import gatchmon from "../../assets/gatchmon.png";
 import {useStore} from "../../hooks/useStore.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
-import {Suspense} from 'react';
+import {Suspense, useMemo} from 'react';
 import FetchCard from "./FetchCard.tsx";
 
 export const Loading = () => <LoadingContainer>
@@ -16,8 +16,10 @@ export const Loading = () => <LoadingContainer>
 export default function FetchedCards() {
 
     const isLoading = useStore((state) => state.isLoading);
-    const filteredCards = useStore((state) => state.filteredCards);
     const fetchedCards = useStore((state) => state.fetchedCards);
+    const filteredCards = useStore((state) => state.filteredCards);
+
+    const memoizedFilteredCards = useMemo(() => filteredCards, [filteredCards]);
 
     return (
         <FetchContainer>
@@ -27,15 +29,15 @@ export default function FetchedCards() {
                     {isLoading && <Loading/>}
 
                     {(!isLoading && (filteredCards.length < 2000) && (filteredCards !== fetchedCards))
-                        ? filteredCards?.map((card: CardTypeWithId) => (
-                            <FetchCard card={card} key={card.uniqueCardNumber}/>
+                        ? memoizedFilteredCards?.map((card: CardTypeWithId, index) => (
+                            <FetchCard card={card} key={card.uniqueCardNumber + index}/>
                         ))
                         : <LoadingContainer>
                             <img alt="gatchmon" src={gatchmon} width={100} height={120}/>
                         </LoadingContainer>
                     }
 
-                    {!isLoading && (filteredCards.length === 0) && (
+                    {!isLoading && (memoizedFilteredCards.length === 0) && (
                         <LoadingContainer>
                             <Lottie animationData={noCardsFoundAnimation} loop={false} style={{width: "70px"}}/>
                             <img alt="gatchmon" src={gatchmon} width={80} height={100}/>

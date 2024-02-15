@@ -1,10 +1,13 @@
 package com.github.wekaito.backend.security;
 
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 public record SafetyQuestionChange(
-        @Size(min=1, max=64)
+        @NotNull
+        @Pattern(regexp = "^(?:(?![:_【】﹕≔<>$&]).){1,64}$", message = "Invalid question")
         String question,
-        @Size(min=1, max=64)
+        @NotNull
+        @Pattern(regexp = "^(?:(?![:_【】﹕≔<>$&]).){1,64}$", message = "Invalid answer")
         String answer) {
 }

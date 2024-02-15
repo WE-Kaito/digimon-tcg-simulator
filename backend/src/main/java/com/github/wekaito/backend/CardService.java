@@ -27,6 +27,8 @@ public class CardService {
 
     private final List<Card> cardCollection;
 
+    private static final Gson gson = new Gson();
+
     public List<Card> getCards() {
         return cardCollection;
     }
@@ -59,8 +61,6 @@ public class CardService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-
-        Gson gson = new Gson();
         Type listType = new TypeToken<List<FetchCard>>() {
         }.getType();
         List<FetchCard> fetchedCards = gson.fromJson(responseBody, listType);

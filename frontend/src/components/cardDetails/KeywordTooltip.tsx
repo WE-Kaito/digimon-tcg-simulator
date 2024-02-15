@@ -2,6 +2,7 @@ import {Tooltip, tooltipClasses, TooltipProps} from "@mui/material";
 import { styled as muiStyled } from '@mui/material/styles';
 import {deepOrange} from "@mui/material/colors";
 import styled from "@emotion/styled";
+import {JSX} from "react";
 
 type Props = {
     keyword: string

@@ -13,7 +13,12 @@ import {
     notifyUpdate, notifyWrongAnswer
 } from "../utils/toasts.ts";
 import {NavigateFunction} from "react-router-dom";
-import {addStarterDecks, compareEffectText, mostFrequentColor, sortCards} from "../utils/functions.ts";
+import {
+    addStarterDecks,
+    compareEffectText, filterDoubleCardNumbers,
+    mostFrequentColor,
+    sortCards
+} from "../utils/functions.ts";
 import {avatars} from "../utils/avatars.ts";
 
 type State = {
@@ -115,7 +120,8 @@ export const useStore = create<State>((set, get) => ({
                   level,
                   illustrator,
                   effect,
-                  ace
+                  ace,
+                  altArtsEnabled
     ) => {
 
         set({isLoading: true})
@@ -137,6 +143,8 @@ export const useStore = create<State>((set, get) => ({
         if (illustrator) filteredData = filteredData.filter((card) => card.illustrator.toUpperCase().includes(illustrator.toUpperCase()));
         if (effect) filteredData = filteredData.filter((card) => compareEffectText(effect, card));
         if (ace) filteredData = filteredData.filter((card) => !!card.aceEffect);
+        if (!altArtsEnabled) filteredData = filteredData.filter((card) => !card.uniqueCardNumber.includes("_P") && !card.uniqueCardNumber.includes("-E"));
+        filteredData = filterDoubleCardNumbers(filteredData); //bug quickfix
 
         set({filteredCards: filteredData, isLoading: false});
     },

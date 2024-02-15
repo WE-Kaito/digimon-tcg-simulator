@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import {getDnaColor} from "../../utils/functions.ts";
 import KeywordTooltip from "./KeywordTooltip.tsx";
+import {JSX} from "react";
 
 
 export default function HighlightedKeyWords({text}: { text: string }): (JSX.Element | JSX.Element[])[] {

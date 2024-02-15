@@ -13,7 +13,7 @@ import {
     calculateCardOffsetY,
     calculateCardRotation,
     convertForLog,
-    getOpponentSfx
+    getOpponentSfx, handleImageError
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useCallback, useEffect, useRef, useState} from "react";
@@ -928,6 +928,10 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}><span>Activate Effect</span>
                             <EffectIcon/></div>
                     </Item>
+                    <Item onClick={activateTargetAnimation}>
+                        <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                            <span>Target Card</span> <TargetIcon/></div>
+                    </Item>
                 </Menu>
 
                 <Menu id={"opponentCardMenu"} theme="dark">
@@ -1095,6 +1099,7 @@ export default function Game({user}: { user: string }) {
                                                               setOpponentTrashMoodle(!opponentTrashMoodle);
                                                               setTrashMoodle(false);
                                                           }}
+                                                          onError={handleImageError}
                                                           title="Open opponents trash"/>}
 
                                 </OpponentTrashContainer>
@@ -1452,6 +1457,7 @@ export default function Game({user}: { user: string }) {
                                                               setTrashMoodle(!trashMoodle);
                                                               setOpponentTrashMoodle(false);
                                                           }}
+                                                          onError={handleImageError}
                                                           title="Open your trash" isOver={isOverTrash}/>}
                                     <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
                                 </TrashContainer>
