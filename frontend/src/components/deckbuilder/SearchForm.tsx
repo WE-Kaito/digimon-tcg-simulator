@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useStore} from "../../hooks/useStore.ts";
 import {Checkbox, FormControlLabel} from "@mui/material";
 import {pink} from "@mui/material/colors";
@@ -39,11 +39,7 @@ export default function SearchForm() {
     const [illustrator, setIllustrator] = useState<string | null>(null);
     const [effect, setEffect] = useState<string | null>(null);
     const [hasAce, setHasAce] = useState<boolean>(false);
-
-    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        filterCards(name, type, color, color2, color3, attribute, number, stage, digitype, dp, playcost, level, illustrator, effect, hasAce);
-    }
+    const [altArtsEnabled, setAltArtsEnabled] = useState<boolean>(true);
 
     function handleClear() {
         setName("");
@@ -62,11 +58,15 @@ export default function SearchForm() {
         setIllustrator("");
         setEffect("");
         setHasAce(false);
-        filterCards("", null, null, null, null, null, "", null, null, null, null, null, "", "", false);
+        filterCards("", null, null, null, null, null, "", null, null, null, null, null, "", "", false, true);
     }
 
+    useEffect(() => {
+        filterCards(name, type, color, color2, color3, attribute, number, stage, digitype, dp, playcost, level, illustrator, effect, hasAce, altArtsEnabled);
+    }, [name, type, color, color2, color3, attribute, number, stage, digitype, dp, playcost, level, illustrator, effect, hasAce, altArtsEnabled]);
+
     return (
-        <StyledForm onSubmit={handleSubmit}>
+        <StyledDiv>
 
             <SetNumberInput placeholder={"Set Number"} value={number ?? undefined} onChange={(e) => {
                 setNumber(e.target.value)
@@ -355,10 +355,11 @@ export default function SearchForm() {
             <IllustratorInput placeholder={"Illustrator"} value={illustrator ?? undefined}
                          onChange={(e) => setIllustrator(e.target.value)}/>
 
-            <div style={{ gridArea: "ace", height: "100%", width: "100%", display: "flex", placeItems: "center", transform: "translate(25%, -1px)"}}>
+            <CheckBoxContainerAce>
             <FormControlLabel control={<Checkbox
                 size={"small"}
                 value={hasAce}
+                checked={hasAce}
                 onChange={(e) => setHasAce(e.target.checked)}
                 sx={{
                     color: pink[800],
@@ -369,17 +370,33 @@ export default function SearchForm() {
                     maxHeight: "7px",
                     transform: "translateY(-1px)"
                 }}
-            />} label="ACE" componentsProps={{ typography: {fontFamily: "Sakana", lineHeight: 1, color: "silver"} }}/>
-            </div>
+            />} label="ACE" componentsProps={{ typography: {fontFamily: "Sakana", lineHeight: 1, color: "silver", margin: 0.5} }}/>
+            </CheckBoxContainerAce>
 
-            <SubmitButton>SEARCH</SubmitButton>
+            <CheckBoxContainerAltArt>
+            <FormControlLabel control={<Checkbox
+                size={"small"}
+                value={altArtsEnabled}
+                checked={altArtsEnabled}
+                onChange={(e) => setAltArtsEnabled(e.target.checked)}
+                sx={{
+                    color: pink[800],
+                    '&.Mui-checked': {
+                        color: pink[600],
+                    },
+                    maxWidth: "7px",
+                    maxHeight: "7px",
+                    transform: "translateY(-2px)"
+                }}
+            />} label="Alt. Arts" componentsProps={{ typography: {fontFamily: "League Spartan", fontWeight: "bold", lineHeight: 1, color: "lightgrey", margin: 0.5} }}/>
+        </CheckBoxContainerAltArt>
             <ClearButton type={"button"} onClick={handleClear}>CLEAR</ClearButton>
 
-        </StyledForm>
+        </StyledDiv>
     );
 }
 
-const StyledForm = styled.form`
+const StyledDiv = styled.div`
   grid-area: searchform;
   background-color: rgba(102, 62, 71, 0.75);
   width: 96.5%;
@@ -397,7 +414,7 @@ const StyledForm = styled.form`
     "setnumber setnumber name name name name color color"
     "type type attribute attribute level dp playcost digivolutioncost"
     "stage stage digitype digitype digitype digitype illustrator illustrator"
-    "effect effect effect effect ace submit submit clear";
+    "effect effect effect effect effect ace alt clear";
   
   @media (max-height: 1080px) {
     height: 82%;
@@ -436,6 +453,9 @@ const SetNumberInput = styled(StyledInput)`
 
 const EffectInput = styled(StyledInput)`
   grid-area: effect;
+  @media (max-width: 500px) {
+    transform: translateY(-4px);
+  }
 `;
 
 const IllustratorInput = styled(StyledInput)`
@@ -565,4 +585,32 @@ const ColorSelectionContainer = styled.div`
   grid-template-rows: 1fr;
   grid-template-areas: "one two three";
   gap: 3px;
+`;
+
+const CheckboxContainer = styled.div`
+  height: 100%;
+  width: 100%;
+  display: flex;
+  place-items: center;
+  
+  @media (max-width: 500px) {
+  scale: 0.6;
+  }
+`;
+
+const CheckBoxContainerAce = styled(CheckboxContainer)`
+  grid-area: ace;
+  transform: translate(33%, -1px);
+  @media (max-width: 500px) {
+    transform: translate(5%, -6px);
+  }
+`;
+
+const CheckBoxContainerAltArt = styled(CheckboxContainer)`
+  grid-area: alt;
+  transform: translate(10%, -1px);
+  @media (max-width: 500px) {
+    transform: translate(-70%, -6px);
+    .MuiTypography-root { position: absolute; width: 70px; transform: translateX(10px); }
+  }
 `;

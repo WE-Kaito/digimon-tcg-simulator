@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import {useStore} from "../../hooks/useStore.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useState, JSX} from "react";
 
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
 import DetailsHeader from "./DetailsHeader.tsx";
@@ -85,32 +85,32 @@ export default function CardDetails() {
                 <TabPanel item="effects">
                     <TabContainer inGame={inGame} isNameLong={isNameLong}>
 
-                        {dnaDigivolutionText && <EffectCard variant={"special"}>
+                        {dnaDigivolutionText && <EffectCard variant={"special"} key={dnaDigivolutionText}>
                             {highlightedDNADigivolution}
                         </EffectCard>}
 
-                        {digiXrosText && <EffectCard variant={"special"}>
+                        {digiXrosText && <EffectCard variant={"special"} key={digiXrosText}>
                             {highlightedDigiXros}
                         </EffectCard>}
 
-                        {burstDigivolveText && <EffectCard variant={"special"}>
+                        {burstDigivolveText && <EffectCard variant={"special"} key={burstDigivolveText}>
                             {highlightedBurstDigivolve}
                         </EffectCard>}
 
-                        {specialDigivolveText && <EffectCard variant={"special"}>
+                        {specialDigivolveText && <EffectCard variant={"special"} key={specialDigivolveText}>
                             {highlightedSpecialDigivolve}
                         </EffectCard>}
 
-                        {mainEffectText && <EffectCard variant={"main"}>
+                        {mainEffectText && <EffectCard variant={"main"} key={mainEffectText}>
                             {highlightedMainEffect}
                         </EffectCard>}
 
-                        {inheritedEffectText && <EffectCard
+                        {inheritedEffectText && <EffectCard key={inheritedEffectText}
                             variant={((cardType === "Option" && notXAntibody)|| (cardType === "Tamer" && notHybrid)) ? "security" : "inherited"}>
                             {highlightedInheritedEffect}
                         </EffectCard>}
 
-                        {securityEffectText && <EffectCard variant={"security"}>
+                        {securityEffectText && <EffectCard variant={"security"} key={securityEffectText}>
                             {highlightedSecurityEffect}
                         </EffectCard>}
                     </TabContainer>

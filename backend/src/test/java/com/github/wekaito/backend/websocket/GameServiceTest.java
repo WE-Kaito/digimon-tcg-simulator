@@ -1,6 +1,5 @@
 package com.github.wekaito.backend.websocket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.Deck;
 import com.github.wekaito.backend.IdService;
 import com.github.wekaito.backend.DeckService;
@@ -20,7 +19,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -32,7 +30,6 @@ class GameServiceTest {
     private DeckService deckService;
     @Mock
     private IdService idService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
@@ -59,7 +56,7 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
-        gameService = new GameService(mongoUserDetailsService, deckService, idService, objectMapper);
+        gameService = new GameService(mongoUserDetailsService, deckService, idService);
         session1 = createMockSession(username1);
         session2 = createMockSession(username2);
 

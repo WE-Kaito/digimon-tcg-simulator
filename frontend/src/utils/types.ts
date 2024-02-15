@@ -50,7 +50,8 @@ export type SearchCards = (
     level: number | null,
     illustrator: string | null,
     effect: string | null,
-    ace: boolean
+    ace: boolean,
+    altArtsEnabled: boolean,
 ) => void;
 
 export type DeckType = {

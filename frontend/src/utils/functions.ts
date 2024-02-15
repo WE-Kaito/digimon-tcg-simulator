@@ -1,4 +1,6 @@
 import {CardTypeGame, CardTypeWithId} from "./types.ts";
+import cardBack from "../assets/cardBack.jpg";
+
 import {
     playButtonClickSfx,
     playDrawCardSfx, playNextPhaseSfx,
@@ -368,4 +370,19 @@ export function compareEffectText(searchText: string, card: CardTypeWithId) : bo
     const xrosEffectMatch = card.digiXros?.toUpperCase().includes(text) ?? false;
 
     return mainEffectMatch || inheritedEffectMatch || securityEffectMatch || digivolveEffectMatch || dnaEffectMatch || burstEffectMatch || xrosEffectMatch;
+}
+
+export const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => (event.target as HTMLImageElement).src = cardBack;
+
+//workaround for double cards in fetchCardList
+export function filterDoubleCardNumbers(cards : CardTypeWithId[]) : CardTypeWithId[] {
+    const uniqueCards = [];
+    let prevCardNumber = null;
+    for (const card of cards) {
+        if (card.uniqueCardNumber !== prevCardNumber) {
+            uniqueCards.push(card);
+            prevCardNumber = card.uniqueCardNumber;
+        }
+    }
+    return uniqueCards;
 }

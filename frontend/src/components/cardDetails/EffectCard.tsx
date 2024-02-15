@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import {Lock as SecurityIcon, CallMade as InheritedIcon} from '@mui/icons-material';
 import {useLocation} from "react-router-dom";
+import { JSX } from "react";
 
 type Props = {
     variant: "main" | "inherited" | "security" | "special"

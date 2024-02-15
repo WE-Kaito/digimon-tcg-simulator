@@ -68,12 +68,12 @@ public class MongoUserController {
     }
 
     @PutMapping("/recovery")
-    public String changePassword(@RequestBody PasswordRecovery passwordRecovery) {
+    public String changePassword(@Valid @RequestBody PasswordRecovery passwordRecovery) {
         return mongoUserDetailsService.changePassword(passwordRecovery);
     }
 
     @PutMapping("/change-question")
-    public String changeQuestion(@RequestBody SafetyQuestionChange safetyQuestionChange) {
+    public String changeQuestion(@Valid @RequestBody SafetyQuestionChange safetyQuestionChange) {
         return mongoUserDetailsService.changeQuestion(safetyQuestionChange);
     }
 

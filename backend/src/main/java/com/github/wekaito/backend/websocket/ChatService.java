@@ -26,8 +26,8 @@ public class ChatService extends TextWebSocketHandler {
     private final MongoUserDetailsService mongoUserDetailsService;
     private final DeckService deckService;
 
-    private Set<WebSocketSession> activeSessions = new HashSet<>();
-    private Set<String> connectedUsernames = new HashSet<>();
+    private final Set<WebSocketSession> activeSessions = new HashSet<>();
+    private final Set<String> connectedUsernames = new HashSet<>();
 
     private int totalSessionCount = 0;
 
@@ -62,29 +62,29 @@ public class ChatService extends TextWebSocketHandler {
     }
 
     @Scheduled(fixedRate = 10000)
-    public synchronized void sendHeartbeat() throws IOException {
+    private synchronized void sendHeartbeat() throws IOException {
         broadcastUserCount();
     }
 
     @Scheduled(fixedRate = 2000)
-    public synchronized void sendReconnectInfo() throws IOException {
+    private synchronized void sendReconnectInfo() throws IOException {
         checkForRejoinableRoom();
     }
 
-    void broadcastConnectedUsernames() throws IOException {
+    private void broadcastConnectedUsernames() throws IOException {
         String userListMessage = String.join(", ", connectedUsernames);
         for (WebSocketSession session : activeSessions) {
             session.sendMessage(new TextMessage(userListMessage));
         }
     }
 
-    void broadcastUserCount() throws IOException {
+    private void broadcastUserCount() throws IOException {
         for (WebSocketSession session : activeSessions) {
             session.sendMessage(new TextMessage("[USER_COUNT]:" + (getTotalSessionCount())));
         }
     }
 
-    void checkForRejoinableRoom() throws IOException {
+    private void checkForRejoinableRoom() throws IOException {
         for (WebSocketSession session : activeSessions) {
             boolean isRejoinable = gameService.gameRooms.keySet().stream().anyMatch(roomId -> roomId.contains(Objects.requireNonNull(session.getPrincipal()).getName()));
             if (isRejoinable) session.sendMessage(new TextMessage("[RECONNECT_ENABLED]"));
@@ -92,13 +92,13 @@ public class ChatService extends TextWebSocketHandler {
         }
     }
 
-    WebSocketSession getSessionByUsername(String username) {
+    private WebSocketSession getSessionByUsername(String username) {
         return activeSessions.stream()
                 .filter(s -> username.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
     }
 
-    int getTotalSessionCount() {
+    private int getTotalSessionCount() {
         totalSessionCount = activeSessions.size() + gameService.gameRooms.values().stream().mapToInt(Set::size).sum();
         return totalSessionCount;
     }
