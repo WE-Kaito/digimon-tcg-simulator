@@ -674,6 +674,10 @@ export default function Game({user}: { user: string }) {
         setSurrenderOpen(false);
         setEndScreen(true);
         setEndScreenMessage("🏳️ You surrendered.");
+        if (onlineCheckTimeoutRef.current !== null) {
+          clearTimeout(onlineCheckTimeoutRef.current);
+          onlineCheckTimeoutRef.current = null;
+        }
     }
 
     function acceptRestart() {
