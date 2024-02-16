@@ -183,7 +183,7 @@ export default function Lobby({user}: { user: string }) {
 
                 <Chat>
                     <History ref={historyRef}>
-                        {messages.map((message) => {
+                        {messages.map((message, idx) => {
                             const colonIndex = message.indexOf(":");
                             if (colonIndex !== -1) {
                                 const name = message.substring(0, colonIndex);
@@ -191,7 +191,7 @@ export default function Lobby({user}: { user: string }) {
 
                                 if (name === "【SERVER】"){
                                     return (
-                                        <div style={{display: "flex"}} key={message}>
+                                        <div style={{display: "flex"}} key={idx}>
                                             {content === " Join our Discord!"
                                                 ? <StyledSpan name={name} user={user}>
                                                 <span style={{color:"#31da75"}}>Server</span>:
@@ -206,12 +206,12 @@ export default function Lobby({user}: { user: string }) {
                                 }
 
                                 return (
-                                    <div style={{display: "flex"}} key={message}>
+                                    <div style={{display: "flex"}} key={idx}>
                                         <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>
                                     </div>
                                 );
                             }
-                            return <div key={message}>{message}</div>;
+                            return <div key={idx}>{message}</div>;
                         })}
                     </History>
                     <InputContainer onSubmit={handleSubmit}>
@@ -228,7 +228,7 @@ export default function Lobby({user}: { user: string }) {
 const Wrapper = styled.div`
   display: flex;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   flex-direction: column;
   align-items: center;
   max-height: 100vh;
@@ -283,14 +283,15 @@ const ConnectionSpanRed = styled(ConnectionSpanGreen)`
 `;
 
 const Container = styled.div`
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   margin-top: 5vh;
-  width: 97.75vw;
-  height: 85%;
+  width: 100%;
   max-width: 1000px;
+  min-height: 0px;
 
   @media (min-width: 1000px) {
     border-top-right-radius: 15px;

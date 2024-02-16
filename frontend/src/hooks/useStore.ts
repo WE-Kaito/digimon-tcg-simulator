@@ -338,6 +338,7 @@ export const useStore = create<State>((set, get) => ({
             }
         })
             .then(response => {
+                console.log(response.headers);
                 set({user: response.data})
                 navigate("/");
             })
