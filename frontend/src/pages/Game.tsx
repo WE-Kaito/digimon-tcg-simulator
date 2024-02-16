@@ -30,7 +30,7 @@ import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import Lottie from "lottie-react";
 import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
-import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
+import {notifyOpponentDisconnect, notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import {
     playActivateEffectSfx,
@@ -512,6 +512,7 @@ export default function Game({user}: { user: string }) {
 
         onlineCheckTimeoutRef.current = setTimeout(() => {
             setIsOpponentOnline(false);
+            notifyOpponentDisconnect();
         }, 8000);
 
         setResetOnlineCheck(() => cancelSetOffline);
