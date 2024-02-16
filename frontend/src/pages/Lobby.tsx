@@ -327,20 +327,21 @@ const User = styled.span`
   justify-content: space-between;
 
   width: 80%;
-  height: 14%;
   min-height: 30px;
   color: ghostwhite;
   background: black;
   font-family: Amiga Forever Pro2, sans-serif;
   text-align: left;
   padding-left: 4vw;
-  padding-top: 0.55vh;
+  padding-top: 4px;
   padding-right: 4vw;
+  padding-bottom: 4px;
   text-overflow: clip;
   font-size: 28px;
   border: 3px solid #dcb415;
   box-shadow: inset 0 0 5px #dcb415;
   filter: drop-shadow(0 0 4px #dcb415);
+  flex-shrink: 0;
   @media (min-width: 1000px) {
     border-width: 3px;
     padding-right: 3vw;
@@ -354,7 +355,6 @@ const User = styled.span`
 
   @media (max-width: 500px)  or (max-height: 680px) {
     font-size: 18px;
-    height: 12%;
     width: 87%;
     padding-right: 2vw;
     box-shadow: inset 0 0 3px #dcb415;
