@@ -512,11 +512,16 @@ export default function Game({user}: { user: string }) {
 
         onlineCheckTimeoutRef.current = setTimeout(() => {
             setIsOpponentOnline(false);
-            notifyOpponentDisconnect();
         }, 8000);
 
         setResetOnlineCheck(() => cancelSetOffline);
     }, [setIsOpponentOnline]);
+
+    useEffect(() => {
+      if (!endScreen && !isOpponentOnline) {
+        notifyOpponentDisconnect();
+      }
+    }, [endScreen, isOpponentOnline]);
 
     function chunkString(str: string, size: number): string[] {
         const chunks = [];
