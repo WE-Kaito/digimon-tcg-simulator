@@ -905,7 +905,6 @@ export default function Game({user}: { user: string }) {
             justifyContent: "center",
             alignItems: "center",
             containerType: "inline-size",
-            overflow: "scroll",
             scrollbarWidth: "thin"
         }}>
             <OuterWrapper>
