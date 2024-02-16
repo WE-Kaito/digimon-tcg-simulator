@@ -6,13 +6,16 @@ import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
-import {notifyNoActiveDeck} from "../utils/toasts.ts";
+import {notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
 import {playInvitationSfx} from "../utils/sound.ts";
 import discordIcon from "../assets/discordLogo.png";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import {useGame} from "../hooks/useGame.ts";
 import {Button} from "@mui/material";
+import {
+  VolumeOff as MuteIcon
+} from '@mui/icons-material';
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -26,6 +29,7 @@ export default function Lobby({user}: { user: string }) {
     const [search, setSearch] = useState<string>("");
     const [userCount, setUserCount] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
+    const [mutedInvitesFrom, setMutedInvitesFrom] = useState<string[]>([]);
     const websocketURL = `${__WEBSOCKET_URL__}api/ws/chat`;
 
     const setGameId = useGame((state) => state.setGameId);
@@ -43,9 +47,11 @@ export default function Lobby({user}: { user: string }) {
 
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
+                const otherPlayer = event.data.substring(event.data.indexOf(":") + 1);
+                if (inviteFrom.includes(otherPlayer)) return;
                 playInvitationSfx();
                 setPendingInvitation(true);
-                setInviteFrom(event.data.substring(event.data.indexOf(":") + 1));
+                setInviteFrom(otherPlayer);
                 setInviteTo("");
                 return;
             }
@@ -136,6 +142,12 @@ export default function Lobby({user}: { user: string }) {
         navigateToGame();
     }
 
+    function handleMuteInvites() {
+      notifyMuteInvites(inviteFrom);
+      setMutedInvitesFrom([...mutedInvitesFrom, inviteFrom]);
+      handleAbortInvite(false);
+    }
+
     function userVisible(username: string) {
         return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
     }
@@ -145,6 +157,14 @@ export default function Lobby({user}: { user: string }) {
             <ParticlesBackground options={blueTriangles}/>
             {pendingInvitation &&
                 <InvitationMoodle>
+                    <div style={{position: "absolute", top: "20px", right: "20px"}}>
+                      <Mute 
+                        onClick={handleMuteInvites}
+                        title="Stop receiving invites from this player until you re-enter the lobby."
+                      >
+                        <MuteIcon />
+                      </Mute>
+                    </div>
                     <span>Invitation from {inviteFrom}</span>
                     <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
                         <AcceptButton onClick={handleAcceptInvite}>ACCEPT</AcceptButton>
@@ -568,3 +588,10 @@ const SearchBar = styled.input`
     color: ghostwhite;
   }
 `;
+
+const Mute = styled.div`
+  cursor: pointer;
+  &:hover {
+    opacity: 50%;
+  }
+`

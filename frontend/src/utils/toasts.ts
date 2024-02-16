@@ -87,6 +87,13 @@ export const notifyRequestedRestart = () => toast.success('Sent restart request!
     pauseOnHover: false,
 });
 
+export const notifyMuteInvites = (username: string) => toast.success(`Invites from ${username} muted!`, {
+    position: "bottom-center",
+    autoClose: 1200,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
+
 export const notifyNoActiveDeck = () => toast.error('Please activate a deck first!', {
     position: "top-center",
     autoClose: 3000,
