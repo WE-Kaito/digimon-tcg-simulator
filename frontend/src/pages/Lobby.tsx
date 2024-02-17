@@ -317,8 +317,9 @@ const Container = styled.div`
 const UserList = styled.div`
   margin-top: 3vh;
   padding-top: 1vh;
-  height: 50%;
   width: 85%;
+  min-height: 0px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -389,7 +390,8 @@ const Chat = styled.div`
   filter: drop-shadow(0 0 3px ghostwhite);
   padding: 25px;
   width: 84.5%;
-  height: 50%;
+  min-height: 0px;
+  flex: 1;
 
   @media (max-width: 500px) {
     border: 3px solid white;
