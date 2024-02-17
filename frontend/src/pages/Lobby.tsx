@@ -589,7 +589,10 @@ const SearchBar = styled.input`
   }
 `;
 
-const Mute = styled.div`
+const Mute = styled(MuteIcon)`
+  position: absolute;
+  top: 20px; 
+  right: 20px;
   cursor: pointer;
   &:hover {
     opacity: 50%;
