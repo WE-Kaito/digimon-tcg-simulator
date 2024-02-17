@@ -157,9 +157,9 @@ export default function Lobby({user}: { user: string }) {
             <ParticlesBackground options={blueTriangles}/>
             {pendingInvitation &&
                 <InvitationMoodle>
-                    <Mute onClick={handleMuteInvites}
-             title="Stop receiving invites from this player until you re-enter the lobby."
-/>
+                    <div title="Stop receiving invites from this player until you re-enter the lobby.">
+                      <Mute onClick={handleMuteInvites}/>
+                    </div>
                     <span>Invitation from {inviteFrom}</span>
                     <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
                         <AcceptButton onClick={handleAcceptInvite}>ACCEPT</AcceptButton>
