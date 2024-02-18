@@ -31,7 +31,7 @@ class Waiter:
             target_digimon = self.bot.game['player2Digi'][self.bot.find_card_index_by_id_in_battle_area(card_id)]
             digivolution_card_index = int(message[2])
             if digivolution_card_index > 0 and digivolution_card_index <= len(target_digimon[:-1]):
-                return target_digimon[-1]['id'], digivolution_card_index-1
+                return target_digimon[-1]['id'], target_digimon[digivolution_card_index-1]['id']
         await self.send_invalid_command_message(ws)
         return False, False
 
@@ -79,15 +79,15 @@ class Waiter:
         prefix = 'trash digivolution card'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
-            card_id, digivolution_card_index  = await self.filter_trash_digivolution_action(ws, message.replace(prefix, prefix_with_delimiter))
+            card_id, digivolution_card_id  = await self.filter_trash_digivolution_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                await self.bot.trash_digivolution_card(ws, card_id, digivolution_card_index)
+                await self.bot.trash_digivolution_card(ws, card_id, digivolution_card_id)
         prefix = 'trash all digivolution cards'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                await self.bot.trash_all_digivolution_card(ws, card_id)
+                await self.bot.trash_all_digivolution_cards(ws, card_id)
         prefix = 'trash top security'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
