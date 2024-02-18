@@ -226,14 +226,7 @@ export default function Game({user}: { user: string }) {
 
         onOpen: () => {
             if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
-            else {
-              let x = 0;
-              setTimeout(() => {
-                websocket.sendMessage("/startGame:" + gameId + x);
-                x++;
-                console.log(`Starting ${x} socket`);
-              }, 500);
-            }
+            else websocket.sendMessage("/startGame:" + gameId);
         },
 
         onMessage: (event) => {
