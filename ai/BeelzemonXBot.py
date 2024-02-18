@@ -197,8 +197,9 @@ class BeelzemonXBot(Bot):
             self.logger.info('Not found. Won\'t attack...')
             return False
         self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
-        await self.attack_with_digimon(ws, digimon_index)
+        await self.suspend_digimon(ws, digimon_index)
         await self.when_attacking_effects_strategy(ws, digimon_index)
+        await self.attack_with_digimon(ws, digimon_index)
 
     # TODO: More clever choice of Beelzemon to evolve to
     async def st14_02_impmon_strategy(self, ws, digimon_index):

@@ -22,21 +22,37 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False
 
+    async def filter_trash_digivolution_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 3 and message[1].isdigit() and message[2].isdigit():
+            card_id = await self.filter_target_digimon_action(ws, ' '.join(message[:-1]))
+            if not card_id:
+                return False, False
+            target_digimon = self.bot.game['player2Digi'][self.bot.find_card_index_by_id_in_battle_area(card_id)]
+            digivolution_card_index = int(message[2])
+            if digivolution_card_index > 0 and digivolution_card_index <= len(target_digimon[:-1]):
+                return target_digimon[-1]['id'], digivolution_card_index-1
+        await self.send_invalid_command_message(ws)
+        return False, False
+
     async def check_for_action(self, ws, message):
         chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
         if not message.startswith(chat_message_prefix):
             return
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
-        if message.startswith('delete'):
+        prefix = 'delete'
+        if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message)
             if card_id:
                 await self.bot.delete_card_from_battle_area(ws, card_id)
-        if message.startswith('return bottom deck'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'return bottom deck'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.return_from_battle_area_to_bottom_of_deck(ws, card_id)
         if message.startswith('return hand'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.return_from_battle_area_to_hand(ws, card_id)
         if message.startswith('stun'):
@@ -48,44 +64,66 @@ class Waiter:
             card_id = await self.filter_target_digimon_action(ws, message)
             if card_id:
                 await self.bot.suspend_digimon(ws, card_id)
-        if message.startswith('cannot unsuspend'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'cannot unsuspend'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 self.bot.cant_unsuspend_until_end_of_turn.add(ws, card_id)
-        if message.startswith('cannot suspend'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'cannot suspend'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 self.bot.cant_suspend_until_end_of_turn.add(ws, card_id)
-        if message.startswith('trash digivolution card'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'trash digivolution card'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id, digivolution_card_index  = await self.filter_trash_digivolution_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                self.bot.cant_suspend_until_end_of_turn.add(ws, card_id)
-        if message.startswith('trash all digivolution cards'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+                await self.bot.trash_digivolution_card(ws, card_id, digivolution_card_index)
+        prefix = 'trash all digivolution cards'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.trash_all_digivolution_card(ws, card_id)
-        if message.startswith('trash top security'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'trash top security'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.trash_top_card_of_security(ws, card_id)
-        if message.startswith('trash bottom security'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'trash bottom security'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                await self.bot.trash_bottom_card_of_security(ws, card_id)
-        if message.startswith('place on top of security stack'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+                await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
+        prefix = 'place on top of security stack'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.place_card_from_battle_area_on_top_of_security(ws, card_id)
-        if message.startswith('place to bottom security stack'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'place to bottom security stack'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.place_card_from_battle_area_to_bottom_of_security(ws, card_id)
-        if message.startswith('reveal from top of deck'):
+        prefix = 'reveal from top of deck'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
             await self.bot.reveal_card_from_top_from_deck(ws, 0)
-        if message.startswith('trash from top of deck'):
+        prefix = 'trash from top of deck'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
             await self.bot.trash_top_card_of_deck(ws)
-        if message.startswith('return to bottom of deck'):
-            card_id = await self.filter_target_digimon_action(ws, message)
+        prefix = 'return to bottom of deck'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.place_card_from_battle_area_to_bottom_of_security(ws, card_id)
 
@@ -93,4 +131,7 @@ class Waiter:
         message = None
         while message != f'ok':
             message = await ws.recv()
-            await self.check_for_action(ws, message)
+            chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
+            if message.startswith(chat_message_prefix):
+                message = message.replace(chat_message_prefix, '', 1).strip().lower()
+                await self.check_for_action(ws, message)

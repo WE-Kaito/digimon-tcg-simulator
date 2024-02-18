@@ -204,7 +204,6 @@ class Bot(ABC):
     def is_placed_this_turn(self, card_id):
         return card_id in self.placed_this_turn
     
-    ## TODO: Remove this method and make the rest of the code work without it
     def find_card_index_by_id_in_trash(self, id):
         for i in range(len(self.game[f'player2Trash'])):
             card = self.game[f'player2Trash'][i]
@@ -214,9 +213,10 @@ class Bot(ABC):
     
     def find_card_index_by_id_in_battle_area(self, id):
         for i in range(len(self.game[f'player2Digi'])):
-            card = self.game[f'player2Digi'][i][-1]
-            if card['id'] == id:
-                return i
+            if len(self.game[f'player2Digi'][i]) > 0:
+                card = self.game[f'player2Digi'][i][-1]
+                if card['id'] == id:
+                    return i
         raise RuntimeError(f'Card with id {id} not found in battle area.')
 
     def get_first_digit_index(self, s):
@@ -266,12 +266,12 @@ class Bot(ABC):
     async def move_card(self, ws, fr, to, stack_index=None, field_update=True):
         self.logger.debug(f'Moving card from {fr} to {to}.')
         stack = self.get_stack(fr)
+        print(stack)
         if type(stack) == dict:
             stack = [stack]
         if stack_index is not None:
-            stack = stack[stack_index]
+            stack = [stack[stack_index]]
         for card in stack:
-            print(card)
             card_id = card['id']
             card_name = card['name']
             if fr.startswith('myHand'):
@@ -558,20 +558,20 @@ class Bot(ABC):
         await self.decrease_memory_by(ws, cost)
 
     async def trash_card_from_hand(self, ws, card_index):
-        await self.move_card(ws, f'myHand{card_index}', f'myTrash')
+        await self.move_card(ws, f'myHand{card_index}', 'myTrash')
         card = self.game['player2Hand'].pop(card_index)
         await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']}")
         self.game['player2Trash'].insert(0, card)
 
     async def trash_top_card_of_security(self, ws):
-        await self.move_card(ws, f'mySecurity0', f'myTrash')
+        await self.move_card(ws, f'mySecurity0', 'myTrash')
         card = self.game['player2Security'].pop(0)
         await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']} from security")
         self.game['player2Trash'].insert(0, card)
 
     async def trash_bottom_card_of_security(self, ws):
         card_index = len(self.game['player2Security'])
-        await self.move_card(ws, f'mySecurity{card_index}', f'myTrash')
+        await self.move_card(ws, f'mySecurity{card_index}', 'myTrash')
         card = self.game['player2Security'].pop(card_index)
         await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']} from security")
         self.game['player2Trash'].insert(0, card)
@@ -604,7 +604,7 @@ class Bot(ABC):
     
     async def trash_digivolution_card(self, ws, card_id, digivolution_card_index):
         card_index = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', f'myTrash', stack_index=digivolution_card_index)
+        await self.move_card(ws, f'myDigi{card_index+1}', 'myTrash', stack_index=digivolution_card_index)
         card = self.game['player2Digi'][card_index].pop(digivolution_card_index)
         await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']}")
         self.game['player2Trash'].insert(0, card)
@@ -673,7 +673,7 @@ class Bot(ABC):
     
     async def delete_card_from_battle_area(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', f'myTrash')
+        await self.move_card(ws, f'myDigi{card_index+1}', 'myTrash')
         stack = self.game['player2Digi'][card_index]
         await self.send_message(ws, f"Deleting {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']}.")
         for card in stack:
