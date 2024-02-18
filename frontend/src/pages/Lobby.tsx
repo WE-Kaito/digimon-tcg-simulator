@@ -48,7 +48,7 @@ export default function Lobby({user}: { user: string }) {
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
                 const otherPlayer = event.data.substring(event.data.indexOf(":") + 1);
-                if (inviteFrom.includes(otherPlayer)) return;
+                if (mutedInvitesFrom.includes(otherPlayer)) return;
                 playInvitationSfx();
                 setPendingInvitation(true);
                 setInviteFrom(otherPlayer);
