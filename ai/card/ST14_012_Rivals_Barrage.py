@@ -27,7 +27,7 @@ class ST14_012_Rivals_Barrage(Card):
         await super().delay_effect(ws)
         await self.bot.send_message(ws, 'ST14-12 Rivals\' Barrage [Delay] effect:')
         await self.bot.add_card_from_trash_to_hand(ws, self.extra_args['target_card_id'])
-        await self.bot.delete_card_from_battle_area(ws, self.extra_args['card_id'])
+        await self.bot.delete_stack_from_battle_area(ws, self.extra_args['card_id'])
 
     ## TODO: Code strategy when two or more digimons have the same level
     async def on_play_effect(self, ws):

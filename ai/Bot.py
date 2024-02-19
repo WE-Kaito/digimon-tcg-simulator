@@ -192,9 +192,9 @@ class Bot(ABC):
     
     async def activate_effect_on_battlefield(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_battle_area(card_id)
-        card = self.game['player2Digi'][card_index][-1]
+        card = self.game['player2Digi'][card_index[0]][card_index[1]]
         await ws.send(f'{self.game_name}:/activateEffect:{self.opponent}:{card_id}')
-        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【{card['name']} at BA {card_index + 1}】﹕✨ EFFECT ✨")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【{card['name']} at BA {card_index[0] + 1}】﹕✨ EFFECT ✨")
         await ws.send(f'{self.game_name}:/playActivateEffectSfx:{self.opponent}')
     
     async def pass_turn(self, ws):
@@ -224,7 +224,7 @@ class Bot(ABC):
                 for j in range(len(self.game[f'player2Digi'][i])):
                     card = self.game[f'player2Digi'][i][j]
                     if card['id'] == id:
-                        return i
+                        return i, j
         raise RuntimeError(f'Card with id {id} not found in battle area.')
     
     def find_card_index_by_id_in_trash(self, id):
@@ -277,6 +277,9 @@ class Bot(ABC):
         if fr == 'Deck' and to == 'Hand':
             await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【Draw Card】')
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
+    
+    async def move_card_to_deck(self, ws, to, card_id, card_index):
+        await ws.send(f'{self.game_name}:/moveCardToDeck:{self.opponent}:{to}:{card_id}:myDigi{card_index + 1}:myDeckField')
 
     async def move_card(self, ws, fr, to, target_card_id=None, field_update=True):
         self.logger.debug(f'Moving card from {fr} to {to}.')
@@ -592,33 +595,29 @@ class Bot(ABC):
         self.game['player2Trash'].insert(0, card)
 
     async def place_card_from_battle_area_on_top_of_security(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         await self.move_card(ws, f'myDigi{card_index+1}', 'mySecurity')
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Security Top')
-        await self.send_message(ws, f"Place {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']} on top of security stack.")
+        await self.send_message(ws, f"Place {card['uniqueCardNumber']}-{card['name']} on top of security stack.")
         self.game['player2Security'].insert(0, card)
-        stack = self.game['player2Digi']
-        for card in stack:
-            self.game['player2Trash'].insert(0, card)
-        self.game['player2Digi'][card_index] = []
+        stack = self.game['player2Digi'][card_index]
+        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
         return card
 
     async def place_card_from_battle_area_to_bottom_of_security(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         await self.move_card(ws, f'myDigi{card_index+1}', 'mySecurity')
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Security Bottom')
-        await self.send_message(ws, f"Place {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']} to bottom of security stack.")
+        await self.send_message(ws, f"Place {card['uniqueCardNumber']}-{card['name']} to bottom of security stack.")
         self.game['player2Security'].append(card)
-        stack = self.game['player2Digi']
-        for card in stack:
-            self.game['player2Trash'].insert(0, card)
-        self.game['player2Digi'][card_index] = []
+        stack = self.game['player2Digi'][card_index]
+        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
         return card
     
     async def trash_digivolution_card(self, ws, card_id, digivolution_card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         stack = self.game['player2Digi'][card_index]
         digivolution_card_index = self.find_card_index_by_id_in_stack(stack, digivolution_card_id)
         await self.move_card(ws, f'myDigi{card_index+1}', 'myTrash', target_card_id=digivolution_card_id)
@@ -633,50 +632,42 @@ class Bot(ABC):
             await self.trash_digivolution_card(ws, stack[-1]['id'], digivolution_card['id'])
 
     async def return_from_battle_area_to_bottom_of_deck(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         card = self.game['player2Digi'][card_index].pop(-1)
+        await self.move_card_to_deck(ws, 'Bottom', card_id, card_index)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
-        await self.send_message(ws, f"Return {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']}.")
-        self.game['player2Deck'].append(card)
-        stack = self.game['player2Digi']
-        for card in stack:
-            self.game['player2Trash'].insert(0, card)
-        self.game['player2Digi'][card_index] = []
-        await self.update_game(ws)
-        return card
+        await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']} to bottom of deck.")
+        self.game['player2DeckField'].append(card)
+        stack = self.game['player2Digi'][card_index]
+        if len(stack) > 0:
+            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
 
     async def return_from_battle_area_to_top_of_deck(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         card = self.game['player2Digi'][card_index].pop(-1)
-        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
-        await self.send_message(ws, f"Return {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']}.")
-        self.game['player2Deck'].insert(0, card)
-        stack = self.game['player2Digi']
-        for card in stack:
-            self.game['player2Trash'].insert(0, card)
-        self.game['player2Digi'][card_index] = []
-        await self.update_game(ws)
-        return card
+        await self.move_card_to_deck(ws, 'Top', card_id, card_index)
+        await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
+        await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']} to top of deck.")
+        self.game['player2DeckField'].insert(0, card)
+        stack = self.game['player2Digi'][card_index]
+        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
 
     async def return_from_battle_area_to_hand(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         await self.move_card(ws, f'myDigi{card_index+1}', 'myHand0')
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Hand')
-        await self.send_message(ws, f"Return {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']}.")
-        self.game['player2Deck'].append(card)
-        stack = self.game['player2Digi']
-        for card in stack:
-            self.game['player2Trash'].insert(0, card)
-        self.game['player2Digi'][card_index] = []
-        return card
+        await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']}.")
+        self.game['player2DeckField'].append(card)
+        stack = self.game['player2Digi'][card_index]
+        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
     
     async def return_from_trash_to_bottom_of_deck(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_trash(card_id)
+        card_index, _ = self.find_card_index_by_id_in_trash(card_id)
         card = self.game['player2Trash'].pop(card_index)
         self.logger.info(f"Return {card['uniqueCardNumber']}-{card['name']} to bottom of deck from trash.")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
-        self.game['player2Deck'].append(card)
+        self.game['player2DeckField'].append(card)
         await self.update_game(ws)
         return card
     
@@ -688,15 +679,20 @@ class Bot(ABC):
         await self.send_message(ws, f"Move {card['uniqueCardNumber']}-{card['name']} to battle area from trash.")
         self.game['player2Digi'][i].append(card)
         return card
-    
-    async def delete_card_from_battle_area(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', 'myTrash')
+
+    async def delete_stack_from_battle_area(self, ws, card_id):
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         stack = self.game['player2Digi'][card_index]
-        await self.send_message(ws, f"Deleting {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']}.")
-        for card in stack:
-            self.game['player2Trash'].insert(0, card)
-        self.game['player2Digi'][card_index] = []
+        cards_to_delete_ids = [c['id'] for c in reversed(stack)]
+        for card_id in cards_to_delete_ids:
+            await self.delete_card_from_battle_area(ws, card_id)
+
+    async def delete_card_from_battle_area(self, ws, card_id):
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
+        await self.move_card(ws, f'myDigi{card_index+1}', 'myTrash', target_card_id=card_id)
+        card = self.game['player2Digi'][card_index][-1]
+        await self.send_message(ws, f"Deleting {card['uniqueCardNumber']}-{card['name']}.")
+        self.game['player2Trash'].insert(0, self.game['player2Digi'][card_index].pop(-1))     
         return card
     
     async def delete_card_from_opponent_battle_area(self, ws, card_index):

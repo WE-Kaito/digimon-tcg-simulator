@@ -28,7 +28,7 @@ class Waiter:
             card_id = await self.filter_target_digimon_action(ws, ' '.join(message[:-1]))
             if not card_id:
                 return False, False
-            target_digimon = self.bot.game['player2Digi'][self.bot.find_card_index_by_id_in_battle_area(card_id)]
+            target_digimon = self.bot.game['player2Digi'][self.bot.find_card_index_by_id_in_battle_area(card_id)[0]]
             digivolution_card_index = int(message[2])
             if digivolution_card_index > 0 and digivolution_card_index <= len(target_digimon[:-1]):
                 return target_digimon[-1]['id'], target_digimon[digivolution_card_index-1]['id']

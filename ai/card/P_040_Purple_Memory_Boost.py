@@ -17,5 +17,5 @@ class P_040_Purple_Memory_Boost(Card):
         card_id = self.extra_args['card_id']
         await self.bot.send_message(ws, f"P-040 Purple Memory Boost [Delay] effect: Gain 2 memory.")
         await self.bot.increase_memory_by(ws, 2)
-        await self.bot.delete_card_from_battle_area(ws, card_id)
+        await self.bot.delete_stack_from_battle_area(ws, card_id)
         self.bot.placed_this_turn.add(card_id)
