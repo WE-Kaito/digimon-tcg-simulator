@@ -22,15 +22,19 @@ class Card(ABC):
         self.bot.send_game_chat_message(ws, message)
     
     async def main_effect(self, ws):
+        await self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass
 
     async def on_play_effect(self, ws):
+        await self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass
     
     async def when_attacking_effect(self, ws):
+        self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass
 
     async def when_digivolving_effect(self, ws):
+        await self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass
 
     async def when_trashed_effect(self, ws):
@@ -40,16 +44,20 @@ class Card(ABC):
         pass
 
     async def your_turn_effect(self, ws):
+        await self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass
 
     async def all_turns_effect(self, ws):
+        self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass
 
     async def trash_effect(self, ws):
         pass
 
     async def inherited_when_attacking_once_per_turn(self, ws):
+        await self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass
 
     async def delay_effect(self, ws):
+        await self.bot.activate_effect_on_battlefield(ws, self.extra_args['card_id'])
         pass

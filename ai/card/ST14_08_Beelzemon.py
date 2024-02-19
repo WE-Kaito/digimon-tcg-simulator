@@ -8,6 +8,7 @@ class ST14_08_Beelzemon(Card):
 
     ## TODO: Can target strategy to 
     async def when_digivolving_effect(self, ws):
+        await super().when_digivolving_effect(ws)
         trashed_cards = []
         await self.bot.send_message(ws, 'ST14-08 Beelzemon [When Digivolving] effect: I trash the top 4 cards of my deck.')
         for i in range(4):

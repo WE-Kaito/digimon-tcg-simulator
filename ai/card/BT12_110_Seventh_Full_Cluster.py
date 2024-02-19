@@ -25,5 +25,6 @@ class BT12_110_Seventh_Full_Cluster(Card):
 
     ## TODO: Code strategy when two or more digimons have the same level
     async def on_play_effect(self, ws):
+        await super().on_play_effect(ws)
         await self.bot.send_message(ws, f"BT12-110 Seventh Full Cluster [Main] effect:")
         await self.delete_opponent_digimon_lowest_level(ws)

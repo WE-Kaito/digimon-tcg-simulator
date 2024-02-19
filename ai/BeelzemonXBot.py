@@ -138,11 +138,16 @@ class BeelzemonXBot(Bot):
             beelzemon_on_field_index = self.card_in_battle_area_with_name('Beelzemon')
             if beelzemon_on_field_index >= 0 and len(self.game['player2Trash']) >=10:
                 await self.use_memory_boost_if_possible_and_needed(ws, 1)
+                beelzemon_x_antibody_card_id = self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['id']
+                digivolution_card_obj = self.card_factory.get_card(
+                    self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['uniqueCardNumber'],
+                    digimon_index=beelzemon_on_field_index,
+                    card_id=beelzemon_x_antibody_card_id
+                )
                 await self.digivolve(
                     ws, 'Digi', beelzemon_on_field_index, 'Hand',
                     beelzemon_x_antibody_in_hand_index, 1
                 )
-                digivolution_card_obj = self.card_factory.get_card(self.game['player2Hand'][beelzemon_x_antibody_in_hand_index]['uniqueCardNumber'], digimon_index=beelzemon_on_field_index)
                 await digivolution_card_obj.when_digivolving_effect(ws)
                 await self.use_seventh_full_cluster_trash_if_possible(ws)
                 return True
@@ -164,7 +169,11 @@ class BeelzemonXBot(Bot):
                             ws, 'Digi', digimon_index, 'Hand',
                             digivolution_index, self.digivolution_cost(digivolution_card)
                         )
-                        digivolution_card_obj = self.card_factory.get_card(digivolution_card['uniqueCardNumber'], digimon_index=digimon_index)
+                        digivolution_card_obj = self.card_factory.get_card(
+                            digivolution_card['uniqueCardNumber'],
+                            digimon_index=digimon_index,
+                            card_id=digivolution_card['id']
+                        )
                         await digivolution_card_obj.when_digivolving_effect(ws)
                         return True
         return False
@@ -172,10 +181,13 @@ class BeelzemonXBot(Bot):
     async def when_attacking_effects_strategy(self, ws, digimon_index):
         self.logger.info('Choosing effect trigger order for attack.')
         attacking_stack= self.game['player2Digi'][digimon_index]
-        attacking_stack_objs = [(c['uniqueCardNumber'], self.card_factory.get_card(c['uniqueCardNumber'], attacking_digimon=attacking_stack[-1])) for c in attacking_stack[:-1]]
+        attacking_stack_objs = [(c['uniqueCardNumber'], self.card_factory.get_card(c['uniqueCardNumber'], attacking_digimon=attacking_stack[-1], card_id=c['id'])) for c in attacking_stack[:-1]]
         attacking_stack_objs.sort(key=lambda x:self.preferred_trigger_order.index(x[0]))
         self.logger.info(f'Order decided: {[c[0] for c in attacking_stack_objs]}')
-        attacking_digimon_obj = self.card_factory.get_card(attacking_stack[-1]['uniqueCardNumber'])
+        attacking_digimon_obj = self.card_factory.get_card(
+            attacking_stack[-1]['uniqueCardNumber'],
+            card_id=attacking_stack[-1]['id']
+        )
         for attacking_card_obj in attacking_stack_objs[:-1]:
             await attacking_card_obj[1].inherited_when_attacking_once_per_turn(ws)
         await attacking_digimon_obj.when_attacking_effect(ws)
@@ -209,7 +221,11 @@ class BeelzemonXBot(Bot):
                 ws, 'Digi', digimon_index, 'Trash',
                 card_in_trash_index, 4
             )
-            digivolution_card_obj = self.card_factory.get_card(self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'], digimon_index=digimon_index)
+            digivolution_card_obj = self.card_factory.get_card(
+                self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'],
+                digimon_index=digimon_index,
+                card_id=self.game['player2Trash']['id']
+            )
             await digivolution_card_obj.when_digivolving_effect(ws)
             return
         card_in_trash_index = self.card_in_trash('EX2-044', 'Beelzemon')
@@ -218,7 +234,11 @@ class BeelzemonXBot(Bot):
                 ws, 'Digi', digimon_index, 'Trash',
                 card_in_trash_index, 4
             )
-            digivolution_card_obj = self.card_factory.get_card(self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'], digimon_index=digimon_index)
+            digivolution_card_obj = self.card_factory.get_card(
+                self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'],
+                digimon_index=digimon_index,
+                card_id=self.game['player2Trash']['id']
+            )
             await digivolution_card_obj.when_digivolving_effect(ws)
             
 
@@ -259,7 +279,7 @@ class BeelzemonXBot(Bot):
                 time.sleep(0.3)
                 trashed_cards.append(await self.trash_top_card_of_deck(ws))
         for trashed_card in trashed_cards:
-            card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'])
+            card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
             await card_obj.when_trashed_effect(ws)
     
     async def bt10_081_baalmon_deleted_strategy(self, ws):
@@ -366,7 +386,8 @@ class BeelzemonXBot(Bot):
         card_in_trash_index = self.card_in_trash('EX2-039', 'Impmon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
-            impmon = self.card_factory.get_card('EX2-039')
+            card_id = self.game['player2Trash'][card_in_trash_index]['id']
+            impmon = self.card_factory.get_card('EX2-039', card_id=card_id)
             await impmon.on_play_effect(ws)
             return
         await self.send_message(ws, f"No Impmon to play from trash.")
@@ -465,7 +486,7 @@ class BeelzemonXBot(Bot):
         memory_boost_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
         if memory_boost_in_hand_index >= 0:
             card = self.game['player2Hand'][memory_boost_in_hand_index]
-            purple_memory_boost = self.card_factory.get_card(card['uniqueCardNumber'])
+            purple_memory_boost = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
             await self.play_card(ws, 'Hand', memory_boost_in_hand_index, card['playCost'])
             time.sleep(2)
             await purple_memory_boost.main_effect(ws)
@@ -473,7 +494,7 @@ class BeelzemonXBot(Bot):
         ai_and_mako_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
         if ai_and_mako_in_hand_index >= 0:
             card = self.game['player2Hand'][ai_and_mako_in_hand_index]
-            ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'])
+            ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
             await self.play_card(ws, 'Hand', ai_and_mako_in_hand_index, card['playCost'])
             time.sleep(2)
             await ai_and_mako.on_play_effect(ws)

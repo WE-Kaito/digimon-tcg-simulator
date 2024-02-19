@@ -190,10 +190,17 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
         await ws.send(f"{self.game_name}:/playNextPhaseSfx:{self.opponent}")
     
+    async def activate_effect_on_battlefield(self, ws, card_id):
+        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card = self.game['player2Digi'][card_index][-1]
+        await ws.send(f'{self.game_name}:/activateEffect:{self.opponent}:{card_id}')
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【{card['name']} at BA {card_index + 1}】﹕✨ EFFECT ✨")
+        await ws.send(f'{self.game_name}:/playActivateEffectSfx:{self.opponent}')
+    
     async def pass_turn(self, ws):
         self.logger.info('Pass turn.')
-        await ws.send(f"{self.game_name}:/updatePhase:{self.opponent}")
-        await ws.send(f"{self.game_name}:/playPassTurnSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/updatePhase:{self.opponent}')
+        await ws.send(f'{self.game_name}:/playPassTurnSfx:{self.opponent}')
 
     async def shuffle_deck(self, ws):
         self.logger.info('Shuffling deck.')
@@ -214,14 +221,15 @@ class Bot(ABC):
     def find_card_index_by_id_in_battle_area(self, id):
         for i in range(len(self.game[f'player2Digi'])):
             if len(self.game[f'player2Digi'][i]) > 0:
-                card = self.game[f'player2Digi'][i][-1]
-                if card['id'] == id:
-                    return i
+                for j in range(len(self.game[f'player2Digi'][i])):
+                    card = self.game[f'player2Digi'][i][j]
+                    if card['id'] == id:
+                        return i
         raise RuntimeError(f'Card with id {id} not found in battle area.')
     
     def find_card_index_by_id_in_trash(self, id):
-        for i in range(len(self.game[f'player2Trash'])):
-            card = self.game[f'player2Trash'][i]
+        for i in range(len(self.game['player2Trash'])):
+            card = self.game['player2Trash'][i]
             if card['id'] == id:
                 return i
         raise RuntimeError(f'Card with id {id} not found in trash.')
@@ -303,29 +311,29 @@ class Bot(ABC):
                 fr = 'myTrash'
             if to.startswith('myTrash'):
                 to = 'myTrash'
-            await ws.send(f"{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}")
+            await ws.send(f'{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}')
             if field_update:
                 await self.field_update(ws, card_name, fr, to)
             await self.play_place_card_sfx(ws)
             time.sleep(0.5)
 
     async def send_player_ready(self, ws):
-        await ws.send(f"{self.game_name}:/playerReady:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playerReady:{self.opponent}')
 
     async def play_shuffle_deck_sfx(self, ws):
-        await ws.send(f"{self.game_name}:/playShuffleDeckSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playShuffleDeckSfx:{self.opponent}')
 
     async def play_place_card_sfx(self, ws):
-        await ws.send(f"{self.game_name}:/playPlaceCardSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playPlaceCardSfx:{self.opponent}')
 
     async def play_button_click_sfx(self, ws):
-        await ws.send(f"{self.game_name}:/playButtonClickSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playButtonClickSfx:{self.opponent}')
 
     async def play_suspend_card_sfx(self, ws):
-        await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
 
     async def play_unsuspend_card_sfx(self, ws):
-        await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     async def hi(self, ws, message):
         self.logger.info('Greeting player.')
@@ -353,11 +361,11 @@ class Bot(ABC):
         g = json.dumps(update)
         chunks = [g[i:i+n] for i in range(0, len(g), n)]
         for chunk in chunks:
-            await ws.send(f"{self.game_name}:/updateGame:{chunk}")
+            await ws.send(f'{self.game_name}:/updateGame:{chunk}')
 
     async def mulligan(self, ws):
         self.logger.info('I mulligan.')
-        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MULLIGAN】")
+        await self.send_game_chat_message(ws, '[FIELD_UPDATE]≔【MULLIGAN】')
         self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
         random.shuffle(self.game['player2DeckField'])
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
@@ -438,7 +446,7 @@ class Bot(ABC):
             if card['cardType'] == 'Digimon' and card['level'] == level:
                 self.logger.info(f"Found digimon {card['uniqueCardNumber']}-{card['name']} in hand at position {i}.")
                 return i
-        self.logger.info(f"No digimon of level {level} found in hand.")
+        self.logger.info(f'No digimon of level {level} found in hand.')
         return -1
    
     def unsuspended_digimon_of_level_in_battle_area(self, level):
@@ -447,9 +455,9 @@ class Bot(ABC):
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
                 if card['cardType'] == 'Digimon' and card['level'] == level and not card['isTilted']:
-                    self.logger.info(f"Found unsuspended digimon {card['uniqueCardNumber']}-{card['name']} in my battle area at position {i} .")
+                    self.logger.info(f"Found unsuspended digimon {card['uniqueCardNumber']}-{card['name']} in my battle area at position {i}.")
                     return i
-        self.logger.info(f"No digimon of level {level} found in hand.")
+        self.logger.info(f'No digimon of level {level} found in hand.')
         return -1
 
     def cheap_digimon_in_hand_to_play(self, max_memory_to_opponent):
@@ -474,27 +482,27 @@ class Bot(ABC):
         return -1
     
     def no_digimon_in_battle_area(self):
-        self.logger.info(f'Checking that there isn\'t any digimon in my battle area.')
+        self.logger.info('Checking that there isn\'t any digimon in my battle area.')
         for digi in self.game['player2Digi']:
             if len(digi) > 0 and digi[-1]['cardType'] == 'Digimon':
                 self.logger.info(f"Found {digi[-1]['uniqueCardNumber']}-{digi[-1]['name']}")
                 return False
-        self.logger.info(f"No digimon found in my battle area.")
+        self.logger.info(f'No digimon found in my battle area.')
         return True
     
     def any_suspended_card_on_field(self):
-        self.logger.info(f'Checking if there is any suspended card in my battle area.')
+        self.logger.info('Checking if there is any suspended card in my battle area.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
                 if card['isTilted']:
                     self.logger.info(f"Found {card['uniqueCardNumber']}-{card['name']}.")
                     return True
-        self.logger.info(f'Checking that there isn\'t any digimon in my battle area.')
+        self.logger.info('Checking that there isn\'t any digimon in my battle area.')
         return False
     
     async def attack_with_any_digimon(self):
-        self.logger.info(f'Try to attack with any digimon.')
+        self.logger.info('Try to attack with any digimon.')
         for i in range(len(self.game['player2Digi'])):
             card = self.game['player2Digi'][i][-1]
             if card['cardType'] == 'Digimon':
@@ -507,30 +515,30 @@ class Bot(ABC):
         self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
         card['isTilted'] = True
         await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{digimon_index+1}")
-        await ws.send(f"{self.game_name}:/playSuspendCardSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
         await self.waiter.wait_for_opponent_counter_blocking(ws)
 
     async def unsuspend_all(self, ws):
-        self.logger.info("Unsuspending all cards in my battle area.")
+        self.logger.info('Unsuspending all cards in my battle area.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 self.game['player2Digi'][i][-1]['isTilted'] = False
-        await ws.send(f"{self.game_name}:/unsuspendAll:{self.opponent}")
-        await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/unsuspendAll:{self.opponent}')
+        await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     async def suspend_digimon(self, ws, digimon_index):
         digimon = self.game['player2Digi'][digimon_index][-1]
         self.logger.info(f"Suspending {digimon['uniqueCardNumber']}-{digimon['name']}.")
         digimon['isTilted'] = True
         self.update_game(ws)
-        await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     async def unsuspend_digimon(self, ws, digimon_index):
         digimon = self.game['player2Digi'][digimon_index][-1]
         self.logger.info(f"Unsuspending {digimon['uniqueCardNumber']}-{digimon['name']}.")
         digimon['isTilted'] = False
         self.update_game(ws)
-        await ws.send(f"{self.game_name}:/playUnsuspendCardSfx:{self.opponent}")
+        await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     ## TODO: Potentially split this into two methods, one for breeding area and one for battle area
     async def digivolve(self, ws, digimon_location, digimon_card_index, digivolution_card_location, digivolution_card_index, cost):
@@ -585,7 +593,7 @@ class Bot(ABC):
 
     async def place_card_from_battle_area_on_top_of_security(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', f'mySecurity')
+        await self.move_card(ws, f'myDigi{card_index+1}', 'mySecurity')
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Security Top')
         await self.send_message(ws, f"Place {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']} on top of security stack.")
@@ -598,7 +606,7 @@ class Bot(ABC):
 
     async def place_card_from_battle_area_to_bottom_of_security(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', f'mySecurity')
+        await self.move_card(ws, f'myDigi{card_index+1}', 'mySecurity')
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Security Bottom')
         await self.send_message(ws, f"Place {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']} to bottom of security stack.")
@@ -652,7 +660,7 @@ class Bot(ABC):
 
     async def return_from_battle_area_to_hand(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', f'myHand0')
+        await self.move_card(ws, f'myDigi{card_index+1}', 'myHand0')
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Hand')
         await self.send_message(ws, f"Return {stack[-1]['uniqueCardNumber']}-{stack[-1]['name']}.")
@@ -694,14 +702,14 @@ class Bot(ABC):
     async def delete_card_from_opponent_battle_area(self, ws, card_index):
         card_name = self.game['player1Digi'][card_index][-1]['name']
         await self.send_message(ws, f'I\'d like to delete the {card_name}. in position {card_index}')
-        await self.send_message(ws, f'Resolve effects and type Ok to continue.')
+        await self.send_message(ws, 'Resolve effects and type Ok to continue.')
         await self.waiter.wait_for_actions(ws)
 
     async def promote(self, ws):
         self.logger.info('Promoting from breed area.')
         i = self.get_empty_slot_in_battle_area()
         await self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
-        self.game[f'player2Digi'][i].extend(self.game['player2BreedingArea'])
+        self.game['player2Digi'][i].extend(self.game['player2BreedingArea'])
         self.game['player2BreedingArea'] = []
 
     async def draw(self, ws, n_cards):
@@ -762,7 +770,7 @@ class Bot(ABC):
     
     async def trash_top_card_of_deck(self, ws):
         await self.move_card(ws, 'myDeckField0', 'myTrash')
-        card = self.game[f'player2DeckField'].pop(0)
+        card = self.game['player2DeckField'].pop(0)
         self.game['player2Trash'].insert(0, card)
         self.logger.info(f"Trashed {card['uniqueCardNumber']}-{card['name']} from top of deck.")
         return card
@@ -792,13 +800,13 @@ class Bot(ABC):
         self.game_name = f'{self.opponent}‗{self.username}'
         starting_game = ''
         async with websockets.connect(self.game_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
-            await ws.send(f"/startGame:{self.game_name}")
+            await ws.send(f'/startGame:{self.game_name}')
             opponent_ready = False
             done_mulligan = False
             while True:
                 await ws.send("/heartbeat/")
                 message = await ws.recv()
-                self.logger.debug(f"Received: {message}")
+                self.logger.debug(f'Received: {message}')
                 if message.startswith('[START_GAME]:'):
                     await self.hi(ws, message)
                 if message.startswith('[DISTRIBUTE_CARDS]:'):
@@ -809,9 +817,9 @@ class Bot(ABC):
                         if not done_mulligan:
                             if self.mulligan_strategy():
                                 await self.mulligan(ws)
-                                await self.send_game_chat_message(ws, "I mulligan my hand")
+                                await self.send_game_chat_message(ws, 'I mulligan my hand')
                             else:
-                                await self.send_game_chat_message(ws, "I keep my hand")
+                                await self.send_game_chat_message(ws, 'I keep my hand')
                             await self.send_player_ready(ws)
                             done_mulligan = True
                         ### TODO: Improve game initialization
@@ -821,11 +829,11 @@ class Bot(ABC):
                     if starting_player == self.username:
                        self.first_turn = True
                        self.my_turn = True
-                if message.startswith(f'[UPDATE_MEMORY]:'):
+                if message.startswith('[UPDATE_MEMORY]:'):
                     self.game['memory'] = int(message[-1])
                 if message.startswith('[PLAYER_READY]'):
                     opponent_ready = True
-                if message.startswith(f'[PASS_TURN_SFX]'):
+                if message.startswith('[PASS_TURN_SFX]'):
                     self.my_turn = True
                 if self.my_turn and opponent_ready:
                     await self.turn(ws)

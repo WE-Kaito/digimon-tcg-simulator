@@ -6,6 +6,7 @@ from card.Card import Card
 class ST14_01_Yaamon(Card):
 
     async def inherited_when_attacking_once_per_turn(self, ws):
+        await super().inherited_when_attacking_once_per_turn(ws)
         trashed_cards = []
         attacking_digimon = self.extra_args['attacking_digimon']
         if 'Evil' in attacking_digimon['digiType'] or 'Wizard' in attacking_digimon['digiType'] or 'Demon Lord' in attacking_digimon['digiType']:

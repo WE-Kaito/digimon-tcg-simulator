@@ -29,6 +29,7 @@ class BT12_073_Impmon_X_Antibody(Card):
 
     ## TODO: Make optional to trash up to three cards
     async def on_play_effect(self, ws):
+        await super().on_play_effect(ws)
         await self.bot.send_message(ws, 'BT12-073 Impmon (X Antibody) [On Play] effect):')
         return await self.effect(ws)
 

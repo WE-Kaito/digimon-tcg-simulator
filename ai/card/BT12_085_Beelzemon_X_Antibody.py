@@ -7,6 +7,7 @@ class BT12_085_Beelzemon_X_Antibody(Card):
     
     ## TODO: Can target strategy to 
     async def when_digivolving_effect(self, ws):
+        await super().when_digivolving_effect(ws)
         digimon_index = self.extra_args['digimon_index']
         for c in self.bot.game['player2Digi'][digimon_index][:-1]:
             if c['name'] == 'Beelzemon' or c['name'] == 'Beelzemon':

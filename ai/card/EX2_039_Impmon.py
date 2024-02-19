@@ -23,6 +23,7 @@ class EX2_039_Impmon(Card):
             await card_obj.when_trashed_effect(ws)
 
     async def on_play_effect(self, ws):
+        await super().on_play_effect(ws)
         await self.bot.send_message(ws, f"EX2-039 Impmon [On Play] effect: Reveal 4.")
         await self.bot.reveal_card_from_top_from_deck(ws, 4)
         time.sleep(3)
