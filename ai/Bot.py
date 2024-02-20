@@ -20,7 +20,8 @@ FIELD_UPDATE_MAP = {
     'myBreedingArea': 'Breeding',
     'myTamer': 'Tamers',
     'myDelay': 'Delay',
-    'mySecurity': 'Security',
+    'mySecurityTop': 'Security Top',
+    'mySecurityBottom': 'Security Bottom',
     'myReveal': 'Reveal',
     'myTrash': 'Trash'
 }
@@ -32,7 +33,8 @@ GAME_LOCATIONS_MAP = {
     'myBreedingArea': 'player2BreedingArea',
     'myTamer': 'Tamers',
     'myDelay': 'Delay',
-    'mySecurity': 'player2Security',
+    'mySecurityTop': 'player2Security',
+    'mySecurityBottom': 'player2Security',
     'myReveal': 'player2Reveal',
     'myDigi': 'player2Digi',
     'myTrash': 'player2Trash'
@@ -293,28 +295,40 @@ class Bot(ABC):
             card_id = card['id']
             card_name = card['name']
             if fr.startswith('myHand'):
-                fr = 'myHand'
+                move_fr = 'myHand'
             if to.startswith('myHand'):
-                to = 'myHand'
+                move_to = 'myHand'
             if fr.startswith('myReveal'):
-                fr = 'myReveal'
+                move_fr = 'myReveal'
             if fr.startswith('myEggDeck'):
-                fr = 'myEggDeck'
+                move_fr = 'myEggDeck'
             if to.startswith('myEggDeck'):
-                to = 'myEggDeck'
+                move_to = 'myEggDeck'
             if fr.startswith('myBreedingArea'):
-                fr = 'myBreedingArea'
+                move_fr = 'myBreedingArea'
             if to.startswith('myBreedingArea'):
-                to = 'myBreedingArea'
+                move_to = 'myBreedingArea'
             if fr.startswith('myDeckField'):
-                fr = 'myDeckField'
+                move_fr = 'myDeckField'
             if to.startswith('myDeckField'):
-                to = 'myDeckField'
+                move_to = 'myDeckField'
             if fr.startswith('myTrash'):
-                fr = 'myTrash'
+                move_fr = 'myTrash'
             if to.startswith('myTrash'):
-                to = 'myTrash'
-            await ws.send(f'{self.game_name}:/moveCard:{self.opponent}:{card_id}:{fr}:{to}')
+                move_to = 'myTrash'
+            if fr.startswith('mySecurityBottom'):
+                fr = 'mySecurityBottom'
+                move_fr = 'mySecurity'
+            if to.startswith('mySecurityBottom'):
+                to = 'mySecurityBottom'
+                move_to = 'mySecurity'
+            if fr.startswith('mySecurityTop'):
+                fr = 'mySecurityTop'
+                move_fr = 'mySecurity'
+            if to.startswith('mySecurityTop'):
+                to = 'mySecurityTop'
+                move_to = 'mySecurity'
+            await ws.send(f'{self.game_name}:/moveCard:{self.opponent}:{card_id}:{move_fr}:{move_to}')
             if field_update:
                 await self.field_update(ws, card_name, fr, to)
             await self.play_place_card_sfx(ws)
@@ -582,17 +596,23 @@ class Bot(ABC):
         self.game['player2Trash'].insert(0, card)
 
     async def trash_top_card_of_security(self, ws):
-        await self.move_card(ws, f'mySecurity0', 'myTrash')
-        card = self.game['player2Security'].pop(0)
-        await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']} from security")
-        self.game['player2Trash'].insert(0, card)
+        if len(self.game['player2Security']) > 0:
+            await self.move_card(ws, f'mySecurityTop0', 'myTrash')
+            card = self.game['player2Security'].pop(0)
+            await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']} from security")
+            self.game['player2Trash'].insert(0, card)
+            return
+        self.send_message('No card left in security stack.')
 
     async def trash_bottom_card_of_security(self, ws):
-        card_index = len(self.game['player2Security'])
-        await self.move_card(ws, f'mySecurity{card_index}', 'myTrash')
-        card = self.game['player2Security'].pop(card_index)
-        await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']} from security")
-        self.game['player2Trash'].insert(0, card)
+        if len(self.game['player2Security']) > 0:
+            card_index = len(self.game['player2Security']) - 1
+            await self.move_card(ws, f"mySecurityBottom{card_index}", 'myTrash')
+            card = self.game['player2Security'].pop(card_index)
+            await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']} from security")
+            self.game['player2Trash'].insert(0, card)
+            return
+        self.send_message('No card left in security stack.')
 
     async def place_card_from_battle_area_on_top_of_security(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
@@ -720,7 +740,7 @@ class Bot(ABC):
         self.logger.info(f"Returning {card['uniqueCardNumber']}-{card['name']} from trash to hand.")
         self.game['player2Hand'].insert(0, card)
 
-    async def reveal_card_from_top_from_deck(self, ws, n_cards):
+    async def reveal_card_from_top_of_deck(self, ws, n_cards):
         self.logger.info(f'Revealing top {n_cards} from deck.')
         for i in range(n_cards):
             await self.move_card(ws, 'myDeckField0', 'myReveal')
