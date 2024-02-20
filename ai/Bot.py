@@ -22,6 +22,7 @@ FIELD_UPDATE_MAP = {
     'myDelay': 'Delay',
     'mySecurityTop': 'Security Top',
     'mySecurityBottom': 'Security Bottom',
+    'mySecurity': 'Security',
     'myReveal': 'Reveal',
     'myTrash': 'Trash'
 }
@@ -35,6 +36,7 @@ GAME_LOCATIONS_MAP = {
     'myDelay': 'Delay',
     'mySecurityTop': 'player2Security',
     'mySecurityBottom': 'player2Security',
+    'mySecurity': 'player2Security',
     'myReveal': 'player2Reveal',
     'myDigi': 'player2Digi',
     'myTrash': 'player2Trash'
@@ -236,6 +238,13 @@ class Bot(ABC):
                 return i
         raise RuntimeError(f'Card with id {id} not found in trash.')
 
+    def find_card_index_by_id_in_security(self, id):
+        for i in range(len(self.game['player2Security'])):
+            card = self.game['player2Security'][i]
+            if card['id'] == id:
+                return i
+        raise RuntimeError(f'Card with id {id} not found in trash.')
+
     def get_first_digit_index(self, s):
         for i in range(len(s)):
             if s[i].isdigit():
@@ -329,6 +338,18 @@ class Bot(ABC):
                 move_fr = 'mySecurity'
             if to.startswith('mySecurityTop'):
                 to = 'mySecurityTop'
+                move_to = 'mySecurity'
+            if fr.startswith('mySecurity'):
+                fr = 'mySecurity'
+                move_fr = 'mySecurity'
+            if to.startswith('mySecurity'):
+                to = 'mySecurity'
+                move_to = 'mySecurity'
+            if fr.startswith('mySecurity'):
+                fr = 'mySecurity'
+                move_fr = 'mySecurity'
+            if to.startswith('mySecurity'):
+                to = 'mySecurity'
                 move_to = 'mySecurity'
             await ws.send(f'{self.game_name}:/moveCard:{self.opponent}:{card_id}:{move_fr}:{move_to}')
             if field_update:
@@ -743,6 +764,12 @@ class Bot(ABC):
         card = self.game['player2Trash'].pop(card_index)
         self.logger.info(f"Returning {card['uniqueCardNumber']}-{card['name']} from trash to hand.")
         self.game['player2Hand'].insert(0, card)
+    
+    async def reveal_card_from_security(self, ws, card_id):
+        card_index = self.find_card_index_by_id_in_security(card_id)
+        self.logger.info(f'Revealing security card at position {card_index} from security.')
+        await self.move_card(ws, f'mySecurity{card_index}', 'myReveal', target_card_id=card_id)
+        self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
 
     async def reveal_card_from_top_of_deck(self, ws, n_cards):
         self.logger.info(f'Revealing top {n_cards} from deck.')

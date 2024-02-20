@@ -22,6 +22,15 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False
 
+    async def filter_target_security_card_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[1].isdigit():
+            card_index = int(message[1])
+            if card_index >= 1 and card_index <= len(self.bot.game['player2Security']):
+                return self.bot.game['player2Security'][card_index-1]['id']
+        await self.send_invalid_command_message(ws)
+        return False
+
     async def filter_trash_digivolution_action(self, ws, message):
         message = message.split(' ')
         if len(message) == 3 and message[1].isdigit() and message[2].isdigit():
@@ -137,10 +146,12 @@ class Waiter:
             card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.place_card_from_battle_area_to_bottom_of_security(ws, card_id)
-        prefix = 'reveal top security'
+        prefix = 'reveal security'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
-            await self.bot.reveal_card_from_top_of_security(ws, 0)
+            card_id = await self.filter_target_security_card_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                await self.bot.reveal_card_from_security(ws, card_id)
         prefix = 'reveal top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
