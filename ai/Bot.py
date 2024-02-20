@@ -222,6 +222,13 @@ class Bot(ABC):
                 return i
         raise RuntimeError(f'Card with id {id} not found in {stack}')
     
+    def find_card_index_by_id_in_reveal(self, id):
+        for i in range(len(self.game['player2Reveal'])):
+            card = self.game['player2Reveal'][i]
+            if card['id'] == id:
+                return i
+        raise RuntimeError(f'Card with id {id} not found in trash.')
+    
     def find_card_index_by_id_in_battle_area(self, id):
         for i in range(len(self.game[f'player2Digi'])):
             if len(self.game[f'player2Digi'][i]) > 0:
@@ -351,6 +358,12 @@ class Bot(ABC):
             if to.startswith('mySecurity'):
                 to = 'mySecurity'
                 move_to = 'mySecurity'
+            if fr.startswith('myReveal'):
+                fr = 'myReveal'
+                move_fr = 'myReveal'
+            if to.startswith('myReveal'):
+                to = 'myReveal'
+                move_to = 'myReveal'
             await ws.send(f'{self.game_name}:/moveCard:{self.opponent}:{card_id}:{move_fr}:{move_to}')
             if field_update:
                 await self.field_update(ws, card_name, fr, to)
@@ -617,6 +630,12 @@ class Bot(ABC):
         card = self.game['player2Hand'].pop(card_index)
         await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']}")
         self.game['player2Trash'].insert(0, card)
+    
+    async def trash_card_from_reveal(self, ws, card_index):
+        await self.move_card(ws, f'myReveal{card_index}', 'myTrash')
+        card = self.game['player2Reveal'].pop(card_index)
+        await self.send_message(ws, f"Trashing {card['uniqueCardNumber']}-{card['name']}")
+        self.game['player2Trash'].insert(0, card)
 
     async def trash_top_card_of_security(self, ws):
         if len(self.game['player2Security']) > 0:
@@ -769,7 +788,7 @@ class Bot(ABC):
         card_index = self.find_card_index_by_id_in_security(card_id)
         self.logger.info(f'Revealing security card at position {card_index} from security.')
         await self.move_card(ws, f'mySecurity{card_index}', 'myReveal', target_card_id=card_id)
-        self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
+        self.game['player2Reveal'].append(self.game['player2Security'].pop(0))
 
     async def reveal_card_from_top_of_deck(self, ws, n_cards):
         self.logger.info(f'Revealing top {n_cards} from deck.')

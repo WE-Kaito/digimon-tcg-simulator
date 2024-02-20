@@ -30,6 +30,15 @@ class Waiter:
                 return self.bot.game['player2Security'][card_index-1]['id']
         await self.send_invalid_command_message(ws)
         return False
+    
+    async def filter_target_reveal_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[1].isdigit():
+            card_index = int(message[1])
+            if card_index >= 1 and card_index <= len(self.bot.game['player2Reveal']):
+                return self.bot.game['player2Reveal'][card_index-1]['id']
+        await self.send_invalid_command_message(ws)
+        return False
 
     async def filter_trash_digivolution_action(self, ws, message):
         message = message.split(' ')
@@ -111,11 +120,25 @@ class Waiter:
         prefix = 'reveal top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
-            await self.bot.reveal_card_from_top_of_deck(ws, 0)
+            await self.bot.reveal_card_from_top_of_deck(ws, 1)
         prefix = 'trash top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
-        if message.startswith(prefix):
+        if message.startswith(prefix) and len(self.game['player2DeckField']) > 0:
             await self.bot.trash_top_card_of_deck(ws)
+        prefix = 'play reveal'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_reveal_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
+                await self.bot.play_card(ws, 'Reveal', card_index, 0)
+        prefix = 'trash reveal'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_reveal_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
+                await self.bot.trash_card_from_reveal(ws, card_index)
         prefix = 'stun'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
