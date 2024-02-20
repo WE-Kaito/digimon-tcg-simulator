@@ -294,6 +294,8 @@ class Bot(ABC):
         for card in stack:
             card_id = card['id']
             card_name = card['name']
+            move_fr = fr
+            move_to = to
             if fr.startswith('myHand'):
                 move_fr = 'myHand'
             if to.startswith('myHand'):
@@ -616,25 +618,25 @@ class Bot(ABC):
 
     async def place_card_from_battle_area_on_top_of_security(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', 'mySecurity')
+        await self.move_card(ws, f'myDigi{card_index+1}', 'mySecurityTop0', target_card_id=card_id)
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Security Top')
         await self.send_message(ws, f"Place {card['uniqueCardNumber']}-{card['name']} on top of security stack.")
         self.game['player2Security'].insert(0, card)
         stack = self.game['player2Digi'][card_index]
-        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
-        return card
+        if len(stack) > 0:
+            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
 
     async def place_card_from_battle_area_to_bottom_of_security(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', 'mySecurity')
+        await self.move_card(ws, f'myDigi{card_index+1}', f"mySecurityBottom{len(self.game['player2Security']) - 1}", target_card_id=card_id)
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Security Bottom')
         await self.send_message(ws, f"Place {card['uniqueCardNumber']}-{card['name']} to bottom of security stack.")
         self.game['player2Security'].append(card)
         stack = self.game['player2Digi'][card_index]
-        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
-        return card
+        if len(stack) > 0:
+            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
     
     async def trash_digivolution_card(self, ws, card_id, digivolution_card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
@@ -670,7 +672,8 @@ class Bot(ABC):
         await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']} to top of deck.")
         self.game['player2DeckField'].insert(0, card)
         stack = self.game['player2Digi'][card_index]
-        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
+        if len(stack) > 0:
+            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
 
     async def return_from_battle_area_to_hand(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
@@ -680,7 +683,8 @@ class Bot(ABC):
         await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']}.")
         self.game['player2DeckField'].append(card)
         stack = self.game['player2Digi'][card_index]
-        await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
+        if len(stack) > 0:
+            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
     
     async def return_from_trash_to_bottom_of_deck(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_trash(card_id)
