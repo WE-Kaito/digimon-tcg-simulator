@@ -487,7 +487,7 @@ class BeelzemonXBot(Bot):
         if memory_boost_in_hand_index >= 0:
             card = self.game['player2Hand'][memory_boost_in_hand_index]
             purple_memory_boost = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
-            await self.play_card(ws, 'Hand', memory_boost_in_hand_index, card['playCost'])
+            await self.play_card(ws, 'Hand', memory_boost_in_hand_index, card['playCost'], back=True)
             time.sleep(2)
             await purple_memory_boost.main_effect(ws)
             return True
@@ -495,7 +495,7 @@ class BeelzemonXBot(Bot):
         if ai_and_mako_in_hand_index >= 0:
             card = self.game['player2Hand'][ai_and_mako_in_hand_index]
             ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
-            await self.play_card(ws, 'Hand', ai_and_mako_in_hand_index, card['playCost'])
+            await self.play_card(ws, 'Hand', ai_and_mako_in_hand_index, card['playCost'], back=True)
             time.sleep(2)
             await ai_and_mako.on_play_effect(ws)
             return True

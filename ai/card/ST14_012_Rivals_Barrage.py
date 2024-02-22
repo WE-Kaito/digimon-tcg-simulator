@@ -19,8 +19,7 @@ class ST14_012_Rivals_Barrage(Card):
     async def when_trashed_effect(self, ws):
         await self.bot.send_message(ws, 'ST14-12 Rivals\' Barrage when trashed effect:')
         card_id = self.extra_args['card_id']
-        ## TODO: Use id instead of trash_index
-        await self.bot.move_card_from_trash_to_battle_area(ws, card_id)
+        await self.bot.move_card_from_trash_to_battle_area(ws, card_id, back=True)
         self.bot.placed_this_turn.add(card_id)
 
     async def delay_effect(self, ws):

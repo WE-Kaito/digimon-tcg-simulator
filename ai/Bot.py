@@ -274,22 +274,30 @@ class Bot(ABC):
             self.logger.debug(f'STACK:{stack}')
         return stack
 
-    def get_empty_slot_in_battle_area(self):
+    def get_empty_slot_in_battle_area(self, back):
         self.logger.debug('Searching for empty slot in my battle area.')
+        if back:
+            min_index=10
+            max_index=14
+        else:
+            min_index=0
+            max_index=5
         found = False
-        for i in range(len(self.game['player2Digi'])):
+        for i in range(min_index, max_index):
             if len(self.game['player2Digi'][i]) == 0:
                 return i
         if not found:
             raise RuntimeError('Field is full, cannot currently handle more than 15 digimon on battlefield!')
 
     async def field_update(self, ws, card_name, fr, to):
-        if fr[-1].isdigit():
-            fr = fr.replace(fr[:-1], FIELD_UPDATE_MAP[fr[:-1]])
+        first_index_digit = self.get_first_digit_index(fr)
+        if fr[first_index_digit:].isdigit():
+            fr = fr.replace(fr[:first_index_digit], FIELD_UPDATE_MAP[fr[:first_index_digit]])
         else:
             fr = FIELD_UPDATE_MAP[fr]
-        if to[-1].isdigit():
-            to = to.replace(to[:-1], FIELD_UPDATE_MAP[to[:-1]])
+        first_index_digit = self.get_first_digit_index(to)
+        if to[first_index_digit:].isdigit():
+            to = to.replace(to[:first_index_digit], FIELD_UPDATE_MAP[to[:first_index_digit]])
         else:
             to = FIELD_UPDATE_MAP[to]
         if fr == 'Deck' and to == 'Hand':
@@ -611,8 +619,8 @@ class Bot(ABC):
         await self.draw(ws, 1)
         time.sleep(2)
 
-    async def play_card(self, ws, card_location, card_index, cost):
-        i = self.get_empty_slot_in_battle_area()
+    async def play_card(self, ws, card_location, card_index, cost, back=False):
+        i = self.get_empty_slot_in_battle_area(back)
         await self.move_card(ws, f'my{card_location}{card_index}', f'myDigi{i+1}')
         card = self.game[f'player2{card_location}'].pop(card_index)
         await self.send_message(ws, f"I play {card['uniqueCardNumber']}-{card['name']} with cost {cost}")
@@ -729,8 +737,8 @@ class Bot(ABC):
         await self.update_game(ws)
         return card
     
-    async def move_card_from_trash_to_battle_area(self, ws, card_id):
-        i = self.get_empty_slot_in_battle_area()
+    async def move_card_from_trash_to_battle_area(self, ws, card_id, back=False):
+        i = self.get_empty_slot_in_battle_area(back)
         card_index = self.find_card_index_by_id_in_trash(card_id)
         await self.move_card(ws, f'myTrash{card_index}', f'myDigi{i+1}')
         card = self.game['player2Trash'][card_index]
@@ -761,7 +769,7 @@ class Bot(ABC):
 
     async def promote(self, ws):
         self.logger.info('Promoting from breed area.')
-        i = self.get_empty_slot_in_battle_area()
+        i = self.get_empty_slot_in_battle_area(False)
         await self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
         self.game['player2Digi'][i].extend(self.game['player2BreedingArea'])
         self.game['player2BreedingArea'] = []

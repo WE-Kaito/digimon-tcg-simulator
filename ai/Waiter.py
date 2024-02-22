@@ -188,7 +188,7 @@ class Waiter:
         message = None
         while message != f'ok':
             message = await ws.recv()
+            await self.check_for_action(ws, message)
             chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
             if message.startswith(chat_message_prefix):
                 message = message.replace(chat_message_prefix, '', 1).strip().lower()
-                await self.check_for_action(ws, message)
