@@ -313,27 +313,27 @@ class Bot(ABC):
             move_fr = fr
             move_to = to
             if fr.startswith('myHand'):
-                move_fr = 'myHand'
+                fr = move_fr = 'myHand'
             if to.startswith('myHand'):
-                move_to = 'myHand'
+                to = move_to = 'myHand'
             if fr.startswith('myReveal'):
-                move_fr = 'myReveal'
+                fr = move_fr = 'myReveal'
             if fr.startswith('myEggDeck'):
-                move_fr = 'myEggDeck'
+                fr = move_fr = 'myEggDeck'
             if to.startswith('myEggDeck'):
-                move_to = 'myEggDeck'
+                to = move_to = 'myEggDeck'
             if fr.startswith('myBreedingArea'):
-                move_fr = 'myBreedingArea'
+                fr = move_fr = 'myBreedingArea'
             if to.startswith('myBreedingArea'):
-                move_to = 'myBreedingArea'
+                to = move_to = 'myBreedingArea'
             if fr.startswith('myDeckField'):
-                move_fr = 'myDeckField'
+                fr = move_fr = 'myDeckField'
             if to.startswith('myDeckField'):
-                move_to = 'myDeckField'
+                to = move_to = 'myDeckField'
             if fr.startswith('myTrash'):
-                move_fr = 'myTrash'
+                fr = move_fr = 'myTrash'
             if to.startswith('myTrash'):
-                move_to = 'myTrash'
+                to = move_to = 'myTrash'
             if fr.startswith('mySecurityBottom'):
                 fr = 'mySecurityBottom'
                 move_fr = 'mySecurity'
@@ -347,23 +347,17 @@ class Bot(ABC):
                 to = 'mySecurityTop'
                 move_to = 'mySecurity'
             if fr.startswith('mySecurity'):
-                fr = 'mySecurity'
-                move_fr = 'mySecurity'
+                fr = move_fr = 'mySecurity'
             if to.startswith('mySecurity'):
-                to = 'mySecurity'
-                move_to = 'mySecurity'
+                to = move_to = 'mySecurity'
             if fr.startswith('mySecurity'):
-                fr = 'mySecurity'
-                move_fr = 'mySecurity'
+                fr = move_fr = 'mySecurity'
             if to.startswith('mySecurity'):
-                to = 'mySecurity'
-                move_to = 'mySecurity'
+                to = move_to = 'mySecurity'
             if fr.startswith('myReveal'):
-                fr = 'myReveal'
-                move_fr = 'myReveal'
+                fr = move_fr = 'myReveal'
             if to.startswith('myReveal'):
-                to = 'myReveal'
-                move_to = 'myReveal'
+                to = move_to = 'myReveal'
             await ws.send(f'{self.game_name}:/moveCard:{self.opponent}:{card_id}:{move_fr}:{move_to}')
             if field_update:
                 await self.field_update(ws, card_name, fr, to)
