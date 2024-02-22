@@ -18,6 +18,7 @@ class BT12_110_Seventh_Full_Cluster(Card):
 
     ## TODO: Can make this optional
     async def trash_effect(self, ws):
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, f"BT12-110 Seventh Full Cluster [Trash] effect:")
         card_id = self.extra_args['card_id']
         self.return_from_trash_to_bottom_of_deck(ws, card_id)
@@ -25,6 +26,6 @@ class BT12_110_Seventh_Full_Cluster(Card):
 
     ## TODO: Code strategy when two or more digimons have the same level
     async def on_play_effect(self, ws):
-        await super().on_play_effect(ws)
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, f"BT12-110 Seventh Full Cluster [Main] effect:")
         await self.delete_opponent_digimon_lowest_level(ws)

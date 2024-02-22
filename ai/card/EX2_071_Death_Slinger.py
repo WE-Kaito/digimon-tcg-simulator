@@ -11,7 +11,7 @@ class EX2_071_Death_Slinger(Card):
     
     ## TODO: Can code strategy
     async def on_play_effect(self, ws):
-        await super().on_play_effect(ws)
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, f"EX2-071 Death Slinger [On Play] effect:")
         max_level_can_delete = 4 + math.floor(len(self.bot.game['player2Trash'])/10)
         opponent_digimons = []

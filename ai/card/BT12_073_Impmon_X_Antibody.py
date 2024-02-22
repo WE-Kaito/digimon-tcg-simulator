@@ -29,15 +29,17 @@ class BT12_073_Impmon_X_Antibody(Card):
 
     ## TODO: Make optional to trash up to three cards
     async def on_play_effect(self, ws):
-        await super().on_play_effect(ws)
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, 'BT12-073 Impmon (X Antibody) [On Play] effect):')
         return await self.effect(ws)
 
-    async def on_when_digivolving(self, ws):
+    async def when_digivolving_effect(self, ws):
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, 'BT12-073 Impmon (X Antibody) [When Digivolving] effect):')
         return await self.effect(ws)
     
     async def inherited_when_attacking_once_per_turn(self, ws):
+        await super().animate_effect(ws)
         self.bot.send_message(ws, 'BT12-073 Impmon (X Antibody) inherited effect: I trash the top 3 cards of my deck.')
         trashed_cards = []
         for i in range(2):

@@ -8,7 +8,7 @@ class P_077_Wizardmon(Card):
         await self.bot.increase_memory_by(ws, 1)
 
     async def inherited_when_attacking_once_per_turn(self, ws):
-        await super().inherited_when_attacking_once_per_turn(ws)
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, 'P-077 Wizardmon inherited effect:')
         await self.bot.p_077_inherited_when_attacking_once_per_turn_strategy(ws)
 

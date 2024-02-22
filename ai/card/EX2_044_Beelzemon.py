@@ -12,6 +12,7 @@ class EX2_044_Beelzemon(Card):
             await self.bot.ex2_044_beelzemon_when_trashed_stategy(ws)
 
     async def when_digivolving_when_attacking_effect(self, ws):
+        await super().animate_effect(ws)
         trashed_cards = []
         for i in range(3):
             if len(self.bot.game['player2DeckField']) > 0:
@@ -24,11 +25,11 @@ class EX2_044_Beelzemon(Card):
 
     ## TODO: Can target strategy to 
     async def when_digivolving_effect(self, ws):
-        await super().when_digivolving_effect(ws)
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, f"EX2-044 Beelzemon [When Digivolving] effect:")
         await self.when_digivolving_when_attacking_effect(ws)
     
     async def when_attacking_effect(self, ws):
-        await super().when_attacking_effect(ws)
+        await super().animate_effect(ws)
         await self.bot.send_message(ws, f"EX2-044 Beelzemon [When Attacking] effect:")
         await self.when_digivolving_when_attacking_effect(ws)
