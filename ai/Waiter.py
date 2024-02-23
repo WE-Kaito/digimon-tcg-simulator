@@ -19,7 +19,7 @@ class Waiter:
         self.logger.addHandler(handler)
 
     async def wait_for_opponent_counter_blocking(self, ws):
-        await self.bot.send_message(ws, 'Perform Counter and Blocking time, then type "Ok" in Chat')
+        await self.bot.send_message(ws, 'Perform Counter, Blocking time and Security Checks, then type "Ok" in Chat')
         await self.wait_for_actions(ws)
 
     async def send_invalid_command_message(self, ws):

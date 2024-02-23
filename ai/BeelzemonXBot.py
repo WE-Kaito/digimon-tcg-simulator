@@ -566,7 +566,7 @@ class BeelzemonXBot(Bot):
 
             # Draw phase
             self.logger.info(f'---------------------DRAW PHASE---------------------')
-            await self.draw(ws, 1)
+            await self.draw_for_turn(ws, 1)
             await self.update_phase(ws)
 
         if self.turn_counter == 0:

@@ -401,6 +401,11 @@ class Bot(ABC):
                 await self.send_game_chat_message(ws, f"Hi {player['username']}, good luck with the game!")
                 break
 
+    async def surrender(self, ws, message):
+        self.logger.info(message)
+        await self.send_message(message)
+        await ws.send(f'{self.game_name}:/surrender:{self.opponent}')
+
     async def update_game(self, ws):
         self.logger.debug('Send whole game status.')
         update = {}
@@ -823,6 +828,12 @@ class Bot(ABC):
         await self.move_card(ws, 'myBreedingArea', f'myDigi{i+1}')
         self.game['player2Digi'][i].extend(self.game['player2BreedingArea'])
         self.game['player2BreedingArea'] = []
+    
+    async def draw_for_turn(self, ws, n_cards):
+        if len(self.game['player2DeckField']) == 0:
+            await self.surrender(ws, 'Oh no, I milled! Congratulations, you won!')
+        else:
+            await self.draw(ws, n_cards)
 
     async def draw(self, ws, n_cards):
         self.logger.info(f'I draw {n_cards}.')
