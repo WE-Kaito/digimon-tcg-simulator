@@ -17,6 +17,17 @@ class BeelzemonXBot(Bot):
         self.turn_counter = 0
         self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
 
+    async def trash_top_card_of_deck(self, ws):
+        card = await super().trash_top_card_of_deck(ws)
+        st14_08_beelzemons_indices = self.cards_in_battle_area('ST14-08', 'Beelzemon')
+        for st14_08_beelzemons_index in st14_08_beelzemons_indices:
+            card = self.game['player2Digi'][st14_08_beelzemons_index][-1]
+            if card['id'] not in self.triggered_already_this_turn:
+                st14_08_beelzemon = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+                await st14_08_beelzemon.all_turns_effect(ws)
+                self.triggered_already_this_turn.add(card['id'])
+        return card
+
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
             if card['cardType'] == 'Digimon' and card['level'] == 3:
@@ -109,12 +120,12 @@ class BeelzemonXBot(Bot):
         return True
 
     async def use_memory_boost_if_possible_and_needed(self, ws, cost):
-        purple_memory_boost_in_battle_area_index = self.card_in_battle_area('P-040', 'Purple Memory Boost!')
-        if purple_memory_boost_in_battle_area_index < 0:
+        purple_memory_boost_in_battle_area_indices = self.cards_in_battle_area('P-040', 'Purple Memory Boost!')
+        if len(purple_memory_boost_in_battle_area_indices) > 0:
             return
         if cost <= self.game['memory']:
             return
-        card = self.game['player2Digi'][purple_memory_boost_in_battle_area_index][-1]
+        card = self.game['player2Digi'][purple_memory_boost_in_battle_area_indices][0][-1]
         if card['id'] in self.placed_this_turn:
             return
         purple_memory_boost = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
@@ -193,18 +204,21 @@ class BeelzemonXBot(Bot):
         await attacking_digimon_obj.when_attacking_effect(ws)
 
     # TODO: Check for blockers, this is complex as needs to determine when an opponent digimon has gained blocker
+    # TODO: Use id, not index of digimon card
     async def attack_strategy(self, ws):
+        digimon_index = -1
         if self.no_digimon_in_battle_area():
             self.logger.info('Cannot perform attack: No digimon to attack with.')
             return False
         if len(self.game['player1Security']) == 0:
             self.logger.info('No cards left in opponent\'s security, attacking with any digimon.')
-            await self.attack_with_any_digimon()
-        self.logger.info('Checking for level 6 digimons to attack with...')
-        digimon_index = self.unsuspended_digimon_of_level_in_battle_area(6)
+            digimon_index = await self.find_can_attack_any_digimon()
+        if digimon_index < 0:
+            self.logger.info('Checking for level 6 digimons to attack with...')
+            digimon_index = self.find_can_attack_digimon_of_level(6)
         if digimon_index < 0:
             self.logger.info('Not found. Checking for level 5 digimons to attack with...')
-            digimon_index = self.unsuspended_digimon_of_level_in_battle_area(5)
+            digimon_index = self.find_can_attack_digimon_of_level(5)
         if digimon_index < 0:
             self.logger.info('Not found. Won\'t attack...')
             return False
@@ -251,7 +265,7 @@ class BeelzemonXBot(Bot):
         if seventh_full_cluster_in_hand_index >= 0:
             self.trash_card_from_hand(seventh_full_cluster_in_hand_index)
             option_trashed = True
-        elif memory_boost_in_hand_index >= 0 and self.card_in_battle_area('P-040', 'Purple Memory Boost!'):
+        elif memory_boost_in_hand_index >= 0 and len(self.cards_in_battle_area('P-040', 'Purple Memory Boost!')) > 0:
             self.trash_card_from_hand(memory_boost_in_hand_index)
             option_trashed = True
         elif rivals_barrage_in_hand_index >= 0:
@@ -476,9 +490,9 @@ class BeelzemonXBot(Bot):
         await self.send_message(ws, f"Won't put a card from my hand on top of deck.")
 
     async def avoid_brick(self, ws):
-        rivals_barrage_in_battle_area_index = self.card_in_battle_area('ST14-12', 'Rivals\' Barrage')
-        if rivals_barrage_in_battle_area_index >= 0:
-            rivals_barrage_card = self.game['player2Digi'][rivals_barrage_in_battle_area_index][-1]
+        rivals_barrage_in_battle_area_indices = self.cards_in_battle_area('ST14-12', 'Rivals\' Barrage')
+        if len(rivals_barrage_in_battle_area_indices) > 0:
+            rivals_barrage_card = self.game['player2Digi'][rivals_barrage_in_battle_area_indices[0]][-1]
             self.logger.info(self.placed_this_turn)
             if not self.is_placed_this_turn(rivals_barrage_card['id']):
                 if await self.st14_012_rivals_barrage_delay_strategy(ws, rivals_barrage_card):
@@ -541,6 +555,7 @@ class BeelzemonXBot(Bot):
     async def turn(self, ws):
         self.logger.info(f'-----------------------------------------------------------------')
         self.logger.info(f'---------------------TURN {self.turn_counter}---------------------')
+        self.start_turn()
         self.logger.info(f'-----------------------------------------------------------------')
         if not self.first_turn:
             self.logger.info(f'---------------------UNSUSPEND PHASE---------------------')

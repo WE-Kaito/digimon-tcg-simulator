@@ -52,6 +52,7 @@ class Bot(ABC):
 
     def __init__(self, username):
         self.s = requests.Session()
+        print(f'http://{self.host}/login')
         cookies = self.s.get(f'http://{self.host}/login').cookies.get_dict()
         self.headers = {
             'Content-Type': 'application/json',
@@ -78,6 +79,7 @@ class Bot(ABC):
         self.cant_block_until_end_of_turn = set()
         self.cant_block_until_end_of_opponent_turn = set()
         self.stunned_until_end_of_opponent_turn = set()
+        self.triggered_already_this_turn = set()
         self.effects['endOfOpponentTurnEffects'] = {}
         self.effects['endOfOpponentTurnEffects']['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.effects['endOfTurnEffect'] = {}
@@ -93,7 +95,6 @@ class Bot(ABC):
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-
 
     def handle_response(self, response, expected_status_code, success_message, error_message):
         if response.status_code == expected_status_code:
@@ -442,16 +443,17 @@ class Bot(ABC):
         self.logger.info(f'Card {unique_card_number}-{card_name} not found in hand.')
         return -1
     
-    def card_in_battle_area(self, unique_card_number, card_name):
+    def cards_in_battle_area(self, unique_card_number, card_name):
         self.logger.info(f'Searching for card {unique_card_number}-{card_name} in my battle area.')
+        card_indices = []
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
                 if card['uniqueCardNumber']== unique_card_number and card['name'] == card_name:
                     self.logger.info(f'Card {unique_card_number}-{card_name} found in my battle area at position {i}.')
-                    return i
+                    card_indices.append(i)
         self.logger.info(f'Card {unique_card_number}-{card_name} not found in my battle area.')
-        return -1
+        return card_indices
     
     def card_in_battle_area_with_name(self, card_name):
         self.logger.info(f'Searching for a {card_name} in my battle area.')
@@ -503,16 +505,48 @@ class Bot(ABC):
                 return i
         self.logger.info(f'No digimon of level {level} found in hand.')
         return -1
+
+    def can_attack(self, card):
+        if card['isTilted']:
+            return False
+        if card['id'] in self.placed_this_turn:
+            return False
+        if card['id'] in self.cant_attack_until_end_of_turn:
+            return False
+        if card['id'] in self.cant_attack_until_end_of_opponent_turn:
+            return False
+        if card['id'] in self.cant_suspend_until_end_of_turn:
+            return False
+        if card['id'] in self.cant_suspend_until_end_of_opponent_turn:
+            return False
+        return True
+
+    async def find_can_attack_any_digimon(self, ws):
+        self.logger.info('Try to attack with any digimon.')
+        for i in range(len(self.game['player2Digi'])):
+            card = self.game['player2Digi'][i][-1]
+            if card['cardType'] == 'Digimon' and self.can_attack(card):
+                self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
+                return i
+        self.logger.info('No Digimon to attack with')
+
+    async def attack_with_digimon(self, ws, digimon_index):
+        card = self.game['player2Digi'][digimon_index][-1]
+        self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
+        card['isTilted'] = True
+        await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{digimon_index+1}")
+        await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
+        await self.waiter.wait_for_opponent_counter_blocking(ws)
    
-    def unsuspended_digimon_of_level_in_battle_area(self, level):
-        self.logger.info(f'Searching for a digimon in my battle area of {level}.')
+    def find_can_attack_digimon_of_level(self, level):
+        self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
         for i in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
-                if card['cardType'] == 'Digimon' and card['level'] == level and not card['isTilted']:
+                if card['cardType'] == 'Digimon' and card['level'] == level and self.can_attack(card):
                     self.logger.info(f"Found unsuspended digimon {card['uniqueCardNumber']}-{card['name']} in my battle area at position {i}.")
                     return i
-        self.logger.info(f'No digimon of level {level} found in hand.')
+        self.logger.info(f'No digimon of level {level} found that can attack.')
         return -1
 
     def cheap_digimon_in_hand_to_play(self, max_memory_to_opponent):
@@ -555,23 +589,6 @@ class Bot(ABC):
                     return True
         self.logger.info('Checking that there isn\'t any digimon in my battle area.')
         return False
-    
-    async def attack_with_any_digimon(self):
-        self.logger.info('Try to attack with any digimon.')
-        for i in range(len(self.game['player2Digi'])):
-            card = self.game['player2Digi'][i][-1]
-            if card['cardType'] == 'Digimon':
-                self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
-                await self.attack_with_digimon(i)
-        self.logger.info('No Digimon to attack with')
-
-    async def attack_with_digimon(self, ws, digimon_index):
-        card = self.game['player2Digi'][digimon_index][-1]
-        self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
-        card['isTilted'] = True
-        await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{digimon_index+1}")
-        await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
-        await self.waiter.wait_for_opponent_counter_blocking(ws)
 
     async def unsuspend_all(self, ws):
         self.logger.info('Unsuspending all cards in my battle area.')
@@ -615,6 +632,22 @@ class Bot(ABC):
             self.game[f'player2{digimon_location}'].append(digivolution_card)
         else:
             self.game[f'player2{digimon_location}'][digimon_card_index].append(digivolution_card)
+        if digimon['id'] in self.cant_unsuspend_until_end_of_turn:
+            self.cant_unsuspend_until_end_of_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.cant_unsuspend_until_end_of_opponent_turn:
+            self.cant_unsuspend_until_end_of_opponent_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.cant_suspend_until_end_of_turn:
+            self.cant_suspend_until_end_of_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.cant_suspend_until_end_of_opponent_turn:
+            self.cant_suspend_until_end_of_opponent_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.cant_attack_until_end_of_turn:
+            self.cant_attack_until_end_of_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.cant_attack_until_end_of_opponent_turn:
+            self.cant_attack_until_end_of_opponent_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.cant_block_until_end_of_turn:
+            self.cant_block_until_end_of_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.cant_block_until_end_of_opponent_turn:
+            self.cant_block_until_end_of_opponent_turn.add(digivolution_card['id'])
         await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
         time.sleep(2)
@@ -625,6 +658,7 @@ class Bot(ABC):
         card = self.game[f'player2{card_location}'].pop(card_index)
         await self.send_message(ws, f"I play {card['uniqueCardNumber']}-{card['name']} with cost {cost}")
         self.game['player2Digi'][i].append(card)
+        self.placed_this_turn.add(card['id'])
         await self.decrease_memory_by(ws, cost)
 
     async def trash_card_from_hand(self, ws, card_index):
@@ -690,7 +724,7 @@ class Bot(ABC):
         self.game['player2Trash'].insert(0, card)
     
     async def trash_all_digivolution_cards(self, ws, card_id):
-        card_index = self.find_card_index_by_id_in_battle_area(card_id)
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         stack = self.game['player2Digi'][card_index]
         for digivolution_card in stack[:-1]:
             await self.trash_digivolution_card(ws, stack[-1]['id'], digivolution_card['id'])
@@ -759,6 +793,22 @@ class Bot(ABC):
         card = self.game['player2Digi'][card_index][-1]
         await self.send_message(ws, f"Deleting {card['uniqueCardNumber']}-{card['name']}.")
         self.game['player2Trash'].insert(0, self.game['player2Digi'][card_index].pop(-1))     
+        if card['id'] in self.cant_unsuspend_until_end_of_turn:
+            self.cant_unsuspend_until_end_of_turn.remove(card['id'])
+        if card['id'] in self.cant_unsuspend_until_end_of_opponent_turn:
+            self.cant_unsuspend_until_end_of_opponent_turn.remove(card['id'])
+        if card['id'] in self.cant_suspend_until_end_of_turn:
+            self.cant_suspend_until_end_of_turn.remove(card['id'])
+        if card['id'] in self.cant_suspend_until_end_of_opponent_turn:
+            self.cant_suspend_until_end_of_opponent_turn.remove(card['id'])
+        if card['id'] in self.cant_attack_until_end_of_turn:
+            self.cant_attack_until_end_of_turn.remove(card['id'])
+        if card['id'] in self.cant_attack_until_end_of_opponent_turn:
+            self.cant_attack_until_end_of_opponent_turn.remove(card['id'])
+        if card['id'] in self.cant_block_until_end_of_turn:
+            self.cant_block_until_end_of_turn.remove(card['id'])
+        if card['id'] in self.cant_block_until_end_of_opponent_turn:
+            self.cant_block_until_end_of_opponent_turn.remove(card['id'])
         return card
     
     async def delete_card_from_opponent_battle_area(self, ws, card_index):
@@ -861,8 +911,21 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
     
+    async def start_turn(self):
+        self.placed_this_turn.clear()
+        self.cant_unsuspend_until_end_of_opponent_turn.clear()
+        self.cant_suspend_until_end_of_opponent_turn.clear()
+        self.cant_attack_until_end_of_opponent_turn.clear()
+        self.cant_block_until_end_of_opponent_turn.clear()
+        self.triggered_already_this_turn.clear()
+    
     async def end_turn(self):
         self.placed_this_turn.clear()
+        self.cant_unsuspend_until_end_of_turn.clear()
+        self.cant_suspend_until_end_of_turn.clear()
+        self.cant_attack_until_end_of_turn.clear()
+        self.cant_block_until_end_of_turn.clear()
+        self.triggered_already_this_turn.clear()
 
     async def play(self):
         self.game_name = f'{self.opponent}‗{self.username}'

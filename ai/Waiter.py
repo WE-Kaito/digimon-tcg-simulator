@@ -1,3 +1,6 @@
+import logging
+from decouple import config
+
 DIGI_MIN_INDEX=1
 DIGI_MAX_INDEX=15
 
@@ -5,6 +8,15 @@ class Waiter:
     
     def __init__(self, bot):
         self.bot = bot
+
+        self.logger = logging.getLogger(__class__.__name__)
+        self.logger.setLevel(config('LOGLEVEL'))
+        fmt = '%(asctime)s %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
+        fmt_date = '%Y-%m-%dT%T%Z'
+        formatter = logging.Formatter(fmt, fmt_date)
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
 
     async def wait_for_opponent_counter_blocking(self, ws):
         await self.bot.send_message(ws, 'Perform Counter and Blocking time, then type "Ok" in Chat')
@@ -130,59 +142,71 @@ class Waiter:
         if message.startswith(prefix):
             card_id = await self.filter_target_reveal_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
+                card_index, _ = self.bot.find_card_index_by_id_in_reveal(card_id)
                 await self.bot.play_card(ws, 'Reveal', card_index, 0)
         prefix = 'trash reveal'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_reveal_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
+                card_index, _ = self.bot.find_card_index_by_id_in_reveal(card_id)
                 await self.bot.trash_card_from_reveal(ws, card_index)
         prefix = 'stun'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message)
             if card_id:
-                self.bot.cant_attack_until_end_of_turn.add(card_id)
-                self.bot.cant_block_until_end_of_opponent_turn.add(card_id)
+                card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                for card in self.bot.game['player2Digi'][card_index]:
+                    self.bot.cant_attack_until_end_of_turn.add(card['id'])
+                    self.bot.cant_block_until_end_of_opponent_turn.add(card['id'])
+                card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'Stunned {card_id}')
-                self.logger.info(f'Can\'t attack until end of turn: {self.cant_attack_until_end_of_turn}')
-                self.logger.info(f'Can\'t block until end of opponent turn: {self.cant_block_until_end_of_opponent_turn}')
-        prefix = 'cannot attack'
+                await self.bot.send_message(ws, f"{card['name']} can\'t attack or block until end of turn.")
+        prefix = 'cant attack'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message)
             if card_id:
-                self.bot.cant_attack_until_end_of_turn.add(card_id)
-                self.logger.info(f"{card_id} can't attack until end of turn.")
-                self.logger.info('Can\'t attack until end of turn:', {self.cant_attack_until_end_of_turn})
-        prefix = 'cannot block'
+                card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                for card in self.bot.game['player2Digi'][card_index]:
+                    self.bot.cant_unsuspend_until_end_of_turn.add(card['id'])
+                card = self.bot.game['player2Digi'][card_index][-1]
+                self.logger.info(f'{card_id} can\'t attack until end of turn.')
+                await self.bot.send_message(ws, f"{card['name']} can\'t attack until end of turn.")
+        prefix = 'cant block'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message)
             if card_id:
-                self.bot.cant_block_until_end_of_opponent_turn.add(card_id)
-                self.logger.info(f"{card_id} can't block until end of turn.")
-                self.logger.info('Can\'t block until end of opponent turn:', {self.cant_block_until_end_of_opponent_turn})
-        prefix = 'cannot unsuspend'
+                card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                for card in self.bot.game['player2Digi'][card_index]:
+                    self.bot.cant_unsuspend_until_end_of_turn.add(card['id'])
+                card = self.bot.game['player2Digi'][card_index][-1]
+                self.logger.info(f'{card_id} can\'t block until end of turn.')
+                await self.bot.send_message(ws, f"{card['name']} can\'t block until end of turn.")
+        prefix = 'cant unsuspend'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                self.bot.cant_unsuspend_until_end_of_turn.add(card_id)
-                self.logger.info(f"{card_id} can't unsuspend until end of turn.")
-                self.logger.info('Can\'t unsuspend until end of turn:', {self.cant_unsuspend_until_end_of_turn})
-                self.bot.cant_unsuspend_until_end_of_turn.add(ws, card_id)
-        prefix = 'cannot suspend'
+                card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                for card in self.bot.game['player2Digi'][card_index]:
+                    self.bot.cant_unsuspend_until_end_of_turn.add(card['id'])
+                card = self.bot.game['player2Digi'][card_index][-1]
+                self.logger.info(f'{card_id} can\'t unsuspend until end of turn.')
+                await self.bot.send_message(ws, f"{card['name']} can\'t unsuspend until end of turn.")
+        prefix = 'cant suspend'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                self.bot.cant_suspend_until_end_of_turn.add(card_id)
-                self.logger.info(f"{card_id} can't suspend until end of turn.")
-                self.logger.info('Can\'t suspend until end of turn:', {self.cant_suspend_until_end_of_turn})
-                self.bot.cant_suspend_until_end_of_turn.add(ws, card_id)
+                card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                for card in self.bot.game['player2Digi'][card_index]:
+                    self.bot.cant_suspend_until_end_of_turn.add(card['id'])
+                card = self.bot.game['player2Digi'][card_index][-1]
+                self.logger.info(f'{card_id} can\'t suspend until end of turn.')
+                await self.bot.send_message(ws, f"{card['name']} can\'t suspend until end of turn.")
 
     async def wait_for_actions(self, ws):
         message = None
