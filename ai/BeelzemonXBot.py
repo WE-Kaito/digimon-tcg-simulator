@@ -113,26 +113,26 @@ class BeelzemonXBot(Bot):
             self.logger.info(f"Cannot promote: Digimon is of level < 3 in breeding area: {self.game['player2BreedingArea'][-1]}")
             return False
         digimon_of_level_in_hand_index = self.digimon_of_level_in_hand(breed_level + 1)
-        if digimon_of_level_in_hand_index < 0:
-            self.logger.info(f"Won't promote: No digimon to digivolve to in hand: {self.game['player2Hand']}")
+        if digimon_of_level_in_hand_index < 0 and len(self.digimons_in_battle_area()) < 1:
+            self.logger.info(f"Won't promote: No digimon to digivolve to in hand: {self.game['player2Hand']} or no digimon in battle area.")
             return False
         await self.promote(ws)
         return True
 
     async def use_memory_boost_if_possible_and_needed(self, ws, cost):
         purple_memory_boost_in_battle_area_indices = self.cards_in_battle_area('P-040', 'Purple Memory Boost!')
-        if len(purple_memory_boost_in_battle_area_indices) > 0:
+        if len(purple_memory_boost_in_battle_area_indices) == 0:
             return
         if cost <= self.game['memory']:
             return
-        card = self.game['player2Digi'][purple_memory_boost_in_battle_area_indices][0][-1]
+        card = self.game['player2Digi'][purple_memory_boost_in_battle_area_indices[0]][-1]
         if card['id'] in self.placed_this_turn:
             return
         purple_memory_boost = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
         await purple_memory_boost.delay_effect(ws)
         time.sleep(2)
 
-    async def use_seventh_full_cluster_trash_if_possible(self, ws, cost):
+    async def use_seventh_full_cluster_trash_if_possible(self, ws):
         sevent_full_cluster_in_trash_index = self.card_in_trash('BT12-110', 'Seventh Full Cluster')
         if sevent_full_cluster_in_trash_index < 0:
             return
@@ -207,6 +207,14 @@ class BeelzemonXBot(Bot):
     # TODO: Use id, not index of digimon card
     async def attack_strategy(self, ws):
         digimon_index = -1
+        can_attack_digimons_index = self.can_attack_digimons()
+        if len(can_attack_digimons_index) >= 3:
+            for digimon_index in can_attack_digimons_index:
+                self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
+                await self.suspend_digimon(ws, digimon_index)
+                await self.when_attacking_effects_strategy(ws, digimon_index)
+                await self.attack_with_digimon(ws, digimon_index)
+            return True
         if self.no_digimon_in_battle_area():
             self.logger.info('Cannot perform attack: No digimon to attack with.')
             return False
@@ -226,6 +234,7 @@ class BeelzemonXBot(Bot):
         await self.suspend_digimon(ws, digimon_index)
         await self.when_attacking_effects_strategy(ws, digimon_index)
         await self.attack_with_digimon(ws, digimon_index)
+        return True
 
     # TODO: More clever choice of Beelzemon to evolve to
     async def st14_02_impmon_strategy(self, ws, digimon_index):

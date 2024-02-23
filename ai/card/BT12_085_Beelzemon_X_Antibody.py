@@ -12,8 +12,8 @@ class BT12_085_Beelzemon_X_Antibody(Card):
         for c in self.bot.game['player2Digi'][digimon_index][:-1]:
             if c['name'] == 'Beelzemon' or c['name'] == 'Beelzemon':
                 n_sec_trash = min(math.floor(len(self.bot.game['player2Trash'])/10), len(self.bot.game['player1Security']))
-                await self.bot.send_message(ws, f"Beelzemon (X Antibody) [When Digivolving] effect: Cards in trash: {len(self.bot.game['player2Trash'])}, {n_sec_trash} get trashed from your security stack.")
-                await self.bot.wait_for_opponent(ws)
+                await self.bot.send_message(ws, f"Beelzemon (X Antibody) [When Digivolving] effect: Cards in trash: {len(self.bot.game['player2Trash'])}, {n_sec_trash} cards get trashed from your security stack. Resolve the effect and press ok to continue.")
+                await self.bot.waiter.wait_for_actions(ws)
     async def on_deletion_effect(self, ws):
         await super().animate_effect(ws)
         await self.bot.send_message(ws, f"Beelzemon (X Antibody) [On Deletion] effect:")

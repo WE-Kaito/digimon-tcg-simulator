@@ -403,7 +403,7 @@ class Bot(ABC):
 
     async def surrender(self, ws, message):
         self.logger.info(message)
-        await self.send_message(message)
+        await self.send_message(ws, message)
         await ws.send(f'{self.game_name}:/surrender:{self.opponent}')
 
     async def update_game(self, ws):
@@ -511,6 +511,17 @@ class Bot(ABC):
         self.logger.info(f'No digimon of level {level} found in hand.')
         return -1
 
+    def digimons_in_battle_area(self):
+        self.logger.info('Finding all digimons that can attack')
+        digimon_indices = []
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['cardType'] == 'Digimon':
+                    self.logger.info(f"{card['uniqueCardNumber']}-{card['name']} can attack")
+                    digimon_indices.append(i)
+        return digimon_indices
+
     def can_attack(self, card):
         if card['isTilted']:
             return False
@@ -526,13 +537,25 @@ class Bot(ABC):
             return False
         return True
 
-    async def find_can_attack_any_digimon(self, ws):
-        self.logger.info('Try to attack with any digimon.')
+    def can_attack_digimons(self):
+        self.logger.info('Finding all digimons that can attack')
+        digimon_indices = []
         for i in range(len(self.game['player2Digi'])):
-            card = self.game['player2Digi'][i][-1]
-            if card['cardType'] == 'Digimon' and self.can_attack(card):
-                self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
-                return i
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['cardType'] == 'Digimon' and self.can_attack(card):
+                    self.logger.info(f"{card['uniqueCardNumber']}-{card['name']} can attack")
+                    digimon_indices.append(i)
+        return digimon_indices
+
+    async def find_can_attack_any_digimon(self, ws):
+        self.logger.info('Finding any digimons that can attack.')
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['cardType'] == 'Digimon' and self.can_attack(card):
+                    self.logger.info(f"{card['uniqueCardNumber']}-{card['name']} can attack")
+                    return i
         self.logger.info('No Digimon to attack with')
 
     async def attack_with_digimon(self, ws, digimon_index):
@@ -598,10 +621,17 @@ class Bot(ABC):
     async def unsuspend_all(self, ws):
         self.logger.info('Unsuspending all cards in my battle area.')
         for i in range(len(self.game['player2Digi'])):
+            print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+            print(i)
             if len(self.game['player2Digi'][i]) > 0:
-                self.game['player2Digi'][i][-1]['isTilted'] = False
-        await ws.send(f'{self.game_name}:/unsuspendAll:{self.opponent}')
-        await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
+                card = self.game['player2Digi'][i][-1]
+                print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+                print(card)
+                if card['id'] not in self.cant_unsuspend_until_end_of_turn and card['isTilted']:
+                    print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+                    card['isTilted'] = False
+                    await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{i+1}")
+                    await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     async def suspend_digimon(self, ws, digimon_index):
         digimon = self.game['player2Digi'][digimon_index][-1]
