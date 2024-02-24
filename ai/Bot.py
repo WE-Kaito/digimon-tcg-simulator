@@ -560,9 +560,11 @@ class Bot(ABC):
 
     async def attack_with_digimon(self, ws, digimon_index):
         card = self.game['player2Digi'][digimon_index][-1]
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card['id'])
         self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
         card['isTilted'] = True
         await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{digimon_index+1}")
+        await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentDigi3:true")
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
         await self.waiter.wait_for_opponent_counter_blocking(ws)
    
