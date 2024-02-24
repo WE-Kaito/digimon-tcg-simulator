@@ -16,6 +16,18 @@ class BeelzemonXBot(Bot):
         self.card_factory = CardFactory(self)
         self.turn_counter = 0
         self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
+        self.gained_baalmon_effect = set()
+    
+    async def digivolve(self, ws, digimon_location, digimon_card_index, digivolution_card_location, digivolution_card_index, cost):
+        await super().digivolve(ws, digimon_location, digimon_card_index, digivolution_card_location, digivolution_card_index, cost)
+        if digimon_location == 'BreedingArea':
+            card = self.game[f'player2{digimon_location}'][-2]
+            digivolution_card = self.game[f'player2{digimon_location}'][-1]
+        else:
+            card = self.game[f'player2{digimon_location}'][digimon_card_index][-2]
+            digivolution_card = self.game[f'player2{digimon_location}'][digimon_card_index][-1]
+        if card['id'] in self.gained_baalmon_effect:
+            self.gained_baalmon_effect.add(digivolution_card['id'])
 
     async def trash_top_card_of_deck(self, ws):
         card = await super().trash_top_card_of_deck(ws)
@@ -27,6 +39,24 @@ class BeelzemonXBot(Bot):
                 await st14_08_beelzemon.all_turns_effect(ws)
                 self.triggered_already_this_turn.add(card['id'])
         return card
+
+    async def delete_stack_from_battle_area(self, ws, card_id):
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
+        card = self.game['player2Digi'][card_index][-1]
+        card_obj = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+        await super().delete_stack_from_battle_area(ws, card_id)
+        await card_obj.on_deletion_effect(ws)
+        print(self.gained_baalmon_effect)
+        print(len(self.game['player2Trash']))
+        if card['id'] in self.gained_baalmon_effect and len(self.game['player2Trash']) >= 10:
+            print('YEAAAAAAAAAAAAAAAAAAAH')
+            await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
+
+    async def st14_07_baalmon_gained_on_deletion_effect(self, ws):
+        await super().animate_effect(ws)
+        if len(self.bot.game['player2Trash']) >= 10:
+            await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
+
 
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
@@ -408,8 +438,8 @@ class BeelzemonXBot(Bot):
             return
         card_in_trash_index = self.card_in_trash('EX2-039', 'Impmon')
         if card_in_trash_index >= 0:
-            await self.play_card(ws, 'Trash', card_in_trash_index, 0)
             card_id = self.game['player2Trash'][card_in_trash_index]['id']
+            await self.play_card(ws, 'Trash', card_in_trash_index, 0)
             impmon = self.card_factory.get_card('EX2-039', card_id=card_id)
             await impmon.on_play_effect(ws)
             return

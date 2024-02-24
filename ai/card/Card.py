@@ -17,10 +17,6 @@ class Card(ABC):
         self.bot = bot
         self.extra_args = kwargs
     
-    async def send_message(self, ws, message):
-        self.logger.info(message)
-        self.bot.send_game_chat_message(ws, message)
-    
     async def main_effect(self, ws):
         pass
 

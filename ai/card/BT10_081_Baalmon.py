@@ -10,11 +10,10 @@ class BT10_081_Baalmon(Card):
         await self.bot.bt10_081_baalmon_attacking_strategy(ws)
 
     async def on_deletion_effect(self, ws):
-        await super().animate_effect(ws)
-        self.send_message('BT10-081 Baalmon [On Deletion] effect:')
+        await self.bot.send_message(ws, 'BT10-081 Baalmon [On Deletion] effect:')
         if len(self.bot.game['player2Trash']) >= 10:
-            if self.card_has_name_in_trash('Beelzemon'):
-                await self.bot.send_message('Found Beelzemon in trash and have 10 or more cards in trash:')
+            if self.bot.card_has_name_in_trash('Beelzemon') >= 0:
+                await self.bot.send_message(ws, 'Found Beelzemon in trash and have 10 or more cards in trash:')
                 await self.bot.bt10_081_baalmon_deleted_strategy(ws)
         else:
             await self.bot.send_message(ws, 'Not enough cards in trash (<= 10)')

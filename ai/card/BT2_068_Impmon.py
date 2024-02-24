@@ -7,7 +7,6 @@ class BT2_068_Impmon(Card):
 
     ## TODO: Make optional to trash up to three cards
     async def on_deletion_effect(self, ws):
-        await super().animate_effect(ws)
         await self.bot.send_message(ws, 'BT2-068 Impmon [On Deletion] effect: I trash 3 cards from top of deck.')
         trashed_cards = []
         for i in range(3):

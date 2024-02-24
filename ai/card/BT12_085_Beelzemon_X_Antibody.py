@@ -15,6 +15,5 @@ class BT12_085_Beelzemon_X_Antibody(Card):
                 await self.bot.send_message(ws, f"Beelzemon (X Antibody) [When Digivolving] effect: Cards in trash: {len(self.bot.game['player2Trash'])}, {n_sec_trash} cards get trashed from your security stack. Resolve the effect and press ok to continue.")
                 await self.bot.waiter.wait_for_actions(ws)
     async def on_deletion_effect(self, ws):
-        await super().animate_effect(ws)
         await self.bot.send_message(ws, f"Beelzemon (X Antibody) [On Deletion] effect:")
         self.bt12_085_beelzemon_x_antibody_on_deletion_strategy(ws)

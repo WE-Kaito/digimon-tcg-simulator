@@ -959,6 +959,7 @@ class Bot(ABC):
         self.cant_attack_until_end_of_opponent_turn.clear()
         self.cant_block_until_end_of_opponent_turn.clear()
         self.triggered_already_this_turn.clear()
+        self.gained_baalmon_effect.clear()
     
     async def end_turn(self):
         self.placed_this_turn.clear()
