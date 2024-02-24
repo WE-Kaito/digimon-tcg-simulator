@@ -119,9 +119,17 @@ class Bot(ABC):
         lobby = self.s.get(f'http://{self.host}/lobby', self.headers, auth=(self.username, self.password))
         return self.handle_response(lobby, 200, 'Accessed lobby!', f'Failed to access lobby with status code {lobby.status_code}, exiting...')
 
-    def import_deck(self):
-        import_deck = self.s.post(f'http://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck))
-        return self.handle_response(import_deck, 200, 'Imported deck successfully', f'Failed importing deck with status code {import_deck.status_code}, exiting...')
+    def import_deck(self, imported_decks=[]):
+        deck_names = set([d['name'] for d in imported_decks])
+        if self.deck['name'] not in deck_names:
+            import_deck = self.s.post(f'http://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck))
+            return self.handle_response(imported_decks, 200, 'Imported deck successfully', f'Failed listing decks with error {import_deck.status_code}, exiting...')
+        self.logger.info(f"Deck {self.deck['name']} has been already imported.")
+        return True
+
+    def list_imported_decks(self):
+        imported_decks = self.s.get(f'http://{self.host}/api/profile/decks', headers=self.headers, data=json.dumps(self.deck))
+        return self.handle_response(imported_decks, 200, 'Listed imported decks successfully', f'Failed listing imported decks with status code {imported_decks.status_code}, exiting...')
 
     def set_active_deck(self):
         decks = self.s.get(f'http://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers)

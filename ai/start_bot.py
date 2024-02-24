@@ -16,8 +16,14 @@ def main():
         if not login_response:
             raise Exception ('Login failed after registration!')
 
-    ## Import Deck
-    import_deck_response = bot.import_deck()
+    ## List Imported Decks
+    imported_decks = bot.list_imported_decks()
+    if not imported_decks:
+        exit(1)
+    imported_decks = imported_decks.json()
+
+    ## Import Deck if not imported already
+    import_deck_response = bot.import_deck(imported_decks)
     if not import_deck_response:
         exit(1)
 
