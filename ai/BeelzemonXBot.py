@@ -414,7 +414,7 @@ class BeelzemonXBot(Bot):
         await rivals_barrage.delay_effect(ws)
         return True
     
-    async def ex2_044_beelzemon_when_digivolving_when_attacking_stategy(self, ws):
+    async def ex2_044_beelzemon_when_digivolving_when_attacking_strategy(self, ws):
         max_level_can_delete = 3 + math.floor(len(self.game['player2Trash'])/10)
         opponent_digimons = []
         for i in range(len(self.game['player1Digi'])):
@@ -427,7 +427,7 @@ class BeelzemonXBot(Bot):
             if max_level_can_delete <= opponent_digimon[0]:
                 self.delete_card_from_opponent_battle_area(ws, opponent_digimon[1])
 
-    async def ex2_044_beelzemon_when_trashed_stategy(self, ws):
+    async def ex2_044_beelzemon_when_trashed_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-02', 'Impmon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)

@@ -119,17 +119,17 @@ class Bot(ABC):
         lobby = self.s.get(f'http://{self.host}/lobby', self.headers, auth=(self.username, self.password))
         return self.handle_response(lobby, 200, 'Accessed lobby!', f'Failed to access lobby with status code {lobby.status_code}, exiting...')
 
+    def list_imported_decks(self):
+        imported_decks = self.s.get(f'http://{self.host}/api/profile/decks', headers=self.headers, data=json.dumps(self.deck))
+        return self.handle_response(imported_decks, 200, 'Listed imported decks successfully', f'Failed listing imported decks with status code {imported_decks.status_code}, exiting...')
+
     def import_deck(self, imported_decks=[]):
         deck_names = set([d['name'] for d in imported_decks])
         if self.deck['name'] not in deck_names:
             import_deck = self.s.post(f'http://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck))
-            return self.handle_response(imported_decks, 200, 'Imported deck successfully', f'Failed listing decks with error {import_deck.status_code}, exiting...')
+            return self.handle_response(import_deck, 200, 'Imported deck successfully', f'Failed listing decks with error {import_deck.status_code}, exiting...')
         self.logger.info(f"Deck {self.deck['name']} has been already imported.")
         return True
-
-    def list_imported_decks(self):
-        imported_decks = self.s.get(f'http://{self.host}/api/profile/decks', headers=self.headers, data=json.dumps(self.deck))
-        return self.handle_response(imported_decks, 200, 'Listed imported decks successfully', f'Failed listing imported decks with status code {imported_decks.status_code}, exiting...')
 
     def set_active_deck(self):
         decks = self.s.get(f'http://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers)
@@ -480,7 +480,7 @@ class Bot(ABC):
         return -1
     
     def card_in_trash(self, unique_card_number, card_name):
-        self.logger.info(f'Searching for card {unique_card_number}-{card_name} in trash.')
+        self.logger.info(f'Searching for card {unique_card_number} {card_name} in trash.')
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
             if card['uniqueCardNumber'] == unique_card_number and card['name'] == card_name:
@@ -935,13 +935,13 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Top:{card['id']}:my{card_location}:myDeckField")
         await self.send_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
         self.game['player2DeckField'].insert(0, card)
-        self.logger.info(f"Put {card['uniqueCardNumber']}-{card['name']} on top of deck.")
+        self.logger.info(f"Put {card['uniqueCardNumber']} {card['name']} on top of deck.")
     
     async def trash_top_card_of_deck(self, ws):
         await self.move_card(ws, 'myDeckField0', 'myTrash')
         card = self.game['player2DeckField'].pop(0)
         self.game['player2Trash'].insert(0, card)
-        self.logger.info(f"Trashed {card['uniqueCardNumber']}-{card['name']} from top of deck.")
+        self.logger.info(f"Trashed {card['uniqueCardNumber']} {card['name']} from top of deck.")
         return card
 
     async def set_memory_to(self, ws, value):
