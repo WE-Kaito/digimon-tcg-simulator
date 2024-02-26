@@ -146,31 +146,6 @@ class MongoUserControllerTest {
 
     @Test
     @DirtiesContext
-    @WithMockUser(username = "testUser", password = "testPassword")
-    void expectTestSleeve_AfterSetSleeve() throws Exception {
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(testUserWithoutId)
-                .with(csrf())).andExpect(MockMvcResultMatchers.status().isOk());
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/user/login")
-                .with(csrf())
-        ).andExpect(MockMvcResultMatchers.status().isOk());
-
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/user/sleeve/test-sleeve")
-                        .with(csrf()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/user/sleeve")
-                        .with(csrf()))
-                //THEN
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("test-sleeve"));
-    }
-
-    @Test
-    @DirtiesContext
     void expectQuestion_AfterGetRecoveryQuestion() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/user/register")

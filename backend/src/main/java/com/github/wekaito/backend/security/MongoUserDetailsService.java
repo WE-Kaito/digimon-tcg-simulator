@@ -61,8 +61,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 registrationUser.question(),
                 registrationUser.answer(),
                 "",
-                "AncientIrismon",
-                "Default");
+                "AncientIrismon"
+        );
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";
@@ -77,8 +77,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.question(),
                 mongoUser.answer(),
                 deckId,
-                mongoUser.avatarName(),
-                mongoUser.sleeveName());
+                mongoUser.avatarName()
+        );
         mongoUserRepository.save(updatedUser);
     }
 
@@ -97,8 +97,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.question(),
                 mongoUser.answer(),
                 mongoUser.activeDeckId(),
-                avatarName,
-                mongoUser.sleeveName());
+                avatarName
+        );
         mongoUserRepository.save(updatedUser);
     }
 
@@ -106,26 +106,6 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     public String getAvatar(String username) {
         return getUserByUsername(username).avatarName();
-    }
-
-    public void setSleeve(String sleeveName) {
-        MongoUser mongoUser = getCurrentUser();
-        MongoUser updatedUser = new MongoUser(
-                mongoUser.id(),
-                mongoUser.username(),
-                mongoUser.password(),
-                mongoUser.question(),
-                mongoUser.answer(),
-                mongoUser.activeDeckId(),
-                mongoUser.avatarName(),
-                sleeveName);
-        mongoUserRepository.save(updatedUser);
-    }
-
-    public String getSleeve() { return getCurrentUser().sleeveName(); }
-
-    public String getSleeve(String username) {
-        return getUserByUsername(username).sleeveName();
     }
 
     public String getRecoveryQuestion(String username) {
@@ -147,8 +127,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                     mongoUser.question(),
                     mongoUser.answer(),
                     mongoUser.activeDeckId(),
-                    mongoUser.avatarName(),
-                    mongoUser.sleeveName());
+                    mongoUser.avatarName()
+            );
             mongoUserRepository.save(updatedUser);
             return "Password changed!";
         }
@@ -163,8 +143,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                     safetyQuestionChange.question(),
                     safetyQuestionChange.answer(),
                     mongoUser.activeDeckId(),
-                    mongoUser.avatarName(),
-                    mongoUser.sleeveName());
+                    mongoUser.avatarName()
+            );
             mongoUserRepository.save(updatedUser);
             return "Safety question changed!";
 

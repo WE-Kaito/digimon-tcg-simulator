@@ -75,7 +75,7 @@ import RestartPrompt from "../components/game/RestartPrompt.tsx";
 import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
 import {uid} from "uid";
 import targetAnimation from "../assets/lotties/target-animation.json";
-import useDropZone from "../hooks/useDropZone.tsx";
+import useDropZone from "../hooks/useDropZone.ts";
 
 const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/";
 const cardBackUrl = assetBaseUrl + "cardBack.jpg";

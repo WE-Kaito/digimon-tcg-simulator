@@ -1,5 +1,6 @@
 package com.github.wekaito.backend;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +24,11 @@ public class DeckService {
         Deck deckToSave = new Deck(
                 idService.createId(),
                 deckWithoutId.name(),
-                deckWithoutId.color(),
                 deckWithoutId.decklist(),
+                deckWithoutId.deckImageCardUrl(),
+                deckWithoutId.sleeveName(),
+                deckWithoutId.isAllowed_en(),
+                deckWithoutId.isAllowed_jp(),
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
@@ -34,13 +38,17 @@ public class DeckService {
         return deckRepo.findByAuthorId(authorId);
     }
 
-    public void updateDeck(String id, DeckWithoutId deckWithoutId) {
+    public void updateDeck(String id, @Valid DeckWithoutId deckWithoutId) {
         if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
+        Deck existingDeck = getDeckById(id);
         Deck deckToSave = new Deck(
                 id,
                 deckWithoutId.name(),
-                deckWithoutId.color(),
                 deckWithoutId.decklist(),
+                existingDeck.deckImageCardUrl(),
+                existingDeck.sleeveName(),
+                deckWithoutId.isAllowed_en(),
+                deckWithoutId.isAllowed_jp(),
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
@@ -80,4 +88,43 @@ public class DeckService {
         if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
         this.deckRepo.deleteById(id);
     }
+
+    public void updateDeckImage(String id, String imageUrl) {
+        if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
+        Deck existingDeck = getDeckById(id);
+        Deck deckToSave = new Deck(
+                id,
+                existingDeck.name(),
+                existingDeck.decklist(),
+                imageUrl,
+                existingDeck.sleeveName(),
+                existingDeck.isAllowed_en(),
+                existingDeck.isAllowed_jp(),
+                userIdService.getCurrentUserId()
+        );
+        this.deckRepo.save(deckToSave);
+    }
+
+    public void updateDeckSleeve(String id, String sleeveName) {
+        if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
+        Deck existingDeck = getDeckById(id);
+        Deck deckToSave = new Deck(
+                id,
+                existingDeck.name(),
+                existingDeck.decklist(),
+                existingDeck.deckImageCardUrl(),
+                sleeveName,
+                existingDeck.isAllowed_en(),
+                existingDeck.isAllowed_jp(),
+                userIdService.getCurrentUserId()
+        );
+        this.deckRepo.save(deckToSave);
+    }
+
+    public String getDeckSleeveById(String id) {
+        Optional<Deck> optionalDeck = this.deckRepo.findById(id);
+        if (optionalDeck.isEmpty()) throw new IllegalArgumentException();
+        return optionalDeck.get().sleeveName();
+    }
+
 }

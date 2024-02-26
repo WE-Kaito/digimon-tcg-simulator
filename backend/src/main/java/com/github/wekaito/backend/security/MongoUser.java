@@ -12,7 +12,6 @@ public record MongoUser(
         String question,
         String answer,
         String activeDeckId,
-        String avatarName,
-        String sleeveName
+        String avatarName
 ) {
 }

@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+record ImageUrlDTO(String imgUrl) {}
+
 @RequestMapping("/api/profile")
 @RestController
 @RequiredArgsConstructor
@@ -22,9 +24,7 @@ public class DeckController {
 
     @PostMapping("/decks")
     public String addDeck(@RequestBody @Valid DeckWithoutId deckWithoutId) {
-        if (deckWithoutId.color().equals("undefined") || deckWithoutId.decklist().get(0) == null) {
-            return "There was an error while saving the deck.";
-        }
+        if (deckWithoutId.decklist().get(0) == null) return "There was an error while saving the deck.";
         this.deckService.addDeck(deckWithoutId);
         return "Deck saved successfully.";
     }
@@ -42,6 +42,16 @@ public class DeckController {
     @PutMapping("/decks/{id}")
     public void updateDeck(@PathVariable String id, @RequestBody @Valid DeckWithoutId deckWithoutId) {
         this.deckService.updateDeck(id, deckWithoutId);
+    }
+
+    @PutMapping("/decks/{id}/image")
+    public void updateDeckImage(@PathVariable String id, @RequestBody ImageUrlDTO imageUrlDTO) {
+        this.deckService.updateDeckImage(id, imageUrlDTO.imgUrl());
+    }
+
+    @PutMapping("/decks/{id}/sleeve/{sleeveName}")
+    public void updateDeckSleeve(@PathVariable String id, @PathVariable String sleeveName) {
+        this.deckService.updateDeckSleeve(id, sleeveName);
     }
 
     @DeleteMapping("/decks/{id}")

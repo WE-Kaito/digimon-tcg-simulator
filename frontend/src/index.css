@@ -1,19 +1,19 @@
 @font-face {
-  font-family: Alarm Clock;
-  font-style: normal;
-  font-weight: normal;
-  src: url("./assets/fonts/alarm clock.ttf") format("truetype");
+    font-family: Alarm Clock;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/alarm clock.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: Amiga Forever Pro2;
+    font-family: Amiga Forever Pro2;
     font-style: normal;
     font-weight: normal;
     src: url("./assets/fonts/amiga4ever pro2.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: Awsumsans;
+    font-family: Awsumsans;
     font-style: normal;
     font-weight: normal;
     src: url("./assets/fonts/AwsumSans.otf") format("truetype");
@@ -181,79 +181,88 @@
 }
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  font-size: 16px;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    font-size: 16px;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
 }
 
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+    font-weight: 500;
+    color: #646cff;
+    text-decoration: inherit;
 }
+
 a:hover {
-  color: #535bf2;
+    color: #535bf2;
+}
+
+html {
+    scrollbar-width: none;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  transition: background-image 0.3s;
+    margin: 0;
+    display: flex;
+    place-items: center;
+    transition: background-image 0.3s;
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+    font-size: 3.2em;
+    line-height: 1.1;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #1a1a1a;
+    cursor: pointer;
+    transition: border-color 0.25s;
 }
+
 button:hover {
-  border-color: #646cff;
+    border-color: #646cff;
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
-      color: rgba(255, 255, 255, 0.87);
-      background-color: #242424;
-  }
-  a:hover {
-      color: #535bf2;
-  }
-  button {
-      background-color: #1a1a1a;
-      color: rgba(255, 255, 255, 0.9);
-  }
-  input {
-      color: floralwhite;
-  }
+    :root {
+        color: rgba(255, 255, 255, 0.87);
+        background-color: #242424;
+    }
+
+    a:hover {
+        color: #535bf2;
+    }
+
+    button {
+        background-color: #1a1a1a;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    input {
+        color: floralwhite;
+    }
+
     select {
         color: floralwhite;
     }
-  option {
-      color: floralwhite;
-  }
+
+    option {
+        color: floralwhite;
+    }
 }

@@ -1,40 +1,41 @@
 import {useStore} from "../../hooks/useStore.ts";
 import styled from "@emotion/styled";
-import {sleeves, getSleeve} from "../../utils/sleeves.ts";
 import {playButtonClickSfx} from "../../utils/sound.ts";
-
-export default function ChooseCardSleeve() {
+export default function ChooseDeckImage() {
 
     const selectedSleeveOrImage = useStore((state) => state.selectedSleeveOrImage);
-    const setSleeve = useStore((state) => state.setSleeve);
+    const setCardImage = useStore((state) => state.setCardImage);
+    const imageUrls = useStore((state) => state.getCardImagesInDeck());
+    const rows = Math.ceil(imageUrls.length / 10);
 
     return (
-            <GridContainer>
-                {sleeves.map((sleeve) => {
-                    return <SleeveButton key={sleeve.name} alt={sleeve.name} src={getSleeve(sleeve.name)}
-                                         chosen={selectedSleeveOrImage === sleeve.name}
-                                         onClick={() => {
-                                             playButtonClickSfx();
-                                             setSleeve(sleeve.name);
-                                         }}
-                    />
-                })}
-            </GridContainer>
+        <GridContainer rows={rows}>
+            {imageUrls?.map((url, index) => {
+                return <SleeveButton key={url} alt={index.toString()} src={url}
+                                     chosen={selectedSleeveOrImage === url}
+                                     onClick={() => {
+                                         playButtonClickSfx();
+                                         setCardImage(url);
+                                     }}
+                />
+            })}
+        </GridContainer>
     );
 }
 
-const GridContainer = styled.div`
+const GridContainer = styled.div<{rows: number}>`
   width: fit-content;
   height: fit-content;
   display: grid;
-  grid-template-columns: repeat(11, 63px);
-  grid-template-rows: repeat(4, 84px);
+  grid-template-columns: repeat(10, 73px);
+  grid-template-rows: repeat(${({rows}) => rows}, 97px);
   gap: 2px;
   position: relative;
   padding: 3px;
   margin: 8px;
   border: 1px solid #1d7dfc;
   border-radius: 5px;
+  transform: translateY(-2px);
   transition: all 0.2s ease-in-out;
 
   scrollbar-width: thin;
@@ -52,7 +53,7 @@ const GridContainer = styled.div`
 
   @media (max-width: 1050px) {
     grid-template-columns: repeat(15, 40px);
-    grid-template-rows: repeat(5, 53px);
+    grid-template-rows: repeat(3, 53px);
     gap: 1px;
     padding: 2px;
     margin: 10px 2px 0 2px;
@@ -62,24 +63,22 @@ const GridContainer = styled.div`
   }
 `;
 
-const SleeveButton = styled.img<{ chosen: boolean }>`
-  width: 63px;
-  height: 84px;
+const SleeveButton = styled.img<{chosen: boolean}>`
+  width: 73px;
+  height: 97px;
   opacity: ${({chosen}) => chosen ? "1" : "0.4"};
   background: ${({chosen}) => chosen ? "ghostwhite" : "none"};
   cursor: pointer;
   border-radius: 2px;
   transition: all 0.2s ease-in-out;
-
   :hover {
-    width: 72px;
-    height: 96px;
+    width: 79px;
+    height: 105px;
     opacity: 1;
     z-index: 100;
     filter: drop-shadow(0 0 5px #57a0ff);
     transform: translate(-4px, -6px);
   }
-
   @media (max-width: 1050px) {
     width: 40px;
     height: 53px;

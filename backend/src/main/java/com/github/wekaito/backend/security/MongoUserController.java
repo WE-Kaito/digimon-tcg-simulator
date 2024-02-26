@@ -52,16 +52,6 @@ public class MongoUserController {
         return mongoUserDetailsService.getAvatar();
     }
 
-    @PutMapping("/sleeve/{sleeveName}")
-    public void setSleeve(@PathVariable String sleeveName){
-        mongoUserDetailsService.setSleeve(sleeveName);
-    }
-
-    @GetMapping("/sleeve")
-    public String getSleeve() {
-        return mongoUserDetailsService.getSleeve();
-    }
-
     @GetMapping("/recovery/{username}")
     public String getRecoveryQuestion(@PathVariable String username) {
         return mongoUserDetailsService.getRecoveryQuestion(username);
