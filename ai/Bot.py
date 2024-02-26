@@ -181,7 +181,7 @@ class Bot(ABC):
         lobby_response = self.s.get(f'http://{self.host}/lobby', auth=(self.username, self.password))
         if lobby_response.status_code == 200:
             self.logger.info('Accessed lobby, saying Hi')
-            asyncio.run(self.enter_lobby_message(f'Ciao everyone! I\'m {self.username}!'))
+            asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
             self.opponent = asyncio.run(self.wait_in_lobby())
             self.logger.info('Opponent found, starting game.')
             asyncio.run(self.play())
@@ -572,7 +572,7 @@ class Bot(ABC):
         self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
         card['isTilted'] = True
         await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{digimon_index+1}")
-        await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentDigi3:true")
+        await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentSecurity:true")
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
         await self.waiter.wait_for_opponent_counter_blocking(ws)
    
@@ -631,14 +631,9 @@ class Bot(ABC):
     async def unsuspend_all(self, ws):
         self.logger.info('Unsuspending all cards in my battle area.')
         for i in range(len(self.game['player2Digi'])):
-            print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-            print(i)
             if len(self.game['player2Digi'][i]) > 0:
                 card = self.game['player2Digi'][i][-1]
-                print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-                print(card)
                 if card['id'] not in self.cant_unsuspend_until_end_of_turn and card['isTilted']:
-                    print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
                     card['isTilted'] = False
                     await ws.send(f"{self.game_name}:/tiltCard:{self.opponent}:{card['id']}:myDigi{i+1}")
                     await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')

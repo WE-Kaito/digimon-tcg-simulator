@@ -21,11 +21,12 @@ class EX2_039_Impmon(Card):
         for trashed_card in trashed_cards:
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
             await card_obj.when_trashed_effect(ws)
+        await self.bot.when_card_is_trashed_from_deck(ws)
 
     async def on_play_effect(self, ws):
         await super().animate_effect(ws)
         await self.bot.send_message(ws, f"EX2-039 Impmon [On Play] effect: Reveal 4.")
-        await self.bot.reveal_card_from_top_from_deck(ws, 4)
+        await self.bot.reveal_card_from_top_of_deck(ws, 4)
         time.sleep(3)
         beelzemon_candidates = []
         ai_and_mako_candidates = []

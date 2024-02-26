@@ -18,4 +18,5 @@ class ST14_07_Baalmon(Card):
         for trashed_card in trashed_cards:
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
             await card_obj.when_trashed_effect(ws)
+        await self.bot.when_card_is_trashed_from_deck(ws)
         self.bot.gained_baalmon_effect.add(self.extra_args['card_id'])

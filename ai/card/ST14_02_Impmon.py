@@ -13,4 +13,3 @@ class ST14_02_Impmon(Card):
                     await self.bot.st14_02_impmon_strategy(ws, self.card_index, self.extra_args['digimon_index'])
         else:
             await self.bot.send_message(ws, 'Not enough cards in trash.')
-

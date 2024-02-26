@@ -22,7 +22,7 @@ class BT12_073_Impmon_X_Antibody(Card):
         if self.bot.card_of_type_in_hand('Option'):
             for i in range(len(self.bot.game['player2Trash'])):
                 card = self.bot.game['player2Trash'][i]
-                if self.card_has_name_in_trash('Beelzemon'):
+                if self.bot.card_has_name_in_trash('Beelzemon'):
                     await self.bot.bt12_073_impmon_x_antibody_strategy(ws)
         else:
             self.bot.send_message(ws, 'Won\'t trash any option card from my hand.')
@@ -49,3 +49,4 @@ class BT12_073_Impmon_X_Antibody(Card):
         for trashed_card in trashed_cards:
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
             await card_obj.when_trashed_effect(ws)
+        await self.bot.when_card_is_trashed_from_deck(ws)

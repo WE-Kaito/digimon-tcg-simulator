@@ -29,8 +29,8 @@ class BeelzemonXBot(Bot):
         if card['id'] in self.gained_baalmon_effect:
             self.gained_baalmon_effect.add(digivolution_card['id'])
 
-    async def trash_top_card_of_deck(self, ws):
-        card = await super().trash_top_card_of_deck(ws)
+    async def when_card_is_trashed_from_deck(self, ws):
+        self.logger.info('Checking if any ST14-08 trigger from trashing card.')
         st14_08_beelzemons_indices = self.cards_in_battle_area('ST14-08', 'Beelzemon')
         for st14_08_beelzemons_index in st14_08_beelzemons_indices:
             card = self.game['player2Digi'][st14_08_beelzemons_index][-1]
@@ -38,7 +38,6 @@ class BeelzemonXBot(Bot):
                 st14_08_beelzemon = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
                 await st14_08_beelzemon.all_turns_effect(ws)
                 self.triggered_already_this_turn.add(card['id'])
-        return card
 
     async def delete_stack_from_battle_area(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
@@ -49,14 +48,12 @@ class BeelzemonXBot(Bot):
         print(self.gained_baalmon_effect)
         print(len(self.game['player2Trash']))
         if card['id'] in self.gained_baalmon_effect and len(self.game['player2Trash']) >= 10:
-            print('YEAAAAAAAAAAAAAAAAAAAH')
             await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
 
     async def st14_07_baalmon_gained_on_deletion_effect(self, ws):
         await super().animate_effect(ws)
         if len(self.bot.game['player2Trash']) >= 10:
             await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
-
 
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
@@ -108,15 +105,29 @@ class BeelzemonXBot(Bot):
             await self.digivolve(ws, 'BreedingArea', 0, 'Hand', rookie_in_hand_index, self.digivolution_cost(card))
     
     async def digivolve_in_breed_strategy(self, ws):
+        card_in_hand_index = -1
         breeding = self.game['player2BreedingArea']
-        if len(breeding) == 0 or breeding[-1]['level'] > 2:
+        if len(breeding) == 0:
             self.logger.info("Cannot digivolve in breed as no level 2 Digimon is there.")
-            return
-        card_in_hand_index = self.digimon_of_level_in_hand(breeding[-1]['level'] + 1)
+            return False
+        if breeding[-1]['level'] == 3:
+            if breeding[-1]['name'] == 'Impmon':
+                card_in_hand_index = self.card_in_hand('BT12-073', 'Impmon (X Antibody)')
+            if card_in_hand_index < 0:
+                card_in_hand_index = self.card_in_hand('P-077','Wizardmon')
+            if card_in_hand_index < 0:
+                return False
+        elif breeding[-1]['level'] == 4:
+            card_in_hand_index = self.card_in_hand('BT10-081','Baalmon')
+            if card_in_hand_index < 0:
+                return False
+        else:
+            card_in_hand_index = self.digimon_of_level_in_hand(breeding[-1]['level'] + 1)
         if card_in_hand_index >= 0:
             card = self.game['player2Hand'][card_in_hand_index]
             self.logger.info(f"Can digivolve in breed into {card}")
             await self.digivolve(ws, 'BreedingArea', 0, 'Hand', card_in_hand_index, self.digivolution_cost(card))
+            return True
         return False
     
     async def play_digimon_strategy(self, ws):
@@ -126,12 +137,14 @@ class BeelzemonXBot(Bot):
             self.logger.info(f'Will play it.')
             digimon = self.game['player2Hand'][digimon_in_hand_index]
             await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
-        self.logger.info(f'Trying to play cheapest digimon that would give memory <= 2 to opponent.')
+            return True
+        self.logger.info(f'Trying to play cheapest digimon that would give memory <= 3 to opponent.')
         digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(2)
         if digimon_in_hand_index >= 0:
             digimon = self.game['player2Hand'][digimon_in_hand_index]
             self.logger.info(f"I play {digimon['name']}")
             await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
+            return True
         return False
 
     async def promote_strategy(self, ws):
@@ -194,6 +207,26 @@ class BeelzemonXBot(Bot):
                 return True
             self.logger.info('No Beelzemon on fields, won\'t digivolve to Beelzemon (X Antibody).')
 
+        self.logger.info('Check if I can digivolve Impmon in Impmon (X Antibody).')
+        for digimon_index in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][digimon_index]) > 0:
+                card = self.game['player2Digi'][digimon_index][-1]
+                if card['name'] == 'Impmon':
+                    digivolution_index = self.card_in_hand('BT12-073', 'Impmon (X Antibody)')
+                    if digivolution_index >= 0:
+                        digivolution_card = self.game['player2Hand'][digivolution_index]
+                        self.logger.info(f'Found digivolution: {digivolution_card}')
+                        await self.digivolve(
+                            ws, 'Digi', digimon_index, 'Hand',
+                            digivolution_index, 0
+                        )
+                        digivolution_card_obj = self.card_factory.get_card(
+                            digivolution_card['uniqueCardNumber'],
+                            digimon_index=digimon_index,
+                            card_id=digivolution_card['id']
+                        )
+                        await digivolution_card_obj.when_digivolving_effect(ws)
+                        return True
         self.logger.info('Checking for other possible digivolutions on the field...')
         for digimon_index in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][digimon_index]) > 0:
@@ -238,12 +271,13 @@ class BeelzemonXBot(Bot):
     async def attack_strategy(self, ws):
         digimon_index = -1
         can_attack_digimons_index = self.can_attack_digimons()
-        if len(can_attack_digimons_index) >= 3:
+        if len(can_attack_digimons_index) >= 2:
             for digimon_index in can_attack_digimons_index:
                 self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
-                await self.suspend_digimon(ws, digimon_index)
-                await self.when_attacking_effects_strategy(ws, digimon_index)
-                await self.attack_with_digimon(ws, digimon_index)
+                if digimon_index < len(self.game['player2Digi'][digimon_index]):
+                    await self.suspend_digimon(ws, digimon_index)
+                    await self.when_attacking_effects_strategy(ws, digimon_index)
+                    await self.attack_with_digimon(ws, digimon_index)
             return True
         if self.no_digimon_in_battle_area():
             self.logger.info('Cannot perform attack: No digimon to attack with.')
@@ -334,6 +368,7 @@ class BeelzemonXBot(Bot):
         for trashed_card in trashed_cards:
             card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
             await card_obj.when_trashed_effect(ws)
+        await self.when_card_is_trashed_from_deck(ws)
     
     async def bt10_081_baalmon_deleted_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-08', 'Beelzemon')
@@ -416,16 +451,20 @@ class BeelzemonXBot(Bot):
     
     async def ex2_044_beelzemon_when_digivolving_when_attacking_strategy(self, ws):
         max_level_can_delete = 3 + math.floor(len(self.game['player2Trash'])/10)
-        opponent_digimons = []
-        for i in range(len(self.game['player1Digi'])):
-            if len(self.game['player1Digi'][i]) > 0:
-                digimon = self.game['player1Digi'][i][-1]
-                opponent_digimons.append(digimon['level'], i, digimon['name'])
-        if len(opponent_digimons) == 0:
-            return False
-        for opponent_digimon in sorted(opponent_digimons, reverse=True):
-            if max_level_can_delete <= opponent_digimon[0]:
-                self.delete_card_from_opponent_battle_area(ws, opponent_digimon[1])
+        # TODO: Allow to choose from opponent's battlefield
+        # opponent_digimons = []
+        # for i in range(len(self.game['player1Digi'])):
+        #     if len(self.game['player1Digi'][i]) > 0:
+        #         digimon = self.game['player1Digi'][i][-1]
+        #         opponent_digimons.append(digimon['level'], i, digimon['name'])
+        # if len(opponent_digimons) == 0:
+        #     return False
+        # for opponent_digimon in sorted(opponent_digimons, reverse=True):
+        #     if max_level_can_delete <= opponent_digimon[0]:
+        await self.send_message(ws, f'I choose to delete 1 of your level {max_level_can_delete} digimon.')
+        await self.send_message(ws, 'I choose the one with the highest dp.')
+        await self.send_message(ws, 'Resolve effects and type Ok to continue.')
+        await self.wait_for_actions(ws)
 
     async def ex2_044_beelzemon_when_trashed_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-02', 'Impmon')
@@ -554,6 +593,17 @@ class BeelzemonXBot(Bot):
             return True
         return False
 
+    async def attack_loop(self, ws):
+        self.logger.info('Attack loop')
+        some_action = False
+        attacked = True
+        while attacked:
+            attacked = False
+            if self.game['memory'] >= 0 and await self.attack_strategy(ws):
+                attacked = True
+                some_action = True
+        return some_action
+
     async def main_phase_strategy(self, ws):
         self.logger.info('Prepare rookies in breed...')
         await self.prepare_rookies(ws)
@@ -561,27 +611,31 @@ class BeelzemonXBot(Bot):
         ## TODO: Action class/method that checks memory at every action
         while(some_action):
             some_action = False
-            if self.game['memory'] >= 0:
-                self.logger.info('Avoid brick strategy...')
-                some_action = await self.avoid_brick(ws)
-            if self.game['memory'] >= 0:
-                self.logger.info('Attack strategy...')
-                some_action = await self.attack_strategy(ws)
-            if self.game['memory'] >= 0:
-                self.logger.info('Digivolve strategy...')
-                some_action = await self.digivolve_strategy(ws)
-            
-        some_action = True
-        while(self.game['memory'] >= 0 and some_action):
+            self.logger.info('Avoid brick strategy...')
+            if self.game['memory'] >= 0 and await self.avoid_brick(ws):
+                some_action = True
+            self.logger.info('Digivolve strategy...')
+            if self.game['memory'] >= 0 and await self.digivolve_strategy(ws):
+                some_action = True
+            self.logger.info('Attack strategy...')
+            if self.game['memory'] >= 0 and await self.attack_loop(ws):
+                some_action = True
             self.logger.info('Digivolve in breed strategy...')
-            some_action = await self.digivolve_in_breed_strategy(ws)
-        some_action = True
-        while(self.game['memory'] >= 0 and some_action):
+            if self.game['memory'] >= 0 and await self.digivolve_in_breed_strategy(ws):
+                some_action = True
+            self.logger.info('Attack strategy...')
+            if self.game['memory'] >= 0 and await self.attack_loop(ws):
+                some_action = True
             self.logger.info('Play digimon strategy...')
-            some_action = await self.play_digimon_strategy(ws)
+            if self.game['memory'] >= 0 and await self.play_digimon_strategy(ws):
+                some_action = True
+            self.logger.info('Attack strategy...')
+            if self.game['memory'] >= 0 and await self.attack_loop(ws):
+                some_action = True
 
     async def end_turn(self, ws):
         await super().end_turn()
+        self.logger.debug(self.game['player2Hand'])
         if self.game['memory'] >= 0:
             await self.set_memory_to(ws, -3)
         await self.send_game_chat_message(ws, 'I end my turn!')

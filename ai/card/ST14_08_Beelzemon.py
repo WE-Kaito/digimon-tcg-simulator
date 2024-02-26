@@ -21,7 +21,8 @@ class ST14_08_Beelzemon(Card):
     
     async def all_turns_effect(self, ws):
         await super().animate_effect(ws)
-        await self.bot.send_message(ws, 'ST14-08 Beelzemon [All turns effect] effect: when a cards is trashed,')
+        await self.bot.send_message(ws, 'ST14-08 Beelzemon [All turns effect] effect: when a cards is trashed')
+        self.logger.info(f"Cards in trash: {len(self.bot.game['player2Trash'])}")
         memory_increase = math.floor(len(self.bot.game['player2Trash']) / 10)
         await self.bot.send_message(ws, f'Gain {memory_increase} memory.')
         await self.bot.increase_memory_by(ws, memory_increase)

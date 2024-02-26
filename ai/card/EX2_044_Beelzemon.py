@@ -22,6 +22,7 @@ class EX2_044_Beelzemon(Card):
             card_obj = self.bot.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
             await card_obj.when_trashed_effect(ws)
         await self.bot.ex2_044_beelzemon_when_digivolving_when_attacking_strategy(ws)
+        await self.bot.when_card_is_trashed_from_deck(ws)
 
     ## TODO: Can target strategy to 
     async def when_digivolving_effect(self, ws):

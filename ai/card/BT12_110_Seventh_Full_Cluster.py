@@ -9,7 +9,7 @@ class BT12_110_Seventh_Full_Cluster(Card):
         opponent_digimons = []
         for i in range(len(self.bot.game['player1Digi'])):
             card = self.bot.game['player1Digi'][i][-1]
-            if card['type'] == 'Digimon':
+            if card['cardType'] == 'Digimon':
                 opponent_digimons.append(card['level'], i, card['name'])
         if len(opponent_digimons) >= 0:
             await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons)[1])

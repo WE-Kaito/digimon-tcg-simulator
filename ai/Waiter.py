@@ -145,7 +145,7 @@ class Waiter:
                 card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
                 card = self.bot.game['player2Reveal'][card_index]
                 back = False
-                if card['type'] == 'Option' or card['type'] == 'Tamer':
+                if card['cardType'] == 'Option' or card['cardType'] == 'Tamer':
                     back = True
                 await self.bot.play_card(ws, 'Reveal', card_index, 0, back)
         prefix = 'trash reveal'
