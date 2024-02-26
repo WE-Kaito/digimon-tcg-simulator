@@ -608,14 +608,14 @@ class BeelzemonXBot(Bot):
             await self.draw_for_turn(ws, 1)
             await self.update_phase(ws)
 
-        if self.turn_counter == 0:
-            self.logger.info('Cheating by retrieving cards from deck.')
-            cheater = Cheater(self)
-            await cheater.trash_all_cards_from_hand(ws)
-            await cheater.get_card_from_deck_in_hand(ws, 'BT2-068', 'Impmon')
-            await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
-            await cheater.get_card_from_deck_in_hand(ws, 'ST14-07', 'Baalmon')
-            await cheater.get_card_from_deck_in_hand(ws, 'ST14-08', 'Beelzemon')
+        # if self.turn_counter == 0:
+        #     self.logger.info('Cheating by retrieving cards from deck.')
+        #     cheater = Cheater(self)
+        #     await cheater.trash_all_cards_from_hand(ws)
+        #     await cheater.get_card_from_deck_in_hand(ws, 'BT2-068', 'Impmon')
+        #     await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
+        #     await cheater.get_card_from_deck_in_hand(ws, 'ST14-07', 'Baalmon')
+        #     await cheater.get_card_from_deck_in_hand(ws, 'ST14-08', 'Beelzemon')
         
         # Breeding phase
         self.logger.info(f'---------------------BREEDING PHASE---------------------')

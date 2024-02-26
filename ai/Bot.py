@@ -946,21 +946,24 @@ class Bot(ABC):
 
     async def set_memory_to(self, ws, value):
         self.logger.info(f'Set memory to {value}')
+        old_memory = self.game['memory']
         self.game['memory'] = int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
-        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{old_memory}±{self.game['memory']}")
 
     async def increase_memory_by(self, ws, value):
         self.logger.info(f'Increase memory by {value}')
+        old_memory = self.game['memory']
         self.game['memory'] += int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
-        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{old_memory}±{self.game['memory']}")
     
     async def decrease_memory_by(self, ws, value):
         self.logger.info(f'Decrease memory by {value}')
+        old_memory = self.game['memory']
         self.game['memory'] -= int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
-        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{self.game['memory']}")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{old_memory}±{self.game['memory']}")
     
     async def start_turn(self):
         self.placed_this_turn.clear()

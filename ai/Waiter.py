@@ -142,14 +142,18 @@ class Waiter:
         if message.startswith(prefix):
             card_id = await self.filter_target_reveal_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                card_index, _ = self.bot.find_card_index_by_id_in_reveal(card_id)
-                await self.bot.play_card(ws, 'Reveal', card_index, 0)
+                card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
+                card = self.bot.game['player2Reveal'][card_index]
+                back = False
+                if card['type'] == 'Option' or card['type'] == 'Tamer':
+                    back = True
+                await self.bot.play_card(ws, 'Reveal', card_index, 0, back)
         prefix = 'trash reveal'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
             card_id = await self.filter_target_reveal_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                card_index, _ = self.bot.find_card_index_by_id_in_reveal(card_id)
+                card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
                 await self.bot.trash_card_from_reveal(ws, card_index)
         prefix = 'stun'
         prefix_with_delimiter = prefix.replace(' ', '_')
