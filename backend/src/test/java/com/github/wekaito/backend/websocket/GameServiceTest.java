@@ -36,8 +36,8 @@ class GameServiceTest {
     private WebSocketSession session2;
     String username1 = "testUser1";
     String username2 = "testUser2";
-    Deck exampleDeck = new Deck("12345", "New Deck", new ArrayList<>(List.of("BT1-010", "BT1-010")), "url","Gammamon","authorId");
-    Deck exampleDeck2 = new Deck("67890", "New Deck2", new ArrayList<>(List.of("BT1-020", "BT1-020")), "url","Gammamon","authorId");
+    Deck exampleDeck = new Deck("12345", "New Deck", new ArrayList<>(List.of("BT1-010", "BT1-010")), "url","Gammamon", true, true, "authorId");
+    Deck exampleDeck2 = new Deck("67890", "New Deck2", new ArrayList<>(List.of("BT1-020", "BT1-020")), "url","Gammamon", true, true, "authorId");
     String gameId = "testUser1‗testUser2";
 
     private WebSocketSession createMockSession(String username) {

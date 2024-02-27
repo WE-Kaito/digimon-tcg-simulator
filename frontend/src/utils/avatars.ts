@@ -38,7 +38,11 @@ export const avatars: Picture[] = [
     { name: "Pinochimon", imagePath: buildUrl("Pinochimon"), artist: "Tortoiseshel" },
     { name: "PrinceMamemon", imagePath: buildUrl("PrinceMamemon"), artist: "Tortoiseshel" },
     { name: "Lilithmon X", imagePath: buildUrl("Lilithmon_X"), artist: "Tortoiseshel" },
-    { name: "Numemon", imagePath: buildUrl("Numemon"), artist: "Tortoiseshel" }
+    { name: "Numemon", imagePath: buildUrl("Numemon"), artist: "Tortoiseshel" },
+    { name: "Leviamon X", imagePath: buildUrl("Leviamon_X"), artist: "Tortoiseshel" },
+    { name: "Imperialdramon PM", imagePath: buildUrl("Imperialdramon_PM"), artist: "Tortoiseshel" },
+    { name: "HolyAngemon", imagePath: buildUrl("HolyAngemon"), artist: "Tortoiseshel" },
+    { name: "Pandamon", imagePath: buildUrl("Pandamon"), artist: "Tortoiseshel" },
 ]
 
 function buildUrl(fileName: string) {
