@@ -1,6 +1,6 @@
 export default function Pen({scale}: { readonly scale?: number }) {
     return (
-        <div style={{position: "absolute", transform:"translate(-15px, 2px)"}}>
+        <div style={{position: "absolute", transform:"translate(-15px, 3px)"}}>
         <svg width={scale ? (scale * 140) : 140} height={scale ? (scale * 220) : 220}
              viewBox={`0 0 ${scale ? (scale * 140) : 140} ${scale ? (scale * 220) : 220}`} fill="none"
              xmlns="http://www.w3.org/2000/svg" xlinkHref="http://www.w3.org/1999/xlink">

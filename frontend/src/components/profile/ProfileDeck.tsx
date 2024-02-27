@@ -1,110 +1,150 @@
-import {DeckType} from "../../utils/types.ts";
+import {CardType, DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../../hooks/useStore.ts";
-import {playButtonClickSfx, playDrawCardSfx} from "../../utils/sound.ts";
+import { playDrawCardSfx } from "../../utils/sound.ts";
+import {generateGradient, getCardTypeImage, handleImageError} from "../../utils/functions.ts";
+import {getSleeve} from "../../utils/sleeves.ts";
+import LevelDistribution from "./LevelDistribution.tsx";
+import {Dispatch, SetStateAction} from "react";
+import {Chip} from "@mui/material";
+import { grey, teal } from '@mui/material/colors';
 
-const deckBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/deckBack.png";
+const tokenImageUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/tokenCard.jpg";
 
-function ColoredDeckImage(color:string | null, id: string) {
+export type ProfileDeckProps = {
+    deck: DeckType;
+    isDragging: boolean;
+    setSleeveSelectionOpen: Dispatch<SetStateAction<boolean>>;
+    setImageSelectionOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
+
+    const {deck, isDragging, setSleeveSelectionOpen, setImageSelectionOpen} = props;
+
+    const fetchedCards = useStore(state => state.fetchedCards);
+    const setSelectedSleeveOrImage = useStore((state) => state.setSelectedSleeveOrImage);
+    const setDeckIdToSetSleeveOrImage = useStore((state) => state.setDeckIdToSetSleeveOrImage);
+    const setDeckById = useStore((state) => state.setDeckById);
 
     const navigate = useNavigate();
     const navigateToDeck = () => {
         playDrawCardSfx();
-        navigate(`/update-deck/${id}`);
+        navigate(`/update-deck/${deck.id}`);
     }
 
-    switch (color) {
-        case "Black":
-            return <BlackDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
-        case "White":
-            return <WhiteDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
-        case "Blue":
-            return <BlueDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
-        case "Green":
-            return <GreenDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
-        case "Purple":
-            return <PurpleDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
-        case "Red":
-            return <RedDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
-        case "Yellow":
-            return <YellowDeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
-        default:
-            return <DeckImage onClick={navigateToDeck} src={deckBackUrl}/>;
+    function onSleeveClick() {
+        setSelectedSleeveOrImage(deck.sleeveName);
+        setDeckIdToSetSleeveOrImage(deck.id);
+        setSleeveSelectionOpen(true);
     }
-}
 
-export default function ProfileDeck({deck}:{readonly deck:DeckType}) {
+    function onImageClick() {
+        setDeckById(deck.id);
+        setSelectedSleeveOrImage(deck.deckImageCardUrl);
+        setDeckIdToSetSleeveOrImage(deck.id);
+        setImageSelectionOpen(true);
+    }
 
-    const setActiveDeck = useStore(state => state.setActiveDeck);
-    const activeDeckId = useStore(state => state.activeDeckId);
+    const deckCards : CardType[] = deck.decklist.map((uniqueCardNumber) => {
+            const card = fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0];
+            return (card ? card : fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]);
+        }
+    );
 
-    const isActiveDeck = deck.id === activeDeckId;
+    const digimonCount = deckCards.filter(card => card.cardType === "Digimon").length;
+    const tamerCount = deckCards.filter(card => card.cardType === "Tamer").length;
+    const optionCount = deckCards.filter(card => card.cardType === "Option").length;
+    const eggCount = deckCards.filter(card => card.cardType === "Digi-Egg").length;
 
     return (
-        <Container>
-            <DeckName longName={deck.name.length >= 15}>{deck.name}</DeckName>
-            <ActiveButton style={{backgroundColor: isActiveDeck ? "lightcyan" : "black", color: isActiveDeck ? "black" : "white"}}
-            onClick={() => {
-                playButtonClickSfx();
-                setActiveDeck(deck.id);
-            }}>Active</ActiveButton>
-           {ColoredDeckImage(deck.color, deck.id)}
-        </Container>
+        <WrapperDiv style={{ pointerEvents: isDragging ? "none" : "unset"}}>
+            <DeckName>{deck.name}</DeckName>
+            <ContainerDiv style={{ transform: isDragging ? "scale(0.95)" : "unset" }}>
+
+                <LevelDistribution deckCards={deckCards}/>
+
+                <CardTypeDigimon><img src={getCardTypeImage("Digimon")} alt={"Digimon"}/><span>{digimonCount}</span></CardTypeDigimon>
+                <CardTypeTamer><img src={getCardTypeImage("Tamer")} alt={"Tamer"}/><span>{tamerCount}</span></CardTypeTamer>
+                <CardTypeOption><img src={getCardTypeImage("Option")} alt={"Option"}/><span>{optionCount}</span></CardTypeOption>
+                <CardTypeEgg><img src={getCardTypeImage("Digi-Egg")} alt={"Egg"}/><span>{eggCount}</span></CardTypeEgg>
+
+                <ChipEn label={"EN"} sx={{backgroundColor: deck.isAllowed_en ? teal["A700"] : grey[800]}} />
+                <ChipJp label={"JP"} sx={{backgroundColor: deck.isAllowed_jp ? teal["A700"] : grey[800]}} />
+
+                <EditButton onClick={navigateToDeck}>EDIT➤</EditButton>
+
+                <SleeveImage src={getSleeve(deck.sleeveName)} onError={handleImageError} onClick={onSleeveClick}/>
+
+                <CardImage src={deck.deckImageCardUrl ?? tokenImageUrl} onError={handleImageError} onClick={onImageClick}/>
+
+                <ColorLineDiv style={{ background: generateGradient(deckCards)}}/>
+            </ContainerDiv>
+        </WrapperDiv>
     );
 }
 
-const Container = styled.div`
+const WrapperDiv = styled.div`
   position: relative;
-  width: 220px;
-  height: 105px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  border-radius: 12px;
+  height: 180px;
+  width: 280px;
+  background: linear-gradient(20deg, rgba(87, 171, 255, 0.12) 0%, rgba(93, 159, 236, 0.12) 70%, rgba(94, 187, 245, 0.22) 100%);
+  padding: 3px;
+  box-shadow: inset 0 0 3px 0 rgba(148, 224, 255, 0.4);
+`;
 
-  padding: 8px;
+const ContainerDiv = styled.div`
+  position: relative;
+  width: 100%;
+  height: 81.5%;
+  padding: 6px;
   display: grid;
   justify-content: center;
   align-items: center;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  grid-template-areas:'deck name name'
-                        'deck button button';
-  background-color: rgba(255, 255, 255, 0.025);
+  gap: 4px;
+  grid-template-columns: 1fr 1fr 1fr 0.8fr 0.8fr 1.2fr 1.2fr;
+  grid-template-rows: repeat(6, 1fr);
+  grid-template-areas:  'card-image card-image card-image levels levels digimons tamers'
+                        'card-image card-image card-image levels levels options eggs'
+                        'card-image card-image card-image sleeve sleeve allowed_en allowed_jp'
+                        'card-image card-image card-image sleeve sleeve edit edit'
+                        'card-image card-image card-image sleeve sleeve edit edit'
+                        'card-image card-image card-image colors colors colors colors';
+  background-color: #070707;
+  box-shadow: inset 0 0 3px 0 rgba(0, 0, 0, 0.7);
   border-radius: 10px;
-
-  @media (max-width: 500px) {
-    width: 160px;
-    padding: 6px;
-    margin: 4px;
-  }
-
+  transition: all 0.2s ease;
 `;
 
-const ActiveButton = styled.button`
-  grid-area: button;
-  padding: 0;
-  margin: 20px;
-  @media (max-width: 500px) {
-    margin: 2px;
-    transform: scale(0.725);
-  }
+const EditButton = styled.button`
+  grid-area: edit;
+  padding: 0 0 1px 2px;
 
   border-bottom: 1px solid #131313;
   border-right: 1px solid #131313;
 
   cursor: pointer;
-  width: 100px;
-  height: 40px;
+  width: 95%;
+  height: 75%;
   border-radius: 0;
-  background: #D9D9D9;
+  background: black;
   font-family: Pixel Digivolve, sans-serif;
-  font-size: 22px;
-  color: #0c0c0c;
-  box-shadow: 6px 12px 1px 0 rgb(0, 0, 0);
+  font-size: 14px;
+  color: white;
+  letter-spacing: 2px;
+  box-shadow: 3px 6px 1px 0 rgb(0, 0, 0);
   transition: all 0.15s ease;
 
   &:hover {
     background: lightgray;
     transform: translateY(1px);
-    box-shadow: 4px 8px 1px 0 rgba(0, 0, 0, 0.9);
+    box-shadow: 2px 4px 1px 0 rgba(0, 0, 0, 0.9);
+    color: #0c0c0c;
   }
 
   &:focus {
@@ -114,78 +154,107 @@ const ActiveButton = styled.button`
   &:active {
     background: #f8f8f8;
     transform: translateY(2px);
-    box-shadow: 2px 4px 1px 0 rgba(0, 0, 0, 0.8);
+    box-shadow: 1px 2px 1px 0 rgba(0, 0, 0, 0.8);
   }
 `;
 
-const DeckName = styled.span<{longName:boolean}>`
-  grid-area: name;
-  font-family: 'Sansation', sans-serif;
-  font-size: ${props => props.longName ? "12px" : "16px"};
-  
+const DeckName = styled.span`
+  font-family: 'League Spartan', sans-serif;
+  font-size: 16px;
+  color: ghostwhite;
   position: absolute;
-  width: 130px;
-  max-width: 100%;
-  left: 18px;
-  top: 4px;
+  max-width: 240px;
+  overflow-x: clip;
+  left: 10px;
+  top: 2px;
   text-align: left;
+  text-shadow: 1px 1px 2px black;
 `;
 
 
-const DeckImage = styled.img`
-width: 75px;  
-  grid-area: deck;
+const CardImage = styled.img`
+  max-height: 100%;
+  grid-area: card-image;
+  border-radius: 6px;
+
   :hover {
     cursor: pointer;
+    filter: drop-shadow(0 0 3px rgba(87, 160, 255, 0.6)) contrast(1.1);
   }
 `;
 
-const BlackDeckImage = styled(DeckImage)`
-  filter:grayscale(100%) brightness(50%) contrast(200%);
-    :hover {
-    filter:grayscale(100%) brightness(50%) contrast(200%) drop-shadow(0 0 3px #fff)
-    }
-`;
-
-const WhiteDeckImage = styled(DeckImage)`
-    filter: saturate(0%) brightness(140%);
-    :hover {
-    filter: saturate(0%) brightness(140%) drop-shadow(0 0 3px #fff)
-    }
-`;
-
-const PurpleDeckImage = styled(DeckImage)`
-    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%);
-    :hover {
-    filter: hue-rotate(20deg) brightness(90%) contrast(140%) saturate(120%) drop-shadow(0 0 3px #fff)
-    }
-`;
-
-const BlueDeckImage = styled(DeckImage)`
-    filter: hue-rotate(-5deg) brightness(110%) contrast(140%) saturate(180%);
-    :hover {
-    filter: hue-rotate(-5deg) brightness(110%) contrast(140%) saturate(180%) drop-shadow(0 0 3px #fff)
-    }
-`;
-
-const GreenDeckImage = styled(DeckImage)`
-    filter: hue-rotate(-90deg) saturate(120%) brightness(110%) contrast(100%);
+const SleeveImage = styled.img`
+  max-height: 100%;
+  border-radius: 2px;
+  grid-area: sleeve;
+  transform: translate(-2px, -1px);
+  
   :hover {
-    filter: hue-rotate(-90deg) saturate(120%) brightness(110%) contrast(100%) drop-shadow(0 0 3px #fff)
+    cursor: pointer;
+    filter: drop-shadow(0 0 2px rgba(87, 160, 255, 0.5)) contrast(1.1);
   }
 `;
 
-const YellowDeckImage = styled(DeckImage)`
-    filter: hue-rotate(162deg) saturate(180%) brightness(120%);
-  :hover {
-    filter: hue-rotate(162deg) saturate(180%) brightness(120%) drop-shadow(0 0 3px #fff)
+const CardTypeContainer = styled.div`
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  img {
+    height: 22px;
+  }
+  
+  span {
+    font-family: Cousine, sans-serif;
+    font-size: 16px;
+    position: absolute;
+    left: 25px;
+    top: 0;
   }
 `;
 
-const RedDeckImage = styled(DeckImage)`
-  filter: hue-rotate(120deg) saturate(130%);
-    :hover {
-    filter: hue-rotate(120deg) saturate(130%) drop-shadow(0 0 3px #fff)
-      
-    }
+const CardTypeDigimon = styled(CardTypeContainer)`
+  grid-area: digimons;
+`;
+
+const CardTypeTamer = styled(CardTypeContainer)`
+  grid-area: tamers;
+`;
+
+const CardTypeOption = styled(CardTypeContainer)`
+  grid-area: options;
+  img{
+    transform: translateY(1px);
+  }
+`;
+
+const CardTypeEgg = styled(CardTypeContainer)`
+  grid-area: eggs;
+`;
+
+const ColorLineDiv = styled.div`
+  grid-area: colors;
+  width: 100%;
+  height: 15px;
+  border-radius: 3px;
+  transform: translate(-1px, 2px);
+  box-shadow: inset 0 0 2px 0 rgba(219, 236, 243, 0.4);
+`;
+
+const StyledChip = styled(Chip)`
+  border-radius: 5px;
+  height: 20px;
+  font-weight: bolder;
+  box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.7);
+  transform: translateY(1px);
+  span { transform: translateY(1px); }
+`;
+
+const ChipEn = styled(StyledChip)`
+  grid-area: allowed_en;
+`;
+
+const ChipJp = styled(StyledChip)`
+  grid-area: allowed_jp;
 `;

@@ -27,7 +27,7 @@ class MongoUserDetailsServiceTest {
     @BeforeEach
     void setUp() {
         mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository);
-        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "takato", "sleeve1")));
+        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon")));
     }
 
     @Test
@@ -47,7 +47,7 @@ class MongoUserDetailsServiceTest {
         String resultAvatarName = mongoUserDetailsService.getAvatar("testUser1");
 
         // THEN
-        assertThat(resultAvatarName).isEqualTo("takato");
+        assertThat(resultAvatarName).isEqualTo("AncientIrismon");
         assertThrows(UsernameNotFoundException.class, () -> {
             mongoUserDetailsService.getAvatar("notExistingUser");
         });

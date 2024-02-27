@@ -12,10 +12,10 @@ import discordIcon from "../assets/discordLogo.png";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import {useGame} from "../hooks/useGame.ts";
-import {Button} from "@mui/material";
-import {
-  VolumeOff as MuteIcon
-} from '@mui/icons-material';
+import {Button, MenuItem, Select} from "@mui/material";
+import { SelectChangeEvent } from '@mui/material/Select';
+import {useStore} from "../hooks/useStore.ts";
+import {VolumeOff as MuteIcon} from '@mui/icons-material';
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -34,6 +34,13 @@ export default function Lobby({user}: { user: string }) {
 
     const setGameId = useGame((state) => state.setGameId);
     const clearBoard = useGame((state) => state.clearBoard);
+
+    const setActiveDeck = useStore(state => state.setActiveDeck);
+    const activeDeckId = useStore(state => state.activeDeckId);
+    const getActiveDeck = useStore(state => state.getActiveDeck);
+    const fetchDecks = useStore(state => state.fetchDecks);
+    const decks = useStore(state => state.decks);
+    const isLoading = useStore(state => state.isLoading);
 
     const navigate = useNavigate();
     const navigateToGame = () => navigate("/game");
@@ -74,8 +81,7 @@ export default function Lobby({user}: { user: string }) {
 
             if (event.data === "[NO_ACTIVE_DECK]") {
                 notifyNoActiveDeck();
-                const timeout = setTimeout(() => navigate("/"), 3100);
-                return () => clearTimeout(timeout);
+                return;
             }
 
             if (event.data === "[RECONNECT_ENABLED]") {
@@ -101,12 +107,6 @@ export default function Lobby({user}: { user: string }) {
             setUsernames(event.data.split(", "));
         },
     });
-
-    useEffect(() => {
-        if (historyRef.current) {
-            historyRef.current.scrollTop = historyRef.current.scrollHeight;
-        }
-    }, [messages]);
 
     function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -143,14 +143,27 @@ export default function Lobby({user}: { user: string }) {
     }
 
     function handleMuteInvites() {
-      notifyMuteInvites(inviteFrom);
-      setMutedInvitesFrom([...mutedInvitesFrom, inviteFrom]);
-      handleAbortInvite(false);
+        notifyMuteInvites(inviteFrom);
+        setMutedInvitesFrom([...mutedInvitesFrom, inviteFrom]);
+        handleAbortInvite(false);
     }
+
+    const handleDeckChange = (event: SelectChangeEvent<unknown>) => setActiveDeck(String(event.target.value));
 
     function userVisible(username: string) {
         return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
     }
+
+    useEffect(() => {
+        if (historyRef.current) {
+            historyRef.current.scrollTop = historyRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    useEffect(() => {
+        getActiveDeck();
+        fetchDecks();
+    }, []);
 
     return (
         <Wrapper>
@@ -179,8 +192,18 @@ export default function Lobby({user}: { user: string }) {
             {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
 
             <Header>
-                <HeadlineSpan>Online: {userCount}</HeadlineSpan>
-                <ButtonContainer><Button onClick={navigateToGame} disabled={!isRejoinable} sx={{mr: 10}} variant="outlined" color="success">RECONNECT</Button> <BackButton/></ButtonContainer>
+                <Headline2 style={{flexWrap: "nowrap"}}>Online: {userCount}</Headline2>
+
+                {!isLoading && <StyledSelect label="Deck" onChange={handleDeckChange} value={activeDeckId} labelId={"decks"}
+                               color={"primary"} defaultValue={activeDeckId} variant={"filled"}>
+                    {decks.map((deck) => <MenuItem value={deck.id} key={deck.id}>{deck.name}</MenuItem>)}
+                </StyledSelect>}
+
+                <ButtonContainer>
+                    <Button onClick={navigateToGame} disabled={!isRejoinable} sx={{mr: 10}}
+                            variant="outlined" color="success">RECONNECT</Button>
+                    <BackButton/>
+                </ButtonContainer>
             </Header>
 
             <Container>
@@ -198,7 +221,7 @@ export default function Lobby({user}: { user: string }) {
 
                 <Chat>
                     <History ref={historyRef}>
-                        {messages.map((message, idx) => {
+                        {messages.map((message, index) => {
                             const colonIndex = message.indexOf(":");
                             if (colonIndex !== -1) {
                                 const name = message.substring(0, colonIndex);
@@ -206,7 +229,7 @@ export default function Lobby({user}: { user: string }) {
 
                                 if (name === "【SERVER】"){
                                     return (
-                                        <div style={{display: "flex"}} key={idx}>
+                                        <div style={{display: "flex"}} key={index}>
                                             {content === " Join our Discord!"
                                                 ? <StyledSpan name={name} user={user}>
                                                 <span style={{color:"#31da75"}}>Server</span>:
@@ -221,12 +244,12 @@ export default function Lobby({user}: { user: string }) {
                                 }
 
                                 return (
-                                    <div style={{display: "flex"}} key={idx}>
+                                    <div style={{display: "flex"}} key={index}>
                                         <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>
                                     </div>
                                 );
                             }
-                            return <div key={idx}>{message}</div>;
+                            return <div key={index}>{message}</div>;
                         })}
                     </History>
                     <InputContainer onSubmit={handleSubmit}>
@@ -258,7 +281,8 @@ const Header = styled.div`
   margin-top: 5vh;
   width: 100%;
   max-width: 900px;
-
+  position: relative;
+  
   @media (max-width: 766px) {
     margin-top: 1.5vh;
   }
@@ -560,14 +584,6 @@ const DeclineButton = styled(StyledButton)`
   }
 `;
 
-const HeadlineSpan = styled(Headline2)`
-  grid-column-start: 2;
-    @media (max-width: 766px) {
-      transform: translate(-24vw, -6px);
-      margin-left: 0;
-    }
-`;
-
 const SearchBar = styled.input`
   background: rgba(255, 255, 255, 0.5);
   border-radius: 25px;
@@ -586,6 +602,31 @@ const SearchBar = styled.input`
   }
 `;
 
+const StyledSelect = styled(Select)`
+  color: aquamarine;
+  background: rgba(29, 123, 239, 0.35);
+  height: 32px;
+  width: 300px;
+  position: absolute;
+  top: 28px;
+  left: 300px;
+  font-family: "League Spartan", sans-serif;
+  
+  .MuiInputBase-input {
+    transform: translateY(-7px);
+  }
+  
+  @media (max-width: 800px) {
+    left: 30%;
+    width: 240px;
+  }
+
+  @media (max-width: 500px) {
+    top: 64px;
+    width: 240px;
+  }
+`;
+
 const Mute = styled(MuteIcon)`
   position: absolute;
   top: 20px; 
@@ -594,4 +635,4 @@ const Mute = styled(MuteIcon)`
   &:hover {
     opacity: 50%;
   }
-`
+`;

@@ -1,13 +1,18 @@
-import {CardTypeGame, CardTypeWithId} from "./types.ts";
+import {CardType, CardTypeGame, CardTypeWithId} from "./types.ts";
 import cardBack from "../assets/cardBack.jpg";
 
 import {
     playButtonClickSfx,
-    playDrawCardSfx, playNextPhaseSfx,
-    playOpponentPlaceCardSfx, playPassTurnSfx,
+    playDrawCardSfx,
+    playNextPhaseSfx,
+    playOpponentPlaceCardSfx,
+    playPassTurnSfx,
     playRevealCardSfx,
-    playSecurityRevealSfx, playShuffleDeckSfx,
-    playSuspendSfx, playTrashCardSfx, playUnsuspendSfx
+    playSecurityRevealSfx,
+    playShuffleDeckSfx,
+    playSuspendSfx,
+    playTrashCardSfx,
+    playUnsuspendSfx
 } from "./sound.ts";
 import axios from "axios";
 import {starterBeelzemon, starterGallantmon} from "./starterDecks.ts";
@@ -223,13 +228,15 @@ export function convertForLog(location: string) {
     return locationMappings[location] || location;
 }
 
-function saveStarterDeck(name: string, color: string, decklist: string[]) {
+function saveStarterDeck(name: string, decklist: string[], imgUrl: string, sleeveName: string) {
 
     const deckToSave = {
         name: name,
-        color: color,
         decklist: decklist,
-        deckStatus: "INACTIVE"
+        deckImageCardUrl: imgUrl,
+        sleeveName: sleeveName,
+        isAllowed_en: true,
+        isAllowed_jp: true
     }
 
     axios
@@ -241,39 +248,12 @@ function saveStarterDeck(name: string, color: string, decklist: string[]) {
         });
 }
 
+const st14_10 = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST14-10.webp";
+const st7_09 = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST7-09.webp";
+
 export function addStarterDecks() {
-    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", "Purple", starterBeelzemon), 100);
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", "Red", starterGallantmon), 200);
-}
-
-export function mostFrequentColor(deckCards: CardTypeWithId[]) {
-    const colorOccurrences = {};
-
-    for (const card of deckCards) {
-        const color = card.color[0];
-        // @ts-ignore
-        if (colorOccurrences[color]) {
-            // @ts-ignore
-            colorOccurrences[color]++;
-        } else {
-            // @ts-ignore
-            colorOccurrences[color] = 1;
-        }
-    }
-
-    let mostFrequentColor = null;
-    let maxOccurrences = 0;
-
-    for (const color in colorOccurrences) {
-        // @ts-ignore
-        if (colorOccurrences[color] > maxOccurrences) {
-            mostFrequentColor = color;
-            // @ts-ignore
-            maxOccurrences = colorOccurrences[color];
-        }
-    }
-
-    return mostFrequentColor;
+    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon",  starterBeelzemon, st14_10,"Impmon"), 100);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon",  starterGallantmon, st7_09, "Guilmon"), 200);
 }
 
 export function getCardColor(color: string): [string, string] {
@@ -385,4 +365,92 @@ export function filterDoubleCardNumbers(cards : CardTypeWithId[]) : CardTypeWith
         }
     }
     return uniqueCards;
+}
+
+export function generateGradient(deckCards : CardType[]) {
+
+    const colorMap = {
+        Blue: '#3486E3FF',
+        Green: '#25AB3BFF',
+        Red: '#AB2530FF',
+        Yellow: '#AB9925FF',
+        Purple: '#9135AFFF',
+        Black: '#212121FF',
+        White: '#B2B2B2FF',
+    };
+
+    const colorCounts = {
+        Blue: 0,
+        White: 0,
+        Green: 0,
+        Purple: 0,
+        Black: 0,
+        Red: 0,
+        Yellow: 0,
+    };
+
+    deckCards.forEach(card => card.color.forEach(color => { // @ts-ignore
+        if (color in colorCounts) colorCounts[color]++;
+    }));
+
+    const totalCards = Object.values(colorCounts).reduce((sum, count) => sum + count, 0);
+
+    const gradientParts : string[] = [];
+    let accumulatedPercentage = 0;
+
+    Object.entries(colorCounts)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .filter(([_, count]) => count > 0)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .sort(([_, countA], [__, countB]) => countB - countA)
+        .forEach(([color, count], index, array) => {
+            const thisColorPercentage = (count / totalCards) * 100;
+            // @ts-ignore
+            const hexColor = colorMap[color];
+
+            // for smooth gradients:
+            // if (index === 0) gradientParts.push(`${hexColor} ${accumulatedPercentage.toFixed(2)}%`);
+            //
+            // accumulatedPercentage += thisColorPercentage;
+            //
+            // if (index === array.length - 1) accumulatedPercentage = 100;
+            //
+            // gradientParts.push(`${hexColor} ${accumulatedPercentage.toFixed(2)}%`);
+
+            // for sharp gradients:
+            const startPercentage = accumulatedPercentage;
+            let endPercentage = accumulatedPercentage + thisColorPercentage;
+
+            if (index === Object.keys(colorCounts).length - 1) endPercentage = 100;
+
+            gradientParts.push(`${hexColor} ${startPercentage.toFixed(2)}%`);
+            gradientParts.push(`${hexColor} ${endPercentage.toFixed(2)}%`);
+
+            accumulatedPercentage += thisColorPercentage;
+        });
+
+    return `linear-gradient(90deg, ${gradientParts.join(', ')})`;
+}
+
+export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("en" | "jp")) : boolean {
+    let isRestrictionViolated = false;
+    let lastCard: CardTypeWithId;
+
+    if (format === "en") {
+        if (deck.find((card) => ["Banned","Not released"].includes(card.restriction_en))) return false;
+        const restrictedCards_en = deck.filter((card) => card.restriction_en === "Restricted to 1")
+        restrictedCards_en.forEach((card) => {
+            if (lastCard === card) isRestrictionViolated = true;
+            lastCard = card;
+        })
+    }
+    if (format === "jp") {
+        if (deck.find((card) => ["Banned","Not released"].includes(card.restriction_jp))) return false;
+        const restrictedCards_jp = deck.filter((card) => card.restriction_jp === "Restricted to 1")
+        restrictedCards_jp.forEach((card) => {
+            if (lastCard === card) isRestrictionViolated = true;
+            lastCard = card;
+        })
+    }
+    return !isRestrictionViolated
 }

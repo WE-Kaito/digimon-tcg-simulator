@@ -57,15 +57,17 @@ export type SearchCards = (
 export type DeckType = {
     id: string,
     name: string,
-    color: string,
     decklist: string[],
-    deckStatus: string,
+    deckImageCardUrl: string,
+    isAllowed_en: boolean | undefined,
+    isAllowed_jp: boolean | undefined,
+    sleeveName: string,
 }
 
 export type Player = {
     username: string,
     avatarName: string,
-    sleeveName: string,
+    sleeveName: string
 }
 
 export type GameDistribution = {

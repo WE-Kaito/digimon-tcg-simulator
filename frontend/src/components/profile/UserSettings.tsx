@@ -171,7 +171,7 @@ const Description = styled.span`
   color: #1d7dfc;
   @media (max-width: 1050px) {
     font-size: 13px;
-    transform: translate(15px, 5px);
+    transform: translate(60px, 5px);
   }
 `;
 
@@ -181,6 +181,9 @@ const ChangeQuestionForm = styled.form`
   flex-direction: row;
   align-items: flex-start;
   width: 195px;
+  @media (max-width: 1050px) {
+    margin-left: 30%;
+  }
 `;
 
 const ChangeQuestionInput = styled.input`

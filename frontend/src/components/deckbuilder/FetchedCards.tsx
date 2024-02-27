@@ -5,12 +5,12 @@ import noCardsFoundAnimation from "../../assets/lotties/noCardsFound.json";
 import gatchmon from "../../assets/gatchmon.png";
 import {useStore} from "../../hooks/useStore.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
-import {Suspense, useMemo} from 'react';
+import {Suspense, useEffect, useMemo} from 'react';
 import FetchCard from "./FetchCard.tsx";
 
 export const Loading = () => <LoadingContainer>
     <Lottie animationData={loadingAnimation} loop={true} style={{width: "90px"}}/>
-    <img alt="gatchmon" src={gatchmon} width={80} height={100}/>
+    <img alt="" src={gatchmon} width={80} height={100}/>
 </LoadingContainer>
 
 export default function FetchedCards() {
@@ -21,8 +21,15 @@ export default function FetchedCards() {
 
     const memoizedFilteredCards = useMemo(() => filteredCards, [filteredCards]);
 
+    useEffect(() => {
+        const container = document.getElementById('search-container');
+        container?.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
+    }, []);
+
     return (
-        <FetchContainer>
+        <FetchContainer id={"search-container"}>
             <Suspense fallback={<Loading/>}>
                 <StyledFieldset>
 

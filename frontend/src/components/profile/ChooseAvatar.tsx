@@ -36,8 +36,8 @@ const GridContainer = styled.div`
   width: fit-content;
   height: fit-content;
   display: grid;
-  grid-template-columns: repeat(6, 48px);
-  grid-template-rows: repeat(6, 48px);
+  grid-template-columns: repeat(20, 48px);
+  grid-template-rows: repeat(2, 48px);
   gap: 3px;
   position: relative;
   padding: 5px;
@@ -80,7 +80,7 @@ const SpriteButton = styled.img<{chosen: boolean}>`
 
 const AvatarSpan = styled.span`
   position: absolute;
-  top: -25px;
+  top: -26px;
   left: 2px;
   color: #1d7dfc;
   font-size: 22px;
@@ -94,8 +94,8 @@ const AvatarSpan = styled.span`
 `;
 
 const AvatarSpan2 = styled(AvatarSpan)`
-  left: 205px;
-  top: -21px;
+  left: 920px;
+  top: -22px;
   font-size: 16px;
   transition: all 0.2s ease-in-out;
 `;

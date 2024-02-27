@@ -30,10 +30,10 @@ class DeckTest {
     }
 
     private static Stream<Arguments> provideDecksForEqualityTest() {
-        Deck deck1 = new Deck("1", "New Deck", "Red", new ArrayList<>(List.of("card1","card2")), "authorId1");
-        Deck deck2 = new Deck("1", "New Deck", "Red", new ArrayList<>(List.of("card1","card2")), "authorId1");
-        Deck deck3 = new Deck("2", "Another Deck", "Red", new ArrayList<>(List.of("card1","card2")), "authorId2");
-        Deck deck4 = new Deck("1", "New Deck", "Red", new ArrayList<>(List.of("card1","card2")), "authorId1");
+        Deck deck1 = new Deck("1", "New Deck",  new ArrayList<>(List.of("card1","card2")), "url", "sleeve", true, true, "authorId1");
+        Deck deck2 = new Deck("1", "New Deck", new ArrayList<>(List.of("card1","card2")), "url", "sleeve", true, true, "authorId1");
+        Deck deck3 = new Deck("2", "Another Deck", new ArrayList<>(List.of("card1","card2")), "url", "sleeve", true, true, "authorId2");
+        Deck deck4 = new Deck("1", "New Deck",  new ArrayList<>(List.of("card1","card2")), "url", "sleeve", true, true, "authorId1");
 
         return Stream.of(
                 Arguments.of(deck1, deck2, true),
@@ -43,9 +43,9 @@ class DeckTest {
     }
 
     private static Stream<Arguments> provideDecksForHashCodeTest() {
-        Deck deck1 = new Deck("1", "New Deck", "Red", new ArrayList<>(List.of("card1","card2")), "authorId1");
-        Deck deck2 = new Deck("1", "New Deck", "Red", new ArrayList<>(List.of("card1","card2")), "authorId1");
-        Deck deck3 = new Deck("2", "Another Deck", "Red", new ArrayList<>(List.of("card1","card2")), "authorId2");
+        Deck deck1 = new Deck("1", "New Deck", new ArrayList<>(List.of("card1","card2")), "url", "sleeve", true, true, "authorId1");
+        Deck deck2 = new Deck("1", "New Deck", new ArrayList<>(List.of("card1","card2")), "url", "sleeve", true, true, "authorId1");
+        Deck deck3 = new Deck("2", "Another Deck", new ArrayList<>(List.of("card1","card2")), "url", "sleeve", true, true, "authorId2");
 
         return Stream.of(
                 Arguments.of(deck1, deck2, true),

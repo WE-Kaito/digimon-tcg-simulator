@@ -36,8 +36,8 @@ class GameServiceTest {
     private WebSocketSession session2;
     String username1 = "testUser1";
     String username2 = "testUser2";
-    Deck exampleDeck = new Deck("12345", "New Deck", "Red", new ArrayList<>(List.of("BT1-010", "BT1-010")), "authorId");
-    Deck exampleDeck2 = new Deck("67890", "New Deck2",  "Red", new ArrayList<>(List.of("BT1-020", "BT1-020")), "authorId");
+    Deck exampleDeck = new Deck("12345", "New Deck", new ArrayList<>(List.of("BT1-010", "BT1-010")), "url","Gammamon", true, true, "authorId");
+    Deck exampleDeck2 = new Deck("67890", "New Deck2", new ArrayList<>(List.of("BT1-020", "BT1-020")), "url","Gammamon", true, true, "authorId");
     String gameId = "testUser1‗testUser2";
 
     private WebSocketSession createMockSession(String username) {
@@ -66,8 +66,8 @@ class GameServiceTest {
         when(mongoUserDetailsService.getActiveDeck(username2)).thenReturn(exampleDeck2.id());
         when(mongoUserDetailsService.getAvatar(username1)).thenReturn("takato");
         when(mongoUserDetailsService.getAvatar(username2)).thenReturn("tai");
-        when(mongoUserDetailsService.getSleeve(username1)).thenReturn("sleeve1");
-        when(mongoUserDetailsService.getSleeve(username2)).thenReturn("sleeve2");
+        when(deckService.getDeckSleeveById(username1)).thenReturn("sleeve1");
+        when(deckService.getDeckSleeveById(username2)).thenReturn("sleeve2");
     }
 
     @Test

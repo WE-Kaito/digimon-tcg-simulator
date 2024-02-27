@@ -30,11 +30,11 @@ class DeckWithoutIdTest {
     }
 
     private static Stream<Arguments> provideDecksForEqualityTest() {
-        DeckWithoutId deck1 = new DeckWithoutId("New Deck", "Red", new ArrayList<>(List.of("card1","card2")));
-        DeckWithoutId deck2 = new DeckWithoutId("New Deck", "Red", new ArrayList<>(List.of("card1","card2")));
-        DeckWithoutId deck3 = new DeckWithoutId("Another Deck", "Red", new ArrayList<>(List.of("card1","card2")));
-        DeckWithoutId deck4 = new DeckWithoutId("New Deck", "Red", new ArrayList<>(List.of("card1","card2")));
-        DeckWithoutId deck5 = new DeckWithoutId("New Deck", "Red", new ArrayList<>(List.of("card1","card2")));
+        DeckWithoutId deck1 = new DeckWithoutId("New Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
+        DeckWithoutId deck2 = new DeckWithoutId("New Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
+        DeckWithoutId deck3 = new DeckWithoutId("Another Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
+        DeckWithoutId deck4 = new DeckWithoutId("New Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
+        DeckWithoutId deck5 = new DeckWithoutId("New Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
 
         return Stream.of(
                 Arguments.of(deck1, deck2, true),
@@ -45,10 +45,10 @@ class DeckWithoutIdTest {
     }
 
     private static Stream<Arguments> provideDecksForHashCodeTest() {
-        DeckWithoutId deck1 = new DeckWithoutId("New Deck", "Red", new ArrayList<>(List.of("card1","card2")));
-        DeckWithoutId deck2 = new DeckWithoutId("New Deck", "Red", new ArrayList<>(List.of("card1","card2")));
-        DeckWithoutId deck3 = new DeckWithoutId("Another Deck", "Red", new ArrayList<>(List.of("card1","card2")));
-        DeckWithoutId deck4 = new DeckWithoutId("New Deck", "Red", new ArrayList<>(List.of("card1","card2")));
+        DeckWithoutId deck1 = new DeckWithoutId("New Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
+        DeckWithoutId deck2 = new DeckWithoutId("New Deck", new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
+        DeckWithoutId deck3 = new DeckWithoutId("Another Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
+        DeckWithoutId deck4 = new DeckWithoutId("New Deck",  new ArrayList<>(List.of("card1","card2")), "url", false, true,  "sleeve");
 
         return Stream.of(
                 Arguments.of(deck1, deck2, true),

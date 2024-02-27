@@ -58,7 +58,7 @@ export function playTrashCardSfx() {
 
 export function playAttackSfx() {
     const audio = new Audio(attackSfx);
-    audio.volume = 0.3;
+    audio.volume = 0.25;
     audio.addEventListener('canplay', () => audio.play());
 }
 

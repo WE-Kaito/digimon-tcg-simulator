@@ -1,36 +1,58 @@
 import styled from "@emotion/styled";
 import {useStore} from "../hooks/useStore.ts";
-import {useEffect} from "react";
-import ProfileDeck from "../components/profile/ProfileDeck.tsx";
+import {useEffect, useState} from "react";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
 import {Loading} from "../components/deckbuilder/FetchedCards.tsx";
-import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import UserSettings from "../components/profile/UserSettings.tsx";
+import SortableProfileDeck from "../components/profile/SortableProfileDeck.tsx";
+import {closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {arrayMove, SortableContext} from "@dnd-kit/sortable";
+import {DeckType} from "../utils/types.ts";
+import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
+import {Dialog} from "@mui/material";
+import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
+import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
+
+export type DeckIdOrder = string[];
 
 export default function Profile({user}: { user: string }) {
 
-    const fetchDecks = useStore((state) => state.fetchDecks);
-    const decks = useStore((state) => state.decks);
+    const loadOrderedDecks = useStore((state) => state.loadOrderedDecks);
+    const deckIdOrder = useStore((state) => state.deckIdOrder);
+    const setDeckIdOrder = useStore((state) => state.setDeckIdOrder);
     const isLoading = useStore((state) => state.isLoading);
-    const getActiveDeck = useStore((state) => state.getActiveDeck);
-    const activeDeckId = useStore((state) => state.activeDeckId);
 
-    useEffect(() => {
-        fetchDecks();
-    }, [fetchDecks]);
+    const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);
+    const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
+    const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
 
-    useEffect(() => {
-        getActiveDeck();
-    }, [getActiveDeck, activeDeckId]);
+    const sensors = useSensors(useSensor(PointerSensor));
+
+    function handleDragEnd(event: DragEndEvent) {
+        const {active, over} = event;
+
+        if (!!over && (active.id !== over.id)) {
+            const oldIndexIds = deckIdOrder.findIndex((id) => id === active.id);
+            const newIndexIds = deckIdOrder.findIndex((id) => id === over.id);
+            setDeckIdOrder(arrayMove(deckIdOrder, oldIndexIds, newIndexIds), setOrderedDecks);
+        }
+    }
+
+    function handleOnClose() {
+        setSleeveSelectionOpen(false);
+        setImageSelectionOpen(false);
+        loadOrderedDecks(setOrderedDecks)
+    }
+
+    useEffect(() => loadOrderedDecks(setOrderedDecks), []);
 
     return (
         <Wrapper>
             <ParticlesBackground options={blueTriangles}/>
-
             <Header>
                 <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
                 <BackButton/>
@@ -38,74 +60,70 @@ export default function Profile({user}: { user: string }) {
 
             <UserSettings/>
 
-            <Personalization>
-                <ChooseAvatar/>
+            <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
+                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
+                <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
                 <ChooseCardSleeve/>
-            </Personalization>
+            </Dialog>
 
-            <Container>
-                {isLoading && <Loading/>}
-                {!isLoading && decks?.map((deck) => <ProfileDeck key={deck.id} deck={deck}/>)}
-            </Container>
+            <Dialog maxWidth={"xl"} onClose={handleOnClose} open={imageSelectionOpen}
+                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
+                <CustomDialogTitle handleOnClose={handleOnClose} variant={"Image"}/>
+                <ChooseDeckImage/>
+            </Dialog>
+
+            <ChooseAvatar/>
+
+            <DeckHeaderContainer>
+                <span>Decks</span>
+                <hr style={{width: "100vw", maxWidth:1204}}/>
+            </DeckHeaderContainer>
+
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <Container>
+                    {isLoading
+                        ? <Loading/>
+                        : <SortableContext items={orderedDecks}>
+                             {orderedDecks?.map((deck) => <SortableProfileDeck key={deck.id} deck={deck}
+                                                      setSleeveSelectionOpen={setSleeveSelectionOpen}
+                                                      setImageSelectionOpen={setImageSelectionOpen}
+                             />)}
+                          </SortableContext>}
+                </Container>
+            </DndContext>
         </Wrapper>
     );
 }
 
-const Personalization = styled.div`
-  display: flex;
-  flex-direction: row;
-  @media (max-width: 1050px) {
-    flex-direction: column;
-  }
-`;
-
 const Wrapper = styled.div`
   display: flex;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  min-width: 100vw;
+  height: 100%;
+  width: 100%;
   flex-direction: column;
   align-items: center;
   transform: translate(0px, 0px); // has to be here for the particles to work ???
+  overflow-x: clip;
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;
 
 const Container = styled.div`
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: 20px;
   align-items: flex-start;
-  background: rgba(0,0,0,0);
-  border-radius: 10px;
-  width: 100vw + 5px;
-  height: 410px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  padding: 1px;
-  border: 1px solid #1d7dfc;
-  scrollbar-width: thin;
-
+  background: rgba(0, 0, 0, 0);
+  scrollbar-width: none;
+  max-width: 1204px;
+  
   ::-webkit-scrollbar {
-    width: 3px;
-    background: rgba(139, 200, 255, 0.5);
-    border-radius: 3px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #1e77ea;
-    border-radius: 3px;
-  }
-  
-  @media (min-width: 1000px) {
-    width: 1032px;
-    gap: 19px;
-    padding: 5px;
-  }
-  
-  @media (min-width: 1600px) {
-    gap: 23px;
-  }
-  
-  @media (min-width: 1600px) and (min-height: 1000px) {
-    height: 32vw;
+    visibility: hidden;
   }
 `;
 
@@ -124,4 +142,37 @@ const Header = styled.div`
 
 const Name = styled(Headline2)`
   font-family: 'Amiga Forever Pro2', sans-serif;
+`;
+
+const DeckHeaderContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  width: 100vw;
+  max-width: 1204px;
+  
+  span {
+    color: #1d7dfc;
+    line-height: 1;
+    font-family: Naston, sans-serif;
+    font-size: 22px;
+    @media (max-width: 1050px) {
+      font-size: 17px;
+      padding-left: 5px;
+    }
+  }
+
+  hr {
+    color: #1d7dfc;
+    width: 100%;
+    background: #1d7dfc;
+    height: 2px;
+    border-radius: 3px;
+    margin-top: 0;
+  }
+
+  @media (min-width: 2000px) {
+
+  }
 `;

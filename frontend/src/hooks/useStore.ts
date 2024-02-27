@@ -1,25 +1,23 @@
-import {create} from "zustand";
+import { create } from "zustand";
 import {CardType, CardTypeGame, CardTypeWithId, DeckType, SearchCards} from "../utils/types.ts";
 import axios from "axios";
-import {uid} from "uid";
+import { uid } from "uid";
 import 'react-toastify/dist/ReactToastify.css';
-import {
-    notifyAlreadyExists, notifyCredentials,
-    notifyDelete,
-    notifyError, notifyGeneralError, notifyInvalidImport,
-    notifyLength,
-    notifyName, notifyPasswordChanged, notifyQuestionChanged, notifyRegistered,
-    notifySuccess,
-    notifyUpdate, notifyWrongAnswer
+import { notifyAlreadyExists, notifyCredentials, notifyDelete, notifyError, notifyGeneralError, notifyInvalidImport,
+         notifyLength, notifyName, notifyPasswordChanged, notifyQuestionChanged, notifyRegistered, notifySuccess,
+         notifyUpdate, notifyWrongAnswer
 } from "../utils/toasts.ts";
-import {NavigateFunction} from "react-router-dom";
+import { NavigateFunction } from "react-router-dom";
 import {
     addStarterDecks,
-    compareEffectText, filterDoubleCardNumbers,
-    mostFrequentColor,
+    compareEffectText,
+    filterDoubleCardNumbers,
+    getIsDeckAllowed,
     sortCards
 } from "../utils/functions.ts";
-import {avatars} from "../utils/avatars.ts";
+import { avatars } from "../utils/avatars.ts";
+import {DeckIdOrder} from "../pages/Profile.tsx";
+import {Dispatch, SetStateAction} from "react";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -27,6 +25,7 @@ type State = {
     isLoading: boolean,
     loadingDeck: boolean,
     selectedCard: CardTypeWithId | CardTypeGame | null,
+    hoverCard: CardTypeWithId | null,
     deckCards: CardTypeWithId[],
     decks: DeckType[],
     nameOfDeckToEdit: string,
@@ -34,12 +33,14 @@ type State = {
     activeDeckId: string,
     isSaving: boolean,
     avatarName: string,
-    sleeveName: string,
+    deckIdOrder: string[],
+    orderedDecks: DeckType[],
+    deckIdToSetSleeveOrImage: string,
+    selectedSleeveOrImage: string,
 
     fetchCards: () => void,
     filterCards: SearchCards,
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
-    hoverCard: CardTypeWithId | null,
     setHoverCard: (card: CardTypeWithId | CardTypeGame | null) => void,
     addCardToDeck: (cardnumber: string, type: string, uniqueCardNumber: string) => void,
     deleteFromDeck: (id: string) => void,
@@ -57,8 +58,6 @@ type State = {
     getActiveDeck: () => void,
     setAvatar: (avatarName: string) => void,
     getAvatar: () => string,
-    setSleeve: (avatarName: string) => void,
-    getActiveSleeve: () => string,
     importDeck: (decklist: string | string[], format: string) => void,
     exportDeck: (exportFormat: string, deckname: string) => string,
 
@@ -67,6 +66,13 @@ type State = {
     getRecoveryQuestion: (userName: string) => void,
     recoverPassword: (answer: string, newPassword: string, navigate: NavigateFunction) => void,
     changeSafetyQuestion: (question: string, answer: string) => void,
+    loadOrderedDecks: (setOrderedDecks: Dispatch<SetStateAction<DeckType[]>>) => void,
+    setDeckIdOrder: (deckIdOrder: DeckIdOrder, setOrderedDecks: Dispatch<SetStateAction<DeckType[]>>) => void,
+    setDeckIdToSetSleeveOrImage: (deckId: string) => void,
+    setSleeve: (sleeveName: string) => void,
+    setSelectedSleeveOrImage: (sleeveName: string) => void,
+    getCardImagesInDeck: () => string[],
+    setCardImage: (imgUrl: string) => void,
 };
 
 export const useStore = create<State>((set, get) => ({
@@ -83,11 +89,14 @@ export const useStore = create<State>((set, get) => ({
     activeDeckId: "",
     isSaving: false,
     avatarName: "",
-    sleeveName: "Default",
     gameId: "",
     loadingDeck: false,
     usernameForRecovery: "",
     recoveryQuestion: "",
+    deckIdOrder: [],
+    orderedDecks: [],
+    deckIdToSetSleeveOrImage: "",
+    selectedSleeveOrImage: "",
 
     fetchCards: () => {
         set({isLoading: true})
@@ -206,9 +215,11 @@ export const useStore = create<State>((set, get) => ({
 
         const deckToSave = {
             name: name,
-            color: mostFrequentColor(sortedDeck),
             decklist: sortedDeck.map((card) => card.uniqueCardNumber),
-            deckStatus: "INACTIVE"
+            deckImageCardUrl: sortedDeck.at(-1)?.imgUrl,
+            sleeveName: "Default",
+            isAllowed_en: getIsDeckAllowed(sortedDeck, "en"),
+            isAllowed_jp: getIsDeckAllowed(sortedDeck, "jp")
         }
 
         axios
@@ -258,8 +269,9 @@ export const useStore = create<State>((set, get) => ({
         const sortedDeck = sortCards(get().deckCards);
         const deckWithoutId = {
             name: name,
-            color: mostFrequentColor(sortedDeck),
-            decklist: sortedDeck.map((card) => card.uniqueCardNumber)
+            decklist: sortedDeck.map((card) => card.uniqueCardNumber),
+            isAllowed_en: getIsDeckAllowed(sortedDeck, "en"),
+            isAllowed_jp: getIsDeckAllowed(sortedDeck, "jp")
         }
 
         axios
@@ -476,21 +488,6 @@ export const useStore = create<State>((set, get) => ({
         }
     },
 
-    setSleeve: (sleeveName) => {
-        axios.put(`/api/user/sleeve/${sleeveName}`, null)
-            .catch(console.error)
-            .finally(() => {
-                set({sleeveName: sleeveName});
-            });
-    },
-
-    getActiveSleeve: () => {
-        axios.get("/api/user/sleeve")
-            .then(response => set({sleeveName: response.data === "" ? "Default" : response.data}))
-            .catch(console.error);
-        return get().sleeveName;
-    },
-
     getRecoveryQuestion: (username) => {
         axios.get(`/api/user/recovery/${username}`)
             .then(response => response?.data)
@@ -533,6 +530,66 @@ export const useStore = create<State>((set, get) => ({
                     notifyGeneralError();
                 }
             });
+    },
+
+    loadOrderedDecks: (setOrderedDecks) => {
+        set ({isLoading: true});
+        axios
+            .get("/api/profile/cards")
+            .then((res) => res.data)
+            .catch(console.error)
+            .then((data) => set({ fetchedCards: data.map((card: CardType) => ({...card, id: uid()})) }))
+            .then(() => axios
+                .get("/api/profile/decks")
+                .then((res) => res.data)
+                .catch(console.error)
+                .then((data) => set({decks: data}))
+            )
+            .then(() => {
+                const savedDeckIdOrder : DeckIdOrder | null = JSON.parse(localStorage.getItem('deckIdOrder') ?? 'null');
+                set({deckIdOrder: savedDeckIdOrder ?? get().decks.map((deck) => deck.id)});
+            })
+            .then(() => {
+                const { decks, deckIdOrder } = get();
+
+                const orderedDecks = deckIdOrder.flatMap(orderedId => {
+                    const foundDeck = decks.find(deck => deck.id === orderedId);
+                    return foundDeck ? [foundDeck] : [];
+                });
+
+                const newDecks = decks.filter(deck => !deckIdOrder.includes(deck.id)); // look for new decks
+                set({deckIdOrder: [...deckIdOrder, ...newDecks.map(deck => deck.id)]}); // add them to the order
+
+                setOrderedDecks([...orderedDecks, ...newDecks]);
+            })
+            .finally(() => set({isLoading: false}));
+    },
+
+    setDeckIdOrder: (deckIdOrder, setOrderedDecks ) => {
+        set({deckIdOrder});
+        localStorage.setItem('deckIdOrder', JSON.stringify(deckIdOrder));
+        setOrderedDecks(deckIdOrder.flatMap((orderedId) => {
+            const foundDeck = get().decks.find((deck) => deck.id === orderedId);
+            return foundDeck ? [foundDeck] : [];
+        }));
+    },
+
+    setDeckIdToSetSleeveOrImage: (deckId) => set({deckIdToSetSleeveOrImage: deckId}),
+
+    setSleeve: (sleeveName) => {
+        axios.put(`/api/profile/decks/${get().deckIdToSetSleeveOrImage}/sleeve/${sleeveName}`)
+            .catch((e) => console.error(e))
+            .finally(() => set({selectedSleeveOrImage: sleeveName}));
+    },
+
+    setSelectedSleeveOrImage: (sleeveName) => set({selectedSleeveOrImage: sleeveName}),
+
+    getCardImagesInDeck: () =>  Array.from(new Set(get().deckCards.map(card => card.imgUrl))),
+
+    setCardImage: (imgUrl) => {
+        axios.put(`/api/profile/decks/${get().deckIdToSetSleeveOrImage}/image`, {imgUrl})
+            .catch((e) => console.error(e))
+            .finally(() => set({selectedSleeveOrImage: imgUrl}));
     }
 
 }));
