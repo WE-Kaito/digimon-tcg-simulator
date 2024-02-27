@@ -73,7 +73,21 @@ export const notifySecurityView = () => toast.warning('Opponent opened Security 
     pauseOnHover: false,
 });
 
+export const notifyOpponentDisconnect = () => toast.warning('Opponent disconnected!', {
+    position: "bottom-center",
+    autoClose: 5000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
+
 export const notifyRequestedRestart = () => toast.success('Sent restart request!', {
+    position: "bottom-center",
+    autoClose: 1200,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
+
+export const notifyMuteInvites = (username: string) => toast.success(`Invites from ${username} muted!`, {
     position: "bottom-center",
     autoClose: 1200,
     hideProgressBar: false,

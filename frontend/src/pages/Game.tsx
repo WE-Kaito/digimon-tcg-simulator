@@ -30,7 +30,7 @@ import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import Lottie from "lottie-react";
 import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
-import {notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
+import {notifyOpponentDisconnect, notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import {
     playActivateEffectSfx,
@@ -517,6 +517,12 @@ export default function Game({user}: { user: string }) {
         setResetOnlineCheck(() => cancelSetOffline);
     }, [setIsOpponentOnline]);
 
+    useEffect(() => {
+      if (!endScreen && !isOpponentOnline) {
+        notifyOpponentDisconnect();
+      }
+    }, [endScreen, isOpponentOnline]);
+
     function chunkString(str: string, size: number): string[] {
         const chunks = [];
         for (let i = 0; i < str.length; i += size) {
@@ -673,6 +679,10 @@ export default function Game({user}: { user: string }) {
         setSurrenderOpen(false);
         setEndScreen(true);
         setEndScreenMessage("🏳️ You surrendered.");
+        if (onlineCheckTimeoutRef.current !== null) {
+          clearTimeout(onlineCheckTimeoutRef.current);
+          onlineCheckTimeoutRef.current = null;
+        }
     }
 
     function acceptRestart() {
@@ -905,7 +915,6 @@ export default function Game({user}: { user: string }) {
             justifyContent: "center",
             alignItems: "center",
             containerType: "inline-size",
-            overflow: "scroll",
             scrollbarWidth: "thin"
         }}>
             <OuterWrapper>
