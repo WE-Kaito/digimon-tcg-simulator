@@ -47,7 +47,7 @@ class MongoUserDetailsServiceTest {
         String resultAvatarName = mongoUserDetailsService.getAvatar("testUser1");
 
         // THEN
-        assertThat(resultAvatarName).isEqualTo("takato");
+        assertThat(resultAvatarName).isEqualTo("AncientIrismon");
         assertThrows(UsernameNotFoundException.class, () -> {
             mongoUserDetailsService.getAvatar("notExistingUser");
         });
