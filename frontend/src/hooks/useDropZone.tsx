@@ -70,6 +70,9 @@ export default function useDropZone(props: UseDropZoneProps) {
             const {id, location, name} = item;
             handleDropToField(id, location, targetField, name);
         }
+        
+        targetField === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();
+        sendSfx(targetField === "myTrash" ? "playTrashCardSfx" : "playPlaceCardSfx");
     }
 
     function dropCardToDeck(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
@@ -103,8 +106,6 @@ export default function useDropZone(props: UseDropZoneProps) {
         if (!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendMoveCard(cardId, from, to);
-        to === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();
-        sendSfx(to === "myTrash" ? "playTrashCardSfx" : "playPlaceCardSfx");
         const hiddenCardInfo = (from === "myHand" && ["myTrash", "myDeckField"].includes(to)) ? ` (…${cardId.slice(-5)})` : "";
         if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }

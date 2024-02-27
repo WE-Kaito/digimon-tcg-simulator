@@ -6,13 +6,16 @@ import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
-import {notifyNoActiveDeck} from "../utils/toasts.ts";
+import {notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
 import {playInvitationSfx} from "../utils/sound.ts";
 import discordIcon from "../assets/discordLogo.png";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import {useGame} from "../hooks/useGame.ts";
 import {Button} from "@mui/material";
+import {
+  VolumeOff as MuteIcon
+} from '@mui/icons-material';
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -26,6 +29,7 @@ export default function Lobby({user}: { user: string }) {
     const [search, setSearch] = useState<string>("");
     const [userCount, setUserCount] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
+    const [mutedInvitesFrom, setMutedInvitesFrom] = useState<string[]>([]);
     const websocketURL = `${__WEBSOCKET_URL__}api/ws/chat`;
 
     const setGameId = useGame((state) => state.setGameId);
@@ -43,9 +47,11 @@ export default function Lobby({user}: { user: string }) {
 
             if (event.data.startsWith("[INVITATION]")) {
                 if (pendingInvitation) return;
+                const otherPlayer = event.data.substring(event.data.indexOf(":") + 1);
+                if (mutedInvitesFrom.includes(otherPlayer)) return;
                 playInvitationSfx();
                 setPendingInvitation(true);
-                setInviteFrom(event.data.substring(event.data.indexOf(":") + 1));
+                setInviteFrom(otherPlayer);
                 setInviteTo("");
                 return;
             }
@@ -136,6 +142,12 @@ export default function Lobby({user}: { user: string }) {
         navigateToGame();
     }
 
+    function handleMuteInvites() {
+      notifyMuteInvites(inviteFrom);
+      setMutedInvitesFrom([...mutedInvitesFrom, inviteFrom]);
+      handleAbortInvite(false);
+    }
+
     function userVisible(username: string) {
         return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
     }
@@ -145,6 +157,9 @@ export default function Lobby({user}: { user: string }) {
             <ParticlesBackground options={blueTriangles}/>
             {pendingInvitation &&
                 <InvitationMoodle>
+                    <div title="Stop receiving invites from this player until you re-enter the lobby.">
+                      <Mute onClick={handleMuteInvites}/>
+                    </div>
                     <span>Invitation from {inviteFrom}</span>
                     <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
                         <AcceptButton onClick={handleAcceptInvite}>ACCEPT</AcceptButton>
@@ -183,7 +198,7 @@ export default function Lobby({user}: { user: string }) {
 
                 <Chat>
                     <History ref={historyRef}>
-                        {messages.map((message) => {
+                        {messages.map((message, idx) => {
                             const colonIndex = message.indexOf(":");
                             if (colonIndex !== -1) {
                                 const name = message.substring(0, colonIndex);
@@ -191,7 +206,7 @@ export default function Lobby({user}: { user: string }) {
 
                                 if (name === "【SERVER】"){
                                     return (
-                                        <div style={{display: "flex"}} key={message}>
+                                        <div style={{display: "flex"}} key={idx}>
                                             {content === " Join our Discord!"
                                                 ? <StyledSpan name={name} user={user}>
                                                 <span style={{color:"#31da75"}}>Server</span>:
@@ -206,12 +221,12 @@ export default function Lobby({user}: { user: string }) {
                                 }
 
                                 return (
-                                    <div style={{display: "flex"}} key={message}>
+                                    <div style={{display: "flex"}} key={idx}>
                                         <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>
                                     </div>
                                 );
                             }
-                            return <div key={message}>{message}</div>;
+                            return <div key={idx}>{message}</div>;
                         })}
                     </History>
                     <InputContainer onSubmit={handleSubmit}>
@@ -228,7 +243,7 @@ export default function Lobby({user}: { user: string }) {
 const Wrapper = styled.div`
   display: flex;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   flex-direction: column;
   align-items: center;
   max-height: 100vh;
@@ -283,14 +298,15 @@ const ConnectionSpanRed = styled(ConnectionSpanGreen)`
 `;
 
 const Container = styled.div`
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   margin-top: 5vh;
-  width: 97.75vw;
-  height: 85%;
+  width: 100%;
   max-width: 1000px;
+  min-height: 0px;
 
   @media (min-width: 1000px) {
     border-top-right-radius: 15px;
@@ -301,8 +317,9 @@ const Container = styled.div`
 const UserList = styled.div`
   margin-top: 3vh;
   padding-top: 1vh;
-  height: 50%;
   width: 85%;
+  min-height: 0px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -326,20 +343,21 @@ const User = styled.span`
   justify-content: space-between;
 
   width: 80%;
-  height: 14%;
   min-height: 30px;
   color: ghostwhite;
   background: black;
   font-family: Amiga Forever Pro2, sans-serif;
   text-align: left;
   padding-left: 4vw;
-  padding-top: 0.55vh;
+  padding-top: 4px;
   padding-right: 4vw;
+  padding-bottom: 4px;
   text-overflow: clip;
   font-size: 28px;
   border: 3px solid #dcb415;
   box-shadow: inset 0 0 5px #dcb415;
   filter: drop-shadow(0 0 4px #dcb415);
+  flex-shrink: 0;
   @media (min-width: 1000px) {
     border-width: 3px;
     padding-right: 3vw;
@@ -353,7 +371,6 @@ const User = styled.span`
 
   @media (max-width: 500px)  or (max-height: 680px) {
     font-size: 18px;
-    height: 12%;
     width: 87%;
     padding-right: 2vw;
     box-shadow: inset 0 0 3px #dcb415;
@@ -373,7 +390,8 @@ const Chat = styled.div`
   filter: drop-shadow(0 0 3px ghostwhite);
   padding: 25px;
   width: 84.5%;
-  height: 50%;
+  min-height: 0px;
+  flex: 1;
 
   @media (max-width: 500px) {
     border: 3px solid white;
@@ -567,3 +585,13 @@ const SearchBar = styled.input`
     color: ghostwhite;
   }
 `;
+
+const Mute = styled(MuteIcon)`
+  position: absolute;
+  top: 20px; 
+  right: 20px;
+  cursor: pointer;
+  &:hover {
+    opacity: 50%;
+  }
+`
