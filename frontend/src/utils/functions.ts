@@ -403,7 +403,7 @@ export function generateGradient(deckCards : CardType[]) {
         .filter(([_, count]) => count > 0)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .sort(([_, countA], [__, countB]) => countB - countA)
-        .forEach(([color, count], index, array) => {
+        .forEach(([color, count], index) => {
             const thisColorPercentage = (count / totalCards) * 100;
             // @ts-ignore
             const hexColor = colorMap[color];
