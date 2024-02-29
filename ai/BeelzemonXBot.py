@@ -17,7 +17,12 @@ class BeelzemonXBot(Bot):
         self.turn_counter = 0
         self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
         self.gained_baalmon_effect = set()
-    
+
+    async def play_card(self, ws, card_location, card_index, cost, back=False):
+        card = await super().play_card(ws, card_location, card_index, cost, back)
+        card_obj = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+        await card_obj.on_play_effect(ws)
+
     async def digivolve(self, ws, digimon_location, digimon_card_index, digivolution_card_location, digivolution_card_index, cost):
         await super().digivolve(ws, digimon_location, digimon_card_index, digivolution_card_location, digivolution_card_index, cost)
         if digimon_location == 'BreedingArea':
@@ -516,7 +521,7 @@ class BeelzemonXBot(Bot):
                 target_levels.discard(c['level'])
         for i in range(len(self.game['player2Reveal'])):
             card = self.game['player2Reveal'][i]
-            if card['cardType'] == 'Digimon' and len(set(card['digiTraits']).intersection(target_traits)) > 0:
+            if card['cardType'] == 'Digimon' and len(set(card['digiType']).intersection(target_traits)) > 0:
                 digimon.append(i)
                 if card['level'] in target_levels:
                     candidates.append((card['level'], i))
@@ -585,7 +590,7 @@ class BeelzemonXBot(Bot):
             time.sleep(2)
             await purple_memory_boost.main_effect(ws)
             return True
-        ai_and_mako_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
+        ai_and_mako_in_hand_index = self.card_in_hand('ST14-11', 'Ai & Mako')
         if ai_and_mako_in_hand_index >= 0:
             card = self.game['player2Hand'][ai_and_mako_in_hand_index]
             ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])

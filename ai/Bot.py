@@ -703,6 +703,7 @@ class Bot(ABC):
         self.game['player2Digi'][i].append(card)
         self.placed_this_turn.add(card['id'])
         await self.decrease_memory_by(ws, cost)
+        return card
 
     async def trash_card_from_hand(self, ws, card_index):
         await self.move_card(ws, f'myHand{card_index}', 'myTrash')
