@@ -47,6 +47,9 @@ class Card(ABC):
     async def inherited_when_attacking_once_per_turn(self, ws):
         pass
 
+    async def inherited_your_turn_effect(self, ws):
+        pass
+
     async def delay_effect(self, ws):
         pass
 

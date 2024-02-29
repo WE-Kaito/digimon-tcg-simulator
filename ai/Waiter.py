@@ -17,7 +17,57 @@ class Waiter:
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+    
+    def get_opponent_location(self, s):
+        location = None
+        if s.startswith('Digi'):
+            index = self.bot.get_first_digit_index(s)
+            index = int(s[index:])
+            location = self.bot.game['player1Digi'][index]
+        elif s=='Hand' or s == 'Trash' or s == 'Security' or \
+            s == 'DeckField' or s == 'EggDeck' or s == 'BreedingArea' or \
+            s == 'Reveal':
+                location = self.bot.game[f'player1{s}']
+        else:
+            raise RuntimeError(f'Error in determining location:{s}')
+        return location
 
+    def process_move_action(self, message):
+        record = message.split(':')
+        card_id = record[0]
+        source = record[1].replace('opponent', '')
+        source_location = self.get_opponent_location(source)
+        destination = record[2].replace('opponent', '')
+        destination_location = self.get_opponent_location(destination)
+        source_card_index = -1
+        for i in range(len(source_location)):
+            if source_location[i]['id'] == card_id:
+                source_card_index = i
+                break
+        if source_card_index < 0:
+            raise RuntimeError(f'Card with id {card_id} not found in {source}')
+        destination_location.append(source_location.pop(source_card_index))
+    
+    def process_move_to_deck_action(self, message):
+        record = message.split(':')
+        where = record[0]
+        card_id = record[1]
+        source = record[2].replace('opponent', '')
+        source_location = self.get_opponent_location(source)
+        destination = record[3].replace('opponent', '')
+        destination_location = self.get_opponent_location(destination)
+        source_card_index = -1
+        for i in range(len(source_location)):
+            if source_location[i]['id'] == card_id:
+                source_card_index = i
+                break
+        if source_card_index < 0:
+            raise RuntimeError(f'Card with id {card_id} not found in {source}')
+        if where == 'Top':
+            destination_location.insert(0, source_location.pop(source_card_index))
+        elif where == 'Bottom':
+            destination_location.append(source_location.pop(source_card_index))
+        
     async def wait_for_opponent_counter_blocking(self, ws):
         await self.bot.send_message(ws, 'Perform Counter, Blocking time and Security Checks, then type "Ok" in Chat')
         await self.wait_for_actions(ws)
@@ -66,9 +116,13 @@ class Waiter:
         return False, False
 
     async def check_for_action(self, ws, message):
+        move_message_prefix = '[MOVE_CARD]:'
+        if message.startswith(move_message_prefix):
+            self.process_move_action(message.replace(move_message_prefix, '', 1))
+        move_message_prefix = '[MOVE_CARD_TO_DECK]:'
+        if message.startswith(move_message_prefix):
+            self.process_move_to_deck_action(message.replace(move_message_prefix, '', 1))
         chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
-        if not message.startswith(chat_message_prefix):
-            return
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
         prefix = 'delete'
         if message.startswith(prefix):
@@ -86,7 +140,7 @@ class Waiter:
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
-                await self.bot.return_(ws, card_id)
+                await self.bot.return_from_battle_area_to_top_of_deck(ws, card_id)
         prefix = 'return hand'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
@@ -214,9 +268,10 @@ class Waiter:
 
     async def wait_for_actions(self, ws):
         message = None
-        while message != f'ok':
-            message = await ws.recv()
-            await self.check_for_action(ws, message)
+        message_payload = None
+        while message_payload != f'ok':
             chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
+            message = await ws.recv()
             if message.startswith(chat_message_prefix):
-                message = message.replace(chat_message_prefix, '', 1).strip().lower()
+                message_payload = message.replace(chat_message_prefix, '', 1).strip().lower()
+            await self.check_for_action(ws, message)

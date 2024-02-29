@@ -22,12 +22,11 @@ class ST14_08_Beelzemon(Card):
     async def all_turns_effect(self, ws):
         await super().animate_effect(ws)
         await self.bot.send_message(ws, 'ST14-08 Beelzemon [All turns effect] effect: when a cards is trashed')
-        self.logger.info(f"Cards in trash: {len(self.bot.game['player2Trash'])}")
         memory_increase = math.floor(len(self.bot.game['player2Trash']) / 10)
         await self.bot.send_message(ws, f'Gain {memory_increase} memory.')
         await self.bot.increase_memory_by(ws, memory_increase)
     
     async def your_turn_effect(self, ws):
         await super().animate_effect(ws)
-        await self.bot.send_message(ws, 'ST14-08 Beelzemon [Your turn] effect: when a cards gets trashed, gain [Security attack +1]')
+        await self.bot.send_message(ws, 'ST14-08 Beelzemon [Your turn] effect: when a card gets trashed, gain [Security attack +1]')
         self.bot.effects['endOfTurnEffects']['player2Digi'][self.extra_args['digimon_index']].append('Security attack +1')

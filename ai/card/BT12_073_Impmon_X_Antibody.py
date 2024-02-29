@@ -40,7 +40,7 @@ class BT12_073_Impmon_X_Antibody(Card):
     
     async def inherited_when_attacking_once_per_turn(self, ws):
         await super().animate_effect(ws)
-        self.bot.send_message(ws, 'BT12-073 Impmon (X Antibody) inherited effect: I trash the top 3 cards of my deck.')
+        await self.bot.send_message(ws, 'BT12-073 Impmon (X Antibody) inherited effect: I trash the top 3 cards of my deck.')
         trashed_cards = []
         for i in range(2):
             if len(self.bot.game['player2DeckField']) > 0:

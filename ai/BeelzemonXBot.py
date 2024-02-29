@@ -38,6 +38,14 @@ class BeelzemonXBot(Bot):
                 st14_08_beelzemon = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
                 await st14_08_beelzemon.all_turns_effect(ws)
                 self.triggered_already_this_turn.add(card['id'])
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                for j in range(len(self.game['player2Digi'][i]) - 1):
+                    card = self.game['player2Digi'][i][j]
+                    if card['uniqueCardNumber'] == 'ST14-02' and card['name'] == 'Impmon' and card['id'] not in self.triggered_already_this_turn:
+                        st14_02_impmon = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+                        await st14_02_impmon.inherited_your_turn_effect(ws)
+                        self.triggered_already_this_turn.add(card['id'])
 
     async def delete_stack_from_battle_area(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
@@ -45,8 +53,6 @@ class BeelzemonXBot(Bot):
         card_obj = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
         await super().delete_stack_from_battle_area(ws, card_id)
         await card_obj.on_deletion_effect(ws)
-        print(self.gained_baalmon_effect)
-        print(len(self.game['player2Trash']))
         if card['id'] in self.gained_baalmon_effect and len(self.game['player2Trash']) >= 10:
             await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
 
@@ -451,20 +457,16 @@ class BeelzemonXBot(Bot):
     
     async def ex2_044_beelzemon_when_digivolving_when_attacking_strategy(self, ws):
         max_level_can_delete = 3 + math.floor(len(self.game['player2Trash'])/10)
-        # TODO: Allow to choose from opponent's battlefield
-        # opponent_digimons = []
-        # for i in range(len(self.game['player1Digi'])):
-        #     if len(self.game['player1Digi'][i]) > 0:
-        #         digimon = self.game['player1Digi'][i][-1]
-        #         opponent_digimons.append(digimon['level'], i, digimon['name'])
-        # if len(opponent_digimons) == 0:
-        #     return False
-        # for opponent_digimon in sorted(opponent_digimons, reverse=True):
-        #     if max_level_can_delete <= opponent_digimon[0]:
-        await self.send_message(ws, f'I choose to delete 1 of your level {max_level_can_delete} digimon.')
-        await self.send_message(ws, 'I choose the one with the highest dp.')
-        await self.send_message(ws, 'Resolve effects and type Ok to continue.')
-        await self.wait_for_actions(ws)
+        opponent_digimons = []
+        for i in range(len(self.game['player1Digi'])):
+            if len(self.game['player1Digi'][i]) > 0:
+                digimon = self.game['player1Digi'][i][-1]
+                opponent_digimons.append((digimon['level'], i, digimon['name']))
+        for opponent_digimon in sorted(opponent_digimons, reverse=True):
+            if max_level_can_delete <= opponent_digimon[0]:
+                await self.delete_card_from_opponent_battle_area(ws, opponent_digimon[1])
+                return True
+        return False
 
     async def ex2_044_beelzemon_when_trashed_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-02', 'Impmon')

@@ -147,7 +147,10 @@ class Bot(ABC):
 
     def initialize_game(self, starting_game):
         self.game = starting_game
+        self.game['player1Reveal'] = []
+        self.game['player1BreedingArea'] = []
         self.game['player1Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+        self.game['player1Trash'] = []
         self.game['player2Digi'] = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
         self.game['player2BreedingArea'] = []
         self.game['player2Reveal'] = []
@@ -642,14 +645,14 @@ class Bot(ABC):
         digimon = self.game['player2Digi'][digimon_index][-1]
         self.logger.info(f"Suspending {digimon['uniqueCardNumber']}-{digimon['name']}.")
         digimon['isTilted'] = True
-        self.update_game(ws)
+        await self.update_game(ws)
         await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     async def unsuspend_digimon(self, ws, digimon_index):
         digimon = self.game['player2Digi'][digimon_index][-1]
         self.logger.info(f"Unsuspending {digimon['uniqueCardNumber']}-{digimon['name']}.")
         digimon['isTilted'] = False
-        self.update_game(ws)
+        await self.update_game(ws)
         await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     ## TODO: Potentially split this into two methods, one for breeding area and one for battle area
@@ -853,7 +856,7 @@ class Bot(ABC):
     
     async def delete_card_from_opponent_battle_area(self, ws, card_index):
         card_name = self.game['player1Digi'][card_index][-1]['name']
-        await self.send_message(ws, f'I\'d like to delete the {card_name}. in position {card_index}')
+        await self.send_message(ws, f'I\'d like to delete the {card_name} in position {card_index}')
         await self.send_message(ws, 'Resolve effects and type Ok to continue.')
         await self.waiter.wait_for_actions(ws)
 
