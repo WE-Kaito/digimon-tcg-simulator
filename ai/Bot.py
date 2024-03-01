@@ -653,14 +653,12 @@ class Bot(ABC):
         digimon = self.game['player2Digi'][digimon_index][-1]
         self.logger.info(f"Suspending {digimon['uniqueCardNumber']}-{digimon['name']}.")
         digimon['isTilted'] = True
-        await self.update_game(ws)
         await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     async def unsuspend_digimon(self, ws, digimon_index):
         digimon = self.game['player2Digi'][digimon_index][-1]
         self.logger.info(f"Unsuspending {digimon['uniqueCardNumber']}-{digimon['name']}.")
         digimon['isTilted'] = False
-        await self.update_game(ws)
         await ws.send(f'{self.game_name}:/playUnsuspendCardSfx:{self.opponent}')
 
     ## TODO: Potentially split this into two methods, one for breeding area and one for battle area

@@ -15,4 +15,5 @@ class ST14_011_Ai_and_Mako(Card):
     
     async def your_turn_effect(self, ws):
         await super().animate_effect(ws)
+        time.sleep(1)
         await self.bot.st14_011_ai_and_mako_your_turn_strategy(ws)

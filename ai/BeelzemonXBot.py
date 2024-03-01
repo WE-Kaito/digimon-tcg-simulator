@@ -34,11 +34,15 @@ class BeelzemonXBot(Bot):
         digivolution_card = self.game[f'player2{digimon_location}'][digimon_card_index][-1]
         if card['id'] in self.gained_baalmon_effect:
             self.gained_baalmon_effect.add(digivolution_card['id'])
-        ai_and_mako_card_indices = self.cards_in_battle_area('ST14-11', 'Ai & Mako')
-        for ai_and_mako_card_index in ai_and_mako_card_indices:
-            ai_and_mako_card = self.game['player2Digi'][ai_and_mako_card_index][-1]
-            st14_11_ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=ai_and_mako_card['id'])
-            await st14_11_ai_and_mako.your_turn_effect(ws)
+        if 'Purple' in digivolution_card['color']:
+            ai_and_mako_card_indices = self.cards_in_battle_area('ST14-11', 'Ai & Mako')
+            self.logger.info('Ai & Mako on field.')
+            self.logger.info(ai_and_mako_card_indices)
+            for ai_and_mako_card_index in ai_and_mako_card_indices:
+                ai_and_mako_card = self.game['player2Digi'][ai_and_mako_card_index][-1]
+                if not ai_and_mako_card['isTilted']:
+                    st14_11_ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=ai_and_mako_card['id'])
+                    await st14_11_ai_and_mako.your_turn_effect(ws)
 
     async def when_card_is_trashed_from_deck(self, ws):
         self.logger.info('Checking if any ST14-08 trigger from trashing card.')
@@ -281,6 +285,7 @@ class BeelzemonXBot(Bot):
         )
         for attacking_card_obj in attacking_stack_objs[:-1]:
             await attacking_card_obj[1].inherited_when_attacking_once_per_turn(ws)
+            time.sleep(0.5)
         await attacking_digimon_obj.when_attacking_effect(ws)
 
     # TODO: Check for blockers, this is complex as needs to determine when an opponent digimon has gained blocker
@@ -543,23 +548,35 @@ class BeelzemonXBot(Bot):
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
     
-    async def st14_011_ai_and_mako_your_turn_strategy(self, ws):
+    async def st14_011_ai_and_mako_your_turn_strategy(self, ws, ai_and_mako_card):
+        self.logger.info(ws, 'Check if Death Slinger in hand')
         death_slinger_index = self.card_in_hand('EX2-071', 'Death Slinger')
         if death_slinger_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', death_slinger_index)
             await self.increase_memory_by(ws, 1)
+            ai_and_mako_card['isTilted'] = True
+            return
+        self.logger.info(ws, 'Check if Wizardmon in hand')
         p_077_wizardmon_index = self.card_in_hand('P-077', 'Wizardmon')
         if p_077_wizardmon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', p_077_wizardmon_index)
             await self.increase_memory_by(ws, 1)
+            ai_and_mako_card['isTilted'] = True
+            return
+        self.logger.info(ws, 'Check if EX2 Impmon in hand')
         ex2_039_impmon_index = self.card_in_hand('EX2-039', 'Impmon')
         if ex2_039_impmon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', ex2_039_impmon_index)
             await self.increase_memory_by(ws, 1)
+            ai_and_mako_card['isTilted'] = True
+            return
+        self.logger.info(ws, 'Check if EX2 Beelzemon in hand')
         ex2_044_beelzemon_index = self.card_in_hand('EX2-044', 'Beelzemon')
         if ex2_044_beelzemon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', ex2_044_beelzemon_index)
             await self.increase_memory_by(ws, 1)
+            ai_and_mako_card['isTilted'] = True
+            return
     
     async def p_077_inherited_when_attacking_once_per_turn_strategy(self, ws):
         death_slinger_index = self.card_in_hand('EX2-071', 'Death Slinger')
