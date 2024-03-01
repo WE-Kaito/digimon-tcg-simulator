@@ -123,6 +123,10 @@ class Bot(ABC):
         imported_decks = self.s.get(f'http://{self.host}/api/profile/decks', headers=self.headers, data=json.dumps(self.deck))
         return self.handle_response(imported_decks, 200, 'Listed imported decks successfully', f'Failed listing imported decks with status code {imported_decks.status_code}, exiting...')
 
+    def set_avatar(self, avatar):
+        set_avatar = self.s.put(f'http://{self.host}/api/user/avatar/{avatar}', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck))
+        return self.handle_response(set_avatar, 200, 'Set avatar successfully', f'Failed setting avatar with error {set_avatar.status_code}, exiting...')
+
     def import_deck(self, imported_decks=[]):
         deck_names = set([d['name'] for d in imported_decks])
         if self.deck['name'] not in deck_names:

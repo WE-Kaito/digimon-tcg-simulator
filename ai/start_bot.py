@@ -16,6 +16,11 @@ def main():
         if not login_response:
             raise Exception ('Login failed after registration!')
 
+    ## Set avatar
+    set_avatar = bot.set_avatar(config('BOT_AVATAR'))
+    if not set_avatar:
+        exit(1)
+
     ## List Imported Decks
     imported_decks = bot.list_imported_decks()
     if not imported_decks:
