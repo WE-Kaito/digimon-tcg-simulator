@@ -28,11 +28,16 @@ class BeelzemonXBot(Bot):
         if digimon_location == 'BreedingArea':
             card = self.game[f'player2{digimon_location}'][-2]
             digivolution_card = self.game[f'player2{digimon_location}'][-1]
-        else:
-            card = self.game[f'player2{digimon_location}'][digimon_card_index][-2]
-            digivolution_card = self.game[f'player2{digimon_location}'][digimon_card_index][-1]
+            return
+        card = self.game[f'player2{digimon_location}'][digimon_card_index][-2]
+        digivolution_card = self.game[f'player2{digimon_location}'][digimon_card_index][-1]
         if card['id'] in self.gained_baalmon_effect:
             self.gained_baalmon_effect.add(digivolution_card['id'])
+        ai_and_mako_card_indices = self.cards_in_battle_area('ST14-11', 'Ai & Mako')
+        for ai_and_mako_card_index in ai_and_mako_card_indices:
+            ai_and_mako_card = self.game['player2Digi'][ai_and_mako_card_index][-1]
+            st14_11_ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=ai_and_mako_card['id'])
+            await st14_11_ai_and_mako.your_turn_effect(ws)
 
     async def when_card_is_trashed_from_deck(self, ws):
         self.logger.info('Checking if any ST14-08 trigger from trashing card.')
@@ -532,7 +537,7 @@ class BeelzemonXBot(Bot):
             card_index = digimon[0]
         else:
             card_index = min(candidates)[1]
-        await self.move_card(ws, f'myReveal{card_index}', f'myHand')
+        await self.add_card_from_reveal_to_hand(ws, card_index)
         self.game['player2Hand'].append(self.game['player2Reveal'].pop(card_index))
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws, 'Reveal')

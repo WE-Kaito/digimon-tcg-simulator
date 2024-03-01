@@ -920,7 +920,6 @@ class Bot(ABC):
 
     async def put_cards_to_bottom_of_deck(self, ws, cards_location):
         await self.send_message(ws, f'Put cards from {cards_location} to bottom of deck.')
-        size = len(self.game[f'player2{cards_location}'])
         for i in range(len(self.game[f'player2{cards_location}'])):
             await self.put_card_to_bottom_of_deck(ws, cards_location, 0)
 
