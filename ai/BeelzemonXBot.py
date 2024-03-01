@@ -1,3 +1,4 @@
+import asyncio
 import math
 import time
 from pprint import pprint
@@ -492,7 +493,6 @@ class BeelzemonXBot(Bot):
             card_id = self.game['player2Trash'][card_in_trash_index]['id']
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
             impmon = self.card_factory.get_card('EX2-039', card_id=card_id)
-            await impmon.on_play_effect(ws)
             return
         await self.send_message(ws, f"No Impmon to play from trash.")
 
@@ -533,12 +533,13 @@ class BeelzemonXBot(Bot):
         if len(digimon) == 0:
             time.sleep(2)
             await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
+            return
         if len(candidates) == 0:
             card_index = digimon[0]
         else:
             card_index = min(candidates)[1]
         await self.add_card_from_reveal_to_hand(ws, card_index)
-        self.game['player2Hand'].append(self.game['player2Reveal'].pop(card_index))
+        await self.send_message(ws, f"I add {card['uniqueCardNumber']}-{card['name']} in my hand.")
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
     
@@ -601,7 +602,6 @@ class BeelzemonXBot(Bot):
             ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
             await self.play_card(ws, 'Hand', ai_and_mako_in_hand_index, card['playCost'], back=True)
             time.sleep(2)
-            await ai_and_mako.on_play_effect(ws)
             return True
         return False
 

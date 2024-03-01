@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from card.Card import Card
@@ -39,15 +40,13 @@ class EX2_039_Impmon(Card):
         ## Better strategy on which Beelzemon and which Ai & Mako to get can be implemented here
         if len(beelzemon_candidates) > 0:
             card_index = beelzemon_candidates[0]
-            card = self.bot.game['player2Reveal'].pop(card_index)
             await self.bot.send_message(ws, f"Can add {card['uniqueCardNumber']}-{card['name']} in my hand.")
-            await self.bot.move_card(ws, f'myReveal{card_index}', f'myHand')
+            await self.add_card_from_reveal_to_hand(ws, card_index)
             self.bot.game['player2Hand'].append(card)
         if len(ai_and_mako_candidates) > 0:
             card_index = ai_and_mako_candidates[0]
-            card = self.bot.game['player2Reveal'].pop(card_index)
             await self.bot.send_message(ws, f"Can add {card['uniqueCardNumber']}-{card['name']} in my hand.")
-            await self.bot.move_card(ws, f'myReveal{card_index}', f'myHand')
+            await self.add_card_from_reveal_to_hand(ws, card_index)
             self.bot.game['player2Hand'].append(card)
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws)   

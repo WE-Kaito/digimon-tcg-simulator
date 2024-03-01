@@ -61,6 +61,7 @@ class Bot(ABC):
             'Referer': f'http://{self.host}/login',
             'X-Xsrf-Token': cookies['XSRF-TOKEN']
         }
+        self.loop = asyncio.get_event_loop()
         self.deck = json.load(open(self.deck_path))
         self.username = username
         self.game_ws = f'ws://{self.host}/api/ws/game'
@@ -602,7 +603,7 @@ class Bot(ABC):
             final_memory_value = card['playCost'] - self.game['memory']
             if card['cardType'] == 'Digimon' and final_memory_value < 0 and abs(final_memory_value) <= max_memory_to_opponent:
                 self.logger.info(f"Found digimon {card['uniqueCardNumber']}-{card['name']} in hand at position {i}.")
-                candidates.append(final_memory_value, i)
+                candidates.append((final_memory_value, i))
         if len(candidates) > 0:
             return sorted(candidates)[0][1]
         self.logger.info('No digimon cheap enough found in hand.')
@@ -904,6 +905,7 @@ class Bot(ABC):
         for i in range(n_cards):
             await self.move_card(ws, 'myDeckField0', 'myReveal')
             self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
+            time.sleep(0.2)
     
     async def add_card_from_reveal_to_hand(self, ws, card_index):
         await self.move_card(ws, f'myReveal{card_index}', 'myHand0')
@@ -986,6 +988,11 @@ class Bot(ABC):
         self.cant_attack_until_end_of_turn.clear()
         self.cant_block_until_end_of_turn.clear()
         self.triggered_already_this_turn.clear()
+    
+    async def online_ping(self, ws):
+        while True:
+            await ws.send(f'{self.game_name}:/online:{self.opponent}')
+            await asyncio.sleep(1)
 
     async def play(self):
         self.game_name = f'{self.opponent}‗{self.username}'
@@ -994,8 +1001,8 @@ class Bot(ABC):
             await ws.send(f'/startGame:{self.game_name}')
             opponent_ready = False
             done_mulligan = False
+            self.loop.create_task(self.online_ping(ws))
             while True:
-                await ws.send("/heartbeat/")
                 message = await ws.recv()
                 self.logger.debug(f'Received: {message}')
                 if message.startswith('[START_GAME]:'):
@@ -1011,7 +1018,6 @@ class Bot(ABC):
                                 await self.send_game_chat_message(ws, 'I mulligan my hand')
                             else:
                                 await self.send_game_chat_message(ws, 'I keep my hand')
-                            await self.send_player_ready(ws)
                             done_mulligan = True
                         ### TODO: Improve game initialization
                         starting_game = ''
@@ -1023,6 +1029,7 @@ class Bot(ABC):
                 if message.startswith('[UPDATE_MEMORY]:'):
                     self.game['memory'] = int(message[-1])
                 if message.startswith('[PLAYER_READY]'):
+                    await self.send_player_ready(ws)
                     opponent_ready = True
                 if message.startswith('[PASS_TURN_SFX]'):
                     self.my_turn = True
