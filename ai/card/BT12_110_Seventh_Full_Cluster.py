@@ -12,7 +12,7 @@ class BT12_110_Seventh_Full_Cluster(Card):
             if card['cardType'] == 'Digimon':
                 opponent_digimons.append(card['level'], i, card['name'])
         if len(opponent_digimons) >= 0:
-            await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons)[1])
+            await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons)[0][1])
         else:
             self.bot.send_message('No digimons to delete in opponent battle area.')
 

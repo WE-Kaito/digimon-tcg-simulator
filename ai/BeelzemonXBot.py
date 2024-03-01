@@ -149,8 +149,8 @@ class BeelzemonXBot(Bot):
             digimon = self.game['player2Hand'][digimon_in_hand_index]
             await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
             return True
-        self.logger.info(f'Trying to play cheapest digimon that would give memory <= 3 to opponent.')
-        digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(2)
+        self.logger.info(f'Trying to play cheapest digimon.')
+        digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(7)
         if digimon_in_hand_index >= 0:
             digimon = self.game['player2Hand'][digimon_in_hand_index]
             self.logger.info(f"I play {digimon['name']}")
@@ -527,7 +527,7 @@ class BeelzemonXBot(Bot):
                     candidates.append((card['level'], i))
         if len(digimon) == 0:
             time.sleep(2)
-            await self.put_cards_to_bottom_of_deck(ws)
+            await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
         if len(candidates) == 0:
             card_index = digimon[0]
         else:
@@ -535,7 +535,7 @@ class BeelzemonXBot(Bot):
         await self.move_card(ws, f'myReveal{card_index}', f'myHand')
         self.game['player2Hand'].append(self.game['player2Reveal'].pop(card_index))
         time.sleep(2)
-        await self.put_cards_to_bottom_of_deck(ws)
+        await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
     
     async def st14_011_ai_and_mako_your_turn_strategy(self, ws):
         death_slinger_index = self.card_in_hand('EX2-071', 'Death Slinger')

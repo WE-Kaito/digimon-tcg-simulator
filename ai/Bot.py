@@ -591,13 +591,16 @@ class Bot(ABC):
         return -1
 
     def cheap_digimon_in_hand_to_play(self, max_memory_to_opponent):
+        candidates = []
         self.logger.info(f'Searching for a digimon in hand of that would give max {max_memory_to_opponent} if played.')
         for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
             final_memory_value = card['playCost'] - self.game['memory']
             if card['cardType'] == 'Digimon' and final_memory_value < 0 and abs(final_memory_value) <= max_memory_to_opponent:
                 self.logger.info(f"Found digimon {card['uniqueCardNumber']}-{card['name']} in hand at position {i}.")
-                return i
+                candidates.append(final_memory_value, i)
+        if len(candidates) > 0:
+            return sorted(candidates)[0][1]
         self.logger.info('No digimon cheap enough found in hand.')
         return -1
 
