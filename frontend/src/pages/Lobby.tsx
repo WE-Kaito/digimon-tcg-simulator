@@ -173,7 +173,7 @@ export default function Lobby({user}: { user: string }) {
             {pendingInvitation &&
                 <InvitationMoodle>
                     <div title="Stop receiving invites from this player until you re-enter the lobby.">
-                      <Mute onClick={handleMuteInvites}/>
+                        <Mute onClick={handleMuteInvites}/>
                     </div>
                     <span>Invitation from {inviteFrom}</span>
                     <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
@@ -197,7 +197,7 @@ export default function Lobby({user}: { user: string }) {
                 <Headline2 style={{flexWrap: "nowrap"}}>Online: {userCount}</Headline2>
 
                 {!isLoading && <StyledSelect label="Deck" onChange={handleDeckChange} value={activeDeckId} labelId={"decks"}
-                               color={"primary"} defaultValue={activeDeckId} variant={"filled"}>
+                                             color={"primary"} defaultValue={activeDeckId} variant={"filled"}>
                     {decks.map((deck) => <MenuItem value={deck.id} key={deck.id}>{deck.name}</MenuItem>)}
                 </StyledSelect>}
 
@@ -234,15 +234,15 @@ export default function Lobby({user}: { user: string }) {
                                         <div style={{display: "flex"}} key={index}>
                                             {content === " Join our Discord!"
                                                 ? <StyledSpan name={name} user={user}>
-                                                <span style={{color:"#31da75"}}>Server</span>:
-                                                <a href="https://discord.gg/sBdByGAh2y" target="_blank" rel="noopener noreferrer">{content}</a>
-                                                      <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
-                                                  </StyledSpan>
+                                                    <span style={{color:"#31da75"}}>Server</span>:
+                                                    <a href="https://discord.gg/sBdByGAh2y" target="_blank" rel="noopener noreferrer">{content}</a>
+                                                    <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
+                                                </StyledSpan>
                                                 : <StyledSpan name={name} user={user}>
                                                     <span style={{color:"#31da75"}}>Server</span>:{content}
                                                 </StyledSpan>}
                                         </div>
-                                        );
+                                    );
                                 }
 
                                 return (
@@ -267,11 +267,13 @@ export default function Lobby({user}: { user: string }) {
 
 const Wrapper = styled.div`
   display: flex;
-  height: 100vh;
-  width: 92%;
+  min-height: 100vh;
+  min-width: 100vw;
+  width: 100%;
   flex-direction: column;
   align-items: center;
-  transform: translateX(0);
+  transform: translate(0px, 0px); // has to be here for the particles to work ???
+  overflow-x: clip;
 `;
 
 const Header = styled.div`
@@ -331,7 +333,6 @@ const Container = styled.div`
   margin-top: 5vh;
   width: 100%;
   max-width: 1000px;
-  min-height: 0px;
 
   @media (min-width: 1000px) {
     border-top-right-radius: 15px;
@@ -343,7 +344,6 @@ const UserList = styled.div`
   margin-top: 3vh;
   padding-top: 1vh;
   width: 85%;
-  min-height: 0px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -357,8 +357,8 @@ const UserList = styled.div`
     gap: 8px;
   }
 
-  ::-webkit-scrollbar {
-    opacity: 0;
+  & ::-webkit-scrollbar {
+    width: 0;
   }
 `;
 
@@ -413,17 +413,15 @@ const Chat = styled.div`
   border-radius: 2px;
   box-shadow: inset 0 0 3px white;
   filter: drop-shadow(0 0 3px ghostwhite);
-  padding: 25px;
-  width: 84.5%;
-  min-height: 0px;
-  flex: 1;
+  padding: 0.25% 1% 1% 1%;
+  width: 85%;
+  height: 300px;
 
   @media (max-width: 500px) {
     border: 3px solid white;
     padding: 4vw;
-    width: 92%;
-    height: 52%;
-    transform: translateY(0.7vh);
+    transform: translate(-33px, 0.7vh);
+    width: 75.5%;
   }
 `;
 
@@ -432,8 +430,7 @@ const History = styled.div`
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  height: 1000%;
-  max-height: 400px;
+  height: 370px;
   width: 100%;
   overflow-y: scroll;
   scrollbar-width: thin;
@@ -482,7 +479,6 @@ const StyledInput = styled.input`
 
 const InputContainer = styled.form`
   width: 100%;
-  height: 100%;
   margin-top: 12px;
   display: flex;
   align-items: flex-end;
@@ -516,6 +512,11 @@ const StyledButton = styled.button`
   &:active {
     background: #a3da31;
     transform: translateY(2px);
+  }
+
+  @media (max-width: 500px) {
+    font-size: 18px;
+    width: 70px;
   }
 `;
 
