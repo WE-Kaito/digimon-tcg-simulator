@@ -37,22 +37,6 @@ public class GameService extends TextWebSocketHandler {
 
     private static final SecureRandom secureRand = new SecureRandom();
 
-    private static final Object lock = new Object();
-
-    public void waitFor(long waitTimeMillis) throws InterruptedException {
-        long startTime = System.currentTimeMillis();
-        long elapsedTime = 0;
-
-        synchronized (lock) {
-            while (elapsedTime < waitTimeMillis) {
-                long timeToWait = waitTimeMillis - elapsedTime;
-                lock.wait(timeToWait);
-                // Recalculate the elapsed time after waking up
-                elapsedTime = System.currentTimeMillis() - startTime;
-            }
-        }
-    }
-
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         // do nothing
@@ -88,7 +72,6 @@ public class GameService extends TextWebSocketHandler {
 
             setUpGame(session, gameId, username1, username2);
             if (username2.equals(Objects.requireNonNull(session.getPrincipal()).getName())) return;
-            waitFor(3600);
             distributeCards(gameId, username1, username2);
             return;
         }
@@ -100,7 +83,6 @@ public class GameService extends TextWebSocketHandler {
                 if (existingGameRoom != null && existingGameRoom.size() == 1) { // reconnect, if room exists with 1 user
                     WebSocketSession opponentSession = existingGameRoom.iterator().next();
                     existingGameRoom.add(session);
-                    waitFor(1000);
                     opponentSession.sendMessage(new TextMessage("[OPPONENT_RECONNECTED]"));
                     return;
                 }
@@ -116,7 +98,6 @@ public class GameService extends TextWebSocketHandler {
             String username2 = gameId.split("‗")[1];
             String startingPlayer = roomMessage.split(":")[1];
             restartGame(session, gameId, username1, username2, startingPlayer);
-            waitFor(3600);
             distributeCards(gameId, username1, username2);
             return;
         }
@@ -268,9 +249,7 @@ public class GameService extends TextWebSocketHandler {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
 
-        waitFor(500);
         sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
-        waitFor(500);
 
         String[] names = {username1, username2};
         int index = secureRand.nextInt(names.length);
@@ -284,9 +263,7 @@ public class GameService extends TextWebSocketHandler {
     private void restartGame(WebSocketSession session, String gameId, String username1, String username2, String startingPlayer) throws IOException, InterruptedException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
-        waitFor(500);
         sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
-        waitFor(500);
 
         for (WebSocketSession s : gameRoom) {
             sendTextMessage(s, "[STARTING_PLAYER]:" + startingPlayer);
@@ -328,8 +305,6 @@ public class GameService extends TextWebSocketHandler {
 
         GameStart newGame = new GameStart(player1Hand, newDeck1, player1EggDeck, player1Security, player2Hand, newDeck2, player2EggDeck, player2Security);
         String newGameJson = objectMapper.writeValueAsString(newGame);
-
-        waitFor(500);
 
         int chunkSize = 1000;
         int length = newGameJson.length();

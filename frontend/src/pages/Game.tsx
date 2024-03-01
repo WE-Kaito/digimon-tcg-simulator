@@ -226,8 +226,11 @@ export default function Game({user}: { user: string }) {
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
-            if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
-            else websocket.sendMessage("/startGame:" + gameId);
+            const timer = setTimeout(() => {
+                if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
+                else websocket.sendMessage("/startGame:" + gameId)
+            }, 1000);
+            return () => { clearTimeout(timer) };
         },
 
         onMessage: (event) => {
@@ -248,9 +251,12 @@ export default function Game({user}: { user: string }) {
             }
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
-                const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(user, chunk, gameId);
-                return;
+                const timer = setTimeout(() => {
+                    setSecurityContentMoodle(false);
+                    const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
+                    distributeCards(user, chunk, gameId);
+                }, gameHasStarted ? 500 : 4500);
+                return () => { clearTimeout(timer) };
             }
 
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
@@ -261,25 +267,28 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
                 const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
-                setMemoryBarLoading(true);
-                setStartingPlayer(firstPlayer);
-                setShowStartingPlayer(true);
-                playStartSfx();
                 const timeout1 = setTimeout(() => {
+                    setMemoryBarLoading(true);
+                    setStartingPlayer(firstPlayer);
+                    setShowStartingPlayer(true);
+                    playStartSfx();
+                }, 1600);
+                const timeout2 = setTimeout(() => {
                     playDrawCardSfx();
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                     if (firstPlayer === user) setTurn(true);
                     setMulliganAllowed(true);
                     setOpponentReady(false);
-                }, 4300);
-                const timeout2 = setTimeout(() => {
+                }, 4800);
+                const timeout3 = setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
-                }, 5500);
+                }, 6000);
                 return () => {
                     clearTimeout(timeout1);
-                    clearTimeout(timeout2)
+                    clearTimeout(timeout2);
+                    clearTimeout(timeout3);
                 };
             }
 
@@ -306,6 +315,7 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[TILT_CARD]:")) {
                 const parts = event.data.substring("[TILT_CARD]:".length).split(":");
+
                 const cardId = parts[0];
                 const location = parts[1];
                 tiltCard(cardId, location, playSuspendSfx, playUnsuspendSfx);
@@ -454,8 +464,8 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[OPPONENT_RECONNECTED]"): {
-                    sendUpdate();
-                    break;
+                    const timer = setTimeout(() => sendUpdate());
+                    return () => { clearTimeout(timer) };
                 }
                 default: {
                     getOpponentSfx(event.data);
@@ -569,7 +579,7 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/updateMemory:${opponentName}:${memory}`);
     }
 
-    function sendPhaseUpdate() {
+    const sendPhaseUpdate = () => {
         websocket.sendMessage(`${gameId}:/updatePhase:${opponentName}`);
     }
 
@@ -647,9 +657,7 @@ export default function Game({user}: { user: string }) {
     ]);
 
     useEffect(() => {
-        const handleOnlineStatusChange = () => {
-            setIsOnline(navigator.onLine);
-        };
+        const handleOnlineStatusChange = () => setIsOnline(navigator.onLine);
 
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
@@ -658,7 +666,7 @@ export default function Game({user}: { user: string }) {
 
         interval = setInterval(() => {
             websocket.sendMessage(`${gameId}:/online:${opponentName}`);
-            setIsOnline(navigator.onLine)
+            setIsOnline(navigator.onLine);
             console.log("online check");
         }, 5000);
 
@@ -695,9 +703,7 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/restartGame:${restartOrder === "first" ? user : opponentName}`);
     }
 
-    function sendLoaded() {
-        websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
-    }
+    const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
 
     function moveDeckCard(to: string, bottomCard?: boolean) {
         if (!getOpponentReady()) return;
@@ -904,7 +910,7 @@ export default function Game({user}: { user: string }) {
             top: 0,
             zIndex: 99999,
             cursor: "wait"
-        }}></div>}
+        }}/>}
         <BackGroundPattern/>
         <BackGround color1={color1} color2={color2} color3={color3}/>
 
@@ -916,7 +922,8 @@ export default function Game({user}: { user: string }) {
             justifyContent: "center",
             alignItems: "center",
             containerType: "inline-size",
-            scrollbarWidth: "thin"
+            scrollbarWidth: "thin",
+            overflow: "scroll",
         }}>
             <OuterWrapper>
 

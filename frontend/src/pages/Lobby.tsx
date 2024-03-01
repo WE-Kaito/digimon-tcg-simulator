@@ -268,10 +268,9 @@ export default function Lobby({user}: { user: string }) {
 const Wrapper = styled.div`
   display: flex;
   height: 100vh;
-  width: 100%;
+  width: 92%;
   flex-direction: column;
   align-items: center;
-  max-height: 100vh;
   transform: translateX(0);
 `;
 
@@ -611,7 +610,7 @@ const StyledSelect = styled(Select)`
   width: 300px;
   position: absolute;
   top: 28px;
-  left: 300px;
+  left: 310px;
   font-family: "League Spartan", sans-serif;
   
   .MuiInputBase-input {
