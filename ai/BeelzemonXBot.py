@@ -36,12 +36,12 @@ class BeelzemonXBot(Bot):
             self.gained_baalmon_effect.add(digivolution_card['id'])
         if 'Purple' in digivolution_card['color']:
             ai_and_mako_card_indices = self.cards_in_battle_area('ST14-11', 'Ai & Mako')
-            self.logger.info('Ai & Mako on field.')
             self.logger.info(ai_and_mako_card_indices)
             for ai_and_mako_card_index in ai_and_mako_card_indices:
                 ai_and_mako_card = self.game['player2Digi'][ai_and_mako_card_index][-1]
                 if not ai_and_mako_card['isTilted']:
-                    st14_11_ai_and_mako = self.card_factory.get_card(card['uniqueCardNumber'], card_id=ai_and_mako_card['id'])
+                    self.logger.info(ai_and_mako_card)
+                    st14_11_ai_and_mako = self.card_factory.get_card(ai_and_mako_card['uniqueCardNumber'], card_id=ai_and_mako_card['id'])
                     await st14_11_ai_and_mako.your_turn_effect(ws)
 
     async def when_card_is_trashed_from_deck(self, ws):
@@ -358,13 +358,13 @@ class BeelzemonXBot(Bot):
         memory_boost_in_hand_index = self.card_in_hand('P-040', 'Purple Memory Boost!')
         rivals_barrage_in_hand_index = self.card_in_hand('ST14-12', 'Rivals\' Barrage')
         if seventh_full_cluster_in_hand_index >= 0:
-            self.trash_card_from_hand(seventh_full_cluster_in_hand_index)
+            self.trash_card_from_hand(ws, seventh_full_cluster_in_hand_index)
             option_trashed = True
         elif memory_boost_in_hand_index >= 0 and len(self.cards_in_battle_area('P-040', 'Purple Memory Boost!')) > 0:
-            self.trash_card_from_hand(memory_boost_in_hand_index)
+            self.trash_card_from_hand(ws, memory_boost_in_hand_index)
             option_trashed = True
         elif rivals_barrage_in_hand_index >= 0:
-            self.trash_card_from_hand(rivals_barrage_in_hand_index)
+            self.trash_card_from_hand(ws, rivals_barrage_in_hand_index)
             option_trashed = True
         if option_trashed:
             card_in_trash_index = self.card_in_trash('ST14-08', 'Beelzemon')
@@ -430,11 +430,11 @@ class BeelzemonXBot(Bot):
             await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
             return
         if len(candidates) == 0:
-            card_index = digimon[0]
+            card_index = digimon[1]
         else:
             card_index = min(candidates)[1]
-        await self.add_card_from_reveal_to_hand(ws, card_index)
-        await self.send_message(ws, f"I add {card['uniqueCardNumber']}-{card['name']} in my hand.")
+        card_id = self.game['player2Reveal'][card_index]['id']
+        await self.add_card_from_reveal_to_hand(ws, card_id)
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
     
@@ -540,37 +540,39 @@ class BeelzemonXBot(Bot):
             await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
             return
         if len(candidates) == 0:
-            card_index = digimon[0]
+            card_index = digimon[1]
         else:
             card_index = min(candidates)[1]
-        await self.add_card_from_reveal_to_hand(ws, card_index)
-        await self.send_message(ws, f"I add {card['uniqueCardNumber']}-{card['name']} in my hand.")
+        card_id = self.game['player2Reveal'][card_index]['id']
+        await self.add_card_from_reveal_to_hand(ws, card_id)
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
     
-    async def st14_011_ai_and_mako_your_turn_strategy(self, ws, ai_and_mako_card):
-        self.logger.info(ws, 'Check if Death Slinger in hand')
+    async def st14_011_ai_and_mako_your_turn_strategy(self, ws, card_id):
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
+        ai_and_mako_card = self.game['player2Digi'][card_index][-1]
+        self.logger.info('Check if Death Slinger in hand')
         death_slinger_index = self.card_in_hand('EX2-071', 'Death Slinger')
         if death_slinger_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', death_slinger_index)
             await self.increase_memory_by(ws, 1)
             ai_and_mako_card['isTilted'] = True
             return
-        self.logger.info(ws, 'Check if Wizardmon in hand')
+        self.logger.info('Check if Wizardmon in hand')
         p_077_wizardmon_index = self.card_in_hand('P-077', 'Wizardmon')
         if p_077_wizardmon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', p_077_wizardmon_index)
             await self.increase_memory_by(ws, 1)
             ai_and_mako_card['isTilted'] = True
             return
-        self.logger.info(ws, 'Check if EX2 Impmon in hand')
+        self.logger.info('Check if EX2 Impmon in hand')
         ex2_039_impmon_index = self.card_in_hand('EX2-039', 'Impmon')
         if ex2_039_impmon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', ex2_039_impmon_index)
             await self.increase_memory_by(ws, 1)
             ai_and_mako_card['isTilted'] = True
             return
-        self.logger.info(ws, 'Check if EX2 Beelzemon in hand')
+        self.logger.info('Check if EX2 Beelzemon in hand')
         ex2_044_beelzemon_index = self.card_in_hand('EX2-044', 'Beelzemon')
         if ex2_044_beelzemon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', ex2_044_beelzemon_index)

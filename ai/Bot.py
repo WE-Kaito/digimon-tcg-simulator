@@ -786,6 +786,7 @@ class Bot(ABC):
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']} to bottom of deck.")
         self.game['player2DeckField'].append(card)
+        await self.update_game(ws)
         stack = self.game['player2Digi'][card_index]
         if len(stack) > 0:
             await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
@@ -818,7 +819,6 @@ class Bot(ABC):
         self.logger.info(f"Return {card['uniqueCardNumber']}-{card['name']} to bottom of deck from trash.")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         self.game['player2DeckField'].append(card)
-        await self.update_game(ws)
         return card
     
     async def move_card_from_trash_to_battle_area(self, ws, card_id, back=False):
@@ -905,9 +905,11 @@ class Bot(ABC):
             self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
             time.sleep(0.2)
     
-    async def add_card_from_reveal_to_hand(self, ws, card_index):
+    async def add_card_from_reveal_to_hand(self, ws, card_id):
+        card_index = self.find_card_index_by_id_in_reveal(card_id)
         await self.move_card(ws, f'myReveal{card_index}', 'myHand0')
         card = self.game['player2Reveal'].pop(card_index)
+        await self.send_message(ws, f"I add {card['uniqueCardNumber']}-{card['name']} in my hand.")
         self.logger.info(f"Returning {card['uniqueCardNumber']}-{card['name']} from reveal to hand.")
         self.game['player2Hand'].insert(0, card)
     
