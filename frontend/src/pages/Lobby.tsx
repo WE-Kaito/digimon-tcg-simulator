@@ -356,10 +356,6 @@ const UserList = styled.div`
   @media (max-width: 500px) {
     gap: 8px;
   }
-
-  & ::-webkit-scrollbar {
-    width: 0;
-  }
 `;
 
 const User = styled.span`
