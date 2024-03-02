@@ -39,22 +39,6 @@ public class GameService extends TextWebSocketHandler {
 
     private static final List<String> setupCommands = Arrays.asList("/startGame", "/distributeCards", "/reconnect");
 
-    private static final Object lock = new Object();
-
-    public void waitFor(long waitTimeMillis) throws InterruptedException {
-        long startTime = System.currentTimeMillis();
-        long elapsedTime = 0;
-
-        synchronized (lock) {
-            while (elapsedTime < waitTimeMillis) {
-                long timeToWait = waitTimeMillis - elapsedTime;
-                lock.wait(timeToWait);
-                // Recalculate the elapsed time after waking up
-                elapsedTime = System.currentTimeMillis() - startTime;
-            }
-        }
-    }
-
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         // do nothing
@@ -258,25 +242,15 @@ public class GameService extends TextWebSocketHandler {
         return objectMapper.writeValueAsString(players);
     }
 
-    private void setUpGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException, InterruptedException {
+    private void setUpGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
 
         sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
 
-        setRandomStartingPlayer(session, gameRoom, gameId, username1, username2, 0);
-    }
-
-    private void setRandomStartingPlayer(WebSocketSession session, Set<WebSocketSession> gameRoom, String gameId, String username1, String username2, int tries) throws IOException, InterruptedException {
-        if(gameRoom.size() != 2) {
-            if (!gameRooms.get(gameId).equals(gameRoom) || tries >= 10) return; // if the game room has changed, don't start the game
-            waitFor(500);
-            setRandomStartingPlayer(session, gameRoom, gameId, username1, username2, tries + 1);
-        }
-
-        String[] names = {username1, username2};
-        int index = secureRand.nextInt(names.length);
-        if (Objects.requireNonNull(session.getPrincipal()).getName().equals(username1)) {
+        if (gameRoom.size() == 2) {
+            String[] names = {username1, username2};
+            int index = secureRand.nextInt(names.length);
             for (WebSocketSession s : gameRoom) {
                 sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
             }
