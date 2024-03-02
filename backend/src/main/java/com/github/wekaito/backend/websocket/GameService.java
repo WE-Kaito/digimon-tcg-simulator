@@ -61,7 +61,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) throws IOException, InterruptedException {
+    protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) throws IOException {
         String userName = Objects.requireNonNull(session.getPrincipal()).getName();
         String payload = message.getPayload();
         if (payload.equals("/heartbeat/")) return;
