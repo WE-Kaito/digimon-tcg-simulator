@@ -262,20 +262,15 @@ export const useGame = create<State>()(
     distributeCards: (user, chunk, gameId) => {
 
         set(state => {
-            if (!state.isLoading) {
-                return {
-                    initialDistributionState: chunk,
-                    isLoading: true
-                }
-            }
-            return {initialDistributionState: state.initialDistributionState + chunk}
+            if (!state.isLoading) return ({ initialDistributionState: chunk, isLoading: true });
+            else return ({ initialDistributionState: state.initialDistributionState + chunk });
         });
 
         if (chunk.length < 1000 && chunk.endsWith("}")) {
 
             const player1 = gameId.split("‗")[0];
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
-
+            const timer = setTimeout(() => {
             if (user === player1) {
                 set({
                     myHand: game.player1Hand,
@@ -300,6 +295,8 @@ export const useGame = create<State>()(
                 });
             }
             set({initialDistributionState: "", isLoading: false});
+            }, 1100);
+            return () => clearTimeout(timer);
         }
     },
 

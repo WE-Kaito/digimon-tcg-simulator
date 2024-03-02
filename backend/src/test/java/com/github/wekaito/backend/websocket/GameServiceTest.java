@@ -74,9 +74,11 @@ class GameServiceTest {
     void testStartGameMessage() throws IOException, InterruptedException {
         // WHEN
         gameService.afterConnectionEstablished(session1);
+        gameService.afterConnectionEstablished(session2);
+        putPlayersToGameRoom();
         gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1‗testUser2"));
         // THEN
-        verify(session1, times(3)).sendMessage(any());
+        verify(session1, times(2)).sendMessage(any());
     }
 
     @Test

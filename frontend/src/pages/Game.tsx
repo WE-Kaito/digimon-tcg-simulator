@@ -228,9 +228,12 @@ export default function Game({user}: { user: string }) {
         onOpen: () => {
             const timer = setTimeout(() => {
                 if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
-                else websocket.sendMessage("/startGame:" + gameId)
-            }, 1000);
-            return () => { clearTimeout(timer) };
+                else {
+                    websocket.sendMessage("/startGame:" + gameId);
+                    requestInitialDistribution();
+                }
+            }, 1500);
+            return () => clearTimeout(timer);
         },
 
         onMessage: (event) => {
@@ -251,12 +254,10 @@ export default function Game({user}: { user: string }) {
             }
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
-                const timer = setTimeout(() => {
-                    setSecurityContentMoodle(false);
-                    const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                    distributeCards(user, chunk, gameId);
-                }, gameHasStarted ? 500 : 4500);
-                return () => { clearTimeout(timer) };
+                const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
+                distributeCards(user, chunk, gameId)
+                setSecurityContentMoodle(false);
+                return;
             }
 
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
@@ -272,14 +273,14 @@ export default function Game({user}: { user: string }) {
                     setStartingPlayer(firstPlayer);
                     setShowStartingPlayer(true);
                     playStartSfx();
-                }, 1600);
+                }, 500);
                 const timeout2 = setTimeout(() => {
                     playDrawCardSfx();
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                     if (firstPlayer === user) setTurn(true);
                     setMulliganAllowed(true);
                     setOpponentReady(false);
-                }, 4800);
+                }, 5300);
                 const timeout3 = setTimeout(() => {
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
@@ -439,6 +440,7 @@ export default function Game({user}: { user: string }) {
                     setEndScreen(false);
                     setUpGame(restartObject.me, restartObject.opponent);
                     setGameHasStarted(false);
+                    requestInitialDistribution();
                     break;
                 }
                 case ("[PLAYER_READY]"): {
@@ -464,8 +466,8 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[OPPONENT_RECONNECTED]"): {
-                    const timer = setTimeout(() => sendUpdate());
-                    return () => { clearTimeout(timer) };
+                    sendUpdate();
+                    break;
                 }
                 default: {
                     getOpponentSfx(event.data);
@@ -473,6 +475,13 @@ export default function Game({user}: { user: string }) {
             }
         }
     });
+
+    function requestInitialDistribution(){
+        if (!gameHasStarted && user === gameId.split("‗")[0]) {
+            const t2 = setTimeout(() => websocket.sendMessage("/distributeCards:" + gameId), 3600);
+            return () => clearTimeout(t2);
+        }
+    }
 
     function sendChatMessage(message: string) {
         if (message.length <= 0) return;
@@ -579,7 +588,7 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/updateMemory:${opponentName}:${memory}`);
     }
 
-    const sendPhaseUpdate = () => {
+    function sendPhaseUpdate() {
         websocket.sendMessage(`${gameId}:/updatePhase:${opponentName}`);
     }
 
@@ -701,6 +710,7 @@ export default function Game({user}: { user: string }) {
         setRestartMoodle(false);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
         websocket.sendMessage(`${gameId}:/restartGame:${restartOrder === "first" ? user : opponentName}`);
+        requestInitialDistribution();
     }
 
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);

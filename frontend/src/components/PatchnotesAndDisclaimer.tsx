@@ -20,6 +20,7 @@ const Wrapper = styled.sub`
   width: 100vw;
   position: absolute;
   bottom: 10px;
+  left: 50%;
   transform: translateX(-50%);
   font-family: Cousine, monospace;
 `;
