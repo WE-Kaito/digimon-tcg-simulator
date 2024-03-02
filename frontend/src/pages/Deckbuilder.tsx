@@ -6,9 +6,8 @@ import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
-import {blueTriangles} from "../assets/particles.ts";
-import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function Deckbuilder() {
 
@@ -38,10 +37,7 @@ export default function Deckbuilder() {
     }, []);
 
     return (
-        <Wrapper>
-            <div style={{position: "absolute"}}>
-                <ParticlesBackground options={blueTriangles}/>
-            </div>
+        <MenuBackgroundWrapper>
             <OuterContainer>
 
                 <ButtonContainer>
@@ -73,21 +69,9 @@ export default function Deckbuilder() {
                 </CardImageContainer>
 
             </OuterContainer>
-        </Wrapper>
+        </MenuBackgroundWrapper>
     );
 }
-
-export const Wrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-  transform: translateY(0);
-  container-type: inline-size;
-  container-name: wrapper;
-`;
 
 export const OuterContainer = styled.div`
   position: absolute;

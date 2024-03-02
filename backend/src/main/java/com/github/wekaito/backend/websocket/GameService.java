@@ -37,6 +37,24 @@ public class GameService extends TextWebSocketHandler {
 
     private static final SecureRandom secureRand = new SecureRandom();
 
+    private static final List<String> setupCommands = Arrays.asList("/startGame", "/distributeCards", "/reconnect");
+
+    private static final Object lock = new Object();
+
+    public void waitFor(long waitTimeMillis) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+        long elapsedTime = 0;
+
+        synchronized (lock) {
+            while (elapsedTime < waitTimeMillis) {
+                long timeToWait = waitTimeMillis - elapsedTime;
+                lock.wait(timeToWait);
+                // Recalculate the elapsed time after waking up
+                elapsedTime = System.currentTimeMillis() - startTime;
+            }
+        }
+    }
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         // do nothing
@@ -65,28 +83,24 @@ public class GameService extends TextWebSocketHandler {
         if (payload.equals("/heartbeat/")) return;
         String[] parts = payload.split(":", 2);
 
-        if (payload.startsWith("/startGame:") && parts.length >= 2) {
-            String gameId = parts[1].trim();
+        if (setupCommands.contains(parts[0])) {
+            String gameId = parts[1];
             String username1 = gameId.split("‗")[0];
             String username2 = gameId.split("‗")[1];
 
-            setUpGame(session, gameId, username1, username2);
-            if (username2.equals(Objects.requireNonNull(session.getPrincipal()).getName())) return;
-            distributeCards(gameId, username1, username2);
-            return;
-        }
-
-        if(payload.startsWith("/reconnect:") && parts.length >= 2){
-            synchronized (gameRooms) {
-                String gameId = parts[1].trim();
-                Set<WebSocketSession> existingGameRoom = gameRooms.get(gameId);
-                if (existingGameRoom != null && existingGameRoom.size() == 1) { // reconnect, if room exists with 1 user
-                    WebSocketSession opponentSession = existingGameRoom.iterator().next();
-                    existingGameRoom.add(session);
-                    opponentSession.sendMessage(new TextMessage("[OPPONENT_RECONNECTED]"));
-                    return;
+            if (parts[0].equals(setupCommands.get(0))) setUpGame(session, gameId, username1, username2);
+            if (parts[0].equals(setupCommands.get(1))) distributeCards(gameId, username1, username2);
+            if (parts[0].equals(setupCommands.get(2))) {
+                synchronized (gameRooms) {
+                    Set<WebSocketSession> existingGameRoom = gameRooms.get(gameId);
+                    if (existingGameRoom != null && existingGameRoom.size() == 1) { // reconnect, if room exists with 1 user
+                        WebSocketSession opponentSession = existingGameRoom.iterator().next();
+                        existingGameRoom.add(session);
+                        opponentSession.sendMessage(new TextMessage("[OPPONENT_RECONNECTED]"));
+                    }
                 }
             }
+            return;
         }
 
         String gameId = parts[0];
@@ -98,7 +112,6 @@ public class GameService extends TextWebSocketHandler {
             String username2 = gameId.split("‗")[1];
             String startingPlayer = roomMessage.split(":")[1];
             restartGame(session, gameId, username1, username2, startingPlayer);
-            distributeCards(gameId, username1, username2);
             return;
         }
 
@@ -110,9 +123,9 @@ public class GameService extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/moveCard:")) handleSendMoveCard(gameRoom, roomMessage);
 
-        if(roomMessage.startsWith("/moveCardToDeck:")) handleSendMoveToDeck(gameRoom, roomMessage);
+        if (roomMessage.startsWith("/moveCardToDeck:")) handleSendMoveToDeck(gameRoom, roomMessage);
 
-        if(roomMessage.startsWith("/tiltCard:")) handleTiltCard(gameRoom, roomMessage);
+        if (roomMessage.startsWith("/tiltCard:")) handleTiltCard(gameRoom, roomMessage);
 
         if (roomMessage.startsWith("/updateMemory:")) handleMemoryUpdate(gameRoom, roomMessage);
 
@@ -251,6 +264,16 @@ public class GameService extends TextWebSocketHandler {
 
         sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
 
+        setRandomStartingPlayer(session, gameRoom, gameId, username1, username2, 0);
+    }
+
+    private void setRandomStartingPlayer(WebSocketSession session, Set<WebSocketSession> gameRoom, String gameId, String username1, String username2, int tries) throws IOException, InterruptedException {
+        if(gameRoom.size() != 2) {
+            if (!gameRooms.get(gameId).equals(gameRoom) || tries >= 10) return; // if the game room has changed, don't start the game
+            waitFor(500);
+            setRandomStartingPlayer(session, gameRoom, gameId, username1, username2, tries + 1);
+        }
+
         String[] names = {username1, username2};
         int index = secureRand.nextInt(names.length);
         if (Objects.requireNonNull(session.getPrincipal()).getName().equals(username1)) {
@@ -260,7 +283,7 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    private void restartGame(WebSocketSession session, String gameId, String username1, String username2, String startingPlayer) throws IOException, InterruptedException {
+    private void restartGame(WebSocketSession session, String gameId, String username1, String username2, String startingPlayer) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
         sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
@@ -270,7 +293,19 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    private void distributeCards(String gameId, String username1, String username2) throws IOException, InterruptedException {
+    private static List<GameCard> getEggDeck(List<GameCard> deck) {
+        List<GameCard> eggDeck = deck.stream().filter(card -> card.cardType().equals("Digi-Egg")).toList();
+        deck.removeAll(eggDeck);
+        return eggDeck;
+    }
+
+    private static List<GameCard> drawCards(List<GameCard> deck) {
+        List<GameCard> drawnCards = deck.stream().limit(5).toList();
+        deck.removeAll(drawnCards);
+        return drawnCards;
+    }
+
+    private void distributeCards(String gameId, String username1, String username2) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
         List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
@@ -279,29 +314,13 @@ public class GameService extends TextWebSocketHandler {
         List<GameCard> newDeck1 = createGameDeck(deck1);
         List<GameCard> newDeck2 = createGameDeck(deck2);
 
-        List<GameCard> player1EggDeck = newDeck1.stream()
-                .filter(card -> card.cardType().equals("Digi-Egg")).toList();
-        newDeck1.removeAll(player1EggDeck);
+        List<GameCard> player1EggDeck = getEggDeck(newDeck1);
+        List<GameCard> player1Security = drawCards(newDeck1);
+        List<GameCard> player1Hand = drawCards(newDeck1);
 
-        List<GameCard> player1Hand = newDeck1.stream()
-                .limit(5).toList();
-        newDeck1.removeAll(player1Hand);
-
-        List<GameCard> player1Security = newDeck1.stream()
-                .limit(5).toList();
-        newDeck1.removeAll(player1Security);
-
-        List<GameCard> player2EggDeck = newDeck2.stream()
-                .filter(card -> card.cardType().equals("Digi-Egg")).toList();
-        newDeck2.removeAll(player2EggDeck);
-
-        List<GameCard> player2Security = newDeck2.stream()
-                .limit(5).toList();
-        newDeck2.removeAll(player2Security);
-
-        List<GameCard> player2Hand = newDeck2.stream()
-                .limit(5).toList();
-        newDeck2.removeAll(player2Hand);
+        List<GameCard> player2EggDeck = getEggDeck(newDeck2);
+        List<GameCard> player2Security = drawCards(newDeck2);
+        List<GameCard> player2Hand = drawCards(newDeck2);
 
         GameStart newGame = new GameStart(player1Hand, newDeck1, player1EggDeck, player1Security, player2Hand, newDeck2, player2EggDeck, player2Security);
         String newGameJson = objectMapper.writeValueAsString(newGame);

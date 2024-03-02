@@ -5,8 +5,6 @@ import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
 import {Loading} from "../components/deckbuilder/FetchedCards.tsx";
-import {blueTriangles} from "../assets/particles.ts";
-import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import UserSettings from "../components/profile/UserSettings.tsx";
 import SortableProfileDeck from "../components/profile/SortableProfileDeck.tsx";
 import {closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
@@ -16,6 +14,7 @@ import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import {Dialog} from "@mui/material";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export type DeckIdOrder = string[];
 
@@ -51,10 +50,9 @@ export default function Profile({user}: { user: string }) {
     useEffect(() => loadOrderedDecks(setOrderedDecks), []);
 
     return (
-        <Wrapper>
-            <ParticlesBackground options={blueTriangles}/>
+        <MenuBackgroundWrapper alignedTop>
             <Header>
-                <Name style={{transform: "translateY(-8px)"}}>{user}</Name>
+                <Name>{user}</Name>
                 <BackButton/>
             </Header>
 
@@ -91,26 +89,9 @@ export default function Profile({user}: { user: string }) {
                           </SortableContext>}
                 </Container>
             </DndContext>
-        </Wrapper>
+        </MenuBackgroundWrapper>
     );
 }
-
-const Wrapper = styled.div`
-  display: flex;
-  min-height: 100vh;
-  min-width: 100vw;
-  height: 100%;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  transform: translate(0px, 0px); // has to be here for the particles to work ???
-  overflow-x: clip;
-
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-`;
 
 const Container = styled.div`
   display: flex;
@@ -130,12 +111,9 @@ const Container = styled.div`
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 10px;
   margin-top: 20px;
-  margin-bottom: 70px;
   width: 1040px;
   @media (max-width: 1000px) {
-    margin-bottom: 40px;
     width: 96.5vw;
   }
 `;
@@ -170,9 +148,5 @@ const DeckHeaderContainer = styled.div`
     height: 2px;
     border-radius: 3px;
     margin-top: 0;
-  }
-
-  @media (min-width: 2000px) {
-
   }
 `;

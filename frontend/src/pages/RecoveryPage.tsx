@@ -3,9 +3,8 @@ import {useStore} from "../hooks/useStore.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Headline2} from "../components/Header.tsx";
-import {blueTriangles} from "../assets/particles.ts";
-import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import {InputField, InputFieldRegister, LoginPageButton} from "./LoginPage.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function RecoveryPage() {
 
@@ -56,8 +55,7 @@ export default function RecoveryPage() {
     }
 
     return (
-        <Wrapper className="login-background">
-            <ParticlesBackground options={blueTriangles}/>
+        <MenuBackgroundWrapper>
             <Headline2 style={{marginTop: 80}}>Password Recovery</Headline2>
 
             <StyledForm onSubmit={handleUserSearch}>
@@ -96,19 +94,9 @@ export default function RecoveryPage() {
                     </ChangePWButton>
                 </StyledForm2>
             }
-        </Wrapper>
+        </MenuBackgroundWrapper>
     );
 }
-
-const Wrapper = styled.div`
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  transform: translate(0px, 0px); // has to be here for the particles to work ???
-`;
 
 const StyledForm = styled.form`
   margin-top: 70px;

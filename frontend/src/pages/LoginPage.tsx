@@ -3,9 +3,8 @@ import {useStore} from "../hooks/useStore.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
-import {blueTriangles} from "../assets/particles.ts";
-import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 enum INPUT_TYPE {
     USERNAME = "username",
@@ -73,75 +72,63 @@ export default function LoginPage() {
         else return "#e17b88";
     }
 
-    return (<>
-            <Wrapper className="login-background">
-                <ParticlesBackground options={blueTriangles}/>
-                <Header/>
-                {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
-                    <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
-                                type="text" name="userName" placeholder="username" maxLength={16}/>
-                    <div>
-                        <InputField value={password} onChange={(e) => setPassword(e.target.value)}
-                                    type="password" name="password" placeholder="password"/>
-                        <br/>
-                        <StyledInfo2 onClick={() => navigate("/recover-password")}>Forgot your password?</StyledInfo2>
-                    </div>
-                    <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
-                    <RegisterButton style={{marginTop: "50px"}} type="button"
-                                    onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
-                </StyledForm>}
+    return (
+        <MenuBackgroundWrapper>
+            <Header/>
+            {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
+                <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
+                            type="text" name="userName" placeholder="username" maxLength={16}/>
+                <div>
+                    <InputField value={password} onChange={(e) => setPassword(e.target.value)}
+                                type="password" name="password" placeholder="password"/>
+                    <br/>
+                    <StyledInfo2 onClick={() => navigate("/recover-password")}>Forgot your password?</StyledInfo2>
+                </div>
+                <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
+                <RegisterButton style={{marginTop: "50px"}} type="button"
+                                onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
+            </StyledForm>}
 
-                {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
+            {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
 
-                    <div>
-                        <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
-                                            type="text" name="userName" placeholder="username" maxLength={16}
-                                            style={{backgroundColor: `${getInputColor(userNameReg, INPUT_TYPE.USERNAME)}`}}
-                        />
-                        <br/>
-                        <StyledInfo>3 - 16 characters</StyledInfo>
-                    </div>
-                    <div>
-                        <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
-                                            type="password" name="password" placeholder="password"
-                                            style={{backgroundColor: `${getInputColor(passwordReg, INPUT_TYPE.PASSWORD)}`}}
-                        />
-                        <br/>
-                        <StyledInfo>
-                            6+ characters, cont. numbers & letters
-                        </StyledInfo>
-                    </div>
-                    <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
-                                        type="password" name="RepeatPassword" placeholder="repeat password"
-                                        style={{backgroundColor: `${getInputColor(repeatedPassword, INPUT_TYPE.REPEATED_PASSWORD)}`}}/>
-                    <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
-                                        type="text" name="Question" placeholder="safety question"
-                                        style={{backgroundColor: `${getInputColor(question, INPUT_TYPE.QUESTION)}`}}/>
-                    <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
-                                        type="text" name="Answer" placeholder="answer (pw recovery)"
-                                        style={{backgroundColor: `${getInputColor(answer, INPUT_TYPE.QUESTION)}`}}/>
-                    <ButtonContainer>
-                        <BackButton type="button"
-                                    onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
-                        <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
-                    </ButtonContainer>
+                <div>
+                    <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
+                                        type="text" name="userName" placeholder="username" maxLength={16}
+                                        style={{backgroundColor: `${getInputColor(userNameReg, INPUT_TYPE.USERNAME)}`}}
+                    />
+                    <br/>
+                    <StyledInfo>3 - 16 characters</StyledInfo>
+                </div>
+                <div>
+                    <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
+                                        type="password" name="password" placeholder="password"
+                                        style={{backgroundColor: `${getInputColor(passwordReg, INPUT_TYPE.PASSWORD)}`}}
+                    />
+                    <br/>
+                    <StyledInfo>
+                        6+ characters, cont. numbers & letters
+                    </StyledInfo>
+                </div>
+                <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
+                                    type="password" name="RepeatPassword" placeholder="repeat password"
+                                    style={{backgroundColor: `${getInputColor(repeatedPassword, INPUT_TYPE.REPEATED_PASSWORD)}`}}/>
+                <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
+                                    type="text" name="Question" placeholder="safety question"
+                                    style={{backgroundColor: `${getInputColor(question, INPUT_TYPE.QUESTION)}`}}/>
+                <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
+                                    type="text" name="Answer" placeholder="answer (pw recovery)"
+                                    style={{backgroundColor: `${getInputColor(answer, INPUT_TYPE.QUESTION)}`}}/>
+                <ButtonContainer>
+                    <BackButton type="button"
+                                onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
+                    <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
+                </ButtonContainer>
 
-                </StyledForm2>}
-            </Wrapper>
+            </StyledForm2>}
             {!registerPage && <PatchnotesAndDisclaimer/>}
-        </>
+        </MenuBackgroundWrapper>
     );
 }
-
-const Wrapper = styled.div`
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transform: translate(0px, 0px); // has to be here for the particles to work ???
-`;
 
 export const LoginPageButton = styled.button`
   cursor: pointer;

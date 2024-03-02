@@ -3,7 +3,7 @@ import {useStore} from "../../hooks/useStore.ts";
 import {FormEvent, useMemo, useState} from "react";
 import {MuiColorInput} from "mui-color-input";
 import ResetIcon from '@mui/icons-material/SettingsBackupRestore';
-import {IconButton} from "@mui/material";
+import {IconButton, Stack} from "@mui/material";
 
 export default function UserSettings() {
 
@@ -47,33 +47,51 @@ export default function UserSettings() {
 
     return (
         <Wrapper>
-            <Container>
-            <Description>Change Safety Question:</Description>
-            <ChangeQuestionForm onSubmit={handleSubmit}>
-                <ChangeQuestionInput name="question" placeholder="question"></ChangeQuestionInput>
-                <ChangeQuestionInput name="answer" placeholder="answer"></ChangeQuestionInput>
-                <SaveChangesButton type="submit">💾</SaveChangesButton>
-            </ChangeQuestionForm>
-            </Container>
+            <Stack alignItems={"flex-start"} gap={0.5}>
+                <DescriptionSpan>Change Safety Question:</DescriptionSpan>
+                <ChangeQuestionForm onSubmit={handleSubmit}>
+                    <ChangeQuestionInput name="question" placeholder="question"></ChangeQuestionInput>
+                    <ChangeQuestionInput name="answer" placeholder="answer"></ChangeQuestionInput>
+                    <SaveChangesButton type="submit">💾</SaveChangesButton>
+                </ChangeQuestionForm>
+            </Stack>
 
-            <Workaround>
-            <Container>
-                <Description>Set Background Color Scheme:<span style={{marginLeft: 175}}>Preview:</span></Description>
-                <div style={{ display: "flex", gap: 5}}>
-                    <MuiColorInputStyled value={value1} onChange={handleChange1} format={"hex"}/>
-                    <MuiColorInputStyled value={value2} onChange={handleChange2} format={"hex"}/>
-                    <MuiColorInputStyled value={value3} onChange={handleChange3} format={"hex"}/>
-                    <IconButton color="primary" sx={{ transform: "translateY(-9px)"}} onClick={resetColors}>
-                        <ResetIcon />
-                    </IconButton>
-                    <PreviewHr color1={value1} color2={value2} color3={value3}/>
-                </div>
-            </Container>
-            </Workaround>
-
+            <Stack direction={"row"} gap={1}  flexWrap={"wrap"}>
+                <Stack alignItems={"flex-start"} gap={0.5}>
+                    <DescriptionSpan>Set Background Color Scheme:</DescriptionSpan>
+                    <Stack direction={"row"} gap={1}>
+                        <MuiColorInputStyled value={value1} onChange={handleChange1} format={"hex"}/>
+                        <MuiColorInputStyled value={value2} onChange={handleChange2} format={"hex"}/>
+                        <MuiColorInputStyled value={value3} onChange={handleChange3} format={"hex"}/>
+                    </Stack>
+                </Stack>
+                <Stack alignItems={"flex-start"} gap={0.5}>
+                    <DescriptionSpan style={{transform: "translateX(50px)"}}>Preview:</DescriptionSpan>
+                    <Stack direction={"row"} gap={1}>
+                        <IconButton color="primary" sx={{ transform: "translateY(-9px)"}} onClick={resetColors}>
+                            <ResetIcon />
+                        </IconButton>
+                        <PreviewHr color1={value1} color2={value2} color3={value3}/>
+                    </Stack>
+                </Stack>
+            </Stack>
         </Wrapper>
     );
 }
+
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  max-width: 1204px;
+  gap: 20px;
+  @media (max-width: 1100px) {
+    justify-content: center;
+  }
+`;
 
 const PreviewHr = styled.hr<{color1: string, color2: string, color3: string}>`
   background: linear-gradient(253deg, ${({color3}) => color3} 0%, ${({color2}) => color2} 33%, ${({color2}) => color2} 67%, ${({color1}) => color1} 100%);
@@ -122,12 +140,6 @@ const PreviewHr = styled.hr<{color1: string, color2: string, color3: string}>`
   }
 `;
 
-const Workaround = styled.div`
-  @media (max-width: 1050px) {
-    visibility: hidden;
-  }
-`;
-
 const MuiColorInputStyled = styled(MuiColorInput)`
   & .MuiOutlinedInput-root {
     height: 32px;
@@ -139,51 +151,21 @@ const MuiColorInputStyled = styled(MuiColorInput)`
   }
 `
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-`
-
-const Wrapper = styled.div`
-  width: 1040px;
-  height: 125px;
-  position: absolute;
-  top: 105px;
-
-  display: flex;
-  gap: 220px;
-  flex-direction: row;
-  justify-content: flex-start;
-  @media (max-width: 1050px) {
-    width: 100%;
-    top: 73px;
-    flex-direction: column;
-    gap: unset;
-    align-items: flex-start;
-  }
-`;
-
-const Description = styled.span`
+const DescriptionSpan = styled.span`
   font-family: 'Naston', sans-serif;
   font-size: 15px;
   color: #1d7dfc;
-  @media (max-width: 1050px) {
+  @media (max-width: 500px) {
     font-size: 13px;
-    transform: translate(60px, 5px);
   }
 `;
 
 const ChangeQuestionForm = styled.form`
   display: flex;
-  gap: 8px;
   flex-direction: row;
   align-items: flex-start;
-  width: 195px;
-  @media (max-width: 1050px) {
-    margin-left: 30%;
-  }
+  gap: 8px;
+  flex-wrap: wrap;
 `;
 
 const ChangeQuestionInput = styled.input`

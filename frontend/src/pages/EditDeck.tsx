@@ -7,7 +7,6 @@ import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {
-    Wrapper,
     DeckNameInput,
     OuterContainer,
     CardImage,
@@ -15,9 +14,8 @@ import {
     DeckNameContainer, DetailsContainer, ButtonContainer, CardImageContainer, CardNumberSpan
 } from "./Deckbuilder.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
-import {blueTriangles} from "../assets/particles.ts";
-import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function EditDeck() {
 
@@ -54,10 +52,7 @@ export default function EditDeck() {
     }
 
     return (
-        <Wrapper>
-            <div style={{position: "absolute"}}>
-            <ParticlesBackground options={blueTriangles}/>
-            </div>
+        <MenuBackgroundWrapper>
             <OuterContainer>
 
                 <ButtonContainer>
@@ -96,7 +91,7 @@ export default function EditDeck() {
                     <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>
             </OuterContainer>
-        </Wrapper>
+        </MenuBackgroundWrapper>
     );
 }
 

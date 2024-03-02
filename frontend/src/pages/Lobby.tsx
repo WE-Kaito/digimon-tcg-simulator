@@ -9,13 +9,12 @@ import {useNavigate} from "react-router-dom";
 import {notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
 import {playInvitationSfx} from "../utils/sound.ts";
 import discordIcon from "../assets/discordLogo.png";
-import {blueTriangles} from "../assets/particles.ts";
-import ParticlesBackground from "../components/ParticlesBackground.tsx";
 import {useGame} from "../hooks/useGame.ts";
 import {Button, MenuItem, Select} from "@mui/material";
 import { SelectChangeEvent } from '@mui/material/Select';
 import {useStore} from "../hooks/useStore.ts";
 import {VolumeOff as MuteIcon} from '@mui/icons-material';
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -123,6 +122,7 @@ export default function Lobby({user}: { user: string }) {
 
     function handleInvite(invitedUsername: string) {
         clearBoard();
+        localStorage.removeItem("bearStore");
         setInvitationSent(true);
         setInviteTo(invitedUsername);
         const invitationMessage = `/invite:` + invitedUsername;
@@ -138,10 +138,12 @@ export default function Lobby({user}: { user: string }) {
 
     function handleAcceptInvite() {
         clearBoard();
+        localStorage.removeItem("bearStore");
         websocket.sendMessage(`/acceptInvite:` + inviteFrom);
         const newGameId = inviteFrom + "‗" + user;
         setGameId(newGameId);
         navigateToGame();
+
     }
 
     function handleMuteInvites() {
@@ -168,8 +170,7 @@ export default function Lobby({user}: { user: string }) {
     }, []);
 
     return (
-        <Wrapper>
-            <ParticlesBackground options={blueTriangles}/>
+        <MenuBackgroundWrapper>
             {pendingInvitation &&
                 <InvitationMoodle>
                     <div title="Stop receiving invites from this player until you re-enter the lobby.">
@@ -261,20 +262,9 @@ export default function Lobby({user}: { user: string }) {
                     </InputContainer>
                 </Chat>
             </Container>
-        </Wrapper>
+        </MenuBackgroundWrapper>
     );
 }
-
-const Wrapper = styled.div`
-  display: flex;
-  min-height: 100vh;
-  min-width: 100vw;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  transform: translate(0px, 0px); // has to be here for the particles to work ???
-  overflow-x: clip;
-`;
 
 const Header = styled.div`
   display: flex;
@@ -352,6 +342,7 @@ const UserList = styled.div`
   gap: 16px;
   overflow-y: scroll;
   scrollbar-width: thin;
+  max-height: 41.5vh;
 
   @media (max-width: 500px) {
     gap: 8px;
@@ -369,10 +360,7 @@ const User = styled.span`
   background: black;
   font-family: Amiga Forever Pro2, sans-serif;
   text-align: left;
-  padding-left: 4vw;
-  padding-top: 4px;
-  padding-right: 4vw;
-  padding-bottom: 4px;
+  padding: 5px;
   text-overflow: clip;
   font-size: 28px;
   border: 3px solid #dcb415;
