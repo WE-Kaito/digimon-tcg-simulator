@@ -159,13 +159,18 @@ class BeelzemonXBot(Bot):
             digimon = self.game['player2Hand'][digimon_in_hand_index]
             await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
             return True
-        self.logger.info(f'Trying to play cheapest digimon.')
-        digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(5)
-        if digimon_in_hand_index >= 0:
-            digimon = self.game['player2Hand'][digimon_in_hand_index]
-            self.logger.info(f"I play {digimon['name']}")
-            await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
-            return True
+        n_digimon_on_my_field = 0
+        for i in range(5):
+            if len(self.game['player2Digi'][i]) > 0:
+                n_digimon_on_my_field += 1
+        if n_digimon_on_my_field == 0:
+            self.logger.info(f'Trying to play cheapest digimon.')
+            digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(5)
+            if digimon_in_hand_index >= 0:
+                digimon = self.game['player2Hand'][digimon_in_hand_index]
+                self.logger.info(f"I play {digimon['name']}")
+                await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
+                return True
         return False
 
     async def promote_strategy(self, ws):
@@ -200,7 +205,7 @@ class BeelzemonXBot(Bot):
         sevent_full_cluster_in_trash_index = self.card_in_trash('BT12-110', 'Seventh Full Cluster')
         if sevent_full_cluster_in_trash_index < 0:
             return
-        card = self.game['player2Digi'][sevent_full_cluster_in_trash_index][-1]
+        card = self.game['player2Trash'][sevent_full_cluster_in_trash_index][-1]
         sevent_full_cluster = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
         await sevent_full_cluster.trash_effect(ws)
         time.sleep(2)
@@ -422,7 +427,7 @@ class BeelzemonXBot(Bot):
         for i in range(len(self.game['player2Reveal'])):
             card = self.game['player2Reveal'][i]
             if card['cardType'] == 'Digimon' and 'Purple' in card['color']:
-                digimon.append(i)
+                digimon.append((card['level'], i))
                 if card['level'] in target_levels:
                     candidates.append((card['level'], i))
         if len(digimon) == 0:
