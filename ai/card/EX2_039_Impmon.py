@@ -41,12 +41,12 @@ class EX2_039_Impmon(Card):
         if len(beelzemon_candidates) > 0:
             card_index = beelzemon_candidates[0]
             await self.bot.send_message(ws, f"Can add {card['uniqueCardNumber']}-{card['name']} in my hand.")
-            card_id = self.game['player2Reveal'][card_index]['id']
+            card_id = self.bot.game['player2Reveal'][card_index]['id']
             await self.bot.add_card_from_reveal_to_hand(ws, card_id)
         if len(ai_and_mako_candidates) > 0:
             card_index = ai_and_mako_candidates[0]
             await self.bot.send_message(ws, f"Can add {card['uniqueCardNumber']}-{card['name']} in my hand.")
-            card_id = self.game['player2Reveal'][card_index]['id']
+            card_id = self.bot.game['player2Reveal'][card_index]['id']
             await self.bot.add_card_from_reveal_to_hand(ws, card_id)
         time.sleep(2)
         await self.put_cards_to_bottom_of_deck(ws)   
