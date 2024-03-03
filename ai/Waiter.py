@@ -114,6 +114,20 @@ class Waiter:
                 return target_digimon[-1]['id'], target_digimon[digivolution_card_index-1]['id']
         await self.send_invalid_command_message(ws)
         return False, False
+    
+    async def filter_de_digivolve_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 3 and message[1].isdigit() and message[2].isdigit():
+            card_id = await self.filter_target_digimon_action(ws, ' '.join(message[:-1]))
+            if not card_id:
+                return False, False
+            target_digimon = self.bot.game['player2Digi'][self.bot.find_card_index_by_id_in_battle_area(card_id)[0]][-1]
+            if target_digimon['cardType'] != 'Digimon':
+                return False, False
+            n = int(message[2])
+            return target_digimon['id'], n
+        await self.send_invalid_command_message(ws)
+        return False, False
 
     async def check_for_action(self, ws, message):
         move_message_prefix = '[MOVE_CARD]:'
@@ -265,6 +279,12 @@ class Waiter:
                 card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'{card_id} can\'t suspend until end of turn.')
                 await self.bot.send_message(ws, f"{card['name']} can\'t suspend until end of turn.")
+        prefix = 'de-digivolve'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id, n  = await self.filter_de_digivolve_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                await self.bot.de_digivolve(ws, card_id, n)
 
     async def wait_for_actions(self, ws):
         message = None

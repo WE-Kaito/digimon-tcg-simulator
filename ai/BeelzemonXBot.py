@@ -160,7 +160,7 @@ class BeelzemonXBot(Bot):
             await self.play_card(ws, 'Hand', digimon_in_hand_index, digimon['playCost'])
             return True
         self.logger.info(f'Trying to play cheapest digimon.')
-        digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(7)
+        digimon_in_hand_index = self.cheap_digimon_in_hand_to_play(5)
         if digimon_in_hand_index >= 0:
             digimon = self.game['player2Hand'][digimon_in_hand_index]
             self.logger.info(f"I play {digimon['name']}")
@@ -297,7 +297,7 @@ class BeelzemonXBot(Bot):
             for digimon_index in can_attack_digimons_index:
                 self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
                 if digimon_index < len(self.game['player2Digi'][digimon_index]):
-                    await self.suspend_digimon(ws, digimon_index)
+                    await self.suspend_card(ws, digimon_index)
                     await self.when_attacking_effects_strategy(ws, digimon_index)
                     await self.attack_with_digimon(ws, digimon_index)
             return True
@@ -317,7 +317,7 @@ class BeelzemonXBot(Bot):
             self.logger.info('Not found. Won\'t attack...')
             return False
         self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
-        await self.suspend_digimon(ws, digimon_index)
+        await self.suspend_card(ws, digimon_index)
         await self.when_attacking_effects_strategy(ws, digimon_index)
         await self.attack_with_digimon(ws, digimon_index)
         return True
@@ -556,28 +556,28 @@ class BeelzemonXBot(Bot):
         if death_slinger_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', death_slinger_index)
             await self.increase_memory_by(ws, 1)
-            ai_and_mako_card['isTilted'] = True
+            await self.suspend_card(ws, card_index)
             return
         self.logger.info('Check if Wizardmon in hand')
         p_077_wizardmon_index = self.card_in_hand('P-077', 'Wizardmon')
         if p_077_wizardmon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', p_077_wizardmon_index)
             await self.increase_memory_by(ws, 1)
-            ai_and_mako_card['isTilted'] = True
+            await self.suspend_card(ws, card_index)
             return
         self.logger.info('Check if EX2 Impmon in hand')
         ex2_039_impmon_index = self.card_in_hand('EX2-039', 'Impmon')
         if ex2_039_impmon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', ex2_039_impmon_index)
             await self.increase_memory_by(ws, 1)
-            ai_and_mako_card['isTilted'] = True
+            await self.suspend_card(ws, card_index)
             return
         self.logger.info('Check if EX2 Beelzemon in hand')
         ex2_044_beelzemon_index = self.card_in_hand('EX2-044', 'Beelzemon')
         if ex2_044_beelzemon_index >= 0:
             await self.put_card_on_top_of_deck(ws, 'Hand', ex2_044_beelzemon_index)
             await self.increase_memory_by(ws, 1)
-            ai_and_mako_card['isTilted'] = True
+            await self.suspend_card(ws, card_index)
             return
     
     async def p_077_inherited_when_attacking_once_per_turn_strategy(self, ws):
