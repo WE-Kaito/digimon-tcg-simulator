@@ -46,7 +46,7 @@ export default function CardDetails() {
 
     const [highlightedMainEffect, setHighlightedMainEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [highlightedInheritedEffect, setHighlightedInheritedEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedSecurityEffect, sethighlightedSecurityEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedSecurityEffect, setHighlightedSecurityEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [highlightedSpecialDigivolve, setHighlightedSpecialDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [highlightedBurstDigivolve, setHighlightedBurstDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [highlightedDigiXros, setHighightedDigiXros] = useState<(JSX.Element | JSX.Element[])[]>([]);
@@ -59,7 +59,7 @@ export default function CardDetails() {
     useEffect(() => {
         setHighlightedMainEffect(HighlightedKeyWords({text: mainEffectText}));
         setHighlightedInheritedEffect(HighlightedKeyWords({text: inheritedEffectText}));
-        sethighlightedSecurityEffect(HighlightedKeyWords({text: securityEffectText}));
+        setHighlightedSecurityEffect(HighlightedKeyWords({text: securityEffectText}));
         setHighlightedSpecialDigivolve(HighlightedKeyWords({text: specialDigivolveText}));
         setHighlightedBurstDigivolve(HighlightedKeyWords({text: burstDigivolveText}));
         setHighightedDigiXros(HighlightedKeyWords({text: digiXrosText}));
@@ -85,32 +85,32 @@ export default function CardDetails() {
                 <TabPanel item="effects">
                     <TabContainer inGame={inGame} isNameLong={isNameLong}>
 
-                        {dnaDigivolutionText && <EffectCard variant={"special"} key={dnaDigivolutionText}>
+                        {dnaDigivolutionText && <EffectCard variant={"special"} key={`${cardNumber}_dna`}>
                             {highlightedDNADigivolution}
                         </EffectCard>}
 
-                        {digiXrosText && <EffectCard variant={"special"} key={digiXrosText}>
+                        {digiXrosText && <EffectCard variant={"special"} key={`${cardNumber}_xros`}>
                             {highlightedDigiXros}
                         </EffectCard>}
 
-                        {burstDigivolveText && <EffectCard variant={"special"} key={burstDigivolveText}>
+                        {burstDigivolveText && <EffectCard variant={"special"} key={`${cardNumber}_burst`}>
                             {highlightedBurstDigivolve}
                         </EffectCard>}
 
-                        {specialDigivolveText && <EffectCard variant={"special"} key={specialDigivolveText}>
+                        {specialDigivolveText && <EffectCard variant={"special"} key={`${cardNumber}_spec`}>
                             {highlightedSpecialDigivolve}
                         </EffectCard>}
 
-                        {mainEffectText && <EffectCard variant={"main"} key={mainEffectText}>
+                        {mainEffectText && <EffectCard variant={"main"} key={`${cardNumber}_main`}>
                             {highlightedMainEffect}
                         </EffectCard>}
 
-                        {inheritedEffectText && <EffectCard key={inheritedEffectText}
+                        {inheritedEffectText && <EffectCard key={`${cardNumber}_inh`}
                             variant={((cardType === "Option" && notXAntibody)|| (cardType === "Tamer" && notHybrid)) ? "security" : "inherited"}>
                             {highlightedInheritedEffect}
                         </EffectCard>}
 
-                        {securityEffectText && <EffectCard variant={"security"} key={securityEffectText}>
+                        {securityEffectText && <EffectCard variant={"security"} key={`${cardNumber}_secu`}>
                             {highlightedSecurityEffect}
                         </EffectCard>}
                     </TabContainer>
