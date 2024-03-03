@@ -602,11 +602,6 @@ class Bot(ABC):
         for i in range(len(self.game['player2Hand'])):
             card = self.game['player2Hand'][i]
             final_memory_value = self.game['memory'] - card['playCost']
-            self.logger.info('----------------------')
-            self.logger.info(card['playCost'])
-            self.logger.info(self.game['memory'])
-            self.logger.info(final_memory_value)
-            self.logger.info('----------------------')
             if card['cardType'] == 'Digimon' and (final_memory_value >= 0 or (final_memory_value <0 and abs(final_memory_value) <= max_memory_to_opponent)):
                 self.logger.info(f"Found digimon {card['uniqueCardNumber']}-{card['name']} in hand at position {i}.")
                 candidates.append((card['playCost'], i))
@@ -900,6 +895,7 @@ class Bot(ABC):
     async def draw_for_turn(self, ws, n_cards):
         if len(self.game['player2DeckField']) == 0:
             await self.surrender(ws, 'Oh no, I milled! Congratulations, you won!')
+            exit(1)
         else:
             await self.draw(ws, n_cards)
 
@@ -1012,6 +1008,9 @@ class Bot(ABC):
         self.cant_block_until_end_of_turn.clear()
         self.triggered_already_this_turn.clear()
     
+    async def loaded_ping(self, ws):
+        await ws.send(f'{self.game_name}:/loaded:{self.opponent}')
+
     async def online_ping(self, ws):
         while True:
             await ws.send(f'{self.game_name}:/online:{self.opponent}')
@@ -1047,6 +1046,8 @@ class Bot(ABC):
                     if starting_player == self.username:
                        self.first_turn = True
                        self.my_turn = True
+                if message.startswith('[UPDATE_OPPONENT]'):
+                    await self.loaded_ping(ws)
                 if message.startswith('[UPDATE_MEMORY]:'):
                     self.game['memory'] = int(message[-1])
                 if message.startswith('[PLAYER_READY]'):
@@ -1060,5 +1061,4 @@ class Bot(ABC):
 
     @abstractmethod
     def mulligan_strategy(self):
-        pass            
-    
+        pass
