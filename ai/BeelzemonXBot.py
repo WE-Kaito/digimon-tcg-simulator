@@ -435,7 +435,7 @@ class BeelzemonXBot(Bot):
             await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
             return
         if len(candidates) == 0:
-            card_index = digimon[1]
+            card_index = min(digimon)[1]
         else:
             card_index = min(candidates)[1]
         card_id = self.game['player2Reveal'][card_index]['id']

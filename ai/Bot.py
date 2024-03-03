@@ -297,7 +297,7 @@ class Bot(ABC):
         self.logger.debug('Searching for empty slot in my battle area.')
         if back:
             min_index=10
-            max_index=14
+            max_index=15
         else:
             min_index=0
             max_index=5
@@ -306,7 +306,10 @@ class Bot(ABC):
             if len(self.game['player2Digi'][i]) == 0:
                 return i
         if not found:
-            raise RuntimeError('Field is full, cannot currently handle more than 15 digimon on battlefield!')
+            if back:
+                return 10
+            else:
+                return 0
 
     async def field_update(self, ws, card_name, fr, to):
         first_index_digit = self.get_first_digit_index(fr)
@@ -860,6 +863,7 @@ class Bot(ABC):
         await self.move_card(ws, f'myDigi{card_index+1}', 'myTrash', target_card_id=card_id)
         card = self.game['player2Digi'][card_index][-1]
         await self.send_message(ws, f"Deleting {card['uniqueCardNumber']}-{card['name']}.")
+        card['isTilted'] = False
         self.game['player2Trash'].insert(0, self.game['player2Digi'][card_index].pop(-1))     
         if card['id'] in self.cant_unsuspend_until_end_of_turn:
             self.cant_unsuspend_until_end_of_turn.remove(card['id'])
