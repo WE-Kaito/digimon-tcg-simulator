@@ -29,6 +29,7 @@ export default function Lobby({user}: { user: string }) {
     const [userCount, setUserCount] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
     const [mutedInvitesFrom, setMutedInvitesFrom] = useState<string[]>([]);
+    const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
 
     const currentPort = window.location.port;
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
@@ -82,6 +83,7 @@ export default function Lobby({user}: { user: string }) {
 
             if (event.data === "[NO_ACTIVE_DECK]") {
                 notifyNoActiveDeck();
+                setNoActiveDeck(true);
                 return;
             }
 
@@ -152,16 +154,17 @@ export default function Lobby({user}: { user: string }) {
         handleAbortInvite(false);
     }
 
-    const handleDeckChange = (event: SelectChangeEvent<unknown>) => setActiveDeck(String(event.target.value));
+    const handleDeckChange = (event: SelectChangeEvent<unknown>) => {
+        setActiveDeck(String(event.target.value))
+        if(noActiveDeck) window.location.reload();
+    };
 
     function userVisible(username: string) {
         return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
     }
 
     useEffect(() => {
-        if (historyRef.current) {
-            historyRef.current.scrollTop = historyRef.current.scrollHeight;
-        }
+        if (historyRef.current) historyRef.current.scrollTop = historyRef.current.scrollHeight;
     }, [messages]);
 
     useEffect(() => {
@@ -341,8 +344,11 @@ const UserList = styled.div`
   justify-content: flex-start;
   gap: 16px;
   overflow-y: scroll;
-  scrollbar-width: thin;
   max-height: 41.5vh;
+
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
 
   @media (max-width: 500px) {
     gap: 8px;
@@ -417,7 +423,6 @@ const History = styled.div`
   height: 370px;
   width: 100%;
   overflow-y: scroll;
-  scrollbar-width: thin;
 
   ::-webkit-scrollbar {
     background: #1e1f10;

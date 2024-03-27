@@ -4,7 +4,6 @@ import {convertForLog} from "../utils/functions.ts";
 import {playCardToHandSfx, playDrawCardSfx, playPlaceCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 import {useDrop} from "react-dnd";
 
-
 type UseDropZoneProps = {
     sendCardToDeck: SendToDeckFunction,
     sendChatMessage: (message: string) => void,
@@ -22,7 +21,6 @@ type UseDropZoneProps = {
     sendAttackArrows: (from: string, to: string, isEffect: boolean) => void,
     clearAttackAnimation?: () => void
 }
-
 
 export default function useDropZone(props: UseDropZoneProps) {
 

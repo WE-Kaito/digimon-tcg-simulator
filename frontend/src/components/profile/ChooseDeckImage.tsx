@@ -38,8 +38,10 @@ const GridContainer = styled.div<{rows: number}>`
   transform: translateY(-2px);
   transition: all 0.2s ease-in-out;
 
-  scrollbar-width: thin;
-
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
+  
   ::-webkit-scrollbar {
     width: 3px;
     background: rgba(139, 200, 255, 0.5);

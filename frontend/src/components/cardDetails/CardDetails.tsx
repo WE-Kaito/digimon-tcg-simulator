@@ -210,9 +210,12 @@ const Wrapper = styled.div<{inGame: boolean}>`
   margin-top: ${({inGame}) => inGame ? "15px" : "unset"};
   transform: ${({inGame}) => inGame ? "translateX(-8px)" : "unset"};
   overflow-y: ${({inGame}) => inGame ? "unset" : "scroll"};
-  
-  scrollbar-width: thin;
-  
+
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
+
+
   ::-webkit-scrollbar {
     background: rgba(240, 240, 240, 0.1);
     width: 3px;
@@ -283,7 +286,6 @@ const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
   justify-content: flex-start;
   align-items: center;
   overflow-y: scroll;
-  scrollbar-width: thin;
   padding: 5px 1px 5px 0;
   gap: 6px;
   border-bottom-left-radius: ${({inGame}) => inGame ? "8px" : "unset"};

@@ -28,12 +28,10 @@ export default function Deckbuilder() {
         clearDeck();
         fetchDecks();
         filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
-        return;
     }, [clearDeck, fetchDecks, filterCards]);
 
     useEffect(() => {
         fetchCards();
-        return;
     }, []);
 
     return (
@@ -188,8 +186,11 @@ export const DetailsContainer = styled.div`
   height: 100%;
   width: 95%;
   margin: 0 4% 0 1%;
-  scrollbar-width: thin;
   grid-area: details;
+
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
 
 @container(min-width: 450px) {
   transform: translateX(-7px);

@@ -132,6 +132,7 @@ export default function Game({user}: { user: string }) {
     const [isMySecondRowVisible, setIsMySecondRowVisible] = useState<boolean>(false);
     const [isOpponentSecondRowVisible, setIsOpponentSecondRowVisible] = useState<boolean>(false)
     const [isHandHidden, setIsHandHidden] = useState<boolean>(false);
+    const [isRematch, setIsRematch] = useState<boolean>(false);
 
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
     const [isEffect, setIsEffect] = useState<boolean>(false);
@@ -145,30 +146,30 @@ export default function Game({user}: { user: string }) {
     const mulliganAllowed = useGame((state) => state.mulliganAllowed);
     const setMulliganAllowed = useGame((state) => state.setMulliganAllowed);
     const createToken = useGame((state) => state.createToken);
-    const setMemory = useGame(state => state.setMemory);
-    const setPhase = useGame(state => state.setPhase);
-    const setTurn = useGame(state => state.setTurn);
-    const getOpponentReady = useGame(state => state.getOpponentReady);
-    const setOpponentReady = useGame(state => state.setOpponentReady);
-    const nextPhaseTrigger = useGame(state => state.nextPhaseTrigger);
+    const setMemory = useGame((state) => state.setMemory);
+    const setPhase = useGame((state) => state.setPhase);
+    const setTurn = useGame((state) => state.setTurn);
+    const getOpponentReady = useGame((state) => state.getOpponentReady);
+    const setOpponentReady = useGame((state) => state.setOpponentReady);
+    const nextPhaseTrigger = useGame((state) => state.nextPhaseTrigger);
 
-    const isLoading = useGame(state => state.isLoading);
-    const setIsLoading = useGame(state => state.setIsLoading);
+    const isLoading = useGame((state) => state.isLoading);
+    const setIsLoading = useGame((state) => state.setIsLoading);
 
-    const restartObject = useGame(state => state.restartObject);
-    const setRestartObject = useGame(state => state.setRestartObject);
-    const gameHasStarted = useGame(state => state.gameHasStarted);
-    const setGameHasStarted = useGame(state => state.setGameHasStarted);
+    const restartObject = useGame((state) => state.restartObject);
+    const setRestartObject = useGame((state) => state.setRestartObject);
+    const gameHasStarted = useGame((state) => state.gameHasStarted);
+    const setGameHasStarted = useGame((state) => state.setGameHasStarted);
 
-    const isMyTurn = useGame(state => state.isMyTurn);
-    const getIsMyTurn = useGame(state => state.getIsMyTurn);
-    const getPhase = useGame(state => state.getPhase);
-    const setMyAttackPhase = useGame(state => state.setMyAttackPhase);
-    const setOpponentAttackPhase = useGame(state => state.setOpponentAttackPhase);
-    const myAttackPhase = useGame(state => state.myAttackPhase);
-    const opponentAttackPhase = useGame(state => state.opponentAttackPhase);
-    const getMyAttackPhase = useGame(state => state.getMyAttackPhase);
-    const getOpponentAttackPhase = useGame(state => state.getOpponentAttackPhase);
+    const isMyTurn = useGame((state) => state.isMyTurn);
+    const getIsMyTurn = useGame((state) => state.getIsMyTurn);
+    const getPhase = useGame((state) => state.getPhase);
+    const setMyAttackPhase = useGame((state) => state.setMyAttackPhase);
+    const setOpponentAttackPhase = useGame((state) => state.setOpponentAttackPhase);
+    const myAttackPhase = useGame((state) => state.myAttackPhase);
+    const opponentAttackPhase = useGame((state) => state.opponentAttackPhase);
+    const getMyAttackPhase = useGame((state) => state.getMyAttackPhase);
+    const getOpponentAttackPhase = useGame((state) => state.getOpponentAttackPhase);
 
     const myHand = useGame((state) => state.myHand);
     const myDeckField = useGame((state) => state.myDeckField);
@@ -221,22 +222,23 @@ export default function Game({user}: { user: string }) {
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
 
+    const isPlayerOne = user === gameId.split("‗")[0];
+
     let interval: ReturnType<typeof setInterval>;
 
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
-            const timer = setTimeout(() => {
-                if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
-                else {
-                    websocket.sendMessage("/startGame:" + gameId);
-                    requestInitialDistribution();
-                }
-            }, 1500);
-            return () => clearTimeout(timer);
+            if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
+            else websocket.sendMessage("/joinGame:" + gameId);
         },
 
         onMessage: (event) => {
+
+            if((event.data === "[PLAYERS_READY]") && isPlayerOne && !gameHasStarted) {
+                websocket.sendMessage("/startGame:" + gameId);
+                return;
+            }
 
             if (event.data.startsWith("[START_GAME]:")) {
                 setStartingPlayer("");
@@ -250,6 +252,7 @@ export default function Game({user}: { user: string }) {
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
                 setRestartObject({me, opponent});
+                if (isPlayerOne && !isRematch) websocket.sendMessage("/getStartingPlayers:" + gameId)
                 return;
             }
 
@@ -268,28 +271,29 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
                 const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
+
+                setMemoryBarLoading(true);
+                setStartingPlayer(firstPlayer);
+                setShowStartingPlayer(true);
+                playStartSfx();
+
                 const timeout1 = setTimeout(() => {
-                    setMemoryBarLoading(true);
-                    setStartingPlayer(firstPlayer);
-                    setShowStartingPlayer(true);
-                    playStartSfx();
-                }, 500);
-                const timeout2 = setTimeout(() => {
-                    playDrawCardSfx();
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                     if (firstPlayer === user) setTurn(true);
-                    setMulliganAllowed(true);
                     setOpponentReady(false);
-                }, 5300);
-                const timeout3 = setTimeout(() => {
+                    if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
+                }, 4800);
+
+                const timeout2 = setTimeout(() => {
+                    setMulliganAllowed(true);
                     setShowStartingPlayer(false);
                     setMemoryBarLoading(false);
                     playLoadMemorybarSfx();
-                }, 6000);
+                }, 5500);
+
                 return () => {
                     clearTimeout(timeout1);
                     clearTimeout(timeout2);
-                    clearTimeout(timeout3);
                 };
             }
 
@@ -434,13 +438,13 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 case ("[ACCEPT_RESTART]"): {
+                    setIsRematch(true);
                     setMyAttackPhase(false);
                     setOpponentAttackPhase(false);
                     clearBoard();
                     setEndScreen(false);
                     setUpGame(restartObject.me, restartObject.opponent);
                     setGameHasStarted(false);
-                    requestInitialDistribution();
                     break;
                 }
                 case ("[PLAYER_READY]"): {
@@ -475,13 +479,6 @@ export default function Game({user}: { user: string }) {
             }
         }
     });
-
-    function requestInitialDistribution(){
-        if (!gameHasStarted && user === gameId.split("‗")[0]) {
-            const t2 = setTimeout(() => websocket.sendMessage("/distributeCards:" + gameId), 3600);
-            return () => clearTimeout(t2);
-        }
-    }
 
     function sendChatMessage(message: string) {
         if (message.length <= 0) return;
@@ -659,7 +656,7 @@ export default function Game({user}: { user: string }) {
         }
 
         nextPhaseTrigger(nextPhase);
-
+        // eslint-disable-next-line
     }, [
         myHand, myTrash, myDeckField, myEggDeck, myBreedingArea, myReveal, myDigi1, myDigi2, myDigi3, myDigi4,
         myDigi5, myDigi6, myDigi7, myDigi8, myDigi9, myDigi10, myDigi11, myDigi12, myDigi13, myDigi14, myDigi15, isMyTurn
@@ -671,7 +668,7 @@ export default function Game({user}: { user: string }) {
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
 
-        if(gameHasStarted) setMemoryBarLoading(false);
+        if(gameHasStarted) setMemoryBarLoading(false); // for reconnecting players
 
         interval = setInterval(() => {
             websocket.sendMessage(`${gameId}:/online:${opponentName}`);
@@ -708,9 +705,9 @@ export default function Game({user}: { user: string }) {
         setGameHasStarted(false);
         setEndScreen(false);
         setRestartMoodle(false);
+        setIsRematch(true);
         websocket.sendMessage(`${gameId}:/acceptRestart:${opponentName}`);
         websocket.sendMessage(`${gameId}:/restartGame:${restartOrder === "first" ? user : opponentName}`);
-        requestInitialDistribution();
     }
 
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);

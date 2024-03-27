@@ -9,7 +9,7 @@ import {
     Phase,
     Player, SendToDeckFunction, Side
 } from "../utils/types.ts";
-import {playTrashCardSfx} from "../utils/sound.ts";
+import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 import tokenImage from "../assets/tokenCard.jpg";
 
 const emptyPlayer: Player = {
@@ -295,6 +295,7 @@ export const useGame = create<State>()(
                 });
             }
             set({initialDistributionState: "", isLoading: false});
+            playDrawCardSfx();
             }, 1100);
             return () => clearTimeout(timer);
         }

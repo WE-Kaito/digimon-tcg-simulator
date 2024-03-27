@@ -37,7 +37,7 @@ public class GameService extends TextWebSocketHandler {
 
     private static final SecureRandom secureRand = new SecureRandom();
 
-    private static final List<String> setupCommands = Arrays.asList("/startGame", "/distributeCards", "/reconnect");
+    private static final List<String> setupCommands = Arrays.asList("/joinGame", "/startGame", "/getStartingPlayers", "/distributeCards", "/reconnect");
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -72,9 +72,11 @@ public class GameService extends TextWebSocketHandler {
             String username1 = gameId.split("‗")[0];
             String username2 = gameId.split("‗")[1];
 
-            if (parts[0].equals(setupCommands.get(0))) setUpGame(session, gameId, username1, username2);
-            if (parts[0].equals(setupCommands.get(1))) distributeCards(gameId, username1, username2);
-            if (parts[0].equals(setupCommands.get(2))) {
+            if (parts[0].equals(setupCommands.get(0))) computeGameRoom(session, gameId);
+            if (parts[0].equals(setupCommands.get(1))) setUpGame(gameId, username1, username2);
+            if (parts[0].equals(setupCommands.get(2))) setStartingPlayer(gameId, username1, username2);
+            if (parts[0].equals(setupCommands.get(3))) distributeCards(gameId, username1, username2);
+            if (parts[0].equals(setupCommands.get(4))) {
                 synchronized (gameRooms) {
                     Set<WebSocketSession> existingGameRoom = gameRooms.get(gameId);
                     if (existingGameRoom != null && existingGameRoom.size() == 1) { // reconnect, if room exists with 1 user
@@ -242,18 +244,30 @@ public class GameService extends TextWebSocketHandler {
         return objectMapper.writeValueAsString(players);
     }
 
-    private void setUpGame(WebSocketSession session, String gameId, String username1, String username2) throws IOException {
+    private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
 
-        sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
-
         if (gameRoom.size() == 2) {
-            String[] names = {username1, username2};
-            int index = secureRand.nextInt(names.length);
             for (WebSocketSession s : gameRoom) {
-                sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
+                sendTextMessage(s, "[PLAYERS_READY]");
             }
+        }
+    }
+
+    private void setUpGame(String gameId, String username1, String username2) throws IOException {
+        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+        for (WebSocketSession s : gameRoom) {
+            sendTextMessage(s, "[START_GAME]:" + getPlayersJson(username1, username2));
+        }
+    }
+
+    private void setStartingPlayer(String gameId, String username1, String username2) throws IOException {
+        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+        String[] names = {username1, username2};
+        int index = secureRand.nextInt(names.length);
+        for (WebSocketSession s : gameRoom) {
+            sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
         }
     }
 

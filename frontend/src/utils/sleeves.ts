@@ -55,10 +55,10 @@ export const sleeves: Picture[] = [
     {name: "Dorumon", imagePath: buildUrl("BT13_063_DORUMON"), artist: "Drak"},
     {name: "Ryudamon", imagePath: buildUrl("BT15_056_RYUDAMON"), artist: "Drak"},
     {name: "Kurisarimon", imagePath: buildUrl("EX6_039_KURISARIMON"), artist: "Drak"},
-    {name: "Leviamon", imagePath: buildUrl("EX5_063_LEVIAMON"), artist: "Drak"},
     {name: "Wormmon", imagePath: buildUrl("BT12_047_WORMMON"), artist: "Drak"},
     {name: "Hawkmon", imagePath: buildUrl("BT3_009_HAWKMON"), artist: "Drak"},
     {name: "Armadillomon", imagePath: buildUrl("BT3_032_ARMADILLOMON"), artist: "Drak"},
+    {name: "Plesiomon", imagePath: buildUrl("EX3_023_PLESIOMON"), artist: "Drak"},
 ];
 
 function buildUrl(fileName: string) {

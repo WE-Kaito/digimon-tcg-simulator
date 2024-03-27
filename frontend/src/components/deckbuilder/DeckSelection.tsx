@@ -254,8 +254,11 @@ const DeckList = styled.fieldset`
   justify-content: flex-start;
   overflow-y: scroll;
   overflow-x: hidden;
-  scrollbar-width: thin;
 
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
+  
   &::-webkit-scrollbar {
     background-color: rgba(28, 58, 47, 0.98);
     border-radius: 2px;
