@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useGame} from "../../hooks/useGame.ts";
 import styled from "@emotion/styled";
 import sendIcon from "../../assets/sendIcon.svg";
+import {uid} from "uid";
 
 type Props = {
     user: string,
@@ -24,11 +25,11 @@ export default function GameChat({user, sendChatMessage}: Props) {
         <Wrapper>
             <Overlay/>
             <History>
-                {messages.map((message, index) => {
+                {messages.map((message) => {
                     if (message.startsWith("[STARTING_PLAYER]≔")) {
                         const startingPlayer = message.split("≔")[1];
                         return (
-                            <StartingPlayerMessage key={index}>
+                            <StartingPlayerMessage key={uid()}>
                                 <p>Starting Player:<br/>{startingPlayer}</p>
                             </StartingPlayerMessage>
                         );
@@ -47,7 +48,7 @@ export default function GameChat({user, sendChatMessage}: Props) {
                             const oldMemory = parseInt(cardLocation.split("±")[0]);
                             const newMemory = parseInt(cardLocation.split("±")[1]);
                             return (
-                                <UpdateMessage isMyMessage={isMyMessage} key={index}>
+                                <UpdateMessage isMyMessage={isMyMessage} key={uid()}>
                                     <p style={{textAlign:"left", marginLeft:"20px"}}>
                                         {cardName} {isMyMessage
                                         ?`${oldMemory.toString()} ➟ ${newMemory.toString()}`
@@ -58,14 +59,14 @@ export default function GameChat({user, sendChatMessage}: Props) {
                             );
                         }
                         return (
-                            <UpdateMessage isMyMessage={isMyMessage} key={index}>
+                            <UpdateMessage isMyMessage={isMyMessage} key={uid()}>
                                 <p>{cardName}<br/>{cardLocation}</p>
                             </UpdateMessage>
                         );
                     }
 
                     return (
-                            <Message isMyMessage={isMyMessage} key={index}>
+                            <Message isMyMessage={isMyMessage} key={uid()}>
                                 <p>{chatMessage}</p>
                             </Message>
                     );
@@ -156,7 +157,10 @@ const History = styled.div`
   gap: 6px;
   z-index: 100;
   transform: translateY(-31px);
-  scrollbar-width: thin;
+
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
   
   ::-webkit-scrollbar {
     background: rgba(30, 31, 16, 0.5);

@@ -84,12 +84,15 @@ const StyledFieldset = styled.fieldset`
   border-radius: 5px;
   margin-top: 2px;
   transform: translateX(0.5px);
-  scrollbar-width: thin;
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
   overflow-y: scroll;
   padding-top: 10px;
+
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
 
   &::-webkit-scrollbar {
     background-color: rgba(9, 8, 8, 0.98);

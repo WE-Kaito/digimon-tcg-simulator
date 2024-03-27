@@ -62,8 +62,17 @@ export default function SearchForm() {
     }
 
     useEffect(() => {
+        const timeout = setTimeout(() => {
+            filterCards(name, type, color, color2, color3, attribute, number, stage, digitype, dp, playcost, level, illustrator, effect, hasAce, altArtsEnabled);
+        }, 1400); // prevent too many requests on text inputs
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line
+    }, [name, number, effect, illustrator, dp]);
+
+    useEffect(() => {
         filterCards(name, type, color, color2, color3, attribute, number, stage, digitype, dp, playcost, level, illustrator, effect, hasAce, altArtsEnabled);
-    }, [name, type, color, color2, color3, attribute, number, stage, digitype, dp, playcost, level, illustrator, effect, hasAce, altArtsEnabled]);
+        // eslint-disable-next-line
+    }, [type, color, color2, color3, attribute, stage, digitype, playcost, level, hasAce, altArtsEnabled]);
 
     return (
         <StyledDiv>
