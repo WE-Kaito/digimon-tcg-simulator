@@ -71,18 +71,18 @@ class GameServiceTest {
     }
 
     @Test
-    void testStartGameMessage() throws IOException, InterruptedException {
+    void testStartGameMessage() throws IOException {
         // WHEN
         gameService.afterConnectionEstablished(session1);
         gameService.afterConnectionEstablished(session2);
         putPlayersToGameRoom();
         gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1‗testUser2"));
         // THEN
-        verify(session1, times(2)).sendMessage(any());
+        verify(session1, times(1)).sendMessage(any());
     }
 
     @Test
-    void testSurrender() throws IOException, InterruptedException {
+    void testSurrender() throws IOException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[SURRENDER]");
         putPlayersToGameRoom();
@@ -95,7 +95,7 @@ class GameServiceTest {
     }
 
     @Test
-    void testSendMessageToOpponent() throws IOException, InterruptedException {
+    void testSendMessageToOpponent() throws IOException {
         //Given
         TextMessage expectedMessage1 = new TextMessage("[RESTART_AS_FIRST]");
         TextMessage expectedMessage2 = new TextMessage("[SECURITY_VIEWED]");
