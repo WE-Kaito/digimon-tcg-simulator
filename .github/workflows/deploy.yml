@@ -43,22 +43,18 @@ jobs:
           path: backend/target/digimon-tcg-sim.jar
 
   deploy:
+    name: Push to EC2 Instance
     runs-on: ubuntu-latest
-    needs: build-backend
-    environment:
-      name: production-heroku
-      url: https://digimon-tcg.herokuapp.com/
-    env:
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
-        with:
-          name: backend-build
-          path: backend/target
-      - name: Login to Heroku
-        run: heroku container:login
-      - name: Push Docker Container
-        run: heroku container:push web -a digimon-tcg
-      - name: Release Docker Container
-        run: heroku container:release web -a digimon-tcg
+      - name: Checkout the code
+        uses: actions/checkout@v1
+
+      - name: Deploy to my EC2 instance
+        uses: easingthemes/ssh-deploy@v2.1.5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          SOURCE: "./"
+          REMOTE_HOST: ${{ env.EC2_HOST }}
+          REMOTE_USER: ${{ env.EC2_USER }}
+          TARGET: ${{ env.DEPLOY_PATH }}
