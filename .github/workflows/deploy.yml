@@ -1,4 +1,4 @@
-name: Deploy to Heroku
+name: Deploy to AWS
 on:
   push:
     branches:
@@ -46,6 +46,7 @@ jobs:
     name: Push to EC2 Instance
     runs-on: ubuntu-latest
     needs: build-backend
+    environment: Musubi
     steps:
       - name: Checkout the code
         uses: actions/checkout@v1
