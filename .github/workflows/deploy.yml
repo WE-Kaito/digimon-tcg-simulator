@@ -64,3 +64,16 @@ jobs:
           REMOTE_USER: ${{ vars.EC2_USER }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
+
+  startup:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Startup
+        env:
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{ vars.EC2_HOST }}
+            USER_NAME: ${{ vars.EC2_USER }}
+        run: |
+          sudo systemctl restart project-drasil.service
