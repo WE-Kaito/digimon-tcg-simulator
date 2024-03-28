@@ -45,7 +45,7 @@ jobs:
   deploy:
     name: Push to EC2 Instance
     runs-on: ubuntu-latest
-
+    needs: build-backend
     steps:
       - name: Checkout the code
         uses: actions/checkout@v1
@@ -55,6 +55,6 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           SOURCE: "./"
-          REMOTE_HOST: ${{ env.EC2_HOST }}
-          REMOTE_USER: ${{ env.EC2_USER }}
-          TARGET: ${{ env.DEPLOY_PATH }}
+          REMOTE_HOST: ${{ vars.EC2_HOST }}
+          REMOTE_USER: ${{ vars.EC2_USER }}
+          TARGET: ${{ vars.DEPLOY_PATH }}
