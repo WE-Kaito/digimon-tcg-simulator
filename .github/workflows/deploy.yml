@@ -49,7 +49,12 @@ jobs:
     environment: Musubi
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
+      - name: Download artifact 
+        uses: actions/download-artifact@v3
+        with:
+          name: backend-build
+          path: backend/target
 
       - name: Deploy to my EC2 instance
         uses: easingthemes/ssh-deploy@v2.1.5
@@ -59,3 +64,4 @@ jobs:
           REMOTE_HOST: ${{ vars.EC2_HOST }}
           REMOTE_USER: ${{ vars.EC2_USER }}
           TARGET: ${{ vars.DEPLOY_PATH }}
+          SOURCE: backend/target
