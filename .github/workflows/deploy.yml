@@ -59,21 +59,24 @@ jobs:
       - name: Deploy to my EC2 instance
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          REMOTE_HOST: ${{ vars.EC2_HOST }}
-          REMOTE_USER: ${{ vars.EC2_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
 
   startup:
-    name: Deploy to EC2
+    name: Start service
     runs-on: ubuntu-latest
+    needs: deploy
+    environment: Musubi
     steps:
-      - uses: actions/checkout@v2
       - name: Startup
-        env:
-            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-            HOSTNAME: ${{ vars.EC2_HOST }}
-            USER_NAME: ${{ vars.EC2_USER }}
-        run: |
-          sudo systemctl restart project-drasil.service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            sudo systemctl restart project-drasil
