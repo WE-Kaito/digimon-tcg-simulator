@@ -1,13 +1,16 @@
 import {create} from "zustand";
-import { devtools, persist } from 'zustand/middleware'
+import {devtools, persist} from 'zustand/middleware'
 import {
     AttackPhase,
     BoardState,
+    BootStage,
     CardTypeGame,
     GameDistribution,
     OneSideDistribution,
     Phase,
-    Player, SendToDeckFunction, Side
+    Player,
+    SendToDeckFunction,
+    Side
 } from "../utils/types.ts";
 import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 import tokenImage from "../assets/tokenCard.jpg";
@@ -27,7 +30,8 @@ export type State = BoardState & {
 
     cardToSend: {id: string, location: string},
 
-    gameHasStarted: boolean,
+    // gameHasStarted: boolean,
+    bootStage: BootStage,
     restartObject: { me: Player, opponent: Player },
     
     initialDistributionState: string;
@@ -44,10 +48,8 @@ export type State = BoardState & {
 
     messages: string[],
     setMessages: (message: string) => void,
-
-    mulliganAllowed: boolean,
+    
     mulligan: () => void,
-    setMulliganAllowed: (allowed: boolean) => void,
     opponentReady: boolean,
     setOpponentReady: (ready: boolean) => void,
 
@@ -88,7 +90,7 @@ export type State = BoardState & {
     setCardIdWithTarget: (cardId: string) => void,
     getIsCardTarget: (compareCardId: string) => boolean,
     setCardToSend: (cardId: string, location: string) => void,
-    setGameHasStarted: (gameHasStarted: boolean) => void,
+    setBootStage: (phase: BootStage) => void,
     setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
     setGameId: (gameId: string) => void,
 };
@@ -113,7 +115,7 @@ export const useGame = create<State>()(
     cardIdWithTarget: "",
     cardToSend: {id: "", location: ""},
 
-    gameHasStarted: false,
+    bootStage: BootStage.CLEAR,
     restartObject: { me: emptyPlayer, opponent: emptyPlayer },
 
     initialDistributionState: "",
@@ -181,12 +183,9 @@ export const useGame = create<State>()(
     opponentGameState: "",
 
     messages: [],
-    mulliganAllowed: true,
     opponentReady: false,
 
-    setOpponentReady: (ready) => {
-        set({opponentReady: ready});
-    },
+    setOpponentReady: (ready) => set({opponentReady: ready}),
 
     setUpGame: (me, opponent) => {
         set({
@@ -196,7 +195,6 @@ export const useGame = create<State>()(
             opponentSleeve: opponent.sleeveName,
 
             messages: [],
-            mulliganAllowed: false,
             opponentReady: true,
         });
     },
@@ -251,11 +249,12 @@ export const useGame = create<State>()(
             opponentBreedingArea: [],
             phase: Phase.BREEDING,
             isMyTurn: false,
-            gameHasStarted: false,
             restartObject: { me: emptyPlayer, opponent: emptyPlayer },
             opponentAttackPhase: false,
             myAttackPhase: false,
             opponentReady: false,
+            isLoading: false,
+            bootStage: BootStage.CLEAR,
         });
     },
 
@@ -406,8 +405,8 @@ export const useGame = create<State>()(
             return;
         }
 
-        if (get().mulliganAllowed && !opponentLocations.includes(from) && !opponentLocations.includes(to)) {
-            set({mulliganAllowed: false});
+        if (get().bootStage === BootStage.MULLIGAN && !opponentLocations.includes(from) && !opponentLocations.includes(to)) {
+            set({bootStage: BootStage.GAME_IN_PROGRESS});
         }
 
         if (destroyTokenLocations.includes(to) && card.uniqueCardNumber === "Token") {
@@ -513,13 +512,11 @@ export const useGame = create<State>()(
                 myHand: updatedHand,
                 mySecurity: updatedSecurity,
                 myDeckField: updatedDeck,
-                mulliganAllowed: false,
-                isLoading: true
+                bootStage: BootStage.GAME_IN_PROGRESS,
+                isLoading: true // will be set false in distributeCards
             }
         });
     },
-
-    setMulliganAllowed: (mulliganAllowed: boolean) => set({mulliganAllowed}),
 
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx) => {
         set(state => {
@@ -669,7 +666,7 @@ export const useGame = create<State>()(
 
     setCardToSend: (id, location) => set({cardToSend: {id, location}}),
 
-    setGameHasStarted: (gameHasStarted) => set({gameHasStarted}),
+    setBootStage: (stage) => set({bootStage: stage}),
 
     setRestartObject: (restartObject) => set({restartObject}),
 

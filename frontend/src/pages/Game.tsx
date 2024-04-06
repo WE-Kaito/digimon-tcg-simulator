@@ -2,7 +2,9 @@ import {useStore} from "../hooks/useStore.ts";
 import useWebSocket from "react-use-websocket";
 import {
     AttackPhase,
-    CardTypeGame, FieldCardContextMenuItemProps,
+    BootStage,
+    CardTypeGame,
+    FieldCardContextMenuItemProps,
     HandCardContextMenuItemProps,
     Phase,
     Player
@@ -13,7 +15,8 @@ import {
     calculateCardOffsetY,
     calculateCardRotation,
     convertForLog,
-    getOpponentSfx, handleImageError
+    getOpponentSfx,
+    handleImageError
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {useCallback, useEffect, useRef, useState} from "react";
@@ -45,7 +48,8 @@ import {
     playSecurityRevealSfx,
     playShuffleDeckSfx,
     playStartSfx,
-    playSuspendSfx, playTargetCardSfx,
+    playSuspendSfx,
+    playTargetCardSfx,
     playTrashCardSfx,
     playUnsuspendSfx
 } from "../utils/sound.ts";
@@ -57,16 +61,17 @@ import {getSleeve} from "../utils/sleeves.ts";
 import {Button as MuiButton} from "@mui/material";
 import {
     AddModerator as RecoveryIcon,
+    AdsClick as TargetIcon,
     BackHand as HandIcon,
     Curtains as RevealIcon,
-    DeleteForever as TrashIcon, LocalFireDepartment as EffectIcon,
+    DeleteForever as TrashIcon,
+    LocalFireDepartment as EffectIcon,
     Pageview as OpenSecurityIcon,
     RestoreFromTrash as TrashFromDeckIcon,
     ShuffleOnOutlined as ShuffleIcon,
+    VisibilityOff as HideHandIcon,
     Wifi as ConnectingIcon,
-    WifiOff as OfflineIcon,
-    AdsClick as TargetIcon,
-    VisibilityOff as HideHandIcon
+    WifiOff as OfflineIcon
 } from '@mui/icons-material';
 import {blue, deepOrange} from "@mui/material/colors";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
@@ -123,8 +128,6 @@ export default function Game({user}: { user: string }) {
     const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
     const [restartPromptModal, setRestartPromptModal] = useState<boolean>(false);
     const [startingPlayer, setStartingPlayer] = useState<string>("");
-    const [showStartingPlayer, setShowStartingPlayer] = useState<boolean>(false);
-    const [memoryBarLoading, setMemoryBarLoading] = useState<boolean>(true);
     const [showAttackArrow, setShowAttackArrow] = useState<boolean>(false);
     const [arrowFrom, setArrowFrom] = useState<string>("");
     const [arrowTo, setArrowTo] = useState<string>("");
@@ -143,8 +146,6 @@ export default function Game({user}: { user: string }) {
 
     const setMessages = useGame((state) => state.setMessages);
     const mulligan = useGame((state) => state.mulligan);
-    const mulliganAllowed = useGame((state) => state.mulliganAllowed);
-    const setMulliganAllowed = useGame((state) => state.setMulliganAllowed);
     const createToken = useGame((state) => state.createToken);
     const setMemory = useGame((state) => state.setMemory);
     const setPhase = useGame((state) => state.setPhase);
@@ -158,8 +159,8 @@ export default function Game({user}: { user: string }) {
 
     const restartObject = useGame((state) => state.restartObject);
     const setRestartObject = useGame((state) => state.setRestartObject);
-    const gameHasStarted = useGame((state) => state.gameHasStarted);
-    const setGameHasStarted = useGame((state) => state.setGameHasStarted);
+    const bootStage = useGame((state) => state.bootStage);
+    const setBootStage = useGame((state) => state.setBootStage);
 
     const isMyTurn = useGame((state) => state.isMyTurn);
     const getIsMyTurn = useGame((state) => state.getIsMyTurn);
@@ -222,6 +223,8 @@ export default function Game({user}: { user: string }) {
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
 
+    const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
+
     const isPlayerOne = user === gameId.split("‗")[0];
 
     let interval: ReturnType<typeof setInterval>;
@@ -229,6 +232,7 @@ export default function Game({user}: { user: string }) {
     const websocket = useWebSocket(websocketURL, {
 
         onOpen: () => {
+            setIsLoading(false);
             if(gameHasStarted) websocket.sendMessage("/reconnect:" + gameId);
             else websocket.sendMessage("/joinGame:" + gameId);
         },
@@ -248,7 +252,6 @@ export default function Game({user}: { user: string }) {
                 const me = players.slice().filter((player: Player) => player.username === user)[0];
                 const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
                 setUpGame(me, opponent);
-                setGameHasStarted(false);
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
                 setRestartObject({me, opponent});
@@ -272,9 +275,8 @@ export default function Game({user}: { user: string }) {
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
                 const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
 
-                setMemoryBarLoading(true);
+                setBootStage(BootStage.SHOW_STARTING_PLAYER);
                 setStartingPlayer(firstPlayer);
-                setShowStartingPlayer(true);
                 playStartSfx();
 
                 const timeout1 = setTimeout(() => {
@@ -285,9 +287,7 @@ export default function Game({user}: { user: string }) {
                 }, 4800);
 
                 const timeout2 = setTimeout(() => {
-                    setMulliganAllowed(true);
-                    setShowStartingPlayer(false);
-                    setMemoryBarLoading(false);
+                    setBootStage(BootStage.MULLIGAN);
                     playLoadMemorybarSfx();
                 }, 5500);
 
@@ -304,7 +304,7 @@ export default function Game({user}: { user: string }) {
                 const to = parts[2];
                 moveCard(cardId, from, to);
                 if (!getOpponentReady()) setOpponentReady(true);
-                if (!gameHasStarted && getOpponentReady() && !mulliganAllowed) setGameHasStarted(true);
+                if (getOpponentReady() && (bootStage >= BootStage.MULLIGAN)) setBootStage(BootStage.GAME_IN_PROGRESS);
                 return;
             }
 
@@ -444,12 +444,11 @@ export default function Game({user}: { user: string }) {
                     clearBoard();
                     setEndScreen(false);
                     setUpGame(restartObject.me, restartObject.opponent);
-                    setGameHasStarted(false);
                     break;
                 }
                 case ("[PLAYER_READY]"): {
                     setOpponentReady(true);
-                    if (!mulliganAllowed) setGameHasStarted(true);
+                    if (bootStage === BootStage.MULLIGAN_DONE) setBootStage(BootStage.GAME_IN_PROGRESS);
                     break;
                 }
                 case ("[UPDATE_PHASE]"): {
@@ -562,7 +561,7 @@ export default function Game({user}: { user: string }) {
 
     function sendMoveCard(cardId: string, from: string, to: string) {
         websocket.sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
-        if (!gameHasStarted && getOpponentReady() && !mulliganAllowed) setGameHasStarted(true);
+        if ((bootStage === BootStage.MULLIGAN) && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
     }
 
     function sendAttackArrows(from: string, to: string, isEffect: boolean) {
@@ -668,8 +667,6 @@ export default function Game({user}: { user: string }) {
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
 
-        if(gameHasStarted) setMemoryBarLoading(false); // for reconnecting players
-
         interval = setInterval(() => {
             websocket.sendMessage(`${gameId}:/online:${opponentName}`);
             setIsOnline(navigator.onLine);
@@ -702,7 +699,6 @@ export default function Game({user}: { user: string }) {
 
     function acceptRestart() {
         clearBoard();
-        setGameHasStarted(false);
         setEndScreen(false);
         setRestartMoodle(false);
         setIsRematch(true);
@@ -756,9 +752,9 @@ export default function Game({user}: { user: string }) {
             sendSfx("playShuffleDeckSfx");
             sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
         }
-        setMulliganAllowed(false);
         websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-        if (getOpponentReady()) setGameHasStarted(true);
+        if (getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
+        else setBootStage(BootStage.MULLIGAN_DONE);
     }
 
     function handleOpenSecurity(onOpenOrClose: "onOpen" | "onClose") {
@@ -1021,7 +1017,7 @@ export default function Game({user}: { user: string }) {
                                                           setRestartPromptModal(false);
                                                       }}/>}
 
-                {showStartingPlayer &&
+                {(bootStage === BootStage.SHOW_STARTING_PLAYER) &&
                     <Fade direction={"right"}
                           style={{zIndex: 1000, position: "absolute", left: "40%", transform: "translateX(-50%)"}}>
                         <StartingName>1st: {startingPlayer}</StartingName></Fade>}
@@ -1096,7 +1092,7 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex"}}>
                             <OpponentContainerMain>
 
-                                {!memoryBarLoading &&
+                                {(bootStage > BootStage.SHOW_STARTING_PLAYER) &&
                                     <PhaseIndicator sendPhaseUpdate={sendPhaseUpdate} sendSfx={sendSfx}
                                                     gameHasStarted={gameHasStarted}/>}
 
@@ -1288,9 +1284,10 @@ export default function Game({user}: { user: string }) {
                             </OpponentContainerSide>
                         </div>
 
-                        {memoryBarLoading ? <div style={{height: "100px"}}/> :
-                            <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}
-                                             sendChatMessage={sendChatMessage}/></Zoom>}
+                        {(bootStage > BootStage.SHOW_STARTING_PLAYER)
+                            ? <Zoom><MemoryBar sendMemoryUpdate={sendMemoryUpdate} sendSfx={sendSfx}
+                                               sendChatMessage={sendChatMessage}/></Zoom>
+                            : <div style={{height: "100px"}}/>}
 
                         <div style={{display: "flex"}}>
                             <MyContainerSide>
@@ -1416,9 +1413,9 @@ export default function Game({user}: { user: string }) {
 
                                 <DeckContainer>
 
-                                    {!mulliganAllowed && !getOpponentReady() &&
+                                    {bootStage === BootStage.MULLIGAN_DONE && !getOpponentReady() &&
                                         <MulliganSpan style={{top: 3}}>Waiting for opponent...</MulliganSpan>}
-                                    {mulliganAllowed &&
+                                    {bootStage === BootStage.MULLIGAN &&
                                         <>
                                             <MulliganSpan>KEEP HAND?</MulliganSpan>
                                             <MulliganButton onClick={() => handleMulligan(true)}>N</MulliganButton>

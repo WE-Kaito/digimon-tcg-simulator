@@ -34,6 +34,7 @@ export default function Lobby({user}: { user: string }) {
     const currentPort = window.location.port;
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
 
+    const gameId = useGame((state) => state.gameId);
     const setGameId = useGame((state) => state.setGameId);
     const clearBoard = useGame((state) => state.clearBoard);
 
@@ -87,8 +88,10 @@ export default function Lobby({user}: { user: string }) {
                 return;
             }
 
-            if (event.data === "[RECONNECT_ENABLED]") {
-                setIsRejoinable(true);
+            if (event.data.startsWith("[RECONNECT_ENABLED]")) {
+                const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length)
+                setIsRejoinable(matchingRoomId === gameId);
+                // gameId could be set to older matching room id here, but not sure if this makes sense
                 return;
             }
 
@@ -145,7 +148,6 @@ export default function Lobby({user}: { user: string }) {
         const newGameId = inviteFrom + "‗" + user;
         setGameId(newGameId);
         navigateToGame();
-
     }
 
     function handleMuteInvites() {

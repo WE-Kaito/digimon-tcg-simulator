@@ -192,10 +192,17 @@ export enum Phase {
 }
 
 export enum AttackPhase {
-    SUSPEND_FIRST = "Suspend First!",
     WHEN_ATTACKING = "When Attacking",
     COUNTER_BLOCK = "Counter › Block",
     RESOLVE_ATTACK = "Resolve Attack"
+}
+
+export enum BootStage {
+    CLEAR = 0,
+    SHOW_STARTING_PLAYER = 1,
+    MULLIGAN = 2,
+    MULLIGAN_DONE = 3,
+    GAME_IN_PROGRESS = 4,
 }
 
 export type BoardState = {
