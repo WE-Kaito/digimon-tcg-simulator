@@ -88,7 +88,7 @@ export default function CardStack({
                                    props: {index, location, id: card.id, name: card.name}
                                })}>
                     <Fade direction={"down"} duration={500}>
-                        <Card card={card} location={location}/>
+                        <Card card={card} location={location} index={index}/>
                     </Fade></CardContainer>)
         }
     </>

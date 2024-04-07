@@ -10,6 +10,46 @@ import {useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
+import {styled as muiStyled} from "@mui/material/styles";
+import {Tooltip, tooltipClasses, TooltipProps} from "@mui/material";
+import HighlightedKeyWords from "./cardDetails/HighlightedKeyWords.tsx";
+
+const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
+    "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10",
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+
+const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
+
+const locationsWithTooltip = ["myBreedingArea", "opponentBreedingArea",
+    "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
+    "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
+
+const CustomTooltip = muiStyled(({className, ...props}: TooltipProps) => (
+    <Tooltip {...props} arrow classes={{popper: className}}/>
+))(() => ({
+    [`& .${tooltipClasses.arrow}`]: {color: "#183069"},
+    [`& .${tooltipClasses.tooltip}`]: {
+        backgroundColor: "#0c0c0c", borderRadius: 6, boxShadow: "inset 0 0 0 2px #183069",
+        filter: "drop-shadow(1px 2px 3px black)", padding: "10px 6px 6px 6px", minWidth: 180, maxWidth: 400
+    },
+}));
+
+function TooltipContent({effectList}: { effectList: string[] }) {
+    return (
+        <div style={{fontFamily: "League Spartan", position: "relative"}}>
+            <span style={{
+                color: "#386ff0", fontWeight: 800, position: "absolute", left: 3, top: -22,
+                filter: "drop-shadow(0 0 1px black)", letterSpacing: 2
+            }}>INHERITED:</span>
+            <ul style={{padding: "5px 5px 4px 15px", margin: 0, color: "ghostwhite", fontSize: "0.9375rem", fontWeight: 380}}>
+                {effectList.map((text, index) => text &&
+                    <li key={index + "inheritedtooltiptext"} style={{marginBottom: 5}}>{HighlightedKeyWords({text})}</li>)}
+            </ul>
+        </div>
+    )
+}
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -23,24 +63,9 @@ type CardProps = {
     setImageError?: (imageError: boolean) => void
 }
 
-const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-    "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi10",
-    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+export default function Card( props : CardProps ) {
+    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError} = props;
 
-const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
-
-export default function Card({
-                                 card,
-                                 location,
-                                 sendTiltCard,
-                                 sendSfx,
-                                 index,
-                                 draggedCards,
-                                 setDraggedCards,
-                                 handleDropToStackBottom,
-                                 setImageError
-                             }: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -93,6 +118,9 @@ export default function Card({
     const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
     const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
 
+    const inheritedTooltipText = topCardInfo(locationCards).split("\n");
+    const hasTooltip = (index === locationCards.length - 1) && (locationsWithTooltip.includes(location)) && inheritedTooltipText[0].length;
+
     useEffect(() => {
         if (setDraggedCards) {
             if (isDraggingStack && dragStackItem.index) {
@@ -142,36 +170,42 @@ export default function Card({
                     src={stackIcon} alt={"stack"}
                 />}
             {renderEffectAnimation &&
-                <CardAnimationContainer style={{ overflow: "hidden", transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"}}>
+                <CardAnimationContainer style={{
+                    overflow: "hidden",
+                    transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"
+                }}>
                     <Lottie animationData={activateEffectAnimation} loop={true}/>
                 </CardAnimationContainer>}
             {renderTargetAnimation &&
-                <CardAnimationContainer >
-                    <Lottie animationData={targetAnimation} loop={true} />
+                <CardAnimationContainer>
+                    <Lottie animationData={targetAnimation} loop={true}/>
                 </CardAnimationContainer>}
-            <StyledImage
-                ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleClick();
-                }}
-                onDoubleClick={handleTiltCard}
-                onMouseEnter={() => setHoverCard(card)}
-                onMouseOver={() => setHoverCard(card)}
-                onMouseLeave={() => setHoverCard(null)}
-                alt={card.name + " " + card.uniqueCardNumber}
-                src={cardImageUrl}
-                isDragging={isDragging || dragStackEffect}
-                location={location}
-                isTilted={((card as CardTypeGame)?.isTilted) ?? false}
-                activeEffect={renderEffectAnimation}
-                targeted={renderTargetAnimation}
-                title={topCardInfo(card as CardTypeGame, location, locationCards)}
-                onError={() => {
-                    setImageError?.(true);
-                    setCardImageUrl(cardBackUrl);
-                }}
-            />
+            <CustomTooltip {...(!hasTooltip && {disableHoverListener: true})}
+                           {...(!hoverCard && {sx: {"& .MuiTooltip-tooltip": {transform: "translateY(-300px)"}}})}
+                           title={<TooltipContent effectList={inheritedTooltipText} />}>
+                <StyledImage
+                    ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleClick();
+                    }}
+                    onDoubleClick={handleTiltCard}
+                    onMouseEnter={() => setHoverCard(card)}
+                    onMouseOver={() => setHoverCard(card)}
+                    onMouseLeave={() => setHoverCard(null)}
+                    alt={card.name + " " + card.uniqueCardNumber}
+                    src={cardImageUrl}
+                    isDragging={isDragging || dragStackEffect}
+                    location={location}
+                    isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+                    activeEffect={renderEffectAnimation}
+                    targeted={renderTargetAnimation}
+                    onError={() => {
+                        setImageError?.(true);
+                        setCardImageUrl(cardBackUrl);
+                    }}
+                />
+            </CustomTooltip>
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
         </div>)
@@ -282,11 +316,11 @@ const DTSBZone = styled.div<{ isOver: boolean }>`
 `;
 
 export const CardAnimationContainer = styled.div`
-display: flex;
-align-items: center;
-justify-content: center;
-position: absolute;
-top: 20px;
-z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 20px;
+  z-index: 10;
   pointer-events: none;
 `;
