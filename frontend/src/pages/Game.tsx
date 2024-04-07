@@ -25,7 +25,6 @@ import SurrenderRestartWindow from "../components/game/SurrenderRestartWindow.ts
 import EndWindow from "../components/game/EndWindow.tsx";
 import Card, {CardAnimationContainer} from "../components/Card.tsx";
 import noiseBG from "../assets/noiseBG.png";
-import hackmonButton from "../assets/hackmon-chip.png";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
@@ -43,7 +42,6 @@ import {
     playLoadMemorybarSfx,
     playNextAttackPhaseSfx,
     playNextPhaseSfx,
-    playPlaceCardSfx,
     playRevealCardSfx,
     playSecurityRevealSfx,
     playShuffleDeckSfx,
@@ -78,9 +76,10 @@ import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
 import RestartPrompt from "../components/game/RestartPrompt.tsx";
 import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
-import {uid} from "uid";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import useDropZone from "../hooks/useDropZone.ts";
+import {findTokenByName} from "../assets/tokens/tokens.ts";
+import TokenButton from "../components/game/TokenButton.tsx";
 
 const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/";
 const cardBackUrl = assetBaseUrl + "cardBack.jpg";
@@ -404,8 +403,10 @@ export default function Game({user}: { user: string }) {
             }
 
             if (event.data.startsWith("[CREATE_TOKEN]:")) {
-                const id = event.data.substring("[CREATE_TOKEN]:".length);
-                createToken("opponent", id)
+                const parts = event.data.substring("[CREATE_TOKEN]:".length).split(":");
+                const id = parts[0];
+                const token = findTokenByName(parts[1]);
+                createToken(token, "opponent", id)
                 return;
             }
 
@@ -588,6 +589,12 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/updatePhase:${opponentName}`);
     }
 
+    function sendTokenMessage(tokenName: string, id: string) {
+        websocket.sendMessage(`${gameId}:/createToken:${opponentName}:${id}:${tokenName}`);
+        sendSfx("playPlaceCardSfx");
+        sendChatMessage(`[FIELD_UPDATE]≔【Spawn ${tokenName}-Token】`);
+    }
+
     function sendSfx(sfx: string) {
         const timeout = setTimeout(() => {
             websocket.sendMessage(gameId + ":/" + sfx + ":" + opponentName);
@@ -670,7 +677,6 @@ export default function Game({user}: { user: string }) {
         interval = setInterval(() => {
             websocket.sendMessage(`${gameId}:/online:${opponentName}`);
             setIsOnline(navigator.onLine);
-            console.log("online check");
         }, 5000);
 
         return () => {
@@ -1315,14 +1321,7 @@ export default function Game({user}: { user: string }) {
                                     {myEggDeck.length !== 0 &&
                                         <EggDeckSpan>{myEggDeck.length}</EggDeckSpan>}
 
-                                    <TokenButton alt="create token" src={hackmonButton} onClick={() => {
-                                        const id = uid();
-                                        createToken("my", id);
-                                        playPlaceCardSfx();
-                                        websocket.sendMessage(`${gameId}:/createToken:${opponentName}:${id}`);
-                                        sendSfx("playPlaceCardSfx");
-                                        sendChatMessage("[FIELD_UPDATE]≔【Spawn Token】");
-                                    }}/>
+                                    <TokenButton sendTokenMessage={sendTokenMessage}/>
                                 </EggDeckContainer>
 
                                 <SecurityStackContainer ref={dropToSecurity}>
@@ -2188,25 +2187,6 @@ const MulliganSpan = styled.span`
   color: #fad219;
   filter: drop-shadow(2px 2px 1px #131313);
   cursor: default;
-`;
-
-const TokenButton = styled.img`
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  z-index: 5;
-  left: 49px;
-  bottom: 17px;
-  transition: all 0.15s ease;
-  opacity: 0.5;
-
-  &:hover {
-    opacity: 1;
-    cursor: pointer;
-    width: 52px;
-    height: 52px;
-    transform: translateX(-1px);
-  }
 `;
 
 const BreedingAreaContainer = styled(BattleAreaContainer)`

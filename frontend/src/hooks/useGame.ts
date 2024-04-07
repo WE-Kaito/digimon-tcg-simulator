@@ -3,7 +3,7 @@ import {devtools, persist} from 'zustand/middleware'
 import {
     AttackPhase,
     BoardState,
-    BootStage,
+    BootStage, CardType,
     CardTypeGame,
     GameDistribution,
     OneSideDistribution,
@@ -13,7 +13,6 @@ import {
     Side
 } from "../utils/types.ts";
 import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
-import tokenImage from "../assets/tokenCard.jpg";
 
 const emptyPlayer: Player = {
     username: "",
@@ -69,7 +68,7 @@ export type State = BoardState & {
                location: string,
                playSuspendSfx: () => void,
                playUnsuspendSfx: () => void) => void,
-    createToken: (side: Side, id: string) => void,
+    createToken: (token: CardType, side: Side, id: string) => void,
     moveCardStack: (index: number, from: string, to: string,
                     handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
     areCardsSuspended: (from?: string) => boolean,
@@ -541,26 +540,10 @@ export const useGame = create<State>()(
         })
     },
 
-    createToken: (side, id) => {
+    createToken: (tokenVariant, side, id) => {
         if (!get().opponentReady) return;
         const token: CardTypeGame = {
-            uniqueCardNumber: "Token",
-            name: "Token",
-            imgUrl: tokenImage,
-            cardType: "Digimon",
-            color: ["Unknown"],
-            attribute: "Unknown",
-            cardNumber: "",
-            stage: undefined,
-            digiType: undefined,
-            dp: undefined,
-            playCost: undefined,
-            level: undefined,
-            mainEffect: undefined,
-            inheritedEffect: undefined,
-            illustrator: "",
-            restriction_en: "",
-            restriction_jp: "",
+            ...tokenVariant,
             id: id,
             isTilted: false
         };

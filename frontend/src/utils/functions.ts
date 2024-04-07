@@ -59,7 +59,7 @@ export function topCardInfo(locationCards: CardTypeGame[]) {
     if (locationCards.length <= 1) return "";
     let effectInfo = "";
     locationCards.forEach((card, index) => {
-        if (index === locationCards.length - 1 || card.inheritedEffect === null) return;
+        if (index === locationCards.length - 1 || !card.inheritedEffect) return;
         effectInfo += card.inheritedEffect + "\n";
     });
     return effectInfo;
