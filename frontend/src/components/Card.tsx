@@ -118,8 +118,8 @@ export default function Card( props : CardProps ) {
     const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
     const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
 
-    const inheritedTooltipText = topCardInfo(locationCards).split("\n");
-    const hasTooltip = (index === locationCards.length - 1) && (locationsWithTooltip.includes(location)) && inheritedTooltipText[0].length;
+    const inheritedTooltipText = topCardInfo(locationCards ?? []).split("\n");
+    const hasTooltip = (index === locationCards?.length - 1) && (locationsWithTooltip.includes(location)) && inheritedTooltipText[0].length;
 
     useEffect(() => {
         if (setDraggedCards) {
