@@ -3,16 +3,13 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, topCardInfo} from "../utils/functions.ts";
+import {getCardSize, locationsWithInheritedInfo, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
-import {styled as muiStyled} from "@mui/material/styles";
-import {Tooltip, tooltipClasses, TooltipProps} from "@mui/material";
-import HighlightedKeyWords from "./cardDetails/HighlightedKeyWords.tsx";
 
 const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
     "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
@@ -20,36 +17,6 @@ const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponent
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
 
 const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
-
-const locationsWithTooltip = ["myBreedingArea", "opponentBreedingArea",
-    "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
-    "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
-
-const CustomTooltip = muiStyled(({className, ...props}: TooltipProps) => (
-    <Tooltip {...props} arrow classes={{popper: className}}/>
-))(() => ({
-    [`& .${tooltipClasses.arrow}`]: {color: "#183069"},
-    [`& .${tooltipClasses.tooltip}`]: {
-        backgroundColor: "#0c0c0c", borderRadius: 6, boxShadow: "inset 0 0 0 2px #183069",
-        filter: "drop-shadow(1px 2px 3px black)", padding: "10px 6px 6px 6px", minWidth: 180, maxWidth: 400
-    },
-}));
-
-function TooltipContent({effectList}: { effectList: string[] }) {
-    return (
-        <div style={{fontFamily: "League Spartan", position: "relative"}}>
-            <span style={{
-                color: "#386ff0", fontWeight: 800, position: "absolute", left: 3, top: -22,
-                filter: "drop-shadow(0 0 1px black)", letterSpacing: 2
-            }}>INHERITED:</span>
-            <ul style={{padding: "5px 5px 4px 15px", margin: 0, color: "ghostwhite", fontSize: "0.9375rem", fontWeight: 380}}>
-                {effectList.map((text, index) => text &&
-                    <li key={index + "inheritedtooltiptext"} style={{marginBottom: 5}}>{HighlightedKeyWords({text})}</li>)}
-            </ul>
-        </div>
-    )
-}
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -78,6 +45,8 @@ export default function Card( props : CardProps ) {
     const getIsCardEffect = useGame((state) => state.getIsCardEffect);
     const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
     const getIsCardTarget = useGame((state) => state.getIsCardTarget);
+    const setInheritCardInfo = useGame((state) => state.setInheritCardInfo);
+    const getLocationCardsById = useGame((state) => state.getLocationCardsById);
 
     const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
@@ -118,9 +87,6 @@ export default function Card( props : CardProps ) {
     const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
     const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
 
-    const inheritedTooltipText = topCardInfo(locationCards ?? []).split("\n");
-    const hasTooltip = (index === locationCards?.length - 1) && (locationsWithTooltip.includes(location)) && inheritedTooltipText[0].length;
-
     useEffect(() => {
         if (setDraggedCards) {
             if (isDraggingStack && dragStackItem.index) {
@@ -150,14 +116,42 @@ export default function Card( props : CardProps ) {
         sendTiltCard?.(card.id, location);
     }
 
-    function handleClick() {
+    const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
+    const inheritAllowed = (index === locationCards?.length - 1) && (locationsWithInheritedInfo.includes(location)) && inheritedEffects[0].length;
+
+    function handleClick(event: React.MouseEvent) {
+        event.stopPropagation();
         if (location === "fetchedData") {
             addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
             playPlaceCardSfx();
 
             if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
                 && card.id === selectedCard?.id) handleTiltCard(); // 'double click' on mobile
-        } else selectCard(card);
+        } else {
+            selectCard(card);
+            if (inheritAllowed) setInheritCardInfo(inheritedEffects);
+        }
+    }
+
+    function handleHover() {
+        setHoverCard(card);
+        if (inheritAllowed && !["deck", "fetchedData"].includes(location)) setInheritCardInfo(inheritedEffects);
+        else setInheritCardInfo([]);
+    }
+
+    function handleStopHover() {
+        setHoverCard(null);
+
+        const locationKey = getLocationCardsById(selectedCard?.id ?? "", true) as string;
+        if(!selectedCard || !locationKey) {
+            setInheritCardInfo([]);
+            return;
+        }
+        const locationState = getLocationCardsById(selectedCard.id) as CardTypeGame[] | null ?? [];
+        const inhEff = topCardInfo(locationState).split("\n");
+        const inhAll = (selectedCard.id === locationState.at(-1)?.id) && (locationsWithInheritedInfo.includes(locationKey));
+        if (!inhEff[0].length) setInheritCardInfo([])
+        else if (inhAll) setInheritCardInfo(inhEff);
     }
 
     return (
@@ -180,32 +174,25 @@ export default function Card( props : CardProps ) {
                 <CardAnimationContainer>
                     <Lottie animationData={targetAnimation} loop={true}/>
                 </CardAnimationContainer>}
-            <CustomTooltip {...(!hasTooltip && {disableHoverListener: true})}
-                           {...(!hoverCard && {sx: {"& .MuiTooltip-tooltip": {transform: "translateY(-300px)"}}})}
-                           title={<TooltipContent effectList={inheritedTooltipText} />}>
-                <StyledImage
-                    ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleClick();
-                    }}
-                    onDoubleClick={handleTiltCard}
-                    onMouseEnter={() => setHoverCard(card)}
-                    onMouseOver={() => setHoverCard(card)}
-                    onMouseLeave={() => setHoverCard(null)}
-                    alt={card.name + " " + card.uniqueCardNumber}
-                    src={cardImageUrl}
-                    isDragging={isDragging || dragStackEffect}
-                    location={location}
-                    isTilted={((card as CardTypeGame)?.isTilted) ?? false}
-                    activeEffect={renderEffectAnimation}
-                    targeted={renderTargetAnimation}
-                    onError={() => {
-                        setImageError?.(true);
-                        setCardImageUrl(cardBackUrl);
-                    }}
-                />
-            </CustomTooltip>
+            <StyledImage
+                ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
+                onClick={handleClick}
+                onDoubleClick={handleTiltCard}
+                onMouseEnter={handleHover}
+                onMouseOver={handleHover}
+                onMouseLeave={handleStopHover}
+                alt={card.name + " " + card.uniqueCardNumber}
+                src={cardImageUrl}
+                isDragging={isDragging || dragStackEffect}
+                location={location}
+                isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+                activeEffect={renderEffectAnimation}
+                targeted={renderTargetAnimation}
+                onError={() => {
+                    setImageError?.(true);
+                    setCardImageUrl(cardBackUrl);
+                }}
+            />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
         </div>)

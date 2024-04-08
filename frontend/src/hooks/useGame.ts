@@ -13,6 +13,7 @@ import {
     Side
 } from "../utils/types.ts";
 import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
+import {locationsWithInheritedInfo} from "../utils/functions.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -28,8 +29,8 @@ export type State = BoardState & {
     cardIdWithTarget: string,
 
     cardToSend: {id: string, location: string},
+    inheritCardInfo: string[],
 
-    // gameHasStarted: boolean,
     bootStage: BootStage,
     restartObject: { me: Player, opponent: Player },
     
@@ -47,7 +48,9 @@ export type State = BoardState & {
 
     messages: string[],
     setMessages: (message: string) => void,
-    
+
+    // --------------------------------------------------------
+
     mulligan: () => void,
     opponentReady: boolean,
     setOpponentReady: (ready: boolean) => void,
@@ -92,6 +95,8 @@ export type State = BoardState & {
     setBootStage: (phase: BootStage) => void,
     setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
     setGameId: (gameId: string) => void,
+    setInheritCardInfo: (inheritedEffects: string[]) => void,
+    getLocationCardsById: (id: string, getKey?: boolean) => CardTypeGame[] | null | string,
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
@@ -113,6 +118,7 @@ export const useGame = create<State>()(
     cardIdWithEffect: "",
     cardIdWithTarget: "",
     cardToSend: {id: "", location: ""},
+    inheritCardInfo: [],
 
     bootStage: BootStage.CLEAR,
     restartObject: { me: emptyPlayer, opponent: emptyPlayer },
@@ -654,6 +660,17 @@ export const useGame = create<State>()(
     setRestartObject: (restartObject) => set({restartObject}),
 
     setGameId: (gameId) => set({gameId}),
+
+    setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
+
+    getLocationCardsById: (cardId, getKey = false) => {
+        for (const location of locationsWithInheritedInfo) {
+            const locationState = (get()[location as keyof State] as CardTypeGame[]);
+            if (locationState.find(card => card.id === cardId)) return getKey ? location : locationState;
+        }
+        return null; // If card is not found in any location
+    },
+
             }),
             { name: 'bearStore' },
         ),
