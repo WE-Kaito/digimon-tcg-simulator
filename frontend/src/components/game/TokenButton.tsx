@@ -69,7 +69,6 @@ const StyledImg = styled.img`
   }
 `;
 
-
 const StyledListItemButton = styled(ListItemButton)`
   padding: 1px 10px 2px 10px;
   font-family: Naston, sans-serif!important;
