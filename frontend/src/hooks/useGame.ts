@@ -414,7 +414,7 @@ export const useGame = create<State>()(
             set({bootStage: BootStage.GAME_IN_PROGRESS});
         }
 
-        if (destroyTokenLocations.includes(to) && card.uniqueCardNumber === "Token") {
+        if (destroyTokenLocations.includes(to) && card.id.startsWith("TOKEN")) {
             if (to !== "myTrash") playTrashCardSfx();
             set({[from]: updatedFromState});
             return;

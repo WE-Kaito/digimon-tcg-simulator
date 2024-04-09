@@ -20,7 +20,7 @@ export enum EffectVariant {
     INHERITED = "inherited",
     SECURITY = "security",
     SPECIAL = "special",
-    INHERITED_FROM_DIGIVOLUTION_CARDS = "inh. from digivolution cards",
+    INHERITED_FROM_DIGIVOLUTION_CARDS = "inherited from digivolution cards",
 }
 
 export default function CardDetails() {

@@ -73,7 +73,7 @@ const EffectHeader = styled.div<{ inherited: boolean }>`
 const StyledLottie = styled(Lottie)`
   position: absolute;
   width: 53px;
-  left: 300px;
+  left: 350px;
   top: -5px;
   transform: scaleX(1.25);
 `;
