@@ -67,7 +67,8 @@ import {
     Pageview as OpenSecurityIcon,
     RestoreFromTrash as TrashFromDeckIcon,
     ShuffleOnOutlined as ShuffleIcon,
-    VisibilityOff as HideHandIcon,
+    VisibilityOff as VisibilityOffIcon,
+    Visibility as VisibilityIcon,
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon
 } from '@mui/icons-material';
@@ -1591,9 +1592,11 @@ export default function Game({user}: { user: string }) {
                                             </HandListItem>)}
                                     </HandCards>
                                     {myHand.length > 5 && <MyHandSpan>{myHand.length}</MyHandSpan>}
-                                    <HideHandIconButton onClick={() => setIsHandHidden(!isHandHidden)}
-                                                        isActive={isHandHidden} handSize={myHand.length}>
-                                        <HideHandIcon fontSize={"small"}/>
+                                    <HideHandIconButton onClick={() => setIsHandHidden(!isHandHidden)} isActive={isHandHidden}
+                                                        title={"Hide hand"}>
+                                        {isHandHidden
+                                            ? <VisibilityOffIcon fontSize={"small"}/>
+                                            : <VisibilityIcon fontSize={"small"}/>}
                                     </HideHandIconButton>
                                 </HandContainer>
 
@@ -1686,8 +1689,8 @@ const BattleArea15 = styled(BattleAreaContainer)`
   grid-area: digi15;`;
 
 const SwitchRowButton = styled.button<{ secondRowVisible: boolean }>`
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   padding: 0;
   margin: 5px;
   background: ${({secondRowVisible}) => secondRowVisible ? "#fff" : "#151515"};
@@ -1696,7 +1699,7 @@ const SwitchRowButton = styled.button<{ secondRowVisible: boolean }>`
 `;
 
 const SecondRowWarning = styled.span`
-  font-size: 48px;
+  font-size: 50px;
   font-family: Naston, sans-serif;
   color: crimson;
   filter: drop-shadow(0px 0px 2px crimson);
@@ -1705,12 +1708,12 @@ const SecondRowWarning = styled.span`
 `;
 
 const MySecondRowWarning = styled(SecondRowWarning)`
-  right: 9px;
+  right: 11px;
   top: 55px;
 `;
 
 const OpponentSecondRowWarning = styled(SecondRowWarning)`
-  left: 9px;
+  left: 11px;
   bottom: 55px;
 `;
 
@@ -1859,16 +1862,16 @@ const MyHandSpan = styled.span`
   opacity: 0.4;
 
   position: absolute;
-  bottom: 0;
-  transform: translate(-14px, -4px);
+  bottom: 7px;
+  left: 223px;
 `;
 
-const HideHandIconButton = styled.button<{ isActive: boolean, handSize: number }>`
+const HideHandIconButton = styled.button<{ isActive: boolean}>`
   position: absolute;
   opacity: ${({isActive}) => isActive ? 1 : 0.3};
-  visibility: ${({handSize}) => handSize === 0 ? "hidden" : "visible"};
-  color: ${({isActive}) => isActive ? "#c41148" : "unset"};
-  left: ${({handSize}) => handSize > 5 ? 240 : 200}px;
+  color: ${({isActive}) => isActive ? "rgba(190,39,85,1)" : "unset"};
+  right: 22px;
+  top: 8px;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -1877,7 +1880,6 @@ const HideHandIconButton = styled.button<{ isActive: boolean, handSize: number }
   border: none;
   outline: none;
   transition: all 0.25s ease;
-  bottom: 2px;
 
   &:hover {
     color: #d764c1;
