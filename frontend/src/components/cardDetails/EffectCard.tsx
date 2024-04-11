@@ -3,8 +3,6 @@ import {Lock as SecurityIcon, CallMade as InheritedIcon} from '@mui/icons-materi
 import {useLocation} from "react-router-dom";
 import { JSX } from "react";
 import {EffectVariant} from "./CardDetails.tsx";
-import inheritArrow from "../../assets/lotties/inherit-arrow.json";
-import Lottie from "lottie-react";
 
 type Props = {
     variant: EffectVariant
@@ -16,16 +14,13 @@ export default function EffectCard({children, variant}: Props) {
     const location = useLocation();
     const inGame = location.pathname === "/game";
     const isInheritCardInfo = variant === EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS;
-    // The Lottie animation causese a bug in Chrome Browser, where the whole component is blurry
-    const usingChrome = /Chrome/.test(navigator.userAgent);
 
     return (
-        <Wrapper>
+        <Wrapper inherited={isInheritCardInfo}>
             {variant !== EffectVariant.SPECIAL
                 ? <EffectText inGame={inGame}>
                     <EffectHeader inherited={isInheritCardInfo}>
                         <span>{variant.toUpperCase()} {!isInheritCardInfo && "EFFECT"}</span>
-                        {isInheritCardInfo && !usingChrome && <StyledLottie animationData={inheritArrow} loop={true}/>}
                         {variant === EffectVariant.SECURITY && <SecurityIcon sx={{width: 16, position: "absolute", transform: "translate(2px, -11px)"}}/>}
                         {variant === EffectVariant.INHERITED && <InheritedIcon sx={{width: 17, position: "absolute", transform: "translate(2px, -11px)"}}/>}
                     </EffectHeader>
@@ -39,10 +34,10 @@ export default function EffectCard({children, variant}: Props) {
     );
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ inherited: boolean }>`
   width: 99.25%;
-  background: #0c0c0c;
-  filter: drop-shadow(0 0 1px ghostwhite);
+  background: ${({inherited}) => inherited ? "linear-gradient(to right top, #0d0d0d, #0d0d0f, #0d0d11, #0d0e12, #0d0e14, #0e1018, #0e111d, #0d1321, #0c1529, #0b1731, #0b1939, #0c1a41)" : "#0c0c0c"};
+  border: 1px solid rgba(248, 248, 255, 0.4);
 `;
 
 export const EffectText = styled.div<{ inGame?: boolean }>`
@@ -66,14 +61,6 @@ const EffectHeader = styled.div<{ inherited: boolean }>`
   z-index: 2;
   span {
     font-weight: ${({inherited}) => inherited ? "400" : "unset"};
-    filter: ${({inherited}) => inherited ? "drop-shadow(1px 1px 1px #386ff0)" : "unset"};
+    filter: ${({inherited}) => inherited ? "drop-shadow(1px 1px 1px #2916d2)" : "unset"};
   }
-`;
-
-const StyledLottie = styled(Lottie)`
-  position: absolute;
-  width: 53px;
-  left: 350px;
-  top: -5px;
-  transform: scaleX(1.25);
 `;

@@ -232,8 +232,7 @@ const Wrapper = styled.div<{inGame: boolean}>`
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;
   }
-
-
+  
   ::-webkit-scrollbar {
     background: rgba(240, 240, 240, 0.1);
     width: 3px;
@@ -314,7 +313,7 @@ const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
 
   ::-webkit-scrollbar {
     background: rgba(30, 31, 16, 0.5);
-    width: 8px;
+    width: 5px;
   }
 
   ::-webkit-scrollbar-thumb {

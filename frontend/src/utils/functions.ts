@@ -57,12 +57,13 @@ export function calculateCardOffsetX(handCardLength: number, index: number) {
 
 export function topCardInfo(locationCards: CardTypeGame[]) {
     if (locationCards.length <= 1) return "";
-    let effectInfo = "";
+    const effectInfo = [""];
     locationCards.forEach((card, index) => {
         if (index === locationCards.length - 1 || !card.inheritedEffect) return;
-        effectInfo += card.inheritedEffect + "\n";
+        effectInfo.push(card.inheritedEffect);
     });
-    return effectInfo;
+    effectInfo.reverse();
+    return effectInfo.join("\n");
 }
 
 export function getOpponentSfx(command: string) {

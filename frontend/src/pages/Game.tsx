@@ -53,7 +53,7 @@ import {
 } from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
-import {Item, ItemParams, Menu, useContextMenu} from "react-contexify";
+import {Item, ItemParams, Menu, Separator, Submenu, useContextMenu} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import {getSleeve} from "../utils/sleeves.ts";
 import {Button as MuiButton} from "@mui/material";
@@ -72,7 +72,7 @@ import {
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon
 } from '@mui/icons-material';
-import {blue, deepOrange} from "@mui/material/colors";
+import {blue} from "@mui/material/colors";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
 import RestartPrompt from "../components/game/RestartPrompt.tsx";
@@ -81,6 +81,7 @@ import targetAnimation from "../assets/lotties/target-animation.json";
 import useDropZone from "../hooks/useDropZone.ts";
 import {findTokenByName} from "../assets/tokens/tokens.ts";
 import TokenButton from "../components/game/TokenButton.tsx";
+import arrowsAnimation from "../assets/lotties/arrows.json";
 
 const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/";
 const cardBackUrl = assetBaseUrl + "cardBack.jpg";
@@ -937,18 +938,18 @@ export default function Game({user}: { user: string }) {
         }}>
             <OuterWrapper>
 
-                <Menu id={"deckMenu"} theme="dark">
+                <StyledMenu id={"deckMenu"} theme="dark">
                     <Item onClick={() => moveDeckCard("myReveal", true)}>Reveal Bottom Deck Card ↺</Item>
-                </Menu>
+                </StyledMenu>
 
-                <Menu id={"handCardMenu"} theme="dark">
+                <StyledMenu id={"handCardMenu"} theme="dark">
                     <Item onClick={revealHandCard}>
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                             <span>Reveal Card</span> <RevealIcon/></div>
                     </Item>
-                </Menu>
+                </StyledMenu>
 
-                <Menu id={"fieldCardMenu"} theme="dark">
+                <StyledMenu id={"fieldCardMenu"} theme="dark">
                     <Item onClick={activateEffectAnimation}>
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}><span>Activate Effect</span>
                             <EffectIcon/></div>
@@ -957,55 +958,62 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                             <span>Target Card</span> <TargetIcon/></div>
                     </Item>
-                </Menu>
+                    <Separator />
+                    <Submenu label={"(sᴏᴏɴ)"} arrow={<StyledLottie animationData={arrowsAnimation} />}
+                             disabled >
+                        <Item>Bar</Item>
+                        <Item>Bar</Item>
+                        <Item>Bar</Item>
+                    </Submenu>
+                </StyledMenu>
 
-                <Menu id={"opponentCardMenu"} theme="dark">
+                <StyledMenu id={"opponentCardMenu"} theme="dark">
                     <Item onClick={activateTargetAnimation}>
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                             <span>Target Card</span> <TargetIcon/></div>
                     </Item>
-                </Menu>
+                </StyledMenu>
 
-                <Menu id={"securityStackMenu"} theme="dark">
+                <StyledMenu id={"securityStackMenu"} theme="dark">
                     <Item onClick={() => handleOpenSecurity("onOpen")}>
-                        <OpenSecurityIcon color={"warning"} sx={{marginRight: 1}}/> Open Security Stack
+                        <StyledOpenSecurityIcon color={"warning"} sx={{marginRight: 1}}/>
+                        Open Security Stack
                     </Item>
                     <Item onClick={() => moveSecurityCard("myTrash")}>
                         <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
-                            <TrashIcon color={"error"}/><MiniArrowSpan>▲</MiniArrowSpan>
+                            <StyledTrashIcon color={"error"}/><MiniArrowSpan>▲</MiniArrowSpan>
                         </div>
                         Trash Top Card
                     </Item>
                     <Item onClick={() => moveSecurityCard("myTrash", true)}>
                         <div style={{position: "relative", marginRight: 8, transform: "translate(-1px, 2px)"}}>
-                            <TrashIcon color={"error"}/><MiniArrowSpan>▼</MiniArrowSpan>
+                            <StyledTrashIcon color={"error"}/><MiniArrowSpan>▼</MiniArrowSpan>
                         </div>
                         Trash Bot Card
                     </Item>
                     <Item onClick={() => moveSecurityCard("myHand")}>
                         <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
-                            <HandIcon fontSize="inherit"
-                                      sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                            <StyledHandIcon fontSize="inherit"/>
                             <MiniArrowSpanHand>▲</MiniArrowSpanHand>
                         </div>
-                        Take Top Card to Hand
+                        Take Top Card
                     </Item>
                     <Item onClick={() => moveSecurityCard("myHand", true)}>
                         <div style={{position: "relative", marginLeft: 2, marginRight: 14}}>
-                            <HandIcon fontSize="inherit"
-                                      sx={{transform: "rotateY(180deg)", color: deepOrange["A100"]}}/>
+                            <StyledHandIcon fontSize="inherit"/>
                             <MiniArrowSpanHand>▼</MiniArrowSpanHand>
                         </div>
-                        Take Bot Card to Hand
+                       Take Bot Card
                     </Item>
                     <Item onClick={handleShuffleSecurity}>
-                        <ShuffleIcon sx={{color: blue[400], fontSize: 20, marginRight: 1.6}}/>Shuffle Security Stack
+                        <StyledShuffleIcon sx={{color: blue[400], fontSize: 20, marginRight: 1.6}}/>
+                        Shuffle Security Stack
                     </Item>
-                </Menu>
+                </StyledMenu>
 
-                {selectedCard && <Menu id={"detailsImageMenu"} theme="dark">
+                {selectedCard && <StyledMenu id={"detailsImageMenu"} theme="dark">
                     <Item onClick={() => window.open(selectedCard.imgUrl, '_blank')}>Open Image in new Tab ↗</Item>
-                </Menu>}
+                </StyledMenu>}
 
                 {showAttackArrow &&
                     <AttackArrows fromOpponent={attackFromOpponent} from={arrowFrom} to={arrowTo} isEffect={isEffect}/>}
@@ -2512,4 +2520,47 @@ const MobileSSButton = styled.button`
   width: 42px;
   height: 42px;
   padding: 0;
+`;
+
+const StyledLottie = styled(Lottie)`
+  width: 50px;
+  margin-right: 2px;
+  background: none!important;
+`;
+
+const StyledMenu = styled(Menu)`
+  border: 2px solid rgba(65, 135, 211, 0.72);
+  
+  .contexify_submenu {
+    background-color: #0c0c0c;
+  }
+  .contexify_submenu-arrow {
+    background: none;
+  }
+  .contexify_separator {
+    border-bottom: 2px solid rgba(65, 135, 211, 0.72);
+  }
+  .contexify_item:hover {
+    font-weight: 600;
+  }
+`;
+
+const StyledTrashIcon = styled(TrashIcon)`
+    border-radius: 6px;  
+    filter: drop-shadow( 0px 0px 1px var(--contexify-menu-bgColor));
+`;
+
+const StyledOpenSecurityIcon = styled(OpenSecurityIcon)`
+    border-radius: 6px;
+`;
+
+const StyledHandIcon = styled(HandIcon)`
+    border-radius: 8px;
+    filter: drop-shadow(0px 0px 1px var(--contexify-menu-bgColor));
+    transform: rotateY(180deg);
+    color: #ffccbc;
+`;
+
+const StyledShuffleIcon = styled(ShuffleIcon)`
+    border-radius: 6px;
 `;

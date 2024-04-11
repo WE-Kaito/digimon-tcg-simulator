@@ -54,7 +54,7 @@ const CustomTooltip = muiStyled(({ className, ...props }: TooltipProps & { open:
         backgroundColor: "#0c0c0c", borderRadius: 6, boxShadow: "inset 0 0 0 2px #f6c72e",
         filter: "drop-shadow(1px 2px 3px black)", padding: 0, minWidth: 180, maxWidth: 400,
     },
-    [`& .MuiTypography-root`]: { fontFamily: "League Spartan, sans-serif", filter: "drop-shadow(0 0 3px purple)" }
+    [`& .MuiTypography-root`]: { fontFamily: "League Spartan, sans-serif", filter: "drop-shadow(0 0 3px purple)",paddingTop:5 }
 }));
 
 const StyledImg = styled.img`

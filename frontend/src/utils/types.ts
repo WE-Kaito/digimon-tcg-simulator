@@ -262,3 +262,8 @@ export type BoardState = {
 export type SendToDeckFunction = (topOrBottom: "Top" | "Bottom", cardId: string, cardLocation: string, to: string) => void;
 
 export type Side = "my" | "opponent";
+
+export type CardModifiers = {
+    plusDp: number,
+    plusSecurityAttacks: number,
+}

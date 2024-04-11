@@ -96,6 +96,9 @@ export type State = BoardState & {
     setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
     setGameId: (gameId: string) => void,
     setInheritCardInfo: (inheritedEffects: string[]) => void,
+    /**
+     * @param getKey - If true, returns the key of the location instead of the array
+     */
     getLocationCardsById: (id: string, getKey?: boolean) => CardTypeGame[] | null | string,
 };
 
@@ -130,8 +133,8 @@ export const useGame = create<State>()(
     opponentSleeve: "",
 
     myMemory: 0,
-    myReveal: [],
 
+    myReveal: [],
     myHand: [],
     myDeckField: [],
     myEggDeck: [],
@@ -668,7 +671,7 @@ export const useGame = create<State>()(
             const locationState = (get()[location as keyof State] as CardTypeGame[]);
             if (locationState.find(card => card.id === cardId)) return getKey ? location : locationState;
         }
-        return null; // If card is not found in any location
+        return null;
     },
 
             }),
