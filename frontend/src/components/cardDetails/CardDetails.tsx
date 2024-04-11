@@ -116,9 +116,9 @@ export default function CardDetails() {
                         </EffectCard>}
 
                         {inheritCardInfo[0]?.length && <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
-                            {[<Stack gap={1}>
+                            {[<Stack key={"inheritedcardtexts"} gap={1}>
                             {inheritCardInfo.map((text, index) => text &&
-                                <span key={index + "inheritedtooltiptext"}>{HighlightedKeyWords({ text })}</span>
+                                <span key={index + "inheritedcardtext"}>{HighlightedKeyWords({ text })}</span>
                             )}
                             </Stack>]}
                         </EffectCard>}
