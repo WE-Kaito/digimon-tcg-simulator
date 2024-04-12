@@ -117,7 +117,9 @@ public class GameService extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/chatMessage:")) sendChatMessage(gameRoom, userName, roomMessage);
 
-        String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget", "/createToken"};
+        if (roomMessage.startsWith("/createToken:")) handleCreateToken(gameRoom, roomMessage);
+
+        String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget"};
         if(Arrays.stream(simpleIdCommands).anyMatch(roomMessage::startsWith)) handleCommandWithId(gameRoom, roomMessage);
 
         else {
@@ -163,7 +165,6 @@ public class GameService extends TextWebSocketHandler {
             case "/activateTarget" -> "[ACTIVATE_TARGET]";
             case "/activateEffect" -> "[ACTIVATE_EFFECT]";
             case "/updateAttackPhase" -> "[OPPONENT_ATTACK_PHASE]";
-            case "/createToken" -> "[CREATE_TOKEN]";
             default -> "";
         };
     }
@@ -412,6 +413,15 @@ public class GameService extends TextWebSocketHandler {
         String cardId = parts[2];
         String location = parts[3];
         sendMessageToOpponent(gameRoom, opponentName, "[TILT_CARD]:" + cardId + ":" + getPosition(location));
+    }
+
+    private void handleCreateToken(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 4) return;
+        String[] parts = roomMessage.split(":", 4);
+        String opponentName = parts[1];
+        String cardId = parts[2];
+        String name = parts[3];
+        sendMessageToOpponent(gameRoom, opponentName, "[CREATE_TOKEN]:" + cardId + ":" + name);
     }
 
     private void handleMemoryUpdate(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {

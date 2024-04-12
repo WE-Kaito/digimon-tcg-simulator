@@ -55,21 +55,15 @@ export function calculateCardOffsetX(handCardLength: number, index: number) {
     if (handCardLength >= 4) return (index * 400) / handCardLength + "px";
 }
 
-export function topCardInfo(card: CardTypeGame, location: string, locationCards: CardTypeGame[]) {
-    const locationsWithInfo = ["myBreedingArea", "opponentBreedingArea",
-        "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
-        "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6",
-        "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
-    if (!locationsWithInfo.find((l => l === location))) return undefined;
-
-    let effectInfo = "Inherited effects: \n";
+export function topCardInfo(locationCards: CardTypeGame[]) {
+    if (locationCards.length <= 1) return "";
+    const effectInfo = [""];
     locationCards.forEach((card, index) => {
-        if (index === locationCards.length - 1) return;
-        if (card.inheritedEffect === null) return;
-        effectInfo += "• " + card.inheritedEffect + "\n";
+        if (index === locationCards.length - 1 || !card.inheritedEffect) return;
+        effectInfo.push(card.inheritedEffect);
     });
-
-    return card === locationCards[locationCards.length - 1] ? effectInfo : undefined;
+    effectInfo.reverse();
+    return effectInfo.join("\n");
 }
 
 export function getOpponentSfx(command: string) {
@@ -454,3 +448,8 @@ export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("en" | "jp")
     }
     return !isRestrictionViolated
 }
+
+export const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea",
+    "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
+    "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];

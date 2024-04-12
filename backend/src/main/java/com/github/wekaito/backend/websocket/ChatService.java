@@ -86,8 +86,10 @@ public class ChatService extends TextWebSocketHandler {
 
     private void checkForRejoinableRoom() throws IOException {
         for (WebSocketSession session : activeSessions) {
-            boolean isRejoinable = gameService.gameRooms.keySet().stream().anyMatch(roomId -> roomId.contains(Objects.requireNonNull(session.getPrincipal()).getName()));
-            if (isRejoinable) session.sendMessage(new TextMessage("[RECONNECT_ENABLED]"));
+            String matchingRoomId = gameService.gameRooms.keySet().stream()
+                    .filter(roomId -> roomId.contains(Objects.requireNonNull(session.getPrincipal()).getName()))
+                    .findFirst().orElse(null);
+            if (matchingRoomId != null) session.sendMessage(new TextMessage("[RECONNECT_ENABLED]:" + matchingRoomId));
             else session.sendMessage(new TextMessage("[RECONNECT_DISABLED]"));
         }
     }

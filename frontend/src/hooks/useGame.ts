@@ -1,16 +1,19 @@
 import {create} from "zustand";
-import { devtools, persist } from 'zustand/middleware'
+import {devtools, persist} from 'zustand/middleware'
 import {
     AttackPhase,
     BoardState,
+    BootStage, CardType,
     CardTypeGame,
     GameDistribution,
     OneSideDistribution,
     Phase,
-    Player, SendToDeckFunction, Side
+    Player,
+    SendToDeckFunction,
+    Side
 } from "../utils/types.ts";
 import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
-import tokenImage from "../assets/tokenCard.jpg";
+import {locationsWithInheritedInfo} from "../utils/functions.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -26,8 +29,9 @@ export type State = BoardState & {
     cardIdWithTarget: string,
 
     cardToSend: {id: string, location: string},
+    inheritCardInfo: string[],
 
-    gameHasStarted: boolean,
+    bootStage: BootStage,
     restartObject: { me: Player, opponent: Player },
     
     initialDistributionState: string;
@@ -45,9 +49,9 @@ export type State = BoardState & {
     messages: string[],
     setMessages: (message: string) => void,
 
-    mulliganAllowed: boolean,
+    // --------------------------------------------------------
+
     mulligan: () => void,
-    setMulliganAllowed: (allowed: boolean) => void,
     opponentReady: boolean,
     setOpponentReady: (ready: boolean) => void,
 
@@ -67,7 +71,7 @@ export type State = BoardState & {
                location: string,
                playSuspendSfx: () => void,
                playUnsuspendSfx: () => void) => void,
-    createToken: (side: Side, id: string) => void,
+    createToken: (token: CardType, side: Side, id: string) => void,
     moveCardStack: (index: number, from: string, to: string,
                     handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
     areCardsSuspended: (from?: string) => boolean,
@@ -88,9 +92,14 @@ export type State = BoardState & {
     setCardIdWithTarget: (cardId: string) => void,
     getIsCardTarget: (compareCardId: string) => boolean,
     setCardToSend: (cardId: string, location: string) => void,
-    setGameHasStarted: (gameHasStarted: boolean) => void,
+    setBootStage: (phase: BootStage) => void,
     setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
     setGameId: (gameId: string) => void,
+    setInheritCardInfo: (inheritedEffects: string[]) => void,
+    /**
+     * @param getKey - If true, returns the key of the location instead of the array
+     */
+    getLocationCardsById: (id: string, getKey?: boolean) => CardTypeGame[] | null | string,
 };
 
 const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
@@ -112,8 +121,9 @@ export const useGame = create<State>()(
     cardIdWithEffect: "",
     cardIdWithTarget: "",
     cardToSend: {id: "", location: ""},
+    inheritCardInfo: [],
 
-    gameHasStarted: false,
+    bootStage: BootStage.CLEAR,
     restartObject: { me: emptyPlayer, opponent: emptyPlayer },
 
     initialDistributionState: "",
@@ -123,8 +133,8 @@ export const useGame = create<State>()(
     opponentSleeve: "",
 
     myMemory: 0,
-    myReveal: [],
 
+    myReveal: [],
     myHand: [],
     myDeckField: [],
     myEggDeck: [],
@@ -181,12 +191,9 @@ export const useGame = create<State>()(
     opponentGameState: "",
 
     messages: [],
-    mulliganAllowed: true,
     opponentReady: false,
 
-    setOpponentReady: (ready) => {
-        set({opponentReady: ready});
-    },
+    setOpponentReady: (ready) => set({opponentReady: ready}),
 
     setUpGame: (me, opponent) => {
         set({
@@ -196,7 +203,6 @@ export const useGame = create<State>()(
             opponentSleeve: opponent.sleeveName,
 
             messages: [],
-            mulliganAllowed: false,
             opponentReady: true,
         });
     },
@@ -251,11 +257,12 @@ export const useGame = create<State>()(
             opponentBreedingArea: [],
             phase: Phase.BREEDING,
             isMyTurn: false,
-            gameHasStarted: false,
             restartObject: { me: emptyPlayer, opponent: emptyPlayer },
             opponentAttackPhase: false,
             myAttackPhase: false,
             opponentReady: false,
+            isLoading: false,
+            bootStage: BootStage.CLEAR,
         });
     },
 
@@ -406,11 +413,11 @@ export const useGame = create<State>()(
             return;
         }
 
-        if (get().mulliganAllowed && !opponentLocations.includes(from) && !opponentLocations.includes(to)) {
-            set({mulliganAllowed: false});
+        if (get().bootStage === BootStage.MULLIGAN && !opponentLocations.includes(from) && !opponentLocations.includes(to)) {
+            set({bootStage: BootStage.GAME_IN_PROGRESS});
         }
 
-        if (destroyTokenLocations.includes(to) && card.uniqueCardNumber === "Token") {
+        if (destroyTokenLocations.includes(to) && card.id.startsWith("TOKEN")) {
             if (to !== "myTrash") playTrashCardSfx();
             set({[from]: updatedFromState});
             return;
@@ -513,13 +520,11 @@ export const useGame = create<State>()(
                 myHand: updatedHand,
                 mySecurity: updatedSecurity,
                 myDeckField: updatedDeck,
-                mulliganAllowed: false,
-                isLoading: true
+                bootStage: BootStage.GAME_IN_PROGRESS,
+                isLoading: true // will be set false in distributeCards
             }
         });
     },
-
-    setMulliganAllowed: (mulliganAllowed: boolean) => set({mulliganAllowed}),
 
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx) => {
         set(state => {
@@ -544,26 +549,10 @@ export const useGame = create<State>()(
         })
     },
 
-    createToken: (side, id) => {
+    createToken: (tokenVariant, side, id) => {
         if (!get().opponentReady) return;
         const token: CardTypeGame = {
-            uniqueCardNumber: "Token",
-            name: "Token",
-            imgUrl: tokenImage,
-            cardType: "Digimon",
-            color: ["Unknown"],
-            attribute: "Unknown",
-            cardNumber: "",
-            stage: undefined,
-            digiType: undefined,
-            dp: undefined,
-            playCost: undefined,
-            level: undefined,
-            mainEffect: undefined,
-            inheritedEffect: undefined,
-            illustrator: "",
-            restriction_en: "",
-            restriction_jp: "",
+            ...tokenVariant,
             id: id,
             isTilted: false
         };
@@ -669,11 +658,22 @@ export const useGame = create<State>()(
 
     setCardToSend: (id, location) => set({cardToSend: {id, location}}),
 
-    setGameHasStarted: (gameHasStarted) => set({gameHasStarted}),
+    setBootStage: (stage) => set({bootStage: stage}),
 
     setRestartObject: (restartObject) => set({restartObject}),
 
     setGameId: (gameId) => set({gameId}),
+
+    setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
+
+    getLocationCardsById: (cardId, getKey = false) => {
+        for (const location of locationsWithInheritedInfo) {
+            const locationState = (get()[location as keyof State] as CardTypeGame[]);
+            if (locationState.find(card => card.id === cardId)) return getKey ? location : locationState;
+        }
+        return null;
+    },
+
             }),
             { name: 'bearStore' },
         ),

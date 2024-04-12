@@ -3,13 +3,20 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, topCardInfo} from "../utils/functions.ts";
+import {getCardSize, locationsWithInheritedInfo, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
+
+const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
+    "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10",
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+
+const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -23,24 +30,9 @@ type CardProps = {
     setImageError?: (imageError: boolean) => void
 }
 
-const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-    "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi10",
-    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+export default function Card( props : CardProps ) {
+    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError} = props;
 
-const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
-
-export default function Card({
-                                 card,
-                                 location,
-                                 sendTiltCard,
-                                 sendSfx,
-                                 index,
-                                 draggedCards,
-                                 setDraggedCards,
-                                 handleDropToStackBottom,
-                                 setImageError
-                             }: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -53,6 +45,8 @@ export default function Card({
     const getIsCardEffect = useGame((state) => state.getIsCardEffect);
     const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
     const getIsCardTarget = useGame((state) => state.getIsCardTarget);
+    const setInheritCardInfo = useGame((state) => state.setInheritCardInfo);
+    const getLocationCardsById = useGame((state) => state.getLocationCardsById);
 
     const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
@@ -122,14 +116,42 @@ export default function Card({
         sendTiltCard?.(card.id, location);
     }
 
-    function handleClick() {
+    const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
+    const inheritAllowed = (index === locationCards?.length - 1) && (locationsWithInheritedInfo.includes(location)) && inheritedEffects[0].length;
+
+    function handleClick(event: React.MouseEvent) {
+        event.stopPropagation();
         if (location === "fetchedData") {
             addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
             playPlaceCardSfx();
 
             if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
                 && card.id === selectedCard?.id) handleTiltCard(); // 'double click' on mobile
-        } else selectCard(card);
+        } else {
+            selectCard(card);
+            if (inheritAllowed) setInheritCardInfo(inheritedEffects);
+        }
+    }
+
+    function handleHover() {
+        setHoverCard(card);
+        if (inheritAllowed && !["deck", "fetchedData"].includes(location)) setInheritCardInfo(inheritedEffects);
+        else setInheritCardInfo([]);
+    }
+
+    function handleStopHover() {
+        setHoverCard(null);
+
+        const locationKey = getLocationCardsById(selectedCard?.id ?? "", true) as string;
+        if(!selectedCard || !locationKey) {
+            setInheritCardInfo([]);
+            return;
+        }
+        const locationState = getLocationCardsById(selectedCard.id) as CardTypeGame[] | null ?? [];
+        const inhEff = topCardInfo(locationState).split("\n");
+        const inhAll = (selectedCard.id === locationState.at(-1)?.id) && (locationsWithInheritedInfo.includes(locationKey));
+        if (!inhEff[0].length) setInheritCardInfo([])
+        else if (inhAll) setInheritCardInfo(inhEff);
     }
 
     return (
@@ -142,23 +164,23 @@ export default function Card({
                     src={stackIcon} alt={"stack"}
                 />}
             {renderEffectAnimation &&
-                <CardAnimationContainer style={{ overflow: "hidden", transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"}}>
+                <CardAnimationContainer style={{
+                    overflow: "hidden",
+                    transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"
+                }}>
                     <Lottie animationData={activateEffectAnimation} loop={true}/>
                 </CardAnimationContainer>}
             {renderTargetAnimation &&
-                <CardAnimationContainer >
-                    <Lottie animationData={targetAnimation} loop={true} />
+                <CardAnimationContainer>
+                    <Lottie animationData={targetAnimation} loop={true}/>
                 </CardAnimationContainer>}
             <StyledImage
                 ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleClick();
-                }}
+                onClick={handleClick}
                 onDoubleClick={handleTiltCard}
-                onMouseEnter={() => setHoverCard(card)}
-                onMouseOver={() => setHoverCard(card)}
-                onMouseLeave={() => setHoverCard(null)}
+                onMouseEnter={handleHover}
+                onMouseOver={handleHover}
+                onMouseLeave={handleStopHover}
                 alt={card.name + " " + card.uniqueCardNumber}
                 src={cardImageUrl}
                 isDragging={isDragging || dragStackEffect}
@@ -166,7 +188,6 @@ export default function Card({
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 activeEffect={renderEffectAnimation}
                 targeted={renderTargetAnimation}
-                title={topCardInfo(card as CardTypeGame, location, locationCards)}
                 onError={() => {
                     setImageError?.(true);
                     setCardImageUrl(cardBackUrl);
@@ -282,11 +303,11 @@ const DTSBZone = styled.div<{ isOver: boolean }>`
 `;
 
 export const CardAnimationContainer = styled.div`
-display: flex;
-align-items: center;
-justify-content: center;
-position: absolute;
-top: 20px;
-z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 20px;
+  z-index: 10;
   pointer-events: none;
 `;
