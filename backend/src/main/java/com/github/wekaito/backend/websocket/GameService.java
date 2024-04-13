@@ -358,8 +358,8 @@ public class GameService extends TextWebSocketHandler {
                     card.restriction_en(),
                     card.restriction_jp(),
                     card.illustrator(),
-                    false,
-                    idService.createId());
+                    idService.createId(),
+                    false);
             gameDeck.add(newCard);
         }
         return gameDeck;

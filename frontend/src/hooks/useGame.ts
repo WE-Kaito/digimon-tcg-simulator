@@ -273,7 +273,7 @@ export const useGame = create<State>()(
             else return ({ initialDistributionState: state.initialDistributionState + chunk });
         });
 
-        if (chunk.length < 1000 && chunk.endsWith("}")) {
+        if (chunk.endsWith("false}]}")) {
 
             const player1 = gameId.split("‗")[0];
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
@@ -351,7 +351,7 @@ export const useGame = create<State>()(
             return {opponentGameState: state.opponentGameState + chunk}
         });
 
-        if (chunk.length < 1000 && chunk.endsWith("}")) {
+        if (chunk.endsWith(":true}") || chunk.endsWith(":false}")) {
 
             const opponentGameJson: OneSideDistribution = JSON.parse(get().opponentGameState);
 

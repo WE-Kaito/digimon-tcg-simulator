@@ -29,9 +29,8 @@ public record GameCard (
         String restriction_en,
         String restriction_jp,
         String illustrator,
-        Boolean isTilted,
-        String id
-
+        String id,
+        Boolean isTilted
 ) {
 
 }
