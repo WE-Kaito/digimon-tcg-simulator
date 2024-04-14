@@ -5,7 +5,7 @@ import { uid } from "uid";
 import { playPlaceCardSfx } from "../../utils/sound.ts";
 import { List, ListItem, ListItemButton, ListItemText, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
 import { useGame } from "../../hooks/useGame.ts";
-import { tokenCollection } from "../../assets/tokens/tokens.ts";
+import { tokenCollection } from "../../utils/tokens.ts";
 import { CardType } from "../../utils/types.ts";
 import { styled as muiStyled } from "@mui/material/styles";
 

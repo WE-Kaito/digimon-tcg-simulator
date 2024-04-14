@@ -1,11 +1,11 @@
-import Amon from './Amon.webp';
-import Umon from './Umon.webp';
-import Diaboromon from './Diaboromon.webp';
-import KoHagurumon from './KoHagurumon.webp';
-import Fujitsumon from './Fujitsumon.webp';
-import Gyuukimon from './Gyuukimon.webp';
-import HackmonToken from './tokenCard.jpg';
-import {CardType} from "../../utils/types.ts";
+import Amon from '../assets/tokens/Amon.webp';
+import Umon from '../assets/tokens/Umon.webp';
+import Diaboromon from '../assets/tokens/Diaboromon.webp';
+import KoHagurumon from '../assets/tokens/KoHagurumon.webp';
+import Fujitsumon from '../assets/tokens/Fujitsumon.webp';
+import Gyuukimon from '../assets/tokens/Gyuukimon.webp';
+import HackmonToken from '../assets/tokens/tokenCard.jpg';
+import {CardType} from "./types.ts";
 
 const tokenEffect = (digimon: string): string => `•This card can be used as a [${digimon}] token.\n•Tokens can't be included in decks.\n•Tokens can't digivolve or be used as digivolution cards.\n•Tokens are removed from the game when they leave play.`;
 
