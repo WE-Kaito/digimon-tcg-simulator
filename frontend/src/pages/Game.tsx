@@ -79,7 +79,7 @@ import RestartPrompt from "../components/game/RestartPrompt.tsx";
 import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import useDropZone from "../hooks/useDropZone.ts";
-import {findTokenByName} from "../assets/tokens/tokens.ts";
+import {findTokenByName} from "../utils/tokens.ts";
 import TokenButton from "../components/game/TokenButton.tsx";
 import arrowsAnimation from "../assets/lotties/arrows.json";
 
@@ -959,11 +959,25 @@ export default function Game({user}: { user: string }) {
                             <span>Target Card</span> <TargetIcon/></div>
                     </Item>
                     <Separator />
-                    <Submenu label={"(sᴏᴏɴ)"} arrow={<StyledLottie animationData={arrowsAnimation} />}
-                             disabled >
-                        <Item>Bar</Item>
-                        <Item>Bar</Item>
-                        <Item>Bar</Item>
+                    <Submenu label={"(sᴏᴏɴ)"} arrow={<StyledLottie animationData={arrowsAnimation} />} disabled>
+                        {/*<Item disabled >*/}
+                        {/*    <form>*/}
+                        {/*        <fieldset>*/}
+                        {/*            <legend>Modifiers</legend>*/}
+                        {/*            <Stack alignItems={"flex-start"}>*/}
+                        {/*                <div>*/}
+                        {/*                    <label>DP:</label>*/}
+                        {/*                    <input type={"number"} max={20000} min={-20000} />*/}
+                        {/*                </div>*/}
+                        {/*                <div>*/}
+                        {/*                    <label>Security Attacks:</label>*/}
+                        {/*                    <input type={"number"} max={9} min={-9} />*/}
+                        {/*                </div>*/}
+                        {/*                <button onClick={(e) => e.preventDefault()}>save</button>*/}
+                        {/*            </Stack>*/}
+                        {/*        </fieldset>*/}
+                        {/*    </form>*/}
+                        {/*</Item>*/}
                     </Submenu>
                 </StyledMenu>
 

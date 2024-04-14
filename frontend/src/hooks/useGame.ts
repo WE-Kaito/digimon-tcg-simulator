@@ -96,6 +96,7 @@ export type State = BoardState & {
     setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
     setGameId: (gameId: string) => void,
     setInheritCardInfo: (inheritedEffects: string[]) => void,
+    // setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
     /**
      * @param getKey - If true, returns the key of the location instead of the array
      */
@@ -273,7 +274,7 @@ export const useGame = create<State>()(
             else return ({ initialDistributionState: state.initialDistributionState + chunk });
         });
 
-        if (chunk.length < 1000 && chunk.endsWith("}")) {
+        if (chunk.endsWith("false}]}")) {
 
             const player1 = gameId.split("‗")[0];
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
@@ -351,7 +352,7 @@ export const useGame = create<State>()(
             return {opponentGameState: state.opponentGameState + chunk}
         });
 
-        if (chunk.length < 1000 && chunk.endsWith("}")) {
+        if (chunk.endsWith(":true}") || chunk.endsWith(":false}")) {
 
             const opponentGameJson: OneSideDistribution = JSON.parse(get().opponentGameState);
 
@@ -554,7 +555,8 @@ export const useGame = create<State>()(
         const token: CardTypeGame = {
             ...tokenVariant,
             id: id,
-            isTilted: false
+            isTilted: false,
+            // modifiers: { plusDp: 0, plusSecurityAttacks: 0 }
         };
         set((state) => {
             for (let i = 1; i <= 10; i++) {
@@ -673,6 +675,17 @@ export const useGame = create<State>()(
         }
         return null;
     },
+
+    // setModifiers: (cardId, location, modifiers) => {
+    //     set(state => {
+    //         return {
+    //             [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
+    //                 if (card.id === cardId) card.modifiers = modifiers;
+    //                 return card;
+    //             })
+    //         };
+    //     });
+    // },
 
             }),
             { name: 'bearStore' },

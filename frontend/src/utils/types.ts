@@ -34,6 +34,12 @@ type DigivolveCondition = {
 export type CardTypeWithId = CardType & { id: string };
 
 export type CardTypeGame = CardTypeWithId & { isTilted: boolean };
+// export type CardTypeGame = CardTypeWithId & { modifiers: CardModifiers } & { isTilted: boolean };
+
+// export type CardModifiers = {
+//     plusDp: number,
+//     plusSecurityAttacks: number
+// }
 
 export type SearchCards = (
     name: string | null,
@@ -71,12 +77,6 @@ export type Player = {
 }
 
 export type GameDistribution = {
-    player1Memory?: number,
-    player2Memory?: number,
-
-    player1Reveal?: CardTypeGame[],
-    player2Reveal?: CardTypeGame[],
-
     player1Hand: CardTypeGame[],
     player1DeckField: CardTypeGame[],
     player1EggDeck: CardTypeGame[],
@@ -262,8 +262,3 @@ export type BoardState = {
 export type SendToDeckFunction = (topOrBottom: "Top" | "Bottom", cardId: string, cardLocation: string, to: string) => void;
 
 export type Side = "my" | "opponent";
-
-export type CardModifiers = {
-    plusDp: number,
-    plusSecurityAttacks: number,
-}
