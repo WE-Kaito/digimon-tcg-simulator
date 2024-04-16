@@ -101,6 +101,13 @@ export const notifyNoActiveDeck = () => toast.error('Please activate a deck firs
     pauseOnHover: false,
 });
 
+export const notifyBrokenDeck = () => toast.error('Cards in your deck could not be found!', {
+    position: "top-center",
+    autoClose: 5000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
+
 export const notifyCredentials = () => toast.error('Wrong username or password!', {
     position: "top-center",
     autoClose: 3000,

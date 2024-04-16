@@ -1,5 +1,7 @@
 package com.github.wekaito.backend.websocket;
 
+import com.github.wekaito.backend.Card;
+import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import lombok.Getter;
@@ -13,10 +15,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Service
@@ -25,6 +24,7 @@ public class ChatService extends TextWebSocketHandler {
 
     private final MongoUserDetailsService mongoUserDetailsService;
     private final DeckService deckService;
+    private final CardService cardService;
 
     private final Set<WebSocketSession> activeSessions = new HashSet<>();
     private final Set<String> connectedUsernames = new HashSet<>();
@@ -42,6 +42,13 @@ public class ChatService extends TextWebSocketHandler {
             session.sendMessage(new TextMessage("[NO_ACTIVE_DECK]"));
             return;
         }
+
+        List<Card> deckCards = deckService.getDeckCardsById(activeDeck);
+        if (deckCards.stream().anyMatch(c -> "1110101".equals(c.cardNumber()))) {
+            session.sendMessage(new TextMessage("[BROKEN_DECK]"));
+            return;
+        }
+
         if (activeSessions.stream().anyMatch(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username))) {
             session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected!"));
             return;

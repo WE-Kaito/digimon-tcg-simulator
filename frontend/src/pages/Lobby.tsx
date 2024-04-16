@@ -6,7 +6,7 @@ import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
-import {notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
+import {notifyBrokenDeck, notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
 import {playInvitationSfx} from "../utils/sound.ts";
 import discordIcon from "../assets/discordLogo.png";
 import {useGame} from "../hooks/useGame.ts";
@@ -84,6 +84,12 @@ export default function Lobby({user}: { user: string }) {
 
             if (event.data === "[NO_ACTIVE_DECK]") {
                 notifyNoActiveDeck();
+                setNoActiveDeck(true);
+                return;
+            }
+
+            if (event.data === "[BROKEN_DECK]") {
+                notifyBrokenDeck();
                 setNoActiveDeck(true);
                 return;
             }
