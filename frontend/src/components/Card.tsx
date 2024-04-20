@@ -337,7 +337,7 @@ const PlusDpSpan = styled.span<{isHovering: boolean, isNegative: boolean, isTilt
   position: absolute;
   z-index: 10;
   top: ${({isHovering}) => (isHovering ? "-8px" : "-1px")};
-  right: ${({isHovering}) => (isHovering ? "-5px" : 0)};
+  right: ${({isHovering}) => (isHovering ? "-6px" : 0)};
   font-size: ${({isHovering}) => (isHovering ? "1.1em" : "1em")};
   border: 1px solid #8b91fd;
   box-shadow: 0 0 2px black;
