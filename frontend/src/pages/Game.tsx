@@ -659,9 +659,6 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/updateAttackPhase:${opponentName}:${attackPhase}`);
     }
 
-    /**
-     * Uses special syntax {@example ... /setModifiers:﹕${opponentName}﹕ ...} to ensure
-     */
     function sendSetModifiers(cardId: string, location: string, modifiers: CardModifiers) {
         websocket.sendMessage(`${gameId}:/setModifiers:${opponentName}:${cardId}:${location}:${JSON.stringify(modifiers)}`);
         sendSfx("playModifyCardSfx");
