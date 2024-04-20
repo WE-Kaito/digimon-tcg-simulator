@@ -362,7 +362,7 @@ const PlusDpSpan = styled.span<{isHovering: boolean, isNegative: boolean, isTilt
 `;
 
 const PlusSecAtkSpan = styled(PlusDpSpan)`
-  left: ${({isHovering}) => (isHovering ? "-3px" : "2px")};
+  left: ${({isHovering}) => (isHovering ? "-5px" : "0px")};
   right: unset;
   border: unset;
   background: unset;

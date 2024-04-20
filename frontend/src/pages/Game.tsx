@@ -19,7 +19,7 @@ import {
     handleImageError
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {CSSProperties, useCallback, useEffect, useRef, useState} from "react";
 import styled from "@emotion/styled";
 import SurrenderRestartWindow from "../components/game/SurrenderRestartWindow.tsx";
 import EndWindow from "../components/game/EndWindow.tsx";
@@ -944,6 +944,8 @@ export default function Game({user}: { user: string }) {
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";
     const color3 = localStorage.getItem("color3") ?? "#522170";
 
+    const hideMenuItemStyle = contextCard?.cardType === "Digimon" ? {} : { visibility: "hidden", position: "absolute"};
+
     return <>
         {isLoading && <LoadingOverlayDiv/>}
         <BackGroundPattern/>
@@ -972,14 +974,12 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                             <span>Target Card</span> <TargetIcon/></div>
                     </Item>
-                    {contextCard?.cardType === "Digimon" && <>
-                        <Separator/>
-                        <Item onClick={resetModifiers}>
+                    {contextCard?.cardType === "Digimon" && <Separator/>}
+                        <Item onClick={resetModifiers} style={(hideMenuItemStyle as CSSProperties | undefined)}>
                             <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                                 <span>Clear Modifiers</span> <ClearIcon/></div>
                         </Item>
                         <ModifierMenu sendSetModifiers={sendSetModifiers}/>
-                    </>}
                 </StyledMenu>
 
                 <StyledMenu id={"opponentCardMenu"} theme="dark">

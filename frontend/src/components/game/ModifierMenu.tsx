@@ -23,7 +23,7 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
     const cardToSend = useGame(state => state.cardToSend);
     const setModifiers = useGame(state => state.setModifiers);
     // @ts-ignore
-    const card = useGame((state) => state[cardToSend.location as keyof typeof state].find(card => card.id === cardToSend.id));
+    const card = useGame((state) => state[cardToSend.location as keyof typeof state].find(card => card.id === cardToSend.id)) ?? null;
 
     const [plusDp, setPlusDp] = useState<number>(0);
     const [plusSecurityAttacks, setPlusSecurityAttacks] = useState<number>(0);
@@ -34,8 +34,8 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
     const handleSubSec = () => setPlusSecurityAttacks((prev) => prev > -9 ? prev - 1 : prev);
 
     function resetValues() {
-        setPlusDp(card.modifiers.plusDp);
-        setPlusSecurityAttacks(card.modifiers.plusSecurityAttacks);
+        setPlusDp(card?.modifiers.plusDp);
+        setPlusSecurityAttacks(card?.modifiers.plusSecurityAttacks);
     }
 
     function handleSubmit() {
@@ -50,7 +50,9 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
     const dpValue = getNumericModifier(plusDp, true);
     const secAttackValue = getNumericModifier(plusSecurityAttacks, true);
 
-    const haveModifiersChanged = card.modifiers.plusDp !== plusDp || card.modifiers.plusSecurityAttacks !== plusSecurityAttacks;
+    const haveModifiersChanged = card?.modifiers.plusDp !== plusDp || card?.modifiers.plusSecurityAttacks !== plusSecurityAttacks;
+
+    if (card?.cardType !== "Digimon") return <></>;
 
     return (
         <StyledSubmenu label={"Set Modifiers"} arrow={<StyledLottie animationData={arrowsAnimation}/>} >
