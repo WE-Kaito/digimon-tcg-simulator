@@ -1,4 +1,4 @@
-Digimon TCG Simulator
+Project Drasil
 ---
 
 This started as a graduation project for a full stack coding bootcamp.
