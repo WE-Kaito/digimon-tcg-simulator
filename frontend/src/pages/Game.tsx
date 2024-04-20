@@ -108,6 +108,10 @@ export default function Game({user}: { user: string }) {
     const getIsCardTarget = useGame((state) => state.getIsCardTarget);
     const setModifiers = useGame((state) => state.setModifiers);
 
+    const cardToSend = useGame((state) => state.cardToSend);
+    // @ts-ignore
+    const contextCard = useGame((state) => state[cardToSend.location as keyof typeof state]?.find(card => card.id === cardToSend.id)) ?? null;
+
     const moveCard = useGame((state) => state.moveCard);
     const cardToDeck = useGame((state) => state.cardToDeck);
     const tiltCard = useGame((state) => state.tiltCard);
@@ -415,11 +419,11 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
-            if (event.data.startsWith("[SET_MODIFIERS]﹕")) { // NOT regular colon but special character ﹕
-                const parts = event.data.substring("[SET_MODIFIERS]﹕".length).split("﹕");
+            if (event.data.startsWith("[SET_MODIFIERS]:")) {
+                const parts = event.data.substring("[SET_MODIFIERS]:".length).split(":");
                 const id = parts[0];
                 const location = parts[1];
-                const modifiers : CardModifiers = JSON.parse(parts[2]);
+                const modifiers : CardModifiers = JSON.parse(parts.slice(2).join(":"));
                 setModifiers(id, location, modifiers);
                 return;
             }
@@ -655,8 +659,11 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(`${gameId}:/updateAttackPhase:${opponentName}:${attackPhase}`);
     }
 
+    /**
+     * Uses special syntax {@example ... /setModifiers:﹕${opponentName}﹕ ...} to ensure
+     */
     function sendSetModifiers(cardId: string, location: string, modifiers: CardModifiers) {
-        websocket.sendMessage(`${gameId}:/setModifiers:﹕${opponentName}﹕${cardId}﹕${location}﹕${JSON.stringify(modifiers)}`);
+        websocket.sendMessage(`${gameId}:/setModifiers:${opponentName}:${cardId}:${location}:${JSON.stringify(modifiers)}`);
         sendSfx("playModifyCardSfx");
     }
 
@@ -965,12 +972,14 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                             <span>Target Card</span> <TargetIcon/></div>
                     </Item>
-                    <Separator />
-                    <Item onClick={resetModifiers}>
-                        <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
-                            <span>Clear Modifiers</span> <ClearIcon/></div>
-                    </Item>
-                    <ModifierMenu sendSetModifiers={sendSetModifiers}/>
+                    {contextCard?.cardType === "Digimon" && <>
+                        <Separator/>
+                        <Item onClick={resetModifiers}>
+                            <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                                <span>Clear Modifiers</span> <ClearIcon/></div>
+                        </Item>
+                        <ModifierMenu sendSetModifiers={sendSetModifiers}/>
+                    </>}
                 </StyledMenu>
 
                 <StyledMenu id={"opponentCardMenu"} theme="dark">

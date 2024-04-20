@@ -399,13 +399,13 @@ public class GameService extends TextWebSocketHandler {
     }
 
     private void handleSendSetModifiers(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
-        if (roomMessage.split("﹕").length < 5) return;
-        String[] parts = roomMessage.split("﹕");
+        if (roomMessage.split(":").length < 5) return;
+        String[] parts = roomMessage.split(":");
         String opponentName = parts[1];
         String cardId = parts[2];
         String location = parts[3];
-        String modifiers = parts[4];
-        sendMessageToOpponent(gameRoom, opponentName, "[SET_MODIFIERS]﹕" + cardId + "﹕" + getPosition(location) + "﹕" + modifiers);
+        String modifiers = String.join(":", Arrays.copyOfRange(parts, 4, parts.length));
+        sendMessageToOpponent(gameRoom, opponentName, "[SET_MODIFIERS]:" + cardId + ":" + getPosition(location) + ":" + modifiers);
     }
 
     private void handleSendMoveToDeck(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {

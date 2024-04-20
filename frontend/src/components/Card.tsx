@@ -166,14 +166,14 @@ export default function Card( props : CardProps ) {
     const modifiers = isModifiersAllowed ? (card as CardTypeGame)?.modifiers : undefined;
 
     const finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
-    const showDp = (finalDp !== card.dp) && isModifiersAllowed;
+    const showDp = (card.cardType === "Digimon") && (finalDp !== card.dp) && isModifiersAllowed;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
     return (
         <div style={{position: "relative"}}>
             {showDp && <PlusDpSpan isHovering={isHovering} isNegative={finalDp < card.dp!}
                                      isTilted={((card as CardTypeGame)?.isTilted)}>{finalDp.toString()}</PlusDpSpan>}
-            {secAtkString && <PlusSecAtkSpan isHovering={isHovering} isNegative={secAtkString[0] === "-"}
+            {secAtkString && <PlusSecAtkSpan isHovering={isHovering} isNegative={secAtkString.startsWith("-")}
                                              isTilted={((card as CardTypeGame)?.isTilted)}>
                 {secAtkString}<StyledShieldIcon/></PlusSecAtkSpan>}
             {!isDraggingStack && !!(index) && (index > 0) && utilIcon &&
