@@ -32,7 +32,7 @@ export default function DeckSelection() {
     });
 
     const filteredDeckLength = deckCards.length - eggLength;
-    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
+    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "1110101"];
     function getAddAllowed(card: CardTypeWithId, lastIndex: boolean) {
         return !!hoverCard
             && ((hoverCard === card))
@@ -43,6 +43,7 @@ export default function DeckSelection() {
     }
 
     function AddButton(card: CardTypeWithId) {
+        if (card.cardNumber === "1110101") return <></>
         return <AddIcon
             onClick={() => {
                 addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);

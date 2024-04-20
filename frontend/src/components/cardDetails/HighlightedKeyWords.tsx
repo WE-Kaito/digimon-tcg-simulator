@@ -248,6 +248,7 @@ function isTrait(trait: string) {
         case "LCD":
         case "Legend-Arms":
         case "Lesser":
+        case "LIBERATOR":
         case "Light Dragon":
         case "Light Fang":
         case "Machine":
@@ -294,6 +295,7 @@ function isTrait(trait: string) {
         case "Seraph":
         case "Seven Great Demon Lords":
         case "Shaman":
+        case "SoC":
         case "Skeleton":
         case "Sky Dragon":
         case "Super Major":
@@ -307,6 +309,7 @@ function isTrait(trait: string) {
         case "Unknown":
         case "Vegetation":
         case "Virtue":
+        case "Vortex Warriors":
         case "Warrior":
         case "Weapon":
         case "Wizard":

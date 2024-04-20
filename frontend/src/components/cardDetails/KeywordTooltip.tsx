@@ -96,6 +96,10 @@ function getExplanation(keyword: string) {
             return "When this Digimon with digivolution cards is deleted, play this card without paying the cost.";
         case "Partition":
             return "When this Digimon that has 1 of each specified cards in its digivolution cards would leave the battle area other than by your own effects or by battle, you may play 1 of each card without paying their costs.";
+        case "Overclock":
+            return "At the end of your turn, by deleting 1 of your tokens or 1 of your other Digimon with the [X] trait, this Digimon may attack a player without suspending."
+        case "Vortex":
+            return "At the end of your turn on which this Digimon was played, it may attack an opponent's Digimon."
         default:
             return "";
     }
@@ -155,6 +159,10 @@ function getKeywordForLink(keyword: string) {
             return "Fortitude";
         case "Partition":
             return "Partition";
+        case "Overclock":
+            return "Overclock"
+        case "Vortex":
+            return "Vortex"
         default:
             return "";
     }
