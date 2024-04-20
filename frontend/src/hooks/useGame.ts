@@ -3,7 +3,7 @@ import {devtools, persist} from 'zustand/middleware'
 import {
     AttackPhase,
     BoardState,
-    BootStage, CardType,
+    BootStage, CardModifiers, CardType,
     CardTypeGame,
     GameDistribution,
     OneSideDistribution,
@@ -28,6 +28,10 @@ export type State = BoardState & {
     cardIdWithEffect: string,
     cardIdWithTarget: string,
 
+    /**
+    * Id and location of a card that is going to be sent to security or egg-deck
+     * Retrieve this to use also in {@link setModifiers}
+     */
     cardToSend: {id: string, location: string},
     inheritCardInfo: string[],
 
@@ -57,7 +61,7 @@ export type State = BoardState & {
 
     setUpGame: (me: Player, opponent: Player) => void,
     clearBoard: () => void,
-    distributeCards: (user: string, chunk: string, gameId: string) => void,
+    distributeCards: (user: string, chunk: string, gameId: string, sendLoaded: () => void) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getMyFieldAsString: () => string,
     updateOpponentField: (chunk: string, sendLoaded: () => void) => void,
@@ -96,16 +100,19 @@ export type State = BoardState & {
     setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
     setGameId: (gameId: string) => void,
     setInheritCardInfo: (inheritedEffects: string[]) => void,
-    // setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
+    setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
     /**
      * @param getKey - If true, returns the key of the location instead of the array
      */
     getLocationCardsById: (id: string, getKey?: boolean) => CardTypeGame[] | null | string,
 };
 
-const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
-    "myEggDeck", "myBreedingArea", "opponentHand", "opponentSecurity",
-    "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
+const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
+
+const resetModifierLocations = [...modifierLocations, "opponentHand", "opponentDeckField", "opponentEggDeck", "opponentTrash"]
+
+const destroyTokenLocations = [...modifierLocations, "myTamer", "myDelay", "mySecurity", "myBreedingArea",
+    "opponentHand", "opponentSecurity", "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
 
 const opponentLocations = ["opponentHand", "opponentSecurity", "opponentDeckField", "opponentEggDeck",
     "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
@@ -267,18 +274,17 @@ export const useGame = create<State>()(
         });
     },
 
-    distributeCards: (user, chunk, gameId) => {
+    distributeCards: (user, chunk, gameId, sendLoaded) => {
 
-        set(state => {
-            if (!state.isLoading) return ({ initialDistributionState: chunk, isLoading: true });
-            else return ({ initialDistributionState: state.initialDistributionState + chunk });
-        });
+        set(state => ({ initialDistributionState: state.initialDistributionState + chunk }));
 
-        if (chunk.endsWith("false}]}")) {
+        if (chunk.length < 1000 || chunk.endsWith("false}]}")) {
 
             const player1 = gameId.split("‗")[0];
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
-            const timer = setTimeout(() => {
+
+            playDrawCardSfx();
+
             if (user === player1) {
                 set({
                     myHand: game.player1Hand,
@@ -289,6 +295,8 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player2DeckField,
                     opponentEggDeck: game.player2EggDeck,
                     opponentSecurity: game.player2Security,
+                    initialDistributionState: "",
+                    bootStage: BootStage.MULLIGAN,
                 });
             } else {
                 set({
@@ -300,12 +308,11 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player1DeckField,
                     opponentEggDeck: game.player1EggDeck,
                     opponentSecurity: game.player1Security,
+                    initialDistributionState: "",
+                    bootStage: BootStage.MULLIGAN,
                 });
             }
-            set({initialDistributionState: "", isLoading: false});
-            playDrawCardSfx();
-            }, 1100);
-            return () => clearTimeout(timer);
+            sendLoaded();
         }
     },
 
@@ -352,7 +359,7 @@ export const useGame = create<State>()(
             return {opponentGameState: state.opponentGameState + chunk}
         });
 
-        if (chunk.endsWith(":true}") || chunk.endsWith(":false}")) {
+        if (chunk.length < 1000 || chunk.endsWith(":true}") || chunk.endsWith(":false}")) {
 
             const opponentGameJson: OneSideDistribution = JSON.parse(get().opponentGameState);
 
@@ -398,6 +405,7 @@ export const useGame = create<State>()(
         const fromState = get()[from as keyof State] as CardTypeGame[];
         const card = fromState.find(card => card.id === cardId);
         if (!card) return;
+        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
@@ -439,6 +447,7 @@ export const useGame = create<State>()(
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId);
 
         if (topOrBottom === "Top" && card) card.isTilted = false;
+        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
 
         if (cardLocation === to) {
             set({
@@ -556,7 +565,7 @@ export const useGame = create<State>()(
             ...tokenVariant,
             id: id,
             isTilted: false,
-            // modifiers: { plusDp: 0, plusSecurityAttacks: 0 }
+            modifiers: { plusDp: 0, plusSecurityAttacks: 0 }
         };
         set((state) => {
             for (let i = 1; i <= 10; i++) {
@@ -676,16 +685,16 @@ export const useGame = create<State>()(
         return null;
     },
 
-    // setModifiers: (cardId, location, modifiers) => {
-    //     set(state => {
-    //         return {
-    //             [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
-    //                 if (card.id === cardId) card.modifiers = modifiers;
-    //                 return card;
-    //             })
-    //         };
-    //     });
-    // },
+    setModifiers: (cardId, location, modifiers) => {
+        set(state => {
+            return {
+                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
+                    if (card.id === cardId) card.modifiers = modifiers;
+                    return card;
+                })
+            };
+        });
+    },
 
             }),
             { name: 'bearStore' },

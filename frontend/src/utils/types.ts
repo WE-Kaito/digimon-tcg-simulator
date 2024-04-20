@@ -33,13 +33,12 @@ type DigivolveCondition = {
 
 export type CardTypeWithId = CardType & { id: string };
 
-export type CardTypeGame = CardTypeWithId & { isTilted: boolean };
-// export type CardTypeGame = CardTypeWithId & { modifiers: CardModifiers } & { isTilted: boolean };
+export type CardTypeGame = CardTypeWithId & { modifiers: CardModifiers } & { isTilted: boolean };
 
-// export type CardModifiers = {
-//     plusDp: number,
-//     plusSecurityAttacks: number
-// }
+export type CardModifiers = {
+    plusDp: number,
+    plusSecurityAttacks: number
+}
 
 export type SearchCards = (
     name: string | null,

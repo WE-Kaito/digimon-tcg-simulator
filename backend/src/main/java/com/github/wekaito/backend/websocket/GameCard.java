@@ -30,14 +30,14 @@ public record GameCard (
         String restriction_jp,
         String illustrator,
         String id,
-//        Modifiers modifiers,
+        Modifiers modifiers,
         Boolean isTilted
 ) {
 
 }
 
-//record Modifiers(
-//        Integer plusDp,
-//        Integer plusSecurityAttacks
-//) {
-//}
+record Modifiers(
+        Integer plusDp,
+        Integer plusSecurityAttacks
+) {
+}

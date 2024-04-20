@@ -279,6 +279,7 @@ export default function SearchForm() {
                 <option>LCD</option>
                 <option>Legend-Arms</option>
                 <option>Lesser</option>
+                <option>LIBERATOR</option>
                 <option>Light Dragon</option>
                 <option>Light Fang</option>
                 <option>Machine</option>
@@ -324,6 +325,7 @@ export default function SearchForm() {
                 <option>Seraph</option>
                 <option>Seven Great Demon Lords</option>
                 <option>Shaman</option>
+                <option>SoC</option>
                 <option>Skeleton</option>
                 <option>Sky Dragon</option>
                 <option>Sky Dragon</option>
@@ -338,6 +340,7 @@ export default function SearchForm() {
                 <option>Unknown</option>
                 <option>Vegetation</option>
                 <option>Virtue</option>
+                <option>Vortex Warriors</option>
                 <option>Warrior</option>
                 <option>Weapon</option>
                 <option>Wizard</option>

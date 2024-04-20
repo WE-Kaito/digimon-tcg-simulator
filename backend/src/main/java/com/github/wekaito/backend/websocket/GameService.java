@@ -109,6 +109,8 @@ public class GameService extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/moveCard:")) handleSendMoveCard(gameRoom, roomMessage);
 
+        if(roomMessage.startsWith("/setModifiers:")) handleSendSetModifiers(gameRoom, roomMessage);
+
         if (roomMessage.startsWith("/moveCardToDeck:")) handleSendMoveToDeck(gameRoom, roomMessage);
 
         if (roomMessage.startsWith("/tiltCard:")) handleTiltCard(gameRoom, roomMessage);
@@ -359,7 +361,7 @@ public class GameService extends TextWebSocketHandler {
                     card.restriction_jp(),
                     card.illustrator(),
                     idService.createId(),
-//                    new Modifiers(0,0),
+                    new Modifiers(0,0),
                     false);
             gameDeck.add(newCard);
         }
@@ -394,6 +396,16 @@ public class GameService extends TextWebSocketHandler {
         String from = parts[3];
         String to = parts[4];
         sendMessageToOpponent(gameRoom, opponentName, "[MOVE_CARD]:" + cardId + ":" + getPosition(from) + ":" + getPosition(to));
+    }
+
+    private void handleSendSetModifiers(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 5) return;
+        String[] parts = roomMessage.split(":");
+        String opponentName = parts[1];
+        String cardId = parts[2];
+        String location = parts[3];
+        String modifiers = String.join(":", Arrays.copyOfRange(parts, 4, parts.length));
+        sendMessageToOpponent(gameRoom, opponentName, "[SET_MODIFIERS]:" + cardId + ":" + getPosition(location) + ":" + modifiers);
     }
 
     private void handleSendMoveToDeck(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {

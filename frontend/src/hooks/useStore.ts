@@ -18,6 +18,7 @@ import {
 import { avatars } from "../utils/avatars.ts";
 import {DeckIdOrder} from "../pages/Profile.tsx";
 import {Dispatch, SetStateAction} from "react";
+import {generalToken} from "../utils/tokens.ts";
 
 type State = {
     fetchedCards: CardTypeWithId[],
@@ -298,12 +299,11 @@ export const useStore = create<State>((set, get) => ({
             .then((data: DeckType) => {
 
                 const cardsWithId: CardTypeWithId[] = data.decklist.map((uniqueCardNumber) => {
-                        const card = get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0];
-                        if (!card) return {
-                            ...get().fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0],
-                            id: uid()
-                        }
-                        else return { ...card, id: uid()}
+                        const card = get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0]
+                            ?? get().fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]
+                            ?? {...generalToken, cardNumber: "1110101", uniqueCardNumber: "1110101", name: "Fallback Card",
+                                mainEffect: "If you see this card, the actual card was not found."}
+                        return { ...card, id: uid()}
                     }
                 );
 
