@@ -19,6 +19,7 @@ import nextAttackPhaseSfx from "../assets/sounds/next-attack-phase.mp3";
 import effectAttackSfx from "../assets/sounds/effect-attack.mp3";
 import activateEffect from "../assets/sounds/activate-effect.mp3";
 import targetCardSfx from "../assets/sounds/effect-target.mp3";
+import modifyCardSfx from "../assets/sounds/modify-card.mp3";
 
 export function playDrawCardSfx() {
     const audio = new Audio(drawCardSfx);
@@ -146,5 +147,11 @@ export const playActivateEffectSfx = () => {
 export const playTargetCardSfx = () => {
     const audio = new Audio(targetCardSfx);
     audio.volume = 0.25;
+    audio.addEventListener('canplay', () => audio.play());
+}
+
+export const playModifyCardSfx = () => {
+    const audio = new Audio(modifyCardSfx);
+    audio.volume = 1;
     audio.addEventListener('canplay', () => audio.play());
 }

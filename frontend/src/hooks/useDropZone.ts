@@ -74,8 +74,8 @@ export default function useDropZone(props: UseDropZoneProps) {
     }
 
     function dropCardToDeck(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
-        const {id, location, type, name} = item;
-        if (type === "Token") return;
+        const {id, location, name} = item;
+        if (id.startsWith("TOKEN")) return;
         sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? `???…${id.slice(-5)}` : name}】﹕${convertForLog(location)} ➟ Deck ${topOrBottom}`);
         cardToDeck(topOrBottom, id, location, "myDeckField");
         sendCardToDeck(topOrBottom, id, location, "myDeckField");
@@ -233,8 +233,8 @@ export default function useDropZone(props: UseDropZoneProps) {
     const [, dropToEggDeck] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location, type} = item;
-            if (type === "Token") return;
+            const {id, location} = item;
+            if (id.startsWith("TOKEN")) return;
             setCardToSend(id, location);
             setEggDeckMoodle(true);
             setSecurityMoodle(false);
@@ -244,8 +244,8 @@ export default function useDropZone(props: UseDropZoneProps) {
     const [, dropToSecurity] = useDrop(() => ({
         accept: "card",
         drop: (item: DraggedItem) => {
-            const {id, location, type} = item;
-            if (type === "Token") return;
+            const {id, location} = item;
+            if (id.startsWith("TOKEN")) return;
             setCardToSend(id, location);
             setSecurityMoodle(true);
             setEggDeckMoodle(false);

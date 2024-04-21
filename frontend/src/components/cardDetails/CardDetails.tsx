@@ -10,9 +10,18 @@ import {Stack} from "@mui/material";
 import {getDnaColor} from "../../utils/functions.ts";
 import {CardTypeGame, CardTypeWithId} from "../../utils/types.ts";
 import {useLocation} from "react-router-dom";
+import {useGame} from "../../hooks/useGame.ts";
 
 const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama",
                 "Satsuki Tamahime", "Eiji Nagasumi", "Marvin Jackson", "Xu Yulin", "Hacker Judge", "Kosuke Kisakata"];
+
+export enum EffectVariant {
+    MAIN = "main",
+    INHERITED = "inherited",
+    SECURITY = "security",
+    SPECIAL = "special",
+    INHERITED_FROM_DIGIVOLUTION_CARDS = "inherited from digivolution cards",
+}
 
 export default function CardDetails() {
 
@@ -21,6 +30,7 @@ export default function CardDetails() {
 
     const selectedCard : CardTypeWithId | CardTypeGame | null = useStore((state) => state.selectedCard);
     const hoverCard : CardTypeWithId | CardTypeGame | null  = useStore((state) => state.hoverCard);
+    const inheritCardInfo = useGame((state) => state.inheritCardInfo);
 
     // First Tab
     const name = hoverCard?.name ?? selectedCard?.name;
@@ -85,32 +95,40 @@ export default function CardDetails() {
                 <TabPanel item="effects">
                     <TabContainer inGame={inGame} isNameLong={isNameLong}>
 
-                        {dnaDigivolutionText && <EffectCard variant={"special"} key={`${cardNumber}_dna`}>
+                        {dnaDigivolutionText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
                             {highlightedDNADigivolution}
                         </EffectCard>}
 
-                        {digiXrosText && <EffectCard variant={"special"} key={`${cardNumber}_xros`}>
+                        {digiXrosText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
                             {highlightedDigiXros}
                         </EffectCard>}
 
-                        {burstDigivolveText && <EffectCard variant={"special"} key={`${cardNumber}_burst`}>
+                        {burstDigivolveText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_burst`}>
                             {highlightedBurstDigivolve}
                         </EffectCard>}
 
-                        {specialDigivolveText && <EffectCard variant={"special"} key={`${cardNumber}_spec`}>
+                        {specialDigivolveText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_spec`}>
                             {highlightedSpecialDigivolve}
                         </EffectCard>}
 
-                        {mainEffectText && <EffectCard variant={"main"} key={`${cardNumber}_main`}>
+                        {mainEffectText && <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
                             {highlightedMainEffect}
                         </EffectCard>}
 
-                        {inheritedEffectText && <EffectCard key={`${cardNumber}_inh`}
-                            variant={((cardType === "Option" && notXAntibody)|| (cardType === "Tamer" && notHybrid)) ? "security" : "inherited"}>
+                        {inheritCardInfo[0]?.length && <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
+                            {[<Stack key={"inheritedcardtexts"} gap={1}>
+                            {inheritCardInfo.map((text, index) => text &&
+                                <span key={index + "inheritedcardtext"}>{HighlightedKeyWords({ text })}</span>
+                            )}
+                            </Stack>]}
+                        </EffectCard>}
+
+                        {inheritedEffectText && <EffectCard key={`${cardNumber}_to_inherit`}
+                            variant={((cardType === "Option" && notXAntibody)|| (cardType === "Tamer" && notHybrid)) ? EffectVariant.SECURITY : EffectVariant.INHERITED}>
                             {highlightedInheritedEffect}
                         </EffectCard>}
 
-                        {securityEffectText && <EffectCard variant={"security"} key={`${cardNumber}_secu`}>
+                        {securityEffectText && <EffectCard variant={EffectVariant.SECURITY} key={`${cardNumber}_security`}>
                             {highlightedSecurityEffect}
                         </EffectCard>}
                     </TabContainer>
@@ -214,8 +232,7 @@ const Wrapper = styled.div<{inGame: boolean}>`
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;
   }
-
-
+  
   ::-webkit-scrollbar {
     background: rgba(240, 240, 240, 0.1);
     width: 3px;
@@ -290,12 +307,17 @@ const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
   gap: 6px;
   border-bottom-left-radius: ${({inGame}) => inGame ? "8px" : "unset"};
 
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
+
   ::-webkit-scrollbar {
+    background: rgba(30, 31, 16, 0.5);
     width: 5px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(250, 250, 250, 0.65);
+    background: rgba(255, 239, 213, 0.75);
   }
 `;
 

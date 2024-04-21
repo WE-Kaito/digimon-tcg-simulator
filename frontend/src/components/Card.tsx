@@ -3,13 +3,26 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, topCardInfo} from "../utils/functions.ts";
+import {getCardSize, locationsWithInheritedInfo, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
+import {getNumericModifier} from "./game/ModifierMenu.tsx";
+import ShieldIcon from '@mui/icons-material/Shield';
+
+const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
+    "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
+
+const opponentBALocations = ["opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6",
+    "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi11", "opponentDigi12", "opponentDigi13",
+    "opponentDigi14", "opponentDigi15", "opponentBreedingArea"]
+
+const opponentFieldLocations = [...opponentBALocations, "opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity"];
+
+const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -23,24 +36,9 @@ type CardProps = {
     setImageError?: (imageError: boolean) => void
 }
 
-const opponentFieldLocations = ["opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity",
-    "opponentBreedingArea", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
-    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi10",
-    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+export default function Card( props : CardProps ) {
+    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError} = props;
 
-const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
-
-export default function Card({
-                                 card,
-                                 location,
-                                 sendTiltCard,
-                                 sendSfx,
-                                 index,
-                                 draggedCards,
-                                 setDraggedCards,
-                                 handleDropToStackBottom,
-                                 setImageError
-                             }: CardProps) {
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -53,6 +51,9 @@ export default function Card({
     const getIsCardEffect = useGame((state) => state.getIsCardEffect);
     const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
     const getIsCardTarget = useGame((state) => state.getIsCardTarget);
+    const setInheritCardInfo = useGame((state) => state.setInheritCardInfo);
+    const getLocationCardsById = useGame((state) => state.getLocationCardsById);
+    const setCardToSend = useGame((state) => state.setCardToSend);
 
     const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
@@ -122,18 +123,59 @@ export default function Card({
         sendTiltCard?.(card.id, location);
     }
 
-    function handleClick() {
+    const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
+    const inheritAllowed = (index === locationCards?.length - 1) && (locationsWithInheritedInfo.includes(location)) && inheritedEffects[0].length;
+
+    function handleClick(event: React.MouseEvent) {
+        event.stopPropagation();
         if (location === "fetchedData") {
             addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
             playPlaceCardSfx();
 
             if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
                 && card.id === selectedCard?.id) handleTiltCard(); // 'double click' on mobile
-        } else selectCard(card);
+        } else {
+            selectCard(card);
+            if (inheritAllowed) setInheritCardInfo(inheritedEffects);
+        }
     }
+
+    function handleHover() {
+        setHoverCard(card);
+        if (inheritAllowed && !["deck", "fetchedData"].includes(location)) setInheritCardInfo(inheritedEffects);
+        else setInheritCardInfo([]);
+    }
+
+    function handleStopHover() {
+        setHoverCard(null);
+
+        const locationKey = getLocationCardsById(selectedCard?.id ?? "", true) as string;
+        if(!selectedCard || !locationKey) {
+            setInheritCardInfo([]);
+            return;
+        }
+        const locationState = getLocationCardsById(selectedCard.id) as CardTypeGame[] | null ?? [];
+        const inhEff = topCardInfo(locationState).split("\n");
+        const inhAll = (selectedCard.id === locationState.at(-1)?.id) && (locationsWithInheritedInfo.includes(locationKey));
+        if (!inhEff[0].length) setInheritCardInfo([])
+        else if (inhAll) setInheritCardInfo(inhEff);
+    }
+
+    const isHovering = hoverCard === card;
+    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location);
+    const modifiers = isModifiersAllowed ? (card as CardTypeGame)?.modifiers : undefined;
+
+    const finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
+    const showDp = (card.cardType === "Digimon") && (finalDp !== card.dp) && isModifiersAllowed;
+    const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
     return (
         <div style={{position: "relative"}}>
+            {showDp && <PlusDpSpan isHovering={isHovering} isNegative={finalDp < card.dp!}
+                                     isTilted={((card as CardTypeGame)?.isTilted)}>{finalDp.toString()}</PlusDpSpan>}
+            {secAtkString && <PlusSecAtkSpan isHovering={isHovering} isNegative={secAtkString.startsWith("-")}
+                                             isTilted={((card as CardTypeGame)?.isTilted)}>
+                {secAtkString}<StyledShieldIcon/></PlusSecAtkSpan>}
             {!isDraggingStack && !!(index) && (index > 0) && utilIcon &&
                 <DragIcon
                     ref={dragStack}
@@ -142,23 +184,23 @@ export default function Card({
                     src={stackIcon} alt={"stack"}
                 />}
             {renderEffectAnimation &&
-                <CardAnimationContainer style={{ overflow: "hidden", transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"}}>
+                <CardAnimationContainer style={{
+                    overflow: "hidden",
+                    transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"
+                }}>
                     <Lottie animationData={activateEffectAnimation} loop={true}/>
                 </CardAnimationContainer>}
             {renderTargetAnimation &&
-                <CardAnimationContainer >
-                    <Lottie animationData={targetAnimation} loop={true} />
+                <CardAnimationContainer>
+                    <Lottie animationData={targetAnimation} loop={true}/>
                 </CardAnimationContainer>}
             <StyledImage
                 ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleClick();
-                }}
+                onClick={handleClick}
                 onDoubleClick={handleTiltCard}
-                onMouseEnter={() => setHoverCard(card)}
-                onMouseOver={() => setHoverCard(card)}
-                onMouseLeave={() => setHoverCard(null)}
+                onMouseEnter={handleHover}
+                onMouseOver={handleHover}
+                onMouseLeave={handleStopHover}
                 alt={card.name + " " + card.uniqueCardNumber}
                 src={cardImageUrl}
                 isDragging={isDragging || dragStackEffect}
@@ -166,11 +208,11 @@ export default function Card({
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 activeEffect={renderEffectAnimation}
                 targeted={renderTargetAnimation}
-                title={topCardInfo(card as CardTypeGame, location, locationCards)}
                 onError={() => {
                     setImageError?.(true);
                     setCardImageUrl(cardBackUrl);
                 }}
+                onContextMenu={() => myBALocations.includes(location) && setCardToSend(card.id, location)}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
@@ -282,11 +324,58 @@ const DTSBZone = styled.div<{ isOver: boolean }>`
 `;
 
 export const CardAnimationContainer = styled.div`
-display: flex;
-align-items: center;
-justify-content: center;
-position: absolute;
-top: 20px;
-z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 20px;
+  z-index: 10;
   pointer-events: none;
+`;
+
+const PlusDpSpan = styled.span<{isHovering: boolean, isNegative: boolean, isTilted: boolean}>`
+  position: absolute;
+  z-index: 10;
+  top: ${({isHovering}) => (isHovering ? "-8px" : "-1px")};
+  right: ${({isHovering}) => (isHovering ? "-6px" : 0)};
+  font-size: ${({isHovering}) => (isHovering ? "1.1em" : "1em")};
+  border: 1px solid #8b91fd;
+  box-shadow: 0 0 2px black;
+  pointer-events: none;
+  user-select: none;
+  font-family: Awsumsans, sans-serif;
+  font-weight: 500;
+  color: ${({isNegative}) => (isNegative ? "#ff2190" : "#49fcbd")};
+  line-height: 0.9;
+  padding: ${({isHovering}) => (isHovering ? "4px 2px 1px 2px" : "3px 2px 1px 2px")};;
+  border-radius: 3px;
+  background: rgba(21, 21, 21, 0.9);
+  transition: all 0.05s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: ${({isTilted}) => (isTilted ? "translate(25px, 20px) rotate(30deg)" : "unset")};
+  
+  @media (min-width: 2000px) {
+    line-height: 0.8;
+  }
+`;
+
+const PlusSecAtkSpan = styled(PlusDpSpan)`
+  left: ${({isHovering}) => (isHovering ? "-5px" : "0px")};
+  right: unset;
+  border: unset;
+  background: unset;
+  box-shadow: unset;
+  font-size: 1em;
+  transform: ${({isTilted}) => (isTilted ? "translate(34px, -10px) rotate(30deg)" : "unset")};
+`;
+
+const StyledShieldIcon = styled(ShieldIcon)`
+  position: absolute;
+  z-index: -1;
+  color: rgba(21, 21, 21, 0.85);
+  font-size: 30px;
+  transform: translateX(1px);
+  filter: drop-shadow(0 0 2px #5e65ee) drop-shadow(0 0 1px #5158e3);
 `;

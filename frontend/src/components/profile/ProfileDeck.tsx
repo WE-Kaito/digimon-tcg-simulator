@@ -9,6 +9,8 @@ import LevelDistribution from "./LevelDistribution.tsx";
 import {Dispatch, SetStateAction} from "react";
 import {Chip} from "@mui/material";
 import { grey, teal } from '@mui/material/colors';
+import {generalToken} from "../../utils/tokens.ts";
+import hackmonImg from "../../assets/Hackmon.webp";
 
 const tokenImageUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/tokenCard.jpg";
 
@@ -47,10 +49,10 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
         setImageSelectionOpen(true);
     }
 
-    const deckCards : CardType[] = deck.decklist.map((uniqueCardNumber) => {
-            const card = fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0];
-            return (card ? card : fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]);
-        }
+    const deckCards : CardType[] = deck.decklist.map((uniqueCardNumber) =>
+        fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0]
+        ?? fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]
+        ?? {...generalToken, cardNumber: "1110101"}
     );
 
     const digimonCount = deckCards.filter(card => card.cardType === "Digimon").length;
@@ -58,8 +60,11 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const optionCount = deckCards.filter(card => card.cardType === "Option").length;
     const eggCount = deckCards.filter(card => card.cardType === "Digi-Egg").length;
 
+    const errorCount = deckCards.filter(card => card.cardNumber === "1110101").length;
+
     return (
         <WrapperDiv style={{ pointerEvents: isDragging ? "none" : "unset"}}>
+            {!!errorCount && <ErrorSpan>{`${errorCount} missing cards`}</ErrorSpan>}
             <DeckName>{deck.name}</DeckName>
             <ContainerDiv style={{ transform: isDragging ? "scale(0.95)" : "unset" }}>
 
@@ -77,7 +82,8 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
 
                 <SleeveImage src={getSleeve(deck.sleeveName)} onError={handleImageError} onClick={onSleeveClick}/>
 
-                <CardImage src={deck.deckImageCardUrl ?? tokenImageUrl} onError={handleImageError} onClick={onImageClick}/>
+                <CardImage hasError={!!errorCount} src={errorCount ? hackmonImg : deck.deckImageCardUrl ?? tokenImageUrl}
+                           onError={handleImageError} onClick={onImageClick}/>
 
                 <ColorLineDiv style={{ background: generateGradient(deckCards)}}/>
             </ContainerDiv>
@@ -172,11 +178,12 @@ const DeckName = styled.span`
 `;
 
 
-const CardImage = styled.img`
+const CardImage = styled.img<{ hasError: boolean}>`
   max-height: 100%;
   grid-area: card-image;
   border-radius: 6px;
-
+  pointer-events: ${({hasError}) => hasError ? "none" : "unset"};
+  transform: ${({hasError}) => hasError ? "translate(-5px, -7px)" : "unset"};
   :hover {
     cursor: pointer;
     filter: drop-shadow(0 0 3px rgba(87, 160, 255, 0.6)) contrast(1.1);
@@ -257,4 +264,15 @@ const ChipEn = styled(StyledChip)`
 
 const ChipJp = styled(StyledChip)`
   grid-area: allowed_jp;
+`;
+
+const ErrorSpan = styled.span`
+  font-family: 'League Spartan', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: crimson;
+  position: absolute;
+  bottom: 3px;
+  left: 10px;
+  z-index: 6;
 `;

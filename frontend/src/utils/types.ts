@@ -33,7 +33,12 @@ type DigivolveCondition = {
 
 export type CardTypeWithId = CardType & { id: string };
 
-export type CardTypeGame = CardTypeWithId & { isTilted: boolean };
+export type CardTypeGame = CardTypeWithId & { modifiers: CardModifiers } & { isTilted: boolean };
+
+export type CardModifiers = {
+    plusDp: number,
+    plusSecurityAttacks: number
+}
 
 export type SearchCards = (
     name: string | null,
@@ -71,12 +76,6 @@ export type Player = {
 }
 
 export type GameDistribution = {
-    player1Memory?: number,
-    player2Memory?: number,
-
-    player1Reveal?: CardTypeGame[],
-    player2Reveal?: CardTypeGame[],
-
     player1Hand: CardTypeGame[],
     player1DeckField: CardTypeGame[],
     player1EggDeck: CardTypeGame[],
@@ -192,10 +191,17 @@ export enum Phase {
 }
 
 export enum AttackPhase {
-    SUSPEND_FIRST = "Suspend First!",
     WHEN_ATTACKING = "When Attacking",
     COUNTER_BLOCK = "Counter › Block",
     RESOLVE_ATTACK = "Resolve Attack"
+}
+
+export enum BootStage {
+    CLEAR = 0,
+    SHOW_STARTING_PLAYER = 1,
+    MULLIGAN = 2,
+    MULLIGAN_DONE = 3,
+    GAME_IN_PROGRESS = 4,
 }
 
 export type BoardState = {

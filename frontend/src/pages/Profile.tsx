@@ -15,6 +15,8 @@ import {Dialog} from "@mui/material";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
+import {useNavigate} from "react-router-dom";
 
 export type DeckIdOrder = string[];
 
@@ -29,6 +31,7 @@ export default function Profile({user}: { user: string }) {
     const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
     const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
 
+    const navigate = useNavigate();
     const sensors = useSensors(useSensor(PointerSensor));
 
     function handleDragEnd(event: DragEndEvent) {
@@ -81,12 +84,22 @@ export default function Profile({user}: { user: string }) {
                 <Container>
                     {isLoading
                         ? <Loading/>
-                        : <SortableContext items={orderedDecks}>
-                             {orderedDecks?.map((deck) => <SortableProfileDeck key={deck.id} deck={deck}
+                        : <>
+                            <SortableContext items={orderedDecks}>
+                             {orderedDecks?.map((deck, index) => <>
+                                 <SortableProfileDeck key={deck.id} deck={deck}
                                                       setSleeveSelectionOpen={setSleeveSelectionOpen}
                                                       setImageSelectionOpen={setImageSelectionOpen}
-                             />)}
-                          </SortableContext>}
+                             />
+                                 {orderedDecks.length < 16 && index === orderedDecks.length - 1 &&
+                                     <NewDeckButton onClick={() => navigate("/deckbuilder")}>
+                                         <AddBoxRoundedIcon/>
+                                     </NewDeckButton>}
+                             </>)}
+                            </SortableContext>
+                            {}
+                        </>
+                    }
                 </Container>
             </DndContext>
         </MenuBackgroundWrapper>
@@ -148,5 +161,41 @@ const DeckHeaderContainer = styled.div`
     height: 2px;
     border-radius: 3px;
     margin-top: 0;
+  }
+`;
+
+const NewDeckButton = styled.div`
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  height: 180px;
+  width: 280px;
+  background: linear-gradient(20deg, rgba(87, 171, 255, 0.06) 0%, rgba(93, 159, 236, 0.06) 70%, rgba(94, 187, 245, 0.16) 100%);
+  padding: 3px;
+  box-shadow: inset 0 0 3px 0 rgba(148, 224, 255, 0.4);
+
+  &:hover {
+    background: linear-gradient(20deg, rgba(87, 171, 255, 0.12) 0%, rgba(93, 159, 236, 0.12) 70%, rgba(94, 187, 245, 0.22) 100%);
+    .MuiSvgIcon-root {
+      color: rgba(0, 191, 165, 0.9);
+      font-size: 110px;
+    }
+  }
+
+  &:active {
+    height: 170px;
+    width: 270px;
+    margin: 5px;
+    .MuiSvgIcon-root {
+      font-size: 100px;
+    }
+  }
+
+  .MuiSvgIcon-root {
+    color: rgba(0, 54, 77, 0.74);
+    font-size: 100px;
   }
 `;

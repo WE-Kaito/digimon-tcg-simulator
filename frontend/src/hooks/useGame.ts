@@ -1,16 +1,19 @@
 import {create} from "zustand";
-import { devtools, persist } from 'zustand/middleware'
+import {devtools, persist} from 'zustand/middleware'
 import {
     AttackPhase,
     BoardState,
+    BootStage, CardModifiers, CardType,
     CardTypeGame,
     GameDistribution,
     OneSideDistribution,
     Phase,
-    Player, SendToDeckFunction, Side
+    Player,
+    SendToDeckFunction,
+    Side
 } from "../utils/types.ts";
 import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
-import tokenImage from "../assets/tokenCard.jpg";
+import {locationsWithInheritedInfo} from "../utils/functions.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -25,9 +28,14 @@ export type State = BoardState & {
     cardIdWithEffect: string,
     cardIdWithTarget: string,
 
+    /**
+    * Id and location of a card that is going to be sent to security or egg-deck
+     * Retrieve this to use also in {@link setModifiers}
+     */
     cardToSend: {id: string, location: string},
+    inheritCardInfo: string[],
 
-    gameHasStarted: boolean,
+    bootStage: BootStage,
     restartObject: { me: Player, opponent: Player },
     
     initialDistributionState: string;
@@ -45,15 +53,15 @@ export type State = BoardState & {
     messages: string[],
     setMessages: (message: string) => void,
 
-    mulliganAllowed: boolean,
+    // --------------------------------------------------------
+
     mulligan: () => void,
-    setMulliganAllowed: (allowed: boolean) => void,
     opponentReady: boolean,
     setOpponentReady: (ready: boolean) => void,
 
     setUpGame: (me: Player, opponent: Player) => void,
     clearBoard: () => void,
-    distributeCards: (user: string, chunk: string, gameId: string) => void,
+    distributeCards: (user: string, chunk: string, gameId: string, sendLoaded: () => void) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getMyFieldAsString: () => string,
     updateOpponentField: (chunk: string, sendLoaded: () => void) => void,
@@ -67,7 +75,7 @@ export type State = BoardState & {
                location: string,
                playSuspendSfx: () => void,
                playUnsuspendSfx: () => void) => void,
-    createToken: (side: Side, id: string) => void,
+    createToken: (token: CardType, side: Side, id: string) => void,
     moveCardStack: (index: number, from: string, to: string,
                     handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
     areCardsSuspended: (from?: string) => boolean,
@@ -88,14 +96,23 @@ export type State = BoardState & {
     setCardIdWithTarget: (cardId: string) => void,
     getIsCardTarget: (compareCardId: string) => boolean,
     setCardToSend: (cardId: string, location: string) => void,
-    setGameHasStarted: (gameHasStarted: boolean) => void,
+    setBootStage: (phase: BootStage) => void,
     setRestartObject: (restartObject: { me: Player, opponent: Player }) => void,
     setGameId: (gameId: string) => void,
+    setInheritCardInfo: (inheritedEffects: string[]) => void,
+    setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
+    /**
+     * @param getKey - If true, returns the key of the location instead of the array
+     */
+    getLocationCardsById: (id: string, getKey?: boolean) => CardTypeGame[] | null | string,
 };
 
-const destroyTokenLocations = ["myTrash", "myHand", "myTamer", "myDelay", "mySecurity", "myDeckField",
-    "myEggDeck", "myBreedingArea", "opponentHand", "opponentSecurity",
-    "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
+const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
+
+const resetModifierLocations = [...modifierLocations, "opponentHand", "opponentDeckField", "opponentEggDeck", "opponentTrash"]
+
+const destroyTokenLocations = [...modifierLocations, "myTamer", "myDelay", "mySecurity", "myBreedingArea",
+    "opponentHand", "opponentSecurity", "opponentDeckField", "opponentEggDeck", "opponentBreedingArea", "opponentTrash"];
 
 const opponentLocations = ["opponentHand", "opponentSecurity", "opponentDeckField", "opponentEggDeck",
     "opponentBreedingArea", "opponentTrash", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4",
@@ -112,8 +129,9 @@ export const useGame = create<State>()(
     cardIdWithEffect: "",
     cardIdWithTarget: "",
     cardToSend: {id: "", location: ""},
+    inheritCardInfo: [],
 
-    gameHasStarted: false,
+    bootStage: BootStage.CLEAR,
     restartObject: { me: emptyPlayer, opponent: emptyPlayer },
 
     initialDistributionState: "",
@@ -123,8 +141,8 @@ export const useGame = create<State>()(
     opponentSleeve: "",
 
     myMemory: 0,
-    myReveal: [],
 
+    myReveal: [],
     myHand: [],
     myDeckField: [],
     myEggDeck: [],
@@ -181,12 +199,9 @@ export const useGame = create<State>()(
     opponentGameState: "",
 
     messages: [],
-    mulliganAllowed: true,
     opponentReady: false,
 
-    setOpponentReady: (ready) => {
-        set({opponentReady: ready});
-    },
+    setOpponentReady: (ready) => set({opponentReady: ready}),
 
     setUpGame: (me, opponent) => {
         set({
@@ -196,7 +211,6 @@ export const useGame = create<State>()(
             opponentSleeve: opponent.sleeveName,
 
             messages: [],
-            mulliganAllowed: false,
             opponentReady: true,
         });
     },
@@ -251,26 +265,26 @@ export const useGame = create<State>()(
             opponentBreedingArea: [],
             phase: Phase.BREEDING,
             isMyTurn: false,
-            gameHasStarted: false,
             restartObject: { me: emptyPlayer, opponent: emptyPlayer },
             opponentAttackPhase: false,
             myAttackPhase: false,
             opponentReady: false,
+            isLoading: false,
+            bootStage: BootStage.CLEAR,
         });
     },
 
-    distributeCards: (user, chunk, gameId) => {
+    distributeCards: (user, chunk, gameId, sendLoaded) => {
 
-        set(state => {
-            if (!state.isLoading) return ({ initialDistributionState: chunk, isLoading: true });
-            else return ({ initialDistributionState: state.initialDistributionState + chunk });
-        });
+        set(state => ({ initialDistributionState: state.initialDistributionState + chunk }));
 
-        if (chunk.length < 1000 && chunk.endsWith("}")) {
+        if (chunk.length < 1000 || chunk.endsWith("false}]}")) {
 
             const player1 = gameId.split("‗")[0];
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
-            const timer = setTimeout(() => {
+
+            playDrawCardSfx();
+
             if (user === player1) {
                 set({
                     myHand: game.player1Hand,
@@ -281,6 +295,8 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player2DeckField,
                     opponentEggDeck: game.player2EggDeck,
                     opponentSecurity: game.player2Security,
+                    initialDistributionState: "",
+                    bootStage: BootStage.MULLIGAN,
                 });
             } else {
                 set({
@@ -292,12 +308,11 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player1DeckField,
                     opponentEggDeck: game.player1EggDeck,
                     opponentSecurity: game.player1Security,
+                    initialDistributionState: "",
+                    bootStage: BootStage.MULLIGAN,
                 });
             }
-            set({initialDistributionState: "", isLoading: false});
-            playDrawCardSfx();
-            }, 1100);
-            return () => clearTimeout(timer);
+            sendLoaded();
         }
     },
 
@@ -344,7 +359,7 @@ export const useGame = create<State>()(
             return {opponentGameState: state.opponentGameState + chunk}
         });
 
-        if (chunk.length < 1000 && chunk.endsWith("}")) {
+        if (chunk.length < 1000 || chunk.endsWith(":true}") || chunk.endsWith(":false}")) {
 
             const opponentGameJson: OneSideDistribution = JSON.parse(get().opponentGameState);
 
@@ -390,6 +405,7 @@ export const useGame = create<State>()(
         const fromState = get()[from as keyof State] as CardTypeGame[];
         const card = fromState.find(card => card.id === cardId);
         if (!card) return;
+        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
@@ -406,11 +422,11 @@ export const useGame = create<State>()(
             return;
         }
 
-        if (get().mulliganAllowed && !opponentLocations.includes(from) && !opponentLocations.includes(to)) {
-            set({mulliganAllowed: false});
+        if (get().bootStage === BootStage.MULLIGAN && !opponentLocations.includes(from) && !opponentLocations.includes(to)) {
+            set({bootStage: BootStage.GAME_IN_PROGRESS});
         }
 
-        if (destroyTokenLocations.includes(to) && card.uniqueCardNumber === "Token") {
+        if (destroyTokenLocations.includes(to) && card.id.startsWith("TOKEN")) {
             if (to !== "myTrash") playTrashCardSfx();
             set({[from]: updatedFromState});
             return;
@@ -431,6 +447,7 @@ export const useGame = create<State>()(
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId);
 
         if (topOrBottom === "Top" && card) card.isTilted = false;
+        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
 
         if (cardLocation === to) {
             set({
@@ -513,13 +530,11 @@ export const useGame = create<State>()(
                 myHand: updatedHand,
                 mySecurity: updatedSecurity,
                 myDeckField: updatedDeck,
-                mulliganAllowed: false,
-                isLoading: true
+                bootStage: BootStage.GAME_IN_PROGRESS,
+                isLoading: true // will be set false in distributeCards
             }
         });
     },
-
-    setMulliganAllowed: (mulliganAllowed: boolean) => set({mulliganAllowed}),
 
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx) => {
         set(state => {
@@ -544,28 +559,13 @@ export const useGame = create<State>()(
         })
     },
 
-    createToken: (side, id) => {
+    createToken: (tokenVariant, side, id) => {
         if (!get().opponentReady) return;
         const token: CardTypeGame = {
-            uniqueCardNumber: "Token",
-            name: "Token",
-            imgUrl: tokenImage,
-            cardType: "Digimon",
-            color: ["Unknown"],
-            attribute: "Unknown",
-            cardNumber: "",
-            stage: undefined,
-            digiType: undefined,
-            dp: undefined,
-            playCost: undefined,
-            level: undefined,
-            mainEffect: undefined,
-            inheritedEffect: undefined,
-            illustrator: "",
-            restriction_en: "",
-            restriction_jp: "",
+            ...tokenVariant,
             id: id,
-            isTilted: false
+            isTilted: false,
+            modifiers: { plusDp: 0, plusSecurityAttacks: 0 }
         };
         set((state) => {
             for (let i = 1; i <= 10; i++) {
@@ -669,11 +669,33 @@ export const useGame = create<State>()(
 
     setCardToSend: (id, location) => set({cardToSend: {id, location}}),
 
-    setGameHasStarted: (gameHasStarted) => set({gameHasStarted}),
+    setBootStage: (stage) => set({bootStage: stage}),
 
     setRestartObject: (restartObject) => set({restartObject}),
 
     setGameId: (gameId) => set({gameId}),
+
+    setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
+
+    getLocationCardsById: (cardId, getKey = false) => {
+        for (const location of locationsWithInheritedInfo) {
+            const locationState = (get()[location as keyof State] as CardTypeGame[]);
+            if (locationState.find(card => card.id === cardId)) return getKey ? location : locationState;
+        }
+        return null;
+    },
+
+    setModifiers: (cardId, location, modifiers) => {
+        set(state => {
+            return {
+                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
+                    if (card.id === cardId) card.modifiers = modifiers;
+                    return card;
+                })
+            };
+        });
+    },
+
             }),
             { name: 'bearStore' },
         ),

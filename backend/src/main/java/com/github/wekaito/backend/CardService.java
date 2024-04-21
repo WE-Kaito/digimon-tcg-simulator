@@ -27,6 +27,25 @@ public class CardService {
 
     private final List<Card> cardCollection;
 
+    private final Card fallbackCard = new Card(
+            "1110101",
+            "Fallback Card",
+            "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/tokens/tokenCard.jpg",
+            "Digimon",
+            List.of("Unknown"),
+            "Fallback",
+            "1110101",
+            List.of(new DigivolveCondition("Unknown", 0, 0)),
+            null,
+            "Rookie",
+            List.of("Unknown"),
+            0,
+            0,
+            1,
+            "If you see this card, the actual card was not found.",
+            null, null, null, null, null, null, null, null, null
+    );
+
     private static final Gson gson = new Gson();
 
     public List<Card> getCards() {
@@ -34,7 +53,7 @@ public class CardService {
     }
 
     public Card getCardByUniqueCardNumber(String uniqueCardNumber) {
-        return cardCollection.stream().filter(card -> uniqueCardNumber.equals(card.uniqueCardNumber())).findFirst().orElse(null);
+        return cardCollection.stream().filter(card -> uniqueCardNumber.equals(card.uniqueCardNumber())).findFirst().orElse(fallbackCard);
     }
 
     private final WebClient webClient = WebClient.builder()
@@ -106,6 +125,13 @@ public class CardService {
                     card.restrictions().japanese(),
                     card.illustrator()));
         });
+
+        // CardRepo is a fail-safe in case the API is missing cards or shuts down
+        for (Card repoCard : this.cardRepo.findAll()) {
+            if (cards.stream().noneMatch(card -> card.cardNumber().equals(repoCard.cardNumber()))) {
+                cards.add(repoCard);
+            }
+        }
 
         this.cardRepo.deleteAll();
         this.cardRepo.saveAll(cards);

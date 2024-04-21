@@ -1,4 +1,4 @@
-Digimon TCG Simulator
+Project Drasil
 ---
 
 This started as a graduation project for a full stack coding bootcamp.
@@ -9,7 +9,7 @@ Feel free to use the code to improve upon. Reviews, bug-reports and feature-requ
 **Features**:
 - [x] Register with a unique username + password to use the App.
 - [X] Password Recovery with a safety question + answer.
-- [x] Deckbuilder using [digimoncard.io's API](https://documenter.getpostman.com/view/14059948/TzecB4fH).
+- [x] Deckbuilder using data provided by [digimoncard.app](https://digimoncard.app/).
 - [X] Import / Export your deck list. (Currently TTS format only)
 - [x] Drag and drop cards and card-stacks.
 - [x] Edit your decks and set your avatar, card sleeve and active deck on the profile page.

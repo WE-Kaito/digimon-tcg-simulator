@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import {getDnaColor} from "../../utils/functions.ts";
 import KeywordTooltip from "./KeywordTooltip.tsx";
 import {JSX} from "react";
+import {uid} from "uid";
 
 
 export default function HighlightedKeyWords({text}: { text: string }): (JSX.Element | JSX.Element[])[] {
@@ -26,6 +27,7 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
     while ((match = regex.exec(text)) !== null) {
         const prefix = text.slice(lastIndex, match.index);
         const bracketedWord = match[0];
+        const id = uid();
 
         highlightedParts.push(prefix);
 
@@ -33,30 +35,30 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
 
             if (timings.includes(match[2])) {
                 highlightedParts.push(
-                    <HighlightedSquare word={match[2]} key={highlightedParts.length}>{match[2]}</HighlightedSquare>
+                    <HighlightedSquare word={match[2]} key={id}>{match[2]}</HighlightedSquare>
                 );
             } else if (match[2] === "Rule") {
                 highlightedParts.push(
-                    <HighlightedRule word={match[2]} key={highlightedParts.length}>{match[2]}</HighlightedRule>
+                    <HighlightedRule word={match[2]} key={id}>{match[2]}</HighlightedRule>
                 );
             } else if (isTrait(match[2])) {
                 highlightedParts.push(
-                    <HighlightedTrait key={highlightedParts.length}>{match[2]}</HighlightedTrait>
+                    <HighlightedTrait key={id}>{match[2]}</HighlightedTrait>
                 );
             } else if (specialEffects.includes(match[2])) {
                 highlightedParts.push(
-                <HighlightedSpecialEffect key={highlightedParts.length}>{match[2]}</HighlightedSpecialEffect>
+                <HighlightedSpecialEffect key={id}>{match[2]}</HighlightedSpecialEffect>
                 );
             } else {
                 highlightedParts.push(
-                    <HighlightedDigimonName key={highlightedParts.length}>{match[2]}</HighlightedDigimonName>
+                    <HighlightedDigimonName key={id}>{match[2]}</HighlightedDigimonName>
                 );
             }
 
         } else { // <keywords>
             highlightedParts.push(
-                <KeywordTooltip keyword={match[1]}>
-                    <HighlightedAngle key={highlightedParts.length}>{match[3]}</HighlightedAngle>
+                <KeywordTooltip keyword={match[1]} >
+                    <HighlightedAngle key={id}>{match[3]}</HighlightedAngle>
                 </KeywordTooltip>
             );
         }
@@ -72,10 +74,10 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
     return highlightedParts.map(item => {
         if (typeof item === 'string') {
             return item.split('\n').map((line, index) => (
-                <>
+                <span key={item.length + uid()}>
                     {line}
                     {index !== item.split('\n').length - 1 && <br/>}
-                </>
+                </span>
             ));
         }
         return item;
@@ -246,6 +248,7 @@ function isTrait(trait: string) {
         case "LCD":
         case "Legend-Arms":
         case "Lesser":
+        case "LIBERATOR":
         case "Light Dragon":
         case "Light Fang":
         case "Machine":
@@ -292,6 +295,7 @@ function isTrait(trait: string) {
         case "Seraph":
         case "Seven Great Demon Lords":
         case "Shaman":
+        case "SoC":
         case "Skeleton":
         case "Sky Dragon":
         case "Super Major":
@@ -305,6 +309,7 @@ function isTrait(trait: string) {
         case "Unknown":
         case "Vegetation":
         case "Virtue":
+        case "Vortex Warriors":
         case "Warrior":
         case "Weapon":
         case "Wizard":
