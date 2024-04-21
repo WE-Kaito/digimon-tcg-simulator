@@ -32,7 +32,7 @@ export default function Lobby({user}: { user: string }) {
     const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
 
     const currentPort = window.location.port;
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.digi-tcg.online/api/ws/chat";
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://www.project-drasil.online/api/ws/chat";
 
     const setGameId = useGame((state) => state.setGameId);
     const clearBoard = useGame((state) => state.clearBoard);
