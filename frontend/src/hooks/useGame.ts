@@ -271,6 +271,8 @@ export const useGame = create<State>()(
             opponentReady: false,
             isLoading: false,
             bootStage: BootStage.CLEAR,
+            initialDistributionState: "",
+            opponentGameState: "",
         });
     },
 
@@ -283,7 +285,7 @@ export const useGame = create<State>()(
             const player1 = gameId.split("‗")[0];
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
 
-            playDrawCardSfx();
+            set({ initialDistributionState: "", bootStage: BootStage.MULLIGAN });
 
             if (user === player1) {
                 set({
@@ -295,8 +297,6 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player2DeckField,
                     opponentEggDeck: game.player2EggDeck,
                     opponentSecurity: game.player2Security,
-                    initialDistributionState: "",
-                    bootStage: BootStage.MULLIGAN,
                 });
             } else {
                 set({
@@ -308,11 +308,10 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player1DeckField,
                     opponentEggDeck: game.player1EggDeck,
                     opponentSecurity: game.player1Security,
-                    initialDistributionState: "",
-                    bootStage: BootStage.MULLIGAN,
                 });
             }
             sendLoaded();
+            playDrawCardSfx();
         }
     },
 
@@ -363,6 +362,8 @@ export const useGame = create<State>()(
 
             const opponentGameJson: OneSideDistribution = JSON.parse(get().opponentGameState);
 
+            set ({ opponentGameState: ""});
+
             set({
                 opponentReveal: opponentGameJson.playerReveal,
                 opponentHand: opponentGameJson.playerHand,
@@ -391,7 +392,6 @@ export const useGame = create<State>()(
                 phase: opponentGameJson.playerPhase,
                 isMyTurn: opponentGameJson.isPlayerTurn,
 
-                opponentGameState: "",
                 isLoading: false
             });
         }
