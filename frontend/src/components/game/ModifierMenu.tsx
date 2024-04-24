@@ -72,6 +72,10 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                             <ValueSpan >{secAttackValue}</ValueSpan>
                             <IconButton onClick={handleAddSec} color={"success"}><AddCircleOutlined/></IconButton>
                         </NumericStack>
+
+                        {/*<Stack direction={"row"} wrap={"flex-wrap"} maxWidth={"400px"}>*/}
+                        {/*    <button>{HighlightedKeyWords()}</button>*/}
+                        {/*</Stack>*/}
                         <SubmitItem disabled={!haveModifiersChanged} onClick={handleSubmit}><span>SAVE VALUES</span></SubmitItem>
                     </Stack>
                 </StyledFieldset>
