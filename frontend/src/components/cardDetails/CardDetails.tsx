@@ -59,7 +59,7 @@ export default function CardDetails() {
     const [highlightedSecurityEffect, setHighlightedSecurityEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [highlightedSpecialDigivolve, setHighlightedSpecialDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [highlightedBurstDigivolve, setHighlightedBurstDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedDigiXros, setHighightedDigiXros] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedDigiXros, setHighlightedDigiXros] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [highlightedDNADigivolution, setHighlightedDNADigivolution] = useState<(JSX.Element | JSX.Element[])[]>([]);
     const [selectedTab, setSelectedTab] = useState("effects");
 
@@ -72,7 +72,7 @@ export default function CardDetails() {
         setHighlightedSecurityEffect(HighlightedKeyWords({text: securityEffectText}));
         setHighlightedSpecialDigivolve(HighlightedKeyWords({text: specialDigivolveText}));
         setHighlightedBurstDigivolve(HighlightedKeyWords({text: burstDigivolveText}));
-        setHighightedDigiXros(HighlightedKeyWords({text: digiXrosText}));
+        setHighlightedDigiXros(HighlightedKeyWords({text: digiXrosText}));
         setHighlightedDNADigivolution(HighlightedKeyWords({text: dnaDigivolutionText}));
     }, [selectedCard, hoverCard]);
 
