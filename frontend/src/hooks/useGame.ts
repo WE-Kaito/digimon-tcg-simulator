@@ -13,7 +13,6 @@ import {
     Side
 } from "../utils/types.ts";
 import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
-import {locationsWithInheritedInfo} from "../utils/functions.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -104,7 +103,7 @@ export type State = BoardState & {
     /**
      * @param getKey - If true, returns the key of the location instead of the array
      */
-    getLocationCardsById: (id: string, getKey?: boolean) => CardTypeGame[] | null | string,
+    getCardLocationById: (id: string) => string,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -677,12 +676,15 @@ export const useGame = create<State>()(
 
     setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
 
-    getLocationCardsById: (cardId, getKey = false) => {
-        for (const location of locationsWithInheritedInfo) {
-            const locationState = (get()[location as keyof State] as CardTypeGame[]);
-            if (locationState.find(card => card.id === cardId)) return getKey ? location : locationState;
+    getCardLocationById: (cardId) => {
+        const state = get();
+        for (const key in state) {
+            if (Object.prototype.hasOwnProperty.call(state, key)) {
+                const locationState = (state[key as keyof State] as CardTypeGame[]);
+                if (Array.isArray(locationState) && locationState.find(card => card.id === cardId)) return key;
+            }
         }
-        return null;
+        return "";
     },
 
     setModifiers: (cardId, location, modifiers) => {

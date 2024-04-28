@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, locationsWithInheritedInfo, topCardInfo} from "../utils/functions.ts";
+import {getCardSize, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
@@ -21,6 +21,11 @@ const opponentBALocations = ["opponentDigi1", "opponentDigi2", "opponentDigi3", 
     "opponentDigi14", "opponentDigi15", "opponentBreedingArea"]
 
 const opponentFieldLocations = [...opponentBALocations, "opponentReveal", "opponentDeckField", "opponentEggDeck", "opponentTrash", "opponentSecurity"];
+
+const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea",
+    "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
+    "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
 
 const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
@@ -52,8 +57,8 @@ export default function Card( props : CardProps ) {
     const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
     const getIsCardTarget = useGame((state) => state.getIsCardTarget);
     const setInheritCardInfo = useGame((state) => state.setInheritCardInfo);
-    const getLocationCardsById = useGame((state) => state.getLocationCardsById);
     const setCardToSend = useGame((state) => state.setCardToSend);
+    const getCardLocationById = useGame((state) => state.getCardLocationById);
 
     const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
@@ -146,36 +151,39 @@ export default function Card( props : CardProps ) {
         else setInheritCardInfo([]);
     }
 
+    const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
+    const locationCardsOfSelected = useGame((state) => state[selectedCardLocation as keyof typeof state] as CardTypeGame[]);
     function handleStopHover() {
         setHoverCard(null);
 
-        const locationKey = getLocationCardsById(selectedCard?.id ?? "", true) as string;
-        if(!selectedCard || !locationKey) {
+        if(!selectedCard || !selectedCardLocation) {
             setInheritCardInfo([]);
             return;
         }
-        const locationState = getLocationCardsById(selectedCard.id) as CardTypeGame[] | null ?? [];
-        const inhEff = topCardInfo(locationState).split("\n");
-        const inhAll = (selectedCard.id === locationState.at(-1)?.id) && (locationsWithInheritedInfo.includes(locationKey));
+        const inhEff = topCardInfo(locationCardsOfSelected).split("\n");
+        const inhAll = (selectedCard.id === locationCardsOfSelected.at(-1)?.id) && (locationsWithInheritedInfo.includes(selectedCardLocation));
         if (!inhEff[0].length) setInheritCardInfo([])
         else if (inhAll) setInheritCardInfo(inhEff);
     }
 
-    const isHovering = hoverCard === card;
-    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location);
+    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && (card.cardType === "Digimon");
     const modifiers = isModifiersAllowed ? (card as CardTypeGame)?.modifiers : undefined;
 
     const finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
-    const showDp = (card.cardType === "Digimon") && (finalDp !== card.dp) && isModifiersAllowed;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
     return (
         <div style={{position: "relative"}}>
-            {showDp && <PlusDpSpan isHovering={isHovering} isNegative={finalDp < card.dp!}
-                                     isTilted={((card as CardTypeGame)?.isTilted)}>{finalDp.toString()}</PlusDpSpan>}
-            {secAtkString && <PlusSecAtkSpan isHovering={isHovering} isNegative={secAtkString.startsWith("-")}
+            {isModifiersAllowed && <PlusDpSpan isHovering={hoverCard === card}
+                                               isNegative={finalDp < card.dp!}
+                                               {...(finalDp === card.dp && {style: {color: "ghostwhite"}})}
+                                               isTilted={((card as CardTypeGame)?.isTilted)}>{finalDp.toString()}
+            </PlusDpSpan>}
+            {secAtkString && <PlusSecAtkSpan isHovering={hoverCard === card}
+                                             isNegative={secAtkString.startsWith("-")}
                                              isTilted={((card as CardTypeGame)?.isTilted)}>
-                {secAtkString}<StyledShieldIcon/></PlusSecAtkSpan>}
+                {secAtkString}<StyledShieldIcon/>
+            </PlusSecAtkSpan>}
             {!isDraggingStack && !!(index) && (index > 0) && utilIcon &&
                 <DragIcon
                     ref={dragStack}
@@ -377,5 +385,5 @@ const StyledShieldIcon = styled(ShieldIcon)`
   color: rgba(21, 21, 21, 0.85);
   font-size: 30px;
   transform: translateX(1px);
-  filter: drop-shadow(0 0 2px #5e65ee) drop-shadow(0 0 1px #5158e3);
+  filter: drop-shadow(0 0 2px #5e65ee) drop-shadow(0 0 1px #2b4fff);
 `;
