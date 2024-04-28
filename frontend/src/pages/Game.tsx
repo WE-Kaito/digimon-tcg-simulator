@@ -82,6 +82,7 @@ import useDropZone from "../hooks/useDropZone.ts";
 import {findTokenByName} from "../utils/tokens.ts";
 import TokenButton from "../components/game/TokenButton.tsx";
 import ModifierMenu from "../components/game/ModifierMenu.tsx";
+import effectAnimation from "../assets/lotties/activate-effect-animation.json";
 
 const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/";
 const cardBackUrl = assetBaseUrl + "cardBack.jpg";
@@ -107,6 +108,9 @@ export default function Game({user}: { user: string }) {
     const setCardIdWithTarget = useGame((state) => state.setCardIdWithTarget);
     const getIsCardTarget = useGame((state) => state.getIsCardTarget);
     const setModifiers = useGame((state) => state.setModifiers);
+    const getCardLocationById = useGame((state) => state.getCardLocationById);
+    const cardIdWithEffect = useGame((state) => state.cardIdWithEffect);
+    const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
 
     const cardToSend = useGame((state) => state.cardToSend);
     // @ts-ignore
@@ -937,6 +941,11 @@ export default function Game({user}: { user: string }) {
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
+    const effectInMyTrash = getCardLocationById(cardIdWithEffect) === "myTrash";
+    const effectInOpponentTrash = getCardLocationById(cardIdWithEffect) === "opponentTrash";
+    const targetInMyTrash = getCardLocationById(cardIdWithTarget) === "myTrash";
+    const targetInOpponentTrash = getCardLocationById(cardIdWithTarget) === "opponentTrash";
+
     const color1 = localStorage.getItem("color1") ?? "#214d44";
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";
     const color3 = localStorage.getItem("color3") ?? "#522170";
@@ -1100,11 +1109,19 @@ export default function Game({user}: { user: string }) {
                     </InfoContainer>
 
                     {trashMoodle && <TrashView>
-                        {myTrash.map((card) => <Card key={card.id} card={card} location="myTrash"/>)}
+                        {myTrash.map((card, index) => <div key={card.id} onContextMenu={(e) => showFieldCardMenu?.({
+                            event: e,
+                            props: {index, location: "myTrash", id: card.id, name: card.name}
+                        })}
+                        ><Card card={card} location="myTrash" /></div>)}
                     </TrashView>}
 
                     {opponentTrashMoodle && <TrashView>
-                        {opponentTrash.map((card) => <Card key={card.id} card={card} location="opponentTrash"/>)}
+                        {opponentTrash.map((card, index) => <div key={card.id} onContextMenu={(e) => showOpponentCardMenu?.({
+                            event: e,
+                            props: {index, location: "opponentTrash", id: card.id, name: card.name}
+                        })}
+                        ><Card card={card} location="opponentTrash" /></div>)}
                     </TrashView>}
 
                     {securityContentMoodle
@@ -1146,7 +1163,8 @@ export default function Game({user}: { user: string }) {
                                                           }}
                                                           onError={handleImageError}
                                                           title="Open opponents trash"/>}
-
+                                    {effectInOpponentTrash && <TrashLottie isOpponentTrash animationData={effectAnimation} loop={true}/>}
+                                    {targetInOpponentTrash && <TrashLottie isOpponentTrash animationData={targetAnimation} loop={true}/>}
                                 </OpponentTrashContainer>
 
                                 <OpponentLowerBattleArea>
@@ -1499,6 +1517,8 @@ export default function Game({user}: { user: string }) {
                                                           onError={handleImageError}
                                                           title="Open your trash" isOver={isOverTrash}/>}
                                     <TrashSpan style={{transform: "translateX(12px)"}}>{myTrash.length}</TrashSpan>
+                                    {effectInMyTrash && <TrashLottie animationData={effectAnimation} loop={true}/>}
+                                    {targetInMyTrash && <TrashLottie animationData={targetAnimation} loop={true}/>}
                                 </TrashContainer>
 
                                 <BattleArea1 ref={isMySecondRowVisible ? dropToDigi6 : dropToDigi1}
@@ -2593,4 +2613,11 @@ const OuterWrapperRefactorLater = styled.div`
     container-type: inline-size;
     scrollbar-width: thin;
     overflow: scroll;
+`;
+
+const TrashLottie = styled(Lottie)<{ isOpponentTrash?: boolean }>`
+  position: absolute;
+  top: ${({ isOpponentTrash }) => (isOpponentTrash ? '35px' : '20px')};
+  left: ${({ isOpponentTrash }) => (isOpponentTrash ? '12px' : '30px')};
+  max-width: 100px;
 `;
