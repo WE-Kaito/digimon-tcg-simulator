@@ -14,7 +14,7 @@ import {
     calculateCardOffsetX,
     calculateCardOffsetY,
     calculateCardRotation,
-    convertForLog,
+    convertForLog, getAttributeImage, getCardTypeImage,
     getOpponentSfx,
     handleImageError
 } from "../utils/functions.ts";
@@ -29,6 +29,8 @@ import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
 import mySecurityAnimation from "../assets/lotties/mySecurity.json";
 import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
+import targetAnimation from "../assets/lotties/target-animation.json";
+import effectAnimation from "../assets/lotties/activate-effect-animation.json";
 import Lottie from "lottie-react";
 import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
@@ -77,17 +79,14 @@ import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
 import RestartPrompt from "../components/game/RestartPrompt.tsx";
 import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
-import targetAnimation from "../assets/lotties/target-animation.json";
 import useDropZone from "../hooks/useDropZone.ts";
 import {findTokenByName} from "../utils/tokens.ts";
 import TokenButton from "../components/game/TokenButton.tsx";
 import ModifierMenu from "../components/game/ModifierMenu.tsx";
-import effectAnimation from "../assets/lotties/activate-effect-animation.json";
-
-const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/";
-const cardBackUrl = assetBaseUrl + "cardBack.jpg";
-const deckBackUrl = assetBaseUrl + "deckBack.png";
-const eggBackUrl = assetBaseUrl + "eggBack.jpg";
+import cardBackSrc from "../assets/cardBack.jpg";
+import deckBackSrc from "../assets/deckBack.png";
+import eggBackSrc from "../assets/eggBack.jpg";
+import stackIconSrc from "../assets/stackIcon.png";
 
 export default function Game({user}: { user: string }) {
     const currentPort = window.location.port;
@@ -713,10 +712,10 @@ export default function Game({user}: { user: string }) {
         };
     }, []);
 
-    const [cardImageUrl, setCardImageUrl] = useState((hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl);
+    const [cardImageUrl, setCardImageUrl] = useState((hoverCard ?? selectedCard)?.imgUrl ?? cardBackSrc);
 
     useEffect(() => {
-        setCardImageUrl((hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl);
+        setCardImageUrl((hoverCard ?? selectedCard)?.imgUrl ?? cardBackSrc);
     }, [selectedCard, hoverCard]);
 
     function handleSurrender() {
@@ -953,6 +952,23 @@ export default function Game({user}: { user: string }) {
     const hideMenuItemStyle = contextCard?.cardType === "Digimon" ? {} : { visibility: "hidden", position: "absolute"};
 
     return <>
+        {/*Div to preload asset images*/}
+        <div style={{position: "absolute", pointerEvents: "none", visibility: "hidden"}}>
+            <img width={30} alt={"cardType1"} src={getCardTypeImage("Digimon")}/>
+            <img width={30} alt={"cardType2"} src={getCardTypeImage("Option")}/>
+            <img width={30} alt={"cardType3"} src={getCardTypeImage("Tamer")}/>
+            <img width={30} alt={"cardType4"} src={getCardTypeImage("DigiEgg")}/>
+
+            <img width={30} alt={"attribute1"} src={getAttributeImage("Virus")}/>
+            <img width={30} alt={"attribute2"} src={getAttributeImage("Data")}/>
+            <img width={30} alt={"attribute3"} src={getAttributeImage("Vaccine")}/>
+            <img width={30} alt={"attribute4"} src={getAttributeImage("Free")}/>
+            <img width={30} alt={"attribute5"} src={getAttributeImage("Variable")}/>
+            <img width={30} alt={"attribute6"} src={getAttributeImage("Unknown")}/>
+            <img width={30} alt={"attribute7"} src={stackIconSrc}/>
+            <img width={30} alt={"attribute8"} src={cardBackSrc}/>
+        </div>
+
         {isLoading && <LoadingOverlayDiv/>}
         <BackGroundPattern/>
         <BackGround color1={color1} color2={color2} color3={color3}/>
@@ -1103,7 +1119,7 @@ export default function Game({user}: { user: string }) {
                                    onContextMenu={(e) => showDetailsImageMenu({event: e})}
                                    src={cardImageUrl}
                                    alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}
-                                   onError={() => setCardImageUrl(cardBackUrl)}/>
+                                   onError={() => setCardImageUrl(cardBackSrc)}/>
 
                         <CardDetails/>
                     </InfoContainer>
@@ -1142,10 +1158,10 @@ export default function Game({user}: { user: string }) {
 
                                 <OpponentDeckContainer>
                                     {opponentSleeve === "Default"
-                                        ? <img alt="deck" src={deckBackUrl} width="105px"/>
+                                        ? <img alt="deck" src={deckBackSrc} width="105px"/>
                                         : <div style={{width: "105px", position: "relative"}}>
                                             <OpponentDeckSleeve alt="sleeve" src={getSleeve(opponentSleeve)}/>
-                                            <img alt="deck" src={deckBackUrl} width="105px"/>
+                                            <img alt="deck" src={deckBackSrc} width="105px"/>
                                         </div>}
                                     <TrashSpan
                                         style={{transform: "translateX(15px)"}}>{opponentDeckField.length}</TrashSpan>
@@ -1296,7 +1312,7 @@ export default function Game({user}: { user: string }) {
                                     {opponentEggDeck.length !== 0 &&
                                         <EggDeckSpan
                                             style={{transform: "translateX(-5px)"}}>{opponentEggDeck.length}</EggDeckSpan>}
-                                    {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBackUrl} width="95px"
+                                    {opponentEggDeck.length !== 0 && <img alt="egg-deck" src={eggBackSrc} width="95px"
                                                                           style={{transform: "translateX(-5px) rotate(180deg)"}}/>}
                                 </EggDeckContainer>
 
@@ -1347,7 +1363,7 @@ export default function Game({user}: { user: string }) {
                                         <DeckMoodle sendCardToDeck={sendCardToDeck} to={"myEggDeck"}
                                                     setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
-                                        <EggDeck alt="egg-deck" src={eggBackUrl}
+                                        <EggDeck alt="egg-deck" src={eggBackSrc}
                                                  onClick={() => {
                                                      if (!getOpponentReady()) return;
                                                      moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
@@ -1465,7 +1481,7 @@ export default function Game({user}: { user: string }) {
                                         {myDeckField.length}</TrashSpan>
                                     {mySleeve === "Default"
                                         ?
-                                        <Deck ref={dropToDeck} alt="deck" src={deckBackUrl} gameHasStarted={gameHasStarted}
+                                        <Deck ref={dropToDeck} alt="deck" src={deckBackSrc} gameHasStarted={gameHasStarted}
                                               isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                               onClick={() => {
                                                   nextPhaseTrigger(nextPhase, Phase.DRAW);
@@ -1474,7 +1490,7 @@ export default function Game({user}: { user: string }) {
                                         : <div style={{width: "105px", position: "relative"}}>
                                             <MyDeckSleeve alt="sleeve" src={getSleeve(mySleeve)}
                                                           gameHasStarted={gameHasStarted}/>
-                                            <Deck ref={dropToDeck} alt="deck" src={deckBackUrl}
+                                            <Deck ref={dropToDeck} alt="deck" src={deckBackSrc}
                                                   gameHasStarted={gameHasStarted}
                                                   isOver={isOverDeckTop} onContextMenu={(e) => showDeckMenu({event: e})}
                                                   onClick={() => {

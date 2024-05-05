@@ -12,6 +12,7 @@ import activateEffectAnimation from "../assets/lotties/activate-effect-animation
 import targetAnimation from "../assets/lotties/target-animation.json";
 import {getNumericModifier} from "./game/ModifierMenu.tsx";
 import ShieldIcon from '@mui/icons-material/Shield';
+import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -26,6 +27,9 @@ const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea",
     "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
     "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
+
+const locationsWithAdditionalInfo = [ ...locationsWithInheritedInfo, "myDigi11", "myDigi12", "myDigi13", "myDigi14",
+    "myDigi15", "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
 
 const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
@@ -97,7 +101,7 @@ export default function Card( props : CardProps ) {
     }));
 
     const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
-    const utilIcon: boolean = ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
+    const showDragIcon: boolean = myBALocations.includes(location) && ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
 
     useEffect(() => {
         if (setDraggedCards) {
@@ -172,36 +176,50 @@ export default function Card( props : CardProps ) {
     const finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
+    const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
+    const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
+
     return (
-        <div style={{position: "relative"}}>
-            {isModifiersAllowed && <PlusDpSpan isHovering={hoverCard === card}
-                                               isNegative={finalDp < card.dp!}
-                                               {...(finalDp === card.dp && {style: {color: "ghostwhite"}})}
-                                               isTilted={((card as CardTypeGame)?.isTilted)}>{finalDp.toString()}
-            </PlusDpSpan>}
-            {secAtkString && <PlusSecAtkSpan isHovering={hoverCard === card}
-                                             isNegative={secAtkString.startsWith("-")}
-                                             isTilted={((card as CardTypeGame)?.isTilted)}>
-                {secAtkString}<StyledShieldIcon/>
-            </PlusSecAtkSpan>}
-            {!isDraggingStack && !!(index) && (index > 0) && utilIcon &&
-                <DragIcon
-                    ref={dragStack}
-                    onMouseEnter={() => setHoverCard(hoverCard)}
-                    onMouseLeave={() => setHoverCard(null)}
-                    src={stackIcon} alt={"stack"}
-                />}
-            {renderEffectAnimation &&
-                <CardAnimationContainer style={{
-                    overflow: "hidden",
-                    transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"
-                }}>
-                    <Lottie animationData={activateEffectAnimation} loop={true}/>
-                </CardAnimationContainer>}
-            {renderTargetAnimation &&
-                <CardAnimationContainer>
-                    <Lottie animationData={targetAnimation} loop={true}/>
-                </CardAnimationContainer>}
+        <Wrapper isTilted={((card as CardTypeGame)?.isTilted) ?? false}>
+
+            {locationsWithAdditionalInfo.includes(location) && <>
+                {index === (locationCards.length - 1) && <>
+                    {isModifiersAllowed && <PlusDpSpan isHovering={hoverCard === card}
+                                                       isNegative={finalDp < card.dp!}
+                                                       {...(finalDp === card.dp && {style: {color: "ghostwhite"}})}>
+                        {finalDp.toString()}
+                    </PlusDpSpan>}
+                    {secAtkString && <PlusSecAtkSpan isHovering={hoverCard === card}
+                                                     isNegative={secAtkString.startsWith("-")}>
+                        {secAtkString}<StyledShieldIcon/>
+                    </PlusSecAtkSpan>}
+
+                    {hoverCard !== card && <>
+                        {card.level && <LevelSpan isMega={card.level >= 6}><span>Lv.</span>{card.level}</LevelSpan>}
+                        {card.aceEffect && <StyledAceSpan isMega={card.level! >= 6}>ACE-{aceOverflow}</StyledAceSpan>}
+                    </>}
+                </>}
+
+                {!isDraggingStack && !!(index) && (index > 0) && showDragIcon &&
+                    <DragIcon
+                        ref={dragStack}
+                        onMouseEnter={() => setHoverCard(hoverCard)}
+                        onMouseLeave={() => setHoverCard(null)}
+                        src={stackIcon} alt={"stack"}
+                    />}
+                {renderEffectAnimation &&
+                    <CardAnimationContainer style={{
+                        overflow: "hidden",
+                        transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"
+                    }}>
+                        <Lottie animationData={activateEffectAnimation} loop={true}/>
+                    </CardAnimationContainer>}
+                {renderTargetAnimation &&
+                    <CardAnimationContainer>
+                        <Lottie animationData={targetAnimation} loop={true}/>
+                    </CardAnimationContainer>}
+            </>}
+
             <StyledImage
                 ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
                 onClick={handleClick}
@@ -216,6 +234,7 @@ export default function Card( props : CardProps ) {
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
                 activeEffect={renderEffectAnimation}
                 targeted={renderTargetAnimation}
+                isTopCard={index === locationCards?.length - 1}
                 onError={() => {
                     setImageError?.(true);
                     setCardImageUrl(cardBackUrl);
@@ -224,7 +243,7 @@ export default function Card( props : CardProps ) {
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
-        </div>)
+        </Wrapper>)
 }
 
 type StyledImageProps = {
@@ -233,6 +252,7 @@ type StyledImageProps = {
     isTilted: boolean,
     activeEffect: boolean,
     targeted?: boolean,
+    isTopCard?: boolean
 }
 
 const StyledImage = styled.img<StyledImageProps>`
@@ -243,25 +263,16 @@ const StyledImage = styled.img<StyledImageProps>`
   cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
   opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
   filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
-  transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
   animation: ${({
                   isTilted,
                   activeEffect,
-                  targeted
-                }) => (targeted ? "target-pulsate 0.95s ease-in-out infinite" : activeEffect ? "effect 0.85s ease-in-out infinite" : isTilted ? "pulsate 5s ease-in-out infinite" : "")};
+                  targeted,
+                  isTopCard
+                }) => (targeted ? `target-pulsate${isTopCard ? "-first" :""} 0.95s ease-in-out infinite` : activeEffect ? `effect${isTopCard ? "-first" :""} 0.85s ease-in-out infinite` : isTilted ? "pulsate 5s ease-in-out infinite" : "")};
 
   &:hover {
     filter: drop-shadow(0 0 1.5px ghostwhite) ${({isTilted}) => (isTilted ? "brightness(0.5)" : "")};
-    transform: scale(1.1) ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
-  }
-
-  @keyframes effect {
-    0%, 40%, 100% {
-      filter: drop-shadow(0 0 0px #004567) brightness(0.9) saturate(1.3);
-    }
-    70% {
-      filter: drop-shadow(0 0 4px #0fe3b1) brightness(0.9) saturate(1.3);
-    }
+    transform: scale(1.1);
   }
 
   @keyframes pulsate {
@@ -273,7 +284,38 @@ const StyledImage = styled.img<StyledImageProps>`
     }
   }
 
+  @keyframes effect {
+    0%, 40%, 100% {
+      filter: drop-shadow(0 0 0px #004567) brightness(0.9) saturate(1.3);
+      transform: unset;
+    }
+    70% {
+      filter: drop-shadow(0 0 4px #0fe3b1) brightness(0.9) saturate(1.3);
+      transform: translateY(5px);
+    }
+  }
+
+  @keyframes effect-first {
+    0%, 40%, 100% {
+      filter: drop-shadow(0 0 0px #004567) brightness(0.9) saturate(1.3);
+    }
+    70% {
+      filter: drop-shadow(0 0 4px #0fe3b1) brightness(0.9) saturate(1.3);
+    }
+  }
+
   @keyframes target-pulsate {
+    0%, 30%, 100% {
+      filter: drop-shadow(0 0 0px rgba(171, 138, 31, 0.25)) brightness(0.7) saturate(0.8);
+      transform: unset;
+    }
+    70% {
+      filter: drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1);
+      transform: translateY(5px);
+    }
+  }
+
+  @keyframes target-pulsate-first {
     0%, 30%, 100% {
       filter: drop-shadow(0 0 0px rgba(171, 138, 31, 0.25)) brightness(0.7) saturate(0.8);
     }
@@ -341,7 +383,7 @@ export const CardAnimationContainer = styled.div`
   pointer-events: none;
 `;
 
-const PlusDpSpan = styled.span<{isHovering: boolean, isNegative: boolean, isTilted: boolean}>`
+const PlusDpSpan = styled.span<{isHovering?: boolean, isNegative?: boolean}>`
   position: absolute;
   z-index: 10;
   top: ${({isHovering}) => (isHovering ? "-8px" : "-1px")};
@@ -355,14 +397,13 @@ const PlusDpSpan = styled.span<{isHovering: boolean, isNegative: boolean, isTilt
   font-weight: 500;
   color: ${({isNegative}) => (isNegative ? "#ff2190" : "#49fcbd")};
   line-height: 0.9;
-  padding: ${({isHovering}) => (isHovering ? "4px 2px 1px 2px" : "3px 2px 1px 2px")};;
+  padding: ${({isHovering}) => (isHovering ? "4px 2px 1px 2px" : "3px 2px 1px 2px")};
   border-radius: 3px;
   background: rgba(21, 21, 21, 0.9);
   transition: all 0.05s;
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: ${({isTilted}) => (isTilted ? "translate(25px, 20px) rotate(30deg)" : "unset")};
   
   @media (min-width: 2000px) {
     line-height: 0.8;
@@ -376,7 +417,19 @@ const PlusSecAtkSpan = styled(PlusDpSpan)`
   background: unset;
   box-shadow: unset;
   font-size: 1em;
-  transform: ${({isTilted}) => (isTilted ? "translate(34px, -10px) rotate(30deg)" : "unset")};
+`;
+
+const LevelSpan = styled(PlusSecAtkSpan)<{isMega: boolean}>`
+  top: unset;
+  left: 4px;
+  bottom: ${({isMega}) => (isMega? "10px" : "24px")};
+  background: unset;
+  color: ghostwhite;
+  filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black);
+  span {
+    font-size:  ${({isHovering}) => (isHovering ? "0.6em" : "0.5em")};
+    transform: translateY(3px);
+  }
 `;
 
 const StyledShieldIcon = styled(ShieldIcon)`
@@ -386,4 +439,21 @@ const StyledShieldIcon = styled(ShieldIcon)`
   font-size: 30px;
   transform: translateX(1px);
   filter: drop-shadow(0 0 2px #5e65ee) drop-shadow(0 0 1px #2b4fff);
+`;
+
+const StyledAceSpan = styled(AceSpan)<{isMega: boolean}>`
+  font-size: 13px;
+  position: absolute;
+  background-image: linear-gradient(320deg, #dedede, #8f8f8f);
+  bottom: ${({isMega}) => (isMega? "10px" : "27px")};
+  right: 5px;
+  z-index: 1;
+  filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black);
+  pointer-events: none;
+  transform: unset;
+`;
+
+const Wrapper = styled.div<{isTilted: boolean}>`
+   position: relative;
+   transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
 `;

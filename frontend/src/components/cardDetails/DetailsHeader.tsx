@@ -137,7 +137,7 @@ const Icon = styled.img`
   transform: translateX(-50%);
 `;
 
-const AceSpan = styled.span`
+export const AceSpan = styled.span`
   font-family: Sakana, sans-serif;
   background-image: linear-gradient(320deg, #b6b6b6, #595858);
   -webkit-background-clip: text;

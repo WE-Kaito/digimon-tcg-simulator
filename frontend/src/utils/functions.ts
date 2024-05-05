@@ -1,5 +1,15 @@
 import {CardType, CardTypeGame, CardTypeWithId} from "./types.ts";
 import cardBack from "../assets/cardBack.jpg";
+import dataImage from '../assets/attribute_icons/data.png';
+import virusImage from '../assets/attribute_icons/virus.png';
+import vaccineImage from '../assets/attribute_icons/vaccine.png';
+import freeImage from '../assets/attribute_icons/free.png';
+import unknownImage from '../assets/attribute_icons/unknown.png';
+import variableImage from '../assets/attribute_icons/variable.png';
+import digimonImage from '../assets/cardtype_icons/gammamon.png';
+import optionImage from '../assets/cardtype_icons/option.png';
+import tamerImage from '../assets/cardtype_icons/tamer.png';
+import eggImage from '../assets/cardtype_icons/egg.png';
 
 import {
     playButtonClickSfx,
@@ -15,7 +25,7 @@ import {
     playUnsuspendSfx
 } from "./sound.ts";
 import axios from "axios";
-import {starterBeelzemon, starterGallantmon} from "./starterDecks.ts";
+import {starterBeelzemon, starterDragonOfCourage, starterGallantmon} from "./starterDecks.ts";
 
 export function calculateCardRotation(handCardLength: number, index: number) {
     const middleIndex = Math.floor(handCardLength / 2);
@@ -242,12 +252,14 @@ function saveStarterDeck(name: string, decklist: string[], imgUrl: string, sleev
         });
 }
 
-const st14_10 = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST14-10.webp";
-const st7_09 = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST7-09.webp";
+const deckDragonOfCourage = "https://assets.orangeswim.dev/other/ST15.png";
+const deckGallantmon = "https://assets.orangeswim.dev/other/ST7.png";
+const deckBeelzemon = "https://assets.orangeswim.dev/other/ST14.png";
 
 export function addStarterDecks() {
-    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon",  starterBeelzemon, st14_10,"Impmon"), 100);
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon",  starterGallantmon, st7_09, "Guilmon"), 200);
+    setTimeout(() => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckDragonOfCourage, "Agumon"), 100);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckGallantmon, "Guilmon"), 200);
+    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckBeelzemon,"Impmon"), 300);
 }
 
 export function getCardColor(color: string): [string, string] {
@@ -294,39 +306,35 @@ export function getDnaColor(word: string): string {
     }
 }
 
-const assetBaseUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/"
-
 export function getAttributeImage(attribute: string | null | undefined) {
-    const baseUrl = assetBaseUrl + "attribute_icons/";
     switch (attribute) {
         case 'Virus':
-            return baseUrl + "virus.png";
+            return virusImage;
         case 'Data':
-            return baseUrl + "data.png";
+            return dataImage;
         case 'Vaccine':
-            return baseUrl + "vaccine.png";
+            return vaccineImage;
         case 'Free':
-            return baseUrl + "free.png";
+            return freeImage;
         case 'Variable':
-            return baseUrl + "variable.png";
+            return variableImage;
         case 'Unknown':
-            return baseUrl + "unknown.png";
+            return unknownImage;
         case 'default':
             return;
     }
 }
 
 export function getCardTypeImage(cardType: string | undefined) {
-    const baseUrl = assetBaseUrl + "cardtype_icons/";
     switch (cardType) {
         case 'Digimon':
-            return baseUrl + "gammamon.png";
+            return digimonImage;
         case 'Option':
-            return baseUrl + "option.png";
+            return optionImage;
         case 'Tamer':
-            return baseUrl + "tamer.png";
+            return tamerImage;
         case 'Digi-Egg':
-            return baseUrl + "egg.png";
+            return eggImage;
         case 'default':
             return;
     }

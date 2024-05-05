@@ -286,6 +286,17 @@ export const useGame = create<State>()(
 
             set({ initialDistributionState: "", bootStage: BootStage.MULLIGAN });
 
+            // Preloading images
+            for (const stateKey in game) {
+                if (Object.hasOwnProperty.call(game, stateKey)) {
+
+                    const state = game[stateKey as keyof GameDistribution];
+
+                    if (Array.isArray(state)) state.forEach((card) => new Image().src = card.imgUrl);
+                }
+            }
+
+
             if (user === player1) {
                 set({
                     myHand: game.player1Hand,
