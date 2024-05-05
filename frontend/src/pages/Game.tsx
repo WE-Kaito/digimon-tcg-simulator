@@ -112,8 +112,7 @@ export default function Game({user}: { user: string }) {
     const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
 
     const cardToSend = useGame((state) => state.cardToSend);
-    // @ts-ignore
-    const contextCard = useGame((state) => state[cardToSend.location as keyof typeof state]?.find(card => card.id === cardToSend.id)) ?? null;
+    const contextCard = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
     const moveCard = useGame((state) => state.moveCard);
     const cardToDeck = useGame((state) => state.cardToDeck);
@@ -859,7 +858,7 @@ export default function Game({user}: { user: string }) {
 
     function resetModifiers({props}: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
-        const modifiers = { plusDp: 0, plusSecurityAttacks: 0 };
+        const modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [] };
         setModifiers(props?.id, props?.location, modifiers);
         sendSetModifiers(props?.id, props?.location, modifiers);
         playModifyCardSfx();

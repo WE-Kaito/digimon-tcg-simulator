@@ -361,7 +361,7 @@ public class GameService extends TextWebSocketHandler {
                     card.restriction_jp(),
                     card.illustrator(),
                     idService.createId(),
-                    new Modifiers(0,0),
+                    new Modifiers(0,0, new ArrayList<>()),
                     false);
             gameDeck.add(newCard);
         }

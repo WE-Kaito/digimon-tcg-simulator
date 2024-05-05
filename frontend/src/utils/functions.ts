@@ -456,3 +456,8 @@ export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("en" | "jp")
     }
     return !isRestrictionViolated
 }
+
+export function getNumericModifier(value: number, isSetting?: boolean) {
+    if (value === 0 && !isSetting) return "";
+    return value < 0 ? value.toString() : `+${value}`;
+}

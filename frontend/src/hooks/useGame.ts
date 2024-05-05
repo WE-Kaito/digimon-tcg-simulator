@@ -415,17 +415,33 @@ export const useGame = create<State>()(
         const fromState = get()[from as keyof State] as CardTypeGame[];
         const card = fromState.find(card => card.id === cardId);
         if (!card) return;
-        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
+        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
 
-        if (toState.length > 0 && toState[toState.length - 1].isTilted) {
-            toState[toState.length - 1].isTilted = false;
-            card.isTilted = true;
-        } else {
-            card.isTilted = false;
+        if (toState.length > 0) {
+            if(toState[toState.length - 1].isTilted) {
+                toState[toState.length - 1].isTilted = false;
+                card.isTilted = true;
+            }
+            else card.isTilted = false;
+
+            if(!card.modifiers.plusDp) {
+                card.modifiers.plusDp = toState[toState.length - 1].modifiers.plusDp;
+                toState[toState.length - 1].modifiers.plusDp = 0;
+            }
+            if(!card.modifiers.plusSecurityAttacks){
+                card.modifiers.plusSecurityAttacks = toState[toState.length - 1].modifiers.plusSecurityAttacks;
+                toState[toState.length - 1].modifiers.plusSecurityAttacks = 0;
+            }
+            if(!card.modifiers.keywords.length){
+                card.modifiers.keywords = toState[toState.length - 1].modifiers.keywords;
+                toState[toState.length - 1].modifiers.keywords = [];
+            }
         }
+
+
 
         if (from === to) {
             set({[from]: [...updatedFromState, card]});
@@ -457,7 +473,7 @@ export const useGame = create<State>()(
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId);
 
         if (topOrBottom === "Top" && card) card.isTilted = false;
-        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
+        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
 
         if (cardLocation === to) {
             set({
@@ -575,7 +591,7 @@ export const useGame = create<State>()(
             ...tokenVariant,
             id: id,
             isTilted: false,
-            modifiers: { plusDp: 0, plusSecurityAttacks: 0 }
+            modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: []}
         };
         set((state) => {
             for (let i = 1; i <= 10; i++) {

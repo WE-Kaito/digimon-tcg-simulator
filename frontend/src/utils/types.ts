@@ -38,6 +38,7 @@ export type CardTypeGame = CardTypeWithId & { modifiers: CardModifiers } & { isT
 export type CardModifiers = {
     plusDp: number,
     plusSecurityAttacks: number
+    keywords: string[],
 }
 
 export type SearchCards = (

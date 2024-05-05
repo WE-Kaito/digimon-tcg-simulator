@@ -3,16 +3,16 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, topCardInfo} from "../utils/functions.ts";
+import {getCardSize, getNumericModifier, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
-import {getNumericModifier} from "./game/ModifierMenu.tsx";
 import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
+import cardBackSrc from "../assets/cardBack.jpg";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -30,8 +30,6 @@ const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea",
 
 const locationsWithAdditionalInfo = [ ...locationsWithInheritedInfo, "myDigi11", "myDigi12", "myDigi13", "myDigi14",
     "myDigi15", "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
-
-const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
 
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
@@ -195,6 +193,11 @@ export default function Card( props : CardProps ) {
                     </PlusSecAtkSpan>}
 
                     {hoverCard !== card && <>
+                        <KeywordWrapper>
+                            {modifiers?.keywords.map((keyword) =>
+                                <ModifierSpan longSpan={keyword.length >= 8} key={`${keyword}_${card.id}`}>
+                                    <span>{keyword}</span></ModifierSpan>)}
+                        </KeywordWrapper>
                         {card.level && <LevelSpan isMega={card.level >= 6}><span>Lv.</span>{card.level}</LevelSpan>}
                         {card.aceEffect && <StyledAceSpan isMega={card.level! >= 6}>ACE-{aceOverflow}</StyledAceSpan>}
                     </>}
@@ -237,7 +240,7 @@ export default function Card( props : CardProps ) {
                 isTopCard={index === locationCards?.length - 1}
                 onError={() => {
                     setImageError?.(true);
-                    setCardImageUrl(cardBackUrl);
+                    setCardImageUrl(cardBackSrc);
                 }}
                 onContextMenu={() => myBALocations.includes(location) && setCardToSend(card.id, location)}
             />
@@ -445,7 +448,7 @@ const StyledAceSpan = styled(AceSpan)<{isMega: boolean}>`
   font-size: 13px;
   position: absolute;
   background-image: linear-gradient(320deg, #dedede, #8f8f8f);
-  bottom: ${({isMega}) => (isMega? "10px" : "27px")};
+  bottom: ${({isMega}) => (isMega? "10px" : "25px")};
   right: 5px;
   z-index: 1;
   filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black);
@@ -456,4 +459,35 @@ const StyledAceSpan = styled(AceSpan)<{isMega: boolean}>`
 const Wrapper = styled.div<{isTilted: boolean}>`
    position: relative;
    transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
+   -moz-user-select: none;
+   user-select: none;
+`;
+
+const ModifierSpan = styled.div<{longSpan: boolean}>`
+  font-family: "League Spartan", sans-serif;
+  color: ghostwhite;
+  background: rgba(110, 48, 5, 0.9);
+  border-radius: 25px;
+  height: 18px;
+  text-align: center;
+  transition: background 0.3s;
+  padding: ${({longSpan}) => (longSpan ? "2px" : "1px")} 5px ${({longSpan}) => (longSpan ? "1px" : "2px")} 5px;
+  font-size: ${({longSpan}) => (longSpan ? "0.8em" : "1em")};
+
+  span {
+    filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+  }
+`;
+
+const KeywordWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 22px;
+    right: -15px;
+    z-index: 1;
+    gap: 3px;
+    max-height: 70px;
+    flex-wrap: wrap-reverse;
+    pointer-events: none;
 `;
