@@ -421,27 +421,28 @@ export const useGame = create<State>()(
         const toState = get()[to as keyof State] as CardTypeGame[];
 
         if (toState.length > 0) {
-            if(toState[toState.length - 1].isTilted) {
-                toState[toState.length - 1].isTilted = false;
+            const prevTopCard = toState[toState.length - 1];
+
+            if(prevTopCard.isTilted) {
+                prevTopCard.isTilted = false;
                 card.isTilted = true;
-            }
-            else card.isTilted = false;
+            } else card.isTilted = false;
 
             if(!card.modifiers.plusDp) {
-                card.modifiers.plusDp = toState[toState.length - 1].modifiers.plusDp;
-                toState[toState.length - 1].modifiers.plusDp = 0;
-            }
+                card.modifiers.plusDp = prevTopCard.modifiers.plusDp;
+                prevTopCard.modifiers.plusDp = 0;
+            } else prevTopCard.modifiers.plusDp = 0;
+
             if(!card.modifiers.plusSecurityAttacks){
-                card.modifiers.plusSecurityAttacks = toState[toState.length - 1].modifiers.plusSecurityAttacks;
-                toState[toState.length - 1].modifiers.plusSecurityAttacks = 0;
-            }
+                card.modifiers.plusSecurityAttacks = prevTopCard.modifiers.plusSecurityAttacks;
+                prevTopCard.modifiers.plusSecurityAttacks = 0;
+            } else prevTopCard.modifiers.plusSecurityAttacks = 0;
+
             if(!card.modifiers.keywords.length){
-                card.modifiers.keywords = toState[toState.length - 1].modifiers.keywords;
-                toState[toState.length - 1].modifiers.keywords = [];
-            }
+                card.modifiers.keywords = prevTopCard.modifiers.keywords;
+                prevTopCard.modifiers.keywords = [];
+            } else prevTopCard.modifiers.keywords = [];
         }
-
-
 
         if (from === to) {
             set({[from]: [...updatedFromState, card]});

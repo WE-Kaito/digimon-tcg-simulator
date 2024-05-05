@@ -15,8 +15,9 @@ type ModifierMenuProps = {
 }
 
 const battleKeywords = [
-    "Alliance", "Arm. Purge", "Barrier", "Blitz", "Blocker", "Collision", "Decoy", "Evade", "Fortitude",
-    "Ice Armor", "Jamming", "Mat. Save", "Overclock", "Partition", "Piercing", "Raid", "Reboot", "Retaliation", "Vortex"
+    "Alliance", "Alliance ×2", "Arm. Purge", "Barrier", "Blitz", "Blocker", "Collision", "Decoy", "Evade", "Fortitude",
+    "Ice Armor", "Jamming", "Mat. Save", "Overclock", "Partition", "Piercing", "Raid", "Reboot", "Retaliation",
+    "Retal. ×2", "Vortex"
 ];
 
 export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
@@ -58,7 +59,6 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
         || card?.modifiers.plusSecurityAttacks !== plusSecurityAttacks
         || card?.modifiers.keywords !== keywords;
 
-
     if (card?.cardType !== "Digimon") return <></>;
 
     return (
@@ -86,12 +86,12 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                                                key={`${keyword}_active`}>{keyword}</ModifierSpan>)}
                         </Stack>
 
-                        <Submenu disabled={keywords.length >= 6} label={"Add Keyword Tag"}
+                        <Submenu label={"Add Keyword Tag"}
                                  arrow={<StyledLottie style={{ marginLeft: 60}} animationData={arrowsAnimation}/>} >
                             <StyledFieldset>
                                 <Stack maxHeight="360px" flexWrap={"wrap"}>
                                 {battleKeywords.map((keyword) => !keywords.includes(keyword) &&
-                                    <Item closeOnClick={false} key={`${keyword}_selection`}
+                                    <Item closeOnClick={false} disabled={keywords.length >= 6} key={`${keyword}_selection`}
                                           onClick={() => setKeywords([...keywords, keyword])}>{keyword}</Item>)}
                                 </Stack>
                             </StyledFieldset>
