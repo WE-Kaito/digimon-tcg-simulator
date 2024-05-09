@@ -91,7 +91,7 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                         <Submenu label={"Add Keyword Tag"}
                                  arrow={<StyledLottie style={{ marginLeft: 60}} animationData={arrowsAnimation}/>} >
                             <StyledFieldset>
-                                <Stack maxHeight="360px" flexWrap={"wrap"}>
+                                <Stack maxHeight={400} flexWrap={"wrap"}>
                                 {battleKeywords.map((keyword) => !keywords.includes(keyword) &&
                                     <Item closeOnClick={false} disabled={keywords.length >= 6} key={`${keyword}_selection`}
                                           onClick={() => setKeywords([...keywords, keyword])}>{keyword}</Item>)}
