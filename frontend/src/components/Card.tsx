@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, getNumericModifier, topCardInfo} from "../utils/functions.ts";
+import {getCardSize, getNumericModifier, tamersAsDigimon, topCardInfo} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
@@ -13,7 +13,6 @@ import targetAnimation from "../assets/lotties/target-animation.json";
 import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
-import {tamersAsDigimon} from "./game/ModifierMenu.tsx";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]

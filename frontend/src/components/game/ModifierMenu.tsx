@@ -8,7 +8,7 @@ import {AddCircleOutlined, RemoveCircleOutlined} from '@mui/icons-material';
 import {useGame} from "../../hooks/useGame.ts";
 import {CardModifiers, CardTypeGame} from "../../utils/types.ts";
 import {playModifyCardSfx} from "../../utils/sound.ts";
-import {getNumericModifier} from "../../utils/functions.ts";
+import {getNumericModifier, tamersAsDigimon} from "../../utils/functions.ts";
 
 type ModifierMenuProps = {
     sendSetModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void
@@ -19,8 +19,6 @@ const battleKeywords = [
     "Ice Armor", "Jamming", "Mat. Save", "Overclock", "Partition", "Piercing", "Raid", "Reboot", "Retaliation",
     "Retal. ×2", "Vortex"
 ];
-
-export const tamersAsDigimon = ["BT12-092", "BT17-087", "BT13-095", "BT13-099"];
 
 export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
 

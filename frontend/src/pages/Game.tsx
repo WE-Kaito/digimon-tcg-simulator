@@ -16,7 +16,7 @@ import {
     calculateCardRotation,
     convertForLog, getAttributeImage, getCardTypeImage,
     getOpponentSfx,
-    handleImageError
+    handleImageError, tamersAsDigimon
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {CSSProperties, useCallback, useEffect, useRef, useState} from "react";
@@ -82,7 +82,7 @@ import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
 import useDropZone from "../hooks/useDropZone.ts";
 import {findTokenByName} from "../utils/tokens.ts";
 import TokenButton from "../components/game/TokenButton.tsx";
-import ModifierMenu, {tamersAsDigimon} from "../components/game/ModifierMenu.tsx";
+import ModifierMenu from "../components/game/ModifierMenu.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
 import deckBackSrc from "../assets/deckBack.png";
 import eggBackSrc from "../assets/eggBack.jpg";
