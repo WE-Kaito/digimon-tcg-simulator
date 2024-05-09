@@ -14,8 +14,8 @@ export default function FetchCard({card}: { card: CardTypeWithId}) {
         !imageError || card.cardNumber === card.uniqueCardNumber
             ? <div style={{ position: "relative", height: "fit-content" }} onContextMenu={() => selectCard(card)} id={card.uniqueCardNumber} >
                 <Card card={card} location={"fetchedData"} setImageError={setImageError}/>
-                {card.restriction_en === "Restricted to 1" && <RestrictedIcon color={card.color.includes("Red") ? "warning" : "error"} fontSize={"large"} sx={{background: "rgba(8,8,8,0.5)", borderRadius: "5px", position: "absolute", bottom: 8, right: 3, pointerEvents: "none"}}/>}
-                {["Banned","Unreleased"].includes(card.restriction_en) && <ForbiddenIcon color={card.color.includes("Red") ? "warning" : "error"} fontSize={"large"} sx={{position: "absolute", bottom: 8, right: 5, pointerEvents: "none"}}/>}
+                {card.restrictions.english === "Restricted to 1" && <RestrictedIcon color={card.color.includes("Red") ? "warning" : "error"} fontSize={"large"} sx={{background: "rgba(8,8,8,0.5)", borderRadius: "5px", position: "absolute", bottom: 8, right: 3, pointerEvents: "none"}}/>}
+                {["Banned","Unreleased"].includes(card.restrictions.english) && <ForbiddenIcon color={card.color.includes("Red") ? "warning" : "error"} fontSize={"large"} sx={{position: "absolute", bottom: 8, right: 5, pointerEvents: "none"}}/>}
               </div>
             : <></>
     );
