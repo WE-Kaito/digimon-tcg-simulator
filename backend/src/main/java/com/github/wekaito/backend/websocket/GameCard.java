@@ -1,6 +1,7 @@
 package com.github.wekaito.backend.websocket;
 
 import com.github.wekaito.backend.DigivolveCondition;
+import com.github.wekaito.backend.Restrictions;
 
 import java.util.List;
 
@@ -26,8 +27,7 @@ public record GameCard (
         String digiXros,
         String dnaDigivolve,
         String securityEffect,
-        String restriction_en,
-        String restriction_jp,
+        Restrictions restrictions,
         String illustrator,
         String id,
         Modifiers modifiers,

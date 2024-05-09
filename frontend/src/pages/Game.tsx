@@ -82,7 +82,7 @@ import AttackResolveButton from "../components/game/AttackResolveButton.tsx";
 import useDropZone from "../hooks/useDropZone.ts";
 import {findTokenByName} from "../utils/tokens.ts";
 import TokenButton from "../components/game/TokenButton.tsx";
-import ModifierMenu from "../components/game/ModifierMenu.tsx";
+import ModifierMenu, {tamersAsDigimon} from "../components/game/ModifierMenu.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
 import deckBackSrc from "../assets/deckBack.png";
 import eggBackSrc from "../assets/eggBack.jpg";
@@ -948,7 +948,8 @@ export default function Game({user}: { user: string }) {
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";
     const color3 = localStorage.getItem("color3") ?? "#522170";
 
-    const hideMenuItemStyle = contextCard?.cardType === "Digimon" ? {} : { visibility: "hidden", position: "absolute"};
+    const hasModifierMenu = contextCard?.cardType === "Digimon" || tamersAsDigimon.includes(String(contextCard?.cardNumber));
+    const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute"};
 
     return <>
         {/*Div to preload asset images*/}
@@ -995,7 +996,7 @@ export default function Game({user}: { user: string }) {
                         <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                             <span>Target Card</span> <TargetIcon/></div>
                     </Item>
-                    {contextCard?.cardType === "Digimon" && <Separator/>}
+                    {hasModifierMenu && <Separator/>}
                         <Item onClick={resetModifiers} style={(hideMenuItemStyle as CSSProperties | undefined)}>
                             <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                                 <span>Clear Modifiers</span> <ClearIcon/></div>

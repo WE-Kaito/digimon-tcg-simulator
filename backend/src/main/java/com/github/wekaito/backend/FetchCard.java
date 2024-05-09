@@ -24,14 +24,8 @@ public record FetchCard(
         String digiXros,
         String dnaDigivolve,
         String securityEffect,
-        Restriction restrictions,
+        Restrictions restrictions,
         String illustrator) {
-}
-
-record Restriction(
-        String english,
-        String japanese
-) {
 }
 
 record Name(

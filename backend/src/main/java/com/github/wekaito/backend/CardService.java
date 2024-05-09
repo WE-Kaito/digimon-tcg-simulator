@@ -43,7 +43,14 @@ public class CardService {
             0,
             1,
             "If you see this card, the actual card was not found.",
-            null, null, null, null, null, null, null, null, null
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            new Restrictions("","","",""),
+            null
     );
 
     private static final Gson gson = new Gson();
@@ -121,8 +128,7 @@ public class CardService {
                     (card.digiXros().equals("-")) ? null : card.digiXros(),
                     (card.dnaDigivolve().equals("-")) ? null : card.dnaDigivolve(),
                     (card.securityEffect().equals("-")) ? null : card.securityEffect(),
-                    card.restrictions().english(),
-                    card.restrictions().japanese(),
+                    card.restrictions(),
                     card.illustrator()));
         });
 

@@ -20,6 +20,8 @@ const battleKeywords = [
     "Retal. ×2", "Vortex"
 ];
 
+export const tamersAsDigimon = ["BT12-092", "BT17-087", "BT13-095", "BT13-099"];
+
 export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
 
     const cardToSend = useGame(state => state.cardToSend);
@@ -59,7 +61,7 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
         || card?.modifiers.plusSecurityAttacks !== plusSecurityAttacks
         || card?.modifiers.keywords !== keywords;
 
-    if (card?.cardType !== "Digimon") return <></>;
+    if ((card?.cardType !== "Digimon" && !tamersAsDigimon.includes(String(card?.cardNumber)))) return <></>;
 
     return (
         <StyledSubmenu label={"Set Modifiers"} arrow={<StyledLottie animationData={arrowsAnimation}/>} >

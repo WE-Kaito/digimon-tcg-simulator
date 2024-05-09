@@ -20,8 +20,7 @@ export type CardType = {
     digiXros?: string,
     dnaDigivolve?: string,
     securityEffect?: string,
-    restriction_en: string,
-    restriction_jp: string,
+    restrictions: Restrictions,
     illustrator: string
 }
 
@@ -39,6 +38,13 @@ export type CardModifiers = {
     plusDp: number,
     plusSecurityAttacks: number
     keywords: string[],
+}
+
+type Restrictions = {
+    chinese: string,
+    english: string
+    japanese: string,
+    korean: string,
 }
 
 export type SearchCards = (

@@ -9,6 +9,13 @@ import {CardType} from "./types.ts";
 
 const tokenEffect = (digimon: string): string => `•This card can be used as a [${digimon}] token.\n•Tokens can't be included in decks.\n•Tokens can't digivolve or be used as digivolution cards.\n•Tokens are removed from the game when they leave play.`;
 
+const emptyRestrictions = {
+    chinese: "",
+    english: "",
+    japanese: "",
+    korean: "",
+}
+
 export const gyuukimonToken: CardType = {
     imgUrl: Gyuukimon,
     uniqueCardNumber: "LM-018-TOKEN",
@@ -23,8 +30,7 @@ export const gyuukimonToken: CardType = {
     digiType: ["Dark Animal"],
     name: "Gyuukimon",
     mainEffect: tokenEffect("Gyuukimon"),
-    restriction_en: "",
-    restriction_jp: "",
+    restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
@@ -37,8 +43,7 @@ export const fujitsumonToken: CardType = {
     dp: 3000,
     mainEffect: "[All Turns] This Digimon doesn't unsuspend.\n[On Deletion] Trash 1 card in your hand.\n"+ tokenEffect("Fujitsumon"),
     name: "Fujitsumon",
-    restriction_en: "",
-    restriction_jp: "",
+    restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
@@ -51,8 +56,7 @@ export const koHagurumonToken: CardType = {
     dp: 1000,
     mainEffect: "＜Blocker＞ ＜Decoy (Black)＞\n" + tokenEffect("KoHagurumon"),
     name: "KoHagurumon",
-    restriction_en: "",
-    restriction_jp: "",
+    restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
@@ -70,8 +74,7 @@ export const diaboromonToken: CardType = {
     digiType: ["Unidentified"],
     name: "Diaboromon",
     mainEffect: tokenEffect("Diaboromon"),
-    restriction_en: "",
-    restriction_jp: "",
+    restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
@@ -84,8 +87,7 @@ export const umonToken: CardType = {
     dp: 6000,
     mainEffect: "＜Blocker＞\n" + tokenEffect("Umon of Blue Thunder"),
     name: "Umon of Blue Thunder",
-    restriction_en: "",
-    restriction_jp: "",
+    restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
@@ -98,8 +100,7 @@ export const amonToken: CardType = {
     dp: 6000,
     mainEffect: "＜Rush＞\n" + tokenEffect("Amon of Crimson Flame"),
     name: "Amon of Crimson Flame",
-    restriction_en: "",
-    restriction_jp: "",
+    restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
@@ -111,9 +112,8 @@ export const generalToken: CardType = {
     color: ["Unknown"],
     attribute: "Unknown",
     name: "Token",
+    restrictions: emptyRestrictions,
     illustrator: "",
-    restriction_en: "",
-    restriction_jp: "",
 }
 
 export const tokenCollection = [amonToken, umonToken, gyuukimonToken, fujitsumonToken, koHagurumonToken, diaboromonToken];

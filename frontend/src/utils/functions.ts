@@ -25,7 +25,7 @@ import {
     playUnsuspendSfx
 } from "./sound.ts";
 import axios from "axios";
-import {starterBeelzemon, starterDragonOfCourage, starterGallantmon} from "./starterDecks.ts";
+import {starterBeelzemon, starterDragonOfCourage, starterGallantmon, starterVortexWarriors} from "./starterDecks.ts";
 
 export function calculateCardRotation(handCardLength: number, index: number) {
     const middleIndex = Math.floor(handCardLength / 2);
@@ -239,8 +239,8 @@ function saveStarterDeck(name: string, decklist: string[], imgUrl: string, sleev
         decklist: decklist,
         deckImageCardUrl: imgUrl,
         sleeveName: sleeveName,
-        isAllowed_en: true,
-        isAllowed_jp: true
+        isAllowed_en: sleeveName !== "Pteromon", // change after en release; restriction model on decks should be changed.
+        isAllowed_jp: true,
     }
 
     axios
@@ -252,14 +252,16 @@ function saveStarterDeck(name: string, decklist: string[], imgUrl: string, sleev
         });
 }
 
-const deckDragonOfCourage = "https://assets.orangeswim.dev/other/ST15.png";
-const deckGallantmon = "https://assets.orangeswim.dev/other/ST7.png";
-const deckBeelzemon = "https://assets.orangeswim.dev/other/ST14.png";
+const deckImgDragonOfCourage = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST15-12.webp";
+const deckImgGallantmon = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST7-09.webp";
+const deckImgBeelzemon = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST14-10.webp";
+const deckImgVortexWarriors = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/P-038_P4-J.webp";
 
 export function addStarterDecks() {
-    setTimeout(() => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckDragonOfCourage, "Agumon"), 100);
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckGallantmon, "Guilmon"), 200);
-    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckBeelzemon,"Impmon"), 300);
+    setTimeout(() => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckImgDragonOfCourage, "Agumon"), 100);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckImgGallantmon, "Guilmon"), 200);
+    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckImgBeelzemon,"Impmon"), 300);
+    setTimeout(() => saveStarterDeck("[STARTER] Vortex Warriors", starterVortexWarriors, deckImgVortexWarriors, "Pteromon"), 400);
 }
 
 export function getCardColor(color: string): [string, string] {
@@ -435,26 +437,28 @@ export function generateGradient(deckCards : CardType[]) {
 }
 
 export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("en" | "jp")) : boolean {
-    let isRestrictionViolated = false;
     let lastCard: CardTypeWithId;
 
     if (format === "en") {
-        if (deck.find((card) => ["Banned","Not released"].includes(card.restriction_en))) return false;
-        const restrictedCards_en = deck.filter((card) => card.restriction_en === "Restricted to 1")
+        if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions.english))) return false;
+
+        const restrictedCards_en = deck.filter((card) => card.restrictions.english === "Restricted to 1")
         restrictedCards_en.forEach((card) => {
-            if (lastCard === card) isRestrictionViolated = true;
+            if (lastCard === card) return false;
             lastCard = card;
         })
     }
     if (format === "jp") {
-        if (deck.find((card) => ["Banned","Not released"].includes(card.restriction_jp))) return false;
-        const restrictedCards_jp = deck.filter((card) => card.restriction_jp === "Restricted to 1")
+        if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions.japanese))) return false;
+
+        const restrictedCards_jp = deck.filter((card) => card.restrictions.japanese === "Restricted to 1")
         restrictedCards_jp.forEach((card) => {
-            if (lastCard === card) isRestrictionViolated = true;
+            if (lastCard === card) return false;
             lastCard = card;
         })
     }
-    return !isRestrictionViolated
+
+    return true;
 }
 
 export function getNumericModifier(value: number, isSetting?: boolean) {

@@ -13,6 +13,7 @@ import targetAnimation from "../assets/lotties/target-animation.json";
 import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
+import {tamersAsDigimon} from "./game/ModifierMenu.tsx";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -168,10 +169,11 @@ export default function Card( props : CardProps ) {
         else if (inhAll) setInheritCardInfo(inhEff);
     }
 
-    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && (card.cardType === "Digimon");
+    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && ((card.cardType === "Digimon") || tamersAsDigimon.includes(card.cardNumber));
     const modifiers = isModifiersAllowed ? (card as CardTypeGame)?.modifiers : undefined;
 
-    const finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
+    let finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
+    if (tamersAsDigimon.includes(card.cardNumber)) finalDp = modifiers?.plusDp ?? 0;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
