@@ -357,11 +357,10 @@ public class GameService extends TextWebSocketHandler {
                     card.digiXros(),
                     card.dnaDigivolve(),
                     card.securityEffect(),
-                    card.restriction_en(),
-                    card.restriction_jp(),
+                    card.restrictions(),
                     card.illustrator(),
                     idService.createId(),
-                    new Modifiers(0,0),
+                    new Modifiers(0,0, new ArrayList<>()),
                     false);
             gameDeck.add(newCard);
         }
