@@ -30,7 +30,7 @@ const AvatarSpan = styled.span`
 
 const AvatarSpan2 = styled(AvatarSpan)`
   position: absolute;
-  left: 545px;
+  left: 482px;
   top: 10px;
   font-size: 18px;
 `;

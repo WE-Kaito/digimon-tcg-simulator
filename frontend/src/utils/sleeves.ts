@@ -57,6 +57,7 @@ import tsukaimon2 from "../assets/sleeves/EX6_045_TSUKAIMON.png";
 import sukamon from "../assets/sleeves/BT11_040_SUKAMON.png";
 import pteromon from "../assets/sleeves/P_131_PTEROMON.png";
 import muchomon from "../assets/sleeves/ST18_05_MUCHOMON.png";
+import malomyotismon from "../assets/sleeves/BT3_092_MALOMYOTISMON.png";
 
 import defaultBlack from "../assets/sleeves/cardBackBlack.jpg";
 import defaultWhite from "../assets/sleeves/cardBackWhite.jpg";
@@ -69,7 +70,6 @@ import defaultPurple from "../assets/sleeves/cardBackPurple.jpg";
 import cardBack from "../assets/cardBack.jpg";
 
 export const sleeves: Picture[] = [
-    {name: "Default", imagePath: cardBack, artist: "Bandai"},
     {name: "Default Black", imagePath: defaultBlack, artist: "Bandai"},
     {name: "Default White", imagePath: defaultWhite, artist: "Bandai"},
     {name: "Default Red", imagePath: defaultRed, artist: "Bandai"},
@@ -135,6 +135,7 @@ export const sleeves: Picture[] = [
     {name: "Sukamon", imagePath: sukamon, artist: "Drak"},
     {name: "Pteromon", imagePath: pteromon, artist: "Drak"},
     {name: "Muchomon", imagePath: muchomon, artist: "Drak"},
+    {name: "MaloMyotismon", imagePath: malomyotismon, artist: "Drak"},
 ];
 
 export function getSleeve(sleeveName: string): string {

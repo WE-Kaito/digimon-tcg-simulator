@@ -36,6 +36,10 @@ import princeMamemon from "../assets/profile_pictures/PrinceMamemon.png";
 import lilithmonX from "../assets/profile_pictures/Lilithmon_X.png";
 import numemon from "../assets/profile_pictures/Numemon.png";
 import placeholder from "../assets/profile_pictures/Placeholder.png";
+import holyAngemon from "../assets/profile_pictures/HolyAngemon.png";
+import imperialdramonPM from "../assets/profile_pictures/Imperialdramon_PM.png";
+import leviamonX from "../assets/profile_pictures/Leviamon_X.png";
+import pandamon from "../assets/profile_pictures/Pandamon.png";
 
 export const avatars: Picture[] = [
     { name: "AncientIrismon", imagePath: ancientIrismon, artist: "Tortoiseshel" },
@@ -74,7 +78,11 @@ export const avatars: Picture[] = [
     { name: "PrinceMamemon", imagePath: princeMamemon, artist: "Tortoiseshel" },
     { name: "Lilithmon X", imagePath: lilithmonX, artist: "Tortoiseshel" },
     { name: "Numemon", imagePath: numemon, artist: "Tortoiseshel" },
-    ];
+    { name: "Leviamon X", imagePath: leviamonX, artist: "Tortoiseshel" },
+    { name: "Imperialdramon PM", imagePath: imperialdramonPM, artist: "Tortoiseshel" },
+    { name: "HolyAngemon", imagePath: holyAngemon, artist: "Tortoiseshel" },
+    { name: "Pandamon", imagePath: pandamon, artist: "Tortoiseshel" }
+];
 
 export function profilePicture(avatarName: string) : string {
     return avatars.find((avatar) => avatar.name === avatarName)?.imagePath ?? placeholder;
