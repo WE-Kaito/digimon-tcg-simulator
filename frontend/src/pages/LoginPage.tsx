@@ -67,7 +67,6 @@ export default function LoginPage() {
             case INPUT_TYPE.REPEATED_PASSWORD:
                 valid = repeatedPassword === passwordReg;
         }
-
         if (valid) return "#6ed298";
         else return "#e17b88";
     }
@@ -87,44 +86,45 @@ export default function LoginPage() {
                 <LoginPageButton type="submit"><ButtonSpan>LOGIN</ButtonSpan></LoginPageButton>
                 <RegisterButton style={{marginTop: "50px"}} type="button"
                                 onClick={() => setRegisterPage(true)}><ButtonSpan>REGISTER</ButtonSpan></RegisterButton>
-            </StyledForm>}
+            </StyledForm>
+            }
 
-            {registerPage && <StyledForm2 onSubmit={handleSubmitRegistration}>
-
-                <div>
-                    <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
-                                        type="text" name="userName" placeholder="username" maxLength={16}
-                                        style={{backgroundColor: `${getInputColor(userNameReg, INPUT_TYPE.USERNAME)}`}}
-                    />
-                    <br/>
-                    <StyledInfo>3 - 16 characters</StyledInfo>
-                </div>
-                <div>
-                    <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
-                                        type="password" name="password" placeholder="password"
-                                        style={{backgroundColor: `${getInputColor(passwordReg, INPUT_TYPE.PASSWORD)}`}}
-                    />
-                    <br/>
-                    <StyledInfo>
-                        6+ characters, cont. numbers & letters
-                    </StyledInfo>
-                </div>
-                <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
-                                    type="password" name="RepeatPassword" placeholder="repeat password"
-                                    style={{backgroundColor: `${getInputColor(repeatedPassword, INPUT_TYPE.REPEATED_PASSWORD)}`}}/>
-                <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
-                                    type="text" name="Question" placeholder="safety question"
-                                    style={{backgroundColor: `${getInputColor(question, INPUT_TYPE.QUESTION)}`}}/>
-                <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
-                                    type="text" name="Answer" placeholder="answer (pw recovery)"
-                                    style={{backgroundColor: `${getInputColor(answer, INPUT_TYPE.QUESTION)}`}}/>
-                <ButtonContainer>
-                    <BackButton type="button"
-                                onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
-                    <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
-                </ButtonContainer>
-
-            </StyledForm2>}
+            {registerPage &&
+                <StyledForm2 onSubmit={handleSubmitRegistration}>
+                    <div>
+                        <InputFieldRegister value={userNameReg} onChange={(e) => setUserNameReg(e.target.value)}
+                                            type="text" name="userName" placeholder="username" maxLength={16}
+                                            style={{backgroundColor: `${getInputColor(userNameReg, INPUT_TYPE.USERNAME)}`}}
+                        />
+                        <br/>
+                        <StyledInfo>3 - 16 characters</StyledInfo>
+                    </div>
+                    <div>
+                        <InputFieldRegister value={passwordReg} onChange={(e) => setPasswordReg(e.target.value)}
+                                            type="password" name="password" placeholder="password"
+                                            style={{backgroundColor: `${getInputColor(passwordReg, INPUT_TYPE.PASSWORD)}`}}
+                        />
+                        <br/>
+                        <StyledInfo>
+                            6+ characters, cont. numbers & letters
+                        </StyledInfo>
+                    </div>
+                    <InputFieldRegister value={repeatedPassword} onChange={(e) => setRepeatedPassword(e.target.value)}
+                                        type="password" name="RepeatPassword" placeholder="repeat password"
+                                        style={{backgroundColor: `${getInputColor(repeatedPassword, INPUT_TYPE.REPEATED_PASSWORD)}`}}/>
+                    <InputFieldRegister value={question} onChange={(e) => setQuestion(e.target.value)}
+                                        type="text" name="Question" placeholder="safety question"
+                                        style={{backgroundColor: `${getInputColor(question, INPUT_TYPE.QUESTION)}`}}/>
+                    <InputFieldRegister value={answer} onChange={(e) => setAnswer(e.target.value)}
+                                        type="text" name="Answer" placeholder="answer (pw recovery)"
+                                        style={{backgroundColor: `${getInputColor(answer, INPUT_TYPE.QUESTION)}`}}/>
+                    <ButtonContainer>
+                        <BackButton type="button"
+                                    onClick={() => setRegisterPage(false)}><ButtonSpan>BACK</ButtonSpan></BackButton>
+                        <LoginPageButton type="submit"><ButtonSpan>REGISTER</ButtonSpan></LoginPageButton>
+                    </ButtonContainer>
+                </StyledForm2>
+            }
             {!registerPage && <PatchnotesAndDisclaimer/>}
         </MenuBackgroundWrapper>
     );

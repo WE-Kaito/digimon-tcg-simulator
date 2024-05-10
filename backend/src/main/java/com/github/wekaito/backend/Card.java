@@ -24,8 +24,7 @@ public record Card(
         String digiXros,
         String dnaDigivolve,
         String securityEffect,
-        String restriction_en,
-        String restriction_jp,
+        Restrictions restrictions,
         String illustrator
 
 ) {

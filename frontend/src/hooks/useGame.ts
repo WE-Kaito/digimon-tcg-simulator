@@ -13,7 +13,6 @@ import {
     Side
 } from "../utils/types.ts";
 import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
-import {locationsWithInheritedInfo} from "../utils/functions.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -104,7 +103,7 @@ export type State = BoardState & {
     /**
      * @param getKey - If true, returns the key of the location instead of the array
      */
-    getLocationCardsById: (id: string, getKey?: boolean) => CardTypeGame[] | null | string,
+    getCardLocationById: (id: string) => string,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -271,6 +270,8 @@ export const useGame = create<State>()(
             opponentReady: false,
             isLoading: false,
             bootStage: BootStage.CLEAR,
+            initialDistributionState: "",
+            opponentGameState: "",
         });
     },
 
@@ -283,7 +284,18 @@ export const useGame = create<State>()(
             const player1 = gameId.split("‗")[0];
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
 
-            playDrawCardSfx();
+            set({ initialDistributionState: "", bootStage: BootStage.MULLIGAN });
+
+            // Preloading images
+            for (const stateKey in game) {
+                if (Object.hasOwnProperty.call(game, stateKey)) {
+
+                    const state = game[stateKey as keyof GameDistribution];
+
+                    if (Array.isArray(state)) state.forEach((card) => new Image().src = card.imgUrl);
+                }
+            }
+
 
             if (user === player1) {
                 set({
@@ -295,8 +307,6 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player2DeckField,
                     opponentEggDeck: game.player2EggDeck,
                     opponentSecurity: game.player2Security,
-                    initialDistributionState: "",
-                    bootStage: BootStage.MULLIGAN,
                 });
             } else {
                 set({
@@ -308,11 +318,10 @@ export const useGame = create<State>()(
                     opponentDeckField: game.player1DeckField,
                     opponentEggDeck: game.player1EggDeck,
                     opponentSecurity: game.player1Security,
-                    initialDistributionState: "",
-                    bootStage: BootStage.MULLIGAN,
                 });
             }
             sendLoaded();
+            playDrawCardSfx();
         }
     },
 
@@ -363,6 +372,8 @@ export const useGame = create<State>()(
 
             const opponentGameJson: OneSideDistribution = JSON.parse(get().opponentGameState);
 
+            set ({ opponentGameState: ""});
+
             set({
                 opponentReveal: opponentGameJson.playerReveal,
                 opponentHand: opponentGameJson.playerHand,
@@ -391,7 +402,6 @@ export const useGame = create<State>()(
                 phase: opponentGameJson.playerPhase,
                 isMyTurn: opponentGameJson.isPlayerTurn,
 
-                opponentGameState: "",
                 isLoading: false
             });
         }
@@ -405,16 +415,33 @@ export const useGame = create<State>()(
         const fromState = get()[from as keyof State] as CardTypeGame[];
         const card = fromState.find(card => card.id === cardId);
         if (!card) return;
-        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
+        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
 
-        if (toState.length > 0 && toState[toState.length - 1].isTilted) {
-            toState[toState.length - 1].isTilted = false;
-            card.isTilted = true;
-        } else {
-            card.isTilted = false;
+        if (toState.length > 0) {
+            const prevTopCard = toState[toState.length - 1];
+
+            if(prevTopCard.isTilted) {
+                prevTopCard.isTilted = false;
+                card.isTilted = true;
+            } else card.isTilted = false;
+
+            if(!card.modifiers.plusDp) {
+                card.modifiers.plusDp = prevTopCard.modifiers.plusDp;
+                prevTopCard.modifiers.plusDp = 0;
+            } else prevTopCard.modifiers.plusDp = 0;
+
+            if(!card.modifiers.plusSecurityAttacks){
+                card.modifiers.plusSecurityAttacks = prevTopCard.modifiers.plusSecurityAttacks;
+                prevTopCard.modifiers.plusSecurityAttacks = 0;
+            } else prevTopCard.modifiers.plusSecurityAttacks = 0;
+
+            if(!card.modifiers.keywords.length){
+                card.modifiers.keywords = prevTopCard.modifiers.keywords;
+                prevTopCard.modifiers.keywords = [];
+            } else prevTopCard.modifiers.keywords = [];
         }
 
         if (from === to) {
@@ -447,7 +474,7 @@ export const useGame = create<State>()(
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId);
 
         if (topOrBottom === "Top" && card) card.isTilted = false;
-        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0};
+        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
 
         if (cardLocation === to) {
             set({
@@ -565,7 +592,7 @@ export const useGame = create<State>()(
             ...tokenVariant,
             id: id,
             isTilted: false,
-            modifiers: { plusDp: 0, plusSecurityAttacks: 0 }
+            modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: []}
         };
         set((state) => {
             for (let i = 1; i <= 10; i++) {
@@ -677,12 +704,15 @@ export const useGame = create<State>()(
 
     setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
 
-    getLocationCardsById: (cardId, getKey = false) => {
-        for (const location of locationsWithInheritedInfo) {
-            const locationState = (get()[location as keyof State] as CardTypeGame[]);
-            if (locationState.find(card => card.id === cardId)) return getKey ? location : locationState;
+    getCardLocationById: (cardId) => {
+        const state = get();
+        for (const key in state) {
+            if (Object.prototype.hasOwnProperty.call(state, key)) {
+                const locationState = (state[key as keyof State] as CardTypeGame[]);
+                if (Array.isArray(locationState) && locationState.find(card => card.id === cardId)) return key;
+            }
         }
-        return null;
+        return "";
     },
 
     setModifiers: (cardId, location, modifiers) => {
