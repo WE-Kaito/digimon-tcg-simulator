@@ -90,7 +90,7 @@ import stackIconSrc from "../assets/stackIcon.png";
 
 export default function Game({user}: { user: string }) {
     const currentPort = window.location.port;
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://project-drasil.online:8080/api/ws/game";
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://project-drasil.online/api/ws/game";
 
     const selectedCard = useStore((state) => state.selectedCard);
     const selectCard = useStore((state) => state.selectCard);
