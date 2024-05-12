@@ -64,19 +64,3 @@ jobs:
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
-
-  startup:
-    name: Start service
-    runs-on: ubuntu-latest
-    needs: deploy
-    environment: Musubi
-    steps:
-      - name: Startup
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.PORT }}
-          script: |
-            sudo systemctl restart project-drasil
