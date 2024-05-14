@@ -177,10 +177,9 @@ class Bot(ABC):
                 self.logger.debug(f"Received: {message}")
                 if(message.startswith('[INVITATION]:')):
                     challenger = message.removeprefix('[INVITATION]:')
+                    self.game_name = f'{challenger}‗{self.username}'
                     self.logger.info(f'Challenger: {challenger}')
                     await ws.send(f"/acceptInvite:{challenger}")
-                    message = await ws.recv()
-                    self.game_name = f'{challenger}‗{self.username}'
                     self.loop.create_task(self.online_ping(ws))
                     return challenger
                 time.sleep(1)
@@ -1023,6 +1022,7 @@ class Bot(ABC):
     async def play(self):
         starting_game = ''
         async with websockets.connect(self.game_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
+            await ws.send(f'/joinGame:{self.game_name}')
             await ws.send(f'/startGame:{self.game_name}')
             opponent_ready = False
             done_mulligan = False
@@ -1036,6 +1036,7 @@ class Bot(ABC):
                 else:
                     if starting_game != '':
                         self.initialize_game(json.loads(starting_game))
+                        await self.loaded_ping(ws)
                         if not done_mulligan:
                             if self.mulligan_strategy():
                                 await self.mulligan(ws)
@@ -1050,8 +1051,6 @@ class Bot(ABC):
                     if starting_player == self.username:
                        self.first_turn = True
                        self.my_turn = True
-                if message.startswith('[UPDATE_OPPONENT]'):
-                    await self.loaded_ping(ws)
                 if message.startswith('[UPDATE_MEMORY]:'):
                     self.game['memory'] = int(message[-1])
                 if message.startswith('[PLAYER_READY]'):
