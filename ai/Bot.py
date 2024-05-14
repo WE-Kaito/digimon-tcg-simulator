@@ -53,20 +53,19 @@ class Bot(ABC):
 
     def __init__(self, username):
         self.s = requests.Session()
-        print(f'http://{self.host}/login')
-        cookies = self.s.get(f'http://{self.host}/login').cookies.get_dict()
+        cookies = self.s.get(f'https://{self.host}/login', verify=config('SSL_VERIFY', cast=bool)).cookies.get_dict()
         self.headers = {
             'Content-Type': 'application/json',
             'Cookie': f"JSESSIONID={cookies['JSESSIONID']}; XSRF-TOKEN={cookies['XSRF-TOKEN']}",
             'Host': self.host,
-            'Referer': f'http://{self.host}/login',
+            'Referer': f'https://{self.host}/login',
             'X-Xsrf-Token': cookies['XSRF-TOKEN']
         }
         self.loop = asyncio.get_event_loop()
         self.deck = json.load(open(self.deck_path))
         self.username = username
-        self.game_ws = f'ws://{self.host}/api/ws/game'
-        self.chat_ws = f'ws://{self.host}/api/ws/chat'
+        self.game_ws = f'wss://{self.host}/api/ws/game'
+        self.chat_ws = f'wss://{self.host}/api/ws/chat'
         self.my_turn = False
         self.first_turn = False
         self.game = {}
@@ -106,7 +105,7 @@ class Bot(ABC):
         return False
 
     def login(self):
-        login = self.s.get(f'http://{self.host}/api/user/me', headers=self.headers, auth=(self.username, self.password))
+        login = self.s.get(f'https://{self.host}/api/user/me', headers=self.headers, auth=(self.username, self.password), verify=config('SSL_VERIFY', cast=bool))
         cookies = self.s.cookies.get_dict()
         self.headers['Cookie'] = f"JSESSIONID={cookies['JSESSIONID']}; XSRF-TOKEN={cookies['XSRF-TOKEN']}"
         self.headers['X-Xsrf-Token'] = cookies['XSRF-TOKEN']
@@ -114,31 +113,31 @@ class Bot(ABC):
 
     def register(self):
         data={'username': self.username, 'password': self.password, 'question': self.question, 'answer': self.answer}
-        register = self.s.post(f'http://{self.host}/api/user/register', headers=self.headers, data=json.dumps(data))
+        register = self.s.post(f'https://{self.host}/api/user/register', headers=self.headers, data=json.dumps(data), verify=config('SSL_VERIFY', cast=bool))
         return self.handle_response(register, 200, 'Registration succeded!', f'Registration failed with status code {register.status_code}, exiting...')
 
     def lobby(self):
-        lobby = self.s.get(f'http://{self.host}/lobby', self.headers, auth=(self.username, self.password))
+        lobby = self.s.get(f'https://{self.host}/lobby', self.headers, auth=(self.username, self.password), verify=config('SSL_VERIFY', cast=bool))
         return self.handle_response(lobby, 200, 'Accessed lobby!', f'Failed to access lobby with status code {lobby.status_code}, exiting...')
 
     def list_imported_decks(self):
-        imported_decks = self.s.get(f'http://{self.host}/api/profile/decks', headers=self.headers, data=json.dumps(self.deck))
+        imported_decks = self.s.get(f'https://{self.host}/api/profile/decks', headers=self.headers, data=json.dumps(self.deck), verify=config('SSL_VERIFY', cast=bool))
         return self.handle_response(imported_decks, 200, 'Listed imported decks successfully', f'Failed listing imported decks with status code {imported_decks.status_code}, exiting...')
 
     def set_avatar(self, avatar):
-        set_avatar = self.s.put(f'http://{self.host}/api/user/avatar/{avatar}', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck))
+        set_avatar = self.s.put(f'https://{self.host}/api/user/avatar/{avatar}', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck), verify=config('SSL_VERIFY', cast=bool))
         return self.handle_response(set_avatar, 200, 'Set avatar successfully', f'Failed setting avatar with error {set_avatar.status_code}, exiting...')
 
     def import_deck(self, imported_decks=[]):
         deck_names = set([d['name'] for d in imported_decks])
         if self.deck['name'] not in deck_names:
-            import_deck = self.s.post(f'http://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck))
+            import_deck = self.s.post(f'https://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers, data=json.dumps(self.deck), verify=config('SSL_VERIFY', cast=bool))
             return self.handle_response(import_deck, 200, 'Imported deck successfully', f'Failed listing decks with error {import_deck.status_code}, exiting...')
         self.logger.info(f"Deck {self.deck['name']} has been already imported.")
         return True
 
     def set_active_deck(self):
-        decks = self.s.get(f'http://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers)
+        decks = self.s.get(f'https://{self.host}/api/profile/decks', auth=(self.username, self.password), headers=self.headers, verify=config('SSL_VERIFY', cast=bool))
         response = self.handle_response(decks, 200, 'Successfully retrieved decks', f'Could not retrieve decks. Status code: {decks.status_code}')
         if not response:
             exit(1)
@@ -148,7 +147,7 @@ class Bot(ABC):
                 deck_id = d['id']
         if deck_id is None:
             raise Exception('Deck not found!')
-        active_deck = self.s.put(f'http://{self.host}/api/user/active-deck/{deck_id}', auth=(self.username, self.password), headers=self.headers)
+        active_deck = self.s.put(f'https://{self.host}/api/user/active-deck/{deck_id}', auth=(self.username, self.password), headers=self.headers, verify=config('SSL_VERIFY', cast=bool))
         return self.handle_response(active_deck, 200, 'Deck set succesfully to active', f'Failed to set deck as active with status code {active_deck.status_code}, exiting...')
 
     def initialize_game(self, starting_game):
@@ -189,7 +188,7 @@ class Bot(ABC):
         ## Access Lobby and become available for a match
         while True:
             self.logger.info('Entering lobby.')
-            lobby_response = self.s.get(f'http://{self.host}/lobby', auth=(self.username, self.password))
+            lobby_response = self.s.get(f'https://{self.host}/lobby', auth=(self.username, self.password), verify=config('SSL_VERIFY', cast=bool))
             if lobby_response.status_code == 200:
                 self.logger.info('Accessed lobby, saying Hi')
                 asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
@@ -1030,15 +1029,30 @@ class Bot(ABC):
     async def play(self):
         starting_game = ''
         async with websockets.connect(self.game_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
-            await ws.send(f'/joinGame:{self.game_name}')
-            await ws.send(f'/startGame:{self.game_name}')
             opponent_ready = False
             done_mulligan = False
-            while True:
+            await ws.send(f'/joinGame:{self.game_name}')
+            message = await ws.recv()
+            self.logger.debug(f'Received: {message}')
+            while not message.startswith('[PLAYERS_READY]'):
                 message = await ws.recv()
                 self.logger.debug(f'Received: {message}')
-                if message.startswith('[START_GAME]:'):
-                    await self.hi(ws, message)
+            # await ws.send(f'/startGame:{self.game_name}')
+            while not message.startswith('[START_GAME]'):
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}')
+            # await ws.send(f'/getStartingPlayers:{self.game_name}')
+            while not message.startswith('[STARTING_PLAYER]'):
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}')
+            starting_player = message.removeprefix('[STARTING_PLAYER]:')
+            if starting_player == self.username:
+                self.first_turn = True
+                self.my_turn = True
+            while not message.startswith('[DISTRIBUTE_CARDS]:'):
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}') 
+            while True:
                 if message.startswith('[DISTRIBUTE_CARDS]:'):
                     starting_game += message.removeprefix('[DISTRIBUTE_CARDS]:')
                 else:
@@ -1054,24 +1068,29 @@ class Bot(ABC):
                             done_mulligan = True
                         ### TODO: Improve game initialization
                         starting_game = ''
-                if message.startswith('[STARTING_PLAYER]:'):
-                    starting_player = message.removeprefix('[STARTING_PLAYER]:')
-                    if starting_player == self.username:
-                       self.first_turn = True
-                       self.my_turn = True
+                    break
+                message = await ws.recv()
+            while not message.startswith('[LOADED]'):
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}')
+            opponent_ready=True
+            while not message.startswith('[PLAYER_READY]'):
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}')
+            await self.send_player_ready(ws)
+            while True:
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}')
                 if message.startswith('[UPDATE_MEMORY]:'):
                     self.game['memory'] = int(message[-1])
-                if message.startswith('[PLAYER_READY]'):
-                    await self.send_player_ready(ws)
-                    opponent_ready = True
                 if message.startswith('[PASS_TURN_SFX]'):
                     self.my_turn = True
                 if self.my_turn and opponent_ready:
                     await self.turn(ws)
-                try:
-                    await self.waiter.check_for_action(ws, message)
-                except TimeoutError as e:
-                    self.logger.error(TimeoutError)
+                #try:
+                await self.waiter.check_for_action(ws, message)
+                #except TimeoutError as e:
+                #self.logger.error(TimeoutError)
 
     @abstractmethod
     def mulligan_strategy(self):
