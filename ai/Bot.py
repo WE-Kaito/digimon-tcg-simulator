@@ -589,8 +589,7 @@ class Bot(ABC):
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
         try:
             await self.waiter.wait_for_opponent_counter_blocking(ws)
-        except TimeoutError:
-            except TimeoutError as e:
+        except TimeoutError as e:
             self.logger.error(e)
    
     def find_can_attack_digimon_of_level(self, level):
