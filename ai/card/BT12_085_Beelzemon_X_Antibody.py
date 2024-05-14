@@ -16,4 +16,4 @@ class BT12_085_Beelzemon_X_Antibody(Card):
                 await self.bot.waiter.wait_for_actions(ws)
     async def on_deletion_effect(self, ws):
         await self.bot.send_message(ws, f"Beelzemon (X Antibody) [On Deletion] effect:")
-        self.bt12_085_beelzemon_x_antibody_on_deletion_strategy(ws)
+        self.bot.bt12_085_beelzemon_x_antibody_on_deletion_strategy(ws)

@@ -9,6 +9,7 @@ import logging
 import requests
 import websockets
 from decouple import config
+from timeout_decorator.timeout_decorator import TimeoutError
 
 from Waiter import Waiter
 
@@ -186,16 +187,17 @@ class Bot(ABC):
 
     def join_lobby(self):
         ## Access Lobby and become available for a match
-        self.logger.info('Entering lobby.')
-        lobby_response = self.s.get(f'http://{self.host}/lobby', auth=(self.username, self.password))
-        if lobby_response.status_code == 200:
-            self.logger.info('Accessed lobby, saying Hi')
-            asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
-            self.opponent = asyncio.run(self.wait_in_lobby())
-            self.logger.info('Opponent found, starting game.')
-            asyncio.run(self.play())
-        else:
-            self.logger.error('Error when accessing/waiting in lobby')
+        while True:
+            self.logger.info('Entering lobby.')
+            lobby_response = self.s.get(f'http://{self.host}/lobby', auth=(self.username, self.password))
+            if lobby_response.status_code == 200:
+                self.logger.info('Accessed lobby, saying Hi')
+                asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
+                self.opponent = asyncio.run(self.wait_in_lobby())
+                self.logger.info('Opponent found, starting game.')
+                asyncio.run(self.play())
+            else:
+                self.logger.error('Error when accessing/waiting in lobby')
     
     async def send_message(self, ws, message):
         self.logger.info(message)
@@ -585,7 +587,11 @@ class Bot(ABC):
         await self.suspend_card(ws, card_index)
         await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentSecurity:true")
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
-        await self.waiter.wait_for_opponent_counter_blocking(ws)
+        try:
+            await self.waiter.wait_for_opponent_counter_blocking(ws)
+        except TimeoutError:
+            except TimeoutError as e:
+            self.logger.error(e)
    
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
@@ -886,7 +892,10 @@ class Bot(ABC):
         card_name = self.game['player1Digi'][card_index][-1]['name']
         await self.send_message(ws, f'I\'d like to delete the {card_name} in position {card_index}')
         await self.send_message(ws, 'Resolve effects and type Ok to continue.')
-        await self.waiter.wait_for_actions(ws)
+        try:
+            await self.waiter.wait_for_actions(ws)
+        except TimeoutError as e:
+            self.logger.error(TimeoutError)
 
     async def promote(self, ws):
         self.logger.info('Promoting from breed area.')
@@ -1060,7 +1069,10 @@ class Bot(ABC):
                     self.my_turn = True
                 if self.my_turn and opponent_ready:
                     await self.turn(ws)
-                await self.waiter.check_for_action(ws, message)
+                try:
+                    await self.waiter.check_for_action(ws, message)
+                except TimeoutError as e:
+                    self.logger.error(TimeoutError)
 
     @abstractmethod
     def mulligan_strategy(self):
