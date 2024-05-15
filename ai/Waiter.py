@@ -1,6 +1,5 @@
 import logging
 from decouple import config
-from timeout_decorator import timeout
 
 DIGI_MIN_INDEX=1
 DIGI_MAX_INDEX=15
@@ -69,7 +68,6 @@ class Waiter:
         elif where == 'Bottom':
             destination_location.append(source_location.pop(source_card_index))
 
-    @timeout(600, use_signals=False)
     async def wait_for_opponent_counter_blocking(self, ws):
         await self.bot.send_message(ws, 'Perform Counter, Blocking time and Security Checks, then type "Ok" in Chat')
         await self.wait_for_actions(ws)
@@ -131,7 +129,6 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False, False
 
-    @timeout(600, use_signals=False)
     async def check_for_action(self, ws, message):
         move_message_prefix = '[MOVE_CARD]:'
         if message.startswith(move_message_prefix):
@@ -289,7 +286,6 @@ class Waiter:
             if card_id:
                 await self.bot.de_digivolve(ws, card_id, n)
 
-    @timeout(600, use_signals=False)
     async def wait_for_actions(self, ws):
         message = None
         message_payload = None
