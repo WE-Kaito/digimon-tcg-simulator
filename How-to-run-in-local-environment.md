@@ -98,4 +98,3 @@ Then install with:
 ``"NoSuchFieldError: JCImport does not have member field JCTree qualid"``
 
 Check the lombok version in the pom.xml file as suggested [here](https://stackoverflow.com/questions/77171270/compilation-error-after-upgrading-to-jdk-21-nosuchfielderror-jcimport-does-n)
-

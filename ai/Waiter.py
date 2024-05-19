@@ -87,7 +87,21 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False
 
+
+    async def filter_security_check_action(self, ws, message):
+        if len(self.bot.game['player2Security']) == 0:
+            await self.bot.surrender(ws, "Oh no! Direct attack, you win!")
+            return False
+        message = message.split(' ')
+        if len(message) == 1:
+            return self.bot.game['player2Security'][0]['id']
+        await self.send_invalid_command_message(ws)
+        return False
+    
     async def filter_target_security_card_action(self, ws, message):
+        if message == 'security_check' and len(self.bot.game['player2Security']) == 0:
+            await self.bot.surrender(ws, "Oh no! Direct attack, you win!")
+            return False
         message = message.split(' ')
         if len(message) == 2 and message[1].isdigit():
             card_index = int(message[1])
@@ -208,6 +222,12 @@ class Waiter:
             card_id = await self.filter_target_security_card_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.reveal_card_from_security(ws, card_id)
+        prefix = 'security check'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_security_check_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                await self.bot.security_check(ws, card_id)
         prefix = 'reveal top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):

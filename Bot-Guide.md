@@ -9,6 +9,8 @@ The position X is identified in the following way on the field:
 
 ![alt text](assets/bot-field.png)
 
+- **security check**: Perform a security check.
+
 - **delete X**: Delete the card at the X position.
 
 - **return bottom deck X**: Return the card at the X position at the bottom of the opponent deck.
