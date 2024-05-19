@@ -1062,11 +1062,11 @@ class Bot(ABC):
                         self.initialize_game(json.loads(starting_game))
                         await self.loaded_ping(ws)
                         if not done_mulligan:
-                            # if self.mulligan_strategy():
-                            #     await self.mulligan(ws)
-                            #     await self.send_game_chat_message(ws, 'I mulligan my hand')
-                            # else:
-                            await self.send_game_chat_message(ws, 'I keep my hand')
+                            if self.mulligan_strategy():
+                                await self.mulligan(ws)
+                                await self.send_game_chat_message(ws, 'I mulligan my hand')
+                            else:
+                                await self.send_game_chat_message(ws, 'I keep my hand')
                             done_mulligan = True
                         ### TODO: Improve game initialization
                         starting_game = ''

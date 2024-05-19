@@ -26,7 +26,7 @@ class Waiter:
         if s.startswith('Digi'):
             index = self.bot.get_first_digit_index(s)
             index = int(s[index:])
-            location = self.bot.game['player1Digi'][index]
+            location = self.bot.game['player1Digi'][index-1]
         elif s=='Hand' or s == 'Trash' or s == 'Security' or \
             s == 'DeckField' or s == 'EggDeck' or s == 'BreedingArea' or \
             s == 'Reveal':
