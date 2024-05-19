@@ -1012,6 +1012,7 @@ class Bot(ABC):
         self.cant_attack_until_end_of_turn.clear()
         self.cant_block_until_end_of_turn.clear()
         self.triggered_already_this_turn.clear()
+        await self.waiter.reset_timestamp()
     
     async def loaded_ping(self, ws):
         await ws.send(f'{self.game_name}:/loaded:{self.opponent}')
@@ -1023,7 +1024,7 @@ class Bot(ABC):
 
     async def play(self):
         starting_game = ''
-        async with websockets.connect(self.game_ws, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
+        async with websockets.connect(self.game_ws, timeout=5, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
             opponent_ready = False
             done_mulligan = False
             await ws.send(f'/joinGame:{self.game_name}')
@@ -1069,7 +1070,12 @@ class Bot(ABC):
                 message = await ws.recv()
                 self.logger.debug(f'Received: {message}')
             opponent_ready=True
+            await self.waiter.reset_timestamp()
             while not message.startswith('[PLAYER_READY]'):
+                if message.startswith(f'[OPPONENT_ONLINE]') or message.startswith('[OPPONENT_RECONNECTED]'):
+                    await self.waiter.reset_timestamp()
+                if not await self.waiter.check_timestamp():
+                    return False
                 message = await ws.recv()
                 self.logger.debug(f'Received: {message}')
             await self.send_player_ready(ws)
@@ -1081,8 +1087,9 @@ class Bot(ABC):
                 if message.startswith('[PASS_TURN_SFX]'):
                     self.my_turn = True
                 if self.my_turn and opponent_ready:
-                    await self.turn(ws)
-                await self.waiter.check_for_action(ws, message)
+-                    await self.turn(ws)
+                if not await self.waiter.check_for_action(ws, message):
+                    return False
 
     @abstractmethod
     def mulligan_strategy(self):

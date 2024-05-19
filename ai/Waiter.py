@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from decouple import config
 
 DIGI_MIN_INDEX=1
@@ -8,6 +9,8 @@ class Waiter:
     
     def __init__(self, bot):
         self.bot = bot
+        self.timestamp = None
+        self.TIMEOUT_INTERVAL = config('TIMEOUT_INTERVAL', cast=int)
 
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(config('LOGLEVEL'))
@@ -128,8 +131,16 @@ class Waiter:
             return target_digimon['id'], n
         await self.send_invalid_command_message(ws)
         return False, False
+    
+    async def reset_timestamp(self):
+        self.timestamp = datetime.now()
+        self.logger.info('Player\'s still online.')
 
     async def check_for_action(self, ws, message):
+        if message.startswith(f'[OPPONENT_ONLINE]') or message.startswith('[OPPONENT_RECONNECTED]'):
+            await self.reset_timestamp()
+        if not await self.check_timestamp():
+            return False
         move_message_prefix = '[MOVE_CARD]:'
         if message.startswith(move_message_prefix):
             self.process_move_action(message.replace(move_message_prefix, '', 1))
@@ -285,13 +296,25 @@ class Waiter:
             card_id, n  = await self.filter_de_digivolve_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.de_digivolve(ws, card_id, n)
+        return True
+    
+    async def check_timestamp(self):
+        if self.timestamp is None:
+            await self.reset_timestamp()
+            return True
+        if datetime.now() - self.timestamp > timedelta(seconds=self.TIMEOUT_INTERVAL):
+            return False
+        return True
 
     async def wait_for_actions(self, ws):
         message = None
         message_payload = None
+        await self.reset_timestamp()
         while message_payload != f'ok':
             chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
             message = await ws.recv()
             if message.startswith(chat_message_prefix):
                 message_payload = message.replace(chat_message_prefix, '', 1).strip().lower()
-            await self.check_for_action(ws, message)
+            if not await self.check_for_action(ws, message):
+                return False
+        return True
