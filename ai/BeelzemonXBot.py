@@ -205,7 +205,7 @@ class BeelzemonXBot(Bot):
         sevent_full_cluster_in_trash_index = self.card_in_trash('BT12-110', 'Seventh Full Cluster')
         if sevent_full_cluster_in_trash_index < 0:
             return
-        card = self.game['player2Trash'][sevent_full_cluster_in_trash_index][-1]
+        card = self.game['player2Trash'][sevent_full_cluster_in_trash_index]
         sevent_full_cluster = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
         await sevent_full_cluster.trash_effect(ws)
         time.sleep(2)
