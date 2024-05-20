@@ -230,11 +230,11 @@ class Waiter:
                 await self.bot.security_check(ws, card_id)
         prefix = 'reveal top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
-        if message.startswith(prefix):
+        if message.startswith(prefix) and len(self.bot.game['player2DeckField']) > 0:
             await self.bot.reveal_card_from_top_of_deck(ws, 1)
         prefix = 'trash top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
-        if message.startswith(prefix) and len(self.game['player2DeckField']) > 0:
+        if message.startswith(prefix) and len(self.bot.game['player2DeckField']) > 0:
             await self.bot.trash_top_card_of_deck(ws)
         prefix = 'play reveal'
         prefix_with_delimiter = prefix.replace(' ', '_')

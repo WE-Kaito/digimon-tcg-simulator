@@ -803,37 +803,45 @@ class Bot(ABC):
 
     async def return_from_battle_area_to_bottom_of_deck(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
-        card = self.game['player2Digi'][card_index].pop(-1)
         await self.move_card_to_deck(ws, 'Bottom', card_id, card_index)
+        card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']} to bottom of deck.")
-        self.game['player2DeckField'].append(card)
-        await self.update_game(ws)
+        self.game['player2DeckField'].insert(0, card)
         stack = self.game['player2Digi'][card_index]
-        if len(stack) > 0:
-            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
+        await self.move_card(ws, f'myDigi{card_index+1}', f'myTrash')
+        for i in range(len(stack)):
+            card = self.game['player2Digi'][card_index].pop(-1)
+            await self.send_message(ws, f"Move {card['uniqueCardNumber']}-{card['name']} from battle area to trash.")
+            self.game['player2Trash'].insert(0, card)
 
     async def return_from_battle_area_to_top_of_deck(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
-        card = self.game['player2Digi'][card_index].pop(-1)
         await self.move_card_to_deck(ws, 'Top', card_id, card_index)
+        card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
         await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']} to top of deck.")
         self.game['player2DeckField'].insert(0, card)
         stack = self.game['player2Digi'][card_index]
-        if len(stack) > 0:
-            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
+        await self.move_card(ws, f'myDigi{card_index+1}', f'myTrash')
+        for i in range(len(stack)):
+            card = self.game['player2Digi'][card_index].pop(-1)
+            await self.send_message(ws, f"Move {card['uniqueCardNumber']}-{card['name']} from battle area to trash.")
+            self.game['player2Trash'].insert(0, card)
 
     async def return_from_battle_area_to_hand(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
-        await self.move_card(ws, f'myDigi{card_index+1}', 'myHand0')
+        await self.move_card(ws, f'myDigi{card_index+1}', 'myHand0', target_card_id=card_id)
         card = self.game['player2Digi'][card_index].pop(-1)
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Hand')
         await self.send_message(ws, f"Return {card['uniqueCardNumber']}-{card['name']}.")
-        self.game['player2DeckField'].append(card)
+        self.game['player2Hand'].append(card)
         stack = self.game['player2Digi'][card_index]
-        if len(stack) > 0:
-            await self.delete_stack_from_battle_area(ws, stack[-1]['id'])
+        await self.move_card(ws, f'myDigi{card_index+1}', f'myTrash')
+        for i in range(len(stack)):
+            card = self.game['player2Digi'][card_index].pop(-1)
+            await self.send_message(ws, f"Move {card['uniqueCardNumber']}-{card['name']} from battle area to trash.")
+            self.game['player2Trash'].insert(0, card)
     
     async def return_from_trash_to_bottom_of_deck(self, ws, card_id):
         card_index, _ = self.find_card_index_by_id_in_trash(card_id)
@@ -1062,11 +1070,11 @@ class Bot(ABC):
                         self.initialize_game(json.loads(starting_game))
                         await self.loaded_ping(ws)
                         if not done_mulligan:
-                            if self.mulligan_strategy():
-                                await self.mulligan(ws)
-                                await self.send_game_chat_message(ws, 'I mulligan my hand')
-                            else:
-                                await self.send_game_chat_message(ws, 'I keep my hand')
+                            # if self.mulligan_strategy():
+                            #     await self.mulligan(ws)
+                            #     await self.send_game_chat_message(ws, 'I mulligan my hand')
+                            # else:
+                            await self.send_game_chat_message(ws, 'I keep my hand')
                             done_mulligan = True
                         ### TODO: Improve game initialization
                         starting_game = ''
