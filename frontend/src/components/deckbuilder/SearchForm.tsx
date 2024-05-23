@@ -52,7 +52,7 @@ export default function SearchForm() {
         setDigivolutioncost(null);
         setLevel(null);
         setStage(null);
-        setDigitype(null);
+        setDigitype("");
         setAttribute(null);
         setNumber("");
         setIllustrator("");
@@ -176,178 +176,7 @@ export default function SearchForm() {
                 <option>D-Reaper</option>
             </StageSelect>
 
-            <DigitypeSelect value={digitype ?? "Digi-Type"} onChange={(e) => {
-                setDigitype(e.target.value !== "Digi-Type" ? e.target.value : null)
-            }}>
-                <option>Digi-Type</option>
-                <option>9000</option>
-                <option>AA Defense Agent</option>
-                <option>Ability Synthesis Agent</option>
-                <option>Abnormal</option>
-                <option>Abadin Electronics</option>
-                <option>Alien</option>
-                <option>Alien Humanoid</option>
-                <option>Amphibian</option>
-                <option>Ancient</option>
-                <option>Ancient Animal</option>
-                <option>Ancient Aquabeast</option>
-                <option>Ancient Bird</option>
-                <option>Ancient Birdkin</option>
-                <option>Ancient Crustacean</option>
-                <option>Ancient Dragon</option>
-                <option>Ancient Dragonkin</option>
-                <option>Ancient Fish</option>
-                <option>Ancient Holy Warrior</option>
-                <option>Ancient Insectoid</option>
-                <option>Ancient Mineral</option>
-                <option>Ancient Mutant</option>
-                <option>Ancient Mythical Beast</option>
-                <option>Ancient Plant</option>
-                <option>Android</option>
-                <option>Angel</option>
-                <option>Animal</option>
-                <option>Ankylosaur</option>
-                <option>Aquabeast</option>
-                <option>Aquatic</option>
-                <option>Archangel</option>
-                <option>Armor</option>
-                <option>Authority</option>
-                <option>Avian</option>
-                <option>Baby Dragon</option>
-                <option>Base Defense Agent</option>
-                <option>Beast</option>
-                <option>Beast Dragon</option>
-                <option>Beast Knight</option>
-                <option>Beastkin</option>
-                <option>Bird</option>
-                <option>Bird Dragon</option>
-                <option>Birdkin</option>
-                <option>Blue Flare</option>
-                <option>Bulb</option>
-                <option>Carnivorous Plant</option>
-                <option>Ceratopsian</option>
-                <option>Cherub</option>
-                <option>Commander Agent</option>
-                <option>Composite</option>
-                <option>Composition</option>
-                <option>CRT</option>
-                <option>Crustacean</option>
-                <option>Cyborg</option>
-                <option>D-Brigade</option>
-                <option>Dark Animal</option>
-                <option>Dark Dragon</option>
-                <option>Dark Knight</option>
-                <option>Data</option>
-                <option>Demon</option>
-                <option>Demon Lord</option>
-                <option>Deva</option>
-                <option>DigiPolice</option>
-                <option>Dinosaur</option>
-                <option>Dragon</option>
-                <option>Dragon Warrior</option>
-                <option>Dragonkin</option>
-                <option>Earth Dragon</option>
-                <option>Enhancement</option>
-                <option>Espionage Agent</option>
-                <option>Evil</option>
-                <option>Evil Dragon</option>
-                <option>Fairy</option>
-                <option>Fallen Angel</option>
-                <option>Fire</option>
-                <option>Fire Dragon</option>
-                <option>Flame</option>
-                <option>Food</option>
-                <option>Four Great Dragons</option>
-                <option>General</option>
-                <option>Ghost</option>
-                <option>Giant Bird</option>
-                <option>God Beast</option>
-                <option>Grappling Agent</option>
-                <option>Ground Combat Agent</option>
-                <option>Holy Beast</option>
-                <option>Holy Bird</option>
-                <option>Holy Dragon</option>
-                <option>Holy Sword</option>
-                <option>Holy Warrior</option>
-                <option>Hunter</option>
-                <option>Ice-Snow</option>
-                <option>Icy</option>
-                <option>Insectoid</option>
-                <option>Intel Acquisition Agent</option>
-                <option>Invader</option>
-                <option>Larva</option>
-                <option>LCD</option>
-                <option>Legend-Arms</option>
-                <option>Lesser</option>
-                <option>LIBERATOR</option>
-                <option>Light Dragon</option>
-                <option>Light Fang</option>
-                <option>Machine</option>
-                <option>Machine Dragon</option>
-                <option>Magic Knight</option>
-                <option>Magic Warrior</option>
-                <option>Major</option>
-                <option>Mammal</option>
-                <option>Marine Man</option>
-                <option>Mine</option>
-                <option>Mineral</option>
-                <option>Mini Angel</option>
-                <option>Mini Bird</option>
-                <option>Mini Dragon</option>
-                <option>Minor</option>
-                <option>Mollusk</option>
-                <option>Monk</option>
-                <option>Mothership Agent</option>
-                <option>Musical Instrument</option>
-                <option>Mutant</option>
-                <option>Mysterious Beast</option>
-                <option>Mysterious Bird</option>
-                <option>Mythical</option>
-                <option>Mythical Animal</option>
-                <option>Mythical Beast</option>
-                <option>Mythical Dragon</option>
-                <option>Night Claw</option>
-                <option>NO DATA</option>
-                <option>Parasite</option>
-                <option>Perfect</option>
-                <option>Pixie</option>
-                <option>Plesiosaur</option>
-                <option>Puppet</option>
-                <option>Rare Animal</option>
-                <option>Reconnaissance Agent</option>
-                <option>Reptile</option>
-                <option>Reptile Man</option>
-                <option>Rock</option>
-                <option>Rock Dragon</option>
-                <option>Royal Knight</option>
-                <option>Sea Animal</option>
-                <option>Sea Beast</option>
-                <option>Seraph</option>
-                <option>Seven Great Demon Lords</option>
-                <option>Shaman</option>
-                <option>SoC</option>
-                <option>Skeleton</option>
-                <option>Sky Dragon</option>
-                <option>Sky Dragon</option>
-                <option>Super Major</option>
-                <option>Throne</option>
-                <option>Tropical Fish</option>
-                <option>Twilight</option>
-                <option>Unanalyzable</option>
-                <option>Undead</option>
-                <option>Unidentified</option>
-                <option>Unique</option>
-                <option>Unknown</option>
-                <option>Vegetation</option>
-                <option>Virtue</option>
-                <option>Vortex Warriors</option>
-                <option>Warrior</option>
-                <option>Weapon</option>
-                <option>Wizard</option>
-                <option>X Antibody</option>
-                <option>X Program</option>
-                <option>Xros Heart</option>
-            </DigitypeSelect>
+            <DigitypeInput placeholder={"Digi-Type"} value={digitype ?? []} onChange={(e) => {setDigitype(e.target.value)}}/>
 
             <AttributeSelect value={attribute ?? "Attr."} onChange={(e) => {
                 setAttribute(e.target.value !== "Attr." ? e.target.value : null);
@@ -525,7 +354,7 @@ const StageSelect = styled(StyledSelect)`
   grid-area: stage;
 `;
 
-const DigitypeSelect = styled(StyledSelect)`
+const DigitypeInput = styled(StyledInput)`
   grid-area: digitype;
 `;
 
