@@ -198,6 +198,7 @@ class Bot(ABC):
                 asyncio.run(self.play())
             else:
                 self.logger.error('Error when accessing/waiting in lobby')
+                self.logger.error(lobby_response.text)
     
     async def send_message(self, ws, message):
         self.logger.info(message)
