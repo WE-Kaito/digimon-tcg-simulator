@@ -145,7 +145,7 @@ export const useStore = create<State>((set, get) => ({
         if (cardType) filteredData = filteredData.filter((card) => card.cardType === cardType);
         if (stage) filteredData = filteredData.filter((card) => card.stage === stage);
         if (attribute) filteredData = filteredData.filter((card) => card.attribute === attribute);
-        if (digiType) filteredData = filteredData.filter((card) => card.digiType?.join(' ').toLowerCase().includes(digiType.toLowerCase()));
+        if (digiType) filteredData = filteredData.filter((card) => card.digiType?.join(' ').toUpperCase().includes(digiType.toUpperCase()));
         if (dp) filteredData = filteredData.filter((card) => card.dp === dp);
         if (playCost) filteredData = filteredData.filter((card) => card.playCost === playCost);
         if (level) filteredData = filteredData.filter((card) => card.level === level);
