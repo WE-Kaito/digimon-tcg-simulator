@@ -360,7 +360,7 @@ public class GameService extends TextWebSocketHandler {
                     card.restrictions(),
                     card.illustrator(),
                     idService.createId(),
-                    new Modifiers(0,0, new ArrayList<>()),
+                    new Modifiers(0,0, new ArrayList<>(), card.color()),
                     false);
             gameDeck.add(newCard);
         }

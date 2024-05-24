@@ -467,3 +467,10 @@ export function getNumericModifier(value: number, isSetting?: boolean) {
 }
 
 export const tamersAsDigimon = ["BT12-092", "BT17-087", "BT13-095", "BT13-099"];
+
+export function arraysEqualUnordered(arr1: string[], arr2: string[]) {
+    if (arr1.length !== arr2.length) return false;
+    const sortedArr1 = [...arr1].sort((a, b) => a.localeCompare(b));
+    const sortedArr2 = [...arr2].sort((a, b) => a.localeCompare(b));
+    return sortedArr1.every((value, index) => value === sortedArr2[index]);
+}

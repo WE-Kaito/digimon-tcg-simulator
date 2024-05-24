@@ -3,7 +3,14 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, getNumericModifier, tamersAsDigimon, topCardInfo} from "../utils/functions.ts";
+import {
+    arraysEqualUnordered,
+    getCardColor,
+    getCardSize,
+    getNumericModifier,
+    tamersAsDigimon,
+    topCardInfo
+} from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
@@ -177,6 +184,7 @@ export default function Card( props : CardProps ) {
 
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
+    const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
 
     return (
         <Wrapper isTilted={((card as CardTypeGame)?.isTilted) ?? false}>
@@ -194,6 +202,9 @@ export default function Card( props : CardProps ) {
                     </PlusSecAtkSpan>}
 
                     {hoverCard !== card && <>
+                        {showColors && <ColorStack>
+                            {modifiers?.colors.map((c) => <span key={`${c}_${card.id}_view`}>{getCardColor(c)[1]}</span>)}
+                        </ColorStack>}
                         <KeywordWrapper>
                             {modifiers?.keywords.map((keyword) =>
                                 <ModifierSpan longSpan={keyword.length >= 8} key={`${keyword}_${card.id}`}>
@@ -491,4 +502,15 @@ const KeywordWrapper = styled.div`
     max-height: 70px;
     flex-wrap: wrap-reverse;
     pointer-events: none;
+`;
+
+const ColorStack = styled.div`
+  font-size: 12px;
+  display: flex;
+  gap: 2px;
+  flex-direction: row;
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
 `;

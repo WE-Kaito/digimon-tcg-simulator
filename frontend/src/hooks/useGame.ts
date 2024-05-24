@@ -415,7 +415,7 @@ export const useGame = create<State>()(
         const fromState = get()[from as keyof State] as CardTypeGame[];
         const card = fromState.find(card => card.id === cardId);
         if (!card) return;
-        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
+        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color};
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
@@ -474,7 +474,7 @@ export const useGame = create<State>()(
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId);
 
         if (topOrBottom === "Top" && card) card.isTilted = false;
-        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
+        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color};
 
         if (cardLocation === to) {
             set({
@@ -592,7 +592,7 @@ export const useGame = create<State>()(
             ...tokenVariant,
             id: id,
             isTilted: false,
-            modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: []}
+            modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: tokenVariant.color}
         };
         set((state) => {
             for (let i = 1; i <= 10; i++) {

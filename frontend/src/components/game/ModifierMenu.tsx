@@ -8,7 +8,7 @@ import {AddCircleOutlined, RemoveCircleOutlined} from '@mui/icons-material';
 import {useGame} from "../../hooks/useGame.ts";
 import {CardModifiers, CardTypeGame} from "../../utils/types.ts";
 import {playModifyCardSfx} from "../../utils/sound.ts";
-import {getNumericModifier, tamersAsDigimon} from "../../utils/functions.ts";
+import {getCardColor, getNumericModifier, tamersAsDigimon} from "../../utils/functions.ts";
 
 type ModifierMenuProps = {
     sendSetModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void
@@ -30,22 +30,29 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
     const [plusDp, setPlusDp] = useState<number>(0);
     const [plusSecurityAttacks, setPlusSecurityAttacks] = useState<number>(0);
     const [keywords, setKeywords] = useState<string[]>([]);
+    const [colors, setColors] = useState<string[]>(card?.modifiers.colors ?? []);
 
     const handleAddDp = () => setPlusDp((prev) => prev < 30000 ? prev + 1000 : prev);
     const handleSubDp = () => setPlusDp((prev) => prev > -30000 ? prev - 1000 : prev);
     const handleAddSec = () => setPlusSecurityAttacks((prev) => prev < 9 ? prev + 1 : prev);
     const handleSubSec = () => setPlusSecurityAttacks((prev) => prev > -9 ? prev - 1 : prev);
 
+    function handleSetColor (color: string) {
+        if(colors.includes(color)) setColors(colors.filter(c => c !== color));
+        else if(colors.length < 3) setColors([...colors, color]);
+    }
+
     function resetValues() {
         if(!card) return;
         setPlusDp(card?.modifiers.plusDp);
         setPlusSecurityAttacks(card?.modifiers.plusSecurityAttacks);
         setKeywords(card?.modifiers.keywords);
+        setColors(card?.modifiers.colors);
     }
 
     function handleSubmit() {
-        const modifiers = {plusDp, plusSecurityAttacks, keywords};
-        setModifiers(cardToSend.id, cardToSend.location, modifiers); // logic changed here?
+        const modifiers = {plusDp, plusSecurityAttacks, keywords, colors};
+        setModifiers(cardToSend.id, cardToSend.location, modifiers);
         sendSetModifiers(cardToSend.id, cardToSend.location, modifiers);
         playModifyCardSfx();
     }
@@ -55,9 +62,10 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
     const dpValue = getNumericModifier(plusDp, true);
     const secAttackValue = getNumericModifier(plusSecurityAttacks, true);
 
-    const haveModifiersChanged = card?.modifiers.plusDp !== plusDp
+    const haveModifiersChanged = colors.length && (card?.modifiers.plusDp !== plusDp
         || card?.modifiers.plusSecurityAttacks !== plusSecurityAttacks
-        || card?.modifiers.keywords !== keywords;
+        || card?.modifiers.keywords !== keywords
+        || card?.modifiers.colors !== colors);
 
     if ((card?.cardType !== "Digimon" && !tamersAsDigimon.includes(String(card?.cardNumber)))) return <></>;
 
@@ -78,6 +86,13 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                             <IconButton onClick={handleSubSec} color={"error"}><RemoveCircleOutlined/></IconButton>
                             <ValueSpan >{secAttackValue}</ValueSpan>
                             <IconButton onClick={handleAddSec} color={"success"}><AddCircleOutlined/></IconButton>
+                        </NumericStack>
+
+                        <NumericStack >
+                            <ValueLabelSpan>Treated as:</ValueLabelSpan>
+                            {["Red", "Green", "Blue", "Yellow", "Purple", "White", "Black"].map((c) =>
+                                <ColorButton isActive={colors.includes(c)} onClick={() => handleSetColor(c)}
+                                             key={`${cardToSend.id}_${c}`}>{getCardColor(c)[1]}</ColorButton>)}
                         </NumericStack>
 
                         <Stack direction={"row"} gap={0.5} maxWidth={"100%"} flexWrap={"wrap"}>
@@ -168,4 +183,17 @@ const ModifierSpan = styled.div`
   &:hover {
     background: #cb2626;
   }
+`;
+
+const ColorButton = styled.div<{isActive: boolean}>`
+    filter: ${({isActive}) => isActive ? "drop-shadow(0 0 2px ghostwhite)" : "grayscale(0.3)"};
+    opacity: ${({isActive}) => isActive ? 1 : 0.4};
+    scale: ${({isActive}) => isActive ? 1 : 0.9};
+    cursor: pointer;
+  
+    &:hover {
+      opacity: 1;
+      scale: 1.1;
+      transform: translateY(-1px);
+    }
 `;

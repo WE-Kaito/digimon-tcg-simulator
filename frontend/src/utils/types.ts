@@ -38,6 +38,7 @@ export type CardModifiers = {
     plusDp: number,
     plusSecurityAttacks: number
     keywords: string[],
+    colors: string[],
 }
 
 type Restrictions = {
