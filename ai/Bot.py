@@ -585,6 +585,7 @@ class Bot(ABC):
         card = self.game['player2Digi'][digimon_index][-1]
         card_index, _ = self.find_card_index_by_id_in_battle_area(card['id'])
         self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.send_message(ws, f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
         await self.suspend_card(ws, card_index)
         await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentSecurity:true")
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
