@@ -481,7 +481,8 @@ class BeelzemonXBot(Bot):
         for i in range(len(self.game['player1Digi'])):
             if len(self.game['player1Digi'][i]) > 0:
                 digimon = self.game['player1Digi'][i][-1]
-                opponent_digimons.append((digimon['level'], i, digimon['name']))
+                if digimon['level'] is not None:
+                    opponent_digimons.append((digimon['level'], i, digimon['name']))
         for opponent_digimon in sorted(opponent_digimons, reverse=True):
             if max_level_can_delete <= opponent_digimon[0]:
                 await self.delete_card_from_opponent_battle_area(ws, opponent_digimon[1])
