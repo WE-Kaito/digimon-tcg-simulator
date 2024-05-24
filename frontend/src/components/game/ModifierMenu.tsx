@@ -8,7 +8,7 @@ import {AddCircleOutlined, RemoveCircleOutlined} from '@mui/icons-material';
 import {useGame} from "../../hooks/useGame.ts";
 import {CardModifiers, CardTypeGame} from "../../utils/types.ts";
 import {playModifyCardSfx} from "../../utils/sound.ts";
-import {getCardColor, getNumericModifier, tamersAsDigimon} from "../../utils/functions.ts";
+import {getCardColor, getNumericModifier, numbersWithModifiers} from "../../utils/functions.ts";
 
 type ModifierMenuProps = {
     sendSetModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void
@@ -39,7 +39,7 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
 
     function handleSetColor (color: string) {
         if(colors.includes(color)) setColors(colors.filter(c => c !== color));
-        else if(colors.length < 3) setColors([...colors, color]);
+        else if(colors?.length < 3) setColors([...colors, color]);
     }
 
     function resetValues() {
@@ -62,12 +62,12 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
     const dpValue = getNumericModifier(plusDp, true);
     const secAttackValue = getNumericModifier(plusSecurityAttacks, true);
 
-    const haveModifiersChanged = colors.length && (card?.modifiers.plusDp !== plusDp
+    const haveModifiersChanged = colors?.length && (card?.modifiers.plusDp !== plusDp
         || card?.modifiers.plusSecurityAttacks !== plusSecurityAttacks
         || card?.modifiers.keywords !== keywords
         || card?.modifiers.colors !== colors);
 
-    if ((card?.cardType !== "Digimon" && !tamersAsDigimon.includes(String(card?.cardNumber)))) return <></>;
+    if ((card?.cardType !== "Digimon" && !numbersWithModifiers.includes(String(card?.cardNumber)))) return <></>;
 
     return (
         <StyledSubmenu label={"Set Modifiers"} arrow={<StyledLottie animationData={arrowsAnimation}/>} >
@@ -91,7 +91,7 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                         <NumericStack >
                             <ValueLabelSpan>Treated as:</ValueLabelSpan>
                             {["Red", "Green", "Blue", "Yellow", "Purple", "White", "Black"].map((c) =>
-                                <ColorButton isActive={colors.includes(c)} onClick={() => handleSetColor(c)}
+                                <ColorButton isActive={colors?.includes(c)} onClick={() => handleSetColor(c)}
                                              key={`${cardToSend.id}_${c}`}>{getCardColor(c)[1]}</ColorButton>)}
                         </NumericStack>
 

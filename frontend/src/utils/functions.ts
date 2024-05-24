@@ -466,7 +466,7 @@ export function getNumericModifier(value: number, isSetting?: boolean) {
     return value < 0 ? value.toString() : `+${value}`;
 }
 
-export const tamersAsDigimon = ["BT12-092", "BT17-087", "BT13-095", "BT13-099"];
+export const numbersWithModifiers = ["BT12-092", "BT17-087", "BT13-095", "BT13-099", "EX2-007"];
 
 export function arraysEqualUnordered(arr1: string[], arr2: string[]) {
     if (arr1.length !== arr2.length) return false;

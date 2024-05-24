@@ -8,7 +8,7 @@ import {
     getCardColor,
     getCardSize,
     getNumericModifier,
-    tamersAsDigimon,
+    numbersWithModifiers,
     topCardInfo
 } from "../utils/functions.ts";
 import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
@@ -175,11 +175,11 @@ export default function Card( props : CardProps ) {
         else if (inhAll) setInheritCardInfo(inhEff);
     }
 
-    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && ((card.cardType === "Digimon") || tamersAsDigimon.includes(card.cardNumber));
+    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && ((card.cardType === "Digimon") || numbersWithModifiers.includes(card.cardNumber));
     const modifiers = isModifiersAllowed ? (card as CardTypeGame)?.modifiers : undefined;
 
     let finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
-    if (tamersAsDigimon.includes(card.cardNumber)) finalDp = modifiers?.plusDp ?? 0;
+    if (numbersWithModifiers.includes(card.cardNumber) && card.cardNumber !== "EX2-007") finalDp = modifiers?.plusDp ?? 0;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;

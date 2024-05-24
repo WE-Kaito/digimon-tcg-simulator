@@ -16,7 +16,7 @@ import {
     calculateCardRotation,
     convertForLog, getAttributeImage, getCardTypeImage,
     getOpponentSfx,
-    handleImageError, tamersAsDigimon
+    handleImageError, numbersWithModifiers
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {CSSProperties, useCallback, useEffect, useRef, useState} from "react";
@@ -858,7 +858,7 @@ export default function Game({user}: { user: string }) {
 
     function resetModifiers({props}: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
-        const modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [] };
+        const modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: contextCard?.color ?? []};
         setModifiers(props?.id, props?.location, modifiers);
         sendSetModifiers(props?.id, props?.location, modifiers);
         playModifyCardSfx();
@@ -948,7 +948,7 @@ export default function Game({user}: { user: string }) {
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";
     const color3 = localStorage.getItem("color3") ?? "#522170";
 
-    const hasModifierMenu = contextCard?.cardType === "Digimon" || tamersAsDigimon.includes(String(contextCard?.cardNumber));
+    const hasModifierMenu = contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
     const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute"};
 
     return <>
