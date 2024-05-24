@@ -300,12 +300,11 @@ class BeelzemonXBot(Bot):
         can_attack_digimons_index = self.can_attack_digimons()
         if len(can_attack_digimons_index) >= 2:
             for digimon_index in can_attack_digimons_index:
-                self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
-                if digimon_index < len(self.game['player2Digi'][digimon_index]):
+                self.logger.info(f"Trying to attack with {self.game['player2Digi'][digimon_index]}")
+                if digimon_index < len(self.game['player2Digi']):
                     await self.suspend_card(ws, digimon_index)
                     await self.when_attacking_effects_strategy(ws, digimon_index)
                     await self.attack_with_digimon(ws, digimon_index)
-            return True
         if self.no_digimon_in_battle_area():
             self.logger.info('Cannot perform attack: No digimon to attack with.')
             return False
