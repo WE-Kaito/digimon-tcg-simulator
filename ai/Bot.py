@@ -1044,26 +1044,41 @@ class Bot(ABC):
             opponent_ready = False
             done_mulligan = False
             await ws.send(f'/joinGame:{self.game_name}')
-            message = await ws.recv()
+            message = ""
             self.logger.debug(f'Received: {message}')
+            wait_for = 0
             while not message.startswith('[PLAYERS_READY]'):
-                message = await ws.recv()
+                message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
                 self.logger.debug(f'Received: {message}')
+                if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                    return False
+                wait_for += 1
             # await ws.send(f'/startGame:{self.game_name}')
+            wait_for = 0
             while not message.startswith('[START_GAME]'):
-                message = await ws.recv()
+                message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
                 self.logger.debug(f'Received: {message}')
-            # await ws.send(f'/getStartingPlayers:{self.game_name}')
+                if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                    return False
+                wait_for += 1
+            wait_for = 0
             while not message.startswith('[STARTING_PLAYER]'):
-                message = await ws.recv()
+                message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
                 self.logger.debug(f'Received: {message}')
+                if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                    return False
+                wait_for += 1
             starting_player = message.removeprefix('[STARTING_PLAYER]:')
             if starting_player == self.username:
                 self.first_turn = True
                 self.my_turn = True
+            wait_for = 0
             while not message.startswith('[DISTRIBUTE_CARDS]:'):
-                message = await ws.recv()
-                self.logger.debug(f'Received: {message}') 
+                message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
+                self.logger.debug(f'Received: {message}')
+                if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                    return False
+                wait_for += 1
             while True:
                 if message.startswith('[DISTRIBUTE_CARDS]:'):
                     starting_game += message.removeprefix('[DISTRIBUTE_CARDS]:')
