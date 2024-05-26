@@ -4,12 +4,13 @@ import axios from "axios";
 import {useStore} from "../hooks/useStore.ts";
 import {playButtonClickSfx} from "../utils/sound.ts";
 
-export default function MenuButton({ name, path }: { name: string, path: string }) {
+export default function MainMenuButton({ name, path }: { name: string, path: string }) {
 
     const navigate = useNavigate();
     const me = useStore((state) => state.me);
     const fetchCards = useStore((state) => state.fetchCards);
     const fetchedCards = useStore((state) => state.fetchedCards);
+    const clearDeck = useStore((state) => state.clearDeck);
 
     function handleClick() {
 
@@ -17,6 +18,7 @@ export default function MenuButton({ name, path }: { name: string, path: string 
 
         if (name !== "LOGOUT") {
             if(fetchedCards.length === 0) fetchCards();
+            if(path === "/deckbuilder") clearDeck();
             navigate(path);
             return;
         }
@@ -90,7 +92,6 @@ const Wrapper = styled.div<Props>`
     transform: scale(0.7);
   }
 
-
   div {
     display: flex;
     padding: ${({name}) => name === "LOGOUT" ? "6px 45px" : "10px 45px"};
@@ -116,12 +117,12 @@ const Wrapper = styled.div<Props>`
     cursor: pointer;
   }
 
-  div span:nth-child(2) {
+  div span:nth-of-type(2) {
     transition: 0.5s;
     margin-right: 0;
   }
 
-  div:hover span:nth-child(2) {
+  div:hover span:nth-of-type(2) {
     transition: 0.5s;
     margin-right: 45px;
   }
@@ -153,7 +154,7 @@ const Wrapper = styled.div<Props>`
 
   }
 
-  span:nth-child(2) {
+  span:nth-of-type(2) {
     width: 20px;
     margin-left: 30px;
     position: relative;

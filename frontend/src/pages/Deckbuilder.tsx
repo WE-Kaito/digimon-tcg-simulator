@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
@@ -8,40 +8,40 @@ import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import cardBackSrc from "../assets/cardBack.jpg"
 
 export default function Deckbuilder() {
 
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
     const saveDeck = useStore((state) => state.saveDeck);
-    const [deckName, setDeckName] = useState<string>("New Deck");
-    const clearDeck = useStore((state) => state.clearDeck);
     const isSaving = useStore((state) => state.isSaving);
-    const filterCards = useStore((state) => state.filterCards);
-    const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
+    const fetchDecks = useStore((state) => state.fetchDecks);
     const fetchCards = useStore((state) => state.fetchCards);
 
-    const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
+    const [deckName, setDeckName] = useState<string>("New Deck");
+    const [currentDeckLength, setCurrentDeckLength] = useState<number>(0);
 
-    useEffect(() => {
-        clearDeck();
-        fetchDecks();
-        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
-    }, [clearDeck, fetchDecks, filterCards]);
-
-    useEffect(() => {
+    const initialFetch = useCallback(() => {
         fetchCards();
-    }, []);
+        fetchDecks();
+        setCurrentDeckLength(decks.length);
+    }, [decks.length, fetchCards, fetchDecks]);
+    useEffect(() => initialFetch(), [initialFetch]);
+
+    const handleSaveDeck = () => saveDeck(deckName, setCurrentDeckLength);
 
     return (
         <MenuBackgroundWrapper>
             <OuterContainer>
 
                 <ButtonContainer>
-                    <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={() => {
-                        saveDeck(deckName)
-                    }}><StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : `SAVE [${decks.length}/16]`}</StyledSpanSaveDeck></SaveDeckButton>
+                    <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={handleSaveDeck}>
+                        <StyledSpanSaveDeck>
+                            {decks.length >= 16 ? "16/16 Decks" : `SAVE [${currentDeckLength}/16]`}
+                        </StyledSpanSaveDeck>
+                    </SaveDeckButton>
                     <BackButton/>
                 </ButtonContainer>
 
@@ -61,7 +61,7 @@ export default function Deckbuilder() {
                 </DetailsContainer>
 
                 <CardImageContainer >
-                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl}
+                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackSrc}
                            alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
                     <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>

@@ -1,7 +1,10 @@
 import {ToastContainer} from "react-toastify";
 import styled from "@emotion/styled";
 
-export const StyledToastContainer = styled(ToastContainer)`
+const CustomToastContainer = () => <StyledToastContainer stacked/>;
+export default CustomToastContainer;
+
+const StyledToastContainer = styled(ToastContainer)`
   .Toastify__toast {
     text-align: center;
     width: 400px;

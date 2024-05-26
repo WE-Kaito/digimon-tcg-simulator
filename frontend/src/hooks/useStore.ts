@@ -13,7 +13,7 @@ import {
     compareEffectText,
     filterDoubleCardNumbers,
     getIsDeckAllowed,
-    sortCards
+    sortCards,
 } from "../utils/functions.ts";
 import { avatars } from "../utils/avatars.ts";
 import {DeckIdOrder} from "../pages/Profile.tsx";
@@ -45,7 +45,7 @@ type State = {
     setHoverCard: (card: CardTypeWithId | CardTypeGame | null) => void,
     addCardToDeck: (cardnumber: string, type: string, uniqueCardNumber: string) => void,
     deleteFromDeck: (id: string) => void,
-    saveDeck: (name: string) => void,
+    saveDeck: (name: string, setCurrentDeckLength: Dispatch<SetStateAction<number>>) => void,
     fetchDecks: () => void,
     updateDeck: (id: string, name: string) => void,
     setDeckById: (id: string | undefined) => void,
@@ -78,12 +78,12 @@ type State = {
 
 export const useStore = create<State>((set, get) => ({
 
-    fetchedCards: JSON.parse(localStorage.getItem('fetchedCards') || '[]'),
+    fetchedCards: [],
     filteredCards: [],
     isLoading: false,
     selectedCard: null,
     hoverCard: null,
-    deckCards: [],
+    deckCards: JSON.parse(localStorage.getItem('deckCards') ?? '[]'),
     decks: [],
     nameOfDeckToEdit: "",
     user: "",
@@ -111,7 +111,6 @@ export const useStore = create<State>((set, get) => ({
                     fetchedCards: cardsWithId,
                     filteredCards: cardsWithId
                 });
-                localStorage.setItem('fetchedCards', JSON.stringify(cardsWithId));
             })
             .finally(() => set({isLoading: false}));
     },
@@ -190,13 +189,14 @@ export const useStore = create<State>((set, get) => ({
         if ((type === "Digi-Egg" && digiEggsInDeck >= 5) || cardOfIdInDeck >= 4) return;
 
         set({deckCards: [cardToAdd, ...get().deckCards]});
+        localStorage.setItem('deckCards', JSON.stringify(get().deckCards));
     },
 
     deleteFromDeck: (id) => {
         set({deckCards: get().deckCards.filter((card) => card.id !== id)});
     },
 
-    saveDeck: (name) => {
+    saveDeck: (name, setCurrentDeckLength) => {
         const eggCardLength = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = get().deckCards.length - eggCardLength;
 
@@ -233,12 +233,16 @@ export const useStore = create<State>((set, get) => ({
             })
             .then((data) => {
                 if (data === "There was an error while saving the deck.") notifyGeneralError();
-                else notifySuccess();
+                else {
+                    notifySuccess();
+                    setCurrentDeckLength((p) => p + 1);
+                    get().fetchDecks();
+                }
                 setTimeout(function () {
-                    window.location.reload();
                     set({isSaving: false});
                 }, 2900)
-            });
+            })
+            .finally(() => get().clearDeck());
     },
 
     fetchDecks: () => {
@@ -298,15 +302,16 @@ export const useStore = create<State>((set, get) => ({
             .catch(console.error)
             .then((data: DeckType) => {
 
+                const cards = get().fetchedCards;
                 const cardsWithId: CardTypeWithId[] = data.decklist.map((uniqueCardNumber) => {
-                        const card = get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0]
-                            ?? get().fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]
+                        const card = cards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0]
+                            ?? cards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]
                             ?? {...generalToken, cardNumber: "1110101", uniqueCardNumber: "1110101", name: "Fallback Card",
                                 mainEffect: "If you see this card, the actual card was not found."}
                         return { ...card, id: uid()}
                     }
                 );
-
+                localStorage.setItem('deckCards', JSON.stringify(cardsWithId));
                 set({
                     deckCards: cardsWithId,
                     nameOfDeckToEdit: data.name
@@ -340,6 +345,7 @@ export const useStore = create<State>((set, get) => ({
 
     clearDeck: () => {
         set({deckCards: []});
+        localStorage.removeItem('deckCards');
     },
 
     login: (userName: string, password: string, navigate: NavigateFunction) => {

@@ -56,7 +56,8 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
         sendSetModifiers(cardToSend.id, cardToSend.location, modifiers);
         playModifyCardSfx();
     }
-    
+
+    // eslint-disable-next-line
     useEffect(() => resetValues(), [cardToSend]);
 
     const dpValue = getNumericModifier(plusDp, true);

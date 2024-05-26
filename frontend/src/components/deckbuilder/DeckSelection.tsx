@@ -8,7 +8,6 @@ import {getCardTypeImage, sortCards} from "../../utils/functions.ts";
 import {playPlaceCardSfx, playTrashCardSfx} from "../../utils/sound.ts";
 
 export default function DeckSelection() {
-
     const deckCards = useStore((state) => state.deckCards);
     const loadingDeck = useStore((state) => state.loadingDeck);
     const setHoverCard = useStore((state) => state.setHoverCard);

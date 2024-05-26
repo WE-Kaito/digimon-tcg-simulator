@@ -9,14 +9,14 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
 
     const specialEffects = ["DigiXros -1", "DigiXros -2", "DigiXros -3", "DigiXros -4", "Digivolve", "Burst Digivolve", "DNA Digivolution"];
     if (text.startsWith("[DNA Digivolve]")) return text?.split(" ")?.map((word, index) => {
-        if (index === 0) return <HighlightedSpecialEffect key={word + index}>DNA Digivolution</HighlightedSpecialEffect>;
+        if (index === 0) return <HighlightedSpecialEffect key={uid()}>DNA Digivolution</HighlightedSpecialEffect>;
         if (index === 1) return <></>;
-        return <span key={word + index}>{getDnaColor(word)}</span>;
+        return <span key={uid()}>{getDnaColor(word)}</span>;
     });
 
     if (text.startsWith("＜Burst Digivolve:")) {
         const burstEffect = text.substring(17, text.length - 1);
-        return [<HighlightedSpecialEffect key={"burst"}>Burst Digivolve</HighlightedSpecialEffect>, <HighlightedKeyWords key={"burstEffect"} text={burstEffect}/>]
+        return [<HighlightedSpecialEffect key={uid()}>Burst Digivolve</HighlightedSpecialEffect>, <HighlightedKeyWords key={"burstEffect"} text={burstEffect}/>]
     }
 
     const regex = /(\[([^\]]+)\]|＜([^＞]+)＞)/g;
@@ -74,7 +74,7 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
     return highlightedParts.map(item => {
         if (typeof item === 'string') {
             return item.split('\n').map((line, index) => (
-                <span key={item.length + uid()}>
+                <span key={uid()}>
                     {line}
                     {index !== item.split('\n').length - 1 && <br/>}
                 </span>

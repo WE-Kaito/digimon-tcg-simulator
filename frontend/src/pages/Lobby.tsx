@@ -1,6 +1,6 @@
 import BackButton from "../components/BackButton.tsx";
 import useWebSocket from "react-use-websocket";
-import {FormEvent, useEffect, useRef, useState} from "react";
+import {FormEvent, useCallback, useEffect, useRef, useState} from "react";
 import {Headline2} from "../components/Header.tsx";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
@@ -175,10 +175,11 @@ export default function Lobby({user}: { user: string }) {
         if (historyRef.current) historyRef.current.scrollTop = historyRef.current.scrollHeight;
     }, [messages]);
 
-    useEffect(() => {
+    const initialFetch = useCallback(() => {
         getActiveDeck();
         fetchDecks();
-    }, []);
+    }, [getActiveDeck, fetchDecks]);
+    useEffect(() => initialFetch(), [initialFetch]);
 
     return (
         <MenuBackgroundWrapper>

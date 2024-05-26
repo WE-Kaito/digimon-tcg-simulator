@@ -699,6 +699,7 @@ export default function Game({user}: { user: string }) {
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         interval = setInterval(() => {
             websocket.sendMessage(`${gameId}:/online:${opponentName}`);
             setIsOnline(navigator.onLine);
@@ -1500,7 +1501,6 @@ export default function Game({user}: { user: string }) {
                                         </div>
                                     }
                                     {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
-                                        {/* eslint-disable-next-line no-irregular-whitespace */}
                                         <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
                                             ⇑</DBZSpan></DeckBottomZone>}
 

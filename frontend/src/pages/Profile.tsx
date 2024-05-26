@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import {useStore} from "../hooks/useStore.ts";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
@@ -26,6 +26,7 @@ export default function Profile({user}: { user: string }) {
     const deckIdOrder = useStore((state) => state.deckIdOrder);
     const setDeckIdOrder = useStore((state) => state.setDeckIdOrder);
     const isLoading = useStore((state) => state.isLoading);
+    const clearDeck = useStore((state) => state.clearDeck);
 
     const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);
     const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
@@ -50,7 +51,13 @@ export default function Profile({user}: { user: string }) {
         loadOrderedDecks(setOrderedDecks)
     }
 
-    useEffect(() => loadOrderedDecks(setOrderedDecks), []);
+    function toDeckBuilder() {
+        navigate("/deckbuilder");
+        clearDeck();
+    }
+
+    const stableLoadOrderedDecks = useCallback(() => loadOrderedDecks(setOrderedDecks), [loadOrderedDecks]);
+    useEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
 
     return (
         <MenuBackgroundWrapper alignedTop>
@@ -86,18 +93,18 @@ export default function Profile({user}: { user: string }) {
                         ? <Loading/>
                         : <>
                             <SortableContext items={orderedDecks}>
-                             {orderedDecks?.map((deck, index) => <>
+                             {orderedDecks?.map((deck) =>
                                  <SortableProfileDeck key={deck.id} deck={deck}
                                                       setSleeveSelectionOpen={setSleeveSelectionOpen}
                                                       setImageSelectionOpen={setImageSelectionOpen}
-                             />
-                                 {orderedDecks.length < 16 && index === orderedDecks.length - 1 &&
-                                     <NewDeckButton onClick={() => navigate("/deckbuilder")}>
-                                         <AddBoxRoundedIcon/>
-                                     </NewDeckButton>}
-                             </>)}
+                                 />
+                             )}
                             </SortableContext>
-                            {}
+                            {orderedDecks.length < 16 &&
+                                <NewDeckButton onClick={toDeckBuilder}>
+                                    <AddBoxRoundedIcon/>
+                                </NewDeckButton>
+                            }
                         </>
                     }
                 </Container>

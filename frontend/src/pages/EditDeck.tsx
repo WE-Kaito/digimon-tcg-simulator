@@ -16,6 +16,7 @@ import {
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import cardbackSrc from "../assets/cardBack.jpg";
 
 export default function EditDeck() {
 
@@ -28,15 +29,14 @@ export default function EditDeck() {
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
     const deleteDeck = useStore((state) => state.deleteDeck);
+
     const [deckName, setDeckName] = useState<string>("");
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
     const navigate = useNavigate();
 
-    const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
-
     useEffect(() => {
-        setDeckById(id);
         fetchCards();
+        setDeckById(id);
         filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
         setDeckName(nameOfDeckToEdit);
     }, [setDeckName, nameOfDeckToEdit, id, setDeckById, fetchCards, filterCards]);
@@ -44,11 +44,8 @@ export default function EditDeck() {
     const mobileSize = window.innerWidth < 500;
 
     function getDeleteString() {
-        if (!isDeleting) {
-            return "🗑️";
-        } else {
-            return mobileSize ? "🗑️?" : "DELETE PERMANENTLY";
-        }
+        if (!isDeleting) return "🗑️";
+         else return mobileSize ? "🗑️?" : "DELETE PERMANENTLY";
     }
 
     return (
@@ -86,7 +83,7 @@ export default function EditDeck() {
                 </DetailsContainer>
 
                 <CardImageContainer>
-                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl}
+                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardbackSrc}
                            alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
                     <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>

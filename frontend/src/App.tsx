@@ -14,15 +14,13 @@ import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
 import Game from "./pages/Game.tsx";
-import {StyledToastContainer} from "./components/game/StyledToastContainer.ts";
+import CustomToastContainer from "./components/CustomToastContainer.tsx";
 function App() {
 
     const me = useStore((state) => state.me);
     const user = useStore((state) => state.user);
 
-    useEffect(() => {
-        me();
-    }, [me])
+    useEffect(() => me(), [me]);
 
     function isMobileDevice() {
         if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000) {
@@ -35,7 +33,7 @@ function App() {
     return (
         <DndProvider backend={isMobileDevice()}>
 
-            <StyledToastContainer/>
+            <CustomToastContainer/>
 
             <Routes>
                 <Route element={<ProtectedRoutes user={user}/>}>

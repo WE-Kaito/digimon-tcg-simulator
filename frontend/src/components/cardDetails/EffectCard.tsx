@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import {Lock as SecurityIcon, CallMade as InheritedIcon} from '@mui/icons-material';
 import {useLocation} from "react-router-dom";
 import { JSX } from "react";
-import {EffectVariant} from "./CardDetails.tsx";
+import {EffectVariant} from "./constants.ts";
 
 type Props = {
     variant: EffectVariant

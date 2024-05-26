@@ -258,10 +258,10 @@ const deckImgBeelzemon = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Ca
 const deckImgVortexWarriors = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/P-038_P4-J.webp";
 
 export function addStarterDecks() {
-    setTimeout(() => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckImgDragonOfCourage, "Agumon"), 100);
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckImgGallantmon, "Guilmon"), 200);
-    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckImgBeelzemon,"Impmon"), 300);
-    setTimeout(() => saveStarterDeck("[STARTER] Vortex Warriors", starterVortexWarriors, deckImgVortexWarriors, "Pteromon"), 400);
+    setTimeout(() => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckImgDragonOfCourage, "Agumon"), 10);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckImgGallantmon, "Guilmon"), 20);
+    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckImgBeelzemon,"Impmon"), 30);
+    setTimeout(() => saveStarterDeck("[STARTER] Vortex Warriors", starterVortexWarriors, deckImgVortexWarriors, "Pteromon"), 40);
 }
 
 export function getCardColor(color: string): [string, string] {
@@ -393,7 +393,7 @@ export function generateGradient(deckCards : CardType[]) {
         Yellow: 0,
     };
 
-    deckCards.forEach(card => card.color.forEach(color => { // @ts-ignore
+    deckCards.forEach(card => card.color.forEach(color => { // @ts-expect-error - colorCounts is defined above
         if (color in colorCounts) colorCounts[color]++;
     }));
 
@@ -409,7 +409,7 @@ export function generateGradient(deckCards : CardType[]) {
         .sort(([_, countA], [__, countB]) => countB - countA)
         .forEach(([color, count], index) => {
             const thisColorPercentage = (count / totalCards) * 100;
-            // @ts-ignore
+            // @ts-expect-error - colorMap is defined above
             const hexColor = colorMap[color];
 
             // for smooth gradients:
