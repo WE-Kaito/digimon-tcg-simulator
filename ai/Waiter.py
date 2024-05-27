@@ -11,6 +11,7 @@ class Waiter:
         self.bot = bot
         self.timestamp = None
         self.TIMEOUT_INTERVAL = config('TIMEOUT_INTERVAL', cast=int)
+        self.ignore_next_move_action = False # Helper for avoiding process_move_action to trigger when cards has been already moved to the bottom of the stack
 
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(config('LOGLEVEL'))
@@ -58,6 +59,8 @@ class Waiter:
         source = record[2].replace('opponent', '')
         source_location = self.get_opponent_location(source)
         destination = record[3].replace('opponent', '')
+        if destination.startswith('Digi'):
+            self.ignore_next_move_action = True
         destination_location = self.get_opponent_location(destination)
         source_card_index = -1
         for i in range(len(source_location)):
@@ -156,8 +159,10 @@ class Waiter:
         if not await self.check_timestamp():
             return False
         move_message_prefix = '[MOVE_CARD]:'
-        if message.startswith(move_message_prefix):
+        if message.startswith(move_message_prefix) and not self.ignore_next_move_action:
             self.process_move_action(message.replace(move_message_prefix, '', 1))
+        elif self.ignore_next_move_action:
+            self.ignore_next_move_action = False
         move_message_prefix = '[MOVE_CARD_TO_DECK]:'
         if message.startswith(move_message_prefix):
             self.process_move_to_deck_action(message.replace(move_message_prefix, '', 1))
