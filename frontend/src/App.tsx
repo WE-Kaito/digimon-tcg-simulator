@@ -1,6 +1,5 @@
 import './App.css'
 import Deckbuilder from "./pages/Deckbuilder.tsx";
-import EditDeck from "./pages/EditDeck.tsx";
 import {DndProvider} from "react-dnd";
 import {TouchBackend} from "react-dnd-touch-backend";
 import {HTML5Backend} from "react-dnd-html5-backend";
@@ -40,7 +39,7 @@ function App() {
                     <Route path="/" element={<MainMenu/>}/>
                     <Route path="/profile" element={<Profile user={user}/>}/>
                     <Route path="/deckbuilder" element={<Deckbuilder/>}/>
-                    <Route path="/update-deck/:id" element={<EditDeck/>}/>
+                    <Route path="/update-deck" element={<Deckbuilder isEditMode/>}/>
                     <Route path="/lobby" element={<Lobby user={user}/>}/>
                     <Route path="/game" element={<Game user={user}/>}/>
                     <Route path="/*" element={<Navigate to="/"/>}/>

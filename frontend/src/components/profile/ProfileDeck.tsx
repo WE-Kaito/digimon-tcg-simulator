@@ -33,7 +33,8 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const navigate = useNavigate();
     const navigateToDeck = () => {
         playDrawCardSfx();
-        navigate(`/update-deck/${deck.id}`);
+        navigate(`/update-deck`);
+        setDeckById(deck.id);
     }
 
     function onSleeveClick() {

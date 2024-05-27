@@ -30,6 +30,7 @@ type State = {
     deckCards: CardTypeWithId[],
     decks: DeckType[],
     nameOfDeckToEdit: string,
+    idOfDeckToEdit: string,
     user: string,
     activeDeckId: string,
     isSaving: boolean,
@@ -86,6 +87,7 @@ export const useStore = create<State>((set, get) => ({
     deckCards: JSON.parse(localStorage.getItem('deckCards') ?? '[]'),
     decks: [],
     nameOfDeckToEdit: "",
+    idOfDeckToEdit: "",
     user: "",
     activeDeckId: "",
     isSaving: false,
@@ -314,7 +316,8 @@ export const useStore = create<State>((set, get) => ({
                 localStorage.setItem('deckCards', JSON.stringify(cardsWithId));
                 set({
                     deckCards: cardsWithId,
-                    nameOfDeckToEdit: data.name
+                    nameOfDeckToEdit: data.name,
+                    idOfDeckToEdit: id
                 });
             })
             .finally(() => {

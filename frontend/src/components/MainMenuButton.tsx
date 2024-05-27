@@ -19,6 +19,7 @@ export default function MainMenuButton({ name, path }: { name: string, path: str
         if (name !== "LOGOUT") {
             if(fetchedCards.length === 0) fetchCards();
             if(path === "/deckbuilder") clearDeck();
+            if(path === "/lobby") localStorage.removeItem('deckCards');
             navigate(path);
             return;
         }
