@@ -27,7 +27,7 @@ If you're testing on an external device, you can specify the websocket URL (defa
 
 - Copy the `dist` folder inside the backend app folder:
 
-`cp -r dist ../backend/src/main/resources/static`
+`cp -r dist/* ../backend/src/main/resources/static`
 
 
 ### Build Backend
