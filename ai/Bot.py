@@ -441,11 +441,26 @@ class Bot(ABC):
         update['playerEggDeck'] = self.game['player2EggDeck']
         update['playerSecurity'] = self.game['player2Security']
         update['playerTrash'] = self.game['player2Trash']
+        update['playerPhase'] = 'Breeding'
+        update['playerMemory'] = 0
+        update['isPlayerTurn'] = not self.my_turn
         n = config('WS_CHUNK_SIZE', cast=int)
         g = json.dumps(update)
         chunks = [g[i:i+n] for i in range(0, len(g), n)]
         for chunk in chunks:
             await ws.send(f'{self.game_name}:/updateGame:{chunk}')
+            message = ""
+            wait_for = 0
+            while not message.startswith('[LOADED]'):
+                message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
+                self.logger.debug(f'Received: {message}')
+                if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                    raise RuntimeError('Error while communicating updated game to player.')
+                wait_for += 1
+    
+    async def update_opponent_game(self, ws, updated_game):
+        self.game['player1Hand'] = updated_game['playerHand']
+        self.game['player1DeckField'] = updated_game['playerDeckField']
 
     async def mulligan(self, ws):
         self.logger.info('I mulligan.')
@@ -453,7 +468,7 @@ class Bot(ABC):
         self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
         random.shuffle(self.game['player2DeckField'])
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
-        await self.update_game(ws)
+        await self.update_game(ws)        
 
     async def hatch(self, ws):
         self.logger.info('Hatch from breeding area.')
@@ -1047,6 +1062,8 @@ class Bot(ABC):
                 await ws.send(f'/joinGame:{self.game_name}')
                 message = ""
                 self.logger.debug(f'Received: {message}')
+
+                # Wait for player to be ready, return to lobby if timeout
                 wait_for = 0
                 while not message.startswith('[PLAYERS_READY]'):
                     message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
@@ -1062,6 +1079,8 @@ class Bot(ABC):
                     if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
                         return False
                     wait_for += 1
+
+                # Get player name information
                 wait_for = 0
                 while not message.startswith('[STARTING_PLAYER]'):
                     message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
@@ -1073,6 +1092,8 @@ class Bot(ABC):
                 if starting_player == self.username:
                     self.first_turn = True
                     self.my_turn = True
+
+                # Wait for cards to be distributed
                 wait_for = 0
                 while not message.startswith('[DISTRIBUTE_CARDS]:'):
                     message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
@@ -1086,22 +1107,17 @@ class Bot(ABC):
                     else:
                         if starting_game != '':
                             self.initialize_game(json.loads(starting_game))
-                            await self.loaded_ping(ws)
-                            if not done_mulligan:
-                                # if self.mulligan_strategy():
-                                #     await self.mulligan(ws)
-                                #     await self.send_game_chat_message(ws, 'I mulligan my hand')
-                                # else:
-                                await self.send_game_chat_message(ws, 'I keep my hand')
-                                done_mulligan = True
-                            ### TODO: Improve game initialization
-                            starting_game = ''
                         break
                     message = await ws.recv()
+                await self.loaded_ping(ws)
                 while not message.startswith('[LOADED]'):
                     message = await ws.recv()
-                    self.logger.debug(f'Received: {message}')
-                opponent_ready=True
+                    self.logger.debug(f'Received: {message}')                
+
+                # Wait for player to be ready
+                starting_game = ''
+                opponent_ready = True
+                opponent_mulligan = False
                 await self.waiter.reset_timestamp()
                 while not message.startswith('[PLAYER_READY]'):
                     if message.startswith(f'[OPPONENT_ONLINE]') or message.startswith('[OPPONENT_RECONNECTED]'):
@@ -1109,8 +1125,31 @@ class Bot(ABC):
                     if not await self.waiter.check_timestamp():
                         return False
                     message = await ws.recv()
+                    if message.endswith('【MULLIGAN】'):
+                        opponent_mulligan = True
                     self.logger.debug(f'Received: {message}')
+                
+                # Check for opponent mulligan
+                if opponent_mulligan:
+                    updated_game = ""
+                    message = await ws.recv()
+                    while message.startswith('[UPDATE_OPPONENT]'):
+                        updated_game += message.replace('[UPDATE_OPPONENT]:', '')
+                        await self.loaded_ping(ws)
+                        message = await ws.recv()
+                        self.logger.debug(f'Received: {message}')
+                    await self.update_opponent_game(ws, json.loads(updated_game))
                 await self.send_player_ready(ws)
+                
+                # Mulligan if you need
+                if self.mulligan_strategy():
+                    await self.mulligan(ws)
+                    await self.play_shuffle_deck_sfx(ws)
+                    await self.send_game_chat_message(ws, 'I mulligan my hand')
+                else:
+                    await self.send_game_chat_message(ws, 'I keep my hand')
+
+                # Begin the game loop
                 while True:
                     message = await ws.recv()
                     self.logger.debug(f'Received: {message}')
@@ -1122,6 +1161,7 @@ class Bot(ABC):
                         await self.turn(ws)
                     if not await self.waiter.check_for_action(ws, message):
                         return False
+                        
             except RuntimeError as e:
                 await self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.')
                 raise e
