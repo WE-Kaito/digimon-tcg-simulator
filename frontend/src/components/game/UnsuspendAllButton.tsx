@@ -1,8 +1,8 @@
-import {playUnsuspendSfx} from "../../utils/sound.ts";
 import UnsuspendIcon from "@mui/icons-material/ScreenRotation";
 import {useGame} from "../../hooks/useGame.ts";
 import {Phase} from "../../utils/types.ts";
 import styled from "@emotion/styled";
+import {useSound} from "../../hooks/useSound.ts";
 
 type Props = {
     sendSfx: (sfx: string) => void;
@@ -15,6 +15,8 @@ export default function UnsuspendAllButton({sendSfx, sendUnsuspendAll} : Props) 
     const isMyTurn = useGame(state => state.isMyTurn);
     const unsuspendAll = useGame(state => state.unsuspendAll);
     const areCardsSuspended = useGame(state => state.areCardsSuspended());
+
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
 
     const isUnsuspendPhase = phase === Phase.UNSUSPEND;
 

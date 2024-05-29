@@ -1,12 +1,14 @@
 import {useStore} from "../../hooks/useStore.ts";
 import styled from "@emotion/styled";
 import {sleeves, getSleeve} from "../../utils/sleeves.ts";
-import {playButtonClickSfx} from "../../utils/sound.ts";
+import {useSound} from "../../hooks/useSound.ts";
 
 export default function ChooseCardSleeve() {
 
     const selectedSleeveOrImage = useStore((state) => state.selectedSleeveOrImage);
     const setSleeve = useStore((state) => state.setSleeve);
+
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     return (
             <GridContainer>

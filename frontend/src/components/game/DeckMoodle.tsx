@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import {useGame} from "../../hooks/useGame.ts";
-import {playDrawCardSfx} from "../../utils/sound.ts";
 import {convertForLog} from "../../utils/functions.ts";
 import {CardTypeGame, SendToDeckFunction} from "../../utils/types.ts";
+import {useSound} from "../../hooks/useSound.ts";
 
 type DeckMoodleProps = {
     sendCardToDeck: SendToDeckFunction,
@@ -16,6 +16,9 @@ export default function DeckMoodle({ sendCardToDeck, to, setMoodle, sendChatMess
     const cardToDeck = useGame((state) => state.cardToDeck);
     const cardToSend = useGame((state) => state.cardToSend);
     const cardName = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[]).find(card => card.id === cardToSend.id)?.name);
+
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+
     const hiddenMove = cardToSend.location === "myHand" && (to === "myDeckField" || to === "mySecurity");
 
     const handleClick = (topOrBottom: "Top" | "Bottom") => {

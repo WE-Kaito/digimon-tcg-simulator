@@ -11,6 +11,7 @@ import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import cardBackSrc from "../assets/cardBack.jpg"
 import AddDeckButton from "../components/deckbuilder/AddDeckButton.tsx";
 import UpdateDeleteDeckButtons from "../components/deckbuilder/UpdateDeleteDeckButtons.tsx";
+import SoundBar from "../components/SoundBar.tsx";
 
 export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
 
@@ -34,6 +35,7 @@ export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
 
     return (
         <MenuBackgroundWrapper>
+            <SoundBar/>
             <OuterContainer>
 
                 <ButtonContainer>

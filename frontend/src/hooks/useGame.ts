@@ -12,7 +12,6 @@ import {
     SendToDeckFunction,
     Side
 } from "../utils/types.ts";
-import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -60,7 +59,7 @@ export type State = BoardState & {
 
     setUpGame: (me: Player, opponent: Player) => void,
     clearBoard: () => void,
-    distributeCards: (user: string, chunk: string, gameId: string, sendLoaded: () => void) => void,
+    distributeCards: (user: string, chunk: string, gameId: string, sendLoaded: () => void, playDrawCardSfx: () => void) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getMyFieldAsString: () => string,
     updateOpponentField: (chunk: string, sendLoaded: () => void) => void,
@@ -275,7 +274,7 @@ export const useGame = create<State>()(
         });
     },
 
-    distributeCards: (user, chunk, gameId, sendLoaded) => {
+    distributeCards: (user, chunk, gameId, sendLoaded, playDrawCardSfx) => {
 
         set(state => ({ initialDistributionState: state.initialDistributionState + chunk }));
 
@@ -454,7 +453,6 @@ export const useGame = create<State>()(
         }
 
         if (destroyTokenLocations.includes(to) && card.id.startsWith("TOKEN")) {
-            if (to !== "myTrash") playTrashCardSfx();
             set({[from]: updatedFromState});
             return;
         }

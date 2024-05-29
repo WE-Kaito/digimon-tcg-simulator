@@ -1,8 +1,8 @@
 import {DraggedItem, DraggedStack, Phase, SendToDeckFunction} from "../utils/types.ts";
 import {useGame} from "./useGame.ts";
 import {convertForLog} from "../utils/functions.ts";
-import {playCardToHandSfx, playDrawCardSfx, playPlaceCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 import {useDrop} from "react-dnd";
+import {useSound} from "./useSound.ts";
 
 type UseDropZoneProps = {
     sendCardToDeck: SendToDeckFunction,
@@ -53,6 +53,11 @@ export default function useDropZone(props: UseDropZoneProps) {
     const nextPhaseTrigger = useGame(state => state.nextPhaseTrigger);
     const moveCardStack = useGame((state) => state.moveCardStack);
     const moveCard = useGame((state) => state.moveCard);
+
+    const playCardToHandSfx = useSound((state) => state.playCardToHandSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
 
     function isCardStack(item: DraggedItem | DraggedStack): item is DraggedStack {
         const {index} = item as DraggedStack;

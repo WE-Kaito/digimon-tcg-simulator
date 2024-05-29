@@ -11,19 +11,6 @@ import optionImage from '../assets/cardtype_icons/option.png';
 import tamerImage from '../assets/cardtype_icons/tamer.png';
 import eggImage from '../assets/cardtype_icons/egg.png';
 
-import {
-    playButtonClickSfx,
-    playDrawCardSfx,
-    playNextPhaseSfx,
-    playOpponentPlaceCardSfx,
-    playPassTurnSfx,
-    playRevealCardSfx,
-    playSecurityRevealSfx,
-    playShuffleDeckSfx,
-    playSuspendSfx,
-    playTrashCardSfx,
-    playUnsuspendSfx
-} from "./sound.ts";
 import axios from "axios";
 import {starterBeelzemon, starterDragonOfCourage, starterGallantmon, starterVortexWarriors} from "./starterDecks.ts";
 
@@ -76,7 +63,35 @@ export function topCardInfo(locationCards: CardTypeGame[]) {
     return effectInfo.join("\n");
 }
 
-export function getOpponentSfx(command: string) {
+type SfxFunctions = {
+    playButtonClickSfx: () => void;
+    playDrawCardSfx: () => void;
+    playNextPhaseSfx: () => void;
+    playOpponentPlaceCardSfx: () => void;
+    playPassTurnSfx: () => void;
+    playRevealCardSfx: () => void;
+    playSecurityRevealSfx: () => void;
+    playShuffleDeckSfx: () => void;
+    playSuspendSfx: () => void;
+    playTrashCardSfx: () => void;
+    playUnsuspendSfx: () => void;
+}
+
+export function getOpponentSfx(command: string, functions: SfxFunctions) {
+
+    const {playButtonClickSfx,
+            playDrawCardSfx,
+            playNextPhaseSfx,
+            playOpponentPlaceCardSfx,
+            playPassTurnSfx,
+            playRevealCardSfx,
+            playSecurityRevealSfx,
+            playShuffleDeckSfx,
+            playSuspendSfx,
+            playTrashCardSfx,
+            playUnsuspendSfx
+    } = functions;
+
     switch (command) {
         case ("[REVEAL_SFX]"): {
             playRevealCardSfx();

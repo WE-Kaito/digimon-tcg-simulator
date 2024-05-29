@@ -17,6 +17,7 @@ import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
 import {useNavigate} from "react-router-dom";
+import SoundBar from "../components/SoundBar.tsx";
 
 export type DeckIdOrder = string[];
 
@@ -61,6 +62,7 @@ export default function Profile({user}: { user: string }) {
 
     return (
         <MenuBackgroundWrapper alignedTop>
+            <SoundBar/>
             <Header>
                 <Name>{user}</Name>
                 <BackButton/>

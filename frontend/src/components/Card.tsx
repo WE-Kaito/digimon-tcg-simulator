@@ -11,7 +11,6 @@ import {
     numbersWithModifiers,
     topCardInfo
 } from "../utils/functions.ts";
-import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
 import Lottie from "lottie-react";
@@ -20,6 +19,7 @@ import targetAnimation from "../assets/lotties/target-animation.json";
 import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
+import {useSound} from "../hooks/useSound.ts";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -68,6 +68,10 @@ export default function Card( props : CardProps ) {
     const setInheritCardInfo = useGame((state) => state.setInheritCardInfo);
     const setCardToSend = useGame((state) => state.setCardToSend);
     const getCardLocationById = useGame((state) => state.getCardLocationById);
+
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
+    const playSuspendSfx = useSound((state) => state.playSuspendSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
 
     const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);

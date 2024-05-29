@@ -36,23 +36,6 @@ import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import {notifyOpponentDisconnect, notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
-import {
-    playActivateEffectSfx,
-    playAttackSfx,
-    playDrawCardSfx,
-    playEffectAttackSfx,
-    playLoadMemorybarSfx, playModifyCardSfx,
-    playNextAttackPhaseSfx,
-    playNextPhaseSfx,
-    playRevealCardSfx,
-    playSecurityRevealSfx,
-    playShuffleDeckSfx,
-    playStartSfx,
-    playSuspendSfx,
-    playTargetCardSfx,
-    playTrashCardSfx,
-    playUnsuspendSfx
-} from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
 import {Item, ItemParams, Menu, Separator, useContextMenu} from "react-contexify";
@@ -73,7 +56,7 @@ import {
     VisibilityOff as VisibilityOffIcon,
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon,
-    Backspace as ClearIcon
+    Backspace as ClearIcon,
 } from '@mui/icons-material';
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
@@ -87,6 +70,8 @@ import cardBackSrc from "../assets/cardBack.jpg";
 import deckBackSrc from "../assets/deckBack.png";
 import eggBackSrc from "../assets/eggBack.jpg";
 import stackIconSrc from "../assets/stackIcon.png";
+import {useSound} from "../hooks/useSound.ts";
+import SoundBar from "../components/SoundBar.tsx";
 
 export default function Game({user}: { user: string }) {
     const currentPort = window.location.port;
@@ -228,6 +213,26 @@ export default function Game({user}: { user: string }) {
     const opponentDigi15 = useGame((state) => state.opponentDigi15);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
 
+    const playActivateEffectSfx = useSound((state) => state.playActivateEffectSfx);
+    const playAttackSfx = useSound((state) => state.playAttackSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playLoadMemorybarSfx = useSound((state) => state.playLoadMemorybarSfx);
+    const playEffectAttackSfx = useSound((state) => state.playEffectAttackSfx);
+    const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
+    const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
+    const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
+    const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
+    const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
+    const playStartSfx = useSound((state) => state.playStartSfx);
+    const playSuspendSfx = useSound((state) => state.playSuspendSfx);
+    const playTargetCardSfx = useSound((state) => state.playTargetCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
+    const playOpponentPlaceCardSfx = useSound((state) => state.playOpponentPlaceCardSfx);
+    const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
+
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
 
@@ -272,7 +277,7 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(user, chunk, gameId, sendLoaded)
+                distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx)
                 setSecurityContentMoodle(false);
                 return;
             }
@@ -494,7 +499,19 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 default: {
-                    getOpponentSfx(event.data);
+                    getOpponentSfx(event.data, {
+                        playButtonClickSfx,
+                        playDrawCardSfx,
+                        playNextPhaseSfx,
+                        playOpponentPlaceCardSfx,
+                        playPassTurnSfx,
+                        playRevealCardSfx,
+                        playSecurityRevealSfx,
+                        playShuffleDeckSfx,
+                        playSuspendSfx,
+                        playTrashCardSfx,
+                        playUnsuspendSfx
+                    });
                 }
             }
         }
@@ -975,6 +992,7 @@ export default function Game({user}: { user: string }) {
         <BackGround color1={color1} color2={color2} color3={color3}/>
 
         <OuterWrapperRefactorLater>
+            <SoundBar/>
             <OuterWrapper>
 
                 <StyledMenu id={"deckMenu"} theme="dark">

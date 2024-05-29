@@ -5,7 +5,7 @@ import {useStore} from "../../hooks/useStore.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
 import Card from "../Card.tsx";
 import {getCardTypeImage, sortCards} from "../../utils/functions.ts";
-import {playPlaceCardSfx, playTrashCardSfx} from "../../utils/sound.ts";
+import {useSound} from "../../hooks/useSound.ts";
 
 export default function DeckSelection() {
     const deckCards = useStore((state) => state.deckCards);
@@ -14,6 +14,9 @@ export default function DeckSelection() {
     const hoverCard = useStore((state) => state.hoverCard);
     const addCardToDeck = useStore((state) => state.addCardToDeck);
     const deleteFromDeck = useStore((state) => state.deleteFromDeck);
+
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
 
     const digimonLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Digimon").length;
     const tamerLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Tamer").length;

@@ -3,11 +3,13 @@ import Header from "../components/Header.tsx";
 import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import {Stack} from "@mui/material";
+import SoundBar from "../components/SoundBar.tsx";
 
 export default function MainMenu() {
 
     return (
         <MenuBackgroundWrapper>
+            <SoundBar/>
             <Stack gap={5}>
                 <Header/>
                 <MainMenuButton name={"Find game"} path={"/lobby"}/>

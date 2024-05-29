@@ -7,8 +7,8 @@ import {useEffect, useState} from "react";
 import {AddCircleOutlined, RemoveCircleOutlined} from '@mui/icons-material';
 import {useGame} from "../../hooks/useGame.ts";
 import {CardModifiers, CardTypeGame} from "../../utils/types.ts";
-import {playModifyCardSfx} from "../../utils/sound.ts";
 import {getCardColor, getNumericModifier, numbersWithModifiers} from "../../utils/functions.ts";
+import {useSound} from "../../hooks/useSound.ts";
 
 type ModifierMenuProps = {
     sendSetModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void
@@ -31,6 +31,8 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
     const [plusSecurityAttacks, setPlusSecurityAttacks] = useState<number>(0);
     const [keywords, setKeywords] = useState<string[]>([]);
     const [colors, setColors] = useState<string[]>(card?.modifiers.colors ?? []);
+
+    const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
 
     const handleAddDp = () => setPlusDp((prev) => prev < 30000 ? prev + 1000 : prev);
     const handleSubDp = () => setPlusDp((prev) => prev > -30000 ? prev - 1000 : prev);
