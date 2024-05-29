@@ -11,6 +11,8 @@ export default function ChooseDeckImage() {
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
+
     return (
         <GridContainer rows={rows} mobileRows={mobileRows}>
             {imageUrls?.map((url, index) => {
