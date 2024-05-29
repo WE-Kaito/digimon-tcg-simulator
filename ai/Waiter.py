@@ -121,6 +121,16 @@ class Waiter:
                 return self.bot.game['player2Reveal'][card_index-1]['id']
         await self.send_invalid_command_message(ws)
         return False
+    
+    async def filter_target_trash_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[1].isdigit():
+            card_index = int(message[1])
+            trash_size = len(self.bot.game['player2Trash'])
+            if card_index >= 1 and card_index <= trash_size:
+                return self.bot.game['player2Trash'][trash_size-card_index]['id']
+        await self.send_invalid_command_message(ws)
+        return False
 
     async def filter_trash_digivolution_action(self, ws, message):
         message = message.split(' ')
@@ -249,9 +259,20 @@ class Waiter:
                 card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
                 card = self.bot.game['player2Reveal'][card_index]
                 back = False
-                if card['cardType'] == 'Option' or card['cardType'] == 'Tamer':
+                if card['cardType'] == 'Option' and 'Delay' in card['mainEffect'] or card['cardType'] == 'Tamer':
                     back = True
                 await self.bot.play_card(ws, 'Reveal', card_index, 0, back)
+        prefix = 'play trash'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_trash_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                card_index = self.bot.find_card_index_by_id_in_trash(card_id)
+                card = self.bot.game['player2Trash'][card_index]
+                back = False
+                if card['cardType'] == 'Option' and 'Delay' in card['mainEffect'] or card['cardType'] == 'Tamer':
+                    back = True
+                await self.bot.play_card(ws, 'Trash', card_index, 0, back)
         prefix = 'trash reveal'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):

@@ -910,7 +910,7 @@ class Bot(ABC):
         return card
     
     async def delete_card_from_opponent_battle_area(self, ws, card_index):
-        card_name = self.game['player1Digi'][card_index + 1][-1]['name']
+        card_name = self.game['player1Digi'][card_index][-1]['name']
         await self.send_message(ws, f'I\'d like to delete the {card_name} in position {card_index + 1}')
         await self.send_message(ws, 'Resolve effects and type Ok to continue.')
         await self.waiter.wait_for_actions(ws)
