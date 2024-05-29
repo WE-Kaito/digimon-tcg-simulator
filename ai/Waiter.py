@@ -126,8 +126,9 @@ class Waiter:
         message = message.split(' ')
         if len(message) == 2 and message[1].isdigit():
             card_index = int(message[1])
-            if card_index >= 1 and card_index <= len(self.bot.game['player2Trash']):
-                return self.bot.game['player2Trash'][card_index-1]['id']
+            trash_size = len(self.bot.game['player2Trash'])
+            if card_index >= 1 and card_index <= trash_size:
+                return self.bot.game['player2Trash'][trash_size-card_index]['id']
         await self.send_invalid_command_message(ws)
         return False
 

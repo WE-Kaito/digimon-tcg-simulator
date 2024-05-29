@@ -41,6 +41,8 @@ The position X is identified in the following way on the field:
 
 - **trash reveal X**: Trash card from the revealed cards at position X, starting from left.
 
+- **play trash X**: Play card from the trash at position X, starting from left.
+
 - **stun X**: Make the digimon/tamer at position X unable to attack or block for the next turn.
 
 - **cant attack X**: Make the digimon/tamer at position X unable to attack for the next turn.
