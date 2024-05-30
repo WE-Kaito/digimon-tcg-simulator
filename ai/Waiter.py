@@ -178,6 +178,18 @@ class Waiter:
             self.process_move_to_deck_action(message.replace(move_message_prefix, '', 1))
         chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
+        prefix = 'suspend'
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message)
+            if card_id:
+                card_index, _  = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                await self.bot.suspend_card(ws, card_index)
+        prefix = 'unsuspend'
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message)
+            if card_id:
+                card_index, _  = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                await self.bot.unsuspend_card(ws, card_index)
         prefix = 'delete'
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message)
