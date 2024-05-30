@@ -57,6 +57,8 @@ import {
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon,
     Backspace as ClearIcon,
+    GavelRounded as RulingsIcon,
+    SportsEsportsRounded as ControlsIcon
 } from '@mui/icons-material';
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
@@ -992,7 +994,6 @@ export default function Game({user}: { user: string }) {
         <BackGround color1={color1} color2={color2} color3={color3}/>
 
         <OuterWrapperRefactorLater>
-            <SoundBar/>
             <OuterWrapper>
 
                 <StyledMenu id={"deckMenu"} theme="dark">
@@ -1117,21 +1118,16 @@ export default function Game({user}: { user: string }) {
 
                     <InfoContainer>
                         <InfoSpan>
-                            <a href="https://www.youtube.com/watch?v=ghZYuIi5mu4&ab_channel=OfficialBandaiCardGamesChannel"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                <span style={{color: "dodgerblue"}}>🛈 </span>Tutorial
-                            </a>
-                            <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
-                               rel="noopener noreferrer">
-                                <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
-                            </a>
-                            <a
-                                href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Features-&-Controls#game-%EF%B8%8F"
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                <span style={{color: "dodgerblue"}}>🛈 </span>Controls
-                            </a>
+                            <SoundBar/>
+                                <span style={{color: "dodgerblue", transform: "translate(3px, -2px)"}}>🛈 </span>
+                                <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
+                                   target="_blank" rel="noopener noreferrer" title={"Rulings"}>
+                                    <RulingsIcon/>
+                                </a>
+                                <a href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Features-&-Controls#game-%EF%B8%8F"
+                                    target="_blank" rel="noopener noreferrer" title={"Controls"}>
+                                    <ControlsIcon/>
+                                </a>
                         </InfoSpan>
 
                         <CardImage onClick={() => selectCard(null)}
@@ -1833,7 +1829,7 @@ const InfoContainer = styled.div`
   width: 500px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 0.1fr 1fr 1fr;
+  grid-template-rows: 75px 380px 1fr;
   grid-template-areas: "info info info"
                         "img img img"  
                           "details details details";
@@ -2340,7 +2336,7 @@ const OppenentHandCard = styled.img`
 
 export const CardImage = styled.img`
   grid-area: img;
-  height: 420px;
+  height: 365px;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
   outline: #0c0c0c solid 1px;
@@ -2350,13 +2346,14 @@ export const CardImage = styled.img`
 
 const InfoSpan = styled.span`
   grid-area: info;
-  width: 100%;
   display: flex;
-  justify-content: space-evenly;
-  font-family: Cuisine, sans-serif;
+  justify-content: flex-end;
+  gap: 20px;
+  font-family: "League Spartan", sans-serif;
   font-size: 24px;
   opacity: 0.7;
-
+  padding-bottom: 40px;
+  padding-right: 20px;
   a {
     color: ghostwhite;
 

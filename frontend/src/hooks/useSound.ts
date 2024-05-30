@@ -44,7 +44,7 @@ type State = {
     setMusicVolume: (volume: number) => void,
     showRadioMenu: boolean,
     toggleRadioMenu: () => void,
-    nextSong: () => void,
+    nextSong: (onEnded?: boolean) => void,
     prevSong: () => void,
     startMusic: () => void,
     stopMusic: () => void,
@@ -89,7 +89,7 @@ export const useSound = create<State>((set, get) => {
     ])
 
     const music = new Audio(songs[0]);
-    music.addEventListener('ended', () => get()?.nextSong());
+    music.addEventListener('ended', () => get()?.nextSong(true));
 
     const toggleRadioMenu = () => set((state) => ({ showRadioMenu: !state.showRadioMenu }));
 
@@ -109,8 +109,8 @@ export const useSound = create<State>((set, get) => {
         localStorage.setItem('musicVolume', volume.toString());
     }
 
-    function nextSong() {
-        if(music.paused) return;
+    function nextSong(onEnded = false) {
+        if(music.paused && !onEnded) return;
         const currentSongIndex = songs.findIndex((song) => getTitle(song) === get().currentSong);
         music.src = songs[(currentSongIndex + 1)] ?? songs[0];
         startMusic();
@@ -130,11 +130,21 @@ export const useSound = create<State>((set, get) => {
     // SFX
     const toggleSfxEnabled = () => set((state) => ({ sfxEnabled: !state.sfxEnabled }));
 
-    function playSound(src: string, volume: number = 1, delay?: number){
+    function playSound(src: string, volume: number = 1, delay?: number, longSound?: boolean){
         if (!get().sfxEnabled) return;
 
         const audio = new Audio(src);
         audio.volume = volume;
+
+        let musicVolume: number;
+        if(!music.paused) {
+            audio.volume = volume * 1.2;
+            if(longSound) {
+                musicVolume = get().musicVolume;
+                music.volume = musicVolume * 0.5;
+                audio.addEventListener('ended', () => music.volume = musicVolume);
+            }
+        }
 
         audio.addEventListener('canplay', () => {
             if (delay) setTimeout(() => audio.play(), delay);
@@ -148,10 +158,10 @@ export const useSound = create<State>((set, get) => {
     const playCardToHandSfx = (): void => playSound(cardToHandSfx, 0.25);
     const playPlaceCardSfx = (): void => playSound(placeCardSfx, 0.8);
     const playTrashCardSfx = (): void => playSound(trashCardSfx, 1);
-    const playAttackSfx = (): void => playSound(attackSfx, 0.25);
+    const playAttackSfx = (): void => playSound(attackSfx, 0.25,0,true);
     const playStartSfx = (): void => playSound(startSfx, 0.6);
-    const playSecurityRevealSfx = (): void => playSound(securityRevealSfx, 0.5);
-    const playShuffleDeckSfx = (): void => playSound(shuffleDeckSfx, 0.8);
+    const playSecurityRevealSfx = (): void => playSound(securityRevealSfx, 0.5,0,true);
+    const playShuffleDeckSfx = (): void => playSound(shuffleDeckSfx, 0.8,0,true);
     const playSuspendSfx = (): void => playSound(suspendSfx, 1);
     const playUnsuspendSfx = (): void => playSound(unsuspendSfx, 0.15);
     const playOpponentPlaceCardSfx = (): void => playSound(opponentPlaceCardSfx, 0.7, 100);
@@ -160,9 +170,9 @@ export const useSound = create<State>((set, get) => {
     const playNextPhaseSfx = (): void => playSound(nextPhaseSfx, 0.25);
     const playPassTurnSfx = (): void => playSound(passTurnSfx, 0.7);
     const playNextAttackPhaseSfx = (): void => playSound(nextAttackPhaseSfx, 1);
-    const playEffectAttackSfx = (): void => playSound(effectAttackSfx, 0.1);
-    const playActivateEffectSfx = (): void => playSound(activateEffect, 0.55);
-    const playTargetCardSfx = (): void => playSound(targetCardSfx, 0.25);
+    const playEffectAttackSfx = (): void => playSound(effectAttackSfx, 0.1,0,true);
+    const playActivateEffectSfx = (): void => playSound(activateEffect, 0.55,0,true);
+    const playTargetCardSfx = (): void => playSound(targetCardSfx, 0.25,0,true);
     const playModifyCardSfx = (): void => playSound(modifyCardSfx, 1);
 
     return {

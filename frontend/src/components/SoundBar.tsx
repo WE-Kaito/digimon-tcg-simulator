@@ -30,8 +30,10 @@ export default function SoundBar() {
 
     if (window.innerWidth < 800) return <></>
 
+    const inGame = window.location.pathname.includes("game");
+    const lottieTranslation = !showRadioMenu ? inGame ? "translate(-100px, -2px)" : "translateX(-101px)" : inGame ? "translateY(-2px)" : "unset";
     return (
-        <div style={{position: "absolute", left: 0, top: 0, transform: "scale(0.7) translate(-67px, -15px)"}}>
+        <div style={{position: "absolute", left: 0, top: 0, gridArea: "info" }}>
             <StyledGrid>
 
                 <SetSfxIconButton onClick={() => toggleSfxEnabled()} sfxEnabled={sfxEnabled}
@@ -49,14 +51,16 @@ export default function SoundBar() {
                 <MainRadioIconButton showRadioMenu={showRadioMenu} onClick={toggleRadioMenu}>
                     <RadioIcon titleAccess={currentSong} fontSize={"large"}/>
                 </MainRadioIconButton>
-                {isMusicPlaying && showRadioMenu && <StyledLottie animationData={radioAnimation}/>}
+                {isMusicPlaying &&
+                    <StyledLottie animationData={radioAnimation} style={{ transform: lottieTranslation}}/>
+                }
 
                 <RadioIconButtonStart showRadioMenu={showRadioMenu} onClick={isMusicPlaying ? stopMusic : startMusic}>
                     {isMusicPlaying
                         ? <StopIcon fontSize={"large"}/>
                         : <PlayIcon fontSize={"large"}/>}
                 </RadioIconButtonStart>
-                <RadioIconButtonNext showRadioMenu={showRadioMenu} onClick={nextSong}>
+                <RadioIconButtonNext showRadioMenu={showRadioMenu} onClick={() => nextSong()}>
                     <NextIcon fontSize={"large"}/>
                 </RadioIconButtonNext>
 
@@ -154,8 +158,9 @@ const MainRadioIconButton = styled(RadioIconButton)`
 const StyledLottie = styled(Lottie)`
   position: absolute;
   width: 250px;
-  left: 64px;
+  left: 65px;
   top: -21px;
   z-index: -1;
   opacity: 0.5;
+  transition: all 0.25s ease;
 `;

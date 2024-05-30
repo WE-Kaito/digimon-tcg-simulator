@@ -315,8 +315,8 @@ const ConnectionSpanGreen = styled.span`
   opacity: 0.8;
   filter: drop-shadow(0 0 3px #19cb19);
   position: absolute;
-  top: 2%;
-  left: 4%;
+  top: 4px;
+  left: 4px;
 `;
 
 const ConnectionSpanYellow = styled(ConnectionSpanGreen)`
