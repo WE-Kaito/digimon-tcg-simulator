@@ -11,6 +11,10 @@ The position X is identified in the following way on the field:
 
 - **security check**: Perform a security check.
 
+- **unsuspend X**: Suspend the card at the X position.
+
+- **suspend X**: Suspend the card at the X position.
+
 - **delete X**: Delete the card at the X position.
 
 - **return bottom deck X**: Return the card at the X position at the bottom of the opponent deck.
