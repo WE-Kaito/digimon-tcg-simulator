@@ -21,13 +21,33 @@ import effectAttackSfx from "../assets/sounds/effect-attack.mp3";
 import activateEffect from "../assets/sounds/activate-effect.mp3";
 import targetCardSfx from "../assets/sounds/effect-target.mp3";
 import modifyCardSfx from "../assets/sounds/modify-card.mp3";
-
+import avant from "../assets/music/Avant (@SadGatomon cover).mp3";
+import brave_heart from "../assets/music/Brave Heart (@SadGatomon cover).mp3";
+import break_up from "../assets/music/Break up (@SadGatomon cover).mp3";
+import butterfly from "../assets/music/Butter-Fly (@SadGatomon cover).mp3";
+import survive_main_theme from "../assets/music/Digimon Survive - Main Theme (@SadGatomon cover feat.@jembei).mp3";
+import file_city_night from "../assets/music/Digimon World - Night Time in File City (@SadGatomon cover).mp3";
+import evo from "../assets/music/EVO (@SadGatomon cover).mp3";
+import fire from "../assets/music/Fire (@SadGatomon cover).mp3";
+import namida_no_yukue from "../assets/music/Namida no Yukue (@SadGatomon cover).mp3";
+import shouri_zen_no_theme from "../assets/music/shouri zen no theme (@SadGatomon cover feat.@jembei).mp3";
+import target from "../assets/music/Target (@SadGatomon cover).mp3";
+import the_biggest_dreamer from "../assets/music/The Biggest Dreamer (@SadGatomon cover).mp3";
+import {shuffleArray} from "../utils/functions.ts";
 
 type State = {
     sfxEnabled: boolean,
     musicVolume: number,
+    currentSong: string,
+    isMusicPlaying: boolean,
     toggleSfxEnabled: () => void,
     setMusicVolume: (volume: number) => void,
+    showRadioMenu: boolean,
+    toggleRadioMenu: () => void,
+    nextSong: () => void,
+    prevSong: () => void,
+    startMusic: () => void,
+    stopMusic: () => void,
     playDrawCardSfx: () => void,
     playButtonClickSfx: () => void,
     playRevealCardSfx: () => void,
@@ -57,10 +77,55 @@ export const useSound = create<State>((set, get) => {
     const initialState = {
         sfxEnabled: Boolean(localStorage.getItem('sfxEnabled') ?? 'true'),
         musicVolume: parseFloat(localStorage.getItem('musicVolume') ?? '0.5'),
+        currentSong: '',
+        isMusicPlaying: false,
+        showRadioMenu: false,
     };
 
     // Music
-    const setMusicVolume = (volume: number) => set(() => ({ musicVolume: volume }));
+    const songs = shuffleArray([
+        avant, brave_heart, break_up, butterfly, survive_main_theme, file_city_night, evo, fire, namida_no_yukue,
+        shouri_zen_no_theme, target, the_biggest_dreamer
+    ])
+
+    const music = new Audio(songs[0]);
+    music.addEventListener('ended', () => get()?.nextSong());
+
+    const toggleRadioMenu = () => set((state) => ({ showRadioMenu: !state.showRadioMenu }));
+
+    function startMusic() {
+        music.volume = (parseFloat(localStorage.getItem('musicVolume') ?? '0.5') * 0.75);
+        music.play().then(() => set(() => ({ isMusicPlaying: true, currentSong: getTitle(music.currentSrc) })));
+    }
+
+    function stopMusic() {
+        music.pause()
+        set(() => ({ isMusicPlaying: false }));
+    }
+
+    function setMusicVolume(volume: number) {
+        music.volume = volume * 0.75;
+        set(() => ({ musicVolume: volume }));
+        localStorage.setItem('musicVolume', volume.toString());
+    }
+
+    function nextSong() {
+        if(music.paused) return;
+        const currentSongIndex = songs.findIndex((song) => getTitle(song) === get().currentSong);
+        music.src = songs[(currentSongIndex + 1)] ?? songs[0];
+        startMusic();
+    }
+
+    function prevSong() {
+        if(music.paused) return;
+        if(music.currentTime > 7) {
+            music.currentTime = 0;
+            return;
+        }
+        const currentSongIndex = songs.findIndex((song) => getTitle(song) === get().currentSong);
+        music.src = songs[(currentSongIndex - 1)] ?? songs[songs.length - 1];
+        startMusic();
+    }
 
     // SFX
     const toggleSfxEnabled = () => set((state) => ({ sfxEnabled: !state.sfxEnabled }));
@@ -102,8 +167,13 @@ export const useSound = create<State>((set, get) => {
 
     return {
         ...initialState,
+        toggleRadioMenu,
         toggleSfxEnabled,
         setMusicVolume,
+        startMusic,
+        stopMusic,
+        nextSong,
+        prevSong,
         playDrawCardSfx,
         playButtonClickSfx,
         playRevealCardSfx,
@@ -128,3 +198,23 @@ export const useSound = create<State>((set, get) => {
         playModifyCardSfx
     };
 });
+
+function getTitle(song: string) {
+    switch(getFileName(song)) {
+        case getFileName(avant): return 'Avant';
+        case getFileName(brave_heart): return 'Brave Heart';
+        case getFileName(break_up): return 'Break up!';
+        case getFileName(butterfly): return 'Butterfly';
+        case getFileName(survive_main_theme): return 'Survive Main Theme';
+        case getFileName(file_city_night): return 'File City Night';
+        case getFileName(evo): return 'EVO';
+        case getFileName(fire): return 'Fire!!';
+        case getFileName(namida_no_yukue): return 'Namida No Yukue';
+        case getFileName(shouri_zen_no_theme): return 'Shouri (Zen No Theme)';
+        case getFileName(target): return 'Target';
+        case getFileName(the_biggest_dreamer): return 'The Biggest Dreamer';
+        default: return '';
+    }
+}
+
+const getFileName = (url: string) => url.substring(url.lastIndexOf('/') + 1);

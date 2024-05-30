@@ -1,27 +1,94 @@
-import {VolumeOffRounded as UnmuteSfxIcon, VolumeUpRounded as MuteSfxIcon} from "@mui/icons-material";
+import {
+    VolumeOffRounded as UnmuteSfxIcon,
+    VolumeUpRounded as MuteSfxIcon,
+    RadioRounded as RadioIcon,
+    PlayArrowRounded as PlayIcon,
+    StopRounded as StopIcon,
+    SkipNextRounded as NextIcon,
+    SkipPreviousRounded as PrevIcon
+} from "@mui/icons-material";
+import Slider from '@mui/material/Slider';
 import styled from "@emotion/styled";
 import {useSound} from "../hooks/useSound.ts";
-import {Stack} from "@mui/material";
+import Lottie from "lottie-react";
+import radioAnimation from "../assets/lotties/radio-animation.json";
 
 export default function SoundBar() {
 
     const sfxEnabled = useSound((state) => state.sfxEnabled);
+    const musicVolume = useSound((state) => state.musicVolume);
+    const currentSong = useSound((state) => state.currentSong);
+    const isMusicPlaying = useSound((state) => state.isMusicPlaying);
+    const showRadioMenu = useSound((state) => state.showRadioMenu);
+    const toggleRadioMenu = useSound((state) => state.toggleRadioMenu);
     const toggleSfxEnabled = useSound((state) => state.toggleSfxEnabled);
+    const setMusicVolume = useSound((state) => state.setMusicVolume);
+    const startMusic = useSound((state) => state.startMusic);
+    const stopMusic = useSound((state) => state.stopMusic);
+    const nextSong = useSound((state) => state.nextSong);
+    const prevSong = useSound((state) => state.prevSong);
+
+    if (window.innerWidth < 800) return <></>
 
     return (
-        <Stack direction={"row"} sx={{ position:"absolute", left:0, top: 0}}>
-            <SetSfxIconButton onClick={() => toggleSfxEnabled()} sfxEnabled={sfxEnabled}
-                              title={"Mute / Unmute SFX"}>
-                {sfxEnabled
-                    ? <MuteSfxIcon fontSize={"large"}/>
-                    : <UnmuteSfxIcon fontSize={"large"}/>}
-            </SetSfxIconButton>
-        </Stack>
+        <div style={{position: "absolute", left: 0, top: 0, transform: "scale(0.7) translate(-67px, -15px)"}}>
+            <StyledGrid>
+
+                <SetSfxIconButton onClick={() => toggleSfxEnabled()} sfxEnabled={sfxEnabled}
+                                  title={"Mute / Unmute SFX"}>
+                    {sfxEnabled
+                        ? <MuteSfxIcon fontSize={"large"}/>
+                        : <UnmuteSfxIcon fontSize={"large"}/>}
+                </SetSfxIconButton>
+                <SfxSpan sfxEnabled={sfxEnabled}>SFX</SfxSpan>
+
+                <RadioIconButtonPrev showRadioMenu={showRadioMenu} onClick={prevSong}>
+                    <PrevIcon fontSize={"large"}/>
+                </RadioIconButtonPrev>
+
+                <MainRadioIconButton showRadioMenu={showRadioMenu} onClick={toggleRadioMenu}>
+                    <RadioIcon titleAccess={currentSong} fontSize={"large"}/>
+                </MainRadioIconButton>
+                {isMusicPlaying && showRadioMenu && <StyledLottie animationData={radioAnimation}/>}
+
+                <RadioIconButtonStart showRadioMenu={showRadioMenu} onClick={isMusicPlaying ? stopMusic : startMusic}>
+                    {isMusicPlaying
+                        ? <StopIcon fontSize={"large"}/>
+                        : <PlayIcon fontSize={"large"}/>}
+                </RadioIconButtonStart>
+                <RadioIconButtonNext showRadioMenu={showRadioMenu} onClick={nextSong}>
+                    <NextIcon fontSize={"large"}/>
+                </RadioIconButtonNext>
+
+                <Slider
+                    size="small"
+                    defaultValue={50}
+                    value={musicVolume * 100}
+                    onChange={(_, value) => setMusicVolume(value as number/ 100)}
+                    sx={{ gridArea: "slider", width: "90%", ml: "13px", color: "#6082B6", transition: "all 0.2s ease",
+                          opacity: showRadioMenu ? 1 : 0, pointerEvents: showRadioMenu ? "unset" : "none" }}
+                />
+            </StyledGrid>
+        </div>
     );
 }
 
-const SetSfxIconButton = styled.button<{ sfxEnabled: boolean}>`
-  opacity: 0.8;
+const StyledGrid = styled.div`
+  display: grid;
+  gap: 3px;
+  position: relative;
+  padding: 5px;
+  justify-content: center;
+  align-items: center;
+  grid-template-columns: repeat(6, 50px);
+  grid-template-rows: 45px 20px;
+  grid-template-areas: "sfx-button empty prev-button radio-icon start-button next-button"
+                         "sfx-text slider slider slider slider slider";
+`;
+
+const SetSfxIconButton = styled.button<{ sfxEnabled: boolean }>`
+  grid-area: sfx-button;
+  opacity: 0.7;
   color: ${({sfxEnabled}) => sfxEnabled ? "unset" : "rgba(190,39,85,1)"};
   padding: 0;
   border-radius: 5px;
@@ -29,9 +96,66 @@ const SetSfxIconButton = styled.button<{ sfxEnabled: boolean}>`
   border: none;
   outline: none;
   transition: all 0.25s ease;
-  
+
   &:hover {
     opacity: 1;
     filter: drop-shadow(0 0 3px ${({sfxEnabled}) => sfxEnabled ? "ghostwhite" : "rgba(190,39,85,1)"};);
   }
+`;
+
+const SfxSpan = styled.span<{ sfxEnabled: boolean }>`
+  font-family: Awsumsans, sans-serif;
+  font-size: 12px;
+  grid-area: sfx-text;
+  align-self: flex-start;
+  opacity: 0.45;
+  color: ${({sfxEnabled}) => sfxEnabled ? "unset" : "rgba(190,39,85,1)"};
+`;
+
+const RadioIconButton = styled.div<{showRadioMenu: boolean}>`
+  width: 100%;
+  opacity: ${props => props.showRadioMenu ? 0.7 : 0};
+  padding: 0;
+  border-radius: 5px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  pointer-events: ${props => props.showRadioMenu ? "unset" : "none"};
+
+  &:hover {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px "ghostwhite");
+  }
+`;
+
+const RadioIconButtonPrev = styled(RadioIconButton)`
+    grid-area: prev-button;
+    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-47px)"};
+`;
+
+const RadioIconButtonNext = styled(RadioIconButton)`
+    grid-area: next-button;
+    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-204px)"};
+`;
+
+const RadioIconButtonStart = styled(RadioIconButton)`
+    grid-area: start-button;
+    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-151px)"};
+`;
+
+const MainRadioIconButton = styled(RadioIconButton)`
+    grid-area: radio-icon;
+    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-100px)"}; 
+    padding-bottom: 1px;
+    transition: all 0.25s ease;
+    opacity: 0.7;
+    pointer-events: unset;
+`;
+
+const StyledLottie = styled(Lottie)`
+  position: absolute;
+  width: 250px;
+  left: 64px;
+  top: -21px;
+  z-index: -1;
+  opacity: 0.5;
 `;

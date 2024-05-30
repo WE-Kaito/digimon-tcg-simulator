@@ -489,3 +489,12 @@ export function arraysEqualUnordered(arr1: string[], arr2: string[]) {
     const sortedArr2 = [...arr2].sort((a, b) => a.localeCompare(b));
     return sortedArr1.every((value, index) => value === sortedArr2[index]);
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function shuffleArray(array: any[]) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
