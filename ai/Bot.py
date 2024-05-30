@@ -956,9 +956,10 @@ class Bot(ABC):
     async def reveal_card_from_top_of_deck(self, ws, n_cards):
         self.logger.info(f'Revealing top {n_cards} from deck.')
         for i in range(n_cards):
-            await self.move_card(ws, 'myDeckField0', 'myReveal')
-            self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
-            time.sleep(0.2)
+            if len(self.game['player2DeckField']) > 0:
+                await self.move_card(ws, 'myDeckField0', 'myReveal')
+                self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
+                time.sleep(0.2)
     
     async def add_card_from_reveal_to_hand(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_reveal(card_id)
