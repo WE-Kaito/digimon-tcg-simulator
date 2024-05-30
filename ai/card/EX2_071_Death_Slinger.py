@@ -23,4 +23,5 @@ class EX2_071_Death_Slinger(Card):
         for opponent_digimon in sorted(opponent_digimons, reverse=True):
             if max_level_can_delete >= opponent_digimon[0]:
                 await self.bot.delete_card_from_opponent_battle_area(ws, opponent_digimon[1])
+                break
         await self.bot.delete_card_from_battle_area(ws, self.extra_args['card_id'])
