@@ -311,7 +311,7 @@ class BeelzemonXBot(Bot):
             return False
         if len(self.game['player1Security']) == 0:
             self.logger.info('No cards left in opponent\'s security, attacking with any digimon.')
-            digimon_index = await self.find_can_attack_any_digimon()
+            digimon_index = await self.find_can_attack_any_digimon(ws)
         if digimon_index < 0:
             self.logger.info('Checking for level 6 digimons to attack with...')
             digimon_index = self.find_can_attack_digimon_of_level(6)
