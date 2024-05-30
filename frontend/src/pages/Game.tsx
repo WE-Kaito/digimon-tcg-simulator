@@ -959,10 +959,10 @@ export default function Game({user}: { user: string }) {
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
-    const effectInMyTrash = getCardLocationById(cardIdWithEffect) === "myTrash";
-    const effectInOpponentTrash = getCardLocationById(cardIdWithEffect) === "opponentTrash";
-    const targetInMyTrash = getCardLocationById(cardIdWithTarget) === "myTrash";
-    const targetInOpponentTrash = getCardLocationById(cardIdWithTarget) === "opponentTrash";
+    const effectInMyTrash = getCardLocationById(cardIdWithEffect ?? "") === "myTrash";
+    const effectInOpponentTrash = getCardLocationById(cardIdWithEffect ?? "") === "opponentTrash";
+    const targetInMyTrash = getCardLocationById(cardIdWithTarget ?? "") === "myTrash";
+    const targetInOpponentTrash = getCardLocationById(cardIdWithTarget ?? "") === "opponentTrash";
 
     const color1 = localStorage.getItem("color1") ?? "#214d44";
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";

@@ -707,7 +707,7 @@ export const useGame = create<State>()(
         for (const key in state) {
             if (Object.prototype.hasOwnProperty.call(state, key)) {
                 const locationState = (state[key as keyof State] as CardTypeGame[]);
-                if (Array.isArray(locationState) && locationState.find(card => card.id === cardId)) return key;
+                if (Array.isArray(locationState) && locationState.find(card => card?.id === cardId)) return key;
             }
         }
         return "";
