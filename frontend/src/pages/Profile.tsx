@@ -83,6 +83,7 @@ export default function Profile({user}: { user: string }) {
             </Dialog>
 
             <ChooseAvatar/>
+            <br/>
 
             <DeckHeaderContainer>
                 <span>Decks</span>
