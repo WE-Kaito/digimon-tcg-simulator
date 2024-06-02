@@ -192,7 +192,8 @@ class Bot(ABC):
             lobby_response = self.s.get(f'{self.url_prefix}://{self.host}/lobby', auth=(self.username, self.password), verify=config('SSL_VERIFY', cast=bool))
             if lobby_response.status_code == 200:
                 self.logger.info('Accessed lobby, saying Hi')
-                asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
+                # Removed by now, can set cooldown later
+                # asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
                 self.opponent = asyncio.run(self.wait_in_lobby())
                 self.logger.info('Opponent found, starting game.')
                 try:
