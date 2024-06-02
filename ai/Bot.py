@@ -199,9 +199,9 @@ class Bot(ABC):
                 try:
                     asyncio.run(self.play())
                 except RuntimeError as e:
-                    await self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.')
+                    # TODO: Better error handling
+                    # asyncio.run(self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.'))
                     raise e
-
             else:
                 self.logger.error('Error when accessing/waiting in lobby')
                 self.logger.error(lobby_response.text)
@@ -611,7 +611,18 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentSecurity:true")
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
         await self.waiter.wait_for_opponent_counter_blocking(ws)
-   
+    
+    async def declare_blocker(self, ws, digimon_index):
+        if digimon_index == -1:
+            await self.send_message(ws, f"No Digimon to block with.")
+            return
+        card = self.game['player2Digi'][digimon_index][-1]
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card['id'])
+        self.logger.info(f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.send_message(ws, f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.suspend_card(ws, card_index)
+        await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
+
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
         for i in range(len(self.game['player2Digi'])):
@@ -1176,3 +1187,8 @@ class Bot(ABC):
     @abstractmethod
     def mulligan_strategy(self):
         pass
+
+    @abstractmethod
+    def collision_strategy(self):
+        pass
+

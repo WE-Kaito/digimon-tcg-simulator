@@ -90,6 +90,14 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False
 
+    async def filter_attacker_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[1].isdigit():
+            card_index = int(message[1])
+            if card_index >= DIGI_MIN_INDEX and card_index <= DIGI_MAX_INDEX and len(self.bot.game['player1Digi'][card_index-1]) > 0:
+                return self.bot.game['player1Digi'][card_index-1][-1]['id']
+        await self.send_invalid_command_message(ws)
+        return False
 
     async def filter_security_check_action(self, ws, message):
         if len(self.bot.game['player2Security']) == 0:
@@ -354,6 +362,12 @@ class Waiter:
             card_id, n  = await self.filter_de_digivolve_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.de_digivolve(ws, card_id, n)
+        prefix = 'collision'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id  = await self.filter_attacker_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                await self.bot.collision_strategy(ws, card_id)
         return True
     
     async def check_timestamp(self):
