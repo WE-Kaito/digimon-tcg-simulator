@@ -195,7 +195,12 @@ class Bot(ABC):
                 asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
                 self.opponent = asyncio.run(self.wait_in_lobby())
                 self.logger.info('Opponent found, starting game.')
-                asyncio.run(self.play())
+                try:
+                    asyncio.run(self.play())
+                except RuntimeError as e:
+                    await self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.')
+                    raise e
+
             else:
                 self.logger.error('Error when accessing/waiting in lobby')
                 self.logger.error(lobby_response.text)
