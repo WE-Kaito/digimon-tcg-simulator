@@ -91,7 +91,7 @@ class Bot(ABC):
         
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(config('LOGLEVEL'))
-        fmt = '%(asctime)s %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
+        fmt = '%(asctime)s ' + self.username +  ' %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
         fmt_date = '%Y-%m-%dT%T%Z'
         formatter = logging.Formatter(fmt, fmt_date)
         handler = logging.StreamHandler()
