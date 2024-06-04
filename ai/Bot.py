@@ -739,7 +739,8 @@ class Bot(ABC):
             self.cant_block_until_end_of_turn.add(digivolution_card['id'])
         if digimon['id'] in self.cant_block_until_end_of_opponent_turn:
             self.cant_block_until_end_of_opponent_turn.add(digivolution_card['id'])
-        await self.decrease_memory_by(ws, cost)
+        if cost > 0:
+            await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
         time.sleep(2)
 
@@ -750,7 +751,8 @@ class Bot(ABC):
         await self.send_message(ws, f"I play {card['uniqueCardNumber']}-{card['name']} with cost {cost}")
         self.game['player2Digi'][i].append(card)
         self.placed_this_turn.add(card['id'])
-        await self.decrease_memory_by(ws, cost)
+        if cost > 0:
+            await self.decrease_memory_by(ws, cost)
         return card
 
     async def trash_card_from_hand(self, ws, card_index):
