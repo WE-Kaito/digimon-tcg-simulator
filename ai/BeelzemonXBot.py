@@ -16,7 +16,8 @@ class BeelzemonXBot(Bot):
         super().__init__(username)
         self.card_factory = CardFactory(self)
         self.turn_counter = 0
-        self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
+        self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
+        self.blockers_priority_list = ['BT10-081', 'ST14-07', 'BT2-068', 'BT12-085', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'EX2-044', 'EX2-039', 'ST14-08', 'P-077']
         self.gained_baalmon_effect = set()
 
     async def play_card(self, ws, card_location, card_index, cost, back=False):
@@ -75,6 +76,26 @@ class BeelzemonXBot(Bot):
         await super().animate_effect(ws)
         if len(self.bot.game['player2Trash']) >= 10:
             await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
+
+    # TODO: Take into account attacker when deiciding blocker
+    async def collision_strategy(self, ws, attacker_id):
+        potential_blockers = [(c[-1]['uniqueCardNumber'], c) for c in self.game['player2Digi'] if len(c) > 0 and c[-1]['cardType'] == 'Digimon']
+        potential_blockers.sort(key=lambda x:self.blockers_priority_list.index(x[0]))
+        blocker_index = -1
+        for card_index, digimon in enumerate([c[1] for c in potential_blockers]):
+            if digimon[-1]['uniqueCardNumber'] == 'BT10-081' or (digimon[-1]['uniqueCardNumber'] == 'ST14-07' and 'ST14-07' in gained_baalmon_effect()):
+                if len(self.game['player2Trash']) >= 10 and (self.card_in_trash('ST14-08', 'Beelzemon') or self.card_in_trash('EX2-044', 'Beelzemon')):
+                    return card_index
+                else:
+                    continue
+            elif digimon[-1]['uniqueCardNumber'] == 'BT2-068':
+                if len(self.game['player2DeckField']) > 3:
+                    return card_index
+                else:
+                    continue
+            blocker_index = card_index
+            break
+        await self.declare_blocker(ws, blocker_index)
 
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
