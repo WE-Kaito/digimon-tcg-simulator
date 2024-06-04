@@ -91,7 +91,7 @@ class Bot(ABC):
         
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(config('LOGLEVEL'))
-        fmt = '%(asctime)s %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
+        fmt = '%(asctime)s ' + self.username +  ' %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
         fmt_date = '%Y-%m-%dT%T%Z'
         formatter = logging.Formatter(fmt, fmt_date)
         handler = logging.StreamHandler()
@@ -192,10 +192,16 @@ class Bot(ABC):
             lobby_response = self.s.get(f'{self.url_prefix}://{self.host}/lobby', auth=(self.username, self.password), verify=config('SSL_VERIFY', cast=bool))
             if lobby_response.status_code == 200:
                 self.logger.info('Accessed lobby, saying Hi')
-                asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
+                # Removed by now, can set cooldown later
+                # asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
                 self.opponent = asyncio.run(self.wait_in_lobby())
                 self.logger.info('Opponent found, starting game.')
-                asyncio.run(self.play())
+                try:
+                    asyncio.run(self.play())
+                except RuntimeError as e:
+                    # TODO: Better error handling
+                    # asyncio.run(self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.'))
+                    raise e
             else:
                 self.logger.error('Error when accessing/waiting in lobby')
                 self.logger.error(lobby_response.text)
@@ -605,7 +611,18 @@ class Bot(ABC):
         await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentSecurity:true")
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
         await self.waiter.wait_for_opponent_counter_blocking(ws)
-   
+    
+    async def declare_blocker(self, ws, digimon_index):
+        if digimon_index == -1:
+            await self.send_message(ws, f"No Digimon to block with.")
+            return
+        card = self.game['player2Digi'][digimon_index][-1]
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card['id'])
+        self.logger.info(f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.send_message(ws, f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.suspend_card(ws, card_index)
+        await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
+
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
         for i in range(len(self.game['player2Digi'])):
@@ -722,7 +739,8 @@ class Bot(ABC):
             self.cant_block_until_end_of_turn.add(digivolution_card['id'])
         if digimon['id'] in self.cant_block_until_end_of_opponent_turn:
             self.cant_block_until_end_of_opponent_turn.add(digivolution_card['id'])
-        await self.decrease_memory_by(ws, cost)
+        if cost > 0:
+            await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
         time.sleep(2)
 
@@ -733,7 +751,8 @@ class Bot(ABC):
         await self.send_message(ws, f"I play {card['uniqueCardNumber']}-{card['name']} with cost {cost}")
         self.game['player2Digi'][i].append(card)
         self.placed_this_turn.add(card['id'])
-        await self.decrease_memory_by(ws, cost)
+        if cost > 0:
+            await self.decrease_memory_by(ws, cost)
         return card
 
     async def trash_card_from_hand(self, ws, card_index):
@@ -1170,3 +1189,8 @@ class Bot(ABC):
     @abstractmethod
     def mulligan_strategy(self):
         pass
+
+    @abstractmethod
+    def collision_strategy(self):
+        pass
+
