@@ -16,7 +16,7 @@ import {
     calculateCardRotation,
     convertForLog, getAttributeImage, getCardTypeImage,
     getOpponentSfx,
-    handleImageError, numbersWithModifiers
+    handleImageError, isTrue, numbersWithModifiers
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {CSSProperties, useCallback, useEffect, useRef, useState} from "react";
@@ -41,7 +41,7 @@ import CardStack from "../components/game/CardStack.tsx";
 import {Item, ItemParams, Menu, Separator, useContextMenu} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import {getSleeve} from "../utils/sleeves.ts";
-import {Button as MuiButton} from "@mui/material";
+import {Button as MuiButton, Stack, Tooltip, Zoom as MuiZoom} from "@mui/material";
 import {
     AddModerator as RecoveryIcon,
     AdsClick as TargetIcon,
@@ -102,7 +102,7 @@ export default function Game({user}: { user: string }) {
     const contextCard = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
     const moveCard = useGame((state) => state.moveCard);
-    const cardToDeck = useGame((state) => state.cardToDeck);
+    const moveCardToStack = useGame((state) => state.moveCardToStack);
     const tiltCard = useGame((state) => state.tiltCard);
     const unsuspendAll = useGame((state) => state.unsuspendAll);
 
@@ -325,13 +325,14 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
-            if (event.data.startsWith("[MOVE_CARD_TO_DECK]:")) {
-                const parts = event.data.substring("[MOVE_CARD_TO_DECK]:".length).split(":");
+            if (event.data.startsWith("[MOVE_CARD_TO_STACK]:")) {
+                const parts = event.data.substring("[MOVE_CARD_TO_STACK]:".length).split(":");
                 const topOrBottom = parts[0];
                 const cardId = parts[1];
                 const from = parts[2];
                 const to = parts[3];
-                cardToDeck(topOrBottom, cardId, from, to);
+                const sendFaceUp = isTrue(parts[4]);
+                moveCardToStack(topOrBottom, cardId, from, to, sendFaceUp);
                 return;
             }
 
@@ -608,8 +609,8 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to + ":" + isEffect);
     }
 
-    function sendCardToDeck(topOrBottom: "Top" | "Bottom", cardId: string, location: string, to: string) {
-        websocket.sendMessage(`${gameId}:/moveCardToDeck:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}`);
+    function sendCardToStack(topOrBottom: "Top" | "Bottom", cardId: string, location: string, to: string, sendFaceUp = false) {
+        websocket.sendMessage(`${gameId}:/moveCardToStack:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}:${sendFaceUp}`);
     }
 
     function sendTiltCard(cardId: string, location: string) {
@@ -781,8 +782,8 @@ export default function Game({user}: { user: string }) {
             case "mySecurity":
                 playUnsuspendSfx();
                 sendSfx("playUnsuspendCardSfx");
-                cardToDeck("Top", cardId, "myDeckField", "mySecurity");
-                sendCardToDeck("Top", cardId, "myDeckField", "mySecurity");
+                moveCardToStack("Top", cardId, "myDeckField", "mySecurity");
+                sendCardToStack("Top", cardId, "myDeckField", "mySecurity");
                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
                 break;
             case "myHand":
@@ -888,7 +889,7 @@ export default function Game({user}: { user: string }) {
         const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
         return () => clearTimeout(timer);
     }
-
+    const [isOpen, setIsOpen] = useState(false);
     const {
         dropToDigi1,
         dropToDigi2,
@@ -934,7 +935,7 @@ export default function Game({user}: { user: string }) {
         dropToOpponentDigi15,
         dropToOpponentSecurity
     } = useDropZone({
-        sendCardToDeck,
+        sendCardToStack,
         sendChatMessage,
         nextPhase,
         setArrowFrom,
@@ -1307,7 +1308,7 @@ export default function Game({user}: { user: string }) {
                                                         <CardAnimationContainer>
                                                             <Lottie animationData={targetAnimation} loop={true}/>
                                                         </CardAnimationContainer>}
-                                                    <OppenentHandCard alt="card"
+                                                    <FaceDownCard alt="card"
                                                                       src={getSleeve(opponentSleeve)}/>
                                                 </div>
                                             </HandListItem>)}
@@ -1375,7 +1376,7 @@ export default function Game({user}: { user: string }) {
 
                                 <EggDeckContainer ref={dropToEggDeck}>
                                     {eggDeckMoodle &&
-                                        <DeckMoodle sendCardToDeck={sendCardToDeck} to={"myEggDeck"}
+                                        <DeckMoodle sendCardToStack={sendCardToStack} to={"myEggDeck"}
                                                     setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
                                         <EggDeck alt="egg-deck" src={eggBackSrc}
@@ -1397,9 +1398,33 @@ export default function Game({user}: { user: string }) {
                                 <SecurityStackContainer ref={dropToSecurity}>
 
                                     {securityMoodle &&
-                                        <DeckMoodle sendCardToDeck={sendCardToDeck} to={"mySecurity"}
+                                        <DeckMoodle sendCardToStack={sendCardToStack} to={"mySecurity"}
                                                     setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
                                     <SecurityStack>
+                                        <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
+                                                     open={mySecurity.length === 0 ? false : isOpen}
+                                                     onClose={() => setIsOpen(false)}
+                                                     onOpen={() => setIsOpen(!!mySecurity.length)}
+                                                     arrow placement={"top"}
+                                                     componentsProps={getTooltipStyles(mySecurity.length)}
+                                                     title={
+                                            <Stack direction={"row"} gap={1} flexWrap={"wrap"} sx={{position: "relative"}}>
+                                                {mySecurity.map((card, index) =>
+                                                    <>
+                                                        {index === 0 &&
+                                                            <span style={{ fontFamily: "Awsumsans", position: "absolute", color: "#2e74f6", left: 15, top: -25, zIndex: 5, filter: "dropShadow(0 0 2px black)"}}>
+                                                                TOP
+                                                            </span>
+                                                        }
+                                                        {card.inSecurityFaceUp
+                                                            ? <Card key={card.id} card={card} location={"mySecurity"}/>
+                                                            : <FaceDownCard isSecurity key={card.id} alt="card"
+                                                                            src={getSleeve(opponentSleeve)}/>
+                                                        }
+                                                    </>
+                                                )}
+                                            </Stack>
+                                        }>
                                         <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
                                                         id="mySecurity"
                                                         onClick={() => {
@@ -1411,6 +1436,7 @@ export default function Game({user}: { user: string }) {
                                                         }}>
                                             {mySecurity.length}
                                         </MySecuritySpan>
+                                        </Tooltip>
                                         <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
                                                              onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
                                     </SecurityStack>
@@ -1657,7 +1683,7 @@ export default function Game({user}: { user: string }) {
                                                               props: {index}
                                                           })}>
                                                 {isHandHidden
-                                                    ? <OppenentHandCard alt="card" src={getSleeve(mySleeve)}/>
+                                                    ? <FaceDownCard alt="card" src={getSleeve(mySleeve)}/>
                                                     : <Card card={card} location={"myHand"}/>}
                                             </HandListItem>)}
                                     </HandCards>
@@ -2320,9 +2346,10 @@ const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   }
 `;
 
-const OppenentHandCard = styled.img`
+const FaceDownCard = styled.img<{isSecurity?: boolean}>`
   width: 69.5px;
-  max-height: 150px;
+  max-width: ${({isSecurity}) => (isSecurity ? "50px" :  "unset" )};
+  max-height: ${({isSecurity}) => (isSecurity ? "70px" :  "150px" )};
   border-radius: 5px;
 
   @media (max-width: 767px) {
@@ -2652,3 +2679,22 @@ const TrashLottie = styled(Lottie)<{ isOpponentTrash?: boolean }>`
   left: ${({ isOpponentTrash }) => (isOpponentTrash ? '12px' : '30px')};
   max-width: 100px;
 `;
+
+function getTooltipStyles(stackLength: number) {
+    return {
+        tooltip: {
+            style: {
+                backgroundColor: "#0c0c0c",
+                borderRadius: 6,
+                boxShadow: "inset 0 0 0 2px #2e74f6",
+                filter: "drop-shadow(1px 2px 3px black)",
+                padding: 10,
+                minWidth: 280,
+                maxWidth: `${stackLength <= 10 ? stackLength * 55 + 30 : 580}px`,
+            },
+        },
+        arrow: {
+            style: { color: "#2e74f6" },
+        },
+    };
+}

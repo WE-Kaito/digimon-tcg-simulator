@@ -31,7 +31,7 @@ export default function SoundBar() {
     if (window.innerWidth < 800) return <></>
 
     const inGame = window.location.pathname.includes("game");
-    const lottieTranslation = !showRadioMenu ? inGame ? "translate(-100px, -2px)" : "translateX(-101px)" : inGame ? "translateY(-2px)" : "unset";
+    const lottieTranslation = !showRadioMenu ? inGame ? "translate(-100px, -2px)" : "translateX(-101px)" : inGame ? "translateY(-2px)" : "translateX(-1px)";
     return (
         <div style={{position: "absolute", left: 0, top: 0, gridArea: "info" }}>
             <StyledGrid>

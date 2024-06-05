@@ -276,7 +276,7 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
   width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
-  max-width: ${({location}) => (location === "deck" ? "130px" : "unset")};
+  max-width: ${({location}) => (["mySecurity", "opponentSecurity"].includes(location) ? "50px" : location === "deck" ? "130px" : "unset")};
   border-radius: 5px;
   transition: all 0.15s ease-out;
   cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
@@ -344,15 +344,15 @@ const StyledImage = styled.img<StyledImageProps>`
   }
 
   @media (min-width: 500px) {
-    min-width: 85px;
+    min-width: ${({location}) => (["mySecurity", "opponentSecurity"].includes(location) ? "unset" : "85px")};
   }
 
   @media (min-width: 768px) {
-    width: ${(props) => ((props.location === "myTrash" || props.location === "opponentTrash") ? "105px" : "95px")};
+    width: ${({location}) => ((location === "myTrash" || location === "opponentTrash") ? "105px" : "95px")};
   }
 
   @media (min-width: 1000px) {
-    width: ${(props) => getCardSize(props.location)};
+    width: ${({location}) => getCardSize(location)};
   }
 
   @media (max-width: 700px) and (min-height: 800px) {

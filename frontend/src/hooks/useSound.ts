@@ -33,7 +33,7 @@ import namida_no_yukue from "../assets/music/Namida no Yukue (@SadGatomon cover)
 import shouri_zen_no_theme from "../assets/music/shouri zen no theme (@SadGatomon cover feat.@jembei).mp3";
 import target from "../assets/music/Target (@SadGatomon cover).mp3";
 import the_biggest_dreamer from "../assets/music/The Biggest Dreamer (@SadGatomon cover).mp3";
-import {shuffleArray} from "../utils/functions.ts";
+import {isTrue, shuffleArray} from "../utils/functions.ts";
 
 type State = {
     sfxEnabled: boolean,
@@ -75,7 +75,7 @@ type State = {
 export const useSound = create<State>((set, get) => {
 
     const initialState = {
-        sfxEnabled: Boolean(localStorage.getItem('sfxEnabled') ?? 'true'),
+        sfxEnabled: isTrue(localStorage.getItem('sfxEnabled') ?? ""),
         musicVolume: parseFloat(localStorage.getItem('musicVolume') ?? '0.5'),
         currentSong: '',
         isMusicPlaying: false,
@@ -128,7 +128,10 @@ export const useSound = create<State>((set, get) => {
     }
 
     // SFX
-    const toggleSfxEnabled = () => set((state) => ({ sfxEnabled: !state.sfxEnabled }));
+    const toggleSfxEnabled = () => set((state) => {
+        localStorage.setItem('sfxEnabled', String(!state.sfxEnabled));
+        return { sfxEnabled: !state.sfxEnabled }
+    });
 
     function playSound(src: string, volume: number = 1, delay?: number, longSound?: boolean){
         if (!get().sfxEnabled) return;

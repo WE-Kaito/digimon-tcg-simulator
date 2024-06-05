@@ -1,44 +1,52 @@
 import styled from "@emotion/styled";
 import {useGame} from "../../hooks/useGame.ts";
 import {convertForLog} from "../../utils/functions.ts";
-import {CardTypeGame, SendToDeckFunction} from "../../utils/types.ts";
+import {CardTypeGame, SendToStackFunction} from "../../utils/types.ts";
 import {useSound} from "../../hooks/useSound.ts";
 
 type DeckMoodleProps = {
-    sendCardToDeck: SendToDeckFunction,
+    sendCardToStack: SendToStackFunction,
     to: string,
     setMoodle: (isOpen: boolean) => void,
     sendChatMessage: (message: string) => void,
 }
 
-export default function DeckMoodle({ sendCardToDeck, to, setMoodle, sendChatMessage} : DeckMoodleProps) {
+export default function DeckMoodle({ sendCardToStack, to, setMoodle, sendChatMessage} : DeckMoodleProps) {
 
-    const cardToDeck = useGame((state) => state.cardToDeck);
+    const moveCardToStack = useGame((state) => state.moveCardToStack);
     const cardToSend = useGame((state) => state.cardToSend);
     const cardName = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[]).find(card => card.id === cardToSend.id)?.name);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
-    const hiddenMove = cardToSend.location === "myHand" && (to === "myDeckField" || to === "mySecurity");
+    const hidden = cardToSend.location === "myHand" && to === "mySecurity";
 
-    const handleClick = (topOrBottom: "Top" | "Bottom") => {
-        sendChatMessage(`[FIELD_UPDATE]≔【${hiddenMove ? "???" : cardName}】﹕${convertForLog(cardToSend.location)} ➟ ${convertForLog(to)} ${topOrBottom}`);
-        cardToDeck(topOrBottom, cardToSend.id, cardToSend.location, to);
-        sendCardToDeck(topOrBottom, cardToSend.id, cardToSend.location, to);
+    function handleSendToStack(topOrBottom: "Top" | "Bottom", sendFaceUp = false) {
+        sendChatMessage(`[FIELD_UPDATE]≔【${(hidden && !sendFaceUp) ? "???" : cardName}】﹕${convertForLog(cardToSend.location)} ➟ ${convertForLog(to)} ${topOrBottom}`);
+        moveCardToStack(topOrBottom, cardToSend.id, cardToSend.location, to, sendFaceUp);
+        sendCardToStack(topOrBottom, cardToSend.id, cardToSend.location, to, sendFaceUp);
         setMoodle(false);
         playDrawCardSfx();
     }
 
     return (
         <Container to={to}>
-            <StyledButton onClick={() => handleClick("Top")}><StyledSpan>»</StyledSpan></StyledButton>
-            <StyledButton onClick={() => handleClick("Bottom")}><StyledSpan2>»</StyledSpan2></StyledButton>
+            <StyledButton onClick={() => handleSendToStack("Top")}><StyledSpan>»</StyledSpan></StyledButton>
+            <StyledButton onClick={() => handleSendToStack("Bottom")}><StyledSpan2>»</StyledSpan2></StyledButton>
+            {to === "mySecurity" && <>
+                <StyledButton onClick={() => handleSendToStack("Top", true)}>
+                    <StyledSpan>»</StyledSpan> ♦️
+                </StyledButton>
+                <StyledButton onClick={() => handleSendToStack("Bottom", true)}>
+                    <StyledSpan2>»</StyledSpan2> ♦️
+                </StyledButton>
+            </>}
         </Container>
     );
 }
 
 export const Container = styled.div<{to: string}>`
-  width: 100px;
+  width: ${({to}) => to === "mySecurity" ? 300 : 100}px;
   height: 50px;
   position: absolute;
   top: ${props => getTop(props.to)};

@@ -40,9 +40,9 @@ export default function Profile({user}: { user: string }) {
         const {active, over} = event;
 
         if (!!over && (active.id !== over.id)) {
-            const oldIndexIds = deckIdOrder.findIndex((id) => id === active.id);
-            const newIndexIds = deckIdOrder.findIndex((id) => id === over.id);
-            setDeckIdOrder(arrayMove(deckIdOrder, oldIndexIds, newIndexIds), setOrderedDecks);
+            const oldIndexId = deckIdOrder.findIndex((id) => id === active.id);
+            const newIndexId = deckIdOrder.findIndex((id) => id === over.id);
+            setDeckIdOrder(arrayMove(deckIdOrder, oldIndexId, newIndexId), setOrderedDecks);
         }
     }
 

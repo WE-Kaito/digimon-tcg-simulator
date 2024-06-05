@@ -498,3 +498,5 @@ export function shuffleArray(array: any[]) {
     }
     return array;
 }
+
+export const isTrue = (value: string) : boolean  => value === "true";
