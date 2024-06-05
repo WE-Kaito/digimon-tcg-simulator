@@ -467,6 +467,7 @@ class Bot(ABC):
     async def update_opponent_game(self, ws, updated_game):
         self.game['player1Hand'] = updated_game['playerHand']
         self.game['player1DeckField'] = updated_game['playerDeckField']
+        self.game['player1Security'] = updated_game['playerSecurity']
 
     async def mulligan(self, ws):
         self.logger.info('I mulligan.')
@@ -1153,7 +1154,7 @@ class Bot(ABC):
                 if opponent_mulligan:
                     updated_game = ""
                     message = await ws.recv()
-                    while message.startswith('[UPDATE_OPPONENT]'):
+                    while message.startswith('[UPDATE_OPPONENT]') or message.startswith('[HEARTBEAT]'):
                         updated_game += message.replace('[UPDATE_OPPONENT]:', '')
                         await self.loaded_ping(ws)
                         message = await ws.recv()
