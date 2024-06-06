@@ -11,9 +11,13 @@ class ST14_012_Rivals_Barrage(Card):
             return False
         opponent_digimons = []
         for i in range(len(self.bot.game['player1Digi'])):
-            digimon = self.bot.game['player1Digi'][i][-1]
-            opponent_digimons.append(digimon['level'], i, digimon['name'])
-        await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons, reverse=True)[0])
+            if len(self.bot.game['player1Digi'][i]) > 0:
+                digimon = self.bot.game['player1Digi'][i][-1]
+                opponent_digimons.append((digimon['level'], i, digimon['name']))
+        if len(opponent_digimons) > 0:
+            await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons, reverse=True)[0])
+        else:
+            await self.bot.send_message(ws, 'No valid target.')
 
     ## TODO: Can make this optional
     async def when_trashed_effect(self, ws):

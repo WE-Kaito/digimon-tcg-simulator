@@ -404,8 +404,6 @@ class BeelzemonXBot(Bot):
             card_in_trash_index = self.card_in_trash('BT12-085', 'Beelzemon (X Antibody)')
             if card_in_trash_index >= 0:
                 self.return_card_from_trash_to_hand(ws, card_in_trash_index)
-        else:
-            await self.send_message(ws, 'Won\'t trash any option card from my hand.')
 
     async def bt10_081_baalmon_attacking_strategy(self, ws):
         trashed_cards = []

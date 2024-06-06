@@ -25,8 +25,6 @@ class BT12_073_Impmon_X_Antibody(Card):
                 card = self.bot.game['player2Trash'][i]
                 if self.bot.card_has_name_in_trash('Beelzemon'):
                     await self.bot.bt12_073_impmon_x_antibody_strategy(ws)
-        else:
-            self.bot.send_message(ws, 'Won\'t trash any option card from my hand.')
 
     ## TODO: Make optional to trash up to three cards
     async def on_play_effect(self, ws):
