@@ -1175,7 +1175,7 @@ class Bot(ABC):
                     message = await ws.recv()
                     self.logger.debug(f'Received: {message}')
                     if message.startswith('[UPDATE_MEMORY]:'):
-                        self.game['memory'] = int(message[-1])
+                        self.game['memory'] = int(message.replace('[UPDATE_MEMORY]:', ''))
                     if message.startswith('[PASS_TURN_SFX]'):
                         self.my_turn = True
                     if self.my_turn and opponent_ready:
