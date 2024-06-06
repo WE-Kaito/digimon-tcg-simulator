@@ -35,6 +35,7 @@ export default function ChooseAvatar() {
 }
 
 const GridContainer = styled.div`
+  align-self: center;
   width: fit-content;
   height: fit-content;
   display: grid;
@@ -96,8 +97,8 @@ const AvatarSpan = styled.span`
 `;
 
 const AvatarSpan2 = styled(AvatarSpan)`
-  left: 920px;
-  top: -22px;
+  left: 1070px;
+  top: -23px;
   font-size: 16px;
   transition: all 0.2s ease-in-out;
 `;

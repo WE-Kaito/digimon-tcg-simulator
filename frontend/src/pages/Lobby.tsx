@@ -13,7 +13,6 @@ import {Button, MenuItem, Select} from "@mui/material";
 import { SelectChangeEvent } from '@mui/material/Select';
 import {useStore} from "../hooks/useStore.ts";
 import {VolumeOff as MuteIcon} from '@mui/icons-material';
-import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import {useSound} from "../hooks/useSound.ts";
 import SoundBar from "../components/SoundBar.tsx";
 
@@ -185,7 +184,7 @@ export default function Lobby({user}: { user: string }) {
     useEffect(() => initialFetch(), [initialFetch]);
 
     return (
-        <MenuBackgroundWrapper>
+        <>
             <SoundBar/>
 
             {pendingInvitation &&
@@ -279,7 +278,7 @@ export default function Lobby({user}: { user: string }) {
                     </InputContainer>
                 </Chat>
             </Container>
-        </MenuBackgroundWrapper>
+        </>
     );
 }
 

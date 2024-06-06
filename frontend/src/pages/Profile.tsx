@@ -11,10 +11,9 @@ import {closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSe
 import {arrayMove, SortableContext} from "@dnd-kit/sortable";
 import {DeckType} from "../utils/types.ts";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import {Dialog} from "@mui/material";
+import {Dialog, Stack} from "@mui/material";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
-import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
 import {useNavigate} from "react-router-dom";
 import SoundBar from "../components/SoundBar.tsx";
@@ -61,7 +60,7 @@ export default function Profile({user}: { user: string }) {
     useEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
 
     return (
-        <MenuBackgroundWrapper alignedTop>
+        <Stack minHeight={"100vh"} height={"100%"} pt={"20px"} justifyContent={"flex-start"}>
             <SoundBar/>
             <Header>
                 <Name>{user}</Name>
@@ -83,7 +82,6 @@ export default function Profile({user}: { user: string }) {
             </Dialog>
 
             <ChooseAvatar/>
-            <br/>
 
             <DeckHeaderContainer>
                 <span>Decks</span>
@@ -112,7 +110,7 @@ export default function Profile({user}: { user: string }) {
                     }
                 </Container>
             </DndContext>
-        </MenuBackgroundWrapper>
+        </Stack>
     );
 }
 
@@ -152,6 +150,7 @@ const DeckHeaderContainer = styled.div`
 
   width: 100vw;
   max-width: 1204px;
+  margin-top: 20px;
   
   span {
     color: #1d7dfc;

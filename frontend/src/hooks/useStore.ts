@@ -21,6 +21,7 @@ import {Dispatch, SetStateAction} from "react";
 import {generalToken} from "../utils/tokens.ts";
 
 type State = {
+    particlesInit: boolean,
     fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
     isLoading: boolean,
@@ -40,6 +41,7 @@ type State = {
     deckIdToSetSleeveOrImage: string,
     selectedSleeveOrImage: string,
 
+    setParticlesInit: (particlesInit: boolean) => void,
     fetchCards: () => void,
     filterCards: SearchCards,
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
@@ -79,6 +81,7 @@ type State = {
 
 export const useStore = create<State>((set, get) => ({
 
+    particlesInit: false,
     fetchedCards: [],
     filteredCards: [],
     isLoading: false,
@@ -100,6 +103,8 @@ export const useStore = create<State>((set, get) => ({
     orderedDecks: [],
     deckIdToSetSleeveOrImage: "",
     selectedSleeveOrImage: "",
+
+    setParticlesInit: (particlesInit) => set({particlesInit}),
 
     fetchCards: () => {
         set({isLoading: true})
