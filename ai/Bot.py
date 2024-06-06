@@ -1038,16 +1038,18 @@ class Bot(ABC):
         self.logger.info(f'Increase memory by {value}')
         old_memory = self.game['memory']
         self.game['memory'] += int(value)
+        if self.game['memory'] > 10:
+            self.game['memory'] = 10
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{old_memory}±{self.game['memory']}")
-    
+
     async def decrease_memory_by(self, ws, value):
         self.logger.info(f'Decrease memory by {value}')
         old_memory = self.game['memory']
         self.game['memory'] -= int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{old_memory}±{self.game['memory']}")
-    
+
     async def start_turn(self):
         self.placed_this_turn.clear()
         self.cant_unsuspend_until_end_of_opponent_turn.clear()
@@ -1056,7 +1058,7 @@ class Bot(ABC):
         self.cant_block_until_end_of_opponent_turn.clear()
         self.triggered_already_this_turn.clear()
         self.gained_baalmon_effect.clear()
-    
+
     async def end_turn(self):
         self.placed_this_turn.clear()
         self.cant_unsuspend_until_end_of_turn.clear()
@@ -1065,7 +1067,7 @@ class Bot(ABC):
         self.cant_block_until_end_of_turn.clear()
         self.triggered_already_this_turn.clear()
         await self.waiter.reset_timestamp()
-    
+
     async def loaded_ping(self, ws):
         await ws.send(f'{self.game_name}:/loaded:{self.opponent}')
 
@@ -1175,7 +1177,7 @@ class Bot(ABC):
                     message = await ws.recv()
                     self.logger.debug(f'Received: {message}')
                     if message.startswith('[UPDATE_MEMORY]:'):
-                        self.game['memory'] = int(message[-1])
+                        self.game['memory'] = int(message.replace('[UPDATE_MEMORY]:', ''))
                     if message.startswith('[PASS_TURN_SFX]'):
                         self.my_turn = True
                     if self.my_turn and opponent_ready:
