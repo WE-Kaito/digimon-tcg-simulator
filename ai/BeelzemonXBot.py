@@ -79,21 +79,25 @@ class BeelzemonXBot(Bot):
 
     # TODO: Take into account attacker when deiciding blocker
     async def collision_strategy(self, ws, attacker_id):
-        potential_blockers = [(c[-1]['uniqueCardNumber'], c) for c in self.game['player2Digi'] if len(c) > 0 and c[-1]['cardType'] == 'Digimon']
+        potential_blockers = [(c[-1]['uniqueCardNumber'], c) for c in self.game['player2Digi'] if len(c) > 0 and c[-1]['cardType'] == 'Digimon' and not c[-1]['isTilted']]
+        potential_blockers = [c for c in potential_blockers if c[1][-1]['id'] not in self.cant_suspend_until_end_of_turn and c[1][-1]['id'] not in self.cant_block_until_end_of_opponent_turn]
         potential_blockers.sort(key=lambda x:self.blockers_priority_list.index(x[0]))
         blocker_index = -1
-        for card_index, digimon in enumerate([c[1] for c in potential_blockers]):
-            if digimon[-1]['uniqueCardNumber'] == 'BT10-081' or (digimon[-1]['uniqueCardNumber'] == 'ST14-07' and 'ST14-07' in gained_baalmon_effect()):
+        self.logger.debug(potential_blockers)
+        for digimon in [c[1] for c in potential_blockers]:
+            if digimon[-1]['uniqueCardNumber'] == 'BT10-081' or (digimon[-1]['uniqueCardNumber'] == 'ST14-07' and 'ST14-07' in self.gained_baalmon_effect):
+                blocker_index, _ = self.find_card_index_by_id_in_battle_area(digimon[-1]['id'])
                 if len(self.game['player2Trash']) >= 10 and (self.card_in_trash('ST14-08', 'Beelzemon') or self.card_in_trash('EX2-044', 'Beelzemon')):
-                    return card_index
+                    break
                 else:
                     continue
             elif digimon[-1]['uniqueCardNumber'] == 'BT2-068':
+                blocker_index, _ = self.find_card_index_by_id_in_battle_area(digimon[-1]['id'])
                 if len(self.game['player2DeckField']) > 3:
-                    return card_index
+                    break
                 else:
                     continue
-            blocker_index = card_index
+            blocker_index, _ = self.find_card_index_by_id_in_battle_area(digimon[-1]['id'])
             break
         await self.declare_blocker(ws, blocker_index)
 
