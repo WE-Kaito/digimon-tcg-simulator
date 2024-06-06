@@ -315,22 +315,22 @@ class Waiter:
         prefix = 'cant attack'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
-            card_id = await self.filter_target_digimon_action(ws, message)
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
                 for card in self.bot.game['player2Digi'][card_index]:
-                    self.bot.cant_unsuspend_until_end_of_turn.add(card['id'])
+                    self.bot.cant_attack_until_end_of_turn.add(card['id'])
                 card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'{card_id} can\'t attack until end of turn.')
                 await self.bot.send_message(ws, f"{card['name']} can\'t attack until end of turn.")
         prefix = 'cant block'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
-            card_id = await self.filter_target_digimon_action(ws, message)
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
                 for card in self.bot.game['player2Digi'][card_index]:
-                    self.bot.cant_unsuspend_until_end_of_turn.add(card['id'])
+                    self.bot.cant_block_until_end_of_opponent_turn.add(card['id'])
                 card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'{card_id} can\'t block until end of turn.')
                 await self.bot.send_message(ws, f"{card['name']} can\'t block until end of turn.")
