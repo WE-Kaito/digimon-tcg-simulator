@@ -26,7 +26,7 @@ import EndWindow from "../components/game/EndWindow.tsx";
 import Card, {CardAnimationContainer} from "../components/Card.tsx";
 import noiseBG from "../assets/noiseBG.png";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
-import DeckMoodle from "../components/game/DeckMoodle.tsx";
+import SendToDeckModalButtons from "../components/game/SendToDeckModalButtons.tsx";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import effectAnimation from "../assets/lotties/activate-effect-animation.json";
 import Lottie from "lottie-react";
@@ -1379,8 +1379,8 @@ export default function Game({user}: { user: string }) {
 
                                 <EggDeckContainer ref={dropToEggDeck}>
                                     {eggDeckMoodle &&
-                                        <DeckMoodle sendCardToStack={sendCardToStack} to={"myEggDeck"}
-                                                    setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
+                                        <SendToDeckModalButtons sendCardToStack={sendCardToStack} to={"myEggDeck"}
+                                                                setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
                                         <EggDeck alt="egg-deck" src={eggBackSrc}
                                                  onClick={() => {
@@ -1403,8 +1403,8 @@ export default function Game({user}: { user: string }) {
                                     <SecurityStack sendSecurityReveal={sendSecurityReveal} />
 
                                     {securityMoodle &&
-                                        <DeckMoodle sendCardToStack={sendCardToStack} to={"mySecurity"}
-                                                    setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
+                                        <SendToDeckModalButtons sendCardToStack={sendCardToStack} to={"mySecurity"}
+                                                                setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
 
 
 
