@@ -602,6 +602,7 @@ class Bot(ABC):
                     self.logger.info(f"{card['uniqueCardNumber']}-{card['name']} can attack")
                     return i
         self.logger.info('No Digimon to attack with')
+        return -1
 
     async def attack_with_digimon(self, ws, digimon_index):
         card = self.game['player2Digi'][digimon_index][-1]
