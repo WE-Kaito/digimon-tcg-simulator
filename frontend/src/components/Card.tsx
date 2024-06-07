@@ -81,7 +81,7 @@ export default function Card( props : CardProps ) {
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
-        item: {id: card.id, location: location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name},
+        item: {id: card.id, location: location === "mySecurityTooltip" ? "mySecurity" : location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name},
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -276,7 +276,7 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
   width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
-  max-width: ${({location}) => (["mySecurity", "opponentSecurity"].includes(location) ? "50px" : location === "deck" ? "130px" : "unset")};
+  max-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : location === "deck" ? "130px" : "unset")};
   border-radius: 5px;
   transition: all 0.15s ease-out;
   cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
@@ -344,7 +344,7 @@ const StyledImage = styled.img<StyledImageProps>`
   }
 
   @media (min-width: 500px) {
-    min-width: ${({location}) => (["mySecurity", "opponentSecurity"].includes(location) ? "unset" : "85px")};
+    min-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "unset" : "85px")};
   }
 
   @media (min-width: 768px) {

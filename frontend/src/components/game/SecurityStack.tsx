@@ -47,7 +47,7 @@ export default function SecurityStack({isOpponent = false, sendSecurityReveal}: 
                                              filter: "dropShadow(0 0 2px black)"}}/>
                                      }
                                      {card.inSecurityFaceUp
-                                         ? <Card key={card.id} card={card} location={isOpponent ? "opponentSecurity" : "mySecurity"}/>
+                                         ? <Card key={card.id} card={card} location={isOpponent ? "opponentSecurityTooltip" : "mySecurityTooltip"}/>
                                          : <FaceDownCard key={card.id} alt="card"
                                                          src={getSleeve(isOpponent ? opponentSleeve : mySleeve)}/>
                                      }
