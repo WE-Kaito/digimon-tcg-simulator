@@ -103,7 +103,7 @@ const StyledFieldset = styled.fieldset`
     background-color: #C5C5C5;
     border-radius: 2px;
   }
-@container(max-width: 449 px) {
+@container(max-width: 549px) {
   &::-webkit-scrollbar {
     width: 3px;
   }
