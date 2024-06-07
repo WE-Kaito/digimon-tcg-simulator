@@ -279,7 +279,7 @@ const StyledImage = styled.img<StyledImageProps>`
   max-width: ${({location}) => (["mySecurity", "opponentSecurity"].includes(location) ? "50px" : location === "deck" ? "130px" : "unset")};
   border-radius: 5px;
   transition: all 0.15s ease-out;
-  cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
+  cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
   opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
   filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
   animation: ${({

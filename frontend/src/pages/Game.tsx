@@ -27,8 +27,6 @@ import Card, {CardAnimationContainer} from "../components/Card.tsx";
 import noiseBG from "../assets/noiseBG.png";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import DeckMoodle from "../components/game/DeckMoodle.tsx";
-import mySecurityAnimation from "../assets/lotties/mySecurity.json";
-import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import effectAnimation from "../assets/lotties/activate-effect-animation.json";
 import Lottie from "lottie-react";
@@ -41,7 +39,7 @@ import CardStack from "../components/game/CardStack.tsx";
 import {Item, ItemParams, Menu, Separator, useContextMenu} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import {getSleeve} from "../utils/sleeves.ts";
-import {Button as MuiButton, Stack, Tooltip, Zoom as MuiZoom} from "@mui/material";
+import {Button as MuiButton} from "@mui/material";
 import {
     AddModerator as RecoveryIcon,
     AdsClick as TargetIcon,
@@ -74,6 +72,7 @@ import eggBackSrc from "../assets/eggBack.jpg";
 import stackIconSrc from "../assets/stackIcon.png";
 import {useSound} from "../hooks/useSound.ts";
 import SoundBar from "../components/SoundBar.tsx";
+import SecurityStack from "../components/game/SecurityStack.tsx";
 
 export default function Game({user}: { user: string }) {
     const currentPort = window.location.port;
@@ -195,7 +194,6 @@ export default function Game({user}: { user: string }) {
     const opponentDeckField = useGame((state) => state.opponentDeckField);
     const opponentEggDeck = useGame((state) => state.opponentEggDeck);
     const opponentTrash = useGame((state) => state.opponentTrash);
-    const opponentSecurity = useGame((state) => state.opponentSecurity);
     const opponentReveal = useGame((state) => state.opponentReveal);
 
     const opponentDigi1 = useGame((state) => state.opponentDigi1);
@@ -889,7 +887,15 @@ export default function Game({user}: { user: string }) {
         const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
         return () => clearTimeout(timer);
     }
-    const [isOpen, setIsOpen] = useState(false);
+
+    function sendSecurityReveal(){
+        if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+        sendMoveCard(mySecurity[0].id, "mySecurity", "myReveal");
+        playSecurityRevealSfx();
+        sendSfx("playSecurityRevealSfx");
+        sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
+    }
+
     const {
         dropToDigi1,
         dropToDigi2,
@@ -958,7 +964,6 @@ export default function Game({user}: { user: string }) {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
-    const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
     const effectInMyTrash = getCardLocationById(cardIdWithEffect ?? "") === "myTrash";
     const effectInOpponentTrash = getCardLocationById(cardIdWithEffect ?? "") === "opponentTrash";
@@ -1333,11 +1338,9 @@ export default function Game({user}: { user: string }) {
                                 </EggDeckContainer>
 
                                 <SecurityStackContainer ref={dropToOpponentSecurity}>
-                                    <OpponentSecurityStack>
-                                        <SecuritySpan style={{cursor: "default"}} id="opponentSecurity">
-                                            {opponentSecurity.length}</SecuritySpan>
-                                        <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true}/>
-                                    </OpponentSecurityStack>
+
+                                    <SecurityStack isOpponent />
+
                                     <OpponentSwitchRowButton1 disabled={showAttackArrow}
                                                               onClick={() => setIsOpponentSecondRowVisible(false)}
                                                               secondRowVisible={!isOpponentSecondRowVisible}/>
@@ -1397,49 +1400,12 @@ export default function Game({user}: { user: string }) {
 
                                 <SecurityStackContainer ref={dropToSecurity}>
 
+                                    <SecurityStack sendSecurityReveal={sendSecurityReveal} />
+
                                     {securityMoodle &&
                                         <DeckMoodle sendCardToStack={sendCardToStack} to={"mySecurity"}
                                                     setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
-                                    <SecurityStack>
-                                        <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
-                                                     open={mySecurity.length === 0 ? false : isOpen}
-                                                     onClose={() => setIsOpen(false)}
-                                                     onOpen={() => setIsOpen(!!mySecurity.length)}
-                                                     arrow placement={"top"}
-                                                     componentsProps={getTooltipStyles(mySecurity.length)}
-                                                     title={
-                                            <Stack direction={"row"} gap={1} flexWrap={"wrap"} sx={{position: "relative"}}>
-                                                {mySecurity.map((card, index) =>
-                                                    <>
-                                                        {index === 0 &&
-                                                            <span style={{ fontFamily: "Awsumsans", position: "absolute", color: "#2e74f6", left: 15, top: -25, zIndex: 5, filter: "dropShadow(0 0 2px black)"}}>
-                                                                TOP
-                                                            </span>
-                                                        }
-                                                        {card.inSecurityFaceUp
-                                                            ? <Card key={card.id} card={card} location={"mySecurity"}/>
-                                                            : <FaceDownCard isSecurity key={card.id} alt="card"
-                                                                            src={getSleeve(opponentSleeve)}/>
-                                                        }
-                                                    </>
-                                                )}
-                                            </Stack>
-                                        }>
-                                        <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
-                                                        id="mySecurity"
-                                                        onClick={() => {
-                                                            if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                                            sendMoveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                                            playSecurityRevealSfx();
-                                                            sendSfx("playSecurityRevealSfx");
-                                                            sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
-                                                        }}>
-                                            {mySecurity.length}
-                                        </MySecuritySpan>
-                                        </Tooltip>
-                                        <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
-                                                             onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
-                                    </SecurityStack>
+
 
 
                                     <MySwitchRowButton1 disabled={showAttackArrow}
@@ -2117,60 +2083,6 @@ const SecurityStackContainer = styled.div`
   align-items: center;
 `;
 
-const SecuritySpan = styled.span`
-  position: absolute;
-  z-index: 5;
-  font-family: Awsumsans, sans-serif;
-  font-style: normal;
-  font-size: 35px;
-  color: #cb6377;
-  text-shadow: #111921 1px 1px 1px;
-  left: 50%;
-  bottom: 50%;
-  user-select: none;
-  transform: translate(-49.5%, 50%);
-`;
-
-const MySecuritySpan = styled(SecuritySpan)`
-  cursor: pointer;
-  color: #5ba2cb;
-  transition: all 0.15s ease;
-  left: unset;
-  right: 50%;
-  bottom: unset;
-  top: 50%;
-  transform: translate(49.5%, -50%);
-
-  &:hover {
-    filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
-    font-size: 42px;
-    color: #f9f9f9;
-  }
-`;
-
-const SecurityStack = styled.div`
-  position: absolute;
-  width: 160px;
-  height: 160px;
-  right: 7px;
-  top: -32px;
-`;
-
-const OpponentSecurityStack = styled(SecurityStack)`
-  right: unset;
-  top: unset;
-  left: 7px;
-  bottom: -32px;
-`;
-
-const SecurityStackLottie = styled(Lottie)`
-  width: 160px;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-`;
-
 const TrashView = styled.div`
   background: rgba(2, 1, 1, 0.95);
   position: absolute;
@@ -2346,10 +2258,9 @@ const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   }
 `;
 
-const FaceDownCard = styled.img<{isSecurity?: boolean}>`
+const FaceDownCard = styled.img`
   width: 69.5px;
-  max-width: ${({isSecurity}) => (isSecurity ? "50px" :  "unset" )};
-  max-height: ${({isSecurity}) => (isSecurity ? "70px" :  "150px" )};
+  max-height: 150px;
   border-radius: 5px;
 
   @media (max-width: 767px) {
@@ -2679,22 +2590,3 @@ const TrashLottie = styled(Lottie)<{ isOpponentTrash?: boolean }>`
   left: ${({ isOpponentTrash }) => (isOpponentTrash ? '12px' : '30px')};
   max-width: 100px;
 `;
-
-function getTooltipStyles(stackLength: number) {
-    return {
-        tooltip: {
-            style: {
-                backgroundColor: "#0c0c0c",
-                borderRadius: 6,
-                boxShadow: "inset 0 0 0 2px #2e74f6",
-                filter: "drop-shadow(1px 2px 3px black)",
-                padding: 10,
-                minWidth: 280,
-                maxWidth: `${stackLength <= 10 ? stackLength * 55 + 30 : 580}px`,
-            },
-        },
-        arrow: {
-            style: { color: "#2e74f6" },
-        },
-    };
-}

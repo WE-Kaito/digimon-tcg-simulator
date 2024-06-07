@@ -57,8 +57,8 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
 
         } else { // <keywords>
             highlightedParts.push(
-                <KeywordTooltip keyword={match[1]} >
-                    <HighlightedAngle key={id}>{match[3]}</HighlightedAngle>
+                <KeywordTooltip key={id} keyword={match[1]} >
+                    <HighlightedAngle >{match[3]}</HighlightedAngle>
                 </KeywordTooltip>
             );
         }
