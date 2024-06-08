@@ -73,6 +73,11 @@ class BeelzemonXBot(Bot):
             await self.st14_07_baalmon_deleted_strategy(ws)
             self.gained_baalmon_effect.remove(card['id'])
 
+    async def trashed_card_effect(self, ws, card):
+        card_obj = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+        await card_obj.when_trashed_effect(ws)
+        await self.when_card_is_trashed_from_deck(ws)
+
     async def st14_07_baalmon_gained_on_deletion_effect(self, ws):
         await super().animate_effect(ws)
         if len(self.bot.game['player2Trash']) >= 10:

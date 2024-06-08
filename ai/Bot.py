@@ -1025,6 +1025,7 @@ class Bot(ABC):
         await self.move_card(ws, 'myDeckField0', 'myTrash')
         card = self.game['player2DeckField'].pop(0)
         self.game['player2Trash'].insert(0, card)
+        await self.trashed_card_effect(ws, card)
         self.logger.info(f"Trashed {card['uniqueCardNumber']} {card['name']} from top of deck.")
         return card
 
