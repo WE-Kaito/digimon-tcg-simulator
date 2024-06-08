@@ -119,7 +119,7 @@ export const useSound = create<State>((set, get) => {
     const music = new Audio(initialSrc[0]);
     music.addEventListener('ended', () => get()?.nextSong(true));
 
-    const setPlaylist = (playlist: string[]) => set(() => ({playlist}));
+    const setPlaylist = (playlist: string[]) => set(() => ({playlist: shuffleArray(playlist)}));
 
     const toggleRadioMenu = () => set((state) => ({ showRadioMenu: !state.showRadioMenu }));
 

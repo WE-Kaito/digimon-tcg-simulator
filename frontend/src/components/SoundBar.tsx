@@ -15,9 +15,10 @@ import Lottie from "lottie-react";
 import radioAnimation from "../assets/lotties/radio-animation.json";
 import {Item, useContextMenu} from "react-contexify";
 import {StyledMenu} from "../pages/Game.tsx";
+import {useLocation} from "react-router-dom";
 
 export default function SoundBar() {
-
+    const {pathname} = useLocation();
     const sfxEnabled = useSound((state) => state.sfxEnabled);
     const musicVolume = useSound((state) => state.musicVolume);
     const currentSong = useSound((state) => state.currentSong);
@@ -42,8 +43,9 @@ export default function SoundBar() {
 
     if (window.innerWidth < 800) return <></>
 
-    const inGame = window.location.pathname.includes("game");
-    const lottieTranslation = !showRadioMenu ? inGame ? "translate(-100px, -2px)" : "translateX(-101px)" : inGame ? "translateY(-2px)" : "translateX(-1px)";
+    const inGame = pathname.includes("game");
+    const lottieTranslation = !showRadioMenu ? inGame ? "translate(-100px, -3px)" : "translateX(-100px)" : inGame ? "translateY(-3px)" : "unset";
+
     return (
         <div style={{position: "absolute", left: 0, top: 0, gridArea: "info" }}>
             <StyledGrid>
@@ -185,7 +187,7 @@ const MainRadioIconButton = styled(RadioIconButton)`
 const StyledLottie = styled(Lottie)`
   position: absolute;
   width: 250px;
-  left: 65px;
+  left: 63px;
   top: -21px;
   z-index: -1;
   opacity: 0.5;
@@ -195,5 +197,5 @@ const StyledLottie = styled(Lottie)`
 const SubtitleSpan = styled.span`
   font-size: 0.9em;
   font-weight: 600;
-  transform: translate(4px,1px);
+  transform: translateX(4px);
 `;
