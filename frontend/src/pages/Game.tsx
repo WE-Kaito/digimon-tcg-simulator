@@ -2523,7 +2523,7 @@ const MobileSSButton = styled.button`
   padding: 0;
 `;
 
-const StyledMenu = styled(Menu)`
+export const StyledMenu = styled(Menu)`
   border: 2px solid rgba(65, 135, 211, 0.72);
   
   .contexify_submenu {

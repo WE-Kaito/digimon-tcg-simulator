@@ -1,4 +1,3 @@
-import { create } from "zustand";
 import drawCardSfx from "../assets/sounds/draw-card.mp3";
 import buttonClickSfx from "../assets/sounds/button-click.mp3";
 import revealCardSfx from "../assets/sounds/reveal-card.mp3";
@@ -21,26 +20,48 @@ import effectAttackSfx from "../assets/sounds/effect-attack.mp3";
 import activateEffect from "../assets/sounds/activate-effect.mp3";
 import targetCardSfx from "../assets/sounds/effect-target.mp3";
 import modifyCardSfx from "../assets/sounds/modify-card.mp3";
-import avant from "../assets/music/Avant (@SadGatomon cover).mp3";
-import brave_heart from "../assets/music/Brave Heart (@SadGatomon cover).mp3";
-import break_up from "../assets/music/Break up (@SadGatomon cover).mp3";
-import butterfly from "../assets/music/Butter-Fly (@SadGatomon cover).mp3";
-import survive_main_theme from "../assets/music/Digimon Survive - Main Theme (@SadGatomon cover feat.@jembei).mp3";
-import file_city_night from "../assets/music/Digimon World - Night Time in File City (@SadGatomon cover).mp3";
-import evo from "../assets/music/EVO (@SadGatomon cover).mp3";
-import fire from "../assets/music/Fire (@SadGatomon cover).mp3";
-import namida_no_yukue from "../assets/music/Namida no Yukue (@SadGatomon cover).mp3";
-import shouri_zen_no_theme from "../assets/music/shouri zen no theme (@SadGatomon cover feat.@jembei).mp3";
-import target from "../assets/music/Target (@SadGatomon cover).mp3";
-import the_biggest_dreamer from "../assets/music/The Biggest Dreamer (@SadGatomon cover).mp3";
+
+import avant from "../assets/music/sad_gatomon_lofi/Avant (@SadGatomon cover).mp3";
+import brave_heart from "../assets/music/sad_gatomon_lofi/Brave Heart (@SadGatomon cover).mp3";
+import break_up from "../assets/music/sad_gatomon_lofi/Break up (@SadGatomon cover).mp3";
+import butterfly from "../assets/music/sad_gatomon_lofi/Butter-Fly (@SadGatomon cover).mp3";
+import survive_main_theme from "../assets/music/sad_gatomon_lofi/Digimon Survive - Main Theme (@SadGatomon cover feat.@jembei).mp3";
+import file_city_night from "../assets/music/sad_gatomon_lofi/Digimon World - Night Time in File City (@SadGatomon cover).mp3";
+import evo from "../assets/music/sad_gatomon_lofi/EVO (@SadGatomon cover).mp3";
+import fire from "../assets/music/sad_gatomon_lofi/Fire (@SadGatomon cover).mp3";
+import namida_no_yukue from "../assets/music/sad_gatomon_lofi/Namida no Yukue (@SadGatomon cover).mp3";
+import shouri_zen_no_theme from "../assets/music/sad_gatomon_lofi/shouri zen no theme (@SadGatomon cover feat.@jembei).mp3";
+import target from "../assets/music/sad_gatomon_lofi/Target (@SadGatomon cover).mp3";
+import the_biggest_dreamer from "../assets/music/sad_gatomon_lofi/The Biggest Dreamer (@SadGatomon cover).mp3";
+
+import bgm_1 from "../assets/music/project_drasil_bgm/Drasil-BGM-1.mp3";
+import bgm_2 from "../assets/music/project_drasil_bgm/Drasil-BGM-2.mp3";
+import bgm_3 from "../assets/music/project_drasil_bgm/Drasil-BGM-3.mp3";
+import bgm_4 from "../assets/music/project_drasil_bgm/Drasil-BGM-4.mp3";
+import bgm_5 from "../assets/music/project_drasil_bgm/Drasil-BGM-5.mp3";
+import bgm_6 from "../assets/music/project_drasil_bgm/Drasil-BGM-6.mp3";
+import bgm_7 from "../assets/music/project_drasil_bgm/Drasil-BGM-7.mp3";
+import bgm_8 from "../assets/music/project_drasil_bgm/Drasil-BGM-8.mp3";
+import bgm_9 from "../assets/music/project_drasil_bgm/Drasil-BGM-9.mp3";
+import bgm_10 from "../assets/music/project_drasil_bgm/Drasil-BGM-10.mp3";
+import bgm_11 from "../assets/music/project_drasil_bgm/Drasil-BGM-11.mp3";
+import bgm_12 from "../assets/music/project_drasil_bgm/Drasil-BGM-12.mp3";
+import bgm_13 from "../assets/music/project_drasil_bgm/Drasil-BGM-13.mp3";
+import bgm_14 from "../assets/music/project_drasil_bgm/Drasil-BGM-14.mp3";
+import bgm_15 from "../assets/music/project_drasil_bgm/Drasil-BGM-15.mp3";
+import bgm_16 from "../assets/music/project_drasil_bgm/Drasil-BGM-16.mp3";
+
+import { create } from "zustand";
 import {isTrue, shuffleArray} from "../utils/functions.ts";
 
 type State = {
+    playlist: string[],
     sfxEnabled: boolean,
     musicVolume: number,
     currentSong: string,
     isMusicPlaying: boolean,
     toggleSfxEnabled: () => void,
+    setPlaylist: (playlist: string[]) => void,
     setMusicVolume: (volume: number) => void,
     showRadioMenu: boolean,
     toggleRadioMenu: () => void,
@@ -72,9 +93,21 @@ type State = {
     playModifyCardSfx: () => void,
 };
 
+export const sadgatomonPlaylist = [
+    avant, brave_heart, break_up, butterfly, survive_main_theme, file_city_night, evo, fire, namida_no_yukue,
+    shouri_zen_no_theme, target, the_biggest_dreamer
+]
+
+export const projectDrasilPlaylist = [
+    bgm_1, bgm_2, bgm_3, bgm_4, bgm_5, bgm_6, bgm_7, bgm_8, bgm_9, bgm_10, bgm_11, bgm_12, bgm_13, bgm_14, bgm_15, bgm_16
+]
+
 export const useSound = create<State>((set, get) => {
 
+    const initialSrc = shuffleArray(projectDrasilPlaylist);
+
     const initialState = {
+        playlist: initialSrc,
         sfxEnabled: isTrue(localStorage.getItem('sfxEnabled') ?? ""),
         musicVolume: parseFloat(localStorage.getItem('musicVolume') ?? '0.5'),
         currentSong: '',
@@ -83,13 +116,10 @@ export const useSound = create<State>((set, get) => {
     };
 
     // Music
-    const songs = shuffleArray([
-        avant, brave_heart, break_up, butterfly, survive_main_theme, file_city_night, evo, fire, namida_no_yukue,
-        shouri_zen_no_theme, target, the_biggest_dreamer
-    ])
-
-    const music = new Audio(songs[0]);
+    const music = new Audio(initialSrc[0]);
     music.addEventListener('ended', () => get()?.nextSong(true));
+
+    const setPlaylist = (playlist: string[]) => set(() => ({playlist}));
 
     const toggleRadioMenu = () => set((state) => ({ showRadioMenu: !state.showRadioMenu }));
 
@@ -111,6 +141,7 @@ export const useSound = create<State>((set, get) => {
 
     function nextSong(onEnded = false) {
         if(music.paused && !onEnded) return;
+        const songs = get().playlist;
         const currentSongIndex = songs.findIndex((song) => getTitle(song) === get().currentSong);
         music.src = songs[(currentSongIndex + 1)] ?? songs[0];
         startMusic();
@@ -122,6 +153,7 @@ export const useSound = create<State>((set, get) => {
             music.currentTime = 0;
             return;
         }
+        const songs = get().playlist;
         const currentSongIndex = songs.findIndex((song) => getTitle(song) === get().currentSong);
         music.src = songs[(currentSongIndex - 1)] ?? songs[songs.length - 1];
         startMusic();
@@ -180,6 +212,7 @@ export const useSound = create<State>((set, get) => {
 
     return {
         ...initialState,
+        setPlaylist,
         toggleRadioMenu,
         toggleSfxEnabled,
         setMusicVolume,
@@ -226,6 +259,22 @@ function getTitle(song: string) {
         case getFileName(shouri_zen_no_theme): return 'Shouri (Zen No Theme)';
         case getFileName(target): return 'Target';
         case getFileName(the_biggest_dreamer): return 'The Biggest Dreamer';
+        case getFileName(bgm_1): return 'BGM 1';
+        case getFileName(bgm_2): return 'BGM 2';
+        case getFileName(bgm_3): return 'BGM 3';
+        case getFileName(bgm_4): return 'BGM 4';
+        case getFileName(bgm_5): return 'BGM 5';
+        case getFileName(bgm_6): return 'BGM 6';
+        case getFileName(bgm_7): return 'BGM 7';
+        case getFileName(bgm_8): return 'BGM 8';
+        case getFileName(bgm_9): return 'BGM 9';
+        case getFileName(bgm_10): return 'BGM 10';
+        case getFileName(bgm_11): return 'BGM 11';
+        case getFileName(bgm_12): return 'BGM 12';
+        case getFileName(bgm_13): return 'BGM 13';
+        case getFileName(bgm_14): return 'BGM 14';
+        case getFileName(bgm_15): return 'BGM 15';
+        case getFileName(bgm_16): return 'BGM 16';
         default: return '';
     }
 }

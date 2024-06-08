@@ -5,13 +5,16 @@ import {
     PlayArrowRounded as PlayIcon,
     StopRounded as StopIcon,
     SkipNextRounded as NextIcon,
-    SkipPreviousRounded as PrevIcon
+    SkipPreviousRounded as PrevIcon,
+    QueueMusicRounded as PlaylistIcon
 } from "@mui/icons-material";
 import Slider from '@mui/material/Slider';
 import styled from "@emotion/styled";
-import {useSound} from "../hooks/useSound.ts";
+import {useSound, projectDrasilPlaylist, sadgatomonPlaylist} from "../hooks/useSound.ts";
 import Lottie from "lottie-react";
 import radioAnimation from "../assets/lotties/radio-animation.json";
+import {Item, useContextMenu} from "react-contexify";
+import {StyledMenu} from "../pages/Game.tsx";
 
 export default function SoundBar() {
 
@@ -27,6 +30,15 @@ export default function SoundBar() {
     const stopMusic = useSound((state) => state.stopMusic);
     const nextSong = useSound((state) => state.nextSong);
     const prevSong = useSound((state) => state.prevSong);
+    const setPlaylist = useSound((state) => state.setPlaylist);
+
+    function handleSetPlaylist(playlist: string[]) {
+        setPlaylist(playlist);
+        if (!isMusicPlaying) startMusic();
+        nextSong();
+    }
+
+    const {show: showPlaylistMenu} = useContextMenu({id: "playlistMenu"});
 
     if (window.innerWidth < 800) return <></>
 
@@ -36,6 +48,13 @@ export default function SoundBar() {
         <div style={{position: "absolute", left: 0, top: 0, gridArea: "info" }}>
             <StyledGrid>
 
+                <StyledMenu id={"playlistMenu"} theme="dark">
+                    <Item onClick={() => handleSetPlaylist(projectDrasilPlaylist)}>Project Drasil BGM</Item>
+                    <Item onClick={() => handleSetPlaylist(sadgatomonPlaylist)}>
+                        @SadGatomon <SubtitleSpan>Lo-Fi Covers</SubtitleSpan>
+                    </Item>
+                </StyledMenu>
+
                 <SetSfxIconButton onClick={() => toggleSfxEnabled()} sfxEnabled={sfxEnabled}
                                   title={"Mute / Unmute SFX"}>
                     {sfxEnabled
@@ -43,6 +62,10 @@ export default function SoundBar() {
                         : <UnmuteSfxIcon fontSize={"large"}/>}
                 </SetSfxIconButton>
                 <SfxSpan sfxEnabled={sfxEnabled}>SFX</SfxSpan>
+
+                <RadioIconButtonPlaylist showRadioMenu={showRadioMenu} onClick={(e) => showPlaylistMenu({event: e})}>
+                    <PlaylistIcon fontSize={"large"}/>
+                </RadioIconButtonPlaylist>
 
                 <RadioIconButtonPrev showRadioMenu={showRadioMenu} onClick={prevSong}>
                     <PrevIcon fontSize={"large"}/>
@@ -86,7 +109,7 @@ const StyledGrid = styled.div`
   align-items: center;
   grid-template-columns: repeat(6, 50px);
   grid-template-rows: 45px 20px;
-  grid-template-areas: "sfx-button empty prev-button radio-icon start-button next-button"
+  grid-template-areas: "sfx-button playlist prev-button radio-icon start-button next-button"
                          "sfx-text slider slider slider slider slider";
 `;
 
@@ -131,6 +154,10 @@ const RadioIconButton = styled.div<{showRadioMenu: boolean}>`
   }
 `;
 
+const RadioIconButtonPlaylist = styled(RadioIconButton)`
+    grid-area: playlist;
+`;
+
 const RadioIconButtonPrev = styled(RadioIconButton)`
     grid-area: prev-button;
     transform: ${props => props.showRadioMenu ? "unset" : "translateX(-47px)"};
@@ -163,4 +190,10 @@ const StyledLottie = styled(Lottie)`
   z-index: -1;
   opacity: 0.5;
   transition: all 0.25s ease;
+`;
+
+const SubtitleSpan = styled.span`
+  font-size: 0.9em;
+  font-weight: 600;
+  transform: translate(4px,1px);
 `;
