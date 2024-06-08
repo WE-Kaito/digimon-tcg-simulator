@@ -716,11 +716,14 @@ export const useGame = create<State>()(
     setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
 
     getCardLocationById: (cardId) => {
+        if (!cardId) return "";
         const state = get();
         for (const key in state) {
             if (Object.prototype.hasOwnProperty.call(state, key)) {
                 const locationState = (state[key as keyof State] as CardTypeGame[]);
-                if (Array.isArray(locationState) && locationState.find(card => card?.id === cardId)) return key;
+                if (Array.isArray(locationState) && locationState.length && locationState.find(card => card?.id === cardId)) {
+                    return key;
+                }
             }
         }
         return "";
