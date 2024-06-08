@@ -39,6 +39,7 @@ public record GameCard (
 record Modifiers(
         Integer plusDp,
         Integer plusSecurityAttacks,
-        List<String> keywords
+        List<String> keywords,
+        List<String> colors
 ) {
 }

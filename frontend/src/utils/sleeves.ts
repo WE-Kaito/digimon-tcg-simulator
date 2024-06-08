@@ -58,6 +58,9 @@ import sukamon from "../assets/sleeves/BT11_040_SUKAMON.png";
 import pteromon from "../assets/sleeves/P_131_PTEROMON.png";
 import muchomon from "../assets/sleeves/ST18_05_MUCHOMON.png";
 import malomyotismon from "../assets/sleeves/BT3_092_MALOMYOTISMON.png";
+import meramon from "../assets/sleeves/BT5_011_MERAMON.png";
+import labramon from "../assets/sleeves/BT17_021_LABRAMON.png";
+import mervamon from "../assets/sleeves/BT11_086_MERVAMON_7D6.png";
 
 import defaultBlack from "../assets/sleeves/cardBackBlack.jpg";
 import defaultWhite from "../assets/sleeves/cardBackWhite.jpg";
@@ -66,10 +69,12 @@ import defaultBlue from "../assets/sleeves/cardBackBlue.jpg";
 import defaultGreen from "../assets/sleeves/cardBackGreen.jpg";
 import defaultYellow from "../assets/sleeves/cardBackYellow.jpg";
 import defaultPurple from "../assets/sleeves/cardBackPurple.jpg";
+import rainbow from "../assets/sleeves/RAINBOW.png";
 
 import cardBack from "../assets/cardBack.jpg";
 
 export const sleeves: Picture[] = [
+    {name: "Rainbow", imagePath: rainbow, artist: "StargazerVinny"},
     {name: "Default Black", imagePath: defaultBlack, artist: "Bandai"},
     {name: "Default White", imagePath: defaultWhite, artist: "Bandai"},
     {name: "Default Red", imagePath: defaultRed, artist: "Bandai"},
@@ -136,6 +141,9 @@ export const sleeves: Picture[] = [
     {name: "Pteromon", imagePath: pteromon, artist: "Drak"},
     {name: "Muchomon", imagePath: muchomon, artist: "Drak"},
     {name: "MaloMyotismon", imagePath: malomyotismon, artist: "Drak"},
+    {name: "Meramon", imagePath: meramon, artist: "Drak"},
+    {name: "Labramon", imagePath: labramon, artist: "Drak"},
+    {name: "Mervamon", imagePath: mervamon, artist: "Drak"},
 ];
 
 export function getSleeve(sleeveName: string): string {

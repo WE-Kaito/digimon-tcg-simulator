@@ -2,14 +2,16 @@ import {useEffect} from "react";
 import {useStore} from "../../hooks/useStore.ts";
 import styled from "@emotion/styled";
 import {avatars, profilePicture} from "../../utils/avatars.ts";
-import {playButtonClickSfx} from "../../utils/sound.ts";
 import Pen from "../../assets/profile_pictures/pen.tsx";
+import {useSound} from "../../hooks/useSound.ts";
 
 export default function ChooseAvatar() {
 
     const getAvatar = useStore((state) => state.getAvatar);
     const avatarName = useStore((state) => state.avatarName);
     const setAvatar = useStore((state) => state.setAvatar);
+
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     useEffect(() => {
         getAvatar();
@@ -33,11 +35,12 @@ export default function ChooseAvatar() {
 }
 
 const GridContainer = styled.div`
+  align-self: center;
   width: fit-content;
   height: fit-content;
   display: grid;
-  grid-template-columns: repeat(20, 48px);
-  grid-template-rows: repeat(2, 48px);
+  grid-template-columns: repeat(23, 48px);
+  grid-template-rows: repeat(3, 48px);
   gap: 3px;
   position: relative;
   padding: 5px;
@@ -94,8 +97,8 @@ const AvatarSpan = styled.span`
 `;
 
 const AvatarSpan2 = styled(AvatarSpan)`
-  left: 920px;
-  top: -22px;
+  left: 1070px;
+  top: -23px;
   font-size: 16px;
   transition: all 0.2s ease-in-out;
 `;

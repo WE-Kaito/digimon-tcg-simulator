@@ -59,7 +59,7 @@ export const notifyAlreadyExists = () => toast.error("Username already exists!",
 });
 
 export const notifyRegistered = () => toast.success('Registered!', {
-    position: "bottom-center",
+    position: "top-center",
     autoClose: 2000,
     hideProgressBar: true,
     closeOnClick: true,
@@ -67,28 +67,28 @@ export const notifyRegistered = () => toast.success('Registered!', {
 });
 
 export const notifySecurityView = () => toast.warning('Opponent opened Security Stack!', {
-    position: "bottom-center",
+    position: "top-center",
     autoClose: 5000,
     hideProgressBar: false,
     pauseOnHover: false,
 });
 
 export const notifyOpponentDisconnect = () => toast.warning('Opponent disconnected!', {
-    position: "bottom-center",
+    position: "top-center",
     autoClose: 5000,
     hideProgressBar: false,
     pauseOnHover: false,
 });
 
 export const notifyRequestedRestart = () => toast.success('Sent restart request!', {
-    position: "bottom-center",
+    position: "top-center",
     autoClose: 1200,
     hideProgressBar: false,
     pauseOnHover: false,
 });
 
 export const notifyMuteInvites = (username: string) => toast.success(`Invites from ${username} muted!`, {
-    position: "bottom-center",
+    position: "top-center",
     autoClose: 1200,
     hideProgressBar: false,
     pauseOnHover: false,

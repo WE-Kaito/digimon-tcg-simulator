@@ -56,7 +56,7 @@ export default function UserSettings() {
                 </ChangeQuestionForm>
             </Stack>
 
-            <Stack direction={"row"} gap={1}  flexWrap={"wrap"}>
+            <Stack direction={"row"} gap={1}  flexWrap={"wrap"} justifyContent={"center"}>
                 <Stack alignItems={"flex-start"} gap={0.5}>
                     <DescriptionSpan>Set Background Color Scheme:</DescriptionSpan>
                     <Stack direction={"row"} gap={1}>

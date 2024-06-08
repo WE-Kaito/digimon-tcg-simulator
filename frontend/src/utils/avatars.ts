@@ -40,6 +40,24 @@ import holyAngemon from "../assets/profile_pictures/HolyAngemon.png";
 import imperialdramonPM from "../assets/profile_pictures/Imperialdramon_PM.png";
 import leviamonX from "../assets/profile_pictures/Leviamon_X.png";
 import pandamon from "../assets/profile_pictures/Pandamon.png";
+import banchoLeomon from "../assets/profile_pictures/BanchoLeomon.png";
+import centalmon from "../assets/profile_pictures/Centalmon.png";
+import cyberdramonX from "../assets/profile_pictures/Cyberdramon_X.png";
+import darkdramon from "../assets/profile_pictures/Darkdramon.png";
+import duftmonX from "../assets/profile_pictures/Duftmon_X.png";
+import gekomon from "../assets/profile_pictures/Gekomon.png";
+import kunemon from "../assets/profile_pictures/Kunemon.png";
+import labramon from "../assets/profile_pictures/Labramon.png";
+import lucemon from "../assets/profile_pictures/Lucemon.png";
+import mamemonX from "../assets/profile_pictures/Mamemon_X.png";
+import orochimon from "../assets/profile_pictures/Orochimon.png";
+import piemon from "../assets/profile_pictures/Piemon.png";
+import reppamon from "../assets/profile_pictures/Reppamon.png";
+import rukamon from "../assets/profile_pictures/Rukamon.png";
+import vademon from "../assets/profile_pictures/Vademon.png";
+import blossomon from "../assets/profile_pictures/Blossomon.png";
+import delumon from "../assets/profile_pictures/Delumon.png";
+import andiramonData from "../assets/profile_pictures/Andiramon_Data.png";
 
 export const avatars: Picture[] = [
     { name: "AncientIrismon", imagePath: ancientIrismon, artist: "Tortoiseshel" },
@@ -81,7 +99,25 @@ export const avatars: Picture[] = [
     { name: "Leviamon X", imagePath: leviamonX, artist: "Tortoiseshel" },
     { name: "Imperialdramon PM", imagePath: imperialdramonPM, artist: "Tortoiseshel" },
     { name: "HolyAngemon", imagePath: holyAngemon, artist: "Tortoiseshel" },
-    { name: "Pandamon", imagePath: pandamon, artist: "Tortoiseshel" }
+    { name: "Pandamon", imagePath: pandamon, artist: "Tortoiseshel" },
+    { name: "BanchoLeomon", imagePath: banchoLeomon, artist: "Tortoiseshel" },
+    { name: "Centalmon", imagePath: centalmon, artist: "Tortoiseshel" },
+    { name: "Cyberdramon X", imagePath: cyberdramonX, artist: "Tortoiseshel" },
+    { name: "Darkdramon", imagePath: darkdramon, artist: "Tortoiseshel" },
+    { name: "Duftmon X", imagePath: duftmonX, artist: "Tortoiseshel" },
+    { name: "Gekomon", imagePath: gekomon, artist: "Tortoiseshel" },
+    { name: "Kunemon", imagePath: kunemon, artist: "Tortoiseshel" },
+    { name: "Labramon", imagePath: labramon, artist: "Tortoiseshel" },
+    { name: "Lucemon", imagePath: lucemon, artist: "Tortoiseshel" },
+    { name: "Mamemon X", imagePath: mamemonX, artist: "Tortoiseshel" },
+    { name: "Orochimon", imagePath: orochimon, artist: "Tortoiseshel" },
+    { name: "Piemon", imagePath: piemon, artist: "Tortoiseshel" },
+    { name: "Reppamon", imagePath: reppamon, artist: "Tortoiseshel" },
+    { name: "Rukamon", imagePath: rukamon, artist: "Tortoiseshel" },
+    { name: "Vademon", imagePath: vademon, artist: "Tortoiseshel" },
+    { name: "Blossomon", imagePath: blossomon, artist: "Tortoiseshel" },
+    { name: "Delumon", imagePath: delumon, artist: "Tortoiseshel" },
+    { name: "Andiramon Data", imagePath: andiramonData, artist: "Tortoiseshel" },
 ];
 
 export function profilePicture(avatarName: string) : string {

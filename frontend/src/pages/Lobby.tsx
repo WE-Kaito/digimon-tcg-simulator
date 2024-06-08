@@ -1,20 +1,20 @@
 import BackButton from "../components/BackButton.tsx";
 import useWebSocket from "react-use-websocket";
-import {FormEvent, useEffect, useRef, useState} from "react";
+import {FormEvent, useCallback, useEffect, useRef, useState} from "react";
 import {Headline2} from "../components/Header.tsx";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
 import {notifyBrokenDeck, notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
-import {playInvitationSfx} from "../utils/sound.ts";
 import discordIcon from "../assets/discordLogo.png";
 import {useGame} from "../hooks/useGame.ts";
 import {Button, MenuItem, Select} from "@mui/material";
 import { SelectChangeEvent } from '@mui/material/Select';
 import {useStore} from "../hooks/useStore.ts";
 import {VolumeOff as MuteIcon} from '@mui/icons-material';
-import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import {useSound} from "../hooks/useSound.ts";
+import SoundBar from "../components/SoundBar.tsx";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -44,6 +44,8 @@ export default function Lobby({user}: { user: string }) {
     const fetchDecks = useStore(state => state.fetchDecks);
     const decks = useStore(state => state.decks);
     const isLoading = useStore(state => state.isLoading);
+
+    const playInvitationSfx = useSound((state) => state.playInvitationSfx);
 
     const navigate = useNavigate();
     const navigateToGame = () => navigate("/game");
@@ -175,13 +177,16 @@ export default function Lobby({user}: { user: string }) {
         if (historyRef.current) historyRef.current.scrollTop = historyRef.current.scrollHeight;
     }, [messages]);
 
-    useEffect(() => {
+    const initialFetch = useCallback(() => {
         getActiveDeck();
         fetchDecks();
-    }, []);
+    }, [getActiveDeck, fetchDecks]);
+    useEffect(() => initialFetch(), [initialFetch]);
 
     return (
-        <MenuBackgroundWrapper>
+        <>
+            <SoundBar/>
+
             {pendingInvitation &&
                 <InvitationMoodle>
                     <div title="Stop receiving invites from this player until you re-enter the lobby.">
@@ -273,7 +278,7 @@ export default function Lobby({user}: { user: string }) {
                     </InputContainer>
                 </Chat>
             </Container>
-        </MenuBackgroundWrapper>
+        </>
     );
 }
 
@@ -309,8 +314,8 @@ const ConnectionSpanGreen = styled.span`
   opacity: 0.8;
   filter: drop-shadow(0 0 3px #19cb19);
   position: absolute;
-  top: 2%;
-  left: 4%;
+  top: 4px;
+  left: 4px;
 `;
 
 const ConnectionSpanYellow = styled(ConnectionSpanGreen)`

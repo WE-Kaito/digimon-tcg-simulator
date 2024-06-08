@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {useStore} from "../hooks/useStore.ts";
 import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
@@ -7,42 +7,40 @@ import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
-import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import cardBackSrc from "../assets/cardBack.jpg"
+import AddDeckButton from "../components/deckbuilder/AddDeckButton.tsx";
+import UpdateDeleteDeckButtons from "../components/deckbuilder/UpdateDeleteDeckButtons.tsx";
 
-export default function Deckbuilder() {
+export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
 
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
-    const saveDeck = useStore((state) => state.saveDeck);
-    const [deckName, setDeckName] = useState<string>("New Deck");
-    const clearDeck = useStore((state) => state.clearDeck);
-    const isSaving = useStore((state) => state.isSaving);
-    const filterCards = useStore((state) => state.filterCards);
-    const fetchDecks = useStore((state) => state.fetchDecks);
     const decks = useStore((state) => state.decks);
+    const fetchDecks = useStore((state) => state.fetchDecks);
     const fetchCards = useStore((state) => state.fetchCards);
+    const nameOfDeckToEdit = useStore(state => state.nameOfDeckToEdit);
 
-    const cardBackUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/cardBack.jpg";
+    const [deckName, setDeckName] = useState<string>("New Deck");
+    const [currentDeckLength, setCurrentDeckLength] = useState<number>(0);
 
-    useEffect(() => {
-        clearDeck();
-        fetchDecks();
-        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
-    }, [clearDeck, fetchDecks, filterCards]);
-
-    useEffect(() => {
+    const initialFetch = useCallback(() => {
         fetchCards();
-    }, []);
+        fetchDecks();
+        setCurrentDeckLength(decks.length);
+        if (isEditMode) setDeckName(nameOfDeckToEdit);
+    }, [decks.length, fetchCards, fetchDecks, isEditMode, nameOfDeckToEdit]);
+    useEffect(() => initialFetch(), [initialFetch]);
 
     return (
-        <MenuBackgroundWrapper>
             <OuterContainer>
 
                 <ButtonContainer>
-                    <SaveDeckButton disabled={(isSaving || decks.length >= 16)} onClick={() => {
-                        saveDeck(deckName)
-                    }}><StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : `SAVE [${decks.length}/16]`}</StyledSpanSaveDeck></SaveDeckButton>
-                    <BackButton/>
+                    {isEditMode
+                        ? <UpdateDeleteDeckButtons deckName={deckName}/>
+                        : <AddDeckButton deckName={deckName} currentDeckLength={currentDeckLength}
+                                         setCurrentDeckLength={setCurrentDeckLength}/>
+                    }
+                    <BackButton isOnEditPage={isEditMode}/>
                 </ButtonContainer>
 
                 <DeckImport deckName={deckName}/>
@@ -61,13 +59,12 @@ export default function Deckbuilder() {
                 </DetailsContainer>
 
                 <CardImageContainer >
-                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackUrl}
+                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackSrc}
                            alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
                     <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
                 </CardImageContainer>
 
             </OuterContainer>
-        </MenuBackgroundWrapper>
     );
 }
 
@@ -126,53 +123,12 @@ export const DeckNameInput = styled.input`
   background: #1a1a1a;
 `;
 
-const SaveDeckButton = styled.button<{ disabled: boolean }>`
-  height: 40px;
-  width: 95%;
-  padding: 0;
-  padding-top: 2px;
-  margin-left: 5px;
-  background: ${(props) => props.disabled ? "grey" : "mediumaquamarine"};
-  color: black;
-  font-size: 25px;
-  font-weight: bold;
-  text-align: center;
-  font-family: 'Sansation', sans-serif;
-  filter: drop-shadow(1px 2px 2px #346ab6);
-
-  :hover {
-    background: ${(props) => props.disabled ? "grey" : "aquamarine"};
-  }
-
-  &:active {
-    background-color: ${(props) => props.disabled ? "grey" : "aquamarine"};
-    border: none;
-    filter: none;
-    transform: translateY(1px);
-    box-shadow: inset 0 0 3px #000000;
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-`;
-
 export const ButtonContainer = styled.div`
   grid-area: buttons;
   width: 95%;
   display: flex;
   gap: 2%;
   justify-content: space-between;
-`;
-
-export const StyledSpanSaveDeck = styled.span`
-  font-family: 'League Spartan', sans-serif;
-  font-weight: bold;
-  font-size: 1.1em;
-  margin: 0;
-  letter-spacing: 2px;
-  color: #0e1625;
 `;
 
 export const DeckNameContainer = styled.div`

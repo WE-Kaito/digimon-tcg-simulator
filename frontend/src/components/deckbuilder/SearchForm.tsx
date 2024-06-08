@@ -23,42 +23,42 @@ export default function SearchForm() {
 
     const filterCards = useStore((state) => state.filterCards);
 
-    const [name, setName] = useState<string | null>(null);
-    const [color, setColor] = useState<string | null>(null);
-    const [color2, setColor2] = useState<string | null>(null);
-    const [color3, setColor3] = useState<string | null>(null);
-    const [type, setType] = useState<string | null>(null);
+    const [name, setName] = useState<string>("");
+    const [color, setColor] = useState<string>("");
+    const [color2, setColor2] = useState<string>("");
+    const [color3, setColor3] = useState<string>("");
+    const [type, setType] = useState<string>("");
     const [playcost, setPlaycost] = useState<number | null>(null);
     const [dp, setDp] = useState<number | null>(null);
     const [digivolutioncost, setDigivolutioncost] = useState<number | null>(null);
     const [level, setLevel] = useState<number | null>(null);
-    const [stage, setStage] = useState<string | null>(null);
-    const [digitype, setDigitype] = useState<string | null>(null);
-    const [attribute, setAttribute] = useState<string | null>(null);
-    const [number, setNumber] = useState<string | null>(null);
-    const [illustrator, setIllustrator] = useState<string | null>(null);
-    const [effect, setEffect] = useState<string | null>(null);
+    const [stage, setStage] = useState<string>("");
+    const [digitype, setDigitype] = useState<string>("");
+    const [attribute, setAttribute] = useState<string>("");
+    const [number, setNumber] = useState<string>("");
+    const [illustrator, setIllustrator] = useState<string>("");
+    const [effect, setEffect] = useState<string>("");
     const [hasAce, setHasAce] = useState<boolean>(false);
     const [altArtsEnabled, setAltArtsEnabled] = useState<boolean>(true);
 
     function handleClear() {
         setName("");
-        setColor(null);
-        setColor2(null);
-        setColor3(null);
-        setType(null);
+        setColor("");
+        setColor2("");
+        setColor3("");
+        setType("");
         setPlaycost(null);
         setDp(null);
         setDigivolutioncost(null);
         setLevel(null);
-        setStage(null);
+        setStage("");
         setDigitype("");
-        setAttribute(null);
+        setAttribute("");
         setNumber("");
         setIllustrator("");
         setEffect("");
         setHasAce(false);
-        filterCards("", null, null, null, null, null, "", null, null, null, null, null, "", "", false, true);
+        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
     }
 
     useEffect(() => {
@@ -85,23 +85,21 @@ export default function SearchForm() {
 
             <ColorSelectionContainer>
                 <ColorSelect value={color ?? ""} style={{gridArea: "one"}}
-                             onChange={(e) => setColor(e.target.value !== "" ? e.target.value : null)}>
+                             onChange={(e) => setColor(e.target.value ?? "")}>
                     <ColorOptions/>
                 </ColorSelect>
                 <ColorSelect value={color2 ?? ""} style={{gridArea: "two"}}
-                             onChange={(e) => setColor2(e.target.value !== "" ? e.target.value : null)}>
+                             onChange={(e) => setColor2(e.target.value ?? "")}>
                     <ColorOptions/>
                 </ColorSelect>
                 <ColorSelect value={color3 ?? ""} style={{gridArea: "three"}}
-                             onChange={(e) => setColor3(e.target.value !== "" ? e.target.value : null)}>
+                             onChange={(e) => setColor3(e.target.value ?? "")}>
                     <ColorOptions/>
                 </ColorSelect>
             </ColorSelectionContainer>
 
-            <TypeSelect value={type ?? "Type"} onChange={(e) => {
-                setType(e.target.value !== "Type" ? e.target.value : null)
-            }}>
-                <option>Type</option>
+            <TypeSelect value={type ?? "Type"} onChange={(e) => setType(e.target.value ?? "")}>
+                <option value={""}>Type</option>
                 <option>Digimon</option>
                 <option>Digi-Egg</option>
                 <option>Option</option>
@@ -162,10 +160,8 @@ export default function SearchForm() {
                 <option value={7}>7</option>
             </LevelSelect>
 
-            <StageSelect value={stage ?? "Stage"} onChange={(e) => {
-                setStage(e.target.value !== "Stage" ? e.target.value : null)
-            }}>
-                <option>Stage</option>
+            <StageSelect value={stage ?? "Stage"} onChange={(e) => setStage(e.target.value ?? "")}>
+                <option value={""}>Stage</option>
                 <option>In-Training</option>
                 <option>Rookie</option>
                 <option>Champion</option>
@@ -178,10 +174,8 @@ export default function SearchForm() {
 
             <DigitypeInput placeholder={"Digi-Type"} value={digitype ?? []} onChange={(e) => {setDigitype(e.target.value)}}/>
 
-            <AttributeSelect value={attribute ?? "Attr."} onChange={(e) => {
-                setAttribute(e.target.value !== "Attr." ? e.target.value : null);
-            }}>
-                <option>Attr.</option>
+            <AttributeSelect value={attribute ?? "Attr."} onChange={(e) => setAttribute(e.target.value ?? "")}>
+                <option value={""}>Attr.</option>
                 <option>Free</option>
                 <option>Variable</option>
                 <option>Unknown</option>

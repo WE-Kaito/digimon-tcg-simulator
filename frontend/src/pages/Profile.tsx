@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import {useStore} from "../hooks/useStore.ts";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
@@ -11,12 +11,12 @@ import {closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSe
 import {arrayMove, SortableContext} from "@dnd-kit/sortable";
 import {DeckType} from "../utils/types.ts";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import {Dialog} from "@mui/material";
+import {Dialog, Stack} from "@mui/material";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
-import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
 import {useNavigate} from "react-router-dom";
+import SoundBar from "../components/SoundBar.tsx";
 
 export type DeckIdOrder = string[];
 
@@ -26,6 +26,7 @@ export default function Profile({user}: { user: string }) {
     const deckIdOrder = useStore((state) => state.deckIdOrder);
     const setDeckIdOrder = useStore((state) => state.setDeckIdOrder);
     const isLoading = useStore((state) => state.isLoading);
+    const clearDeck = useStore((state) => state.clearDeck);
 
     const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);
     const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
@@ -38,9 +39,9 @@ export default function Profile({user}: { user: string }) {
         const {active, over} = event;
 
         if (!!over && (active.id !== over.id)) {
-            const oldIndexIds = deckIdOrder.findIndex((id) => id === active.id);
-            const newIndexIds = deckIdOrder.findIndex((id) => id === over.id);
-            setDeckIdOrder(arrayMove(deckIdOrder, oldIndexIds, newIndexIds), setOrderedDecks);
+            const oldIndexId = deckIdOrder.findIndex((id) => id === active.id);
+            const newIndexId = deckIdOrder.findIndex((id) => id === over.id);
+            setDeckIdOrder(arrayMove(deckIdOrder, oldIndexId, newIndexId), setOrderedDecks);
         }
     }
 
@@ -50,10 +51,17 @@ export default function Profile({user}: { user: string }) {
         loadOrderedDecks(setOrderedDecks)
     }
 
-    useEffect(() => loadOrderedDecks(setOrderedDecks), []);
+    function toDeckBuilder() {
+        navigate("/deckbuilder");
+        clearDeck();
+    }
+
+    const stableLoadOrderedDecks = useCallback(() => loadOrderedDecks(setOrderedDecks), [loadOrderedDecks]);
+    useEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
 
     return (
-        <MenuBackgroundWrapper alignedTop>
+        <Stack minHeight={"100vh"} height={"100%"} pt={"20px"} justifyContent={"flex-start"}>
+            <SoundBar/>
             <Header>
                 <Name>{user}</Name>
                 <BackButton/>
@@ -62,7 +70,7 @@ export default function Profile({user}: { user: string }) {
             <UserSettings/>
 
             <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
-                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
+                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)", overflow: "hidden" }}}>
                 <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
                 <ChooseCardSleeve/>
             </Dialog>
@@ -86,23 +94,23 @@ export default function Profile({user}: { user: string }) {
                         ? <Loading/>
                         : <>
                             <SortableContext items={orderedDecks}>
-                             {orderedDecks?.map((deck, index) => <>
+                             {orderedDecks?.map((deck) =>
                                  <SortableProfileDeck key={deck.id} deck={deck}
                                                       setSleeveSelectionOpen={setSleeveSelectionOpen}
                                                       setImageSelectionOpen={setImageSelectionOpen}
-                             />
-                                 {orderedDecks.length < 16 && index === orderedDecks.length - 1 &&
-                                     <NewDeckButton onClick={() => navigate("/deckbuilder")}>
-                                         <AddBoxRoundedIcon/>
-                                     </NewDeckButton>}
-                             </>)}
+                                 />
+                             )}
                             </SortableContext>
-                            {}
+                            {orderedDecks.length < 16 &&
+                                <NewDeckButton onClick={toDeckBuilder}>
+                                    <AddBoxRoundedIcon/>
+                                </NewDeckButton>
+                            }
                         </>
                     }
                 </Container>
             </DndContext>
-        </MenuBackgroundWrapper>
+        </Stack>
     );
 }
 
@@ -142,6 +150,7 @@ const DeckHeaderContainer = styled.div`
 
   width: 100vw;
   max-width: 1204px;
+  margin-top: 20px;
   
   span {
     color: #1d7dfc;

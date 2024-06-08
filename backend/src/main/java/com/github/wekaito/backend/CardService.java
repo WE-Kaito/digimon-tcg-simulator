@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CardService {
 
-    private final String baseUrl = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/";
+    private static final String BASE_URL = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/";
 
     private final CardRepo cardRepo;
 
@@ -64,7 +64,7 @@ public class CardService {
     }
 
     private final WebClient webClient = WebClient.builder()
-            .baseUrl(baseUrl)
+            .baseUrl(BASE_URL)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.toString())
             .exchangeStrategies(ExchangeStrategies.builder()
@@ -110,7 +110,7 @@ public class CardService {
         cards.add(new Card(
                 card.id(),
                 card.name().english(),
-                baseUrl + card.cardImage(),
+                BASE_URL + card.cardImage(),
                 card.cardType(),
                 colors,
                 (card.attribute().equals("-")) ? null : card.attribute(),
@@ -132,7 +132,6 @@ public class CardService {
                 card.restrictions(),
                 card.illustrator()));
         });
-        
 
         // CardRepo is a fail-safe in case the API is missing cards or shuts down
         for (Card repoCard : this.cardRepo.findAll()) {

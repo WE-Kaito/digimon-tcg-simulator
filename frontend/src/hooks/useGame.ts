@@ -9,10 +9,9 @@ import {
     OneSideDistribution,
     Phase,
     Player,
-    SendToDeckFunction,
+    SendToStackFunction,
     Side
 } from "../utils/types.ts";
-import {playDrawCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -60,12 +59,12 @@ export type State = BoardState & {
 
     setUpGame: (me: Player, opponent: Player) => void,
     clearBoard: () => void,
-    distributeCards: (user: string, chunk: string, gameId: string, sendLoaded: () => void) => void,
+    distributeCards: (user: string, chunk: string, gameId: string, sendLoaded: () => void, playDrawCardSfx: () => void) => void,
     moveCard: (cardId: string, from: string, to: string) => void,
     getMyFieldAsString: () => string,
     updateOpponentField: (chunk: string, sendLoaded: () => void) => void,
 
-    cardToDeck: SendToDeckFunction,
+    moveCardToStack: SendToStackFunction,
     setMemory: (memory: number) => void,
     setPhase: () => void,
     setTurn: (isMyTurn: boolean) => void,
@@ -275,7 +274,7 @@ export const useGame = create<State>()(
         });
     },
 
-    distributeCards: (user, chunk, gameId, sendLoaded) => {
+    distributeCards: (user, chunk, gameId, sendLoaded, playDrawCardSfx) => {
 
         set(state => ({ initialDistributionState: state.initialDistributionState + chunk }));
 
@@ -414,8 +413,11 @@ export const useGame = create<State>()(
 
         const fromState = get()[from as keyof State] as CardTypeGame[];
         const card = fromState.find(card => card.id === cardId);
+
         if (!card) return;
-        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
+        if(resetModifierLocations.includes(to)) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color};
+        if(card.inSecurityFaceUp) card.inSecurityFaceUp = false;
+
         const updatedFromState = fromState.filter(card => card.id !== cardId);
 
         const toState = get()[to as keyof State] as CardTypeGame[];
@@ -454,7 +456,6 @@ export const useGame = create<State>()(
         }
 
         if (destroyTokenLocations.includes(to) && card.id.startsWith("TOKEN")) {
-            if (to !== "myTrash") playTrashCardSfx();
             set({[from]: updatedFromState});
             return;
         }
@@ -466,15 +467,20 @@ export const useGame = create<State>()(
         });
     },
 
-    cardToDeck: (topOrBottom, cardId, cardLocation, to) => {
+    moveCardToStack: (topOrBottom, cardId, cardLocation, to, sendFaceUp) => {
         if (!get().opponentReady) return;
 
         const locationCards = get()[cardLocation as keyof State] as CardTypeGame[];
         const card = locationCards.find((card: CardTypeGame) => card.id === cardId);
+
+        if (!card) return;
+
         const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId);
 
-        if (topOrBottom === "Top" && card) card.isTilted = false;
-        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: []};
+        if (!["mySecurity", "opponentSecurity"].includes(to) && card.inSecurityFaceUp) card.inSecurityFaceUp = false;
+
+        if (topOrBottom === "Top") card.isTilted = false;
+        if (resetModifierLocations.includes(to) && card) card.modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color};
 
         if (cardLocation === to) {
             set({
@@ -487,8 +493,9 @@ export const useGame = create<State>()(
         } else
 
             set(state => {
-                const toDeck = state[to as keyof State] as CardTypeGame[];
-                const updatedDeck = topOrBottom === "Top" ? [card, ...toDeck] : [...toDeck, card];
+                const toStack = state[to as keyof State] as CardTypeGame[];
+                const newCard = sendFaceUp ? {...card, inSecurityFaceUp: true} : card;
+                const updatedDeck = topOrBottom === "Top" ? [newCard, ...toStack] : [...toStack, newCard];
                 return {
                     [cardLocation]: updatedLocationCards,
                     [to]: updatedDeck
@@ -528,6 +535,10 @@ export const useGame = create<State>()(
             const security = state.mySecurity;
             const cryptoArray = new Uint32Array(security.length);
             crypto.getRandomValues(cryptoArray);
+
+            for (const card of security) {
+                if(card.inSecurityFaceUp) card.inSecurityFaceUp = false;
+            }
             for (let i = security.length - 1; i > 0; i--) {
                 const j = cryptoArray[i] % (i + 1);
                 [security[i], security[j]] = [security[j], security[i]];
@@ -592,7 +603,7 @@ export const useGame = create<State>()(
             ...tokenVariant,
             id: id,
             isTilted: false,
-            modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: []}
+            modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: tokenVariant.color}
         };
         set((state) => {
             for (let i = 1; i <= 10; i++) {
@@ -705,11 +716,14 @@ export const useGame = create<State>()(
     setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
 
     getCardLocationById: (cardId) => {
+        if (!cardId) return "";
         const state = get();
         for (const key in state) {
             if (Object.prototype.hasOwnProperty.call(state, key)) {
                 const locationState = (state[key as keyof State] as CardTypeGame[]);
-                if (Array.isArray(locationState) && locationState.find(card => card.id === cardId)) return key;
+                if (Array.isArray(locationState) && locationState.length && locationState.find(card => card?.id === cardId)) {
+                    return key;
+                }
             }
         }
         return "";

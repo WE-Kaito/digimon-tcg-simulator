@@ -1,11 +1,11 @@
-import {DraggedItem, DraggedStack, Phase, SendToDeckFunction} from "../utils/types.ts";
+import {DraggedItem, DraggedStack, Phase, SendToStackFunction} from "../utils/types.ts";
 import {useGame} from "./useGame.ts";
 import {convertForLog} from "../utils/functions.ts";
-import {playCardToHandSfx, playDrawCardSfx, playPlaceCardSfx, playTrashCardSfx} from "../utils/sound.ts";
 import {useDrop} from "react-dnd";
+import {useSound} from "./useSound.ts";
 
 type UseDropZoneProps = {
-    sendCardToDeck: SendToDeckFunction,
+    sendCardToStack: SendToStackFunction,
     sendChatMessage: (message: string) => void,
     nextPhase: () => void,
     setArrowFrom: (from: string) => void,
@@ -25,7 +25,7 @@ type UseDropZoneProps = {
 export default function useDropZone(props: UseDropZoneProps) {
 
     const {
-        sendCardToDeck,
+        sendCardToStack,
         sendChatMessage,
         nextPhase,
         setArrowFrom,
@@ -47,12 +47,17 @@ export default function useDropZone(props: UseDropZoneProps) {
     const getCardType = useGame(state => state.getCardType);
     const getIsMyTurn = useGame(state => state.getIsMyTurn);
     const getPhase = useGame(state => state.getPhase);
-    const cardToDeck = useGame((state) => state.cardToDeck);
+    const moveCardToStack = useGame((state) => state.moveCardToStack);
 
     const setCardToSend = useGame((state) => state.setCardToSend);
     const nextPhaseTrigger = useGame(state => state.nextPhaseTrigger);
     const moveCardStack = useGame((state) => state.moveCardStack);
     const moveCard = useGame((state) => state.moveCard);
+
+    const playCardToHandSfx = useSound((state) => state.playCardToHandSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
 
     function isCardStack(item: DraggedItem | DraggedStack): item is DraggedStack {
         const {index} = item as DraggedStack;
@@ -73,12 +78,12 @@ export default function useDropZone(props: UseDropZoneProps) {
         sendSfx(targetField === "myTrash" ? "playTrashCardSfx" : "playPlaceCardSfx");
     }
 
-    function dropCardToDeck(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
+    function dropCardToStack(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
         const {id, location, name} = item;
         if (id.startsWith("TOKEN")) return;
         sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? `???…${id.slice(-5)}` : name}】﹕${convertForLog(location)} ➟ Deck ${topOrBottom}`);
-        cardToDeck(topOrBottom, id, location, "myDeckField");
-        sendCardToDeck(topOrBottom, id, location, "myDeckField");
+        moveCardToStack(topOrBottom, id, location, "myDeckField");
+        sendCardToStack(topOrBottom, id, location, "myDeckField");
         playDrawCardSfx();
     }
 
@@ -110,16 +115,16 @@ export default function useDropZone(props: UseDropZoneProps) {
 
     function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
         if (!cardId || !from || !to) return;
-        cardToDeck("Top", cardId, from, to);
+        moveCardToStack("Top", cardId, from, to);
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
         sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
         if (from === to) {
             const timer = setTimeout(() => {
-                sendCardToDeck("Top", cardId, from, to);
+                sendCardToStack("Top", cardId, from, to);
             }, 30);
             return () => clearTimeout(timer);
-        } else sendCardToDeck("Top", cardId, from, to);
+        } else sendCardToStack("Top", cardId, from, to);
     }
 
     const [, dropToDigi1] = useDrop(() => ({
@@ -215,7 +220,7 @@ export default function useDropZone(props: UseDropZoneProps) {
 
     const [{isOverDeckTop}, dropToDeck] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => dropCardToDeck(item, "Top"),
+        drop: (item: DraggedItem) => dropCardToStack(item, "Top"),
         collect: (monitor) => ({
             isOverDeckTop: !!monitor.isOver(),
         }),
@@ -223,7 +228,7 @@ export default function useDropZone(props: UseDropZoneProps) {
 
     const [{isOverBottom, canDropToDeckBottom}, dropToDeckBottom] = useDrop(() => ({
         accept: "card",
-        drop: (item: DraggedItem) => dropCardToDeck(item, "Bottom"),
+        drop: (item: DraggedItem) => dropCardToStack(item, "Bottom"),
         collect: (monitor) => ({
             isOverBottom: !!monitor.isOver(),
             canDropToDeckBottom: !!monitor.canDrop(),

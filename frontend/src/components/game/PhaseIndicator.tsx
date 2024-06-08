@@ -1,8 +1,8 @@
 import {useGame} from "../../hooks/useGame.ts";
-import {playNextPhaseSfx, playPassTurnSfx} from "../../utils/sound.ts";
 import {Phase} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useEffect, useState} from "react";
+import {useSound} from "../../hooks/useSound.ts";
 
 type Props = {
     sendPhaseUpdate: () => void;
@@ -17,6 +17,9 @@ export default function PhaseIndicator({sendPhaseUpdate, sendSfx, gameHasStarted
     const isMyTurn = useGame(state => state.isMyTurn);
     const setTurn = useGame(state => state.setTurn);
     const myMemory = useGame(state => state.myMemory);
+
+    const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
+    const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
 
     const [renderPhase, setRenderPhase] = useState(true);
 
