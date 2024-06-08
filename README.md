@@ -1,59 +1,41 @@
 Project Drasil
 ---
 
-This started as a graduation project for a full stack coding bootcamp.
-It was always a dream of mine to make some sort of Digimon fan game, so why not making the still missing sim for [its card game](https://world.digimoncard.com/)?
+Free fan-made manual/tabletop simulation of the [Digimon Card Game](https://world.digimoncard.com/).
+
+It is still in development but has every feature needed to play smoothly.
+Keep in mind the game page is not optimized for mobile devices yet. So it is advised to play on a desktop.
+Thx to [@allesandrostagni](https://github.com/alessandrostagni) we also provide a mostly automated bot to play against.
+
+Check the [Featues & Controls](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) page for futher information.
 
 Feel free to use the code to improve upon. Reviews, bug-reports and feature-requests are also very welcome!
 
-**Features**:
-- [x] Register with a unique username + password to use the App.
-- [X] Password Recovery with a safety question + answer.
-- [x] Deckbuilder using data provided by [digimoncard.app](https://digimoncard.app/).
-- [X] Import / Export your deck list. (Currently TTS format only)
-- [x] Drag and drop cards and card-stacks.
-- [x] Edit your decks and set your avatar, card sleeve and active deck on the profile page.
-- [x] Chat with other players and invite your friends in the Lobby.
-- [x] Mobile compatible (Game page currently not too optimized).
-- [X] Manual simulation of the *Digimon Card Game* with audio and animations and a Log
-
-**Try it on [www.digi-tcg.online](https://www.digi-tcg.online/)**
-
-Check the [Wiki page](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) for futher information.
+**Try it on [project-drasil.online](https://project-drasil.online/)**!
 
 Join our discord community! https://discord.gg/sBdByGAh2y
 
----
+  ---
 
-**Used Technologies, Frameworks, and Libraries:**
 
-- **Frontend:** React with Vite, Axios, Zustand, Emotion, react-dnd, react-use-websocket
+  ---
 
-- - **Other libraries:** react-router-dom, react-awesome-reveal, react-arrows, lottie-react, react-toastify, react-particles
-  - **Design:** Figma, Excalidraw
+**Upcoming Features**:
+- Tutorial modals for the UI.
+- Proper Lobby screen with format settings, quickplay, ...
+- Practice mode to test the decks without the need of an opponent. Later on, it may be possible to play against different bot characters.
+- Spectator mode.
+- Chinese Language support.
+- Mobile optimization.
+- Adding value to accounts introducing some point system and name-plates + distinct user- and display-names.
+- -> Report system to report users.
+- Further polishing of existing features ✨
 
-- **Backend:** Spring Boot with Spring WebFlux, WebSocket, Security + MongoDB
 
-- **Testing:** JUnit, AssertJ, Mockito, MockMvc, Flapdoodle (for integration tests)
-
-- **Deployment:** GitHub Actions for CI/CD, Docker, Heroku
-
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=we-kaito_digimon-tcg-simulator-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=we-kaito_digimon-tcg-simulator-backend)
-
----
-
-![deckbuilderExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/26572873-7672-4ff4-b24b-a2d63e3ad482) ![profileExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/49ccc4e9-a903-4812-bdef-559066b653fc) ![lobbyExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/1a471309-a350-42a7-aed9-c46581f881ee)
-
-![gameExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/f6ed2f0f-875c-4eb3-a4df-8df30e81adf3)
-
-![loginExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/884bdaf1-bdad-4dc4-ad50-56d3cefdd0de) ![registerExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/f8f8f582-fa21-44e9-a1ea-7a8275b65a42) ![mainmenuExample2](https://github.com/WE-Kaito/digimon-tcg-simulator/assets/98795399/ea2e2f0e-b5ce-458d-b86e-baa3b8e83ac7)
-
----
+  ---
 
  <sub>
   🚧 Disclaimer 🚧
-
-  ---
    
 This is a fan-made project and is not affiliated with or endorsed by Bandai Co., Ltd. or any official Digimon franchise entities. 
    
