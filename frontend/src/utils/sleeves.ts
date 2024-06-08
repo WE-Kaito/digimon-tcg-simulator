@@ -69,10 +69,12 @@ import defaultBlue from "../assets/sleeves/cardBackBlue.jpg";
 import defaultGreen from "../assets/sleeves/cardBackGreen.jpg";
 import defaultYellow from "../assets/sleeves/cardBackYellow.jpg";
 import defaultPurple from "../assets/sleeves/cardBackPurple.jpg";
+import rainbow from "../assets/sleeves/RAINBOW.png";
 
 import cardBack from "../assets/cardBack.jpg";
 
 export const sleeves: Picture[] = [
+    {name: "Rainbow", imagePath: rainbow, artist: "StargazerVinny"},
     {name: "Default Black", imagePath: defaultBlack, artist: "Bandai"},
     {name: "Default White", imagePath: defaultWhite, artist: "Bandai"},
     {name: "Default Red", imagePath: defaultRed, artist: "Bandai"},

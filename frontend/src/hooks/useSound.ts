@@ -50,6 +50,10 @@ import bgm_13 from "../assets/music/project_drasil_bgm/Drasil-BGM-13.mp3";
 import bgm_14 from "../assets/music/project_drasil_bgm/Drasil-BGM-14.mp3";
 import bgm_15 from "../assets/music/project_drasil_bgm/Drasil-BGM-15.mp3";
 import bgm_16 from "../assets/music/project_drasil_bgm/Drasil-BGM-16.mp3";
+import bgm_17 from "../assets/music/project_drasil_bgm/Drasil-BGM-17.mp3";
+import bgm_18 from "../assets/music/project_drasil_bgm/Drasil-BGM-18.mp3";
+import bgm_19 from "../assets/music/project_drasil_bgm/Drasil-BGM-19.mp3";
+import bgm_20 from "../assets/music/project_drasil_bgm/Drasil-BGM-20.mp3";
 
 import { create } from "zustand";
 import {isTrue, shuffleArray} from "../utils/functions.ts";
@@ -99,7 +103,8 @@ export const sadgatomonPlaylist = [
 ]
 
 export const projectDrasilPlaylist = [
-    bgm_1, bgm_2, bgm_3, bgm_4, bgm_5, bgm_6, bgm_7, bgm_8, bgm_9, bgm_10, bgm_11, bgm_12, bgm_13, bgm_14, bgm_15, bgm_16
+    bgm_1, bgm_2, bgm_3, bgm_4, bgm_5, bgm_6, bgm_7, bgm_8, bgm_9, bgm_10, bgm_11, bgm_12, bgm_13, bgm_14, bgm_15,
+    bgm_16, bgm_17, bgm_18, bgm_19, bgm_20
 ]
 
 export const useSound = create<State>((set, get) => {
@@ -275,6 +280,10 @@ function getTitle(song: string) {
         case getFileName(bgm_14): return 'BGM 14';
         case getFileName(bgm_15): return 'BGM 15';
         case getFileName(bgm_16): return 'BGM 16';
+        case getFileName(bgm_17): return 'BGM 17';
+        case getFileName(bgm_18): return 'BGM 18';
+        case getFileName(bgm_19): return 'BGM 19';
+        case getFileName(bgm_20): return 'BGM 20';
         default: return '';
     }
 }
