@@ -8,7 +8,7 @@ export default function CustomDialogTitle({handleOnClose, variant}: { handleOnCl
         <DialogTitle sx={{ height: 0, position: "relative"}}>
             <AvatarSpan>{`Set ${variant === "Sleeve" ? variant : "deck's icon card"}:`}</AvatarSpan>
             {variant === "Sleeve" && <AvatarSpan2><Pen scale={0.285}/> Drak</AvatarSpan2>}
-            <StyledIconButton onClick={handleOnClose} sx={{ left: variant === "Sleeve" ? 685 : 720 }}>
+            <StyledIconButton onClick={handleOnClose} sx={{ right: 0 }}>
                 <CloseIcon fontSize={"large"} color={"primary"}/>
             </StyledIconButton>
         </DialogTitle>

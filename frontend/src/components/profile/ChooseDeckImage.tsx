@@ -7,11 +7,12 @@ export default function ChooseDeckImage() {
     const setCardImage = useStore((state) => state.setCardImage);
     const imageUrls = useStore((state) => state.getCardImagesInDeck());
     const rows = Math.ceil(imageUrls.length / 10);
+    const mobileRows = Math.ceil(imageUrls.length / 5);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     return (
-        <GridContainer rows={rows}>
+        <GridContainer rows={rows} mobileRows={mobileRows}>
             {imageUrls?.map((url, index) => {
                 return <SleeveButton key={url} alt={index.toString()} src={url}
                                      chosen={selectedSleeveOrImage === url}
@@ -25,7 +26,7 @@ export default function ChooseDeckImage() {
     );
 }
 
-const GridContainer = styled.div<{rows: number}>`
+const GridContainer = styled.div<{rows: number, mobileRows: number}>`
   width: fit-content;
   height: fit-content;
   display: grid;
@@ -56,8 +57,8 @@ const GridContainer = styled.div<{rows: number}>`
   }
 
   @media (max-width: 1050px) {
-    grid-template-columns: repeat(15, 40px);
-    grid-template-rows: repeat(3, 53px);
+    grid-template-columns: repeat(5, 50px);
+    grid-template-rows: repeat(${({mobileRows}) => mobileRows}, 65px);
     gap: 1px;
     padding: 2px;
     margin: 10px 2px 0 2px;
@@ -84,12 +85,11 @@ const SleeveButton = styled.img<{chosen: boolean}>`
     transform: translate(-4px, -6px);
   }
   @media (max-width: 1050px) {
-    width: 40px;
-    height: 53px;
+    width: 50px;
+    height: 65px;
     :hover {
-      width: 40px;
-      height: 53px;
-      opacity: 1;
+      width: 50px;
+      height: 65px;
       transform: translate(-1px, -1px);
     }
   }

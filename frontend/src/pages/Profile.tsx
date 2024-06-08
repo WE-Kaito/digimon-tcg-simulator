@@ -70,7 +70,7 @@ export default function Profile({user}: { user: string }) {
             <UserSettings/>
 
             <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
-                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
+                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)", overflow: "hidden" }}}>
                 <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
                 <ChooseCardSleeve/>
             </Dialog>

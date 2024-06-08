@@ -30,7 +30,7 @@ const GridContainer = styled.div`
   height: fit-content;
   display: grid;
   grid-template-columns: repeat(11, 63px);
-  grid-template-rows: repeat(6, 84px);
+  grid-template-rows: repeat(7, 84px);
   gap: 2px;
   position: relative;
   padding: 3px;
@@ -55,8 +55,8 @@ const GridContainer = styled.div`
   }
 
   @media (max-width: 1050px) {
-    grid-template-columns: repeat(15, 40px);
-    grid-template-rows: repeat(5, 53px);
+    grid-template-columns: repeat(7, 40px);
+    grid-template-rows: repeat(16, 53px);
     gap: 1px;
     padding: 2px;
     margin: 10px 2px 0 2px;
