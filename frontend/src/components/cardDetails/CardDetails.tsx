@@ -2,7 +2,6 @@ import styled from "@emotion/styled";
 import {useStore} from "../../hooks/useStore.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
 import {useEffect, useState, JSX} from "react";
-
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
 import DetailsHeader from "./DetailsHeader.tsx";
 import EffectCard, {EffectText} from "./EffectCard.tsx";
@@ -11,17 +10,10 @@ import {getDnaColor} from "../../utils/functions.ts";
 import {CardTypeGame, CardTypeWithId} from "../../utils/types.ts";
 import {useLocation} from "react-router-dom";
 import {useGame} from "../../hooks/useGame.ts";
+import {EffectVariant} from "./constants.ts";
 
 const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama",
                 "Satsuki Tamahime", "Eiji Nagasumi", "Marvin Jackson", "Xu Yulin", "Hacker Judge", "Kosuke Kisakata"];
-
-export enum EffectVariant {
-    MAIN = "main",
-    INHERITED = "inherited",
-    SECURITY = "security",
-    SPECIAL = "special",
-    INHERITED_FROM_DIGIVOLUTION_CARDS = "inherited from digivolution cards",
-}
 
 export default function CardDetails() {
 
@@ -115,10 +107,10 @@ export default function CardDetails() {
                             {highlightedMainEffect}
                         </EffectCard>}
 
-                        {inheritCardInfo[0]?.length && <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
-                            {[<Stack key={"inheritedcardtexts"} gap={1}>
+                        {inheritCardInfo[0]?.length > 0 && <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
+                            {[<Stack key={`${cardNumber}_inherited_from_material`} gap={1}>
                             {inheritCardInfo.map((text, index) => text &&
-                                <span key={index + "inheritedcardtext"}>{HighlightedKeyWords({ text })}</span>
+                                <span key={index + "inherited_from_material"}>{HighlightedKeyWords({ text })}</span>
                             )}
                             </Stack>]}
                         </EffectCard>}

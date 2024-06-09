@@ -16,7 +16,7 @@ import {
     calculateCardRotation,
     convertForLog, getAttributeImage, getCardTypeImage,
     getOpponentSfx,
-    handleImageError, tamersAsDigimon
+    handleImageError, isTrue, numbersWithModifiers
 } from "../utils/functions.ts";
 import {useGame} from "../hooks/useGame.ts";
 import {CSSProperties, useCallback, useEffect, useRef, useState} from "react";
@@ -26,9 +26,7 @@ import EndWindow from "../components/game/EndWindow.tsx";
 import Card, {CardAnimationContainer} from "../components/Card.tsx";
 import noiseBG from "../assets/noiseBG.png";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
-import DeckMoodle from "../components/game/DeckMoodle.tsx";
-import mySecurityAnimation from "../assets/lotties/mySecurity.json";
-import opponentSecurityAnimation from "../assets/lotties/opponentSecurity.json";
+import SendToDeckModalButtons from "../components/game/SendToDeckModalButtons.tsx";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import effectAnimation from "../assets/lotties/activate-effect-animation.json";
 import Lottie from "lottie-react";
@@ -36,23 +34,6 @@ import {Fade, Flip, Zoom} from "react-awesome-reveal";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import {notifyOpponentDisconnect, notifyRequestedRestart, notifySecurityView} from "../utils/toasts.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
-import {
-    playActivateEffectSfx,
-    playAttackSfx,
-    playDrawCardSfx,
-    playEffectAttackSfx,
-    playLoadMemorybarSfx, playModifyCardSfx,
-    playNextAttackPhaseSfx,
-    playNextPhaseSfx,
-    playRevealCardSfx,
-    playSecurityRevealSfx,
-    playShuffleDeckSfx,
-    playStartSfx,
-    playSuspendSfx,
-    playTargetCardSfx,
-    playTrashCardSfx,
-    playUnsuspendSfx
-} from "../utils/sound.ts";
 import GameChat from "../components/game/GameChat.tsx";
 import CardStack from "../components/game/CardStack.tsx";
 import {Item, ItemParams, Menu, Separator, useContextMenu} from "react-contexify";
@@ -73,7 +54,9 @@ import {
     VisibilityOff as VisibilityOffIcon,
     Wifi as ConnectingIcon,
     WifiOff as OfflineIcon,
-    Backspace as ClearIcon
+    Backspace as ClearIcon,
+    GavelRounded as RulingsIcon,
+    SportsEsportsRounded as ControlsIcon
 } from '@mui/icons-material';
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import UnsuspendAllButton from "../components/game/UnsuspendAllButton.tsx";
@@ -87,6 +70,9 @@ import cardBackSrc from "../assets/cardBack.jpg";
 import deckBackSrc from "../assets/deckBack.png";
 import eggBackSrc from "../assets/eggBack.jpg";
 import stackIconSrc from "../assets/stackIcon.png";
+import {useSound} from "../hooks/useSound.ts";
+import SoundBar from "../components/SoundBar.tsx";
+import SecurityStack from "../components/game/SecurityStack.tsx";
 
 export default function Game({user}: { user: string }) {
     const currentPort = window.location.port;
@@ -115,7 +101,7 @@ export default function Game({user}: { user: string }) {
     const contextCard = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
     const moveCard = useGame((state) => state.moveCard);
-    const cardToDeck = useGame((state) => state.cardToDeck);
+    const moveCardToStack = useGame((state) => state.moveCardToStack);
     const tiltCard = useGame((state) => state.tiltCard);
     const unsuspendAll = useGame((state) => state.unsuspendAll);
 
@@ -208,7 +194,6 @@ export default function Game({user}: { user: string }) {
     const opponentDeckField = useGame((state) => state.opponentDeckField);
     const opponentEggDeck = useGame((state) => state.opponentEggDeck);
     const opponentTrash = useGame((state) => state.opponentTrash);
-    const opponentSecurity = useGame((state) => state.opponentSecurity);
     const opponentReveal = useGame((state) => state.opponentReveal);
 
     const opponentDigi1 = useGame((state) => state.opponentDigi1);
@@ -227,6 +212,26 @@ export default function Game({user}: { user: string }) {
     const opponentDigi14 = useGame((state) => state.opponentDigi14);
     const opponentDigi15 = useGame((state) => state.opponentDigi15);
     const opponentBreedingArea = useGame((state) => state.opponentBreedingArea);
+
+    const playActivateEffectSfx = useSound((state) => state.playActivateEffectSfx);
+    const playAttackSfx = useSound((state) => state.playAttackSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playLoadMemorybarSfx = useSound((state) => state.playLoadMemorybarSfx);
+    const playEffectAttackSfx = useSound((state) => state.playEffectAttackSfx);
+    const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
+    const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
+    const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
+    const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
+    const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
+    const playStartSfx = useSound((state) => state.playStartSfx);
+    const playSuspendSfx = useSound((state) => state.playSuspendSfx);
+    const playTargetCardSfx = useSound((state) => state.playTargetCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
+    const playOpponentPlaceCardSfx = useSound((state) => state.playOpponentPlaceCardSfx);
+    const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
 
     const mySecondRowWarning = (!isMySecondRowVisible && (myDigi6.length + myDigi7.length + myDigi8.length + myDigi9.length + myDigi10.length) > 0) || (isMySecondRowVisible && (myDigi1.length + myDigi2.length + myDigi3.length + myDigi4.length + myDigi5.length) > 0);
     const opponentSecondRowWarning = (!isOpponentSecondRowVisible && (opponentDigi6.length + opponentDigi7.length + opponentDigi8.length + opponentDigi9.length + opponentDigi10.length) > 0) || (isOpponentSecondRowVisible && (opponentDigi1.length + opponentDigi2.length + opponentDigi3.length + opponentDigi4.length + opponentDigi5.length) > 0);
@@ -272,7 +277,7 @@ export default function Game({user}: { user: string }) {
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(user, chunk, gameId, sendLoaded)
+                distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx)
                 setSecurityContentMoodle(false);
                 return;
             }
@@ -318,13 +323,14 @@ export default function Game({user}: { user: string }) {
                 return;
             }
 
-            if (event.data.startsWith("[MOVE_CARD_TO_DECK]:")) {
-                const parts = event.data.substring("[MOVE_CARD_TO_DECK]:".length).split(":");
+            if (event.data.startsWith("[MOVE_CARD_TO_STACK]:")) {
+                const parts = event.data.substring("[MOVE_CARD_TO_STACK]:".length).split(":");
                 const topOrBottom = parts[0];
                 const cardId = parts[1];
                 const from = parts[2];
                 const to = parts[3];
-                cardToDeck(topOrBottom, cardId, from, to);
+                const sendFaceUp = isTrue(parts[4]);
+                moveCardToStack(topOrBottom, cardId, from, to, sendFaceUp);
                 return;
             }
 
@@ -494,7 +500,19 @@ export default function Game({user}: { user: string }) {
                     break;
                 }
                 default: {
-                    getOpponentSfx(event.data);
+                    getOpponentSfx(event.data, {
+                        playButtonClickSfx,
+                        playDrawCardSfx,
+                        playNextPhaseSfx,
+                        playOpponentPlaceCardSfx,
+                        playPassTurnSfx,
+                        playRevealCardSfx,
+                        playSecurityRevealSfx,
+                        playShuffleDeckSfx,
+                        playSuspendSfx,
+                        playTrashCardSfx,
+                        playUnsuspendSfx
+                    });
                 }
             }
         }
@@ -589,8 +607,8 @@ export default function Game({user}: { user: string }) {
         websocket.sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to + ":" + isEffect);
     }
 
-    function sendCardToDeck(topOrBottom: "Top" | "Bottom", cardId: string, location: string, to: string) {
-        websocket.sendMessage(`${gameId}:/moveCardToDeck:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}`);
+    function sendCardToStack(topOrBottom: "Top" | "Bottom", cardId: string, location: string, to: string, sendFaceUp = false) {
+        websocket.sendMessage(`${gameId}:/moveCardToStack:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}:${sendFaceUp}`);
     }
 
     function sendTiltCard(cardId: string, location: string) {
@@ -699,6 +717,7 @@ export default function Game({user}: { user: string }) {
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         interval = setInterval(() => {
             websocket.sendMessage(`${gameId}:/online:${opponentName}`);
             setIsOnline(navigator.onLine);
@@ -761,8 +780,8 @@ export default function Game({user}: { user: string }) {
             case "mySecurity":
                 playUnsuspendSfx();
                 sendSfx("playUnsuspendCardSfx");
-                cardToDeck("Top", cardId, "myDeckField", "mySecurity");
-                sendCardToDeck("Top", cardId, "myDeckField", "mySecurity");
+                moveCardToStack("Top", cardId, "myDeckField", "mySecurity");
+                sendCardToStack("Top", cardId, "myDeckField", "mySecurity");
                 sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
                 break;
             case "myHand":
@@ -858,7 +877,7 @@ export default function Game({user}: { user: string }) {
 
     function resetModifiers({props}: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
-        const modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [] };
+        const modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: contextCard?.color ?? []};
         setModifiers(props?.id, props?.location, modifiers);
         sendSetModifiers(props?.id, props?.location, modifiers);
         playModifyCardSfx();
@@ -867,6 +886,14 @@ export default function Game({user}: { user: string }) {
     function clearCardTarget() {
         const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
         return () => clearTimeout(timer);
+    }
+
+    function sendSecurityReveal(){
+        if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+        sendMoveCard(mySecurity[0].id, "mySecurity", "myReveal");
+        playSecurityRevealSfx();
+        sendSfx("playSecurityRevealSfx");
+        sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
     }
 
     const {
@@ -914,7 +941,7 @@ export default function Game({user}: { user: string }) {
         dropToOpponentDigi15,
         dropToOpponentSecurity
     } = useDropZone({
-        sendCardToDeck,
+        sendCardToStack,
         sendChatMessage,
         nextPhase,
         setArrowFrom,
@@ -937,18 +964,17 @@ export default function Game({user}: { user: string }) {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
-    const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
-    const effectInMyTrash = getCardLocationById(cardIdWithEffect) === "myTrash";
-    const effectInOpponentTrash = getCardLocationById(cardIdWithEffect) === "opponentTrash";
-    const targetInMyTrash = getCardLocationById(cardIdWithTarget) === "myTrash";
-    const targetInOpponentTrash = getCardLocationById(cardIdWithTarget) === "opponentTrash";
+    const effectInMyTrash = getCardLocationById(cardIdWithEffect ?? "") === "myTrash";
+    const effectInOpponentTrash = getCardLocationById(cardIdWithEffect ?? "") === "opponentTrash";
+    const targetInMyTrash = getCardLocationById(cardIdWithTarget ?? "") === "myTrash";
+    const targetInOpponentTrash = getCardLocationById(cardIdWithTarget ?? "") === "opponentTrash";
 
     const color1 = localStorage.getItem("color1") ?? "#214d44";
     const color2 = localStorage.getItem("color2") ?? "#0b3d65";
     const color3 = localStorage.getItem("color3") ?? "#522170";
 
-    const hasModifierMenu = contextCard?.cardType === "Digimon" || tamersAsDigimon.includes(String(contextCard?.cardNumber));
+    const hasModifierMenu = contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
     const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute"};
 
     return <>
@@ -1098,21 +1124,16 @@ export default function Game({user}: { user: string }) {
 
                     <InfoContainer>
                         <InfoSpan>
-                            <a href="https://www.youtube.com/watch?v=ghZYuIi5mu4&ab_channel=OfficialBandaiCardGamesChannel"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                <span style={{color: "dodgerblue"}}>🛈 </span>Tutorial
-                            </a>
-                            <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf" target="_blank"
-                               rel="noopener noreferrer">
-                                <span style={{color: "dodgerblue"}}>🛈 </span>Rulings
-                            </a>
-                            <a
-                                href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Features-&-Controls#game-%EF%B8%8F"
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                <span style={{color: "dodgerblue"}}>🛈 </span>Controls
-                            </a>
+                            <SoundBar/>
+                                <span style={{color: "dodgerblue", transform: "translate(3px, -2px)"}}>🛈 </span>
+                                <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
+                                   target="_blank" rel="noopener noreferrer" title={"Rulings"}>
+                                    <RulingsIcon/>
+                                </a>
+                                <a href="https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Features-&-Controls#game-%EF%B8%8F"
+                                    target="_blank" rel="noopener noreferrer" title={"Controls"}>
+                                    <ControlsIcon/>
+                                </a>
                         </InfoSpan>
 
                         <CardImage onClick={() => selectCard(null)}
@@ -1292,7 +1313,7 @@ export default function Game({user}: { user: string }) {
                                                         <CardAnimationContainer>
                                                             <Lottie animationData={targetAnimation} loop={true}/>
                                                         </CardAnimationContainer>}
-                                                    <OppenentHandCard alt="card"
+                                                    <FaceDownCard alt="card"
                                                                       src={getSleeve(opponentSleeve)}/>
                                                 </div>
                                             </HandListItem>)}
@@ -1317,11 +1338,9 @@ export default function Game({user}: { user: string }) {
                                 </EggDeckContainer>
 
                                 <SecurityStackContainer ref={dropToOpponentSecurity}>
-                                    <OpponentSecurityStack>
-                                        <SecuritySpan style={{cursor: "default"}} id="opponentSecurity">
-                                            {opponentSecurity.length}</SecuritySpan>
-                                        <SecurityStackLottie animationData={opponentSecurityAnimation} loop={true}/>
-                                    </OpponentSecurityStack>
+
+                                    <SecurityStack isOpponent />
+
                                     <OpponentSwitchRowButton1 disabled={showAttackArrow}
                                                               onClick={() => setIsOpponentSecondRowVisible(false)}
                                                               secondRowVisible={!isOpponentSecondRowVisible}/>
@@ -1360,8 +1379,8 @@ export default function Game({user}: { user: string }) {
 
                                 <EggDeckContainer ref={dropToEggDeck}>
                                     {eggDeckMoodle &&
-                                        <DeckMoodle sendCardToDeck={sendCardToDeck} to={"myEggDeck"}
-                                                    setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
+                                        <SendToDeckModalButtons sendCardToStack={sendCardToStack} to={"myEggDeck"}
+                                                                setMoodle={setEggDeckMoodle} sendChatMessage={sendChatMessage}/>}
                                     {myEggDeck.length !== 0 &&
                                         <EggDeck alt="egg-deck" src={eggBackSrc}
                                                  onClick={() => {
@@ -1381,24 +1400,12 @@ export default function Game({user}: { user: string }) {
 
                                 <SecurityStackContainer ref={dropToSecurity}>
 
+                                    <SecurityStack sendSecurityReveal={sendSecurityReveal} />
+
                                     {securityMoodle &&
-                                        <DeckMoodle sendCardToDeck={sendCardToDeck} to={"mySecurity"}
-                                                    setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
-                                    <SecurityStack>
-                                        <MySecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
-                                                        id="mySecurity"
-                                                        onClick={() => {
-                                                            if (opponentReveal.length === 0) moveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                                            sendMoveCard(mySecurity[0].id, "mySecurity", "myReveal");
-                                                            playSecurityRevealSfx();
-                                                            sendSfx("playSecurityRevealSfx");
-                                                            sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
-                                                        }}>
-                                            {mySecurity.length}
-                                        </MySecuritySpan>
-                                        <SecurityStackLottie animationData={mySecurityAnimation} loop={true}
-                                                             onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
-                                    </SecurityStack>
+                                        <SendToDeckModalButtons sendCardToStack={sendCardToStack} to={"mySecurity"}
+                                                                setMoodle={setSecurityMoodle} sendChatMessage={sendChatMessage}/>}
+
 
 
                                     <MySwitchRowButton1 disabled={showAttackArrow}
@@ -1500,7 +1507,6 @@ export default function Game({user}: { user: string }) {
                                         </div>
                                     }
                                     {gameHasStarted && <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
-                                        {/* eslint-disable-next-line no-irregular-whitespace */}
                                         <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>⇑ ⇑
                                             ⇑</DBZSpan></DeckBottomZone>}
 
@@ -1643,7 +1649,7 @@ export default function Game({user}: { user: string }) {
                                                               props: {index}
                                                           })}>
                                                 {isHandHidden
-                                                    ? <OppenentHandCard alt="card" src={getSleeve(mySleeve)}/>
+                                                    ? <FaceDownCard alt="card" src={getSleeve(mySleeve)}/>
                                                     : <Card card={card} location={"myHand"}/>}
                                             </HandListItem>)}
                                     </HandCards>
@@ -1815,7 +1821,7 @@ const InfoContainer = styled.div`
   width: 500px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 0.1fr 1fr 1fr;
+  grid-template-rows: 75px 380px 1fr;
   grid-template-areas: "info info info"
                         "img img img"  
                           "details details details";
@@ -2077,60 +2083,6 @@ const SecurityStackContainer = styled.div`
   align-items: center;
 `;
 
-const SecuritySpan = styled.span`
-  position: absolute;
-  z-index: 5;
-  font-family: Awsumsans, sans-serif;
-  font-style: normal;
-  font-size: 35px;
-  color: #cb6377;
-  text-shadow: #111921 1px 1px 1px;
-  left: 50%;
-  bottom: 50%;
-  user-select: none;
-  transform: translate(-49.5%, 50%);
-`;
-
-const MySecuritySpan = styled(SecuritySpan)`
-  cursor: pointer;
-  color: #5ba2cb;
-  transition: all 0.15s ease;
-  left: unset;
-  right: 50%;
-  bottom: unset;
-  top: 50%;
-  transform: translate(49.5%, -50%);
-
-  &:hover {
-    filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
-    font-size: 42px;
-    color: #f9f9f9;
-  }
-`;
-
-const SecurityStack = styled.div`
-  position: absolute;
-  width: 160px;
-  height: 160px;
-  right: 7px;
-  top: -32px;
-`;
-
-const OpponentSecurityStack = styled(SecurityStack)`
-  right: unset;
-  top: unset;
-  left: 7px;
-  bottom: -32px;
-`;
-
-const SecurityStackLottie = styled(Lottie)`
-  width: 160px;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-`;
-
 const TrashView = styled.div`
   background: rgba(2, 1, 1, 0.95);
   position: absolute;
@@ -2306,7 +2258,7 @@ const HandListItem = styled.li<{ cardCount: number, cardIndex: number }>`
   }
 `;
 
-const OppenentHandCard = styled.img`
+const FaceDownCard = styled.img`
   width: 69.5px;
   max-height: 150px;
   border-radius: 5px;
@@ -2322,7 +2274,7 @@ const OppenentHandCard = styled.img`
 
 export const CardImage = styled.img`
   grid-area: img;
-  height: 420px;
+  height: 365px;
   border-radius: 10px;
   filter: drop-shadow(0 0 3px #060e18);
   outline: #0c0c0c solid 1px;
@@ -2332,13 +2284,14 @@ export const CardImage = styled.img`
 
 const InfoSpan = styled.span`
   grid-area: info;
-  width: 100%;
   display: flex;
-  justify-content: space-evenly;
-  font-family: Cuisine, sans-serif;
+  justify-content: flex-end;
+  gap: 20px;
+  font-family: "League Spartan", sans-serif;
   font-size: 24px;
   opacity: 0.7;
-
+  padding-bottom: 40px;
+  padding-right: 20px;
   a {
     color: ghostwhite;
 
@@ -2570,7 +2523,7 @@ const MobileSSButton = styled.button`
   padding: 0;
 `;
 
-const StyledMenu = styled(Menu)`
+export const StyledMenu = styled(Menu)`
   border: 2px solid rgba(65, 135, 211, 0.72);
   
   .contexify_submenu {

@@ -11,19 +11,6 @@ import optionImage from '../assets/cardtype_icons/option.png';
 import tamerImage from '../assets/cardtype_icons/tamer.png';
 import eggImage from '../assets/cardtype_icons/egg.png';
 
-import {
-    playButtonClickSfx,
-    playDrawCardSfx,
-    playNextPhaseSfx,
-    playOpponentPlaceCardSfx,
-    playPassTurnSfx,
-    playRevealCardSfx,
-    playSecurityRevealSfx,
-    playShuffleDeckSfx,
-    playSuspendSfx,
-    playTrashCardSfx,
-    playUnsuspendSfx
-} from "./sound.ts";
 import axios from "axios";
 import {starterBeelzemon, starterDragonOfCourage, starterGallantmon, starterVortexWarriors} from "./starterDecks.ts";
 
@@ -76,7 +63,35 @@ export function topCardInfo(locationCards: CardTypeGame[]) {
     return effectInfo.join("\n");
 }
 
-export function getOpponentSfx(command: string) {
+type SfxFunctions = {
+    playButtonClickSfx: () => void;
+    playDrawCardSfx: () => void;
+    playNextPhaseSfx: () => void;
+    playOpponentPlaceCardSfx: () => void;
+    playPassTurnSfx: () => void;
+    playRevealCardSfx: () => void;
+    playSecurityRevealSfx: () => void;
+    playShuffleDeckSfx: () => void;
+    playSuspendSfx: () => void;
+    playTrashCardSfx: () => void;
+    playUnsuspendSfx: () => void;
+}
+
+export function getOpponentSfx(command: string, functions: SfxFunctions) {
+
+    const {playButtonClickSfx,
+            playDrawCardSfx,
+            playNextPhaseSfx,
+            playOpponentPlaceCardSfx,
+            playPassTurnSfx,
+            playRevealCardSfx,
+            playSecurityRevealSfx,
+            playShuffleDeckSfx,
+            playSuspendSfx,
+            playTrashCardSfx,
+            playUnsuspendSfx
+    } = functions;
+
     switch (command) {
         case ("[REVEAL_SFX]"): {
             playRevealCardSfx();
@@ -258,10 +273,10 @@ const deckImgBeelzemon = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Ca
 const deckImgVortexWarriors = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/P-038_P4-J.webp";
 
 export function addStarterDecks() {
-    setTimeout(() => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckImgDragonOfCourage, "Agumon"), 100);
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckImgGallantmon, "Guilmon"), 200);
-    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckImgBeelzemon,"Impmon"), 300);
-    setTimeout(() => saveStarterDeck("[STARTER] Vortex Warriors", starterVortexWarriors, deckImgVortexWarriors, "Pteromon"), 400);
+    setTimeout(() => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckImgDragonOfCourage, "Agumon"), 10);
+    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckImgGallantmon, "Guilmon"), 20);
+    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckImgBeelzemon,"Impmon"), 30);
+    setTimeout(() => saveStarterDeck("[STARTER] Vortex Warriors", starterVortexWarriors, deckImgVortexWarriors, "Pteromon"), 40);
 }
 
 export function getCardColor(color: string): [string, string] {
@@ -393,7 +408,7 @@ export function generateGradient(deckCards : CardType[]) {
         Yellow: 0,
     };
 
-    deckCards.forEach(card => card.color.forEach(color => { // @ts-ignore
+    deckCards.forEach(card => card.color.forEach(color => { // @ts-expect-error - colorCounts is defined above
         if (color in colorCounts) colorCounts[color]++;
     }));
 
@@ -409,7 +424,7 @@ export function generateGradient(deckCards : CardType[]) {
         .sort(([_, countA], [__, countB]) => countB - countA)
         .forEach(([color, count], index) => {
             const thisColorPercentage = (count / totalCards) * 100;
-            // @ts-ignore
+            // @ts-expect-error - colorMap is defined above
             const hexColor = colorMap[color];
 
             // for smooth gradients:
@@ -466,4 +481,22 @@ export function getNumericModifier(value: number, isSetting?: boolean) {
     return value < 0 ? value.toString() : `+${value}`;
 }
 
-export const tamersAsDigimon = ["BT12-092", "BT17-087", "BT13-095", "BT13-099"];
+export const numbersWithModifiers = ["BT12-092", "BT17-087", "BT13-095", "BT13-099", "EX2-007"];
+
+export function arraysEqualUnordered(arr1: string[], arr2: string[]) {
+    if (arr1.length !== arr2.length) return false;
+    const sortedArr1 = [...arr1].sort((a, b) => a.localeCompare(b));
+    const sortedArr2 = [...arr2].sort((a, b) => a.localeCompare(b));
+    return sortedArr1.every((value, index) => value === sortedArr2[index]);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function shuffleArray(array: any[]) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+export const isTrue = (value: string) : boolean  => value === "true";

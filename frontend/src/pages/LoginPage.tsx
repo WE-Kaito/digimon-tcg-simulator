@@ -4,7 +4,6 @@ import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
 import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
-import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 enum INPUT_TYPE {
     USERNAME = "username",
@@ -72,7 +71,7 @@ export default function LoginPage() {
     }
 
     return (
-        <MenuBackgroundWrapper>
+        <>
             <Header/>
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
@@ -126,7 +125,7 @@ export default function LoginPage() {
                 </StyledForm2>
             }
             {!registerPage && <PatchnotesAndDisclaimer/>}
-        </MenuBackgroundWrapper>
+        </>
     );
 }
 

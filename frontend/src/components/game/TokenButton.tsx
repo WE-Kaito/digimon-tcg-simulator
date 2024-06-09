@@ -2,12 +2,12 @@ import { useState } from 'react';
 import styled from "@emotion/styled";
 import hackmonButton from "../../assets/hackmon-chip.png";
 import { uid } from "uid";
-import { playPlaceCardSfx } from "../../utils/sound.ts";
 import { List, ListItem, ListItemButton, ListItemText, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
 import { useGame } from "../../hooks/useGame.ts";
 import { tokenCollection } from "../../utils/tokens.ts";
 import { CardType } from "../../utils/types.ts";
 import { styled as muiStyled } from "@mui/material/styles";
+import {useSound} from "../../hooks/useSound.ts";
 
 function TokenList({ handleCreateToken, onClose }: { handleCreateToken: (token: CardType) => void; onClose: () => void; }) {
     return (
@@ -26,6 +26,8 @@ function TokenList({ handleCreateToken, onClose }: { handleCreateToken: (token: 
 export default function TokenButton({ sendTokenMessage }: { sendTokenMessage: (tokenName: string, id: string) => void; }) {
     const [isOpen, setIsOpen] = useState(false);
     const createToken = useGame((state) => state.createToken);
+
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 
     function handleCreateToken(token: CardType) {
         const id = "TOKEN-" + uid();

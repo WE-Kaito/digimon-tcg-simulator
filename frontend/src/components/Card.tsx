@@ -3,8 +3,14 @@ import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
-import {getCardSize, getNumericModifier, tamersAsDigimon, topCardInfo} from "../utils/functions.ts";
-import {playPlaceCardSfx, playSuspendSfx, playUnsuspendSfx} from "../utils/sound.ts";
+import {
+    arraysEqualUnordered,
+    getCardColor,
+    getCardSize,
+    getNumericModifier,
+    numbersWithModifiers,
+    topCardInfo
+} from "../utils/functions.ts";
 import stackIcon from "../assets/stackIcon.png";
 import {useEffect, useState} from "react";
 import Lottie from "lottie-react";
@@ -13,6 +19,7 @@ import targetAnimation from "../assets/lotties/target-animation.json";
 import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
+import {useSound} from "../hooks/useSound.ts";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -62,6 +69,10 @@ export default function Card( props : CardProps ) {
     const setCardToSend = useGame((state) => state.setCardToSend);
     const getCardLocationById = useGame((state) => state.getCardLocationById);
 
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
+    const playSuspendSfx = useSound((state) => state.playSuspendSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+
     const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
 
@@ -70,7 +81,7 @@ export default function Card( props : CardProps ) {
 
     const [{isDragging}, drag] = useDrag(() => ({
         type: "card",
-        item: {id: card.id, location: location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name},
+        item: {id: card.id, location: location === "mySecurityTooltip" ? "mySecurity" : location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name},
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -168,15 +179,16 @@ export default function Card( props : CardProps ) {
         else if (inhAll) setInheritCardInfo(inhEff);
     }
 
-    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && ((card.cardType === "Digimon") || tamersAsDigimon.includes(card.cardNumber));
+    const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && ((card.cardType === "Digimon") || numbersWithModifiers.includes(card.cardNumber));
     const modifiers = isModifiersAllowed ? (card as CardTypeGame)?.modifiers : undefined;
 
     let finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
-    if (tamersAsDigimon.includes(card.cardNumber)) finalDp = modifiers?.plusDp ?? 0;
+    if (numbersWithModifiers.includes(card.cardNumber) && card.cardNumber !== "EX2-007") finalDp = modifiers?.plusDp ?? 0;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
+    const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
 
     return (
         <Wrapper isTilted={((card as CardTypeGame)?.isTilted) ?? false}>
@@ -194,6 +206,9 @@ export default function Card( props : CardProps ) {
                     </PlusSecAtkSpan>}
 
                     {hoverCard !== card && <>
+                        {showColors && <ColorStack>
+                            {modifiers?.colors.map((c) => <span key={`${c}_${card.id}_view`}>{getCardColor(c)[1]}</span>)}
+                        </ColorStack>}
                         <KeywordWrapper>
                             {modifiers?.keywords.map((keyword) =>
                                 <ModifierSpan longSpan={keyword.length >= 8} key={`${keyword}_${card.id}`}>
@@ -261,10 +276,10 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
   width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
-  max-width: ${({location}) => (location === "deck" ? "130px" : "unset")};
+  max-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : location === "deck" ? "130px" : "unset")};
   border-radius: 5px;
   transition: all 0.15s ease-out;
-  cursor: ${({location}) => (location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
+  cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
   opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
   filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
   animation: ${({
@@ -329,15 +344,15 @@ const StyledImage = styled.img<StyledImageProps>`
   }
 
   @media (min-width: 500px) {
-    min-width: 85px;
+    min-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "unset" : "85px")};
   }
 
   @media (min-width: 768px) {
-    width: ${(props) => ((props.location === "myTrash" || props.location === "opponentTrash") ? "105px" : "95px")};
+    width: ${({location}) => ((location === "myTrash" || location === "opponentTrash") ? "105px" : "95px")};
   }
 
   @media (min-width: 1000px) {
-    width: ${(props) => getCardSize(props.location)};
+    width: ${({location}) => getCardSize(location)};
   }
 
   @media (max-width: 700px) and (min-height: 800px) {
@@ -491,4 +506,15 @@ const KeywordWrapper = styled.div`
     max-height: 70px;
     flex-wrap: wrap-reverse;
     pointer-events: none;
+`;
+
+const ColorStack = styled.div`
+  font-size: 12px;
+  display: flex;
+  gap: 2px;
+  flex-direction: row;
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
 `;

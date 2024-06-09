@@ -35,7 +35,7 @@ export default function KeywordTooltip({children, keyword}: Props) {
     const rulingsUrl = `https://digimoncardgame.fandom.com/wiki/${getKeywordForLink(preparedKeyword)}#Rulings`;
 
     return (
-        <CustomTooltip  title={<TooltipContent explanation={getExplanation(preparedKeyword)} url={rulingsUrl}/>}>
+        <CustomTooltip title={<TooltipContent explanation={getExplanation(preparedKeyword)} url={rulingsUrl}/>}>
                 {children}
         </CustomTooltip>
     );

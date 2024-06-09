@@ -335,7 +335,7 @@ class Bot(ABC):
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card_name}】﹕{fr} ➟ {to}')
     
     async def move_card_to_deck(self, ws, to, card_id, card_index):
-        await ws.send(f'{self.game_name}:/moveCardToDeck:{self.opponent}:{to}:{card_id}:myDigi{card_index + 1}:myDeckField')
+        await ws.send(f'{self.game_name}:/moveCardToStack:{self.opponent}:{to}:{card_id}:myDigi{card_index + 1}:myDeckField')
 
     async def move_card(self, ws, fr, to, target_card_id=None, field_update=True):
         self.logger.debug(f'Moving card from {fr} to {to}.')
@@ -1005,7 +1005,7 @@ class Bot(ABC):
     async def put_card_to_bottom_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
         await self.send_message(ws, f"Put {card['uniqueCardNumber']}-{card['name']} to bottom of deck.")
-        await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Bottom:{card['id']}:my{card_location}:myDeckField")
+        await ws.send(f"{self.game_name}:/moveCardToStack:{self.opponent}:Bottom:{card['id']}:my{card_location}:myDeckField")
         await self.send_game_chat_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Bottom')
         self.game['player2DeckField'].append(card)
 
@@ -1016,7 +1016,7 @@ class Bot(ABC):
 
     async def put_card_on_top_of_deck(self, ws, card_location, card_index):
         card = self.game[f'player2{card_location}'].pop(card_index)
-        await ws.send(f"{self.game_name}:/moveCardToDeck:{self.opponent}:Top:{card['id']}:my{card_location}:myDeckField")
+        await ws.send(f"{self.game_name}:/moveCardToStack:{self.opponent}:Top:{card['id']}:my{card_location}:myDeckField")
         await self.send_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
         self.game['player2DeckField'].insert(0, card)
         self.logger.info(f"Put {card['uniqueCardNumber']} {card['name']} on top of deck.")

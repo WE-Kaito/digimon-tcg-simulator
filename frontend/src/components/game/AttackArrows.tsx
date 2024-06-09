@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-// @ts-ignore
+// @ts-expect-error cannot find module 'react-arrows', installing dev dependencies didn't help
 import Arrow, {DIRECTION, HEAD} from "react-arrows";
 
 type Props = {

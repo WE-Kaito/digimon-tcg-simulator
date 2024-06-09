@@ -1,7 +1,7 @@
 import {useGame} from "../../hooks/useGame.ts";
 import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
-import {playButtonClickSfx} from "../../utils/sound.ts";
+import {useSound} from "../../hooks/useSound.ts";
 
 type Props = {
     sendMemoryUpdate: (memory: number) => void;
@@ -13,6 +13,8 @@ export default function MemoryBar({sendMemoryUpdate, sendSfx, sendChatMessage}: 
 
     const myMemory = useGame(state => state.myMemory);
     const setMemory = useGame(state => state.setMemory);
+
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     function handleClick(memory: number) {
         const oldMemory = myMemory;

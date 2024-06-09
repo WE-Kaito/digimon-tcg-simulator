@@ -5,7 +5,7 @@ export default function PatchnotesAndDisclaimer() {
         <Wrapper >
             <Patchnotes href={"https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Patchnotes"}
                         target="_blank" rel="noopener noreferrer">
-                last patch: 10.5.2024
+                last patch: 9.6.2024
             </Patchnotes>
             <br/>
             <Disclaimer>

@@ -2,7 +2,6 @@ import {CardType, DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
 import {useStore} from "../../hooks/useStore.ts";
-import { playDrawCardSfx } from "../../utils/sound.ts";
 import {generateGradient, getCardTypeImage, handleImageError} from "../../utils/functions.ts";
 import {getSleeve} from "../../utils/sleeves.ts";
 import LevelDistribution from "./LevelDistribution.tsx";
@@ -11,6 +10,7 @@ import {Chip} from "@mui/material";
 import { grey, teal } from '@mui/material/colors';
 import {generalToken} from "../../utils/tokens.ts";
 import hackmonImg from "../../assets/Hackmon.webp";
+import {useSound} from "../../hooks/useSound.ts";
 
 const tokenImageUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/tokenCard.jpg";
 
@@ -30,10 +30,13 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const setDeckIdToSetSleeveOrImage = useStore((state) => state.setDeckIdToSetSleeveOrImage);
     const setDeckById = useStore((state) => state.setDeckById);
 
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+
     const navigate = useNavigate();
     const navigateToDeck = () => {
         playDrawCardSfx();
-        navigate(`/update-deck/${deck.id}`);
+        navigate(`/update-deck`);
+        setDeckById(deck.id);
     }
 
     function onSleeveClick() {

@@ -1,15 +1,24 @@
-import {PropsWithChildren} from "react";
+import {PropsWithChildren, useEffect, useMemo, useState} from "react";
 import styled from "@emotion/styled";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "./ParticlesBackground.tsx";
+import {useLocation} from "react-router-dom";
 
-export default function MenuBackgroundWrapper({children, alignedTop}: PropsWithChildren<{ alignedTop?: boolean }>) {
+export default function MenuBackgroundWrapper({children}: PropsWithChildren) {
 
-    const conditionalStyle = alignedTop ? { style: { justifyContent: "flex-start", paddingTop: 20 } } : {};
+    const { pathname } = useLocation() ;
+
+    const [isGamePage, setIsGamePage] = useState(false);
+
+    const options = useMemo(() => (blueTriangles),[]);
+
+    useEffect(() => setIsGamePage(pathname.includes("/game")), [pathname]);
+
+    if (isGamePage) return <>{children}</>;
 
     return (
-        <StyledDiv {...conditionalStyle}>
-            <ParticlesBackground options={blueTriangles}/>
+        <StyledDiv>
+            <ParticlesBackground options={options} />
             {children}
         </StyledDiv>
     );
@@ -24,7 +33,6 @@ const StyledDiv = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transform: translate(0px, 0px); // has to be here for the particles to work ???
   overflow-x: clip;
   container-type: inline-size;
   container-name: wrapper;
@@ -34,4 +42,9 @@ const StyledDiv = styled.div`
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  
+  .profile {
+    padding-top: 20px;
+    justify-content: flex-start;
+  }
 `;
