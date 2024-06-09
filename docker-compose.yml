@@ -1,34 +1,32 @@
 version: '3.8'
 
 services:
-  mongo:
-    image: mongo
-    container_name: mongo
-    hostname: mongo
-    ports:
-      - "27017:27017"
-    network_mode: "host"
+  # mongo:
+  #   image: mongo
+  #   container_name: mongo
+  #   hostname: mongo
+  #   ports:
+  #     - "27017:27017"
+  #   network_mode: "host"
 
   springboot-app:
     build:
       dockerfile: Dockerfile
-    volumes:
-      - ./backend/target/:/app  
     working_dir: /app
     command: java -DServer.port=8080 -Dspring.data.mongodb.uri=mongodb://localhost:27017 -jar digimon-tcg-sim.jar
     ports:
       - "8080:8080"
     environment:
-      - MONGO_DB_URI=mongodb://mongo:27017
-    depends_on:
-      - mongo
+      - MONGO_DB_URI=mongodb://localhost:27017
+    # depends_on:
+    #   - mongo
     restart: on-failure
     network_mode: "host"
     
   npm-app:
     build:
       context: ./frontend
-      dockerfile: Dockerfile-npm
+      dockerfile: Dockerfile
     volumes:
       - ./frontend:/app
     working_dir: /app

@@ -11,6 +11,10 @@ The position X is identified in the following way on the field:
 
 - **security check**: Perform a security check.
 
+- **unsuspend X**: Suspend the card at the X position.
+
+- **suspend X**: Suspend the card at the X position.
+
 - **delete X**: Delete the card at the X position.
 
 - **return bottom deck X**: Return the card at the X position at the bottom of the opponent deck.
@@ -41,6 +45,8 @@ The position X is identified in the following way on the field:
 
 - **trash reveal X**: Trash card from the revealed cards at position X, starting from left.
 
+- **play trash X**: Play card from the trash at position X, starting from left.
+
 - **stun X**: Make the digimon/tamer at position X unable to attack or block for the next turn.
 
 - **cant attack X**: Make the digimon/tamer at position X unable to attack for the next turn.
@@ -52,3 +58,5 @@ The position X is identified in the following way on the field:
 - **cant suspend X**: Make the digimon/tamer at position X unable suspend.
 
 - **de-digivolve X Y**: De-Digivolve Y the Digimon at position X.
+
+- **collision X**: Force the bot to block the digimon X on your side (starting from left) with at least one digimon on its side.

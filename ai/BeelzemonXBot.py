@@ -16,7 +16,8 @@ class BeelzemonXBot(Bot):
         super().__init__(username)
         self.card_factory = CardFactory(self)
         self.turn_counter = 0
-        self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
+        self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
+        self.blockers_priority_list = ['BT10-081', 'ST14-07', 'BT2-068', 'BT12-085', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'EX2-044', 'EX2-039', 'ST14-08', 'P-077']
         self.gained_baalmon_effect = set()
 
     async def play_card(self, ws, card_location, card_index, cost, back=False):
@@ -75,6 +76,30 @@ class BeelzemonXBot(Bot):
         await super().animate_effect(ws)
         if len(self.bot.game['player2Trash']) >= 10:
             await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
+
+    # TODO: Take into account attacker when deiciding blocker
+    async def collision_strategy(self, ws, attacker_id):
+        potential_blockers = [(c[-1]['uniqueCardNumber'], c) for c in self.game['player2Digi'] if len(c) > 0 and c[-1]['cardType'] == 'Digimon' and not c[-1]['isTilted']]
+        potential_blockers = [c for c in potential_blockers if c[1][-1]['id'] not in self.cant_suspend_until_end_of_turn and c[1][-1]['id'] not in self.cant_block_until_end_of_opponent_turn]
+        potential_blockers.sort(key=lambda x:self.blockers_priority_list.index(x[0]))
+        blocker_index = -1
+        self.logger.debug(potential_blockers)
+        for digimon in [c[1] for c in potential_blockers]:
+            if digimon[-1]['uniqueCardNumber'] == 'BT10-081' or (digimon[-1]['uniqueCardNumber'] == 'ST14-07' and 'ST14-07' in self.gained_baalmon_effect):
+                blocker_index, _ = self.find_card_index_by_id_in_battle_area(digimon[-1]['id'])
+                if len(self.game['player2Trash']) >= 10 and (self.card_in_trash('ST14-08', 'Beelzemon') or self.card_in_trash('EX2-044', 'Beelzemon')):
+                    break
+                else:
+                    continue
+            elif digimon[-1]['uniqueCardNumber'] == 'BT2-068':
+                blocker_index, _ = self.find_card_index_by_id_in_battle_area(digimon[-1]['id'])
+                if len(self.game['player2DeckField']) > 3:
+                    break
+                else:
+                    continue
+            blocker_index, _ = self.find_card_index_by_id_in_battle_area(digimon[-1]['id'])
+            break
+        await self.declare_blocker(ws, blocker_index)
 
     def mulligan_strategy(self):
         for card in self.game['player2Hand']:
@@ -300,18 +325,18 @@ class BeelzemonXBot(Bot):
         can_attack_digimons_index = self.can_attack_digimons()
         if len(can_attack_digimons_index) >= 2:
             for digimon_index in can_attack_digimons_index:
-                self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
-                if digimon_index < len(self.game['player2Digi'][digimon_index]):
+                self.logger.info(f"Trying to attack with {self.game['player2Digi'][digimon_index]}")
+                if digimon_index < len(self.game['player2Digi']):
                     await self.suspend_card(ws, digimon_index)
                     await self.when_attacking_effects_strategy(ws, digimon_index)
                     await self.attack_with_digimon(ws, digimon_index)
-            return True
+                    return True
         if self.no_digimon_in_battle_area():
             self.logger.info('Cannot perform attack: No digimon to attack with.')
             return False
         if len(self.game['player1Security']) == 0:
             self.logger.info('No cards left in opponent\'s security, attacking with any digimon.')
-            digimon_index = await self.find_can_attack_any_digimon()
+            digimon_index = await self.find_can_attack_any_digimon(ws)
         if digimon_index < 0:
             self.logger.info('Checking for level 6 digimons to attack with...')
             digimon_index = self.find_can_attack_digimon_of_level(6)
@@ -321,7 +346,7 @@ class BeelzemonXBot(Bot):
         if digimon_index < 0:
             self.logger.info('Not found. Won\'t attack...')
             return False
-        self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index]}")
+        self.logger.info(f"Attacking with {self.game['player2Digi'][digimon_index][-1]['name']}")
         await self.suspend_card(ws, digimon_index)
         await self.when_attacking_effects_strategy(ws, digimon_index)
         await self.attack_with_digimon(ws, digimon_index)
@@ -383,8 +408,6 @@ class BeelzemonXBot(Bot):
             card_in_trash_index = self.card_in_trash('BT12-085', 'Beelzemon (X Antibody)')
             if card_in_trash_index >= 0:
                 self.return_card_from_trash_to_hand(ws, card_in_trash_index)
-        else:
-            await self.send_message(ws, 'Won\'t trash any option card from my hand.')
 
     async def bt10_081_baalmon_attacking_strategy(self, ws):
         trashed_cards = []
@@ -482,9 +505,10 @@ class BeelzemonXBot(Bot):
         for i in range(len(self.game['player1Digi'])):
             if len(self.game['player1Digi'][i]) > 0:
                 digimon = self.game['player1Digi'][i][-1]
-                opponent_digimons.append((digimon['level'], i, digimon['name']))
+                if digimon['level'] is not None:
+                    opponent_digimons.append((digimon['level'], i, digimon['name']))
         for opponent_digimon in sorted(opponent_digimons, reverse=True):
-            if max_level_can_delete <= opponent_digimon[0]:
+            if max_level_can_delete >= opponent_digimon[0]:
                 await self.delete_card_from_opponent_battle_area(ws, opponent_digimon[1])
                 return True
         return False
@@ -545,7 +569,7 @@ class BeelzemonXBot(Bot):
             await self.put_cards_to_bottom_of_deck(ws, 'Reveal')
             return
         if len(candidates) == 0:
-            card_index = digimon[1]
+            card_index = digimon[0]
         else:
             card_index = min(candidates)[1]
         card_id = self.game['player2Reveal'][card_index]['id']

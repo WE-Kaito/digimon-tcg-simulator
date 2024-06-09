@@ -81,4 +81,3 @@ jobs:
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: ai
-

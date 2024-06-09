@@ -91,7 +91,7 @@ class Bot(ABC):
         
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(config('LOGLEVEL'))
-        fmt = '%(asctime)s %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
+        fmt = '%(asctime)s ' + self.username +  ' %(filename)-1s %(lineno)-8d %(levelname)-8s: %(message)s'
         fmt_date = '%Y-%m-%dT%T%Z'
         formatter = logging.Formatter(fmt, fmt_date)
         handler = logging.StreamHandler()
@@ -192,12 +192,19 @@ class Bot(ABC):
             lobby_response = self.s.get(f'{self.url_prefix}://{self.host}/lobby', auth=(self.username, self.password), verify=config('SSL_VERIFY', cast=bool))
             if lobby_response.status_code == 200:
                 self.logger.info('Accessed lobby, saying Hi')
-                asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
+                # Removed by now, can set cooldown later
+                # asyncio.run(self.enter_lobby_message(f'Hi everyone! Let\'s play together!'))
                 self.opponent = asyncio.run(self.wait_in_lobby())
                 self.logger.info('Opponent found, starting game.')
-                asyncio.run(self.play())
+                try:
+                    asyncio.run(self.play())
+                except RuntimeError as e:
+                    # TODO: Better error handling
+                    # asyncio.run(self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.'))
+                    raise e
             else:
                 self.logger.error('Error when accessing/waiting in lobby')
+                self.logger.error(lobby_response.text)
     
     async def send_message(self, ws, message):
         self.logger.info(message)
@@ -440,11 +447,27 @@ class Bot(ABC):
         update['playerEggDeck'] = self.game['player2EggDeck']
         update['playerSecurity'] = self.game['player2Security']
         update['playerTrash'] = self.game['player2Trash']
+        update['playerPhase'] = 'Breeding'
+        update['playerMemory'] = 0
+        update['isPlayerTurn'] = not self.my_turn
         n = config('WS_CHUNK_SIZE', cast=int)
         g = json.dumps(update)
         chunks = [g[i:i+n] for i in range(0, len(g), n)]
         for chunk in chunks:
             await ws.send(f'{self.game_name}:/updateGame:{chunk}')
+            message = ""
+            wait_for = 0
+            while not message.startswith('[LOADED]'):
+                message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
+                self.logger.debug(f'Received: {message}')
+                if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                    raise RuntimeError('Error while communicating updated game to player.')
+                wait_for += 1
+    
+    async def update_opponent_game(self, ws, updated_game):
+        self.game['player1Hand'] = updated_game['playerHand']
+        self.game['player1DeckField'] = updated_game['playerDeckField']
+        self.game['player1Security'] = updated_game['playerSecurity']
 
     async def mulligan(self, ws):
         self.logger.info('I mulligan.')
@@ -452,7 +475,7 @@ class Bot(ABC):
         self.game['player2DeckField'].extend([self.game['player2Hand'].pop(0) for i in range(0,5)])
         random.shuffle(self.game['player2DeckField'])
         self.game['player2Hand']=[self.game['player2DeckField'].pop(0) for i in range(0,5)]
-        await self.update_game(ws)
+        await self.update_game(ws)        
 
     async def hatch(self, ws):
         self.logger.info('Hatch from breeding area.')
@@ -584,11 +607,23 @@ class Bot(ABC):
         card = self.game['player2Digi'][digimon_index][-1]
         card_index, _ = self.find_card_index_by_id_in_battle_area(card['id'])
         self.logger.info(f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.send_message(ws, f"Attacking with {card['uniqueCardNumber']}-{card['name']}")
         await self.suspend_card(ws, card_index)
         await ws.send(f"{self.game_name}:/attack:{self.opponent}:myDigi{card_index+1}:opponentSecurity:true")
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
         await self.waiter.wait_for_opponent_counter_blocking(ws)
-   
+    
+    async def declare_blocker(self, ws, digimon_index):
+        if digimon_index == -1:
+            await self.send_message(ws, f"No Digimon to block with.")
+            return
+        card = self.game['player2Digi'][digimon_index][-1]
+        card_index, _ = self.find_card_index_by_id_in_battle_area(card['id'])
+        self.logger.info(f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.send_message(ws, f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
+        await self.suspend_card(ws, card_index)
+        await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
+
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
         for i in range(len(self.game['player2Digi'])):
@@ -705,7 +740,8 @@ class Bot(ABC):
             self.cant_block_until_end_of_turn.add(digivolution_card['id'])
         if digimon['id'] in self.cant_block_until_end_of_opponent_turn:
             self.cant_block_until_end_of_opponent_turn.add(digivolution_card['id'])
-        await self.decrease_memory_by(ws, cost)
+        if cost > 0:
+            await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
         time.sleep(2)
 
@@ -716,7 +752,8 @@ class Bot(ABC):
         await self.send_message(ws, f"I play {card['uniqueCardNumber']}-{card['name']} with cost {cost}")
         self.game['player2Digi'][i].append(card)
         self.placed_this_turn.add(card['id'])
-        await self.decrease_memory_by(ws, cost)
+        if cost > 0:
+            await self.decrease_memory_by(ws, cost)
         return card
 
     async def trash_card_from_hand(self, ws, card_index):
@@ -894,7 +931,7 @@ class Bot(ABC):
     
     async def delete_card_from_opponent_battle_area(self, ws, card_index):
         card_name = self.game['player1Digi'][card_index][-1]['name']
-        await self.send_message(ws, f'I\'d like to delete the {card_name} in position {card_index}')
+        await self.send_message(ws, f'I\'d like to delete the {card_name} in position {card_index + 1}')
         await self.send_message(ws, 'Resolve effects and type Ok to continue.')
         await self.waiter.wait_for_actions(ws)
 
@@ -939,9 +976,10 @@ class Bot(ABC):
     async def reveal_card_from_top_of_deck(self, ws, n_cards):
         self.logger.info(f'Revealing top {n_cards} from deck.')
         for i in range(n_cards):
-            await self.move_card(ws, 'myDeckField0', 'myReveal')
-            self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
-            time.sleep(0.2)
+            if len(self.game['player2DeckField']) > 0:
+                await self.move_card(ws, 'myDeckField0', 'myReveal')
+                self.game['player2Reveal'].append(self.game['player2DeckField'].pop(0))
+                time.sleep(0.2)
     
     async def add_card_from_reveal_to_hand(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_reveal(card_id)
@@ -1000,16 +1038,18 @@ class Bot(ABC):
         self.logger.info(f'Increase memory by {value}')
         old_memory = self.game['memory']
         self.game['memory'] += int(value)
+        if self.game['memory'] > 10:
+            self.game['memory'] = 10
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{old_memory}±{self.game['memory']}")
-    
+
     async def decrease_memory_by(self, ws, value):
         self.logger.info(f'Decrease memory by {value}')
         old_memory = self.game['memory']
         self.game['memory'] -= int(value)
         await ws.send(f"{self.game_name}:/updateMemory:{self.opponent}:{self.game['memory']}")
         await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【MEMORY】﹕{old_memory}±{self.game['memory']}")
-    
+
     async def start_turn(self):
         self.placed_this_turn.clear()
         self.cant_unsuspend_until_end_of_opponent_turn.clear()
@@ -1018,7 +1058,7 @@ class Bot(ABC):
         self.cant_block_until_end_of_opponent_turn.clear()
         self.triggered_already_this_turn.clear()
         self.gained_baalmon_effect.clear()
-    
+
     async def end_turn(self):
         self.placed_this_turn.clear()
         self.cant_unsuspend_until_end_of_turn.clear()
@@ -1027,7 +1067,7 @@ class Bot(ABC):
         self.cant_block_until_end_of_turn.clear()
         self.triggered_already_this_turn.clear()
         await self.waiter.reset_timestamp()
-    
+
     async def loaded_ping(self, ws):
         await ws.send(f'{self.game_name}:/loaded:{self.opponent}')
 
@@ -1039,72 +1079,121 @@ class Bot(ABC):
     async def play(self):
         starting_game = ''
         async with websockets.connect(self.game_ws, timeout=5, extra_headers=[('Cookie', self.headers['Cookie'])]) as ws:
-            opponent_ready = False
-            done_mulligan = False
-            await ws.send(f'/joinGame:{self.game_name}')
-            message = await ws.recv()
-            self.logger.debug(f'Received: {message}')
-            while not message.startswith('[PLAYERS_READY]'):
-                message = await ws.recv()
+            try:
+                opponent_ready = False
+                done_mulligan = False
+                await ws.send(f'/joinGame:{self.game_name}')
+                message = ""
                 self.logger.debug(f'Received: {message}')
-            # await ws.send(f'/startGame:{self.game_name}')
-            while not message.startswith('[START_GAME]'):
-                message = await ws.recv()
-                self.logger.debug(f'Received: {message}')
-            # await ws.send(f'/getStartingPlayers:{self.game_name}')
-            while not message.startswith('[STARTING_PLAYER]'):
-                message = await ws.recv()
-                self.logger.debug(f'Received: {message}')
-            starting_player = message.removeprefix('[STARTING_PLAYER]:')
-            if starting_player == self.username:
-                self.first_turn = True
-                self.my_turn = True
-            while not message.startswith('[DISTRIBUTE_CARDS]:'):
-                message = await ws.recv()
-                self.logger.debug(f'Received: {message}') 
-            while True:
-                if message.startswith('[DISTRIBUTE_CARDS]:'):
-                    starting_game += message.removeprefix('[DISTRIBUTE_CARDS]:')
-                else:
-                    if starting_game != '':
-                        self.initialize_game(json.loads(starting_game))
-                        await self.loaded_ping(ws)
-                        if not done_mulligan:
-                            # if self.mulligan_strategy():
-                            #     await self.mulligan(ws)
-                            #     await self.send_game_chat_message(ws, 'I mulligan my hand')
-                            # else:
-                            await self.send_game_chat_message(ws, 'I keep my hand')
-                            done_mulligan = True
-                        ### TODO: Improve game initialization
-                        starting_game = ''
-                    break
-                message = await ws.recv()
-            while not message.startswith('[LOADED]'):
-                message = await ws.recv()
-                self.logger.debug(f'Received: {message}')
-            opponent_ready=True
-            await self.waiter.reset_timestamp()
-            while not message.startswith('[PLAYER_READY]'):
-                if message.startswith(f'[OPPONENT_ONLINE]') or message.startswith('[OPPONENT_RECONNECTED]'):
-                    await self.waiter.reset_timestamp()
-                if not await self.waiter.check_timestamp():
-                    return False
-                message = await ws.recv()
-                self.logger.debug(f'Received: {message}')
-            await self.send_player_ready(ws)
-            while True:
-                message = await ws.recv()
-                self.logger.debug(f'Received: {message}')
-                if message.startswith('[UPDATE_MEMORY]:'):
-                    self.game['memory'] = int(message[-1])
-                if message.startswith('[PASS_TURN_SFX]'):
+
+                # Wait for player to be ready, return to lobby if timeout
+                wait_for = 0
+                while not message.startswith('[PLAYERS_READY]'):
+                    message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
+                    self.logger.debug(f'Received: {message}')
+                    if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                        return False
+                    wait_for += 1
+                # await ws.send(f'/startGame:{self.game_name}')
+                wait_for = 0
+                while not message.startswith('[START_GAME]'):
+                    message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
+                    self.logger.debug(f'Received: {message}')
+                    if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                        return False
+                    wait_for += 1
+
+                # Get player name information
+                wait_for = 0
+                while not message.startswith('[STARTING_PLAYER]'):
+                    message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
+                    self.logger.debug(f'Received: {message}')
+                    if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                        return False
+                    wait_for += 1
+                starting_player = message.removeprefix('[STARTING_PLAYER]:')
+                if starting_player == self.username:
+                    self.first_turn = True
                     self.my_turn = True
-                if self.my_turn and opponent_ready:
-                    await self.turn(ws)
-                if not await self.waiter.check_for_action(ws, message):
-                    return False
+
+                # Wait for cards to be distributed
+                wait_for = 0
+                while not message.startswith('[DISTRIBUTE_CARDS]:'):
+                    message = await asyncio.wait_for(ws.recv(), timeout=config('TIMEOUT_INTERVAL', cast=int))
+                    self.logger.debug(f'Received: {message}')
+                    if wait_for >= config('TIMEOUT_INTERVAL', cast=int):
+                        return False
+                    wait_for += 1
+                while True:
+                    if message.startswith('[DISTRIBUTE_CARDS]:'):
+                        starting_game += message.removeprefix('[DISTRIBUTE_CARDS]:')
+                    else:
+                        if starting_game != '':
+                            self.initialize_game(json.loads(starting_game))
+                        break
+                    message = await ws.recv()
+                await self.loaded_ping(ws)
+                while not message.startswith('[LOADED]'):
+                    message = await ws.recv()
+                    self.logger.debug(f'Received: {message}')                
+
+                # Wait for player to be ready
+                starting_game = ''
+                opponent_ready = True
+                opponent_mulligan = False
+                await self.waiter.reset_timestamp()
+                while not message.startswith('[PLAYER_READY]'):
+                    if message.startswith(f'[OPPONENT_ONLINE]') or message.startswith('[OPPONENT_RECONNECTED]'):
+                        await self.waiter.reset_timestamp()
+                    if not await self.waiter.check_timestamp():
+                        return False
+                    message = await ws.recv()
+                    if message.endswith('【MULLIGAN】'):
+                        opponent_mulligan = True
+                    self.logger.debug(f'Received: {message}')
+                
+                # Check for opponent mulligan
+                if opponent_mulligan:
+                    updated_game = ""
+                    message = await ws.recv()
+                    while message.startswith('[UPDATE_OPPONENT]') or message.startswith('[HEARTBEAT]'):
+                        updated_game += message.replace('[UPDATE_OPPONENT]:', '')
+                        await self.loaded_ping(ws)
+                        message = await ws.recv()
+                        self.logger.debug(f'Received: {message}')
+                    await self.update_opponent_game(ws, json.loads(updated_game))
+                await self.send_player_ready(ws)
+                
+                # Mulligan if you need
+                if self.mulligan_strategy():
+                    await self.mulligan(ws)
+                    await self.play_shuffle_deck_sfx(ws)
+                    await self.send_game_chat_message(ws, 'I mulligan my hand')
+                else:
+                    await self.send_game_chat_message(ws, 'I keep my hand')
+
+                # Begin the game loop
+                while True:
+                    message = await ws.recv()
+                    self.logger.debug(f'Received: {message}')
+                    if message.startswith('[UPDATE_MEMORY]:'):
+                        self.game['memory'] = int(message.replace('[UPDATE_MEMORY]:', ''))
+                    if message.startswith('[PASS_TURN_SFX]'):
+                        self.my_turn = True
+                    if self.my_turn and opponent_ready:
+                        await self.turn(ws)
+                    if not await self.waiter.check_for_action(ws, message):
+                        return False
+                        
+            except RuntimeError as e:
+                await self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.')
+                raise e
 
     @abstractmethod
     def mulligan_strategy(self):
         pass
+
+    @abstractmethod
+    def collision_strategy(self):
+        pass
+

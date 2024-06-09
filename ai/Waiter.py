@@ -11,6 +11,7 @@ class Waiter:
         self.bot = bot
         self.timestamp = None
         self.TIMEOUT_INTERVAL = config('TIMEOUT_INTERVAL', cast=int)
+        self.ignore_next_move_action = False # Helper for avoiding process_move_action to trigger when cards has been already moved to the bottom of the stack
 
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(config('LOGLEVEL'))
@@ -58,6 +59,8 @@ class Waiter:
         source = record[2].replace('opponent', '')
         source_location = self.get_opponent_location(source)
         destination = record[3].replace('opponent', '')
+        if destination.startswith('Digi'):
+            self.ignore_next_move_action = True
         destination_location = self.get_opponent_location(destination)
         source_card_index = -1
         for i in range(len(source_location)):
@@ -87,6 +90,14 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False
 
+    async def filter_attacker_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[1].isdigit():
+            card_index = int(message[1])
+            if card_index >= DIGI_MIN_INDEX and card_index <= DIGI_MAX_INDEX and len(self.bot.game['player1Digi'][card_index-1]) > 0:
+                return self.bot.game['player1Digi'][card_index-1][-1]['id']
+        await self.send_invalid_command_message(ws)
+        return False
 
     async def filter_security_check_action(self, ws, message):
         if len(self.bot.game['player2Security']) == 0:
@@ -116,6 +127,16 @@ class Waiter:
             card_index = int(message[1])
             if card_index >= 1 and card_index <= len(self.bot.game['player2Reveal']):
                 return self.bot.game['player2Reveal'][card_index-1]['id']
+        await self.send_invalid_command_message(ws)
+        return False
+    
+    async def filter_target_trash_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[1].isdigit():
+            card_index = int(message[1])
+            trash_size = len(self.bot.game['player2Trash'])
+            if card_index >= 1 and card_index <= trash_size:
+                return self.bot.game['player2Trash'][trash_size-card_index]['id']
         await self.send_invalid_command_message(ws)
         return False
 
@@ -156,13 +177,27 @@ class Waiter:
         if not await self.check_timestamp():
             return False
         move_message_prefix = '[MOVE_CARD]:'
-        if message.startswith(move_message_prefix):
+        if message.startswith(move_message_prefix) and not self.ignore_next_move_action:
             self.process_move_action(message.replace(move_message_prefix, '', 1))
+        elif self.ignore_next_move_action:
+            self.ignore_next_move_action = False
         move_message_prefix = '[MOVE_CARD_TO_DECK]:'
         if message.startswith(move_message_prefix):
             self.process_move_to_deck_action(message.replace(move_message_prefix, '', 1))
         chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
+        prefix = 'suspend'
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message)
+            if card_id:
+                card_index, _  = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                await self.bot.suspend_card(ws, card_index)
+        prefix = 'unsuspend'
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message)
+            if card_id:
+                card_index, _  = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                await self.bot.unsuspend_card(ws, card_index)
         prefix = 'delete'
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message)
@@ -244,9 +279,20 @@ class Waiter:
                 card_index = self.bot.find_card_index_by_id_in_reveal(card_id)
                 card = self.bot.game['player2Reveal'][card_index]
                 back = False
-                if card['cardType'] == 'Option' or card['cardType'] == 'Tamer':
+                if card['cardType'] == 'Option' and 'Delay' in card['mainEffect'] or card['cardType'] == 'Tamer':
                     back = True
                 await self.bot.play_card(ws, 'Reveal', card_index, 0, back)
+        prefix = 'play trash'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_trash_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                card_index = self.bot.find_card_index_by_id_in_trash(card_id)
+                card = self.bot.game['player2Trash'][card_index]
+                back = False
+                if card['cardType'] == 'Option' and 'Delay' in card['mainEffect'] or card['cardType'] == 'Tamer':
+                    back = True
+                await self.bot.play_card(ws, 'Trash', card_index, 0, back)
         prefix = 'trash reveal'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
@@ -269,22 +315,22 @@ class Waiter:
         prefix = 'cant attack'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
-            card_id = await self.filter_target_digimon_action(ws, message)
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
                 for card in self.bot.game['player2Digi'][card_index]:
-                    self.bot.cant_unsuspend_until_end_of_turn.add(card['id'])
+                    self.bot.cant_attack_until_end_of_turn.add(card['id'])
                 card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'{card_id} can\'t attack until end of turn.')
                 await self.bot.send_message(ws, f"{card['name']} can\'t attack until end of turn.")
         prefix = 'cant block'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
-            card_id = await self.filter_target_digimon_action(ws, message)
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
                 for card in self.bot.game['player2Digi'][card_index]:
-                    self.bot.cant_unsuspend_until_end_of_turn.add(card['id'])
+                    self.bot.cant_block_until_end_of_opponent_turn.add(card['id'])
                 card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'{card_id} can\'t block until end of turn.')
                 await self.bot.send_message(ws, f"{card['name']} can\'t block until end of turn.")
@@ -316,6 +362,12 @@ class Waiter:
             card_id, n  = await self.filter_de_digivolve_action(ws, message.replace(prefix, prefix_with_delimiter))
             if card_id:
                 await self.bot.de_digivolve(ws, card_id, n)
+        prefix = 'collision'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id  = await self.filter_attacker_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                await self.bot.collision_strategy(ws, card_id)
         return True
     
     async def check_timestamp(self):

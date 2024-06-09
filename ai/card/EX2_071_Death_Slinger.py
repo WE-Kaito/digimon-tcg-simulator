@@ -16,8 +16,12 @@ class EX2_071_Death_Slinger(Card):
         max_level_can_delete = 4 + math.floor(len(self.bot.game['player2Trash'])/10)
         opponent_digimons = []
         for i in range(len(self.bot.game['player1Digi'])):
-            digimon = self.bot.game['player1Digi'][i][-1]
-            opponent_digimons.append(digimon['level'], i, digimon['name'])
+            if len(self.bot.game['player1Digi'][i]) > 0:
+                digimon = self.bot.game['player1Digi'][i][-1]
+                if digimon['level'] is not None:
+                    opponent_digimons.append((digimon['level'], i, digimon['name']))
         for opponent_digimon in sorted(opponent_digimons, reverse=True):
-            if max_level_can_delete <= opponent_digimon[0]:
+            if max_level_can_delete >= opponent_digimon[0]:
                 await self.bot.delete_card_from_opponent_battle_area(ws, opponent_digimon[1])
+                break
+        await self.bot.delete_card_from_battle_area(ws, self.extra_args['card_id'])
