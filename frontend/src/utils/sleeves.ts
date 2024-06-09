@@ -61,6 +61,7 @@ import malomyotismon from "../assets/sleeves/BT3_092_MALOMYOTISMON.png";
 import meramon from "../assets/sleeves/BT5_011_MERAMON.png";
 import labramon from "../assets/sleeves/BT17_021_LABRAMON.png";
 import mervamon from "../assets/sleeves/BT11_086_MERVAMON_7D6.png";
+import shoemon from "../assets/sleeves/ST19_03_SHOEMON.png";
 
 import defaultBlack from "../assets/sleeves/cardBackBlack.jpg";
 import defaultWhite from "../assets/sleeves/cardBackWhite.jpg";
@@ -141,6 +142,7 @@ export const sleeves: Picture[] = [
     {name: "Pteromon", imagePath: pteromon, artist: "Drak"},
     {name: "Muchomon", imagePath: muchomon, artist: "Drak"},
     {name: "MaloMyotismon", imagePath: malomyotismon, artist: "Drak"},
+    {name: "Shoemon", imagePath: shoemon, artist: "Drak"},
     {name: "Meramon", imagePath: meramon, artist: "Drak"},
     {name: "Labramon", imagePath: labramon, artist: "Drak"},
     {name: "Mervamon", imagePath: mervamon, artist: "Drak"},
