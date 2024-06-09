@@ -36,6 +36,6 @@ const AvatarSpan2 = styled(AvatarSpan)`
 `;
 
 const StyledIconButton = styled(IconButton)`
-    position: absolute;
-    top: -5px;
+  position: absolute;
+  top: -5px;
 `;
