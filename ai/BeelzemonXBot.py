@@ -70,12 +70,18 @@ class BeelzemonXBot(Bot):
         await super().delete_stack_from_battle_area(ws, card_id)
         await card_obj.on_deletion_effect(ws)
         if card['id'] in self.gained_baalmon_effect and len(self.game['player2Trash']) >= 10:
-            await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
+            await self.st14_07_baalmon_deleted_strategy(ws)
+            self.gained_baalmon_effect.remove(card['id'])
+
+    async def trashed_card_effect(self, ws, card):
+        card_obj = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
+        await card_obj.when_trashed_effect(ws)
+        await self.when_card_is_trashed_from_deck(ws)
 
     async def st14_07_baalmon_gained_on_deletion_effect(self, ws):
         await super().animate_effect(ws)
         if len(self.bot.game['player2Trash']) >= 10:
-            await self.st14_07_baalmon_baalmon_deleted_strategy(ws)
+            await self.st14_07_baalmon_deleted_strategy(ws)
 
     # TODO: Take into account attacker when deiciding blocker
     async def collision_strategy(self, ws, attacker_id):
@@ -429,7 +435,7 @@ class BeelzemonXBot(Bot):
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
     
-    async def st14_07_baalmon_baalmon_deleted_strategy(self, ws):
+    async def st14_07_baalmon_deleted_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-08', 'Beelzemon')
         if card_in_trash_index >= 0:
             await self.play_card(ws, 'Trash', card_in_trash_index, 0)
@@ -708,7 +714,7 @@ class BeelzemonXBot(Bot):
     async def turn(self, ws):
         self.logger.info(f'-----------------------------------------------------------------')
         self.logger.info(f'---------------------TURN {self.turn_counter}---------------------')
-        self.start_turn()
+        await self.start_turn()
         self.logger.info(f'-----------------------------------------------------------------')
         if not self.first_turn:
             self.logger.info(f'---------------------UNSUSPEND PHASE---------------------')
