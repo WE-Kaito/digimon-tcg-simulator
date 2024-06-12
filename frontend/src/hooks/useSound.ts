@@ -109,7 +109,7 @@ export const projectDrasilPlaylist = [
 
 export const useSound = create<State>((set, get) => {
 
-    const initialSrc = shuffleArray(projectDrasilPlaylist);
+    const initialSrc = JSON.parse(localStorage.getItem('playlist') ?? JSON.stringify(shuffleArray(projectDrasilPlaylist)));
 
     const initialState = {
         playlist: initialSrc,
@@ -124,7 +124,11 @@ export const useSound = create<State>((set, get) => {
     const music = new Audio(initialSrc[0]);
     music.addEventListener('ended', () => get()?.nextSong(true));
 
-    const setPlaylist = (playlist: string[]) => set(() => ({playlist: shuffleArray(playlist)}));
+    function setPlaylist (playlist: string[]) {
+        const newPlaylist = shuffleArray(playlist);
+        set(() => ({playlist: newPlaylist}));
+        localStorage.setItem('playlist', JSON.stringify(newPlaylist));
+    }
 
     const toggleRadioMenu = () => set((state) => ({ showRadioMenu: !state.showRadioMenu }));
 
@@ -178,7 +182,7 @@ export const useSound = create<State>((set, get) => {
 
         let musicVolume: number;
         if(!music.paused) {
-            audio.volume = volume * 1.2;
+            audio.volume = Math.min(volume * 1.2, 1);
             if(longSound) {
                 musicVolume = get().musicVolume;
                 music.volume = musicVolume * 0.5;
