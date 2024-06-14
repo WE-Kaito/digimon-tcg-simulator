@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime, timedelta
 from decouple import config
@@ -192,6 +193,15 @@ class Waiter:
         move_message_prefix = '[MOVE_CARD_TO_DECK]:'
         if message.startswith(move_message_prefix):
             self.process_move_to_deck_action(message.replace(move_message_prefix, '', 1))
+        shuffle_security_prefix = '【↻ Security Stack】'
+        if message.startswith('[UPDATE_OPPONENT]'):
+            updated_game = ''
+            while message.startswith('[UPDATE_OPPONENT]'):
+                updated_game += message.replace('[UPDATE_OPPONENT]:', '')
+                await self.bot.loaded_ping(ws)
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}')
+            await self.bot.update_opponent_game(ws, json.loads(updated_game))
         chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
         prefix = 'suspend'
