@@ -99,9 +99,6 @@ export type State = BoardState & {
     setGameId: (gameId: string) => void,
     setInheritCardInfo: (inheritedEffects: string[]) => void,
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
-    /**
-     * @param getKey - If true, returns the key of the location instead of the array
-     */
     getCardLocationById: (id: string) => string,
 };
 
