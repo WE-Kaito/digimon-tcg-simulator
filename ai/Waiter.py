@@ -166,6 +166,14 @@ class Waiter:
             return target_digimon['id'], n
         await self.send_invalid_command_message(ws)
         return False, False
+
+    async def filter_trash_from_deck_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[-1].isdigit():
+            n = int(message[-1])
+            return n
+        await self.send_invalid_command_message(ws)
+        return False
     
     async def reset_timestamp(self):
         self.timestamp = datetime.now()
@@ -270,7 +278,9 @@ class Waiter:
         prefix = 'trash top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix) and len(self.bot.game['player2DeckField']) > 0:
-            await self.bot.trash_top_card_of_deck(ws)
+            n = await self.filter_trash_from_deck_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if n:
+                await self.bot.trash_top_cards_of_deck(ws, n)
         prefix = 'play reveal'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
