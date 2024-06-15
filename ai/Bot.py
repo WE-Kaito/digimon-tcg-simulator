@@ -966,13 +966,13 @@ class Bot(ABC):
         card_index = self.find_card_index_by_id_in_security(card_id)
         self.logger.info(f'Revealing security card at position {card_index} from security.')
         await self.move_card(ws, f'mySecurity{card_index}', 'myReveal', target_card_id=card_id)
-        self.game['player2Reveal'].append(self.game['player2Security'].pop(0))
+        self.game['player2Reveal'].append(self.game['player2Security'].pop(card_index))
     
     async def security_check(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_security(card_id)
         self.logger.info(f'Security check.')
         await self.move_card(ws, f'mySecurity{card_index}', 'myReveal', target_card_id=card_id)
-        self.game['player2Reveal'].append(self.game['player2Security'].pop(0))
+        self.game['player2Reveal'].append(self.game['player2Security'].pop(card_index))
 
     async def reveal_card_from_top_of_deck(self, ws, n_cards):
         self.logger.info(f'Revealing top {n_cards} from deck.')
@@ -1020,14 +1020,18 @@ class Bot(ABC):
         await self.send_message(ws, f'[FIELD_UPDATE]≔【{card["name"]}】﹕ ➟ Deck Top')
         self.game['player2DeckField'].insert(0, card)
         self.logger.info(f"Put {card['uniqueCardNumber']} {card['name']} on top of deck.")
-    
-    async def trash_top_card_of_deck(self, ws):
-        await self.move_card(ws, 'myDeckField0', 'myTrash')
-        card = self.game['player2DeckField'].pop(0)
-        self.game['player2Trash'].insert(0, card)
-        await self.trashed_card_effect(ws, card)
+
+    async def trash_top_cards_of_deck(self, ws, n):
+        trashed_cards = []
+        for i in range(n):
+            if len(self.game['player2DeckField']) > 0:
+                await self.move_card(ws, 'myDeckField0', 'myTrash')
+                card = self.game['player2DeckField'].pop(0)
+                self.game['player2Trash'].insert(0, card)
+                trashed_cards.append(card)
+        await self.when_cards_are_trashed_from_deck(ws, trashed_cards)
         self.logger.info(f"Trashed {card['uniqueCardNumber']} {card['name']} from top of deck.")
-        return card
+        return trashed_cards
 
     async def set_memory_to(self, ws, value):
         self.logger.info(f'Set memory to {value}')
@@ -1197,5 +1201,9 @@ class Bot(ABC):
 
     @abstractmethod
     def collision_strategy(self):
+        pass
+
+    @abstractmethod
+    def when_cards_are_trashed_from_deck(self):
         pass
 
