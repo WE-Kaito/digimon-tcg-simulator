@@ -190,7 +190,7 @@ class Waiter:
             self.process_move_action(message.replace(move_message_prefix, '', 1))
         elif self.ignore_next_move_action:
             self.ignore_next_move_action = False
-        move_message_prefix = '[MOVE_CARD_TO_DECK]:'
+        move_message_prefix = '[MOVE_CARD_TO_STACK]:'
         if message.startswith(move_message_prefix):
             self.process_move_to_deck_action(message.replace(move_message_prefix, '', 1))
         shuffle_security_prefix = '【↻ Security Stack】'
