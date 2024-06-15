@@ -185,6 +185,9 @@ class Waiter:
             await self.reset_timestamp()
         if not await self.check_timestamp():
             return False
+        update_memory_prefix = '[UPDATE_MEMORY]'
+        if message.startswith(update_memory_prefix):
+            self.bot.game['memory'] = int(message.replace('[UPDATE_MEMORY]:', ''))
         move_message_prefix = '[MOVE_CARD]:'
         if message.startswith(move_message_prefix) and not self.ignore_next_move_action:
             self.process_move_action(message.replace(move_message_prefix, '', 1))
