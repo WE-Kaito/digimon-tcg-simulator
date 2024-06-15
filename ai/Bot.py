@@ -966,13 +966,13 @@ class Bot(ABC):
         card_index = self.find_card_index_by_id_in_security(card_id)
         self.logger.info(f'Revealing security card at position {card_index} from security.')
         await self.move_card(ws, f'mySecurity{card_index}', 'myReveal', target_card_id=card_id)
-        self.game['player2Reveal'].append(self.game['player2Security'].pop(0))
+        self.game['player2Reveal'].append(self.game['player2Security'].pop(card_index))
     
     async def security_check(self, ws, card_id):
         card_index = self.find_card_index_by_id_in_security(card_id)
         self.logger.info(f'Security check.')
         await self.move_card(ws, f'mySecurity{card_index}', 'myReveal', target_card_id=card_id)
-        self.game['player2Reveal'].append(self.game['player2Security'].pop(0))
+        self.game['player2Reveal'].append(self.game['player2Security'].pop(card_index))
 
     async def reveal_card_from_top_of_deck(self, ws, n_cards):
         self.logger.info(f'Revealing top {n_cards} from deck.')
