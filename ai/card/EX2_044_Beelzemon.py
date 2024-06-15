@@ -14,7 +14,7 @@ class EX2_044_Beelzemon(Card):
 
     async def when_digivolving_when_attacking_effect(self, ws):
         await super().animate_effect(ws)
-        await self.bot.trash_top_cards_of_deck(ws, 3)
+        await self.bot.trash_top_cards_of_deck(ws, 2)
         await self.bot.ex2_044_beelzemon_when_digivolving_when_attacking_strategy(ws)
 
     ## TODO: Can target strategy to 
