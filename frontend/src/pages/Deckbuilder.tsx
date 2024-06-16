@@ -10,6 +10,7 @@ import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import cardBackSrc from "../assets/cardBack.jpg"
 import AddDeckButton from "../components/deckbuilder/AddDeckButton.tsx";
 import UpdateDeleteDeckButtons from "../components/deckbuilder/UpdateDeleteDeckButtons.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
 
@@ -32,6 +33,7 @@ export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
     useEffect(() => initialFetch(), [initialFetch]);
 
     return (
+        <MenuBackgroundWrapper>
             <OuterContainer>
 
                 <ButtonContainer>
@@ -65,6 +67,7 @@ export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
                 </CardImageContainer>
 
             </OuterContainer>
+        </MenuBackgroundWrapper>
     );
 }
 

@@ -2,14 +2,9 @@ import {PropsWithChildren, useMemo} from "react";
 import styled from "@emotion/styled";
 import {blueTriangles} from "../assets/particles.ts";
 import ParticlesBackground from "./ParticlesBackground.tsx";
-import {useLocation} from "react-router-dom";
-
 export default function MenuBackgroundWrapper({children}: PropsWithChildren) {
 
     const options = useMemo(() => (blueTriangles),[]);
-
-    const { pathname } = useLocation();
-    if (pathname.includes("/game")) return children;
 
     return (
         <StyledDiv>
