@@ -15,6 +15,7 @@ import {useStore} from "../hooks/useStore.ts";
 import {VolumeOff as MuteIcon} from '@mui/icons-material';
 import {useSound} from "../hooks/useSound.ts";
 import SoundBar from "../components/SoundBar.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function Lobby({user}: { user: string }) {
     const [usernames, setUsernames] = useState<string[]>([]);
@@ -184,7 +185,7 @@ export default function Lobby({user}: { user: string }) {
     useEffect(() => initialFetch(), [initialFetch]);
 
     return (
-        <>
+        <MenuBackgroundWrapper>
             <SoundBar/>
 
             {pendingInvitation &&
@@ -278,7 +279,7 @@ export default function Lobby({user}: { user: string }) {
                     </InputContainer>
                 </Chat>
             </Container>
-        </>
+        </MenuBackgroundWrapper>
     );
 }
 

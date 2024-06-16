@@ -19,9 +19,11 @@ import { avatars } from "../utils/avatars.ts";
 import {DeckIdOrder} from "../pages/Profile.tsx";
 import {Dispatch, SetStateAction} from "react";
 import {generalToken} from "../utils/tokens.ts";
+import {Container} from "@tsparticles/engine";
 
 type State = {
     particlesInit: boolean,
+    particlesLoaded: (container?: Container) => Promise<void | undefined>,
     fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
     isLoading: boolean,
@@ -82,6 +84,7 @@ type State = {
 export const useStore = create<State>((set, get) => ({
 
     particlesInit: false,
+    particlesLoaded: async (container?: Container) => container?.init(),
     fetchedCards: [],
     filteredCards: [],
     isLoading: false,
