@@ -45,7 +45,10 @@ class BeelzemonXBot(Bot):
                     st14_11_ai_and_mako = self.card_factory.get_card(ai_and_mako_card['uniqueCardNumber'], card_id=ai_and_mako_card['id'])
                     await st14_11_ai_and_mako.your_turn_effect(ws)
 
-    async def when_card_is_trashed_from_deck(self, ws):
+    async def when_cards_are_trashed_from_deck(self, ws, trashed_cards):
+        for trashed_card in trashed_cards:
+            card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
+            await card_obj.when_trashed_effect(ws)
         self.logger.info('Checking if any ST14-08 trigger from trashing card.')
         st14_08_beelzemons_indices = self.cards_in_battle_area('ST14-08', 'Beelzemon')
         for st14_08_beelzemons_index in st14_08_beelzemons_indices:
@@ -76,11 +79,10 @@ class BeelzemonXBot(Bot):
     async def trashed_card_effect(self, ws, card):
         card_obj = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
         await card_obj.when_trashed_effect(ws)
-        await self.when_card_is_trashed_from_deck(ws)
 
     async def st14_07_baalmon_gained_on_deletion_effect(self, ws):
         await super().animate_effect(ws)
-        if len(self.bot.game['player2Trash']) >= 10:
+        if len(self.game['player2Trash']) >= 10:
             await self.st14_07_baalmon_deleted_strategy(ws)
 
     # TODO: Take into account attacker when deiciding blocker
@@ -416,15 +418,7 @@ class BeelzemonXBot(Bot):
                 self.return_card_from_trash_to_hand(ws, card_in_trash_index)
 
     async def bt10_081_baalmon_attacking_strategy(self, ws):
-        trashed_cards = []
-        for i in range(3):
-            if len(self.game['player2DeckField']) > 0:
-                time.sleep(0.3)
-                trashed_cards.append(await self.trash_top_card_of_deck(ws))
-        for trashed_card in trashed_cards:
-            card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
-            await card_obj.when_trashed_effect(ws)
-        await self.when_card_is_trashed_from_deck(ws)
+        trashed_cards = await self.trash_top_cards_of_deck(ws, 3)
     
     async def bt10_081_baalmon_deleted_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-08', 'Beelzemon')

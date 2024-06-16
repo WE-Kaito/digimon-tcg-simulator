@@ -39,7 +39,7 @@ The position X is identified in the following way on the field:
 
 - **reveal top deck**: Reveal the top card of the opponent deck.
 
-- **trash top deck**: Trash the top card of the opponent deck.
+- **trash top deck X**: Trash the top X cards of the opponent deck.
 
 - **play reveal X**: Play card from the revealed cards at position X, starting from left.
 

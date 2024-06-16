@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime, timedelta
 from decouple import config
@@ -166,6 +167,14 @@ class Waiter:
             return target_digimon['id'], n
         await self.send_invalid_command_message(ws)
         return False, False
+
+    async def filter_trash_from_deck_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 2 and message[-1].isdigit():
+            n = int(message[-1])
+            return n
+        await self.send_invalid_command_message(ws)
+        return False
     
     async def reset_timestamp(self):
         self.timestamp = datetime.now()
@@ -176,14 +185,26 @@ class Waiter:
             await self.reset_timestamp()
         if not await self.check_timestamp():
             return False
+        update_memory_prefix = '[UPDATE_MEMORY]'
+        if message.startswith(update_memory_prefix):
+            self.bot.game['memory'] = int(message.replace('[UPDATE_MEMORY]:', ''))
         move_message_prefix = '[MOVE_CARD]:'
         if message.startswith(move_message_prefix) and not self.ignore_next_move_action:
             self.process_move_action(message.replace(move_message_prefix, '', 1))
         elif self.ignore_next_move_action:
             self.ignore_next_move_action = False
-        move_message_prefix = '[MOVE_CARD_TO_DECK]:'
+        move_message_prefix = '[MOVE_CARD_TO_STACK]:'
         if message.startswith(move_message_prefix):
             self.process_move_to_deck_action(message.replace(move_message_prefix, '', 1))
+        shuffle_security_prefix = '【↻ Security Stack】'
+        if message.startswith('[UPDATE_OPPONENT]'):
+            updated_game = ''
+            while message.startswith('[UPDATE_OPPONENT]'):
+                updated_game += message.replace('[UPDATE_OPPONENT]:', '')
+                await self.bot.loaded_ping(ws)
+                message = await ws.recv()
+                self.logger.debug(f'Received: {message}')
+            await self.bot.update_opponent_game(ws, json.loads(updated_game))
         chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
         prefix = 'suspend'
@@ -270,7 +291,9 @@ class Waiter:
         prefix = 'trash top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix) and len(self.bot.game['player2DeckField']) > 0:
-            await self.bot.trash_top_card_of_deck(ws)
+            n = await self.filter_trash_from_deck_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if n:
+                await self.bot.trash_top_cards_of_deck(ws, n)
         prefix = 'play reveal'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
