@@ -5,7 +5,7 @@ Free fan-made manual/tabletop simulation of the [Digimon Card Game](https://worl
 
 It is still in development but has every feature needed to play smoothly.
 Keep in mind the game page is not optimized for mobile devices yet.
-Thx to [@allesandrostagni](https://github.com/alessandrostagni) we also provide a mostly automated bot to play against.
+Thx to [@alessandrostagni](https://github.com/alessandrostagni) we also provide a mostly automated bot to play against.
 
 Check the [Featues & Controls](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) page for futher information.
 
