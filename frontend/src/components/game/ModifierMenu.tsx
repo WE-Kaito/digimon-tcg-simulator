@@ -91,8 +91,8 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                             <IconButton onClick={handleAddSec} color={"success"}><AddCircleOutlined/></IconButton>
                         </NumericStack>
 
-                        <NumericStack >
-                            <ValueLabelSpan>Treated as:</ValueLabelSpan>
+                        <NumericStack>
+                            <ValueLabelSpan style={{ width: 85}}>Treated as:</ValueLabelSpan>
                             {["Red", "Green", "Blue", "Yellow", "Purple", "White", "Black"].map((c) =>
                                 <ColorButton isActive={colors?.includes(c)} onClick={() => handleSetColor(c)}
                                              key={`${cardToSend.id}_${c}`}>{getCardColor(c)[1]}</ColorButton>)}

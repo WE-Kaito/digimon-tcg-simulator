@@ -3,11 +3,12 @@ import Header from "../components/Header.tsx";
 import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
 import {Stack} from "@mui/material";
 import SoundBar from "../components/SoundBar.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function MainMenu() {
 
     return (
-        <>
+        <MenuBackgroundWrapper>
             <SoundBar/>
             <Stack gap={5}>
                 <Header/>
@@ -17,6 +18,6 @@ export default function MainMenu() {
                 <MainMenuButton name={"LOGOUT"} path={"/login"}/>
             </Stack>
             <PatchnotesAndDisclaimer/>
-        </>
+        </MenuBackgroundWrapper>
     );
 }

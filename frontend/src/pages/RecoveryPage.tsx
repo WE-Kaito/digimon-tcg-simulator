@@ -4,6 +4,7 @@ import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Headline2} from "../components/Header.tsx";
 import {InputField, InputFieldRegister, LoginPageButton} from "./LoginPage.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function RecoveryPage() {
 
@@ -54,7 +55,7 @@ export default function RecoveryPage() {
     }
 
     return (
-        <>
+        <MenuBackgroundWrapper>
             <Headline2 style={{marginTop: 80}}>Password Recovery</Headline2>
 
             <StyledForm onSubmit={handleUserSearch}>
@@ -93,7 +94,7 @@ export default function RecoveryPage() {
                     </ChangePWButton>
                 </StyledForm2>
             }
-        </>
+        </MenuBackgroundWrapper>
     );
 }
 

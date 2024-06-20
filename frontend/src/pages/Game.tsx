@@ -1124,7 +1124,7 @@ export default function Game({user}: { user: string }) {
 
                     <InfoContainer>
                         <InfoSpan>
-                            <SoundBar/>
+                                <SoundBar/>
                                 <span style={{color: "dodgerblue", transform: "translate(3px, -2px)"}}>🛈 </span>
                                 <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
                                    target="_blank" rel="noopener noreferrer" title={"Rulings"}>
@@ -2280,6 +2280,7 @@ export const CardImage = styled.img`
   outline: #0c0c0c solid 1px;
   transform: translateY(2px);
   justify-self: center;
+  z-index: 0;
 `;
 
 const InfoSpan = styled.span`
@@ -2289,7 +2290,6 @@ const InfoSpan = styled.span`
   gap: 20px;
   font-family: "League Spartan", sans-serif;
   font-size: 24px;
-  opacity: 0.7;
   padding-bottom: 40px;
   padding-right: 20px;
   a {
@@ -2300,6 +2300,7 @@ const InfoSpan = styled.span`
       opacity: 1;
     }
   }
+  z-index: 10;
 `;
 
 const FieldSpan = styled.span`

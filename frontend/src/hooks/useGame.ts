@@ -99,9 +99,6 @@ export type State = BoardState & {
     setGameId: (gameId: string) => void,
     setInheritCardInfo: (inheritedEffects: string[]) => void,
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
-    /**
-     * @param getKey - If true, returns the key of the location instead of the array
-     */
     getCardLocationById: (id: string) => string,
 };
 
@@ -284,17 +281,6 @@ export const useGame = create<State>()(
             const game: GameDistribution = JSON.parse(get().initialDistributionState);
 
             set({ initialDistributionState: "", bootStage: BootStage.MULLIGAN });
-
-            // Preloading images
-            for (const stateKey in game) {
-                if (Object.hasOwnProperty.call(game, stateKey)) {
-
-                    const state = game[stateKey as keyof GameDistribution];
-
-                    if (Array.isArray(state)) state.forEach((card) => new Image().src = card.imgUrl);
-                }
-            }
-
 
             if (user === player1) {
                 set({

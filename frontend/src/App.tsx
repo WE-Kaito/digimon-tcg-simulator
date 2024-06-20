@@ -16,7 +16,6 @@ import Game from "./pages/Game.tsx";
 import CustomToastContainer from "./components/CustomToastContainer.tsx";
 import {initParticlesEngine} from "@tsparticles/react";
 import {loadSlim} from "@tsparticles/slim";
-import MenuBackgroundWrapper from "./components/MenuBackgroundWrapper.tsx";
 function App() {
 
     const me = useStore((state) => state.me);
@@ -42,7 +41,7 @@ function App() {
         <DndProvider backend={isMobileDevice()}>
 
             <CustomToastContainer/>
-            <MenuBackgroundWrapper>
+
                 <Routes>
                     <Route element={<ProtectedRoutes user={user}/>}>
                         <Route path="/" element={<MainMenu/>}/>
@@ -54,10 +53,11 @@ function App() {
                         <Route path="/*" element={<Navigate to="/"/>}/>
                     </Route>
 
-                    <Route path="/login" element={<LoginPage/>}/>
-                    <Route path="/recover-password" element={<RecoveryPage/>}/>
-                </Routes>
-            </MenuBackgroundWrapper>
+                <Route path="/login" element={<LoginPage/>}/>
+                <Route path="/recover-password" element={<RecoveryPage/>}/>
+
+            </Routes>
+
         </DndProvider>
     )
 }

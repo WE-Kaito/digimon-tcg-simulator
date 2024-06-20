@@ -187,7 +187,7 @@ const MainRadioIconButton = styled(RadioIconButton)`
 const StyledLottie = styled(Lottie)`
   position: absolute;
   width: 250px;
-  left: 63px;
+  left: 65px;
   top: -21px;
   z-index: -1;
   opacity: 0.5;

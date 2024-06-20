@@ -17,6 +17,7 @@ import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
 import {useNavigate} from "react-router-dom";
 import SoundBar from "../components/SoundBar.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export type DeckIdOrder = string[];
 
@@ -60,57 +61,59 @@ export default function Profile({user}: { user: string }) {
     useEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
 
     return (
-        <Stack minHeight={"100vh"} height={"100%"} pt={"20px"} justifyContent={"flex-start"}>
-            <SoundBar/>
-            <Header>
-                <Name>{user}</Name>
-                <BackButton/>
-            </Header>
+        <MenuBackgroundWrapper>
+            <Stack minHeight={"100vh"} height={"100%"} pt={"20px"} justifyContent={"flex-start"}>
+                <SoundBar/>
+                <Header>
+                    <Name>{user}</Name>
+                    <BackButton/>
+                </Header>
 
-            <UserSettings/>
+                <UserSettings/>
 
-            <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
-                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)", overflow: "hidden" }}}>
-                <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
-                <ChooseCardSleeve/>
-            </Dialog>
+                <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
+                        sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)", overflow: "hidden" }}}>
+                    <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
+                    <ChooseCardSleeve/>
+                </Dialog>
 
-            <Dialog maxWidth={"xl"} onClose={handleOnClose} open={imageSelectionOpen}
-                    sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
-                <CustomDialogTitle handleOnClose={handleOnClose} variant={"Image"}/>
-                <ChooseDeckImage/>
-            </Dialog>
+                <Dialog maxWidth={"xl"} onClose={handleOnClose} open={imageSelectionOpen}
+                        sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
+                    <CustomDialogTitle handleOnClose={handleOnClose} variant={"Image"}/>
+                    <ChooseDeckImage/>
+                </Dialog>
 
-            <ChooseAvatar/>
+                <ChooseAvatar/>
 
-            <DeckHeaderContainer>
-                <span>Decks</span>
-                <hr style={{width: "100vw", maxWidth:1204}}/>
-            </DeckHeaderContainer>
+                <DeckHeaderContainer>
+                    <span>Decks</span>
+                    <hr style={{width: "100vw", maxWidth:1204}}/>
+                </DeckHeaderContainer>
 
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <Container>
-                    {isLoading
-                        ? <Loading/>
-                        : <>
-                            <SortableContext items={orderedDecks}>
-                             {orderedDecks?.map((deck) =>
-                                 <SortableProfileDeck key={deck.id} deck={deck}
-                                                      setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                                      setImageSelectionOpen={setImageSelectionOpen}
-                                 />
-                             )}
-                            </SortableContext>
-                            {orderedDecks.length < 16 &&
-                                <NewDeckButton onClick={toDeckBuilder}>
-                                    <AddBoxRoundedIcon/>
-                                </NewDeckButton>
-                            }
-                        </>
-                    }
-                </Container>
-            </DndContext>
-        </Stack>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <Container>
+                        {isLoading
+                            ? <Loading/>
+                            : <>
+                                <SortableContext items={orderedDecks}>
+                                 {orderedDecks?.map((deck) =>
+                                     <SortableProfileDeck key={deck.id} deck={deck}
+                                                          setSleeveSelectionOpen={setSleeveSelectionOpen}
+                                                          setImageSelectionOpen={setImageSelectionOpen}
+                                     />
+                                 )}
+                                </SortableContext>
+                                {orderedDecks.length < 16 &&
+                                    <NewDeckButton onClick={toDeckBuilder}>
+                                        <AddBoxRoundedIcon/>
+                                    </NewDeckButton>
+                                }
+                            </>
+                        }
+                    </Container>
+                </DndContext>
+            </Stack>
+        </MenuBackgroundWrapper>
     );
 }
 
