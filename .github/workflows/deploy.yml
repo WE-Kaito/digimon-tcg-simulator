@@ -64,11 +64,26 @@ jobs:
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
-  
-  deploy_bot:
-    name: Push Bot to Server
+
+  start-server:
+    name: Start Server
     runs-on: ubuntu-latest
     needs: deploy
+    environment: Musubi
+    steps:
+      - uses: actions/checkout@v2
+      - name: Startup
+        env:
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{ secrets.HOST }}
+            USER_NAME: ${{ secrets.USERNAME }}
+        run: |
+          sudo /usr/sbin/service project-drasil restart
+
+  deploy-bot:
+    name: Push Bot to Server
+    runs-on: ubuntu-latest
+    needs: start-server
     environment: Musubi
     steps:
       - name: Checkout the code
