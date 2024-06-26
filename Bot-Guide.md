@@ -1,8 +1,16 @@
 # Bot Guide
 
-The Bot in Drasil is not completely automated.
-It will resolve effects during its own turn.
-However, you will need to use the commands below to resolve effects that affect the bot's card.
+Drasil simulator supports playing against bots.<br/>
+Bots acts like players in the lobby.
+Currently, the bot players are named *Drasilbot-X* where X is the id number.<br/>
+Bots will accept to play against you as soon as you invite any of them.<br/>
+If no bot shows on lobby then all bots are currently occupied.
+
+![alt text](assets/bot-lobby.png)
+
+The bots in Drasil are not completely automated.
+It will resolve effects during its own turn.<br/>
+However, you will need to use the commands below to resolve effects that affect the bot's card.<br/>
 You can type the commands below directly in the game chat while playing against the bot.
 
 The position X is identified in the following way on the field:
