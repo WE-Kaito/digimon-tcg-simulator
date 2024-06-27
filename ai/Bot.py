@@ -72,6 +72,7 @@ class Bot(ABC):
         self.game = {}
         self.effects = {}
         self.placed_this_turn = set()
+        self.start_mp_attack = set()
         self.cant_unsuspend_until_end_of_turn = set()
         self.cant_unsuspend_until_end_of_opponent_turn = set()
         self.cant_suspend_until_end_of_turn = set()
@@ -741,6 +742,8 @@ class Bot(ABC):
             self.cant_block_until_end_of_turn.add(digivolution_card['id'])
         if digimon['id'] in self.cant_block_until_end_of_opponent_turn:
             self.cant_block_until_end_of_opponent_turn.add(digivolution_card['id'])
+        if digimon['id'] in self.start_mp_attack:
+            self.start_mp_attack.add(digivolution_card['id'])
         if cost > 0:
             await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
@@ -928,6 +931,8 @@ class Bot(ABC):
             self.cant_block_until_end_of_turn.remove(card['id'])
         if card['id'] in self.cant_block_until_end_of_opponent_turn:
             self.cant_block_until_end_of_opponent_turn.remove(card['id'])
+        if card['id'] in self.start_mp_attack:
+            self.start_mp_attack.remove(card['id'])
         return card
     
     async def delete_card_from_opponent_battle_area(self, ws, card_index):
@@ -1071,6 +1076,7 @@ class Bot(ABC):
         self.cant_suspend_until_end_of_turn.clear()
         self.cant_attack_until_end_of_turn.clear()
         self.cant_block_until_end_of_turn.clear()
+        self.start_mp_attack.clear()
         self.triggered_already_this_turn.clear()
         await self.waiter.reset_timestamp()
 
