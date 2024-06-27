@@ -168,7 +168,7 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False, False
 
-    async def filter_trash_from_deck_action(self, ws, message):
+    async def filter_from_deck_action(self, ws, message):
         message = message.split(' ')
         if len(message) == 2 and message[-1].isdigit():
             n = int(message[-1])
@@ -288,10 +288,15 @@ class Waiter:
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix) and len(self.bot.game['player2DeckField']) > 0:
             await self.bot.reveal_card_from_top_of_deck(ws, 1)
+        prefix = 'draw'
+        if message.startswith(prefix) and len(self.bot.game['player2DeckField']) > 0:
+            n = await self.filter_from_deck_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if n:
+                await self.bot.draw(ws, n)
         prefix = 'trash top deck'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix) and len(self.bot.game['player2DeckField']) > 0:
-            n = await self.filter_trash_from_deck_action(ws, message.replace(prefix, prefix_with_delimiter))
+            n = await self.filter_from_deck_action(ws, message.replace(prefix, prefix_with_delimiter))
             if n:
                 await self.bot.trash_top_cards_of_deck(ws, n)
         prefix = 'play reveal'
@@ -368,6 +373,17 @@ class Waiter:
                 card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'{card_id} can\'t unsuspend until end of turn.')
                 await self.bot.send_message(ws, f"{card['name']} can\'t unsuspend until end of turn.")
+        prefix = 'start mp attack'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                for card in self.bot.game['player2Digi'][card_index]:
+                    self.bot.start_mp_attack.add(card['id'])
+                card = self.bot.game['player2Digi'][card_index][-1]
+                self.logger.info(f'{card_id} gains: Start of main phase, this digimon attacks.')
+                await self.bot.send_message(ws, f"{card['name']} gains: Start of main phase, this digimon attacks.")
         prefix = 'cant suspend'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):

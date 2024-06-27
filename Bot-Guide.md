@@ -45,6 +45,8 @@ The position X is identified in the following way on the field:
 
 - **reveal security X**: Reveal the X card of opponent security, starting from the top.
 
+- **draw X**: Draw X cards from deck.
+
 - **reveal top deck**: Reveal the top card of the opponent deck.
 
 - **trash top deck X**: Trash the top X cards of the opponent deck.
@@ -68,3 +70,5 @@ The position X is identified in the following way on the field:
 - **de-digivolve X Y**: De-Digivolve Y the Digimon at position X.
 
 - **collision X**: Force the bot to block the digimon X on your side (starting from left) with at least one digimon on its side.
+
+- **start mp attack X**: Make the digimon at the X position gain "Start of main phase" digimon attacks".
