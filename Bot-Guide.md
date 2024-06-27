@@ -70,3 +70,5 @@ The position X is identified in the following way on the field:
 - **de-digivolve X Y**: De-Digivolve Y the Digimon at position X.
 
 - **collision X**: Force the bot to block the digimon X on your side (starting from left) with at least one digimon on its side.
+
+- **start mp attack X**: Make the digimon at the X position gain "Start of main phase" digimon attacks".
