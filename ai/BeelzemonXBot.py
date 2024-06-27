@@ -664,6 +664,16 @@ class BeelzemonXBot(Bot):
                 some_action = True
         return some_action
 
+    async def start_main_phase_strategy(self, ws):
+        must_attack = []
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['cardType'] == 'Digimon' and self.can_attack(card) and card['id'] in self.start_mp_attack:
+                    must_attack.append((card['level'], i))
+        for digimon in sorted(must_attack, reverse=True):
+            await self.attack_with_digimon(ws, digimon[1])
+
     async def main_phase_strategy(self, ws):
         self.logger.info('Prepare rookies in breed...')
         await self.prepare_rookies(ws)
@@ -727,10 +737,13 @@ class BeelzemonXBot(Bot):
         await self.breeding_phase_strategy(ws)
         await self.update_phase(ws)
 
-        # Main 
+        # Start of Main Phase
+        self.logger.info(f'---------------------START OF MAIN PHASE---------------------')
+        await self.start_main_phase_strategy(ws)
+
+        # Main
         self.logger.info(f'---------------------MAIN PHASE---------------------')
         await self.main_phase_strategy(ws)
-
 
         # End turn
         await self.end_turn(ws)

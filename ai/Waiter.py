@@ -373,6 +373,17 @@ class Waiter:
                 card = self.bot.game['player2Digi'][card_index][-1]
                 self.logger.info(f'{card_id} can\'t unsuspend until end of turn.')
                 await self.bot.send_message(ws, f"{card['name']} can\'t unsuspend until end of turn.")
+        prefix = 'start mp attack'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            card_id = await self.filter_target_digimon_action(ws, message.replace(prefix, prefix_with_delimiter))
+            if card_id:
+                card_index, _ = self.bot.find_card_index_by_id_in_battle_area(card_id)
+                for card in self.bot.game['player2Digi'][card_index]:
+                    self.bot.start_mp_attack.add(card['id'])
+                card = self.bot.game['player2Digi'][card_index][-1]
+                self.logger.info(f'{card_id} gains: Start of main phase, this digimon attacks.')
+                await self.bot.send_message(ws, f"{card['name']} gains: Start of main phase, this digimon attacks.")
         prefix = 'cant suspend'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):
