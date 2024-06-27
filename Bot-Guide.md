@@ -45,6 +45,8 @@ The position X is identified in the following way on the field:
 
 - **reveal security X**: Reveal the X card of opponent security, starting from the top.
 
+- **draw X**: Draw X cards from deck.
+
 - **reveal top deck**: Reveal the top card of the opponent deck.
 
 - **trash top deck X**: Trash the top X cards of the opponent deck.
