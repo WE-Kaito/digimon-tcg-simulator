@@ -1,16 +1,14 @@
-import Particles from "@tsparticles/react";
-import {ISourceOptions} from "@tsparticles/engine";
-import {useStore} from "../hooks/useStore.ts";
+import type { ISourceOptions } from "tsparticles-engine";
+import {Engine} from "tsparticles-engine";
+import {loadSlim} from "tsparticles-slim";
+import Particles from "react-particles";
+import {useCallback} from "react";
 
 export default function ParticlesBackground({options}: {readonly options: ISourceOptions}) {
 
-    const [particlesInit, particlesLoaded] = useStore((state) => [state.particlesInit, state.particlesLoaded]);
-
-    if (!particlesInit) return <></>
+    const particlesInit = useCallback(async (engine: Engine) => await loadSlim(engine), []);
 
     return (
-        <div style={{ zIndex: -1 }}>
-            <Particles id="tsparticles" particlesLoaded={particlesLoaded} options={options}/>
-        </div>
+        <Particles id="tsparticles" init={particlesInit} options={options}/>
     );
 }

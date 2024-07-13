@@ -14,20 +14,12 @@ import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
 import Game from "./pages/Game.tsx";
 import CustomToastContainer from "./components/CustomToastContainer.tsx";
-import {initParticlesEngine} from "@tsparticles/react";
-import {loadSlim} from "@tsparticles/slim";
 function App() {
 
     const me = useStore((state) => state.me);
     const user = useStore((state) => state.user);
-    const setParticlesInit = useStore((state) => state.setParticlesInit);
 
     useEffect(() => me(), [me]);
-
-    useEffect(() => {
-        initParticlesEngine(async (engine) => await loadSlim(engine)).then(() => setParticlesInit(true))
-        // eslint-disable-next-line
-    }, []);
 
     function isMobileDevice() {
         if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000) {

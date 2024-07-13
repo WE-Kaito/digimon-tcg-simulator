@@ -1,4 +1,4 @@
-import {ISourceOptions} from "@tsparticles/engine";
+import type { ISourceOptions } from "tsparticles-engine";
 
 export const blueTriangles: ISourceOptions = {
   "autoPlay": true,
@@ -188,16 +188,18 @@ export const blueTriangles: ISourceOptions = {
   "particles": {
     "bounce": {
       "horizontal": {
-        "value": {
-            "min": 0.1,
-            "max": 1
-        }
+        "random": {
+          "enable": false,
+          "minimumValue": 0.1
+        },
+        "value": 1
       },
       "vertical": {
-        "value": {
-            "min": 0.1,
-            "max": 1
-        }
+        "random": {
+          "enable": false,
+          "minimumValue": 0.1
+        },
+        "value": 1
       }
     },
     "collisions": {
@@ -206,16 +208,18 @@ export const blueTriangles: ISourceOptions = {
       },
       "bounce": {
         "horizontal": {
-          "value": {
-              "min": 0.1,
-              "max": 1
-          }
+          "random": {
+            "enable": false,
+            "minimumValue": 0.1
+          },
+          "value": 1
         },
         "vertical": {
-          "value": {
-              "min": 0.1,
-              "max": 1
-          }
+          "random": {
+            "enable": false,
+            "minimumValue": 0.1
+          },
+          "value": 1
         }
       },
       "enable": false,
@@ -292,6 +296,10 @@ export const blueTriangles: ISourceOptions = {
       "path": {
         "clamp": true,
         "delay": {
+          "random": {
+            "enable": false,
+            "minimumValue": 0
+          },
           "value": 0
         },
         "enable": false,
@@ -326,9 +334,14 @@ export const blueTriangles: ISourceOptions = {
         "width": 1920,
         "height": 1080
       },
+      "limit": 0,
       "value": 150
     },
     "opacity": {
+      "random": {
+        "enable": true,
+        "minimumValue": 0.3
+      },
       "value": {
         "min": 0.3,
         "max": 0.8
@@ -343,6 +356,7 @@ export const blueTriangles: ISourceOptions = {
         "mode": "auto",
         "startValue": "random",
         "destroy": "none",
+        "minimumValue": 0.3
       }
     },
     "reduceDuplicates": false,
@@ -364,6 +378,10 @@ export const blueTriangles: ISourceOptions = {
       "type": "diamonds"
     },
     "size": {
+      "random": {
+        "enable": true,
+        "minimumValue": 1
+      },
       "value": {
         "min": 1,
         "max": 3
@@ -378,12 +396,17 @@ export const blueTriangles: ISourceOptions = {
         "mode": "auto",
         "startValue": "random",
         "destroy": "none",
+        "minimumValue": 1
       }
     },
     "stroke": {
       "width": 0
     },
     "zIndex": {
+      "random": {
+        "enable": false,
+        "minimumValue": 0
+      },
       "value": 0,
       "opacityRate": 1,
       "sizeRate": 1,
