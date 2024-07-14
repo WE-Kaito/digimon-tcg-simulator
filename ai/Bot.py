@@ -1035,7 +1035,6 @@ class Bot(ABC):
                 self.game['player2Trash'].insert(0, card)
                 trashed_cards.append(card)
         await self.when_cards_are_trashed_from_deck(ws, trashed_cards)
-        self.logger.info(f"Trashed {card['uniqueCardNumber']} {card['name']} from top of deck.")
         return trashed_cards
 
     async def set_memory_to(self, ws, value):

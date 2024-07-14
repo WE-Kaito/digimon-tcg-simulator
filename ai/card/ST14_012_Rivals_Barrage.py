@@ -15,7 +15,7 @@ class ST14_012_Rivals_Barrage(Card):
                 digimon = self.bot.game['player1Digi'][i][-1]
                 opponent_digimons.append((digimon['level'], i, digimon['name']))
         if len(opponent_digimons) > 0:
-            await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons, reverse=True)[0])
+            await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons, reverse=True)[0][1])
         else:
             await self.bot.send_message(ws, 'No valid target.')
 
