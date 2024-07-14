@@ -30,10 +30,8 @@ function App() {
     }
 
     return (
-        <DndProvider backend={isMobileDevice()}>
-
+        <>
             <CustomToastContainer/>
-
                 <Routes>
                     <Route element={<ProtectedRoutes user={user}/>}>
                         <Route path="/" element={<MainMenu/>}/>
@@ -41,16 +39,18 @@ function App() {
                         <Route path="/deckbuilder" element={<Deckbuilder/>}/>
                         <Route path="/update-deck" element={<Deckbuilder isEditMode/>}/>
                         <Route path="/lobby" element={<Lobby user={user}/>}/>
-                        <Route path="/game" element={<Game user={user}/>}/>
+                        <Route path="/game" element={
+                            <DndProvider backend={isMobileDevice()}>
+                                <Game user={user}/>
+                            </DndProvider>
+                        }/>
                         <Route path="/*" element={<Navigate to="/"/>}/>
                     </Route>
 
-                <Route path="/login" element={<LoginPage/>}/>
-                <Route path="/recover-password" element={<RecoveryPage/>}/>
-
-            </Routes>
-
-        </DndProvider>
+                    <Route path="/login" element={<LoginPage/>}/>
+                    <Route path="/recover-password" element={<RecoveryPage/>}/>
+                </Routes>
+        </>
     )
 }
 
