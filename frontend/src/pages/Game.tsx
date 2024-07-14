@@ -646,12 +646,17 @@ export default function Game({user}: { user: string }) {
         return "";
     }
 
+    const [phaseLoading, setPhaseLoading] = useState(false);
+
     function nextPhase() {
+        if(phaseLoading) return;
+        setPhaseLoading(true);
         const timer = setTimeout(() => {
             setPhase();
             sendPhaseUpdate();
             playNextPhaseSfx();
             sendSfx("playNextPhaseSfx");
+            setPhaseLoading(false);
         }, 920);
         return () => clearTimeout(timer);
     }

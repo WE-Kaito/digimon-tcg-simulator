@@ -29,6 +29,7 @@ export type State = BoardState & {
     /**
     * Id and location of a card that is going to be sent to security or egg-deck
      * Retrieve this to use also in {@link setModifiers}
+     * Should be refactored.
      */
     cardToSend: {id: string, location: string},
     inheritCardInfo: string[],
@@ -489,12 +490,7 @@ export const useGame = create<State>()(
             })
     },
 
-    setMemory: (memory: number) => {
-        set({
-            myMemory: memory,
-            opponentMemory: -memory
-        })
-    },
+    setMemory: (memory: number) => set({ myMemory: memory, opponentMemory: -memory } ),
 
     setPhase: () => {
         const phase = get().phase;
@@ -613,7 +609,6 @@ export const useGame = create<State>()(
     },
 
     areCardsSuspended: (from) => {
-
         if (from) return (get()[from as keyof State] as CardTypeGame[]).some(card => card.isTilted)
 
         return get().myDigi1.some(card => card.isTilted)
@@ -627,20 +622,13 @@ export const useGame = create<State>()(
     },
 
     nextPhaseTrigger: (nextPhaseFunction, trigger) => {
-        //Workaround for problems with checking phase due to render cycle
         if (get().phase === Phase.MAIN || !get().isMyTurn) return;
 
-        if (get().phase === Phase.BREEDING && trigger === Phase.BREEDING) {
+        if ((get().phase === Phase.BREEDING && trigger === Phase.BREEDING)
+            || (get().phase === Phase.DRAW && trigger === Phase.DRAW)
+            || (get().phase === Phase.UNSUSPEND && !get().areCardsSuspended())) {
             nextPhaseFunction();
-            return;
         }
-
-        if (get().phase === Phase.DRAW && trigger === Phase.DRAW) {
-            nextPhaseFunction();
-            return;
-        }
-
-        if (get().phase === Phase.UNSUSPEND && !get().areCardsSuspended()) nextPhaseFunction()
     },
 
     unsuspendAll: (side) => {

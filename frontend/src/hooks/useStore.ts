@@ -22,8 +22,6 @@ import {generalToken} from "../utils/tokens.ts";
 import {Container} from "@tsparticles/engine";
 
 type State = {
-    particlesInit: boolean,
-    particlesLoaded: (container?: Container) => Promise<void | undefined>,
     fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
     isLoading: boolean,
@@ -43,7 +41,6 @@ type State = {
     deckIdToSetSleeveOrImage: string,
     selectedSleeveOrImage: string,
 
-    setParticlesInit: (particlesInit: boolean) => void,
     fetchCards: () => void,
     filterCards: SearchCards,
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
@@ -83,8 +80,6 @@ type State = {
 
 export const useStore = create<State>((set, get) => ({
 
-    particlesInit: false,
-    particlesLoaded: async (container?: Container) => container?.init(),
     fetchedCards: [],
     filteredCards: [],
     isLoading: false,
@@ -106,8 +101,6 @@ export const useStore = create<State>((set, get) => ({
     orderedDecks: [],
     deckIdToSetSleeveOrImage: "",
     selectedSleeveOrImage: "",
-
-    setParticlesInit: (particlesInit) => set({particlesInit}),
 
     fetchCards: () => {
         set({isLoading: true})

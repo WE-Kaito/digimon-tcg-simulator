@@ -14,20 +14,13 @@ import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
 import Game from "./pages/Game.tsx";
 import CustomToastContainer from "./components/CustomToastContainer.tsx";
-import {initParticlesEngine} from "@tsparticles/react";
-import {loadSlim} from "@tsparticles/slim";
+
 function App() {
 
     const me = useStore((state) => state.me);
     const user = useStore((state) => state.user);
-    const setParticlesInit = useStore((state) => state.setParticlesInit);
 
     useEffect(() => me(), [me]);
-
-    useEffect(() => {
-        initParticlesEngine(async (engine) => await loadSlim(engine)).then(() => setParticlesInit(true))
-        // eslint-disable-next-line
-    }, []);
 
     function isMobileDevice() {
         if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000) {
@@ -38,10 +31,8 @@ function App() {
     }
 
     return (
-        <DndProvider backend={isMobileDevice()}>
-
+        <>
             <CustomToastContainer/>
-
                 <Routes>
                     <Route element={<ProtectedRoutes user={user}/>}>
                         <Route path="/" element={<MainMenu/>}/>
@@ -49,16 +40,18 @@ function App() {
                         <Route path="/deckbuilder" element={<Deckbuilder/>}/>
                         <Route path="/update-deck" element={<Deckbuilder isEditMode/>}/>
                         <Route path="/lobby" element={<Lobby user={user}/>}/>
-                        <Route path="/game" element={<Game user={user}/>}/>
+                        <Route path="/game" element={
+                            <DndProvider backend={isMobileDevice()}>
+                                <Game user={user}/>
+                            </DndProvider>
+                        }/>
                         <Route path="/*" element={<Navigate to="/"/>}/>
                     </Route>
 
-                <Route path="/login" element={<LoginPage/>}/>
-                <Route path="/recover-password" element={<RecoveryPage/>}/>
-
-            </Routes>
-
-        </DndProvider>
+                    <Route path="/login" element={<LoginPage/>}/>
+                    <Route path="/recover-password" element={<RecoveryPage/>}/>
+                </Routes>
+        </>
     )
 }
 
