@@ -14,6 +14,7 @@ import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
 import Game from "./pages/Game.tsx";
 import CustomToastContainer from "./components/CustomToastContainer.tsx";
+
 function App() {
 
     const me = useStore((state) => state.me);

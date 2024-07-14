@@ -61,14 +61,30 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.HOST }}
-          REMOTE_USER: ${{ secrets.USERNAME }}
+          REMOTE_USER: ${{ vars.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
-  
-  deploy_bot:
-    name: Push Bot to Server
+          
+
+  start-server:
+    name: Start Server
     runs-on: ubuntu-latest
     needs: deploy
+    environment: Musubi
+    steps:
+      - uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ vars.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            sudo /usr/sbin/service project-drasil restart
+
+  deploy-bot:
+    name: Push Bot to Server
+    runs-on: ubuntu-latest
+    needs: start-server
     environment: Musubi
     steps:
       - name: Checkout the code
@@ -78,6 +94,6 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.HOST }}
-          REMOTE_USER: ${{ secrets.USERNAME }}
+          REMOTE_USER: ${{ vars.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: ai

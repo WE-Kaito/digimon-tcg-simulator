@@ -45,7 +45,10 @@ class BeelzemonXBot(Bot):
                     st14_11_ai_and_mako = self.card_factory.get_card(ai_and_mako_card['uniqueCardNumber'], card_id=ai_and_mako_card['id'])
                     await st14_11_ai_and_mako.your_turn_effect(ws)
 
-    async def when_card_is_trashed_from_deck(self, ws):
+    async def when_cards_are_trashed_from_deck(self, ws, trashed_cards):
+        for trashed_card in trashed_cards:
+            card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
+            await card_obj.when_trashed_effect(ws)
         self.logger.info('Checking if any ST14-08 trigger from trashing card.')
         st14_08_beelzemons_indices = self.cards_in_battle_area('ST14-08', 'Beelzemon')
         for st14_08_beelzemons_index in st14_08_beelzemons_indices:
@@ -76,11 +79,10 @@ class BeelzemonXBot(Bot):
     async def trashed_card_effect(self, ws, card):
         card_obj = self.card_factory.get_card(card['uniqueCardNumber'], card_id=card['id'])
         await card_obj.when_trashed_effect(ws)
-        await self.when_card_is_trashed_from_deck(ws)
 
     async def st14_07_baalmon_gained_on_deletion_effect(self, ws):
         await super().animate_effect(ws)
-        if len(self.bot.game['player2Trash']) >= 10:
+        if len(self.game['player2Trash']) >= 10:
             await self.st14_07_baalmon_deleted_strategy(ws)
 
     # TODO: Take into account attacker when deiciding blocker
@@ -416,15 +418,7 @@ class BeelzemonXBot(Bot):
                 self.return_card_from_trash_to_hand(ws, card_in_trash_index)
 
     async def bt10_081_baalmon_attacking_strategy(self, ws):
-        trashed_cards = []
-        for i in range(3):
-            if len(self.game['player2DeckField']) > 0:
-                time.sleep(0.3)
-                trashed_cards.append(await self.trash_top_card_of_deck(ws))
-        for trashed_card in trashed_cards:
-            card_obj = self.card_factory.get_card(trashed_card['uniqueCardNumber'], card_id=trashed_card['id'])
-            await card_obj.when_trashed_effect(ws)
-        await self.when_card_is_trashed_from_deck(ws)
+        trashed_cards = await self.trash_top_cards_of_deck(ws, 3)
     
     async def bt10_081_baalmon_deleted_strategy(self, ws):
         card_in_trash_index = self.card_in_trash('ST14-08', 'Beelzemon')
@@ -670,6 +664,16 @@ class BeelzemonXBot(Bot):
                 some_action = True
         return some_action
 
+    async def start_main_phase_strategy(self, ws):
+        must_attack = []
+        for i in range(len(self.game['player2Digi'])):
+            if len(self.game['player2Digi'][i]) > 0:
+                card = self.game['player2Digi'][i][-1]
+                if card['cardType'] == 'Digimon' and self.can_attack(card) and card['id'] in self.start_mp_attack:
+                    must_attack.append((card['level'], i))
+        for digimon in sorted(must_attack, reverse=True):
+            await self.attack_with_digimon(ws, digimon[1])
+
     async def main_phase_strategy(self, ws):
         self.logger.info('Prepare rookies in breed...')
         await self.prepare_rookies(ws)
@@ -727,27 +731,19 @@ class BeelzemonXBot(Bot):
             self.logger.info(f'---------------------DRAW PHASE---------------------')
             await self.draw_for_turn(ws, 1)
             await self.update_phase(ws)
-
-        # if self.turn_counter == 0:
-        #     self.logger.info('Cheating by retrieving cards from deck.')
-        #     cheater = Cheater(self)
-        #     await cheater.trash_all_cards_from_hand(ws)
-        #     await cheater.get_card_from_deck_in_hand(ws, 'BT2-068', 'Impmon')
-        #     await cheater.get_card_from_deck_in_hand(ws, 'ST14-06', 'Witchmon')
-        #     await cheater.get_card_from_deck_in_hand(ws, 'ST14-07', 'Baalmon')
-        #     await cheater.get_card_from_deck_in_hand(ws, 'ST14-08', 'Beelzemon')
         
         # Breeding phase
         self.logger.info(f'---------------------BREEDING PHASE---------------------')
         await self.breeding_phase_strategy(ws)
         await self.update_phase(ws)
 
-        # await cheater.get_card_from_deck_in_hand(ws, 'P-040', 'Purple Memory Boost!')
+        # Start of Main Phase
+        self.logger.info(f'---------------------START OF MAIN PHASE---------------------')
+        await self.start_main_phase_strategy(ws)
 
-        # Main 
+        # Main
         self.logger.info(f'---------------------MAIN PHASE---------------------')
         await self.main_phase_strategy(ws)
-
 
         # End turn
         await self.end_turn(ws)
