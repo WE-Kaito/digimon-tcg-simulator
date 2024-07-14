@@ -361,30 +361,31 @@ class BeelzemonXBot(Bot):
         return True
 
     # TODO: More clever choice of Beelzemon to evolve to
-    async def st14_02_impmon_strategy(self, ws, digimon_index):
+    async def st14_02_impmon_strategy(self, ws, card_id):
+        impmon_index, _ = self.find_card_index_by_id_in_battle_area(card_id)
         card_in_trash_index = self.card_in_trash('ST14-08', 'Beelzemon')
         if card_in_trash_index >= 0:
-            await self.digivolve(
-                ws, 'Digi', digimon_index, 'Trash',
-                card_in_trash_index, 4
-            )
             digivolution_card_obj = self.card_factory.get_card(
                 self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'],
-                digimon_index=digimon_index,
-                card_id=self.game['player2Trash']['id']
+                digimon_index=impmon_index,
+                card_id=self.game['player2Trash'][card_in_trash_index]['id']
+            )
+            await self.digivolve(
+                ws, 'Digi', impmon_index, 'Trash',
+                card_in_trash_index, 4
             )
             await digivolution_card_obj.when_digivolving_effect(ws)
             return
         card_in_trash_index = self.card_in_trash('EX2-044', 'Beelzemon')
         if card_in_trash_index >= 0:
-            await self.digivolve(
-                ws, 'Digi', digimon_index, 'Trash',
-                card_in_trash_index, 4
-            )
             digivolution_card_obj = self.card_factory.get_card(
                 self.game['player2Trash'][card_in_trash_index]['uniqueCardNumber'],
-                digimon_index=digimon_index,
-                card_id=self.game['player2Trash']['id']
+                digimon_index=impmon_index,
+                card_id=self.game['player2Trash'][card_in_trash_index]['id']
+            )
+            await self.digivolve(
+                ws, 'Digi', impmon_index, 'Trash',
+                card_in_trash_index, 4
             )
             await digivolution_card_obj.when_digivolving_effect(ws)
             
@@ -672,6 +673,7 @@ class BeelzemonXBot(Bot):
                 if card['cardType'] == 'Digimon' and self.can_attack(card) and card['id'] in self.start_mp_attack:
                     must_attack.append((card['level'], i))
         for digimon in sorted(must_attack, reverse=True):
+            await self.when_attacking_effects_strategy(ws, digimon[1])
             await self.attack_with_digimon(ws, digimon[1])
 
     async def main_phase_strategy(self, ws):
