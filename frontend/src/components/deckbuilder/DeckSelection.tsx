@@ -3,7 +3,7 @@ import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
 import {useStore} from "../../hooks/useStore.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
-import Card from "../Card.tsx";
+import DeckbuilderCard from "./DeckbuilderCard.tsx";
 import {getCardTypeImage, sortCards} from "../../utils/functions.ts";
 import {useSound} from "../../hooks/useSound.ts";
 
@@ -109,12 +109,11 @@ export default function DeckSelection() {
                                 const countBGTransform = index >= 4 ? index < 9 ? "translate(69px, 89px)" :  "translate(63px, 80px)" : "unset";
                                 if (index > 0) {
                                     if (group[index - 1]?.uniqueCardNumber === card.uniqueCardNumber) {
-                                        const pos = index < 3 ? 4*index : 4*3;
+                                        const pos = index < 3 ? 4 * index : 4 * 3;
                                         return <div key={card.id} style={{position: "absolute", left: pos, top: pos}}>
                                             {getAddAllowed(card, isFrontCard) && AddButton(card)}
-                                            {(hoverCard?.id === card.id) && ( isFrontCard
-                                                || cardsWithoutLimit.includes(card.cardNumber)) && DeleteButton(card.id)}
-                                            {index < 4 && <Card card={card} location={"deck"}/>}
+                                            {(hoverCard?.id === card.id) && (isFrontCard || cardsWithoutLimit.includes(card.cardNumber)) && DeleteButton(card.id)}
+                                            {index < 4 && <DeckbuilderCard card={card} location={"deck"}/>}
                                             {(group.length > 1) && isFrontCard && <CardstackCount style={{transform: countTransform}} length={group.length}>×{group.length}</CardstackCount>}
                                             {(group.length > 1) && isFrontCard && <CountBox style={{transform: countBGTransform}} length={group.length}/>}
                                         </div>
@@ -123,7 +122,7 @@ export default function DeckSelection() {
                                 return <div key={card.id} >
                                     {getAddAllowed(card, isFrontCard) && AddButton(card)}
                                     {(hoverCard?.id === card.id) && isFrontCard && DeleteButton(card.id)}
-                                    <Card card={card} location={"deck"}/>
+                                    <DeckbuilderCard card={card} location={"deck"}/>
                                 </div>
                             })}
                             </GroupContainer>
