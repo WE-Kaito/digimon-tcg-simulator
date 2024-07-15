@@ -19,7 +19,6 @@ import { avatars } from "../utils/avatars.ts";
 import {DeckIdOrder} from "../pages/Profile.tsx";
 import {Dispatch, SetStateAction} from "react";
 import {generalToken} from "../utils/tokens.ts";
-import {Container} from "@tsparticles/engine";
 
 type State = {
     fetchedCards: CardTypeWithId[],
