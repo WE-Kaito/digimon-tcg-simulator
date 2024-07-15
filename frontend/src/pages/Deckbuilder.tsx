@@ -30,6 +30,7 @@ export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
         setCurrentDeckLength(decks.length);
         if (isEditMode) setDeckName(nameOfDeckToEdit);
     }, [decks.length, fetchCards, fetchDecks, isEditMode, nameOfDeckToEdit]);
+
     useEffect(() => initialFetch(), [initialFetch]);
 
     return (

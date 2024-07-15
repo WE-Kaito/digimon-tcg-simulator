@@ -22,7 +22,7 @@ function App() {
 
     useEffect(() => me(), [me]);
 
-    function isMobileDevice() {
+    function getDndBackend() {
         if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000) {
             return TouchBackend;
         } else {
@@ -37,19 +37,11 @@ function App() {
                     <Route element={<ProtectedRoutes user={user}/>}>
                         <Route path="/" element={<MainMenu/>}/>
                         <Route path="/profile" element={<Profile user={user}/>}/>
-                        <Route path="/deckbuilder" element={
-                            <DndProvider backend={isMobileDevice()}>
-                                <Deckbuilder/>
-                            </DndProvider>
-                        }/>
-                        <Route path="/update-deck" element={
-                            <DndProvider backend={isMobileDevice()}>
-                                <Deckbuilder isEditMode/>
-                            </DndProvider>
-                        }/>
+                        <Route path="/deckbuilder" element={<Deckbuilder/>}/>
+                        <Route path="/update-deck" element={<Deckbuilder isEditMode/>}/>
                         <Route path="/lobby" element={<Lobby user={user}/>}/>
                         <Route path="/game" element={
-                            <DndProvider backend={isMobileDevice()}>
+                            <DndProvider backend={getDndBackend()}>
                                 <Game user={user}/>
                             </DndProvider>
                         }/>
