@@ -37,8 +37,16 @@ function App() {
                     <Route element={<ProtectedRoutes user={user}/>}>
                         <Route path="/" element={<MainMenu/>}/>
                         <Route path="/profile" element={<Profile user={user}/>}/>
-                        <Route path="/deckbuilder" element={<Deckbuilder/>}/>
-                        <Route path="/update-deck" element={<Deckbuilder isEditMode/>}/>
+                        <Route path="/deckbuilder" element={
+                            <DndProvider backend={isMobileDevice()}>
+                                <Deckbuilder/>
+                            </DndProvider>
+                        }/>
+                        <Route path="/update-deck" element={
+                            <DndProvider backend={isMobileDevice()}>
+                                <Deckbuilder isEditMode/>
+                            </DndProvider>
+                        }/>
                         <Route path="/lobby" element={<Lobby user={user}/>}/>
                         <Route path="/game" element={
                             <DndProvider backend={isMobileDevice()}>
