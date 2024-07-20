@@ -58,7 +58,6 @@ export default function Card( props : CardProps ) {
     const setHoverCard = useStore((state) => state.setHoverCard);
     const tiltCard = useGame((state) => state.tiltCard);
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
-    const addCardToDeck = useStore((state) => state.addCardToDeck);
     const opponentReady = useGame((state) => state.opponentReady);
     const hoverCard = useStore((state) => state.hoverCard)
     const cardIdWithEffect = useGame((state) => state.cardIdWithEffect);
@@ -69,7 +68,6 @@ export default function Card( props : CardProps ) {
     const setCardToSend = useGame((state) => state.setCardToSend);
     const getCardLocationById = useGame((state) => state.getCardLocationById);
 
-    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
 
@@ -146,16 +144,8 @@ export default function Card( props : CardProps ) {
 
     function handleClick(event: React.MouseEvent) {
         event.stopPropagation();
-        if (location === "fetchedData") {
-            addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
-            playPlaceCardSfx();
-
-            if (('ontouchstart' in window || navigator.maxTouchPoints) && window.innerWidth < 1000
-                && card.id === selectedCard?.id) handleTiltCard(); // 'double click' on mobile
-        } else {
-            selectCard(card);
-            if (inheritAllowed) setInheritCardInfo(inheritedEffects);
-        }
+        selectCard(card);
+        if (inheritAllowed) setInheritCardInfo(inheritedEffects);
     }
 
     function handleHover() {
@@ -275,11 +265,11 @@ type StyledImageProps = {
 }
 
 const StyledImage = styled.img<StyledImageProps>`
-  width: ${({location}) => ((location === "deck" || location === "fetchedData") ? "63px" : "95px")};
-  max-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : location === "deck" ? "130px" : "unset")};
+  width: 95px;
+  max-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : "unset")};
   border-radius: 5px;
   transition: all 0.15s ease-out;
-  cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : location === "deck" ? "help" : (location === "fetchedData" ? "cell" : "grab"))};
+  cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : "grab")};
   opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
   filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
   animation: ${({

@@ -50,7 +50,7 @@ public class ChatService extends TextWebSocketHandler {
         }
 
         if (activeSessions.stream().anyMatch(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username))) {
-            session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected!"));
+            session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected in another tab."));
             return;
         }
         activeSessions.add(session);
