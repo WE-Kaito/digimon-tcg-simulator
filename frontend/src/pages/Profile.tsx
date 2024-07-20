@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import {useStore} from "../hooks/useStore.ts";
-import {useCallback, useEffect, useState} from "react";
+import {Fragment, useCallback, useEffect, useState} from "react";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
@@ -29,6 +29,7 @@ export default function Profile({user}: { user: string }) {
     const isLoading = useStore((state) => state.isLoading);
     const clearDeck = useStore((state) => state.clearDeck);
 
+    const [renderAddButton, setRenderAddButton] = useState(false);
     const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);
     const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
     const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
@@ -60,6 +61,10 @@ export default function Profile({user}: { user: string }) {
     const stableLoadOrderedDecks = useCallback(() => loadOrderedDecks(setOrderedDecks), [loadOrderedDecks]);
     useEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
 
+    useEffect(() => {
+        if (!isLoading && !orderedDecks.length) () => setRenderAddButton(true)
+    }, [isLoading]);
+
     return (
         <MenuBackgroundWrapper>
             <Stack minHeight={"100vh"} height={"100%"} pt={"20px"} justifyContent={"flex-start"}>
@@ -72,13 +77,14 @@ export default function Profile({user}: { user: string }) {
                 <UserSettings/>
 
                 <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
-                        sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)", overflow: "hidden" }}}>
+                        sx={{background: "rgba(18,35,66,0.6)"}}
+                        PaperProps={{sx: {background: "rgb(12,12,12)", overflow: "hidden"}}}>
                     <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
                     <ChooseCardSleeve/>
                 </Dialog>
 
                 <Dialog maxWidth={"xl"} onClose={handleOnClose} open={imageSelectionOpen}
-                        sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
+                        sx={{background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: {background: "rgb(12,12,12)"}}}>
                     <CustomDialogTitle handleOnClose={handleOnClose} variant={"Image"}/>
                     <ChooseDeckImage/>
                 </Dialog>
@@ -87,7 +93,7 @@ export default function Profile({user}: { user: string }) {
 
                 <DeckHeaderContainer>
                     <span>Decks</span>
-                    <hr style={{width: "100vw", maxWidth:1204}}/>
+                    <hr style={{width: "100vw", maxWidth: 1204}}/>
                 </DeckHeaderContainer>
 
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -96,14 +102,21 @@ export default function Profile({user}: { user: string }) {
                             ? <Loading/>
                             : <>
                                 <SortableContext items={orderedDecks}>
-                                 {orderedDecks?.map((deck) =>
-                                     <SortableProfileDeck key={deck.id} deck={deck}
-                                                          setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                                          setImageSelectionOpen={setImageSelectionOpen}
-                                     />
-                                 )}
+                                    {orderedDecks?.map((deck, index) =>
+                                        <Fragment key={deck.id}>
+                                            <SortableProfileDeck deck={deck}
+                                                                 setSleeveSelectionOpen={setSleeveSelectionOpen}
+                                                                 setImageSelectionOpen={setImageSelectionOpen}
+                                            />
+                                            {(index === orderedDecks.length - 1) && orderedDecks.length < 16 &&
+                                                <NewDeckButton onClick={toDeckBuilder}>
+                                                    <AddBoxRoundedIcon/>
+                                                </NewDeckButton>
+                                            }
+                                        </Fragment>
+                                    )}
                                 </SortableContext>
-                                {orderedDecks.length < 16 &&
+                                {renderAddButton &&
                                     <NewDeckButton onClick={toDeckBuilder}>
                                         <AddBoxRoundedIcon/>
                                     </NewDeckButton>
@@ -126,7 +139,7 @@ const Container = styled.div`
   background: rgba(0, 0, 0, 0);
   scrollbar-width: none;
   max-width: 1204px;
-  
+
   ::-webkit-scrollbar {
     visibility: hidden;
   }
@@ -154,7 +167,7 @@ const DeckHeaderContainer = styled.div`
   width: 100vw;
   max-width: 1204px;
   margin-top: 20px;
-  
+
   span {
     color: #1d7dfc;
     line-height: 1;
@@ -191,6 +204,7 @@ const NewDeckButton = styled.div`
 
   &:hover {
     background: linear-gradient(20deg, rgba(87, 171, 255, 0.12) 0%, rgba(93, 159, 236, 0.12) 70%, rgba(94, 187, 245, 0.22) 100%);
+
     .MuiSvgIcon-root {
       color: rgba(0, 191, 165, 0.9);
       font-size: 110px;
@@ -201,6 +215,7 @@ const NewDeckButton = styled.div`
     height: 170px;
     width: 270px;
     margin: 5px;
+
     .MuiSvgIcon-root {
       font-size: 100px;
     }
