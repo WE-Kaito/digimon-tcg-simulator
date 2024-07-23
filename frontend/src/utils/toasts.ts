@@ -58,6 +58,14 @@ export const notifyAlreadyExists = () => toast.error("Username already exists!",
     pauseOnHover: true,
 });
 
+export const notifyInvalidUsername = () => toast.error("Invalid username!", {
+    position: "top-center",
+    autoClose: 3000,
+    hideProgressBar: true,
+    closeOnClick: true,
+    pauseOnHover: true,
+});
+
 export const notifyRegistered = () => toast.success('Registered!', {
     position: "top-center",
     autoClose: 2000,
