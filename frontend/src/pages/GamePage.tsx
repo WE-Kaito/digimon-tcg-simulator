@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import {Stack, useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
 import {useEffect, useRef, useState} from "react";
+import PlayerBoardSide from "../components/game/PlayerBoardSide.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -56,8 +57,15 @@ export default function GamePage() {
                     </DetailsContainer>
                     <BoardContainer ref={boardContainerRef} isMobile={isMobile}>
                         <BoardLayout isMobile={isMobile} maxWidth={boardMaxWidth}>
-                            <span style={{fontSize: 40}}>CARD CONTENT DIGIMON CARDS</span>
-                            </BoardLayout>
+                            {/* Opponent Side: */}
+                            <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 4" }}/>
+                            {/* Memory Bar: */}
+                            <div style={{ background: "yellow", gridColumn: "4 / 26", gridRow: 4 }}/>
+                            {/* Phase Button: */}
+                            <div style={{ background: "orange", gridColumn: "27 / 33", gridRow: 4 }}/>
+                            {/* My Side: */}
+                            <PlayerBoardSide />
+                        </BoardLayout>
                     </BoardContainer>
                 </MainStack>
 
@@ -72,8 +80,6 @@ export default function GamePage() {
                     <ChatContainer isMobile={isMobile}>Chat</ChatContainer>
                 </BottomStack>
             </Stack>
-
-
         </>
     );
 }
@@ -133,8 +139,6 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(47, 45, 45, 0.45);
-  border-radius: 15px;
   min-height: 450px;
   width: ${({isMobile}) => isMobile ? "unset" : "calc(100vw - 400px)"}; // 400px = Details width, may change
   height: ${({isMobile}) => isMobile ? "fit-content" : "calc(100vh - 230px)"};
@@ -157,16 +161,24 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
 `;
 
 const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
-  background: linear-gradient(to right, blue, lightblue);
   aspect-ratio: 19 / 9;
   width: ${({isMobile}) => isMobile ? "unset" : "100%"};
   max-width: ${({maxWidth}) => maxWidth};
   min-height: ${({isMobile}) => isMobile ? "450px" : "unset"};
   max-height: 100%;
   
+  background: rgba(47, 45, 45, 0.45);
+  border-radius: 15px;
+  padding: 5px;
+  
+  display: grid;
+  grid-template-columns: repeat(35, 1fr);
+  grid-template-rows: repeat(7, 1fr); // 3 per player (half of their rows), 1 for memory and phase buttons
+
   @container board-container (max-width: 900px) {
     width: unset;
     height: 100%;
+    border-radius: unset;
   }
   @media (max-height: 499px) {
     min-height: 100vh;
