@@ -2,7 +2,7 @@ import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
 import {Stack, useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -13,13 +13,27 @@ const mediaQueries = [
 ].join(',');
 
 export default function GamePage() {
-
     const isMobile = useMediaQuery(mediaQueries);
     const isPortrait = useMediaQuery('(orientation: portrait)');
+
     const boardContainerRef = useRef<HTMLDivElement>(null);
+    const [boardMaxWidth, setBoardMaxWidth] = useState('unset');
+
+    function calculateMaxWidth() {
+        const container = boardContainerRef.current;
+        if (container) {
+            const { clientHeight: height, clientWidth: width } = container;
+            const calculatedMaxWidth = width > height * (19 / 9) ? `${height * (19 / 9)}px` : 'unset';
+            setBoardMaxWidth(calculatedMaxWidth);
+        }
+    }
 
     useEffect(() => boardContainerRef.current?.scrollTo(boardContainerRef.current?.scrollWidth / 3, 0), [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
+    useEffect(() => {
+        window.addEventListener('resize', calculateMaxWidth);
+        return () => window.removeEventListener('resize', calculateMaxWidth);
+    }, []);
 
     return (
         <>
@@ -41,9 +55,9 @@ export default function GamePage() {
                         <div style={{background: "aquamarine", aspectRatio: "1 / 1", width: 400, height: 500 }}>Details</div>
                     </DetailsContainer>
                     <BoardContainer ref={boardContainerRef} isMobile={isMobile}>
-                        <ExampleBoard isMobile={isMobile}>
-                            <span style={{fontSize: 40}}>COARD CONTENT DIGIMON CARDS</span>
-                            </ExampleBoard>
+                        <BoardLayout isMobile={isMobile} maxWidth={boardMaxWidth}>
+                            <span style={{fontSize: 40}}>CARD CONTENT DIGIMON CARDS</span>
+                            </BoardLayout>
                     </BoardContainer>
                 </MainStack>
 
@@ -121,7 +135,7 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
   align-items: center;
   background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
-  min-height: 500px;
+  min-height: 450px;
   width: ${({isMobile}) => isMobile ? "unset" : "calc(100vw - 400px)"}; // 400px = Details width, may change
   height: ${({isMobile}) => isMobile ? "fit-content" : "calc(100vh - 230px)"};
   
@@ -142,11 +156,12 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
   }
 `;
 
-const ExampleBoard = styled.div<{ isMobile: boolean }>`
+const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   background: linear-gradient(to right, blue, lightblue);
   aspect-ratio: 19 / 9;
   width: ${({isMobile}) => isMobile ? "unset" : "100%"};
-  min-height: ${({isMobile}) => isMobile ? "500px" : "unset"};
+  max-width: ${({maxWidth}) => maxWidth};
+  min-height: ${({isMobile}) => isMobile ? "450px" : "unset"};
   max-height: 100%;
   
   @container board-container (max-width: 900px) {
