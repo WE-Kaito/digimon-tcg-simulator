@@ -58,11 +58,11 @@ export default function GamePage() {
                     <BoardContainer ref={boardContainerRef} isMobile={isMobile}>
                         <BoardLayout isMobile={isMobile} maxWidth={boardMaxWidth}>
                             {/* Opponent Side: */}
-                            <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 4" }}/>
+                            <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 7" }}/>
                             {/* Memory Bar: */}
-                            <div style={{ background: "yellow", gridColumn: "4 / 26", gridRow: 4 }}/>
+                            <div style={{ background: "yellow", gridColumn: "4 / 26", gridRow: "7 / 9" }}/>
                             {/* Phase Button: */}
-                            <div style={{ background: "orange", gridColumn: "27 / 33", gridRow: 4 }}/>
+                            <div style={{ background: "orange", gridColumn: "27 / 33", gridRow: "7 / 9" }}/>
                             {/* My Side: */}
                             <PlayerBoardSide />
                         </BoardLayout>
@@ -173,7 +173,7 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   
   display: grid;
   grid-template-columns: repeat(35, 1fr);
-  grid-template-rows: repeat(7, 1fr); // 3 per player (half of their rows), 1 for memory and phase buttons
+  grid-template-rows: repeat(14, 1fr);
 
   @container board-container (max-width: 900px) {
     width: unset;
