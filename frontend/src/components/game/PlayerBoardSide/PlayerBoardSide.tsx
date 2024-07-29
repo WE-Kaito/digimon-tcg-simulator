@@ -1,11 +1,13 @@
 import styled from "@emotion/styled";
 import SecurityStack from "./SecurityStack.tsx";
+import PlayerHand from "./PlayerHand.tsx";
 
 export default function PlayerBoardSide() {
     return (
         <LayoutContainer>
 
-            <SecurityStack/>
+            <SecurityStack />
+            <PlayerHand />
         </LayoutContainer>
     );
 }
@@ -13,7 +15,6 @@ export default function PlayerBoardSide() {
 const LayoutContainer = styled.div`
   grid-column: 1 / -1;
   grid-row: 9 / 15;
-  background: lightblue;
   display: grid;
   grid-template-columns: subgrid;
   grid-template-rows: subgrid;

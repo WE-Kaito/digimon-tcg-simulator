@@ -1,8 +1,8 @@
 import UnsuspendIcon from "@mui/icons-material/ScreenRotation";
-import {useGame} from "../../hooks/useGame.ts";
-import {Phase} from "../../utils/types.ts";
+import {useGame} from "../../../hooks/useGame.ts";
+import {Phase} from "../../../utils/types.ts";
 import styled from "@emotion/styled";
-import {useSound} from "../../hooks/useSound.ts";
+import {useSound} from "../../../hooks/useSound.ts";
 
 type Props = {
     sendSfx: (sfx: string) => void;

@@ -12,8 +12,8 @@ import {useStore} from "./hooks/useStore.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
-import Game from "./pages/Game.tsx";
 import CustomToastContainer from "./components/CustomToastContainer.tsx";
+import GamePage from "./pages/GamePage.tsx";
 
 function App() {
 
@@ -42,7 +42,7 @@ function App() {
                         <Route path="/lobby" element={<Lobby user={user}/>}/>
                         <Route path="/game" element={
                             <DndProvider backend={getDndBackend()}>
-                                <Game user={user}/>
+                                    <GamePage/>
                             </DndProvider>
                         }/>
                         <Route path="/*" element={<Navigate to="/"/>}/>

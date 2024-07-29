@@ -1,7 +1,6 @@
 import {CardTypeWithId} from "../../utils/types.ts";
 import styled from '@emotion/styled';
 import {useStore} from "../../hooks/useStore.ts";
-import {getCardSize} from "../../utils/functions.ts";
 import {MouseEvent, useState} from "react";
 import cardBackSrc from "../../assets/cardBack.jpg";
 import {useSound} from "../../hooks/useSound.ts";
@@ -71,7 +70,7 @@ const StyledImage = styled.img<{ location: string }>`
   }
   
   @media (min-width: 1000px) {
-    width: ${({location}) => getCardSize(location)};
+    width: ${({location}) => (location === "deck" ? "5.9vw" : "105px")};
   }
 
   @media (max-width: 700px) and (min-height: 800px) {

@@ -1,12 +1,12 @@
 import {Stack, Tooltip, Zoom as MuiZoom} from "@mui/material";
-import Card from "../Card.tsx";
-import {getSleeve} from "../../utils/sleeves.ts";
-import mySecurityAnimation from "../../assets/lotties/mySecurity.json";
-import opponentSecurityAnimation from "../../assets/lotties/opponentSecurity.json";
+import Card from "../../Card.tsx";
+import {getSleeve} from "../../../utils/sleeves.ts";
+import mySecurityAnimation from "../../../assets/lotties/mySecurity.json";
+import opponentSecurityAnimation from "../../../assets/lotties/opponentSecurity.json";
 import {Fragment, useEffect, useRef, useState} from "react";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
-import {useGame} from "../../hooks/useGame.ts";
+import {useGame} from "../../../hooks/useGame.ts";
 import {useContextMenu} from "react-contexify";
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 
@@ -30,6 +30,7 @@ export default function SecurityStack({isOpponent = false, sendSecurityReveal}: 
     }
 
     useEffect(() => {
+        calculateFontSize();
         window.addEventListener('resize', calculateFontSize);
         return () => window.removeEventListener('resize', calculateFontSize);
     }, []);
@@ -41,7 +42,7 @@ export default function SecurityStack({isOpponent = false, sendSecurityReveal}: 
     const SpanComponent = isOpponent ? OpponentSecuritySpan : MySecuritySpan;
 
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
-    // replace with dropRef later / either ref as prop or directly call hook?
+    // replace with dropToSecurityRef later / either ref as prop or directly call hook?
     return (
         <StyledDiv ref={containerRef}>
             <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
@@ -109,7 +110,7 @@ const MySecuritySpan = styled(OpponentSecuritySpan)`
   transition: all 0.15s ease;
   &:hover {
     filter: drop-shadow(0 0 5px #1b82e8) saturate(1.5);
-    font-size: 165%;
+    scale: 1.1;
     color: #f9f9f9;
   }
 `;

@@ -6,7 +6,6 @@ import {useGame} from "../hooks/useGame.ts";
 import {
     arraysEqualUnordered,
     getCardColor,
-    getCardSize,
     getNumericModifier,
     numbersWithModifiers,
     topCardInfo
@@ -47,11 +46,12 @@ type CardProps = {
     draggedCards?: CardTypeGame[],
     setDraggedCards?: (cards: CardTypeGame[]) => void
     handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void,
-    setImageError?: (imageError: boolean) => void
+    setImageError?: (imageError: boolean) => void,
+    width?: number
 }
 
 export default function Card( props : CardProps ) {
-    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError} = props;
+    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError, width = 95} = props;
 
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
@@ -249,6 +249,7 @@ export default function Card( props : CardProps ) {
                     setCardImageUrl(cardBackSrc);
                 }}
                 onContextMenu={() => myBALocations.includes(location) && setCardToSend(card.id, location)}
+                width={width}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
@@ -265,7 +266,6 @@ type StyledImageProps = {
 }
 
 const StyledImage = styled.img<StyledImageProps>`
-  width: 95px;
   max-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : "unset")};
   border-radius: 5px;
   transition: all 0.15s ease-out;
@@ -331,25 +331,6 @@ const StyledImage = styled.img<StyledImageProps>`
     70% {
       filter: drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1);
     }
-  }
-
-  @media (min-width: 500px) {
-    min-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "unset" : "85px")};
-  }
-
-  @media (min-width: 768px) {
-    width: ${({location}) => ((location === "myTrash" || location === "opponentTrash") ? "105px" : "95px")};
-  }
-
-  @media (min-width: 1000px) {
-    width: ${({location}) => getCardSize(location)};
-  }
-
-  @media (max-width: 700px) and (min-height: 800px) {
-    width: 80px;
-  }
-  @media (max-width: 390px) {
-    width: 61px;
   }
 `;
 
