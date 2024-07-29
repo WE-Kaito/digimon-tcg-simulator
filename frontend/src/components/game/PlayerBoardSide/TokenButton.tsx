@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import styled from "@emotion/styled";
-import hackmonButton from "../../assets/hackmon-chip.png";
+import hackmonButton from "../../../assets/hackmon-chip.png";
 import { uid } from "uid";
 import { List, ListItem, ListItemButton, ListItemText, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
-import { useGame } from "../../hooks/useGame.ts";
-import { tokenCollection } from "../../utils/tokens.ts";
-import { CardType } from "../../utils/types.ts";
+import { useGame } from "../../../hooks/useGame.ts";
+import { tokenCollection } from "../../../utils/tokens.ts";
+import { CardType } from "../../../utils/types.ts";
 import { styled as muiStyled } from "@mui/material/styles";
-import {useSound} from "../../hooks/useSound.ts";
+import {useSound} from "../../../hooks/useSound.ts";
 
 function TokenList({ handleCreateToken, onClose }: { handleCreateToken: (token: CardType) => void; onClose: () => void; }) {
     return (

@@ -45,11 +45,14 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
     return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 10 - handCardLength / 3 + handCardLength / 10 + "px" : offset + "px";
 }
 
-export function calculateCardOffsetX(handCardLength: number, index: number) {
-    if (handCardLength === 1) return "150px";
-    if (handCardLength === 2) return (index * 200) / handCardLength + 80 + "px";
-    if (handCardLength === 3) return (index * 300) / handCardLength + 50 + "px";
-    if (handCardLength >= 4) return (index * 400) / handCardLength + "px";
+export function calculateCardOffsetX(handCardLength: number, index: number, cardWidth: number) {
+    const baseCardWidth = 70; // This is the card width that the were originally based on.
+    const scale = cardWidth / baseCardWidth;
+
+    if (handCardLength === 1) return `${150 * scale}px`;
+    if (handCardLength === 2) return `${(index * 150 * scale) / handCardLength + 80 * scale}px`;
+    if (handCardLength === 3) return `${(index * 250 * scale) / handCardLength + 50 * scale}px`;
+    if (handCardLength >= 4) return `${(index * 350 * scale) / handCardLength}px`;
 }
 
 export function topCardInfo(locationCards: CardTypeGame[]) {
@@ -177,23 +180,6 @@ function compareCardTypes(a: CardTypeWithId, b: CardTypeWithId) {
     if (aTypeOrder > bTypeOrder) return 1;
 
     return 0;
-}
-
-export function getCardSize(location: string) {
-    switch (location) {
-        case "myTrash":
-            return "105px";
-        case "mySecurity":
-            return "105px";
-        case "opponentTrash":
-            return "105px";
-        case "deck":
-            return "5.9vw";
-        case "fetchedData":
-            return "105px";
-        default:
-            return "95px";
-    }
 }
 
 export function convertForLog(location: string) {

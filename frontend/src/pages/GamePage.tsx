@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import {Stack, useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
 import {useEffect, useRef, useState} from "react";
-import PlayerBoardSide from "../components/game/PlayerBoardSide.tsx";
+import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
