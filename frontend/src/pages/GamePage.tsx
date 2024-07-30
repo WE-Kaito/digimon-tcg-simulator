@@ -40,11 +40,7 @@ export default function GamePage() {
 
     useEffect(() => boardContainerRef.current?.scrollTo(boardContainerRef.current?.scrollWidth / 3, 0), [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
-    useEffect(() => {
-        calculateMaxWidth();
-        window.addEventListener('resize', calculateMaxWidth);
-        return () => window.removeEventListener('resize', calculateMaxWidth);
-    }, []);
+    useEffect(() => calculateMaxWidth(), [boardContainerRef]);
 
     return (
         <>
@@ -130,7 +126,7 @@ const BottomStack = styled.div<{ isMobile: boolean }>`
 const DetailsContainer = styled.div<{ isMobile: boolean }>`
   display: flex;
   max-height: ${({isMobile}) => isMobile ? "fit-content" : "calc(100vh - 230px)"};
-  min-width: 400px;
+  min-width: 402px;
   flex-direction: ${({isMobile}) => isMobile ? "row" : "column"};
   justify-content: ${({isMobile}) => isMobile ? "center" : "flex-start"};
   align-items: center;
