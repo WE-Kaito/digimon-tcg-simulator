@@ -62,9 +62,11 @@ const Container = styled.div`
   width: 100%;
   height: 100%;
   transform: translate(0px, 0px); // eye icon??
+  position: relative;
 `;
 
 const StyledList = styled.ul<{ cardCount: number }>`
+  position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -72,7 +74,6 @@ const StyledList = styled.ul<{ cardCount: number }>`
   max-width: 100%;
   height: 100%;
   list-style-type: none;
-  position: relative;
   transform: translateX(${({cardCount}) => cardCount > 23 ? "-2%" : "0"});
 `;
 
