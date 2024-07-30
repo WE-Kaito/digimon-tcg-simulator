@@ -10,7 +10,7 @@ import {calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation } from
 export default function PlayerHand() {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
 
-    const [isHandHidden, setIsHandHidden] = useState<boolean>(true);
+    const [isHandHidden, setIsHandHidden] = useState<boolean>(false);
     const myHand = useGame((state) => state.myHand);
     const mySleeve = useGame((state) => state.mySleeve);
 
@@ -48,7 +48,7 @@ export default function PlayerHand() {
                                 : <Card card={card} location={"myHand"} width={cardWidth}/>}
                         </ListItem>)}
                 </StyledList>
-                {myHand.length > 5 && <StyledSpan>{myHand.length}</StyledSpan>}
+                <StyledSpan cardCount={myHand.length}>{myHand.length}</StyledSpan>
             </Container>
         </>
     );
@@ -109,10 +109,10 @@ const EyeButtonContainer = styled.div`
   z-index: 3;
 `;
 
-const HideHandIconButton = styled.button<{ isActive: boolean}>`
+const HideHandIconButton = styled.button<{ isActive: boolean }>`
   position: absolute;
   left: -5%;
-  bottom: -17%;
+  bottom: -25%;
   display: flex;
   opacity: ${({isActive}) => isActive ? 0.85 : 0.25};
   color: ${({isActive}) => isActive ? "rgba(190,39,85,1)" : "unset"};
@@ -129,13 +129,14 @@ const HideHandIconButton = styled.button<{ isActive: boolean}>`
   }
 `;
 
-const StyledSpan = styled.span`
+const StyledSpan = styled.span<{ cardCount: number }>`
   font-family: Awsumsans, sans-serif;
   font-style: italic;
   font-size: 20px;
   opacity: 0.4;
-
+  visibility: ${({cardCount}) => cardCount > 5 ? "visible" : "hidden"};
   position: absolute;
-  bottom: 7px;
-  left: 223px;
+  bottom: ${({cardCount}) => cardCount > 23 ? "unset" : "5%"};
+  top: ${({cardCount}) => cardCount > 23 ? "-10%" : "unset"};
+  left: ${({cardCount}) => cardCount > 23 ? "83.5%" : "50%"};
 `;

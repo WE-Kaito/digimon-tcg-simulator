@@ -4,6 +4,9 @@ import {Stack, useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
 import {useEffect, useRef, useState} from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
+import {useStore} from "../hooks/useStore.ts";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import {useContextMenu} from "react-contexify";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -14,6 +17,12 @@ const mediaQueries = [
 ].join(',');
 
 export default function GamePage() {
+    const selectCard = useStore((state) => state.selectCard);
+    const selectedCard = useStore((state) => state.selectedCard);
+    const hoverCard = useStore((state) => state.hoverCard);
+
+    const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
+
     const isMobile = useMediaQuery(mediaQueries);
     const isPortrait = useMediaQuery('(orientation: portrait)');
 
@@ -53,8 +62,9 @@ export default function GamePage() {
 
                 <MainStack isMobile={isMobile}>
                     <DetailsContainer isMobile={isMobile}>
-                        <StyledCardImg src={carbackSrc} alt={"cardImg"} isMobile={isMobile}/>
-                        <div style={{background: "aquamarine", aspectRatio: "1 / 1", width: 400, height: 500 }}>Details</div>
+                        {isMobile && <MobileCardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} style={{ height: 450}}
+                                        alt={"cardImg"}/>}
+                        <CardDetails/>
                     </DetailsContainer>
                     <BoardContainer ref={boardContainerRef} isMobile={isMobile}>
                         <BoardLayout isMobile={isMobile} maxWidth={boardMaxWidth}>
@@ -71,11 +81,18 @@ export default function GamePage() {
                 </MainStack>
 
                 <BottomStack isMobile={isMobile}>
+                    {!isMobile && <ImgContainer>
+                        <DesktopCardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
+                                        onContextMenu={(e) => showDetailsImageMenu({event: e})}
+                                        onClick={() => selectCard(null)}
+                                        style={{ pointerEvents: !(selectedCard || hoverCard) ? "none" : "unset"}}/>
+                    </ImgContainer>
+                    }
                     {!isMobile && <div style={{
                         background: "darkolivegreen",
                         height: "fit-content",
                         maxHeight: "100%",
-                        width: 340,
+                        width: 293,
                     }}>Settings</div>}
                     <LogContainer isMobile={isMobile}>Log</LogContainer>
                     <ChatContainer isMobile={isMobile}>Chat</ChatContainer>
@@ -107,14 +124,15 @@ const BottomStack = styled.div<{ isMobile: boolean }>`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  height: ${({isMobile}) => isMobile ? "100%" : "200px"};
+  height: ${({isMobile}) => isMobile ? "fit-content" : "150px"};
 ;`
 
 const DetailsContainer = styled.div<{ isMobile: boolean }>`
   display: flex;
+  max-height: ${({isMobile}) => isMobile ? "fit-content" : "calc(100vh - 230px)"};
+  min-width: 400px;
   flex-direction: ${({isMobile}) => isMobile ? "row" : "column"};
-  background: rgba(300, 50, 50, 0.2);
-  justify-content: center;
+  justify-content: ${({isMobile}) => isMobile ? "center" : "flex-start"};
   align-items: center;
   flex-wrap: ${({isMobile}) => isMobile ? "wrap" : "unset"};
   order: ${({isMobile}) => isMobile ? 2 : "unset"};
@@ -122,16 +140,43 @@ const DetailsContainer = styled.div<{ isMobile: boolean }>`
   padding-top: 5px;
 `;
 
-const StyledCardImg = styled.img<{ isMobile: boolean }>`
+const MobileCardImg = styled.img`
   border-radius: 3.5%;
   aspect-ratio: 5 / 7;
-  height: ${({isMobile}) => isMobile ? "unset" : "100%"};
-  max-height: ${({isMobile}) => isMobile ? "unset" : "500px"};
-  width: ${({isMobile}) => isMobile ? "100%" : "unset"};
-  max-width: ${({isMobile}) => isMobile ? "400px" : "unset"};
+  max-width: calc(100vw - 420px);
+  max-height: calc(100vw - (420px * 5 / 7));
+  
   @media (max-width: 500px) {
-    max-width: unset;
+    max-width: 98vw;
+    max-height: unset;
     padding: 5px;
+  }
+`;
+
+const ImgContainer = styled.div`
+  border-radius: 3.5%;
+  height: 150px;
+  width: 107px; // 150 * (5/7)
+  position: relative;
+`;
+
+const DesktopCardImg = styled.img`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  
+  border-radius: 3.5%;
+  aspect-ratio: 5 / 7;
+  width: 107px; // 150 * (5/7)
+  
+  &:hover {
+    z-index: 1000;
+    width: 400px;
+    top: unset;
+    left: 0;
+    bottom: 0;
+    transform: unset;
   }
 `;
 
@@ -191,7 +236,7 @@ const ChatContainer = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 1 : 2};
   background: darkgoldenrod;
   min-width: 400px;
-  width: ${({isMobile}) => isMobile ? "100%" : "calc(100% - 900px)"}; // 900px = Log + Settings, may change
+  width: ${({isMobile}) => isMobile ? "100%" : "calc(100% - 800px)"}; // 900px = Log + Settings, may change
   height: ${({isMobile}) => isMobile ? "200px" : "150px"};
   contain: size;
 `;
