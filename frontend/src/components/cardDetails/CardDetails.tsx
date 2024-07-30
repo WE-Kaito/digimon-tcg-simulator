@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import {useStore} from "../../hooks/useStore.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-import {useEffect, useState, JSX} from "react";
+import {useEffect, useState, JSX, useRef} from "react";
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
 import DetailsHeader from "./DetailsHeader.tsx";
 import EffectCard, {EffectText} from "./EffectCard.tsx";
@@ -26,7 +26,6 @@ export default function CardDetails() {
 
     // First Tab
     const name = hoverCard?.name ?? selectedCard?.name;
-    const isNameLong = Boolean(hoverCard ? (hoverCard.name?.length >= 30) : (selectedCard && (selectedCard?.name.length >= 30)));
     const cardType = hoverCard?.cardType ?? selectedCard?.cardType;
     const mainEffectText = hoverCard?.mainEffect ?? (!hoverCard ? (selectedCard?.mainEffect ?? "") : "");
     const inheritedEffectText = hoverCard?.inheritedEffect ?? (!hoverCard ? (selectedCard?.inheritedEffect ?? "") : "");
@@ -84,8 +83,8 @@ export default function CardDetails() {
                     </StyledTab>
                 </TabList>
 
-                <TabPanel item="effects">
-                    <TabContainer inGame={inGame} isNameLong={isNameLong}>
+                <TabPanel item="effects" style={{ height: "100%" }}>
+                    <TabContainer>
 
                         {dnaDigivolutionText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
                             {highlightedDNADigivolution}
@@ -212,14 +211,14 @@ export default function CardDetails() {
 }
 
 const Wrapper = styled.div<{inGame: boolean}>`
-  width: 100%;
-  height: ${({inGame}) => inGame ? "100%" : "99%"};
+  width: ${({inGame}) => inGame ? "392px" : "100%"};
+  height: fit-content;
   padding: 5px;
   border-radius: 5px;
   grid-area: details;
-  margin-top: ${({inGame}) => inGame ? "15px" : "unset"};
-  transform: ${({inGame}) => inGame ? "translateX(-8px)" : "unset"};
   overflow-y: ${({inGame}) => inGame ? "unset" : "scroll"};
+  container-type: inline-size;
+  container-name: details-container;
 
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;
@@ -287,17 +286,16 @@ const TabLabel2 = styled(TabLabel1)`
   right: 5px;
 `;
 
-const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
+const TabContainer = styled.div`
   width: 100%;
-  height: ${({inGame, isNameLong}) => inGame ? (isNameLong ? "343px" : "372px") : ("100%")};
+  max-height: calc(100vh - 392px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  overflow-y: scroll;
+  overflow-y: auto;
   padding: 5px 1px 5px 0;
   gap: 6px;
-  border-bottom-left-radius: ${({inGame}) => inGame ? "8px" : "unset"};
 
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;
