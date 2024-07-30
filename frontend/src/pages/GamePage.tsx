@@ -7,6 +7,7 @@ import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.
 import {useStore} from "../hooks/useStore.ts";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useContextMenu} from "react-contexify";
+import SoundBar from "../components/SoundBar.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -84,12 +85,9 @@ export default function GamePage() {
                                         style={{ pointerEvents: !(selectedCard || hoverCard) ? "none" : "unset"}}/>
                     </ImgContainer>
                     }
-                    {!isMobile && <div style={{
-                        background: "darkolivegreen",
-                        height: "fit-content",
-                        maxHeight: "100%",
-                        width: 293,
-                    }}>Settings</div>}
+                    {!isMobile && <SettingsContainer>
+                        <SoundBar/>
+                    </SettingsContainer>}
                     <LogContainer isMobile={isMobile}>Log</LogContainer>
                     <ChatContainer isMobile={isMobile}>Chat</ChatContainer>
                 </BottomStack>
@@ -228,11 +226,17 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   }
 `;
 
+const SettingsContainer = styled.div`
+  height: fit-content;
+  max-height: 100%;
+  width: 320px;
+`;
+
 const ChatContainer = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 1 : 2};
   background: darkgoldenrod;
   min-width: 400px;
-  width: ${({isMobile}) => isMobile ? "100%" : "calc(100% - 800px)"}; // 900px = Log + Settings, may change
+  width: ${({isMobile}) => isMobile ? "100%" : "calc(100% - 827px)"}; // 900px = Log + Settings, may change
   height: ${({isMobile}) => isMobile ? "200px" : "150px"};
   contain: size;
 `;

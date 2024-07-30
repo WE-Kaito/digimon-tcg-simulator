@@ -18,7 +18,6 @@ import {StyledMenu} from "../pages/Game.tsx";
 import {useLocation} from "react-router-dom";
 
 export default function SoundBar() {
-    const {pathname} = useLocation();
     const sfxEnabled = useSound((state) => state.sfxEnabled);
     const musicVolume = useSound((state) => state.musicVolume);
     const currentSong = useSound((state) => state.currentSong);
@@ -41,13 +40,7 @@ export default function SoundBar() {
 
     const {show: showPlaylistMenu} = useContextMenu({id: "playlistMenu"});
 
-    if (window.innerWidth < 800) return <></>
-
-    const inGame = pathname.includes("game");
-    const lottieTranslation = !showRadioMenu ? inGame ? "translate(-100px, -3px)" : "translateX(-100px)" : inGame ? "translateY(-3px)" : "unset";
-
     return (
-        <div style={{position: "absolute", left: 0, top: 0, gridArea: "info" }}>
             <StyledGrid>
 
                 <StyledMenu id={"playlistMenu"} theme="dark">
@@ -77,7 +70,8 @@ export default function SoundBar() {
                     <RadioIcon titleAccess={currentSong} fontSize={"large"}/>
                 </MainRadioIconButton>
                 {isMusicPlaying &&
-                    <StyledLottie animationData={radioAnimation} style={{ transform: lottieTranslation}}/>
+                    <StyledLottie animationData={radioAnimation}
+                                  style={{ transform: !showRadioMenu ? "translateX(-100px)" :  "unset" }}/>
                 }
 
                 <RadioIconButtonStart showRadioMenu={showRadioMenu} onClick={isMusicPlaying ? stopMusic : startMusic}>
@@ -98,7 +92,6 @@ export default function SoundBar() {
                           opacity: showRadioMenu ? 1 : 0, pointerEvents: showRadioMenu ? "unset" : "none" }}
                 />
             </StyledGrid>
-        </div>
     );
 }
 
@@ -187,7 +180,7 @@ const MainRadioIconButton = styled(RadioIconButton)`
 const StyledLottie = styled(Lottie)`
   position: absolute;
   width: 250px;
-  left: 65px;
+  left: 61.5px;
   top: -21px;
   z-index: -1;
   opacity: 0.5;
