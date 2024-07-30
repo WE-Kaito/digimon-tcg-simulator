@@ -21,13 +21,14 @@ export function calculateCardRotation(handCardLength: number, index: number) {
     if (handCardLength > 10) value = ((index - middleIndex) / 3.5);
     if (handCardLength > 15) value = ((index - middleIndex) / 4);
     if (handCardLength > 20) value = ((index - middleIndex) / 5.5);
-    if (handCardLength > 25) value = ((index - middleIndex) / 8);
+    if (handCardLength > 23) return 0;
     return value * handCardLength + "deg";
 }
 
 export function calculateCardOffsetY(handCardLength: number, index: number) {
     if (handCardLength === 3 && index === 1) return "-5px";
     if (handCardLength <= 3) return "0px";
+    if (handCardLength > 23) return "15%";
 
     const middleIndex = Math.floor(handCardLength / 2);
     const middleValue = 0;
@@ -52,7 +53,11 @@ export function calculateCardOffsetX(handCardLength: number, index: number, card
     if (handCardLength === 1) return `${150 * scale}px`;
     if (handCardLength === 2) return `${(index * 150 * scale) / handCardLength + 80 * scale}px`;
     if (handCardLength === 3) return `${(index * 250 * scale) / handCardLength + 50 * scale}px`;
-    if (handCardLength >= 4) return `${(index * 350 * scale) / handCardLength}px`;
+    if (handCardLength > 3 && handCardLength < 23) return `${(index * 350 * scale) / handCardLength}px`;
+    if (handCardLength > 23) {
+        const factor = 330 - ((handCardLength - 23) * 1.25);
+        return `${(index * factor * scale) / handCardLength}px`;
+    }
 }
 
 export function topCardInfo(locationCards: CardTypeGame[]) {
