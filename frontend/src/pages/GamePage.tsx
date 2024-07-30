@@ -32,6 +32,7 @@ export default function GamePage() {
     useEffect(() => boardContainerRef.current?.scrollTo(boardContainerRef.current?.scrollWidth / 3, 0), [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
     useEffect(() => {
+        calculateMaxWidth();
         window.addEventListener('resize', calculateMaxWidth);
         return () => window.removeEventListener('resize', calculateMaxWidth);
     }, []);
