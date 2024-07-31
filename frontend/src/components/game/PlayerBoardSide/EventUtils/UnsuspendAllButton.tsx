@@ -1,20 +1,19 @@
 import UnsuspendIcon from "@mui/icons-material/ScreenRotation";
-import {useGame} from "../../../hooks/useGame.ts";
-import {Phase} from "../../../utils/types.ts";
+import {useGame} from "../../../../hooks/useGame.ts";
+import {Phase} from "../../../../utils/types.ts";
 import styled from "@emotion/styled";
-import {useSound} from "../../../hooks/useSound.ts";
+import {useSound} from "../../../../hooks/useSound.ts";
 
+// TODO: how to get these functions? they should not be optional
 type Props = {
-    sendSfx: (sfx: string) => void;
-    sendUnsuspendAll: () => void;
+    sendSfx?: (sfx: string) => void;
+    sendUnsuspendAll?: () => void;
 }
 
 export default function UnsuspendAllButton({sendSfx, sendUnsuspendAll} : Props) {
 
-    const phase = useGame(state => state.phase);
-    const isMyTurn = useGame(state => state.isMyTurn);
-    const unsuspendAll = useGame(state => state.unsuspendAll);
-    const areCardsSuspended = useGame(state => state.areCardsSuspended());
+    const [phase, isMyTurn, unsuspendAll, areCardsSuspended] = useGame(state =>
+        [state.phase, state.isMyTurn, state.unsuspendAll, state.areCardsSuspended()]);
 
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
 
@@ -26,11 +25,11 @@ export default function UnsuspendAllButton({sendSfx, sendUnsuspendAll} : Props) 
         <Container>
             <div onClick={() => {
                 unsuspendAll("my");
-                sendUnsuspendAll();
+                sendUnsuspendAll?.();
                 playUnsuspendSfx();
-                sendSfx("playUnsuspendSfx");
+                sendSfx?.("playUnsuspendSfx");
             }}>
-                <span style={{ width: 225}}>UNSUSPEND ALL <UnsuspendIcon sx={{transform: "rotate(43deg) translateY(3px)"}}/></span>
+                <span style={{ width: "80%"}}>UNSUSPEND ALL <UnsuspendIcon sx={{transform: "rotate(43deg) translateY(3px)"}}/></span>
                 <span/>
             </div>
         </Container>
@@ -38,15 +37,8 @@ export default function UnsuspendAllButton({sendSfx, sendUnsuspendAll} : Props) 
 }
 
 const Container = styled.div`
-
-  position: absolute;
-
-  top: 127px;
-  left: 15px;
-
   display: flex;
   justify-content: center;
-  z-index: 2;
 
   div {
     display: flex;
