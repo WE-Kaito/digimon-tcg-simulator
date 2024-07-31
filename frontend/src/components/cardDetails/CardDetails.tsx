@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import {useStore} from "../../hooks/useStore.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-import {useEffect, useState, JSX, useRef} from "react";
+import {useEffect, useState, JSX} from "react";
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
 import DetailsHeader from "./DetailsHeader.tsx";
 import EffectCard, {EffectText} from "./EffectCard.tsx";

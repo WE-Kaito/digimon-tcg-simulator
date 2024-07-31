@@ -56,7 +56,7 @@ export function calculateCardOffsetX(handCardLength: number, index: number, card
     if (handCardLength > 3 && handCardLength < 23) return `${(index * 350 * scale) / handCardLength}px`;
     if (handCardLength > 23) {
         const factor = 330 - ((handCardLength - 23) * 1.25);
-        return `${(index * factor * scale) / handCardLength}px`;
+        return `${((index * factor * scale) / handCardLength) + 20 }px`;
     }
 }
 

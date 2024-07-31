@@ -27,11 +27,11 @@ export default function GamePage() {
     const isMobile = useMediaQuery(mediaQueries);
     const isPortrait = useMediaQuery('(orientation: portrait)');
 
-    const boardContainerRef = useRef<HTMLDivElement>(null);
+    const boardLayoutRef = useRef<HTMLDivElement>(null);
     const [boardMaxWidth, setBoardMaxWidth] = useState('unset');
 
     function calculateMaxWidth() {
-        const container = boardContainerRef.current;
+        const container = boardLayoutRef.current;
         if (container) {
             const { clientHeight: height, clientWidth: width } = container;
             const calculatedMaxWidth = width > height * (19 / 9) ? `${height * (19 / 9)}px` : 'unset';
@@ -39,9 +39,26 @@ export default function GamePage() {
         }
     }
 
-    useEffect(() => boardContainerRef.current?.scrollTo(boardContainerRef.current?.scrollWidth / 3, 0), [isMobile]);
+    useEffect(() => boardLayoutRef.current?.scrollTo(boardLayoutRef.current?.scrollWidth / 3, 0), [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
-    useEffect(() => calculateMaxWidth(), [boardContainerRef]);
+    useEffect(() => {
+        calculateMaxWidth();
+        window.addEventListener('resize', calculateMaxWidth);
+        return () => window.removeEventListener('resize', calculateMaxWidth);
+    }, []);
+
+
+    const setCardWidth = useStore((state) => state.setCardWidth);
+
+    function calculateCardWidth() {
+        setCardWidth(boardLayoutRef.current ? boardLayoutRef.current.clientWidth / 20 : 70);
+    }
+
+    useEffect(() => {
+        calculateCardWidth();
+        window.addEventListener('resize', calculateCardWidth);
+        return () => window.removeEventListener('resize', calculateCardWidth);
+    }, []);
 
     return (
         <>
@@ -63,8 +80,8 @@ export default function GamePage() {
                                         alt={"cardImg"}/>}
                         <CardDetails/>
                     </DetailsContainer>
-                    <BoardContainer ref={boardContainerRef} isMobile={isMobile}>
-                        <BoardLayout isMobile={isMobile} maxWidth={boardMaxWidth}>
+                    <BoardContainer isMobile={isMobile}>
+                        <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
                             {/* Opponent Side: */}
                             <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 7" }}/>
                             {/* Memory Bar: */}
