@@ -42,7 +42,7 @@ export default function SecurityStack({isOpponent = false, sendSecurityReveal}: 
     const SpanComponent = isOpponent ? OpponentSecuritySpan : MySecuritySpan;
 
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
-    // replace with dropToSecurityRef later / either ref as prop or directly call hook?
+    //TODO: replace with dropToSecurityRef later / either ref as prop or directly call hook?
     return (
         <Container ref={containerRef} style={{ transform: isOpponent ? "translateY(10%)" : "translateY(-10%)"}}>
             <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}

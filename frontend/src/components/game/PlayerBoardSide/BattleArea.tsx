@@ -65,6 +65,6 @@ const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`
   opacity: 0.5;
   font-size: 4em;
   @media (max-height: 500px) {
-    font-size: 2.5em;
+    font-size: 1.5em;
   }
 `;

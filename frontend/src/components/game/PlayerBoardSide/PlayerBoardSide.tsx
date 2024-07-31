@@ -7,6 +7,7 @@ import {SIDE} from "../../../utils/types.ts";
 import TokenButton from "./TokenButton.tsx";
 import PlayerEggDeck from "./PlayerEggDeck.tsx";
 import Trash from "./Trash.tsx";
+import DeckUtilButtons from "./DeckUtilButtons.tsx";
 
 export default function PlayerBoardSide() {
     return (
@@ -18,8 +19,10 @@ export default function PlayerBoardSide() {
             ))}
             <BattleArea isBreeding side={SIDE.MY}/>
             <Trash side={SIDE.MY}/>
+            <DeckUtilButtons/>
             <PlayerDeck />
             <PlayerHand />
+            {/*TODO:*/}
             <TokenButton sendTokenMessage={() => {}}/>
         </LayoutContainer>
     );
