@@ -270,3 +270,8 @@ export type SendToStackFunction =
     (topOrBottom: "Top" | "Bottom", cardId: string, cardLocation: string, to: string, sendFaceUp?: boolean) => void;
 
 export type Side = "my" | "opponent";
+
+export enum SIDE {
+    MY = "my",
+    OPPONENT = "opponent"
+}

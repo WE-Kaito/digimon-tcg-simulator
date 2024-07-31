@@ -207,7 +207,7 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   min-height: ${({isMobile}) => isMobile ? "450px" : "unset"};
   max-height: 100%;
   
-  background: rgba(47, 45, 45, 0.45);
+  //background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
   padding: 5px;
   
