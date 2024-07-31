@@ -5,12 +5,13 @@ import PlayerDeck from "./PlayerDeck.tsx";
 import BattleArea from "./BattleArea.tsx";
 import {SIDE} from "../../../utils/types.ts";
 import TokenButton from "./TokenButton.tsx";
+import PlayerEggDeck from "./PlayerEggDeck.tsx";
 
 export default function PlayerBoardSide() {
     return (
         <LayoutContainer>
-
             <SecurityStack />
+            <PlayerEggDeck/>
             {Array.from({ length: 15 }).map((_, index) => (
                 <BattleArea key={index} num={index + 1} side={SIDE.MY} />
             ))}
