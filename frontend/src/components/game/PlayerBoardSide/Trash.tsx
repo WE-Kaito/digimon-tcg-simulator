@@ -118,6 +118,6 @@ const StyledTrashIcon = styled(DeleteIcon)<{ side: SIDE }>`
   opacity: 0.5;
   font-size: 2.5em;
   @media (max-height: 500px) {
-    font-size: 1.5em;
+    font-size: 1.25em;
   }
 `;

@@ -116,4 +116,10 @@ const DeckBottomZone = styled.div<{ isOver: boolean }>`
   justify-content: center;
   align-items: center;
   gap: 5px;
+  @media (max-height: 500px) {
+    gap: 1px;
+    svg {
+      font-size: 0.5em;
+    }
+  }
 `;
