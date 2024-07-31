@@ -53,6 +53,7 @@ type CardProps = {
 export default function Card( props : CardProps ) {
     const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError, width = 95} = props;
 
+    const cardWidth = useStore((state) => state.cardWidth);
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const setHoverCard = useStore((state) => state.setHoverCard);
@@ -183,7 +184,7 @@ export default function Card( props : CardProps ) {
     return (
         <Wrapper isTilted={((card as CardTypeGame)?.isTilted) ?? false}>
 
-            {locationsWithAdditionalInfo.includes(location) && <>
+            {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && <>
                 {index === (locationCards.length - 1) && <>
                     {isModifiersAllowed && <PlusDpSpan isHovering={hoverCard === card}
                                                        isNegative={finalDp < card.dp!}
