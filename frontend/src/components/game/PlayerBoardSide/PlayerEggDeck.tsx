@@ -47,7 +47,8 @@ const StyledSpan = styled.span`
   font-style: italic;
   transition: all 0.1s ease;
   @media (max-height: 600px) {
-    bottom: -21px;
+    bottom: -20px;
+    font-size: 0.8em;
   }
 `;
 

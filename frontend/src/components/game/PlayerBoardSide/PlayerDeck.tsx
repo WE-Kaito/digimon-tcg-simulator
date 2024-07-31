@@ -74,6 +74,10 @@ const StyledSpan = styled.span`
   font-family: Awsumsans, sans-serif;
   font-style: italic;
   transition: all 0.1s ease;
+  @media (max-height: 500px) {
+    font-size: 0.8em;
+    top: -18px;
+  }
 `;
 
 const DeckImg = styled.img<{ isOver?: boolean }>`

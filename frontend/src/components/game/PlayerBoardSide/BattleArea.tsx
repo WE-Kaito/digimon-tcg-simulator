@@ -64,4 +64,7 @@ const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`
   transform: translate(-50%, -50%) rotate(${({side}) => side === SIDE.MY ? "0" : "180deg"});
   opacity: 0.5;
   font-size: 4em;
+  @media (max-height: 500px) {
+    font-size: 2.5em;
+  }
 `;
