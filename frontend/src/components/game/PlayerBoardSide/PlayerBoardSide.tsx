@@ -6,16 +6,18 @@ import BattleArea from "./BattleArea.tsx";
 import {SIDE} from "../../../utils/types.ts";
 import TokenButton from "./TokenButton.tsx";
 import PlayerEggDeck from "./PlayerEggDeck.tsx";
+import Trash from "./Trash.tsx";
 
 export default function PlayerBoardSide() {
     return (
         <LayoutContainer>
-            <SecurityStack />
+            <SecurityStack/>
             <PlayerEggDeck/>
             {Array.from({ length: 15 }).map((_, index) => (
-                <BattleArea key={index} num={index + 1} side={SIDE.MY} />
+                <BattleArea key={index} num={index + 1} side={SIDE.MY}/>
             ))}
-            <BattleArea isBreeding side={SIDE.MY} />
+            <BattleArea isBreeding side={SIDE.MY}/>
+            <Trash side={SIDE.MY}/>
             <PlayerDeck />
             <PlayerHand />
             <TokenButton sendTokenMessage={() => {}}/>

@@ -103,6 +103,9 @@ const OpponentSecuritySpan = styled.span`
   color: #cb6377;
   user-select: none;
   cursor: help;
+  @media (max-height: 500px) {
+    font-size: 1.5em;
+  }
 `;
 
 const MySecuritySpan = styled(OpponentSecuritySpan)`
