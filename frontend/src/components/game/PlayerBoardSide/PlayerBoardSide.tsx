@@ -2,13 +2,18 @@ import styled from "@emotion/styled";
 import SecurityStack from "./SecurityStack.tsx";
 import PlayerHand from "./PlayerHand.tsx";
 import PlayerDeck from "./PlayerDeck.tsx";
+import BattleArea from "./BattleArea.tsx";
+import {SIDE} from "../../../utils/types.ts";
 
 export default function PlayerBoardSide() {
     return (
         <LayoutContainer>
 
             <SecurityStack />
-
+            {Array.from({ length: 15 }).map((_, index) => (
+                <BattleArea key={index} num={index + 1} side={SIDE.MY} />
+            ))}
+            <BattleArea isBreeding side={SIDE.MY} />
             <PlayerDeck />
             <PlayerHand />
         </LayoutContainer>
