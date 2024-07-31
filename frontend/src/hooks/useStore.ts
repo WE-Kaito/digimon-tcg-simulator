@@ -21,6 +21,7 @@ import {Dispatch, SetStateAction} from "react";
 import {generalToken} from "../utils/tokens.ts";
 
 type State = {
+    cardWidth: number,
     fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
     isLoading: boolean,
@@ -40,6 +41,7 @@ type State = {
     deckIdToSetSleeveOrImage: string,
     selectedSleeveOrImage: string,
 
+    setCardWidth: (width: number) => void,
     fetchCards: () => void,
     filterCards: SearchCards,
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
@@ -79,6 +81,7 @@ type State = {
 
 export const useStore = create<State>((set, get) => ({
 
+    cardWidth: 70,
     fetchedCards: [],
     filteredCards: [],
     isLoading: false,
@@ -100,6 +103,8 @@ export const useStore = create<State>((set, get) => ({
     orderedDecks: [],
     deckIdToSetSleeveOrImage: "",
     selectedSleeveOrImage: "",
+
+    setCardWidth: (number) => set({cardWidth: number}),
 
     fetchCards: () => {
         set({isLoading: true})

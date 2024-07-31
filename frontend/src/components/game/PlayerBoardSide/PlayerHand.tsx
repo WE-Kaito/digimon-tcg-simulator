@@ -4,26 +4,16 @@ import {Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon} from "
 import styled from "@emotion/styled";
 import {useGame} from "../../../hooks/useGame.ts";
 import {useContextMenu} from "react-contexify";
-import {useEffect, useRef, useState} from "react";
+import {useState} from "react";
 import {calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation } from "../../../utils/functions.ts";
+import {useStore} from "../../../hooks/useStore.ts";
 
 export default function PlayerHand() {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
 
     const [isHandHidden, setIsHandHidden] = useState<boolean>(false);
-    const myHand = useGame((state) => state.myHand);
-    const mySleeve = useGame((state) => state.mySleeve);
-
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [cardWidth, setCardWidth] = useState(70);
-
-    const calculateCardWidth = () => setCardWidth(containerRef.current ? containerRef.current.clientWidth / 5.5 : 70);
-
-    useEffect(() => {
-        calculateCardWidth();
-        window.addEventListener('resize', calculateCardWidth);
-        return () => window.removeEventListener('resize', calculateCardWidth);
-    }, []);
+    const [myHand, mySleeve] = useGame((state) => [state.myHand, state.mySleeve]);
+    const cardWidth = useStore((state) => state.cardWidth);
 
     return (
         <>
@@ -35,7 +25,7 @@ export default function PlayerHand() {
                 </HideHandIconButton>
             </EyeButtonContainer>
             {/*replace with ref dropToHand later*/}
-            <Container ref={containerRef}>
+            <Container>
                 <StyledList cardCount={myHand.length}>
                     {myHand.map((card, index) =>
                         <ListItem cardCount={myHand.length} cardIndex={index} cardWidth={cardWidth} key={card.id}

@@ -60,21 +60,18 @@ const CustomTooltip = muiStyled(({ className, ...props }: TooltipProps & { open:
 }));
 
 const StyledImg = styled.img`
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  z-index: 5;
-  left: 49px;
-  bottom: 17px;
-  transition: all 0.15s ease;
+  grid-area: tokens;
+  margin: 35% 20% 10% 20%;
+  width: 60%;
+  height: 55%;
+  transition: all 0.1s ease;
   opacity: 0.8;
 
   &:hover {
     opacity: 1;
-    cursor: pointer;
-    width: 52px;
-    height: 52px;
-    transform: translateX(-1px);
+    margin: 30% 15% 5% 15%;
+    width: 70%;
+    height: 65%;
   }
 `;
 
