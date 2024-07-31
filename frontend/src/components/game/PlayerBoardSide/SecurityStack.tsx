@@ -44,7 +44,7 @@ export default function SecurityStack({isOpponent = false, sendSecurityReveal}: 
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
     // replace with dropToSecurityRef later / either ref as prop or directly call hook?
     return (
-        <StyledDiv ref={containerRef}>
+        <Container ref={containerRef}>
             <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
                      open={cards.length === 0 ? false : isOpen}
                      onClose={() => setIsOpen(false)}
@@ -79,11 +79,11 @@ export default function SecurityStack({isOpponent = false, sendSecurityReveal}: 
             </Tooltip>
             <SecurityStackLottie animationData={isOpponent ? opponentSecurityAnimation : mySecurityAnimation}
                                  loop={true} onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
-        </StyledDiv>
+        </Container>
     );
 }
 
-const StyledDiv = styled.div`
+const Container = styled.div`
   grid-area: SS;
   height: 100%;
   width: 100%;
@@ -91,6 +91,7 @@ const StyledDiv = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10;
 `;
 
 const OpponentSecuritySpan = styled.span`

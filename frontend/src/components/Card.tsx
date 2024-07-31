@@ -210,13 +210,6 @@ export default function Card( props : CardProps ) {
                     </>}
                 </>}
 
-                {!isDraggingStack && !!(index) && (index > 0) && showDragIcon &&
-                    <DragIcon
-                        ref={dragStack}
-                        onMouseEnter={() => setHoverCard(hoverCard)}
-                        onMouseLeave={() => setHoverCard(null)}
-                        src={stackIcon} alt={"stack"}
-                    />}
                 {renderEffectAnimation &&
                     <CardAnimationContainer style={{
                         overflow: "hidden",
@@ -229,6 +222,15 @@ export default function Card( props : CardProps ) {
                         <Lottie animationData={targetAnimation} loop={true}/>
                     </CardAnimationContainer>}
             </>}
+
+            {locationsWithAdditionalInfo.includes(location) && !isDraggingStack && !!(index) && (index > 0) && showDragIcon &&
+                <DragIcon
+                    ref={dragStack}
+                    onMouseEnter={() => setHoverCard(hoverCard)}
+                    onMouseLeave={() => setHoverCard(null)}
+                    src={stackIcon} alt={"stack"}
+                />
+            }
 
             <StyledImage
                 ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
