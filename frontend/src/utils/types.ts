@@ -192,10 +192,10 @@ export type Picture = {
 }
 
 export enum Phase {
-    UNSUSPEND = "Unsuspend",
-    DRAW = "Draw",
-    BREEDING = "Breeding",
-    MAIN = "Main"
+    UNSUSPEND = "UNSUSPEND",
+    DRAW = "DRAW",
+    BREEDING = "BREEDING",
+    MAIN = "MAIN"
 }
 
 export enum AttackPhase {
