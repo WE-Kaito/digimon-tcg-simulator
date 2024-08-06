@@ -2,6 +2,7 @@ import {useGame} from "../../hooks/useGame.ts";
 import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
 import {useSound} from "../../hooks/useSound.ts";
+import {useEffect, useRef, useState} from "react";
 
 type Props = {
     sendMemoryUpdate: (memory: number) => void;
@@ -25,50 +26,66 @@ export default function MemoryBar({sendMemoryUpdate, sendSfx, sendChatMessage}: 
         sendSfx("playButtonClickSfx");
     }
 
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [fontSize, setFontSize] = useState(26);
+    const bigFontSize = fontSize * 1.3;
+
+    function calculateFontSize() {
+        const container = containerRef.current;
+        setFontSize(container ? container.clientHeight / 3.5 : 26);
+    }
+
+    useEffect(() => {
+        calculateFontSize();
+        window.addEventListener('resize', calculateFontSize);
+        return () => window.removeEventListener('resize', calculateFontSize);
+    }, []);
+
     return (
-        <MemoryBarContainer>
-            <BigMemoryButton onClick={() => handleClick(10)} value={10} myMemory={myMemory}><StyledSpanOne>10</StyledSpanOne></BigMemoryButton>
+        <MemoryBarContainer ref={containerRef}>
+            <BigMemoryButton onClick={() => handleClick(10)} value={10} myMemory={myMemory} fontSize={bigFontSize}><StyledSpanOneBig>10</StyledSpanOneBig></BigMemoryButton>
 
-            <MemoryButton onClick={() => handleClick(9)} value={9} myMemory={myMemory}><StyledSpan>9</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(8)} value={8} myMemory={myMemory}><StyledSpan>8</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(7)} value={7} myMemory={myMemory}><StyledSpan>7</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(6)} value={6} myMemory={myMemory}><StyledSpan>6</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(5)} value={5} myMemory={myMemory}><StyledSpan>5</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(4)} value={4} myMemory={myMemory}><StyledSpan>4</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(3)} value={3} myMemory={myMemory}><StyledSpan>3</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(2)} value={2} myMemory={myMemory}><StyledSpan>2</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(1)} value={1} myMemory={myMemory}><StyledSpanOne>1</StyledSpanOne></MemoryButton>
+            <MemoryButton onClick={() => handleClick(9)} value={9} myMemory={myMemory} fontSize={fontSize}><StyledSpan>9</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(8)} value={8} myMemory={myMemory} fontSize={fontSize}><StyledSpan>8</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(7)} value={7} myMemory={myMemory} fontSize={fontSize}><StyledSpan>7</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(6)} value={6} myMemory={myMemory} fontSize={fontSize}><StyledSpan>6</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(5)} value={5} myMemory={myMemory} fontSize={fontSize}><StyledSpan>5</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(4)} value={4} myMemory={myMemory} fontSize={fontSize}><StyledSpan>4</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(3)} value={3} myMemory={myMemory} fontSize={fontSize}><StyledSpan>3</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(2)} value={2} myMemory={myMemory} fontSize={fontSize}><StyledSpan>2</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(1)} value={1} myMemory={myMemory} fontSize={fontSize}><StyledSpanOne>1</StyledSpanOne></MemoryButton>
 
-            <ZeroMemoryButton onClick={() => handleClick(0)} value={0}  myMemory={myMemory}><ZeroSpan>0</ZeroSpan></ZeroMemoryButton>
+            <ZeroMemoryButton onClick={() => handleClick(0)} value={0}  myMemory={myMemory} fontSize={bigFontSize}><ZeroSpan>0</ZeroSpan></ZeroMemoryButton>
 
-            <MemoryButton onClick={() => handleClick(-1)} value={-1} myMemory={myMemory}><StyledSpanOne>1</StyledSpanOne></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-2)} value={-2} myMemory={myMemory}><StyledSpan>2</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-3)} value={-3} myMemory={myMemory}><StyledSpan>3</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-4)} value={-4} myMemory={myMemory}><StyledSpan>4</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-5)} value={-5} myMemory={myMemory}><StyledSpan>5</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-6)} value={-6} myMemory={myMemory}><StyledSpan>6</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-7)} value={-7} myMemory={myMemory}><StyledSpan>7</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-8)} value={-8} myMemory={myMemory}><StyledSpan>8</StyledSpan></MemoryButton>
-            <MemoryButton onClick={() => handleClick(-9)} value={-9} myMemory={myMemory}><StyledSpan>9</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-1)} value={-1} myMemory={myMemory} fontSize={fontSize}><StyledSpanOne>1</StyledSpanOne></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-2)} value={-2} myMemory={myMemory} fontSize={fontSize}><StyledSpan>2</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-3)} value={-3} myMemory={myMemory} fontSize={fontSize}><StyledSpan>3</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-4)} value={-4} myMemory={myMemory} fontSize={fontSize}><StyledSpan>4</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-5)} value={-5} myMemory={myMemory} fontSize={fontSize}><StyledSpan>5</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-6)} value={-6} myMemory={myMemory} fontSize={fontSize}><StyledSpan>6</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-7)} value={-7} myMemory={myMemory} fontSize={fontSize}><StyledSpan>7</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-8)} value={-8} myMemory={myMemory} fontSize={fontSize}><StyledSpan>8</StyledSpan></MemoryButton>
+            <MemoryButton onClick={() => handleClick(-9)} value={-9} myMemory={myMemory} fontSize={fontSize}><StyledSpan>9</StyledSpan></MemoryButton>
 
-            <BigMemoryButton onClick={() => handleClick(-10)} value={-10} myMemory={myMemory}><StyledSpanOne>10</StyledSpanOne></BigMemoryButton>
+            <BigMemoryButton onClick={() => handleClick(-10)} value={-10} myMemory={myMemory} fontSize={bigFontSize}><StyledSpanOneBig>10</StyledSpanOneBig></BigMemoryButton>
         </MemoryBarContainer>
     );
 }
 
 const MemoryBarContainer = styled.div`
-  height: 100px;
-  width: 1270px;
-  padding-left: 10px;
-  padding-right: 10px;
+  height: 100%;
+  width: 100%;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
+  // match BoardLayout Element of GamePage.tsx:
+  grid-column: 4 / 26; // of 35
+  grid-row: 7 / 9; // of 14
 `;
 
-const MemoryButton = styled.button<{myMemory: number, value: number}>`
-  width: 40px;
-  height: 40px;
+const MemoryButton = styled.button<{myMemory: number, value: number, fontSize: number}>`
+  width: 4%;
+  height: 38%;
   padding: 0;
   transition: all 0.2s ease;
   z-index: 200;
@@ -78,7 +95,7 @@ const MemoryButton = styled.button<{myMemory: number, value: number}>`
   align-items: center;
 
   font-family: alarm clock, sans-serif;
-  font-size: 26px;
+  font-size: ${({fontSize}) => fontSize}px;
   text-shadow: ${({value}) => value > 0 ? "0 0 1px #0c0c0c" : "none"};
   font-weight: bold;
 
@@ -101,14 +118,11 @@ const MemoryButton = styled.button<{myMemory: number, value: number}>`
 `;
 
 const BigMemoryButton = styled(MemoryButton)`
-  width: 50px;
-  height: 50px;
-  font-size: 30px;
+  width: 5.5%;
+  height: 50.5%;
 `;
 
-const ZeroMemoryButton = styled(MemoryButton)`
-  width: 50px;
-  height: 50px;
+const ZeroMemoryButton = styled(BigMemoryButton)`
   background-image: url(${gradientImage});
   background-size: cover;
   background-repeat: no-repeat;
@@ -119,17 +133,20 @@ const ZeroSpan = styled.span`
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  font-size: 38px;
   font-weight: bold;
-  transform: translateX(1.5px) skewX(7.8deg);
+  transform: translate(5%, 3%) skewX(8.5deg);
 `;
 
 const StyledSpanOne = styled.span`
-transform: translate(-3px, 2px) skewX(7.8deg);
+  transform: translate(-23%, 3.75%) skewX(8.5deg);
+`;
+
+const StyledSpanOneBig = styled.span`
+  transform: translate(-12%, 3.25%) skewX(8.5deg);
 `;
 
 const StyledSpan = styled.span`
-  transform: translate(1px, 1px) skewX(7.8deg);
+  transform: translate(5%, 5%) skewX(7.8deg);
 `;
 
 function getBorder(value: number, myMemory:number) {

@@ -8,6 +8,7 @@ import {useStore} from "../hooks/useStore.ts";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useContextMenu} from "react-contexify";
 import SoundBar from "../components/SoundBar.tsx";
+import MemoryBar from "../components/game/MemoryBar.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -85,7 +86,7 @@ export default function GamePage() {
                             {/* Opponent Side: */}
                             <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 7" }}/>
                             {/* Memory Bar: */}
-                            <div style={{ background: "yellow", gridColumn: "4 / 26", gridRow: "7 / 9" }}/>
+                            <MemoryBar/>
                             {/* Phase Button: */}
                             <div style={{ background: "orange", gridColumn: "27 / 33", gridRow: "7 / 9" }}/>
                             {/* My Side: */}
