@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
 import {useSound} from "../../hooks/useSound.ts";
 import {useEffect, useRef, useState} from "react";
-
+//TODO:
 type Props = {
     sendMemoryUpdate: (memory: number) => void;
     sendSfx: (sfx: string) => void;

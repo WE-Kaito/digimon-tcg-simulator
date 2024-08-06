@@ -9,6 +9,7 @@ import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useContextMenu} from "react-contexify";
 import SoundBar from "../components/SoundBar.tsx";
 import MemoryBar from "../components/game/MemoryBar.tsx";
+import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -83,13 +84,9 @@ export default function GamePage() {
                     </DetailsContainer>
                     <BoardContainer isMobile={isMobile}>
                         <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
-                            {/* Opponent Side: */}
-                            <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 7" }}/>
-                            {/* Memory Bar: */}
+                            <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 7" }}>OpponentBoardSide</div>
                             <MemoryBar/>
-                            {/* Phase Button: */}
-                            <div style={{ background: "orange", gridColumn: "27 / 33", gridRow: "7 / 9" }}/>
-                            {/* My Side: */}
+                            <PhaseIndicator />
                             <PlayerBoardSide />
                         </BoardLayout>
                     </BoardContainer>
