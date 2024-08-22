@@ -1,14 +1,9 @@
-import {PropsWithChildren, useMemo} from "react";
+import {PropsWithChildren} from "react";
 import styled from "@emotion/styled";
-import {blueTriangles} from "../assets/particles.ts";
-import ParticlesBackground from "./ParticlesBackground.tsx";
 export default function MenuBackgroundWrapper({children}: PropsWithChildren) {
-
-    const options = useMemo(() => (blueTriangles),[]);
 
     return (
         <StyledDiv>
-            <ParticlesBackground options={options} />
             {children}
         </StyledDiv>
     );
