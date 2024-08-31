@@ -2,7 +2,7 @@ import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
 import {Stack, useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
 import {useStore} from "../hooks/useStore.ts";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
@@ -10,6 +10,10 @@ import {useContextMenu} from "react-contexify";
 import SoundBar from "../components/SoundBar.tsx";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
+import useGameWebSocket from "../hooks/useGameWebSocket.ts";
+import {useSound} from "../hooks/useSound.ts";
+import ContextMenus from "../components/game/ContextMenus.tsx";
+import RevealArea from "../components/game/RevealArea.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -20,12 +24,80 @@ const mediaQueries = [
 ].join(',');
 
 export default function GamePage() {
+    //Game Logic
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
+    const [playAttackSfx, playEffectAttackSfx] = useSound((state) => [state.playAttackSfx, state.playEffectAttackSfx]);
 
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
 
+    const [isOpponentOnline, setIsOpponentOnline] = useState(true);
+
+    const [startingPlayer, setStartingPlayer] = useState<string>("");
+    const [isRematch, setIsRematch] = useState<boolean>(false);
+    const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
+    const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
+    const [arrowFrom, setArrowFrom] = useState<string>("");
+    const [arrowTo, setArrowTo] = useState<string>("");
+    const [isEffect, setIsEffect] = useState<boolean>(false); //TODO: rename to isEffectAttack
+    const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
+    const [showAttackArrow, setShowAttackArrow] = useState<boolean>(false);
+    const [endScreen, setEndScreen] = useState<boolean>(false);
+    const [endScreenMessage, setEndScreenMessage] = useState<string>("");
+    const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
+    const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
+
+    const timeoutRef = useRef<number | null>(null);
+
+    const endAttackAnimation = useCallback((effect?: boolean) => { //TODO: rename to restartAttackAnimation
+        if (effect) playEffectAttackSfx();
+        else playAttackSfx();
+
+        const cancelAttackAnimation = () => {
+            if (timeoutRef.current !== null) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+
+            setShowAttackArrow(false);
+            setArrowFrom('');
+            setArrowTo('');
+            setAttackFromOpponent(false);
+            setIsEffect(false);
+        };
+
+        timeoutRef.current = setTimeout(() => {
+            setShowAttackArrow(false);
+            setArrowFrom('');
+            setArrowTo('');
+            setAttackFromOpponent(false);
+            setIsEffect(false);
+        }, 3500);
+
+        setClearAttackAnimation(() => cancelAttackAnimation);
+    }, [setShowAttackArrow]);
+
+    const sendMessage = useGameWebSocket({
+        setStartingPlayer,
+        isRematch,
+        setIsRematch,
+        setSecurityContentMoodle,
+        clearAttackAnimation,
+        setArrowFrom,
+        setArrowTo,
+        setIsEffect,
+        setAttackFromOpponent,
+        setShowAttackArrow,
+        endAttackAnimation,
+        setIsOpponentOnline,
+        setEndScreen,
+        setEndScreenMessage,
+        setRestartOrder,
+        setRestartMoodle
+    });
+
+    //Layout
     const isMobile = useMediaQuery(mediaQueries);
     const isPortrait = useMediaQuery('(orientation: portrait)');
 
@@ -49,7 +121,6 @@ export default function GamePage() {
         return () => window.removeEventListener('resize', calculateMaxWidth);
     }, []);
 
-
     const setCardWidth = useStore((state) => state.setCardWidth);
 
     function calculateCardWidth() {
@@ -65,11 +136,11 @@ export default function GamePage() {
     return (
         <>
             <GameBackground/>
-
+            <ContextMenus/>
             <>
             {/* Komponente: auslagern von Context Menus und co. */}
             </>
-            <Stack width={"100vw"} maxHeight={isMobile ? "unset" : "100%"} sx={{ containerType: "inline-size" }}>
+            <Stack width={"100vw"} maxHeight={isMobile ? "unset" : "100%"} sx={{ containerType: "inline-size", postion: "relative" }}>
                 <TopStack isMobile={isMobile}>
                     {isMobile && <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Settings</div>}
                     <div style={{ background: "darkolivegreen", width: 500, justifySelf: "flex-start", alignSelf: "flex-start", maxWidth: "100vw", height: 80 }}>Nameplate ME</div>
@@ -84,8 +155,9 @@ export default function GamePage() {
                     </DetailsContainer>
                     <BoardContainer isMobile={isMobile}>
                         <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
+                            <RevealArea />
                             <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 7" }}>OpponentBoardSide</div>
-                            <MemoryBar/>
+                            <MemoryBar />
                             <PhaseIndicator />
                             <PlayerBoardSide />
                         </BoardLayout>
@@ -216,6 +288,7 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
 `;
 
 const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
+  position: relative;
   aspect-ratio: 19 / 9;
   width: ${({isMobile}) => isMobile ? "unset" : "100%"};
   max-width: ${({maxWidth}) => maxWidth};

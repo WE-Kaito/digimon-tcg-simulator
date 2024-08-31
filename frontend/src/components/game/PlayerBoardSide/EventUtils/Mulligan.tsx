@@ -1,5 +1,4 @@
 import {BootStage} from "../../../../utils/types.ts";
-import {Stack} from "@mui/material";
 import styled from "@emotion/styled";
 import {useGame} from "../../../../hooks/useGame.ts";
 import {useSound} from "../../../../hooks/useSound.ts";
@@ -24,22 +23,33 @@ export default function Mulligan() {
     }
 
     return (
-        <>
+        <Container>
             {bootStage === BootStage.MULLIGAN_DONE && !getOpponentReady() &&
                 <MulliganSpan style={{top: 3}}>Waiting for opponent...</MulliganSpan>}
             {bootStage === BootStage.MULLIGAN &&
-                <Stack>
+                <>
                     <MulliganSpan>KEEP HAND?</MulliganSpan>
-                    <Stack direction={"row"}>
+                    <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly" }}>
                         <MulliganButton onClick={() => handleMulligan(true)}>NO</MulliganButton>
                         <MulliganButton2 onClick={() => handleMulligan(false)}>YES</MulliganButton2>
-                    </Stack>
-                </Stack>}
-        </>
+                    </div>
+                </>}
+        </Container>
     );
 }
 
-//TODO: Styling
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 5px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+`;
+
 const MulliganButton = styled.div`
   border-radius: 5px;
   background: #fad219;
@@ -48,9 +58,9 @@ const MulliganButton = styled.div`
   justify-content: center;
   align-items: center;
   font-family: Sansation, sans-serif;
-  text-shadow: 0 0 1px #111921;
-  padding: 0 3px 0 3px;
-  font-size: 1.2em;
+  padding: 0 5px 0 5px;
+  font-size: clamp(8px, 3.25vh, 28px);
+  line-height: 1.2;
   filter: drop-shadow(3px 3px 1px #131313);
   transition: all 0.05s ease;
 
@@ -60,19 +70,31 @@ const MulliganButton = styled.div`
     background-color: #f8681a;
     transform: translateY(1px);
   }
+
+  &:active {
+    filter: none;
+    background-color: #fd4209;
+    transform: translate(1px, 2px);
+  }
 `;
 
 const MulliganButton2 = styled(MulliganButton)`
-  left: 11px;
   &:hover {
     background-color: #51b60a;
+  }
+
+  &:active {
+    background-color: #1ae004;
   }
 `;
 
 const MulliganSpan = styled.span`
   font-family: Cuisine, sans-serif;
-  font-size: 17px;
+  font-size: clamp(8px, 3.25vh, 28px);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-height: 40px;
+  line-height: 1.2;
   color: #fad219;
   filter: drop-shadow(2px 2px 1px #131313);
-  cursor: default;
 `;

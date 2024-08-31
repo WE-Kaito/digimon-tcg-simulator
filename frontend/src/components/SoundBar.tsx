@@ -14,8 +14,7 @@ import {useSound, projectDrasilPlaylist, sadgatomonPlaylist} from "../hooks/useS
 import Lottie from "lottie-react";
 import radioAnimation from "../assets/lotties/radio-animation.json";
 import {Item, useContextMenu} from "react-contexify";
-import {StyledMenu} from "../pages/Game.tsx";
-import {useLocation} from "react-router-dom";
+import {StyledMenu} from "./game/ContextMenus.tsx";
 
 export default function SoundBar() {
     const sfxEnabled = useSound((state) => state.sfxEnabled);
