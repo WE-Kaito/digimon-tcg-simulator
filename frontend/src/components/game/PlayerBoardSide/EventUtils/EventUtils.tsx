@@ -22,4 +22,6 @@ const Container = styled.div`
   position: relative;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
 `;
