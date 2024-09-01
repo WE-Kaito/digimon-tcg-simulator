@@ -8,7 +8,8 @@ export default function PlayerEggDeck() {
     const [myEggDeck, moveCard] = useGame((state) => [state.myEggDeck, state.moveCard]);
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
-    function handleClick() {
+    function handleClick(e: React.MouseEvent<HTMLImageElement>) {
+        e.stopPropagation();
         // if (!getOpponentReady()) return;
         moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
         // sendMoveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
@@ -20,9 +21,7 @@ export default function PlayerEggDeck() {
 
     return (
         <Container>
-            <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false}
-                     onClick={handleClick}
-            />
+            <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} />
             <StyledSpan>{myEggDeck.length}</StyledSpan>
         </Container>
     );
@@ -61,7 +60,7 @@ const DeckImg = styled.img<{ isOver?: boolean }>`
   filter: ${({isOver}) => isOver ? "drop-shadow(0 0 1px #eceaea) saturate(1.1) brightness(0.95)" : "none"};
 
   &:hover {
-    filter: drop-shadow(0 0 2px #dd33e8);
-    outline: #89538d solid 1px;
+    filter: drop-shadow(0 0 2px #1CE0BEFF);
+    outline: #084238 solid 1px;
   }
 `;

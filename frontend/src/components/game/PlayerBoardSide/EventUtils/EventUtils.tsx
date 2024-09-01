@@ -4,12 +4,12 @@ import AttackResolveButton from "./AttackResolveButton.tsx";
 import UnsuspendAllButton from "./UnsuspendAllButton.tsx";
 import {useGame} from "../../../../hooks/useGame.ts";
 
-export default function EventUtils() {
+export default function EventUtils({ isOpponent }: { isOpponent?: boolean }) {
     const getMyAttackPhase = useGame((state) => state.getMyAttackPhase);
 
     return (
         <Container>
-            <Mulligan/>
+            {!isOpponent && <Mulligan/>}
             {!!getMyAttackPhase() && <AttackResolveButton/>}
             <UnsuspendAllButton/>
         </Container>

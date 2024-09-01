@@ -41,9 +41,7 @@ export default function PlayerDeck() {
         <Container>
             <StyledSpan>{myDeckField.length}</StyledSpan>
 
-            {mySleeve !== "Default" && <SleeveImg alt="sleeve" src={getSleeve(mySleeve)}/>}
-
-            <DeckImg alt="deck" src={deckBackSrc} isOver={false}
+            <DeckImg alt="deck" src={getSleeve(mySleeve)} isOver={false}
                      onClick={handleClick} onContextMenu={(e) => showDeckMenu({event: e})}
             />
 
@@ -82,26 +80,17 @@ const StyledSpan = styled.span`
 
 const DeckImg = styled.img<{ isOver?: boolean }>`
   height: 66.67%;
-  border-radius: 5px;
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.1s ease;
   z-index: 2;
-  filter: ${({isOver}) => isOver ? "drop-shadow(0 0 1px #eceaea) saturate(1.1) brightness(0.95)" : "none"};
+  filter: ${({isOver}) => isOver ? "drop-shadow(0px 0px 2px ghostwhite) saturate(1.1) brightness(0.95)" : "unset"};
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
 
   &:hover {
-    filter: drop-shadow(0 0 1px #eceaea);
+    box-shadow: 0 0 3px 0 #1CE0BEFF;
   }
-`;
-
-const SleeveImg = styled.img<{ gameHasStarted?: boolean }>`
-  position: absolute;
-  height: 64.5%;
-  top: 1px;
-  left: 49%;
-  transform: translateX(-50%);
-  border-radius: 5px;
-  z-index: 3;
-  pointer-events: none;
 `;
 
 const DeckBottomZone = styled.div<{ isOver: boolean }>`

@@ -25,7 +25,7 @@ export default function BattleArea(props : BattleAreaProps) {
 
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
-    // add ref dropToDigi${num} to container
+    // TODO: add ref dropToDigi${num} to container
     return (
         <Container {...props} id={location}>
             {isBreeding && <StyledEggIcon side={side} />}

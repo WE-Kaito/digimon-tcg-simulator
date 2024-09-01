@@ -24,7 +24,6 @@ export default function PlayerBoardSide() {
             <DeckUtilButtons/>
             <PlayerDeck />
             <PlayerHand />
-            {/*TODO:*/}
             <TokenButton sendTokenMessage={() => {}}/>
         </LayoutContainer>
     );
