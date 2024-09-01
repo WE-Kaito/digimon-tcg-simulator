@@ -131,7 +131,7 @@ export const FaceDownCard = styled.img`
   width: 69.5px;
   max-width: 50px;
   max-height: 70px;
-  border-radius: 5px;
+  border-radius: 2px;
 
   @media (max-width: 767px) {
     max-height: 115px;

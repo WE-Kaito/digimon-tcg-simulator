@@ -2,6 +2,7 @@ import {BootStage} from "../../../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useGame} from "../../../../hooks/useGame.ts";
 import {useSound} from "../../../../hooks/useSound.ts";
+import { ShuffleOnOutlined as ShuffleIcon } from "@mui/icons-material";
 
 export default function Mulligan() {
     const [getOpponentReady, bootStage, mulligan] = useGame((state) =>
@@ -30,8 +31,12 @@ export default function Mulligan() {
                 <>
                     <MulliganSpan>KEEP HAND?</MulliganSpan>
                     <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly" }}>
-                        <MulliganButton onClick={() => handleMulligan(true)}>NO</MulliganButton>
-                        <MulliganButton2 onClick={() => handleMulligan(false)}>YES</MulliganButton2>
+                        <MulliganButton2 onClick={() => handleMulligan(false)}>
+                            YES
+                        </MulliganButton2>
+                        <MulliganButton onClick={() => handleMulligan(true)}>
+                            NO<ShuffleIcon/>
+                        </MulliganButton>
                     </div>
                 </>}
         </Container>
@@ -63,12 +68,19 @@ const MulliganButton = styled.div`
   line-height: 1.2;
   filter: drop-shadow(3px 3px 1px #131313);
   transition: all 0.05s ease;
-
+  svg {
+    font-size: 0.8em;
+  }
+  
   &:hover {
     cursor: pointer;
     filter: drop-shadow(2px 2px 1px #131313);
     background-color: #f8681a;
     transform: translateY(1px);
+
+    svg {
+      color: #3842ff;
+    }
   }
 
   &:active {
@@ -90,7 +102,7 @@ const MulliganButton2 = styled(MulliganButton)`
 
 const MulliganSpan = styled.span`
   font-family: Cuisine, sans-serif;
-  font-size: clamp(8px, 3.25vh, 28px);
+  font-size: clamp(8px, 3vh, 28px);
   white-space: nowrap;
   text-overflow: ellipsis;
   max-height: 40px;

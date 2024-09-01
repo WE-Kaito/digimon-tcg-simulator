@@ -1,5 +1,5 @@
 import {getSleeve} from "../../../utils/sleeves.ts";
-import Card from "../../Card.tsx";
+import Card, {CardAnimationContainer} from "../../Card.tsx";
 import {Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon} from "@mui/icons-material";
 import styled from "@emotion/styled";
 import {useGame} from "../../../hooks/useGame.ts";
@@ -7,12 +7,14 @@ import {useContextMenu} from "react-contexify";
 import {useState} from "react";
 import {calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation } from "../../../utils/functions.ts";
 import {useStore} from "../../../hooks/useStore.ts";
+import Lottie from "lottie-react";
+import targetAnimation from "../../../assets/lotties/target-animation.json";
 
 export default function PlayerHand() {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
 
     const [isHandHidden, setIsHandHidden] = useState<boolean>(false);
-    const [myHand, mySleeve] = useGame((state) => [state.myHand, state.mySleeve]);
+    const [myHand, mySleeve, getIsCardTarget] = useGame((state) => [state.myHand, state.mySleeve, state.getIsCardTarget]);
     const cardWidth = useStore((state) => state.cardWidth);
 
     return (
@@ -36,6 +38,17 @@ export default function PlayerHand() {
                             {isHandHidden
                                 ? <img alt="card" src={getSleeve(mySleeve)} style={{ width: cardWidth, borderRadius: 5 }}/>
                                 : <Card card={card} location={"myHand"} width={cardWidth}/>}
+                            <div style={{
+                                position: "relative",
+                                filter: getIsCardTarget(card.id)
+                                    ? "drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1)"
+                                    : "unset"
+                            }}>
+                                {getIsCardTarget(card.id) &&
+                                    <CardAnimationContainer>
+                                        <Lottie animationData={targetAnimation} loop={true}/>
+                                    </CardAnimationContainer>}
+                            </div>
                         </ListItem>)}
                 </StyledList>
                 <StyledSpan cardCount={myHand.length}>{myHand.length}</StyledSpan>

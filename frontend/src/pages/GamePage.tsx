@@ -14,6 +14,7 @@ import useGameWebSocket from "../hooks/useGameWebSocket.ts";
 import {useSound} from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus.tsx";
 import RevealArea from "../components/game/RevealArea.tsx";
+import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -156,9 +157,9 @@ export default function GamePage() {
                     <BoardContainer isMobile={isMobile}>
                         <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
                             <RevealArea />
-                            <div style={{ background: "blueviolet", gridColumn: "1 / -1", gridRow: "1 / 7" }}>OpponentBoardSide</div>
                             <MemoryBar />
                             <PhaseIndicator />
+                            <OpponentBoardSide />
                             <PlayerBoardSide />
                         </BoardLayout>
                     </BoardContainer>
@@ -295,7 +296,6 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   min-height: ${({isMobile}) => isMobile ? "450px" : "unset"};
   max-height: 100%;
   
-  //background: rgba(47, 45, 45, 0.45);
   border-radius: 15px;
   padding: 5px;
   

@@ -34,11 +34,11 @@ export default function Trash({side}: {side: SIDE}) {
     const isOverTrash = false;
 
     return (
-        <Container>
+        <Container isMySide={isMySide}>
             {myTrash.length === 0
                 ? <PlaceholderDiv ref={isMySide ? dropToTrash : null}
                                   isOver={isMySide && isOverTrash}>
-                    <StyledTrashIcon side={side}/>
+                    <StyledTrashIcon/>
                 </PlaceholderDiv>
                 : <CardImg ref={isMySide ? dropToTrash : null} src={trash[trash.length - 1].imgUrl}
                            alt={"myTrash"} title="Open trash"
@@ -46,19 +46,20 @@ export default function Trash({side}: {side: SIDE}) {
                            onError={handleImageError}
                            isOver={isMySide && isOverTrash}/>
             }
-            <StyledSpan>{trash.length}</StyledSpan>
+            <StyledSpan isMySide={isMySide}>{trash.length}</StyledSpan>
             {effectInTrash && <StyledLottie animationData={effectAnimation} loop={true}/>}
             {targetInTrash && <StyledLottie animationData={targetAnimation} loop={true}/>}
         </Container>
     );
 }
 
-const Container = styled.div`
+const Container = styled.div<{ isMySide: boolean }>`
   grid-area: trash;
   display: flex;
   position: relative;
   justify-content: center;
   align-items: center;
+  transform: ${({isMySide}) => isMySide ? 'translateY(5px)' : 'translateY(-3px)'};
 `;
 
 const PlaceholderDiv = styled.div<{ isOver?: boolean }>`
@@ -88,9 +89,9 @@ const CardImg = styled.img<{ isOver?: boolean }>`
   }
 `;
 
-const StyledSpan = styled.span`
+const StyledSpan = styled.span<{ isMySide: boolean }>`
   position: absolute;
-  bottom: -26px;
+  top: -25px;
   left: 46%;
   font-family: Awsumsans, sans-serif;
   font-style: italic;
@@ -98,7 +99,7 @@ const StyledSpan = styled.span`
   @media (max-height: 500px) {
     font-size: 0.8em;
     left: 42.5%;
-    bottom: -23px;
+    top: -22px;
   }
 `;
 
@@ -110,11 +111,11 @@ const StyledLottie = styled(Lottie)<{ isOpponentTrash?: boolean }>`
   max-width: 100%;
 `;
 
-const StyledTrashIcon = styled(DeleteIcon)<{ side: SIDE }>`
+const StyledTrashIcon = styled(DeleteIcon)`
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(${({side}) => side === SIDE.MY ? "0" : "180deg"});
+  transform: translate(-50%, -50%);
   opacity: 0.5;
   font-size: 2.5em;
   @media (max-height: 500px) {
