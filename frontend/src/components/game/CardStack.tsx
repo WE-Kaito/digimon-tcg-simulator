@@ -43,14 +43,13 @@ export default function CardStack(props: CardStackProps) {
 
     const getCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
-            const bottom = (cardIndex * 15) - 5;
-            const mediaBottom = isSmallerWindow ? (cardIndex * 15) - 7 : isSmallWindow ? (cardIndex * 15) - 6 : bottom;
+            const bottom = (cardIndex * 15) - (isSmallerWindow ? 7 : isSmallWindow ? 6 : 5);
             const left = cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "50%";
             const transform = cardCount > 6 ? "translateX(-3%)" : "translate(-50%, 0)";
 
             return {
                 position: 'absolute',
-                bottom: `${mediaBottom}px`,
+                bottom: `${bottom}px`,
                 left: left,
                 transform: transform,
             };
