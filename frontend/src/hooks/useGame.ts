@@ -25,6 +25,7 @@ export type State = BoardState & {
     isLoading: boolean,
     cardIdWithEffect: string,
     cardIdWithTarget: string,
+    isHandHidden: boolean,
 
     /**
     * Id and location of a card that is going to be sent to security or egg-deck
@@ -101,6 +102,7 @@ export type State = BoardState & {
     setInheritCardInfo: (inheritedEffects: string[]) => void,
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
     getCardLocationById: (id: string) => string,
+    toggleIsHandHidden: () => void,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -124,6 +126,7 @@ export const useGame = create<State>()(
     isLoading: false,
     cardIdWithEffect: "",
     cardIdWithTarget: "",
+    isHandHidden: false,
     cardToSend: {id: "", location: ""},
     inheritCardInfo: [],
 
@@ -713,6 +716,8 @@ export const useGame = create<State>()(
             };
         });
     },
+
+    toggleIsHandHidden: () => set(state => ({ isHandHidden: !state.isHandHidden })),
 
             }),
             { name: 'bearStore' },
