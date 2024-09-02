@@ -1,10 +1,10 @@
 import {CardTypeGame, FieldCardContextMenuItemProps} from "../../utils/types.ts";
-import styled from "@emotion/styled";
 import Card from "../Card.tsx";
 import {Fade} from "react-awesome-reveal";
-import {useState} from "react";
+import {CSSProperties, useCallback, useState} from "react";
 import {ItemParams, ShowContextMenuParams} from "react-contexify";
 import {useStore} from "../../hooks/useStore.ts";
+import {useMediaQuery} from "@mui/material";
 
 type MakeOptional<Type, Key extends keyof Type> = Omit<Type, Key> &
     Partial<Pick<Type, Key>>;
@@ -21,6 +21,8 @@ type CardStackProps = {
     showOpponentCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void
 }
 
+const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15"];
+
 export default function CardStack(props: CardStackProps) {
     const {
         cards,
@@ -34,77 +36,90 @@ export default function CardStack(props: CardStackProps) {
     } = props;
     const [draggedCards, setDraggedCards] = useState<CardTypeGame[]>([]);
 
-    const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15"];
-
     const cardWidth = useStore((state) => state.cardWidth);
+
+    const isSmallWindow = useMediaQuery('(max-height: 500px)');
+    const isSmallerWindow = useMediaQuery('(max-height: 400px)');
+
+    const getCardContainerStyles = useCallback(
+        (cardIndex: number, cardCount: number): CSSProperties => {
+            const bottom = (cardIndex * 15) - 5;
+            const mediaBottom = isSmallerWindow ? (cardIndex * 15) - 7 : isSmallWindow ? (cardIndex * 15) - 6 : bottom;
+            const left = cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "50%";
+            const transform = cardCount > 6 ? "translateX(-3%)" : "translate(-50%, 0)";
+
+            return {
+                position: 'absolute',
+                bottom: `${mediaBottom}px`,
+                left: left,
+                transform: transform,
+            };
+        },
+        [isSmallWindow, isSmallerWindow]
+    );
+
+    const getTamerCardContainerStyles = useCallback(
+        (cardIndex: number): CSSProperties => {
+            const left = `${cardIndex * 15}px`;
+            const bottom = isSmallerWindow ? '-12%' : isSmallWindow ? '-10%' : '-7%';
+
+            return {
+                position: 'absolute',
+                left: left,
+                bottom: bottom,
+            };
+        },
+        [isSmallWindow, isSmallerWindow]
+    );
 
     if (tamerLocations.includes(location)) {
         return !opponentSide
                 ? cards?.map((card, index) =>
-                    <TamerCardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                                        id={index === cards.length - 1 ? location : ""}
-                                        onContextMenu={(e) => showFieldCardMenu?.({
-                                            event: e,
-                                            props: {index, location, id: card.id, name: card.name}
-                                        })}>
-                        <Card card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
-                              index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
-                              handleDropToStackBottom={handleDropToStackBottom} width={cardWidth - 7}/>
-                    </TamerCardContainer>)
+                    <Card style={{...getTamerCardContainerStyles(index), width: cardWidth - 7}}
+                          card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
+                          index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
+                          handleDropToStackBottom={handleDropToStackBottom} key={card.id}
+                          onContextMenu={(e) => showFieldCardMenu?.({
+                              event: e,
+                              props: {index, location, id: card.id, name: card.name}
+                          })}
+                    />)
 
                 : cards?.map((card, index) =>
-                    <TamerCardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                                        id={index === cards.length - 1 ? location : ""}
-                                        onContextMenu={(e) => showOpponentCardMenu?.({
-                                            event: e,
-                                            props: {index, location, id: card.id, name: card.name}
-                                        })}>
-                        <Fade direction={"down"} duration={500}>
-                            <Card card={card} location={location} index={index} width={cardWidth - 7}/>
-                        </Fade></TamerCardContainer>)
+                    <Fade direction={"down"} duration={500} key={card.id}>
+                        <Card style={{...getTamerCardContainerStyles(index), width: cardWidth - 7}}
+                              card={card} location={location} index={index}
+                              onContextMenu={(e) => showOpponentCardMenu?.({
+                                  event: e,
+                                  props: {index, location, id: card.id, name: card.name}
+                              })}
+                        />
+                    </Fade>)
     }
 
     return <>
         {!opponentSide
             ? cards?.map((card, index) =>
-                <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                               id={index === cards.length - 1 ? location : ""}
-                               onContextMenu={(e) => showFieldCardMenu?.({
-                                   event: e,
-                                   props: {index, location, id: card.id, name: card.name}
-                               })}>
-                    <Card card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
+                    <Card style={{...getCardContainerStyles(index, cards.length), width: cardWidth}}
+                          card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
                           index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
-                          handleDropToStackBottom={handleDropToStackBottom} width={cardWidth}/>
-                </CardContainer>)
+                          handleDropToStackBottom={handleDropToStackBottom} key={card.id}
+                          onContextMenu={(e) => showFieldCardMenu?.({
+                              event: e,
+                              props: {index, location, id: card.id, name: card.name}
+                          })}
+                    />)
 
             : cards?.map((card, index) =>
-                <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                               id={index === cards.length - 1 ? location : ""}
-                               onContextMenu={(e) => showOpponentCardMenu?.({
-                                   event: e,
-                                   props: {index, location, id: card.id, name: card.name}
-                               })}>
-                    <Fade direction={"down"} duration={500}>
-                        <Card card={card} location={location} index={index} width={cardWidth}/>
-                    </Fade></CardContainer>)
+                    <Fade direction={"down"} duration={500} key={card.id}>
+                        <Card style={{...getCardContainerStyles(index, cards.length), width: cardWidth}}
+                              card={card} location={location} index={index}
+                              onContextMenu={(e) => showOpponentCardMenu?.({
+                                  event: e,
+                                  props: {index, location, id: card.id, name: card.name}
+                              })}
+                        />
+                    </Fade>)
         }
     </>
 }
-
-const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
-  position: absolute;
-  bottom: ${({cardIndex}) => (cardIndex * 15) - 5}px;
-  left: ${({cardIndex, cardCount}) => cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "50%"};
-  transform: ${({cardCount}) => cardCount > 6 ? "translateX(-3%)" : "translate(-50%, 0)"};
-  @media (max-height: 500px) { bottom: ${({cardIndex}) => (cardIndex * 15) - 6}px; }
-  @media (max-height: 400px) { bottom: ${({cardIndex}) => (cardIndex * 15) - 7}px; }
-`;
-
-const TamerCardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
-  position: absolute;
-  left: ${({cardIndex}) => (cardIndex * 15)}px;
-  bottom: -7%;
-  @media (max-height: 500px) { bottom: -10%; }
-  @media (max-height: 400px) { bottom: -12%; }
-`;

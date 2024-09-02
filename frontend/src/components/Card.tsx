@@ -11,7 +11,7 @@ import {
     topCardInfo
 } from "../utils/functions.ts";
 import stackIcon from "../assets/stackIcon.png";
-import {useEffect, useState} from "react";
+import {CSSProperties, useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
@@ -19,6 +19,7 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
 import {useSound} from "../hooks/useSound.ts";
+import {getSleeve} from "../utils/sleeves.ts";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -47,11 +48,12 @@ type CardProps = {
     setDraggedCards?: (cards: CardTypeGame[]) => void
     handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void,
     setImageError?: (imageError: boolean) => void,
-    width?: number
+    style?: CSSProperties
+    onContextMenu?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void
 }
 
 export default function Card( props : CardProps ) {
-    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError, width = 95} = props;
+    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError, style, onContextMenu} = props;
 
     const cardWidth = useStore((state) => state.cardWidth);
     const selectCard = useStore((state) => state.selectCard);
@@ -68,6 +70,8 @@ export default function Card( props : CardProps ) {
     const setInheritCardInfo = useGame((state) => state.setInheritCardInfo);
     const setCardToSend = useGame((state) => state.setCardToSend);
     const getCardLocationById = useGame((state) => state.getCardLocationById);
+    const isHandHidden = useGame((state) => state.isHandHidden);
+    const mySleeve = useGame((state) => state.mySleeve);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -182,7 +186,10 @@ export default function Card( props : CardProps ) {
     const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
 
     return (
-        <Wrapper isTilted={((card as CardTypeGame)?.isTilted) ?? false}>
+        <Wrapper isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+                 id={index === locationCards.length - 1 ? location : ""}
+                 style={style}
+        >
 
             {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && <>
                 {index === (locationCards.length - 1) && <>
@@ -240,7 +247,7 @@ export default function Card( props : CardProps ) {
                 onMouseOver={handleHover}
                 onMouseLeave={handleStopHover}
                 alt={card.name + " " + card.uniqueCardNumber}
-                src={cardImageUrl}
+                src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
                 isDragging={isDragging || dragStackEffect}
                 location={location}
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
@@ -251,8 +258,11 @@ export default function Card( props : CardProps ) {
                     setImageError?.(true);
                     setCardImageUrl(cardBackSrc);
                 }}
-                onContextMenu={() => myBALocations.includes(location) && setCardToSend(card.id, location)}
-                width={width}
+                onContextMenu={(e) => {
+                    if (myBALocations.includes(location)) setCardToSend(card.id, location);
+                    onContextMenu?.(e);
+                }}
+                width={style ? style.width : 95}
             />
             {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
                 <DTSBZone isOver={isOver} ref={dropToBottom}/>}
@@ -448,7 +458,7 @@ const StyledAceSpan = styled(AceSpan)<{isMega: boolean}>`
 
 const Wrapper = styled.div<{isTilted: boolean}>`
    position: relative;
-   transform: ${({isTilted}) => (isTilted ? "rotate(30deg)" : "rotate(0deg)")};
+   rotation: ${({isTilted}) => (isTilted ? 30 : 0)}deg;
    -moz-user-select: none;
    user-select: none;
 `;
