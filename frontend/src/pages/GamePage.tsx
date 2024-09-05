@@ -15,6 +15,12 @@ import {useSound} from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus.tsx";
 import RevealArea from "../components/game/RevealArea.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
+import {DndContext, MouseSensor, pointerWithin, useSensor} from "@dnd-kit/core";
+import useDropZone from "../hooks/useDropZone.ts";
+import AttackArrows from "../components/game/AttackArrows.tsx";
+import {useGame} from "../hooks/useGame.ts";
+import {BootStage} from "../utils/types.ts";
+import {SendMessage} from "react-use-websocket";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -24,12 +30,47 @@ const mediaQueries = [
     '(orientation: portrait) and (max-width: 1300px)'
 ].join(',');
 
+/**
+ * To be used in Game components to send messages to multiplayer opponent through WebSocket
+ * It summarizes the most common messages that are sent to the opponent
+ */
+export type WSUtils = {
+    matchInfo: { gameId: string, user: string, opponentName: string };
+    sendMessage: SendMessage;
+    sendPhaseUpdate: () => void;
+    sendMoveCard: (cardId: string, from: string, to: string) => void;
+    sendSfx: (sfx: string) => void;
+    sendChatMessage: (message: string) => void;
+    nextPhase: () => void;
+    sendUpdate: () => void;
+}
+
 export default function GamePage() {
     //Game Logic
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
-    const [playAttackSfx, playEffectAttackSfx] = useSound((state) => [state.playAttackSfx, state.playEffectAttackSfx]);
+
+    const user = useStore((state) => state.user);
+    const gameId = useGame(state => state.gameId);
+    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
+    const [bootStage, setBootStage] = useGame((state) => [state.bootStage, state.setBootStage]);
+
+
+    const [playAttackSfx, playEffectAttackSfx, playNextPhaseSfx] = useSound((state) => [
+        state.playAttackSfx,
+        state.playEffectAttackSfx,
+        state.playNextPhaseSfx
+    ]);
+
+    const [setArrowFrom, setArrowTo, setIsEffectArrow, setPhase, getOpponentReady, setMessages] = useGame((state) => [
+        state.setArrowFrom,
+        state.setArrowTo,
+        state.setIsEffectArrow,
+        state.setPhase,
+        state.getOpponentReady,
+        state.setMessages
+    ]);
 
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
 
@@ -39,19 +80,15 @@ export default function GamePage() {
     const [isRematch, setIsRematch] = useState<boolean>(false);
     const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
-    const [arrowFrom, setArrowFrom] = useState<string>("");
-    const [arrowTo, setArrowTo] = useState<string>("");
-    const [isEffect, setIsEffect] = useState<boolean>(false); //TODO: rename to isEffectAttack
-    const [attackFromOpponent, setAttackFromOpponent] = useState<boolean>(false);
-    const [showAttackArrow, setShowAttackArrow] = useState<boolean>(false);
     const [endScreen, setEndScreen] = useState<boolean>(false);
     const [endScreenMessage, setEndScreenMessage] = useState<string>("");
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
     const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
+    const [phaseLoading, setPhaseLoading] = useState(false);
 
     const timeoutRef = useRef<number | null>(null);
 
-    const endAttackAnimation = useCallback((effect?: boolean) => { //TODO: rename to restartAttackAnimation
+    const restartAttackAnimation = useCallback((effect?: boolean) => {
         if (effect) playEffectAttackSfx();
         else playAttackSfx();
 
@@ -61,41 +98,89 @@ export default function GamePage() {
                 timeoutRef.current = null;
             }
 
-            setShowAttackArrow(false);
             setArrowFrom('');
             setArrowTo('');
-            setAttackFromOpponent(false);
-            setIsEffect(false);
+            setIsEffectArrow(false);
         };
 
         timeoutRef.current = setTimeout(() => {
-            setShowAttackArrow(false);
             setArrowFrom('');
             setArrowTo('');
-            setAttackFromOpponent(false);
-            setIsEffect(false);
+            setIsEffectArrow(false);
         }, 3500);
 
         setClearAttackAnimation(() => cancelAttackAnimation);
-    }, [setShowAttackArrow]);
+    }, [playAttackSfx, playEffectAttackSfx]);
 
-    const sendMessage = useGameWebSocket({
+    const {sendMessage, sendUpdate} = useGameWebSocket({
         setStartingPlayer,
         isRematch,
         setIsRematch,
         setSecurityContentMoodle,
         clearAttackAnimation,
-        setArrowFrom,
-        setArrowTo,
-        setIsEffect,
-        setAttackFromOpponent,
-        setShowAttackArrow,
-        endAttackAnimation,
+        restartAttackAnimation,
         setIsOpponentOnline,
         setEndScreen,
         setEndScreenMessage,
         setRestartOrder,
         setRestartMoodle
+    });
+
+    const handleDragEnd = useDropZone({
+        sendMessage,
+        restartAttackAnimation,
+        clearAttackAnimation,
+    });
+
+    function sendPhaseUpdate() {
+        sendMessage(`${gameId}:/updatePhase:${opponentName}`);
+    }
+
+    function nextPhase() {
+        if(phaseLoading) return;
+        setPhaseLoading(true);
+        const timer = setTimeout(() => {
+            setPhase();
+            sendPhaseUpdate();
+            playNextPhaseSfx();
+            sendSfx("playNextPhaseSfx");
+            setPhaseLoading(false);
+        }, 920);
+        return () => clearTimeout(timer);
+    }
+
+    function sendMoveCard(cardId: string, from: string, to: string) {
+        sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+        if ((bootStage === BootStage.MULLIGAN) && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
+    }
+
+    function sendChatMessage(message: string) {
+        if (!message.length) return;
+        setMessages(user + "﹕" + message);
+        sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
+    }
+
+    function sendSfx(sfx: string) {
+        const timeout = setTimeout(() => sendMessage(`${gameId}:/${sfx}:${opponentName}`), 10);
+        return () => clearTimeout(timeout);
+    }
+
+    const wsUtils: WSUtils = {
+        matchInfo: { gameId, user, opponentName },
+        sendMessage,
+        sendMoveCard,
+        sendChatMessage,
+        sendSfx,
+        sendPhaseUpdate,
+        nextPhase,
+        sendUpdate,
+    }
+
+    // Require the mouse to move by 3 pixels before activate dragging, ensures click events are still possible
+    const mouseSensor = useSensor(MouseSensor, {
+        activationConstraint: {
+            distance: 3,
+        },
     });
 
     //Layout
@@ -125,7 +210,7 @@ export default function GamePage() {
     const setCardWidth = useStore((state) => state.setCardWidth);
 
     function calculateCardWidth() {
-        setCardWidth(boardLayoutRef.current ? boardLayoutRef.current.clientWidth / 20 : 70);
+        setCardWidth(boardLayoutRef.current ? boardLayoutRef.current.clientWidth / 19 : 70);
     }
 
     useEffect(() => {
@@ -137,7 +222,9 @@ export default function GamePage() {
     return (
         <>
             <GameBackground/>
+            {/* TODO: */}
             <ContextMenus/>
+            <AttackArrows/>
             <>
             {/* Komponente: auslagern von Context Menus und co. */}
             </>
@@ -155,13 +242,17 @@ export default function GamePage() {
                         <CardDetails/>
                     </DetailsContainer>
                     <BoardContainer isMobile={isMobile}>
-                        <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
-                            <RevealArea />
-                            <MemoryBar />
-                            <PhaseIndicator />
-                            <OpponentBoardSide />
-                            <PlayerBoardSide />
-                        </BoardLayout>
+                        <DndContext onDragEnd={handleDragEnd} autoScroll={false} collisionDetection={pointerWithin}
+                                    sensors={[mouseSensor]}>
+                            <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
+                                <RevealArea />
+                                {/* TODO: */}
+                                <MemoryBar wsUtils={wsUtils}/>
+                                <PhaseIndicator wsUtils={wsUtils} />
+                                <OpponentBoardSide />
+                                <PlayerBoardSide wsUtils={wsUtils} />
+                            </BoardLayout>
+                        </DndContext>
                     </BoardContainer>
                 </MainStack>
 
@@ -302,6 +393,9 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   display: grid;
   grid-template-columns: repeat(35, 1fr);
   grid-template-rows: repeat(14, 1fr);
+
+  container-type: inline-size;
+  container-name: board-layout;
 
   @container board-container (max-width: 900px) {
     width: unset;

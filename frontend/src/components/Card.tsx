@@ -1,7 +1,6 @@
-import {CardTypeGame, CardTypeWithId, DraggedItem} from "../utils/types.ts";
+import {CardTypeGame, CardTypeWithId} from "../utils/types.ts";
 import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
-import {useDrag, useDrop} from "react-dnd";
 import {useGame} from "../hooks/useGame.ts";
 import {
     arraysEqualUnordered,
@@ -20,6 +19,9 @@ import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
 import {useSound} from "../hooks/useSound.ts";
 import {getSleeve} from "../utils/sleeves.ts";
+import {useDraggable} from '@dnd-kit/core';
+import {CSS} from '@dnd-kit/utilities';
+import {WSUtils} from "../pages/GamePage.tsx";
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -41,19 +43,17 @@ const locationsWithAdditionalInfo = [ ...locationsWithInheritedInfo, "myDigi11",
 type CardProps = {
     card: CardTypeWithId | CardTypeGame,
     location: string,
-    sendTiltCard?: (cardId: string, location: string) => void,
-    sendSfx?: (sfx: string) => void,
+    wsUtils?: WSUtils,
     index?: number,
     draggedCards?: CardTypeGame[],
     setDraggedCards?: (cards: CardTypeGame[]) => void
-    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void,
     setImageError?: (imageError: boolean) => void,
     style?: CSSProperties
     onContextMenu?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void
 }
 
 export default function Card( props : CardProps ) {
-    const {card, location, sendTiltCard, sendSfx, index, draggedCards, setDraggedCards, handleDropToStackBottom, setImageError, style, onContextMenu} = props;
+    const {card, location, index, draggedCards, setDraggedCards, setImageError, style, onContextMenu, wsUtils} = props;
 
     const cardWidth = useStore((state) => state.cardWidth);
     const selectCard = useStore((state) => state.selectCard);
@@ -75,73 +75,54 @@ export default function Card( props : CardProps ) {
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
-
-    const [canDropToStackBottom, setCanDropToStackBottom] = useState(false);
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
 
     const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
     const [renderTargetAnimation, setRenderTargetAnimation] = useState(false);
 
-    const [{isDragging}, drag] = useDrag(() => ({
-        type: "card",
-        item: {id: card.id, location: location === "mySecurityTooltip" ? "mySecurity" : location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name},
-        collect: (monitor) => ({
-            isDragging: !!monitor.isDragging(),
-        }),
-    }));
-
-    const [{isDraggingStack, dragStackItem}, dragStack] = useDrag({
-        type: "card-stack",
-        item: {index: index, location: location},
-        collect: (monitor) => ({
-            isDraggingStack: !!monitor.isDragging(),
-            dragStackItem: monitor.getItem(),
-        }),
+    const {
+        attributes,
+        listeners,
+        setNodeRef: drag,
+        isDragging,
+        transform,
+        over,
+    } = useDraggable({
+        id: card.id + "_" + location,
+        data: { type: 'card', content: {id: card.id, location: location === "mySecurityTooltip" ? "mySecurity" : location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name} },
+        disabled: opponentFieldLocations.includes(location) || !opponentReady,
     });
 
-    const [{isOver, canDrop}, dropToBottom] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location: loc, type, name} = item;
-            if (type === "Token" || !handleDropToStackBottom) return;
-            handleDropToStackBottom(id, loc, location, name);
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-            canDrop: !!monitor.canDrop(),
-        }),
-    }));
+    const {
+        attributes: stackAttributes,
+        listeners: stackListeners,
+        setNodeRef: dragStack,
+        isDragging: isDraggingStack,
+        active: stackActive
+    } = useDraggable({
+        id: location + "_stack",
+        data: { type: 'card-stack', content: { index, location } },
+    });
 
     const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
     const showDragIcon: boolean = myBALocations.includes(location) && ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
 
     useEffect(() => {
         if (setDraggedCards) {
-            if (isDraggingStack && dragStackItem.index) {
-                setDraggedCards(locationCards.slice(0, dragStackItem.index + 1));
-            }
+            const startIndex = stackActive?.data?.current?.content.index;
+            if (isDraggingStack && startIndex) setDraggedCards(locationCards.slice(0, startIndex + 1));
             if (!isDraggingStack) setDraggedCards([]);
         }
-    }, [isDraggingStack, dragStackItem, locationCards, setDraggedCards]);
-
-    useEffect(() => {
-        if (!canDropToStackBottom && canDrop) {
-            const timer = setTimeout(() => {
-                setCanDropToStackBottom(true);
-            }, 20); // could not make it work without timeout
-            return () => clearTimeout(timer);
-        }
-        if (canDropToStackBottom && !canDrop) setCanDropToStackBottom(false)
-    }, [canDrop, canDropToStackBottom, setCanDropToStackBottom]);
+    }, [isDraggingStack, stackActive?.data?.current?.content.index, locationCards, setDraggedCards, stackActive?.data]);
 
     useEffect(() => setRenderEffectAnimation(getIsCardEffect(card.id)), [cardIdWithEffect])
     useEffect(() => setRenderTargetAnimation(getIsCardTarget(card.id)), [cardIdWithTarget])
 
     function handleTiltCard() {
-        if (["myReveal", "opponentReveal", "myBreedingArea", "deck", "fetchedData"].includes(location)) return;
+        if (["myReveal", "myBreedingArea", "myHand"].includes(location) || location.includes("opponent")) return;
         if (card !== locationCards[locationCards.length - 1] && card.cardType !== "Tamer") return;
-        sendSfx && tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx);
-        sendTiltCard?.(card.id, location);
+        tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx);
+        wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/tiltCard:${wsUtils.matchInfo.opponentName}:${card.id}:${location}`);
     }
 
     const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
@@ -154,6 +135,7 @@ export default function Card( props : CardProps ) {
     }
 
     function handleHover() {
+        if (isHandHidden) return;
         setHoverCard(card);
         if (inheritAllowed && !["deck", "fetchedData"].includes(location)) setInheritCardInfo(inheritedEffects);
         else setInheritCardInfo([]);
@@ -162,6 +144,7 @@ export default function Card( props : CardProps ) {
     const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
     const locationCardsOfSelected = useGame((state) => state[selectedCardLocation as keyof typeof state] as CardTypeGame[]);
     function handleStopHover() {
+        if(isDragging) return;
         setHoverCard(null);
 
         if(!selectedCard || !selectedCardLocation) {
@@ -184,13 +167,16 @@ export default function Card( props : CardProps ) {
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
     const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
+    const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
 
     return (
-        <Wrapper isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+        <Wrapper isTilted={((card as CardTypeGame)?.isTilted) && !isDragging}
                  id={index === locationCards.length - 1 ? location : ""}
-                 style={style}
+                 style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999, cursor: "grabbing" })}}
+                 ref={drag}
+                 {...attributes}
+                 {...listeners}
         >
-
             {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && <>
                 {index === (locationCards.length - 1) && <>
                     {isModifiersAllowed && <PlusDpSpan isHovering={hoverCard === card}
@@ -217,6 +203,15 @@ export default function Card( props : CardProps ) {
                     </>}
                 </>}
 
+                {!isDraggingStack && !!(index) && (index > 0) && showDragIcon &&
+                    <DragIcon
+                        ref={dragStack}
+                        {...stackAttributes}
+                        {...stackListeners}
+                        onMouseEnter={() => setHoverCard(hoverCard)}
+                        onMouseLeave={() => setHoverCard(null)}
+                        src={stackIcon} alt={"stack"}
+                    />}
                 {renderEffectAnimation &&
                     <CardAnimationContainer style={{
                         overflow: "hidden",
@@ -240,7 +235,7 @@ export default function Card( props : CardProps ) {
             }
 
             <StyledImage
-                ref={!opponentFieldLocations.includes(location) && opponentReady ? drag : undefined}
+                style={{...(isDragging && {transform: CSS.Translate.toString(transform), cursor: "grabbing"} )}}
                 onClick={handleClick}
                 onDoubleClick={handleTiltCard}
                 onMouseEnter={handleHover}
@@ -248,6 +243,7 @@ export default function Card( props : CardProps ) {
                 onMouseLeave={handleStopHover}
                 alt={card.name + " " + card.uniqueCardNumber}
                 src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
+                canBeDropped={Boolean(over && isDragging)}
                 isDragging={isDragging || dragStackEffect}
                 location={location}
                 isTilted={((card as CardTypeGame)?.isTilted) ?? false}
@@ -264,12 +260,11 @@ export default function Card( props : CardProps ) {
                 }}
                 width={style ? style.width : 95}
             />
-            {handleDropToStackBottom && (index === 0) && canDropToStackBottom &&
-                <DTSBZone isOver={isOver} ref={dropToBottom}/>}
         </Wrapper>)
 }
 
 type StyledImageProps = {
+    canBeDropped?: boolean,
     isDragging: boolean,
     location: string,
     isTilted: boolean,
@@ -281,28 +276,26 @@ type StyledImageProps = {
 const StyledImage = styled.img<StyledImageProps>`
   max-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : "unset")};
   border-radius: 5px;
-  transition: all 0.15s ease-out;
+  transition: all 0.15s ease-out, filter 0.5s ease-in-out;
   cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : "grab")};
-  opacity: ${({isDragging}) => (isDragging ? 0.6 : 1)};
-  filter: ${({isDragging}) => (isDragging ? "drop-shadow(0 0 3px #ff2190) saturate(10%) brightness(120%)" : "drop-shadow(0 0 1.5px #004567)")};
   animation: ${({
                   isTilted,
                   activeEffect,
                   targeted,
                   isTopCard
                 }) => (targeted ? `target-pulsate${isTopCard ? "-first" :""} 0.95s ease-in-out infinite` : activeEffect ? `effect${isTopCard ? "-first" :""} 0.85s ease-in-out infinite` : isTilted ? "pulsate 5s ease-in-out infinite" : "")};
-
+  outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
   &:hover {
-    filter: drop-shadow(0 0 1.5px ghostwhite) ${({isTilted}) => (isTilted ? "brightness(0.5)" : "")};
+    filter: drop-shadow(0 0 ${({isDragging}) => (isDragging ? 2 : 4)}px rgba(0,0,0,0.5)) ${({isDragging}) => (isDragging ? "brightness(120%)" : "")};
     transform: scale(1.1);
   }
 
   @keyframes pulsate {
     0%, 40%, 100% {
-      filter: drop-shadow(0 0 0px #004567) brightness(0.65) saturate(0.8);
+      filter: drop-shadow(0 0 1px #191970) brightness(0.65) saturate(0.8);
     }
     70% {
-      filter: drop-shadow(0 0 4px #ff2190) brightness(0.65) saturate(1.5);
+      filter: drop-shadow(0 0 1px #191970) brightness(0.65) saturate(0.5);
     }
   }
 
@@ -362,18 +355,6 @@ const DragIcon = styled.img`
     transform: scale(1.75);
     filter: drop-shadow(0 0 1px ghostwhite) hue-rotate(90deg);
   }
-`;
-
-const DTSBZone = styled.div<{ isOver: boolean }>`
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-  z-index: 4;
-  height: 27px;
-  width: 95px;
-  background: rgba(236, 148, 241, ${({isOver}) => (isOver ? "0.25" : "0")});
-  border-radius: 5px;
-  transition: all 0.15s ease-in-out;
 `;
 
 export const CardAnimationContainer = styled.div`
@@ -458,9 +439,9 @@ const StyledAceSpan = styled(AceSpan)<{isMega: boolean}>`
 
 const Wrapper = styled.div<{isTilted: boolean}>`
    position: relative;
-   rotation: ${({isTilted}) => (isTilted ? 30 : 0)}deg;
    -moz-user-select: none;
    user-select: none;
+   transform: ${({isTilted}) => (isTilted ? "rotate(30deg) !important" : undefined)};
 `;
 
 const ModifierSpan = styled.div<{longSpan: boolean}>`

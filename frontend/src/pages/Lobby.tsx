@@ -17,7 +17,7 @@ import {useSound} from "../hooks/useSound.ts";
 import SoundBar from "../components/SoundBar.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
-export default function Lobby({user}: { user: string }) {
+export default function Lobby() {
     const [usernames, setUsernames] = useState<string[]>([]);
     const [messages, setMessages] = useState<string[]>([]);
     const [message, setMessage] = useState<string>("");
@@ -33,8 +33,10 @@ export default function Lobby({user}: { user: string }) {
     const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
 
     const currentPort = window.location.port;
+    //TODO: using www.project-drasil.online as the domain is not working, so we need to use the IP address instead?
     const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://project-drasil.online/api/ws/chat";
 
+    const user = useStore((state) => state.user)
     const gameId = useGame((state) => state.gameId);
     const setGameId = useGame((state) => state.setGameId);
     const clearBoard = useGame((state) => state.clearBoard);

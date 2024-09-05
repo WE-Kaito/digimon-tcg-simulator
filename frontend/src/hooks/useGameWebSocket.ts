@@ -19,17 +19,20 @@ type UseGameWebSocketProps = {
     setIsRematch: Dispatch<SetStateAction<boolean>>;
     setSecurityContentMoodle: Dispatch<SetStateAction<boolean>>; //TODO: rename
     clearAttackAnimation: (() => void) | null;
-    setArrowFrom: Dispatch<SetStateAction<string>>;
-    setArrowTo: Dispatch<SetStateAction<string>>;
-    setIsEffect: Dispatch<SetStateAction<boolean>>;
-    setAttackFromOpponent: Dispatch<SetStateAction<boolean>>;
-    setShowAttackArrow: Dispatch<SetStateAction<boolean>>;
-    endAttackAnimation: (effect?: boolean) => void; // prop for this and useDropZone
+    restartAttackAnimation: (effect?: boolean) => void; // prop for this and useDropZone
     setIsOpponentOnline: Dispatch<SetStateAction<boolean>>;
     setEndScreen: Dispatch<SetStateAction<boolean>>;
     setEndScreenMessage: Dispatch<SetStateAction<string>>;
     setRestartOrder: Dispatch<SetStateAction<"second" | "first">>;
     setRestartMoodle: Dispatch<SetStateAction<boolean>>; // TODO: rename
+}
+
+type UseGameWebSocketReturn = {
+    sendMessage: SendMessage;
+    /**
+     * Sends the whole chunked game state as JSON to your opponent.
+     */
+    sendUpdate: () => void;
 }
 
 function chunkString(str: string, size: number): string[] {
@@ -40,19 +43,18 @@ function chunkString(str: string, size: number): string[] {
     return chunks;
 }
 
-export default function useGameWebSocket(props: UseGameWebSocketProps) : SendMessage {
+/**
+ * Handling of all game-related incoming websocket messages.
+ * Needs to be instantiated in the GamePage component. Use the returned SendMessage function to send messages to the server.
+ */
+export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGameWebSocketReturn {
     const {
         setStartingPlayer,
         isRematch,
         setIsRematch,
         setSecurityContentMoodle,
         clearAttackAnimation,
-        setArrowFrom,
-        setArrowTo,
-        setIsEffect,
-        setAttackFromOpponent,
-        setShowAttackArrow,
-        endAttackAnimation,
+        restartAttackAnimation,
         setIsOpponentOnline,
         setEndScreen,
         setEndScreenMessage,
@@ -91,6 +93,9 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : SendMes
         setPhase,
         unsuspendAll,
         getMyFieldAsString,
+        setArrowFrom,
+        setArrowTo,
+        setIsEffectArrow
     ] = useGame((state) => [
         state.gameId,
         state.bootStage,
@@ -120,6 +125,9 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : SendMes
         state.setPhase,
         state.unsuspendAll,
         state.getMyFieldAsString,
+        state.setArrowFrom,
+        state.setArrowTo,
+        state.setIsEffectArrow
     ]);
 
     const isPlayerOne = user === gameId.split("‗")[0];
@@ -330,10 +338,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : SendMes
                 clearAttackAnimation?.();
                 setArrowFrom(parts[0]);
                 setArrowTo(parts[1]);
-                setIsEffect(parts[2] === "true");
-                setAttackFromOpponent(true);
-                setShowAttackArrow(true);
-                endAttackAnimation(parts[2] === "true");
+                setIsEffectArrow(parts[2] === "true");
+                restartAttackAnimation(parts[2] === "true");
                 return;
             }
 
@@ -442,5 +448,5 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : SendMes
         }
     });
 
-    return websocket.sendMessage;
+    return { sendMessage: websocket.sendMessage, sendUpdate };
 }

@@ -3,13 +3,9 @@ import {BootStage, Phase} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useEffect, useRef, useState} from "react";
 import {useSound} from "../../hooks/useSound.ts";
-// TODO:
-type Props = {
-    sendPhaseUpdate: () => void;
-    sendSfx: (sfx: string) => void;
-}
+import {WSUtils} from "../../pages/GamePage.tsx";
 
-export default function PhaseIndicator({sendPhaseUpdate, sendSfx} : Props) {
+export default function PhaseIndicator({ wsUtils } : { wsUtils?: WSUtils }) {
 
     const phase = useGame(state => state.phase);
     const setPhase = useGame(state => state.setPhase);
@@ -17,7 +13,6 @@ export default function PhaseIndicator({sendPhaseUpdate, sendSfx} : Props) {
     const setTurn = useGame(state => state.setTurn);
     const myMemory = useGame(state => state.myMemory);
     const bootStage = useGame(state => state.bootStage);
-
     const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
 
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
@@ -33,15 +28,15 @@ export default function PhaseIndicator({sendPhaseUpdate, sendSfx} : Props) {
         if (isMainPhase) {
             if (!isPassTurnAllowed) return;
             playPassTurnSfx();
-            sendSfx("playPassTurnSfx");
             setTurn(false);
+            wsUtils?.sendSfx("playPassTurnSfx");
         }
         else {
             playNextPhaseSfx();
-            sendSfx("playNextPhaseSfx");
+            wsUtils?.sendSfx("playNextPhaseSfx");
         }
         setPhase();
-        sendPhaseUpdate();
+        wsUtils?.sendPhaseUpdate();
     }
 
     useEffect(() => {
@@ -84,6 +79,7 @@ const Container = styled.div<{isMyTurn: boolean, isMainPhase: boolean, isPassTur
   grid-row: 7 / 9;
   position: relative;
   padding: 0 4% 0 4%;
+  margin: 5%;
   display: flex;
   flex-direction: column;
   justify-content: center;

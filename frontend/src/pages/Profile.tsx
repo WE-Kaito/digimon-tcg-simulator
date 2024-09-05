@@ -21,8 +21,8 @@ import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export type DeckIdOrder = string[];
 
-export default function Profile({user}: { user: string }) {
-
+export default function Profile() {
+    const user = useStore((state) => state.user);
     const loadOrderedDecks = useStore((state) => state.loadOrderedDecks);
     const deckIdOrder = useStore((state) => state.deckIdOrder);
     const setDeckIdOrder = useStore((state) => state.setDeckIdOrder);
