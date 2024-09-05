@@ -61,6 +61,7 @@ export type State = BoardState & {
      */
     arrowTo: string,
     isEffectArrow: boolean,
+    stackSliceIndex: number,
 
     // --------------------------------------------------------
 
@@ -115,6 +116,7 @@ export type State = BoardState & {
     setArrowFrom: (locationAsId: string) => void,
     setArrowTo: (locationAsId: string) => void,
     setIsEffectArrow: (isEffectArrow: boolean) => void,
+    setStackSliceIndex: (index: number) => void,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -214,6 +216,7 @@ export const useGame = create<State>()(
     arrowFrom: "",
     arrowTo: "",
     isEffectArrow: false,
+    stackSliceIndex: 0,
 
     setOpponentReady: (ready) => set({opponentReady: ready}),
 
@@ -739,6 +742,8 @@ export const useGame = create<State>()(
     setArrowTo: (arrowTo) => set({ arrowTo }),
 
     setIsEffectArrow: (isEffectArrow) => set({ isEffectArrow }),
+
+    setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
 
             }),
             { name: 'bearStore' },

@@ -64,6 +64,7 @@ function HandCard({card, index}: { card: CardTypeGame, index: number }) {
 }
 
 const Container = styled.div`
+  touch-action: none;
   grid-area: hand;
   display: flex;
   justify-content: center;

@@ -10,7 +10,7 @@ import {useSound} from "./useSound.ts";
 
 const currentPort = window.location.port;
 // TODO: players using www. end up in an empty lobby
-const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://project-drasil.online/api/ws/game";
+const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/game" : "wss://project-drasil.online/api/ws/game";
 
 // TODO: refactor these to store?
 type UseGameWebSocketProps = {

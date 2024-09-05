@@ -21,7 +21,9 @@ export default function BattleArea(props : BattleAreaProps) {
     const location = isBreeding ? `${side}BreedingArea` : `${side}Digi${num}`;
 
     const {setNodeRef: dropToField, isOver: isOverField} = useDroppable({ id: location, data: { accept: side === SIDE.MY ? ["card", "card-stack"] : ["card"] } });
-    const {setNodeRef: dropToBottom, isOver: isOverBottom, active: canDropToBottom} = useDroppable({id: location + "_bottom", data: { accept: ["card"] } });
+    const {setNodeRef: dropToBottom, isOver: isOverBottom, active} = useDroppable({id: location + "_bottom", data: { accept: ["card"] } });
+
+    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
@@ -29,7 +31,7 @@ export default function BattleArea(props : BattleAreaProps) {
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
 
     return (
-        <Container {...props} id={location} ref={dropToField} isOver={isOverField}>
+        <Container {...props} id={location} ref={dropToField} isOver={side === SIDE.MY && isOverField}>
             {isBreeding && <StyledEggIcon side={side} />}
             {!!locationCards.length &&
                 <CardStack cards={locationCards}
@@ -56,6 +58,7 @@ export default function BattleArea(props : BattleAreaProps) {
 }
 
 const Container = styled.div<BattleAreaProps & { isOver: boolean }>`
+  touch-action: none;
   grid-area: ${({num}) => num ? `BA${num}` : "breeding"};
   position: relative;
   height: calc(100% - 6px);
@@ -68,7 +71,7 @@ const Container = styled.div<BattleAreaProps & { isOver: boolean }>`
   cursor: ${({isOver}) => isOver ? "grabbing" : "unset"};
   background: rgba(20, 20, 20, 0.25);
   box-shadow: inset 0 0 20px rgba(${({isOver}) => isOver ? "10, 10, 10" : "113, 175, 201"}, 0.2);
-  outline: ${({side, isOver}) => side === SIDE.MY ? `2px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})` : "2px solid rgba(56, 38, 38, 0.5)"};
+  outline: ${({side, isOver}) => side === SIDE.MY ? `2px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})` : "2px solid rgba(30, 20, 20, 0.7)"};
 `;
 
 const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`

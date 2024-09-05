@@ -42,6 +42,7 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  z-index: 20;
 `;
 
 const StyledSpan = styled.span`

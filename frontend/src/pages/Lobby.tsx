@@ -34,7 +34,7 @@ export default function Lobby() {
 
     const currentPort = window.location.port;
     //TODO: using www.project-drasil.online as the domain is not working, so we need to use the IP address instead?
-    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://project-drasil.online/api/ws/chat";
+    const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/chat" : "wss://project-drasil.online/api/ws/chat";
 
     const user = useStore((state) => state.user)
     const gameId = useGame((state) => state.gameId);

@@ -171,7 +171,6 @@ export type DraggedItem = {
 }
 
 export type DraggedStack = {
-    index: number,
     location: string,
 }
 

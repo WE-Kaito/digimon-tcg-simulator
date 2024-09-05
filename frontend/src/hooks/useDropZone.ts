@@ -63,13 +63,14 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
     const setMyAttackPhase = useGame((state) => state.setMyAttackPhase);
     const getMyAttackPhase = useGame((state) => state.getMyAttackPhase);
     const getOpponentReady = useGame((state) => state.getOpponentReady);
+    const stackSliceIndex = useGame((state) => state.stackSliceIndex);
 
     const [phaseLoading, setPhaseLoading] = useState(false);
 
 
     function isCardStack(item: DraggedItem | DraggedStack): item is DraggedStack {
-        const {index} = item as DraggedStack;
-        return index > 0;
+        const {id} = item as DraggedItem;
+        return !id;
     }
 
     function sendSfx(sfx: string) {
@@ -142,8 +143,8 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
     function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
         if (item.location === "myBreedingArea") nextPhaseTrigger(nextPhase, Phase.BREEDING);
         if (isCardStack(item)) {
-            const {index, location} = item;
-            moveCardStack(index, location, targetField, handleDropToField);
+            const {location} = item;
+            moveCardStack(stackSliceIndex, location, targetField, handleDropToField);
         } else {
             const {id, location, name} = item;
             handleDropToField(id, location, targetField, name);
@@ -169,7 +170,6 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
         const type = getCardType(from);
         const isEffect = !myTurn || type !== "Digimon" || getPhase() !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
         const attackAllowed = areCardsSuspended(from) || (getDigimonNumber(from) === "BT12-083")
-        console.log("ATTACK!!!")
         clearAttackAnimation?.();
         setArrowFrom(from);
         setArrowTo(to);
@@ -214,7 +214,6 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
     }
 
     function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
-        console.log("test12345");
         if (!cardId || !from || !to) return;
         moveCardToStack("Top", cardId, from, to);
         playPlaceCardSfx();
@@ -248,7 +247,7 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
         if (to.startsWith("opponentDigi") || ["opponentSecurity"].includes(to)) {
             handleDropToOpponent(draggedItem.location, to);
         }
-        console.log("over Id: ",to);
+
         if (to === "myHand") handleDropToHand(draggedItem);
         if (to === "myDeckField") dropCardToStack(draggedItem, "Top");
         if (to === "myDeckBottom") dropCardToStack(draggedItem, "Bottom");
