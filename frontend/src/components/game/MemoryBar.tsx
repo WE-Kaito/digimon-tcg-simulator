@@ -3,29 +3,23 @@ import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
 import {useSound} from "../../hooks/useSound.ts";
 import {useEffect, useRef, useState} from "react";
-//TODO:
-type Props = {
-    sendMemoryUpdate: (memory: number) => void;
-    sendSfx: (sfx: string) => void;
-    sendChatMessage: (message: string) => void;
-}
+import {WSUtils} from "../../pages/GamePage.tsx";
 
-export default function MemoryBar({sendMemoryUpdate, sendSfx, sendChatMessage}: Props) {
-
+export default function MemoryBar({wsUtils}: { wsUtils?: WSUtils }) {
     const myMemory = useGame(state => state.myMemory);
     const setMemory = useGame(state => state.setMemory);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     function handleClick(memory: number) {
-        const oldMemory = myMemory;
         setMemory(memory);
-        sendChatMessage(`[FIELD_UPDATE]≔【MEMORY】﹕${oldMemory}±${memory}`);
-        sendMemoryUpdate(memory);
         playButtonClickSfx();
-        sendSfx("playButtonClickSfx");
+        wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【MEMORY】﹕${myMemory}±${memory}`);
+        wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/updateMemory:${wsUtils.matchInfo.opponentName}:${memory}`)
+        wsUtils?.sendSfx("playButtonClickSfx");
     }
 
+    // Resize font size based on container height
     const containerRef = useRef<HTMLDivElement>(null);
     const [fontSize, setFontSize] = useState(26);
     const bigFontSize = fontSize * 1.3;
@@ -40,6 +34,7 @@ export default function MemoryBar({sendMemoryUpdate, sendSfx, sendChatMessage}: 
         window.addEventListener('resize', calculateFontSize);
         return () => window.removeEventListener('resize', calculateFontSize);
     }, []);
+    // ------------------------------------------------
 
     return (
         <MemoryBarContainer ref={containerRef}>

@@ -1,46 +1,36 @@
-import {DraggedItem, DraggedStack, Phase, SendToStackFunction} from "../utils/types.ts";
+import {AttackPhase, BootStage, DraggedItem, DraggedStack, Phase} from "../utils/types.ts";
 import {useGame} from "./useGame.ts";
 import {convertForLog} from "../utils/functions.ts";
-import {useDrop} from "react-dnd";
+import {DragEndEvent} from '@dnd-kit/core';
 import {useSound} from "./useSound.ts";
+import {SendMessage} from "react-use-websocket";
+import {useStore} from "./useStore.ts";
+import {useState} from "react";
 
-type UseDropZoneProps = {
-    sendCardToStack: SendToStackFunction,
-    sendChatMessage: (message: string) => void,
-    nextPhase: () => void,
-    setArrowFrom: (from: string) => void,
-    setArrowTo: (to: string) => void,
-    setShowAttackArrow: (visible: boolean) => void,
-    endAttackAnimation: (effect: boolean) => void,
-    setIsEffect: (effect: boolean) => void,
-    sendSfx: (sfx: string) => void,
-    sendMoveCard: (id: string, from: string, to: string) => void,
-    resolveMyAttack: (initiating: boolean) => void,
-    setSecurityMoodle: (isOpen: boolean) => void,
-    setEggDeckMoodle: (isOpen: boolean) => void,
-    sendAttackArrows: (from: string, to: string, isEffect: boolean) => void,
-    clearAttackAnimation?: () => void
+type Props = {
+    sendMessage: SendMessage,
+    restartAttackAnimation: (isEffectArrow?: boolean) => void,
+    clearAttackAnimation: (() => void) | null,
 }
 
-export default function useDropZone(props: UseDropZoneProps) {
-
-    const {
-        sendCardToStack,
-        sendChatMessage,
-        nextPhase,
-        setArrowFrom,
-        setArrowTo,
-        setShowAttackArrow,
-        endAttackAnimation,
-        setIsEffect,
-        sendSfx,
-        sendMoveCard,
-        resolveMyAttack,
-        setSecurityMoodle,
-        setEggDeckMoodle,
-        sendAttackArrows,
-        clearAttackAnimation
-    } = props;
+/**
+ * Custom hook for handling the drop zone logic.
+ * Make sure the Id's in useDroppable hook calls are the same as used in handleDragEnd function.
+ *
+ * @example
+ * PlayerDeck.tsx:
+ * const {setNodeRef: deckTopRef, isOver: isOverTop} = useDroppable({ id: "myDeckField", data: { accept: ["card"] } });
+ *
+ * useDropZone.ts:
+ * function handleDragEnd(event: DragEndEvent) {
+ *         const {active, over} = event;
+ *         const to = String(over?.id).includes("_") ? String(over?.id).split("_")[0] : String(over?.id);
+ *         ...
+ *         if (to === "myDeckField") dropCardToStack(draggedItem, "Top");
+ *     }
+ */
+export default function useDropZone(props : Props) : (event: DragEndEvent) => void {
+    const {sendMessage, restartAttackAnimation, clearAttackAnimation} = props;
 
     const areCardsSuspended = useGame(state => state.areCardsSuspended);
     const getDigimonNumber = useGame(state => state.getDigimonNumber);
@@ -58,12 +48,97 @@ export default function useDropZone(props: UseDropZoneProps) {
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
+    const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
+
+    const user = useStore((state) => state.user);
+    const gameId = useGame(state => state.gameId);
+    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
+    const [bootStage, setBootStage] = useGame((state) => [state.bootStage, state.setBootStage]);
+
+    const setPhase = useGame((state) => state.setPhase);
+    const setMessages = useGame((state) => state.setMessages);
+    const [setArrowFrom, setArrowTo] = useGame((state) => [state.setArrowFrom, state.setArrowTo]);
+    const setIsEffectArrow = useGame((state) => state.setIsEffectArrow);
+    const setMyAttackPhase = useGame((state) => state.setMyAttackPhase);
+    const getMyAttackPhase = useGame((state) => state.getMyAttackPhase);
+    const getOpponentReady = useGame((state) => state.getOpponentReady);
+
+    const [phaseLoading, setPhaseLoading] = useState(false);
+
 
     function isCardStack(item: DraggedItem | DraggedStack): item is DraggedStack {
         const {index} = item as DraggedStack;
         return index > 0;
     }
 
+    function sendSfx(sfx: string) {
+        const timeout = setTimeout(() => {
+            sendMessage(gameId + ":/" + sfx + ":" + opponentName);
+        }, 10);
+        return () => clearTimeout(timeout);
+    }
+
+    function sendPhaseUpdate() {
+        sendMessage(`${gameId}:/updatePhase:${opponentName}`);
+    }
+
+    function nextPhase() {
+        if(phaseLoading) return;
+        setPhaseLoading(true);
+        const timer = setTimeout(() => {
+            setPhase();
+            sendPhaseUpdate();
+            playNextPhaseSfx();
+            sendSfx("playNextPhaseSfx");
+            setPhaseLoading(false);
+        }, 920);
+        return () => clearTimeout(timer);
+    }
+
+    function sendChatMessage(message: string) {
+        if (message.length <= 0) return;
+        setMessages(user + "﹕" + message);
+        sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
+    }
+
+    function sendCardToStack(topOrBottom: "Top" | "Bottom", cardId: string, location: string, to: string, sendFaceUp = false) {
+        sendMessage(`${gameId}:/moveCardToStack:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}:${sendFaceUp}`);
+    }
+
+    function sendAttackArrows(from: string, to: string, isEffect: boolean) {
+        sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to + ":" + isEffect);
+    }
+
+    function sendAttackPhaseUpdate(attackPhase: AttackPhase | false) {
+        sendMessage(`${gameId}:/updateAttackPhase:${opponentName}:${attackPhase}`);
+    }
+
+    function sendMoveCard(cardId: string, from: string, to: string) {
+        sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+        if ((bootStage === BootStage.MULLIGAN) && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
+    }
+
+    function resolveMyAttack(initiating?: boolean) {
+        if (initiating && getPhase() === Phase.MAIN) {
+            setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
+            sendAttackPhaseUpdate(AttackPhase.WHEN_ATTACKING);
+        } else {
+            const attackPhase = getMyAttackPhase();
+            if (!attackPhase) return;
+            else if (attackPhase === AttackPhase.WHEN_ATTACKING) {
+                setMyAttackPhase(AttackPhase.COUNTER_BLOCK);
+                sendAttackPhaseUpdate(AttackPhase.COUNTER_BLOCK);
+            } else if (attackPhase === AttackPhase.RESOLVE_ATTACK) {
+                setMyAttackPhase(false);
+                sendAttackPhaseUpdate(false);
+            }
+        }
+        playNextAttackPhaseSfx();
+        sendSfx("playNextAttackPhaseSfx");
+    }
+
+    // return
     function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
         if (item.location === "myBreedingArea") nextPhaseTrigger(nextPhase, Phase.BREEDING);
         if (isCardStack(item)) {
@@ -92,17 +167,16 @@ export default function useDropZone(props: UseDropZoneProps) {
 
         const myTurn = getIsMyTurn();
         const type = getCardType(from);
-        const effect = !myTurn || type !== "Digimon" || getPhase() !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
+        const isEffect = !myTurn || type !== "Digimon" || getPhase() !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
         const attackAllowed = areCardsSuspended(from) || (getDigimonNumber(from) === "BT12-083")
-
+        console.log("ATTACK!!!")
         clearAttackAnimation?.();
         setArrowFrom(from);
         setArrowTo(to);
-        if (effect) setIsEffect(true);
-        setShowAttackArrow(true);
-        sendAttackArrows(from, to, effect);
-        endAttackAnimation(effect);
-        if (!effect && attackAllowed) resolveMyAttack(true);
+        if (isEffect) setIsEffectArrow(true);
+        sendAttackArrows(from, to, isEffect);
+        restartAttackAnimation(isEffect);
+        if (!isEffect && attackAllowed) resolveMyAttack(true);
     }
 
     function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
@@ -113,281 +187,74 @@ export default function useDropZone(props: UseDropZoneProps) {
         if (from !== to) sendChatMessage(`[FIELD_UPDATE]≔【${cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
+    function handleDropToHand(item: DraggedItem) {
+        const {id, location, name} = item;
+        moveCard(id, location, 'myHand');
+        sendMoveCard(id, location, 'myHand');
+        playCardToHandSfx();
+        if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
+    }
+
+    function handleDropToEggDeck(item: DraggedItem) {
+        const {id, location} = item;
+        if (id.startsWith("TOKEN")) return;
+        setCardToSend(id, location);
+        //TODO: change to same behavior as deck
+        // setEggDeckMoodle(true);
+        // setSecurityMoodle(false);
+    }
+
+    function handleDropToSecurity(item: DraggedItem) {
+        const {id, location} = item;
+        if (id.startsWith("TOKEN")) return;
+        setCardToSend(id, location);
+        //TODO: implement
+        // setSecurityMoodle(true);
+        // setEggDeckMoodle(false);
+    }
+
     function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
+        console.log("test12345");
         if (!cardId || !from || !to) return;
         moveCardToStack("Top", cardId, from, to);
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
         sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
         if (from === to) {
-            const timer = setTimeout(() => {
-                sendCardToStack("Top", cardId, from, to);
-            }, 30);
+            const timer = setTimeout(() => sendCardToStack("Top", cardId, from, to), 30);
             return () => clearTimeout(timer);
         } else sendCardToStack("Top", cardId, from, to);
     }
 
-    const [, dropToDigi1] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi1")
-    }));
+    function handleDragEnd(event: DragEndEvent) {
+        const {active, over} = event;
+        const dragItem = active?.data?.current as { type: string; content: DraggedItem | DraggedStack };
+        const to = String(over?.id).includes("_") ? String(over?.id).split("_")[0] : String(over?.id);
+        const draggedItem = dragItem.content as DraggedItem;
 
-    const [, dropToDigi2] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi2")
-    }));
+        if (!over?.data.current?.accept.includes(dragItem.type)) return;
 
-    const [, dropToDigi3] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi3")
-    }));
-
-    const [, dropToDigi4] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi4")
-    }));
-
-    const [, dropToDigi5] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi5")
-    }));
-
-    const [, dropToDigi6] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi6")
-    }));
-
-    const [, dropToDigi7] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi7")
-    }));
-
-    const [, dropToDigi8] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi8")
-    }));
-
-    const [, dropToDigi9] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi9")
-    }));
-
-    const [, dropToDigi10] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi10")
-    }));
-
-    const [, dropToDigi11] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi11")
-    }));
-
-    const [, dropToDigi12] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi12")
-    }));
-
-    const [, dropToDigi13] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi13")
-    }));
-
-    const [, dropToDigi14] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi14")
-    }));
-
-    const [, dropToDigi15] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myDigi15")
-    }));
-
-    const [, dropToBreedingArea] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myBreedingArea")
-    }));
-
-    const [, dropToHand] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location, name} = item;
-            moveCard(id, location, 'myHand');
-            sendMoveCard(id, location, 'myHand');
-            playCardToHandSfx();
-            if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
+        if (String(over?.id).includes("_bottom")) {
+            const {id, location, type, name} = draggedItem;
+            if (type === "Token" || !handleDropToStackBottom) return;
+            handleDropToStackBottom(id, location, to, name);
+            return;
         }
-    }));
 
-    const [{isOverDeckTop}, dropToDeck] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => dropCardToStack(item, "Top"),
-        collect: (monitor) => ({
-            isOverDeckTop: !!monitor.isOver(),
-        }),
-    }));
-
-    const [{isOverBottom, canDropToDeckBottom}, dropToDeckBottom] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => dropCardToStack(item, "Bottom"),
-        collect: (monitor) => ({
-            isOverBottom: !!monitor.isOver(),
-            canDropToDeckBottom: !!monitor.canDrop(),
-        }),
-    }));
-
-    const [, dropToEggDeck] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            if (id.startsWith("TOKEN")) return;
-            setCardToSend(id, location);
-            setEggDeckMoodle(true);
-            setSecurityMoodle(false);
+        if (to.startsWith("myDigi") || ["myBreedingArea", "myTrash"].includes(to)) {
+            dropCardOrStack(dragItem.content, to);
         }
-    }));
 
-    const [, dropToSecurity] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => {
-            const {id, location} = item;
-            if (id.startsWith("TOKEN")) return;
-            setCardToSend(id, location);
-            setSecurityMoodle(true);
-            setEggDeckMoodle(false);
+        if (to.startsWith("opponentDigi") || ["opponentSecurity"].includes(to)) {
+            handleDropToOpponent(draggedItem.location, to);
         }
-    }));
+        console.log("over Id: ",to);
+        if (to === "myHand") handleDropToHand(draggedItem);
+        if (to === "myDeckField") dropCardToStack(draggedItem, "Top");
+        if (to === "myDeckBottom") dropCardToStack(draggedItem, "Bottom");
+        if (to === "myEggDeck") handleDropToEggDeck(draggedItem);
+        if (to === "mySecurity") handleDropToSecurity(draggedItem);
+    }
 
-    const [{isOverTrash}, dropToTrash] = useDrop(() => ({
-        accept: ["card", "card-stack"],
-        drop: (item: DraggedItem | DraggedStack) => dropCardOrStack(item, "myTrash"),
-        collect: (monitor) => ({
-            isOverTrash: !!monitor.isOver(),
-        }),
-    }));
-
-    const [, dropToOpponentDigi1] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi1')
-    }));
-
-    const [, dropToOpponentDigi2] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi2')
-    }));
-
-    const [, dropToOpponentDigi3] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi3')
-    }));
-
-    const [, dropToOpponentDigi4] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi4')
-    }));
-
-    const [, dropToOpponentDigi5] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi5')
-    }));
-
-    const [, dropToOpponentDigi6] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi6')
-    }));
-
-    const [, dropToOpponentDigi7] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi7')
-    }));
-
-    const [, dropToOpponentDigi8] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi8')
-    }));
-
-    const [, dropToOpponentDigi9] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi9')
-    }));
-
-    const [, dropToOpponentDigi10] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi10')
-    }));
-
-    const [, dropToOpponentDigi11] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi11')
-    }));
-
-    const [, dropToOpponentDigi12] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi12')
-    }));
-
-    const [, dropToOpponentDigi13] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi13')
-    }));
-
-    const [, dropToOpponentDigi14] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi14')
-    }));
-
-    const [, dropToOpponentDigi15] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentDigi15')
-    }));
-
-    const [, dropToOpponentSecurity] = useDrop(() => ({
-        accept: "card",
-        drop: (item: DraggedItem) => handleDropToOpponent(item.location, 'opponentSecurity')
-    }));
-
-    return {
-        dropToDigi1,
-        dropToDigi2,
-        dropToDigi3,
-        dropToDigi4,
-        dropToDigi5,
-        dropToDigi6,
-        dropToDigi7,
-        dropToDigi8,
-        dropToDigi9,
-        dropToDigi10,
-        dropToDigi11,
-        dropToDigi12,
-        dropToDigi13,
-        dropToDigi14,
-        dropToDigi15,
-        dropToHand,
-        dropToBreedingArea,
-        dropToDeck,
-        dropToDeckBottom,
-        dropToEggDeck,
-        dropToSecurity,
-        dropToTrash,
-        handleDropToStackBottom,
-        isOverTrash,
-        isOverDeckTop,
-        isOverBottom,
-        canDropToDeckBottom,
-        dropToOpponentDigi1,
-        dropToOpponentDigi2,
-        dropToOpponentDigi3,
-        dropToOpponentDigi4,
-        dropToOpponentDigi5,
-        dropToOpponentDigi6,
-        dropToOpponentDigi7,
-        dropToOpponentDigi8,
-        dropToOpponentDigi9,
-        dropToOpponentDigi10,
-        dropToOpponentDigi11,
-        dropToOpponentDigi12,
-        dropToOpponentDigi13,
-        dropToOpponentDigi14,
-        dropToOpponentDigi15,
-        dropToOpponentSecurity
-    };
+    return handleDragEnd;
 }

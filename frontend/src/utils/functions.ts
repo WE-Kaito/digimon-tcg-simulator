@@ -15,20 +15,18 @@ import axios from "axios";
 import {starterBeelzemon, starterDragonOfCourage, starterGallantmon, starterVortexWarriors} from "./starterDecks.ts";
 
 export function calculateCardRotation(handCardLength: number, index: number) {
+    if (handCardLength > 15) return "0deg";
     const middleIndex = Math.floor(handCardLength / 2);
-    let value = ((index - middleIndex) / 2);
+    let value = ((index - middleIndex) / 1.5);
     if (handCardLength <= 6) value *= 2;
-    if (handCardLength > 10) value = ((index - middleIndex) / 3.5);
-    if (handCardLength > 15) value = ((index - middleIndex) / 4);
-    if (handCardLength > 20) value = ((index - middleIndex) / 5.5);
-    if (handCardLength > 23) return 0;
+    if (handCardLength > 10) value = ((index - middleIndex) / 3.25);
     return value * handCardLength + "deg";
 }
 
 export function calculateCardOffsetY(handCardLength: number, index: number) {
     if (handCardLength === 3 && index === 1) return "-5px";
     if (handCardLength <= 3) return "0px";
-    if (handCardLength > 23) return "15%";
+    if (handCardLength > 15) return "5%";
 
     const middleIndex = Math.floor(handCardLength / 2);
     const middleValue = 0;
@@ -47,17 +45,13 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
 }
 
 export function calculateCardOffsetX(handCardLength: number, index: number, cardWidth: number) {
-    const baseCardWidth = 70; // This is the card width that the were originally based on.
-    const scale = cardWidth / baseCardWidth;
+    const scale = cardWidth /  (70 - (handCardLength > 30 ?(handCardLength - 30) / 3 : 0));
 
-    if (handCardLength === 1) return `${150 * scale + 25}px`;
-    if (handCardLength === 2) return `${(index * 150 * scale) / handCardLength + 80 * scale + 25}px`;
-    if (handCardLength === 3) return `${(index * 250 * scale) / handCardLength + 50 * scale + 25}px`;
-    if (handCardLength > 3 && handCardLength <= 23) return `${(index * 350 * scale) / handCardLength + 25}px`;
-    if (handCardLength > 23) {
-        const factor = 330 - ((handCardLength - 23) * 1.25);
-        return `${((index * factor * scale) / handCardLength) + 20 }px`;
-    }
+    if (handCardLength === 1) return `${150 * scale}px`;
+    if (handCardLength === 2) return `${(index * 150 * scale) / handCardLength + 80 * scale}px`;
+    if (handCardLength === 3) return `${(index * 250 * scale) / handCardLength + 50 * scale}px`;
+    if (handCardLength > 30) return `${((index * 350 * scale) / handCardLength) - 10 }px`;
+    if (handCardLength > 3) return `${(index * 350 * scale) / handCardLength }px`;
 }
 
 export function topCardInfo(locationCards: CardTypeGame[]) {

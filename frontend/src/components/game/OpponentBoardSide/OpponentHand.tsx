@@ -9,7 +9,7 @@ import {useGame} from "../../../hooks/useGame.ts";
 import {useStore} from "../../../hooks/useStore.ts";
 
 export default function OpponentHand() {
-    const {show: showOpponentCardMenu} = useContextMenu({id: "handCardMenu", props: {index: -1}});
+    const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1}});
 
     const [opponentHand, opponentSleeve, getIsCardTarget] = useGame((state) => [state.opponentHand, state.opponentSleeve, state.getIsCardTarget]);
     const cardWidth = useStore((state) => state.cardWidth);
@@ -58,6 +58,7 @@ const Container = styled.div`
 
 const StyledList = styled.ul<{ cardCount: number }>`
   position: absolute;
+  left: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -73,7 +74,7 @@ const ListItem = styled.li<{ cardCount: number, cardIndex: number, cardWidth: nu
   margin: 0;
   padding: 0;
   list-style-type: none;
-  left: 4%;
+  left: 0;
   top: 0;
   transition: all 0.2s ease;
   transform: translateX(${({
@@ -100,7 +101,7 @@ const StyledSpan = styled.span<{ cardCount: number }>`
   opacity: 0.4;
   visibility: ${({cardCount}) => cardCount > 5 ? "visible" : "hidden"};
   position: absolute;
-  bottom: ${({cardCount}) => cardCount > 23 ? "unset" : "5%"};
-  top: ${({cardCount}) => cardCount > 23 ? "-10%" : "unset"};
-  left: ${({cardCount}) => cardCount > 23 ? "83.5%" : "50%"};
+  bottom: 5%;
+  left: 45%;
+  transform: rotate(180deg);
 `;

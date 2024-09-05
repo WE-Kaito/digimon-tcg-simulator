@@ -5,9 +5,10 @@ import { uid } from "uid";
 import { List, ListItem, ListItemButton, ListItemText, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
 import { useGame } from "../../../hooks/useGame.ts";
 import { tokenCollection } from "../../../utils/tokens.ts";
-import { CardType } from "../../../utils/types.ts";
+import {CardType, SIDE} from "../../../utils/types.ts";
 import { styled as muiStyled } from "@mui/material/styles";
 import {useSound} from "../../../hooks/useSound.ts";
+import {WSUtils} from "../../../pages/GamePage.tsx";
 
 function TokenList({ handleCreateToken, onClose }: { handleCreateToken: (token: CardType) => void; onClose: () => void; }) {
     return (
@@ -23,7 +24,7 @@ function TokenList({ handleCreateToken, onClose }: { handleCreateToken: (token: 
     );
 }
 
-export default function TokenButton({ sendTokenMessage }: { sendTokenMessage: (tokenName: string, id: string) => void; }) {
+export default function TokenButton({ wsUtils }: { wsUtils?: WSUtils }) {
     const [isOpen, setIsOpen] = useState(false);
     const createToken = useGame((state) => state.createToken);
 
@@ -31,9 +32,11 @@ export default function TokenButton({ sendTokenMessage }: { sendTokenMessage: (t
 
     function handleCreateToken(token: CardType) {
         const id = "TOKEN-" + uid();
-        createToken(token, "my", id);
-        sendTokenMessage(token.name, id);
+        createToken(token, SIDE.MY, id);
         playPlaceCardSfx();
+        wsUtils?.sendMessage(`${id}:/createToken:${wsUtils.matchInfo.opponentName}:${id}:${token.name}`);
+        wsUtils?.sendSfx("playPlaceCardSfx");
+        wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【Spawn ${token.name}-Token】`);
     }
 
     return (

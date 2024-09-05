@@ -3,24 +3,24 @@ import styled from "@emotion/styled";
 import {useGame} from "../../../../hooks/useGame.ts";
 import {useSound} from "../../../../hooks/useSound.ts";
 import { ShuffleOnOutlined as ShuffleIcon } from "@mui/icons-material";
+import {WSUtils} from "../../../../pages/GamePage.tsx";
 
-export default function Mulligan() {
-    const [getOpponentReady, bootStage, mulligan] = useGame((state) =>
-        [state.getOpponentReady, state.bootStage, state.mulligan]);
+export default function Mulligan({wsUtils}: { wsUtils?: WSUtils }) {
+    const [getOpponentReady, bootStage, mulligan, setBootStage] = useGame((state) =>
+        [state.getOpponentReady, state.bootStage, state.mulligan, state.setBootStage]);
     const [playShuffleDeckSfx] = useSound((state) => [state.playShuffleDeckSfx]);
 
-    //TODO:
     function handleMulligan(mulliganWanted: boolean) {
         if (mulliganWanted) {
             mulligan();
-        //     sendUpdate();
             playShuffleDeckSfx();
-        //     sendSfx("playShuffleDeckSfx");
-        //     sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
+            wsUtils?.sendUpdate();
+            wsUtils?.sendSfx("playShuffleDeckSfx");
+            wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
         }
-        // websocket.sendMessage(gameId + ":/playerReady:" + opponentName);
-        // if (getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
-        // else setBootStage(BootStage.MULLIGAN_DONE);
+        wsUtils?.sendMessage(wsUtils.matchInfo.gameId + ":/playerReady:" + wsUtils.matchInfo.opponentName);
+        if (getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
+        else setBootStage(BootStage.MULLIGAN_DONE);
     }
 
     return (

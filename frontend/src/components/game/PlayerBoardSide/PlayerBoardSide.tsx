@@ -9,22 +9,25 @@ import PlayerEggDeck from "./PlayerEggDeck.tsx";
 import Trash from "./Trash.tsx";
 import DeckUtilButtons from "./DeckUtilButtons.tsx";
 import EventUtils from "./EventUtils/EventUtils.tsx";
+import {WSUtils} from "../../../pages/GamePage.tsx";
+import {useDroppable} from "@dnd-kit/core";
 
-export default function PlayerBoardSide() {
+export default function PlayerBoardSide({ wsUtils } : { wsUtils?: WSUtils }) {
+    const {setNodeRef: dropToMySecurity} = useDroppable({ id: "mySecurity", data: { accept: ["card"] } });
     return (
         <LayoutContainer>
-            <SecurityStack/>
-            <PlayerEggDeck/>
+            <SecurityStack wsUtils={wsUtils} dropRef={dropToMySecurity}/>
+            <PlayerEggDeck wsUtils={wsUtils}/>
             {Array.from({ length: 15 }).map((_, index) => (
-                <BattleArea key={index} num={index + 1} side={SIDE.MY}/>
+                <BattleArea key={index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils}/>
             ))}
-            <BattleArea isBreeding side={SIDE.MY}/>
-            <EventUtils/>
+            <BattleArea isBreeding side={SIDE.MY} wsUtils={wsUtils}/>
+            <EventUtils wsUtils={wsUtils}/>
             <Trash side={SIDE.MY}/>
             <DeckUtilButtons/>
-            <PlayerDeck />
+            <PlayerDeck wsUtils={wsUtils} />
             <PlayerHand />
-            <TokenButton sendTokenMessage={() => {}}/>
+            <TokenButton wsUtils={wsUtils}/>
         </LayoutContainer>
     );
 }

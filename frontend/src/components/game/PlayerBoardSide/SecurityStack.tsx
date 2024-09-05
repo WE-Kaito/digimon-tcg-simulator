@@ -1,32 +1,54 @@
-import {Stack, Tooltip, Zoom as MuiZoom} from "@mui/material";
+import {Tooltip, Zoom as MuiZoom} from "@mui/material";
 import Card from "../../Card.tsx";
 import {getSleeve} from "../../../utils/sleeves.ts";
 import mySecurityAnimation from "../../../assets/lotties/mySecurity.json";
 import opponentSecurityAnimation from "../../../assets/lotties/opponentSecurity.json";
-import {Fragment, useEffect, useRef, useState} from "react";
+import swordAnimation from "../../../assets/lotties/sword.json";
+import {Fragment, RefCallback, useEffect, useRef, useState} from "react";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import {useGame} from "../../../hooks/useGame.ts";
 import {useContextMenu} from "react-contexify";
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import {BootStage} from "../../../utils/types.ts";
+import {WSUtils} from "../../../pages/GamePage.tsx";
+import {useSound} from "../../../hooks/useSound.ts";
 
-type SecurityStackProps = {
+type Props = {
+    dropRef: RefCallback<HTMLElement>;
+    isOverOpponent?: boolean;
     isOpponent?: boolean;
-    sendSecurityReveal?: () => void;
+    wsUtils?: WSUtils;
 }
-
-export default function SecurityStack({isOpponent = false, sendSecurityReveal}: SecurityStackProps) {
+export default function SecurityStack({isOpponent = false, wsUtils, dropRef, isOverOpponent }: Props) {
     const mySleeve = useGame((state) => state.mySleeve);
     const opponentSleeve = useGame((state) => state.opponentSleeve);
     const mySecurity = useGame((state) => state.mySecurity);
     const opponentSecurity = useGame((state) => state.opponentSecurity);
+    const opponentReveal = useGame((state) => state.opponentReveal);
+    const moveCard = useGame((state) => state.moveCard);
+    const bootStage = useGame((state) => state.bootStage);
+    const setBootStage = useGame((state) => state.setBootStage);
+    const getOpponentReady = useGame((state) => state.getOpponentReady);
+
+    const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [fontSize, setFontSize] = useState("unset");
 
+    function sendSecurityReveal(){
+        if (opponentReveal.length) return;
+        moveCard(mySecurity[0].id, "mySecurity", "myReveal");
+        playSecurityRevealSfx();
+        if ((bootStage === BootStage.MULLIGAN) && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
+        wsUtils?.sendMoveCard(mySecurity[0].id, "mySecurity", "myReveal");
+        wsUtils?.sendSfx("playSecurityRevealSfx");
+        wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
+    }
+
     function calculateFontSize() {
         const container = containerRef.current;
-        setFontSize(container ? `${Math.min((container.clientWidth / 1.75), 55)}px` : "2em");
+        setFontSize(container ? `${Math.min((container.clientWidth / 2), 55)}px` : "2em");
     }
 
     useEffect(() => {
@@ -42,43 +64,53 @@ export default function SecurityStack({isOpponent = false, sendSecurityReveal}: 
     const SpanComponent = isOpponent ? OpponentSecuritySpan : MySecuritySpan;
 
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
-    //TODO: replace with dropToSecurityRef later / either ref as prop or directly call hook?
+
     return (
         <Container ref={containerRef} style={{ transform: isOpponent ? "translateY(10%)" : "translateY(-10%)"}}>
-            <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
-                     open={cards.length === 0 ? false : isOpen}
-                     onClose={() => setIsOpen(false)}
-                     onOpen={() => setIsOpen(!!cards.length)}
-                     arrow placement={isOpponent ? "bottom" : "top"}
-                     componentsProps={getTooltipStyles(cards.length, isOpponent)}
-                     title={
-                         <Stack direction={"row"} gap={1} flexWrap={"wrap"} sx={{position: "relative"}}>
-                             {cards.map((card, index) =>
-                                 <Fragment key={card.id + "_fragment"}>
-                                     {index === 0 &&
-                                         <ArrowDropUpIcon key={card.id + "_arrow"} sx={{ position: "absolute", zIndex: 5,
-                                             fontSize: 35, color: isOpponent ? "#d52563" : "#3787ff", left: 9, top: -21,
-                                             filter: "dropShadow(0 0 2px black)"}}/>
-                                     }
-                                     {card.inSecurityFaceUp
-                                         ? <Card key={card.id} card={card} location={isOpponent ? "opponentSecurityTooltip" : "mySecurityTooltip"}/>
-                                         : <FaceDownCard key={card.id} alt="card"
-                                                         src={getSleeve(isOpponent ? opponentSleeve : mySleeve)}/>
-                                     }
-                                 </Fragment>
-                             )}
-                         </Stack>
-                     }>
-                <SpanComponent onContextMenu={(e) => !isOpponent && showSecurityStackMenu({event: e})}
-                               id={isOpponent ? "opponentSecurity" : "mySecurity"}
-                               style={{fontSize}}
-                               onClick={() => sendSecurityReveal?.()}
-                    >
-                    {cards.length}
-                </SpanComponent>
-            </Tooltip>
-            <SecurityStackLottie animationData={isOpponent ? opponentSecurityAnimation : mySecurityAnimation}
-                                 loop={true} onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
+            <InnerContainer ref={dropRef}>
+                {isOverOpponent && isOpponent
+                    ? <Lottie animationData={swordAnimation} loop/>
+                    : <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
+                               open={cards.length === 0 ? false : isOpen}
+                               onClose={() => setIsOpen(false)}
+                               onOpen={() => setIsOpen(!!cards.length)}
+                               arrow placement={isOpponent ? "bottom" : "top"}
+                               componentsProps={getTooltipStyles(cards.length, isOpponent)}
+                               title={
+                                    <div style={{position: "relative", display: "flex", flexWrap: "wrap", gap: "5px"}}>
+                                        {cards.map((card, index) =>
+                                            <Fragment key={card.id + "_fragment"}>
+                                                {index === 0 &&
+                                                    <ArrowDropUpIcon key={card.id + "_arrow"} sx={{
+                                                        position: "absolute",
+                                                        zIndex: 5,
+                                                        fontSize: 35,
+                                                        color: isOpponent ? "#d52563" : "#3787ff",
+                                                        left: 9,
+                                                        top: -21,
+                                                        filter: "dropShadow(0 0 2px black)"
+                                                    }}/>
+                                                }
+                                                {card.inSecurityFaceUp
+                                                    ? <Card key={card.id} card={card}
+                                                            location={isOpponent ? "opponentSecurityTooltip" : "mySecurityTooltip"}/>
+                                                    : <FaceDownCard key={card.id} alt="card"
+                                                                    src={getSleeve(isOpponent ? opponentSleeve : mySleeve)}/>
+                                                }
+                                            </Fragment>
+                                        )}
+                                    </div>}>
+                        <SpanComponent onContextMenu={(e) => !isOpponent && showSecurityStackMenu({event: e})}
+                                       id={isOpponent ? "opponentSecurity" : "mySecurity"}
+                                       style={{fontSize}}
+                                       onClick={() => sendSecurityReveal?.()}
+                        >
+                            {cards.length}
+                        </SpanComponent>
+                    </Tooltip>}
+                <SecurityStackLottie animationData={isOpponent ? opponentSecurityAnimation : mySecurityAnimation}
+                                     loop onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
+            </InnerContainer>
         </Container>
     );
 }
@@ -87,11 +119,16 @@ const Container = styled.div`
   grid-area: SS;
   height: 100%;
   width: 100%;
+  z-index: 10;
+`;
+
+const InnerContainer = styled.div`
+  height: 100%;
+  width: 100%;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
 `;
 
 const OpponentSecuritySpan = styled.span`
@@ -120,7 +157,7 @@ const MySecuritySpan = styled(OpponentSecuritySpan)`
 `;
 
 const SecurityStackLottie = styled(Lottie)`
-  width: 240%;
+  width: 200%;
   position: absolute;
   left: 50%;
   top: 50%;

@@ -3,13 +3,20 @@ import Mulligan from "./Mulligan.tsx";
 import AttackResolveButton from "./AttackResolveButton.tsx";
 import UnsuspendAllButton from "./UnsuspendAllButton.tsx";
 import {useGame} from "../../../../hooks/useGame.ts";
+import {WSUtils} from "../../../../pages/GamePage.tsx";
 
-export default function EventUtils({ isOpponent }: { isOpponent?: boolean }) {
+type Props = {
+    isOpponent?: boolean;
+    wsUtils?: WSUtils;
+}
+
+export default function EventUtils({ isOpponent, wsUtils }: Props) {
     const getMyAttackPhase = useGame((state) => state.getMyAttackPhase);
 
     return (
         <Container>
-            {!isOpponent && <Mulligan/>}
+            {/*TODO: hier 1st player einfügen (beim 2. 2nd)*/}
+            {!isOpponent && <Mulligan wsUtils={wsUtils}/>}
             {!!getMyAttackPhase() && <AttackResolveButton/>}
             <UnsuspendAllButton/>
         </Container>

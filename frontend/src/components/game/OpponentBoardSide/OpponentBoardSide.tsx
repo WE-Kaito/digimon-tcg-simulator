@@ -7,11 +7,13 @@ import EventUtils from "../PlayerBoardSide/EventUtils/EventUtils.tsx";
 import OpponentEggDeck from "./OpponentEggDeck.tsx";
 import OpponentDeck from "./OpponentDeck.tsx";
 import OpponentHand from "./OpponentHand.tsx";
+import {useDroppable} from "@dnd-kit/core";
 
 export default function OpponentBoardSide() {
+    const {setNodeRef, isOver} = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
     return (
         <LayoutContainer>
-            <SecurityStack isOpponent />
+            <SecurityStack isOpponent dropRef={setNodeRef} isOverOpponent={isOver}/>
             <OpponentEggDeck/>
             {Array.from({ length: 15 }).map((_, index) => (
                 <BattleArea key={index} num={index + 1} side={SIDE.OPPONENT}/>

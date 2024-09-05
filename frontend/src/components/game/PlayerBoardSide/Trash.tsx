@@ -4,9 +4,10 @@ import targetAnimation from "../../../assets/lotties/target-animation.json";
 import styled from "@emotion/styled";
 import {useGame} from "../../../hooks/useGame.ts";
 import Lottie from "lottie-react";
-import {useRef, useState} from "react";
+import {useState} from "react";
 import {SIDE} from "../../../utils/types.ts";
 import DeleteIcon from '@mui/icons-material/Delete';
+import {useDroppable} from "@dnd-kit/core";
 
 export default function Trash({side}: {side: SIDE}) {
     const [myTrash, opponentTrash, getCardLocationById, cardIdWithEffect, cardIdWithTarget] = useGame((state) =>
@@ -29,22 +30,21 @@ export default function Trash({side}: {side: SIDE}) {
             setMyTrashMoodle(false);
         }
     }
-    //TODO: add ref and isOver
-    const dropToTrash = useRef<HTMLDivElement>(null);
-    const isOverTrash = false;
+
+    const {setNodeRef, isOver} = useDroppable({ id: "myTrash", data: { accept: ["card"] } })
 
     return (
         <Container isMySide={isMySide}>
-            {myTrash.length === 0
-                ? <PlaceholderDiv ref={isMySide ? dropToTrash : null}
-                                  isOver={isMySide && isOverTrash}>
+            {trash.length === 0
+                ? <PlaceholderDiv ref={isMySide ? setNodeRef : null}
+                                  isOver={isMySide && isOver}>
                     <StyledTrashIcon/>
                 </PlaceholderDiv>
-                : <CardImg ref={isMySide ? dropToTrash : null} src={trash[trash.length - 1].imgUrl}
+                : <CardImg ref={isMySide ? setNodeRef : null} src={trash[trash.length - 1]?.imgUrl}
                            alt={"myTrash"} title="Open trash"
                            onClick={handleClick}
                            onError={handleImageError}
-                           isOver={isMySide && isOverTrash}/>
+                           isOver={isMySide && isOver}/>
             }
             <StyledSpan isMySide={isMySide}>{trash.length}</StyledSpan>
             {effectInTrash && <StyledLottie animationData={effectAnimation} loop={true}/>}
@@ -65,13 +65,12 @@ const Container = styled.div<{ isMySide: boolean }>`
 const PlaceholderDiv = styled.div<{ isOver?: boolean }>`
   height: 100%;
   aspect-ratio: 7 / 10;
-  border-radius: 5px;
-  border: ${({isOver}) => isOver ? '#8d8d8d' : '#0c0c0c'} solid 2px;
-  background: rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  background: rgba(${({isOver}) => isOver ? '180, 180, 180' : '15, 15, 15'}, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  color: rgba(220, 220, 220, 0.8);
+  color: rgba(${({isOver}) => isOver ? '25, 25, 25' : '220, 220, 220'}, 0.8);
   font-family: Naston, sans-serif;
   transition: all 0.1s ease-in-out;
 `;

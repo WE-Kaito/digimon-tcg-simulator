@@ -52,6 +52,15 @@ export type State = BoardState & {
 
     messages: string[],
     setMessages: (message: string) => void,
+    /**
+     * AttackArrow's target id.
+     */
+    arrowFrom: string,
+    /**
+     * AttackArrow's origin id.
+     */
+    arrowTo: string,
+    isEffectArrow: boolean,
 
     // --------------------------------------------------------
 
@@ -103,6 +112,9 @@ export type State = BoardState & {
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void,
     getCardLocationById: (id: string) => string,
     toggleIsHandHidden: () => void,
+    setArrowFrom: (locationAsId: string) => void,
+    setArrowTo: (locationAsId: string) => void,
+    setIsEffectArrow: (isEffectArrow: boolean) => void,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -199,6 +211,9 @@ export const useGame = create<State>()(
 
     messages: [],
     opponentReady: false,
+    arrowFrom: "",
+    arrowTo: "",
+    isEffectArrow: false,
 
     setOpponentReady: (ready) => set({opponentReady: ready}),
 
@@ -718,6 +733,12 @@ export const useGame = create<State>()(
     },
 
     toggleIsHandHidden: () => set(state => ({ isHandHidden: !state.isHandHidden })),
+
+    setArrowFrom: (arrowFrom) => set({ arrowFrom }),
+
+    setArrowTo: (arrowTo) => set({ arrowTo }),
+
+    setIsEffectArrow: (isEffectArrow) => set({ isEffectArrow }),
 
             }),
             { name: 'bearStore' },

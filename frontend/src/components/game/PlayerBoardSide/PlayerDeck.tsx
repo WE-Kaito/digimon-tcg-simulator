@@ -1,54 +1,52 @@
 import styled from "@emotion/styled";
-import deckBackSrc from "../../../assets/deckBack.png";
 import { Phase } from "../../../utils/types.ts";
 import { getSleeve } from "../../../utils/sleeves.ts";
 import { useGame } from "../../../hooks/useGame.ts";
 import { useContextMenu } from "react-contexify";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
+import {WSUtils} from "../../../pages/GamePage.tsx";
+import {useSound} from "../../../hooks/useSound.ts";
+import {useDroppable} from "@dnd-kit/core";
 
-//TODO: nextPhase as Prop and add refs as shown:
-/**
- * <Container>
- *             <StyledSpan>{myDeckField.length}</StyledSpan>
- *
- *             {mySleeve !== "Default" && <SleeveImg alt="sleeve" src={getSleeve(mySleeve)}/>}
- *
- *             <DeckImg ref={dropToDeck} alt="deck" src={deckBackSrc} isOver={isOverDeckTop}
- *                      onClick={handleClick} onContextMenu={(e) => showDeckMenu({event: e})}
- *             />
- *
- *             <DeckBottomZone ref={dropToDeckBottom} isOver={isOverBottom}>
- *                 <DBZSpan isOver={isOverBottom} canDrop={canDropToDeckBottom}>
- *                     <TriangleIcon sx={{ fontSize: 10 }}/>
- *                     <TriangleIcon sx={{ fontSize: 10 }}/>
- *                     <TriangleIcon sx={{ fontSize: 10 }}/>
- *                 </DBZSpan>
- *             </DeckBottomZone>
- *         </Container>
- */
-export default function PlayerDeck() {
-    const [myDeckField, mySleeve, nextPhaseTrigger] = useGame((state) => [state.myDeckField, state.mySleeve, state.nextPhaseTrigger]);
-    const moveCard = useGame((state) => state.moveCard); // temporary
+export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
+    const [myDeckField, mySleeve, nextPhaseTrigger, moveCard] = useGame((state) => [
+        state.myDeckField, state.mySleeve, state.nextPhaseTrigger, state.moveCard]);
+
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+
+    const {setNodeRef: deckTopRef, isOver: isOverTop} = useDroppable({ id: "myDeckField", data: { accept: ["card"] } });
+    const {setNodeRef: deckBottomRef, isOver: isOverBottom, active: canDropToDeckBottom} = useDroppable({ id: "myDeckBottom", data: { accept: ["card"] } });
+
     const {show: showDeckMenu} = useContextMenu({id: "deckMenu"});
 
     function handleClick() {
-        // nextPhaseTrigger(nextPhase, Phase.DRAW);
-        // moveDeckCard("myHand")
-        moveCard(myDeckField[0].id, "myDeckField", "myHand"); // temporary
+        moveCard(myDeckField[0].id, "myDeckField", "myHand");
+        playDrawCardSfx();
+        if (wsUtils) {
+            wsUtils.sendSfx("playDrawCardSfx");
+            wsUtils.sendMoveCard(myDeckField[0].id, "myDeckField", "myHand");
+            wsUtils.sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
+            nextPhaseTrigger(wsUtils.nextPhase, Phase.DRAW);
+        }
     }
 
     return (
         <Container>
             <StyledSpan>{myDeckField.length}</StyledSpan>
 
-            <DeckImg alt="deck" src={getSleeve(mySleeve)} isOver={false}
+            <DeckImg ref={deckTopRef} alt="deck" src={getSleeve(mySleeve)} isOver={isOverTop}
                      onClick={handleClick} onContextMenu={(e) => showDeckMenu({event: e})}
+                     style={{ pointerEvents: canDropToDeckBottom ? "none" : "unset", zIndex: isOverTop? -1: "unset" }}
             />
 
-            <DeckBottomZone isOver={false}>
-                    <TriangleIcon sx={{ fontSize: 12 }}/>
-                    <TriangleIcon sx={{ fontSize: 12 }}/>
-                    <TriangleIcon sx={{ fontSize: 12 }}/>
+            <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
+                {canDropToDeckBottom &&
+                    <>
+                        <TriangleIcon />
+                        <TriangleIcon />
+                        <TriangleIcon />
+                    </>
+                }
             </DeckBottomZone>
         </Container>
     );
@@ -97,18 +95,26 @@ const DeckBottomZone = styled.div<{ isOver: boolean }>`
   z-index: 1;
   height: 20%;
   transform: translate(1px,-5%);
-  width: 78%;
-  border-radius: 5px;
-  border: ${({isOver}) => isOver ? "#DAD8D5E0 solid 2px" : "#0c0c0c dashed 2px"};
-  background: rgba(0, 0, 0, 0.35);
+  width: 90%;
+  border-radius: 3px;
+  background: ${({isOver}) => isOver ? "rgba(255,255,255,0.4)" : "rgba(0, 0, 0, 0.35)"};
+  text-wrap: nowrap;
+  text-overflow: clip;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 5px;
-  @media (max-height: 500px) {
-    gap: 1px;
-    svg {
-      font-size: 0.5em;
-    }
+  gap: 4px;
+  cursor: ${({isOver}) => isOver ? "grabbing" : "unset"};
+  svg {
+    line-height: 1;
+    font-size: 90%;
+    color: ghostwhite;
+    opacity: ${({isOver}) => isOver ? 0.75 : 0.35};
+    transition: all 0.25s ease-in-out;
   }
+  @container board-layout (max-width: 1000px) {
+    gap: 2px;
+    svg {
+      font-size: 70%;
+    }
 `;

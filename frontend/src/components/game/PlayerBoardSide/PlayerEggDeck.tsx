@@ -2,25 +2,33 @@ import styled from "@emotion/styled";
 import { useGame } from "../../../hooks/useGame.ts";
 import {useSound} from "../../../hooks/useSound.ts";
 import eggBackSrc from "../../../assets/eggBack.jpg";
+import {Phase} from "../../../utils/types.ts";
+import {WSUtils} from "../../../pages/GamePage.tsx";
+import {useDroppable} from "@dnd-kit/core";
 
-//TODO: add props, maybe implement like PlayerDeck:
-export default function PlayerEggDeck() {
+export default function PlayerEggDeck({ wsUtils } : { wsUtils?: WSUtils }) {
     const [myEggDeck, moveCard] = useGame((state) => [state.myEggDeck, state.moveCard]);
-    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx)
+    const getOpponentReady = useGame((state) => state.getOpponentReady);
+    const nextPhaseTrigger = useGame((state) => state.nextPhaseTrigger);
+
+    const {setNodeRef} = useDroppable({ id: "myEggDeck", data: { accept: ["card"] } });
 
     function handleClick(e: React.MouseEvent<HTMLImageElement>) {
         e.stopPropagation();
-        // if (!getOpponentReady()) return;
+        if (!getOpponentReady()) return;
         moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
-        // sendMoveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
         playDrawCardSfx();
-        // sendSfx("playPlaceCardSfx");
-        // sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
-        // nextPhaseTrigger(nextPhase, Phase.BREEDING);
+        if (wsUtils){
+            nextPhaseTrigger(wsUtils.nextPhase, Phase.BREEDING);
+            wsUtils.sendMoveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
+            wsUtils.sendSfx("playPlaceCardSfx");
+            wsUtils.sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
+        }
     }
 
     return (
-        <Container>
+        <Container ref={setNodeRef}>
             <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} />
             <StyledSpan>{myEggDeck.length}</StyledSpan>
         </Container>
