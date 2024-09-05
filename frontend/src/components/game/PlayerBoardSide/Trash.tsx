@@ -31,7 +31,7 @@ export default function Trash({side}: {side: SIDE}) {
         }
     }
 
-    const {setNodeRef, isOver} = useDroppable({ id: "myTrash", data: { accept: ["card"] } })
+    const {setNodeRef, isOver} = useDroppable({ id: "myTrash", data: { accept: ["card", "card-stack"] } })
 
     return (
         <Container isMySide={isMySide}>
@@ -73,6 +73,7 @@ const PlaceholderDiv = styled.div<{ isOver?: boolean }>`
   color: rgba(${({isOver}) => isOver ? '25, 25, 25' : '220, 220, 220'}, 0.8);
   font-family: Naston, sans-serif;
   transition: all 0.1s ease-in-out;
+  cursor: ${({isOver}) => isOver ? 'grabbing' : 'default'};
 `;
 
 const CardImg = styled.img<{ isOver?: boolean }>`

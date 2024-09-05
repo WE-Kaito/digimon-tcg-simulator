@@ -1,4 +1,4 @@
-import {CardTypeGame, CardTypeWithId} from "../utils/types.ts";
+import {CardTypeGame} from "../utils/types.ts";
 import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useGame} from "../hooks/useGame.ts";
@@ -14,6 +14,7 @@ import {CSSProperties, useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
+import suspendedAnimation from "../assets/lotties/square-sparkle.json";
 import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
@@ -37,23 +38,23 @@ const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea",
     "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
 
-const locationsWithAdditionalInfo = [ ...locationsWithInheritedInfo, "myDigi11", "myDigi12", "myDigi13", "myDigi14",
-    "myDigi15", "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+
+const locationsWithAdditionalInfo = [ ...locationsWithInheritedInfo, ...tamerLocations];
 
 type CardProps = {
-    card: CardTypeWithId | CardTypeGame,
+    card: CardTypeGame,
     location: string,
     wsUtils?: WSUtils,
     index?: number,
-    draggedCards?: CardTypeGame[],
-    setDraggedCards?: (cards: CardTypeGame[]) => void
     setImageError?: (imageError: boolean) => void,
     style?: CSSProperties
-    onContextMenu?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void
+    onContextMenu?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
 }
 
 export default function Card( props : CardProps ) {
-    const {card, location, index, draggedCards, setDraggedCards, setImageError, style, onContextMenu, wsUtils} = props;
+    const {card, location, index, setImageError, style, onContextMenu, wsUtils} = props;
 
     const cardWidth = useStore((state) => state.cardWidth);
     const selectCard = useStore((state) => state.selectCard);
@@ -72,9 +73,11 @@ export default function Card( props : CardProps ) {
     const getCardLocationById = useGame((state) => state.getCardLocationById);
     const isHandHidden = useGame((state) => state.isHandHidden);
     const mySleeve = useGame((state) => state.mySleeve);
+    const [stackSliceIndex, setStackSliceIndex] = useGame((state) => [state.stackSliceIndex, state.setStackSliceIndex]);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+
     const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
 
     const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
@@ -98,22 +101,13 @@ export default function Card( props : CardProps ) {
         listeners: stackListeners,
         setNodeRef: dragStack,
         isDragging: isDraggingStack,
-        active: stackActive
+        transform: stackTransform,
     } = useDraggable({
         id: location + "_stack",
-        data: { type: 'card-stack', content: { index, location } },
+        data: { type: 'card-stack', content: { location } },
     });
 
-    const dragStackEffect = draggedCards ? draggedCards.includes(card as CardTypeGame) : false;
     const showDragIcon: boolean = myBALocations.includes(location) && ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
-
-    useEffect(() => {
-        if (setDraggedCards) {
-            const startIndex = stackActive?.data?.current?.content.index;
-            if (isDraggingStack && startIndex) setDraggedCards(locationCards.slice(0, startIndex + 1));
-            if (!isDraggingStack) setDraggedCards([]);
-        }
-    }, [isDraggingStack, stackActive?.data?.current?.content.index, locationCards, setDraggedCards, stackActive?.data]);
 
     useEffect(() => setRenderEffectAnimation(getIsCardEffect(card.id)), [cardIdWithEffect])
     useEffect(() => setRenderTargetAnimation(getIsCardTarget(card.id)), [cardIdWithTarget])
@@ -137,6 +131,7 @@ export default function Card( props : CardProps ) {
     function handleHover() {
         if (isHandHidden) return;
         setHoverCard(card);
+        if (index && !isDraggingStack && !isDragging) setStackSliceIndex(index);
         if (inheritAllowed && !["deck", "fetchedData"].includes(location)) setInheritCardInfo(inheritedEffects);
         else setInheritCardInfo([]);
     }
@@ -146,7 +141,6 @@ export default function Card( props : CardProps ) {
     function handleStopHover() {
         if(isDragging) return;
         setHoverCard(null);
-
         if(!selectedCard || !selectedCardLocation) {
             setInheritCardInfo([]);
             return;
@@ -170,14 +164,13 @@ export default function Card( props : CardProps ) {
     const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
 
     return (
-        <Wrapper isTilted={((card as CardTypeGame)?.isTilted) && !isDragging}
-                 id={index === locationCards.length - 1 ? location : ""}
+        <Wrapper id={index === locationCards.length - 1 ? location : ""}
                  style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999, cursor: "grabbing" })}}
                  ref={drag}
                  {...attributes}
                  {...listeners}
         >
-            {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && <>
+            {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack && <>
                 {index === (locationCards.length - 1) && <>
                     {isModifiersAllowed && <PlusDpSpan isHovering={hoverCard === card}
                                                        isNegative={finalDp < card.dp!}
@@ -203,20 +196,23 @@ export default function Card( props : CardProps ) {
                     </>}
                 </>}
 
-                {!isDraggingStack && !!(index) && (index > 0) && showDragIcon &&
+                {/*TODO: dragMode (single, stack) einführen*/}
+                {!isDraggingStack && !!(index) && (index > 0) &&
                     <DragIcon
                         ref={dragStack}
-                        {...stackAttributes}
                         {...stackListeners}
+                        {...stackAttributes}
+                        style={{ visibility: (showDragIcon || isDraggingStack) ? "visible" : "hidden" }}
                         onMouseEnter={() => setHoverCard(hoverCard)}
                         onMouseLeave={() => setHoverCard(null)}
                         src={stackIcon} alt={"stack"}
                     />}
+                {card.isTilted &&
+                    <CardAnimationContainer style={{overflow: "hidden", top: 5, left: 2, right: 2}}>
+                        <Lottie animationData={suspendedAnimation} loop={true}/>
+                    </CardAnimationContainer>}
                 {renderEffectAnimation &&
-                    <CardAnimationContainer style={{
-                        overflow: "hidden",
-                        transform: ((card as CardTypeGame)?.isTilted) ? "rotate(30deg)" : "unset"
-                    }}>
+                    <CardAnimationContainer style={{overflow: "hidden"}}>
                         <Lottie animationData={activateEffectAnimation} loop={true}/>
                     </CardAnimationContainer>}
                 {renderTargetAnimation &&
@@ -225,17 +221,10 @@ export default function Card( props : CardProps ) {
                     </CardAnimationContainer>}
             </>}
 
-            {locationsWithAdditionalInfo.includes(location) && !isDraggingStack && !!(index) && (index > 0) && showDragIcon &&
-                <DragIcon
-                    ref={dragStack}
-                    onMouseEnter={() => setHoverCard(hoverCard)}
-                    onMouseLeave={() => setHoverCard(null)}
-                    src={stackIcon} alt={"stack"}
-                />
-            }
-
             <StyledImage
-                style={{...(isDragging && {transform: CSS.Translate.toString(transform), cursor: "grabbing"} )}}
+                style={{...(isDragging && {transform: CSS.Translate.toString(transform), cursor: "grabbing"} ),
+                        ...(isDraggingStack && ((index !== undefined) && (index <= stackSliceIndex)) &&
+                            {transform: CSS.Translate.toString(stackTransform), cursor: "grabbing"} )}}
                 onClick={handleClick}
                 onDoubleClick={handleTiltCard}
                 onMouseEnter={handleHover}
@@ -244,9 +233,9 @@ export default function Card( props : CardProps ) {
                 alt={card.name + " " + card.uniqueCardNumber}
                 src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
                 canBeDropped={Boolean(over && isDragging)}
-                isDragging={isDragging || dragStackEffect}
+                isDragging={isDragging || isDraggingStack}
                 location={location}
-                isTilted={((card as CardTypeGame)?.isTilted) ?? false}
+                isTilted={card.isTilted}
                 activeEffect={renderEffectAnimation}
                 targeted={renderTargetAnimation}
                 isTopCard={index === locationCards?.length - 1}
@@ -278,25 +267,20 @@ const StyledImage = styled.img<StyledImageProps>`
   border-radius: 5px;
   transition: all 0.15s ease-out, filter 0.5s ease-in-out;
   cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : "grab")};
-  animation: ${({
-                  isTilted,
-                  activeEffect,
-                  targeted,
-                  isTopCard
-                }) => (targeted ? `target-pulsate${isTopCard ? "-first" :""} 0.95s ease-in-out infinite` : activeEffect ? `effect${isTopCard ? "-first" :""} 0.85s ease-in-out infinite` : isTilted ? "pulsate 5s ease-in-out infinite" : "")};
+  touch-action: manipulation;
+  animation: ${({ isTilted, activeEffect, targeted, isTopCard}) => ( targeted 
+          ? `target-pulsate${isTopCard ? "-first" :""} 0.95s ease-in-out infinite` 
+          : activeEffect 
+                  ? `effect${isTopCard ? "-first" :""} 0.85s ease-in-out infinite` 
+                  : isTilted ? "pulsate 5s ease-in-out infinite" : "")};
   outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
+  outline-offset: -2px;
+  filter:  ${({isTilted}) => (isTilted ? "brightness(0.7) saturate(0.7)" : "")};
   &:hover {
-    filter: drop-shadow(0 0 ${({isDragging}) => (isDragging ? 2 : 4)}px rgba(0,0,0,0.5)) ${({isDragging}) => (isDragging ? "brightness(120%)" : "")};
-    transform: scale(1.1);
-  }
-
-  @keyframes pulsate {
-    0%, 40%, 100% {
-      filter: drop-shadow(0 0 1px #191970) brightness(0.65) saturate(0.8);
-    }
-    70% {
-      filter: drop-shadow(0 0 1px #191970) brightness(0.65) saturate(0.5);
-    }
+  filter: drop-shadow(0 0 ${({isDragging}) => (isDragging ? 2 : 4)}px rgba(0,0,0,0.5)) 
+          ${({isDragging}) => (isDragging ? "brightness(120%)" : "")} 
+          ${({isTilted, isDragging}) => (isTilted && !isDragging ? "brightness(0.7) saturate(0.7)" : "")};
+  transform: scale(1.1);
   }
 
   @keyframes effect {
@@ -437,11 +421,11 @@ const StyledAceSpan = styled(AceSpan)<{isMega: boolean}>`
   transform: unset;
 `;
 
-const Wrapper = styled.div<{isTilted: boolean}>`
-   position: relative;
-   -moz-user-select: none;
-   user-select: none;
-   transform: ${({isTilted}) => (isTilted ? "rotate(30deg) !important" : undefined)};
+const Wrapper = styled.div`
+  touch-action: manipulation;
+  position: relative;
+  -moz-user-select: none;
+  user-select: none;
 `;
 
 const ModifierSpan = styled.div<{longSpan: boolean}>`

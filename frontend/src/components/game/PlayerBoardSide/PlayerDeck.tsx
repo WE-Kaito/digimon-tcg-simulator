@@ -15,7 +15,9 @@ export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
     const {setNodeRef: deckTopRef, isOver: isOverTop} = useDroppable({ id: "myDeckField", data: { accept: ["card"] } });
-    const {setNodeRef: deckBottomRef, isOver: isOverBottom, active: canDropToDeckBottom} = useDroppable({ id: "myDeckBottom", data: { accept: ["card"] } });
+    const {setNodeRef: deckBottomRef, isOver: isOverBottom, active} = useDroppable({ id: "myDeckBottom", data: { accept: ["card"] } });
+
+    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 
     const {show: showDeckMenu} = useContextMenu({id: "deckMenu"});
 
@@ -36,11 +38,11 @@ export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
 
             <DeckImg ref={deckTopRef} alt="deck" src={getSleeve(mySleeve)} isOver={isOverTop}
                      onClick={handleClick} onContextMenu={(e) => showDeckMenu({event: e})}
-                     style={{ pointerEvents: canDropToDeckBottom ? "none" : "unset", zIndex: isOverTop? -1: "unset" }}
+                     style={{ pointerEvents: canDropToBottom ? "none" : "unset", zIndex: isOverTop? -1: "unset" }}
             />
 
             <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
-                {canDropToDeckBottom &&
+                {canDropToBottom &&
                     <>
                         <TriangleIcon />
                         <TriangleIcon />

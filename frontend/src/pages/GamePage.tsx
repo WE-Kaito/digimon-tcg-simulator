@@ -15,7 +15,7 @@ import {useSound} from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus.tsx";
 import RevealArea from "../components/game/RevealArea.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
-import {DndContext, MouseSensor, pointerWithin, useSensor} from "@dnd-kit/core";
+import {DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor} from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import {useGame} from "../hooks/useGame.ts";
@@ -182,6 +182,11 @@ export default function GamePage() {
             distance: 3,
         },
     });
+    const touchSensor = useSensor(TouchSensor, {
+        activationConstraint: {
+            tolerance: 10,
+        },
+    });
 
     //Layout
     const isMobile = useMediaQuery(mediaQueries);
@@ -201,6 +206,7 @@ export default function GamePage() {
 
     useEffect(() => boardLayoutRef.current?.scrollTo(boardLayoutRef.current?.scrollWidth / 3, 0), [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
+    // TODO: debounce einbauen, damit nicht bei jedem resize event die breite neu berechnet wird für performance + manuell trigger
     useEffect(() => {
         calculateMaxWidth();
         window.addEventListener('resize', calculateMaxWidth);
@@ -243,7 +249,7 @@ export default function GamePage() {
                     </DetailsContainer>
                     <BoardContainer isMobile={isMobile}>
                         <DndContext onDragEnd={handleDragEnd} autoScroll={false} collisionDetection={pointerWithin}
-                                    sensors={[mouseSensor]}>
+                                    sensors={[mouseSensor, touchSensor]}>
                             <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
                                 <RevealArea />
                                 {/* TODO: */}
