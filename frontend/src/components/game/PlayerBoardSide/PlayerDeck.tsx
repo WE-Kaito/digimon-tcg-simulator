@@ -15,7 +15,7 @@ export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
     const {setNodeRef: deckTopRef, isOver: isOverTop} = useDroppable({ id: "myDeckField", data: { accept: ["card"] } });
-    const {setNodeRef: deckBottomRef, isOver: isOverBottom, active} = useDroppable({ id: "myDeckBottom", data: { accept: ["card"] } });
+    const {setNodeRef: deckBottomRef, isOver: isOverBottom, active} = useDroppable({ id: "myDeckField_bottom", data: { accept: ["card"] } });
 
     const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 

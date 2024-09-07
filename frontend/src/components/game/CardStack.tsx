@@ -1,7 +1,7 @@
 import {CardTypeGame, FieldCardContextMenuItemProps} from "../../utils/types.ts";
 import Card from "../Card.tsx";
 import {Fade} from "react-awesome-reveal";
-import {CSSProperties, useCallback, useState} from "react";
+import {CSSProperties, useCallback} from "react";
 import {ItemParams, ShowContextMenuParams} from "react-contexify";
 import {useStore} from "../../hooks/useStore.ts";
 import {useMediaQuery} from "@mui/material";
@@ -21,7 +21,7 @@ type CardStackProps = {
     activateEffectAnimation?: ({props}: ItemParams<FieldCardContextMenuItemProps>) => void,
     showFieldCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void
     // only if opponentSide is true:
-    showOpponentCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void
+    showOpponentCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void,
 }
 
 const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
@@ -35,7 +35,6 @@ export default function CardStack(props: CardStackProps) {
         showFieldCardMenu,
         showOpponentCardMenu
     } = props;
-    const [draggedCards, setDraggedCards] = useState<CardTypeGame[]>([]);// TODO: Do we still need this??
 
     const cardWidth = useStore((state) => state.cardWidth);
 
@@ -77,8 +76,7 @@ export default function CardStack(props: CardStackProps) {
         return !opponentSide
                 ? cards?.map((card, index) =>
                     <Card style={{...getTamerCardContainerStyles(index), width: cardWidth - 10}}
-                          card={card} location={location} wsUtils={wsUtils} draggedCards={draggedCards}
-                          index={index} setDraggedCards={setDraggedCards} key={card.id}
+                          card={card} location={location} wsUtils={wsUtils} index={index} key={card.id}
                           onContextMenu={(e) => showFieldCardMenu?.({
                               event: e,
                               props: {index, location, id: card.id, name: card.name}
@@ -87,8 +85,7 @@ export default function CardStack(props: CardStackProps) {
 
                 : cards?.map((card, index) =>
                     <Fade direction={"down"} duration={500} key={card.id} style={getTamerCardContainerStyles(index)}>
-                        <Card style={{ width: cardWidth - 10 }}
-                              card={card} location={location} index={index}
+                        <Card style={{ width: cardWidth - 10 }} card={card} location={location} index={index}
                               onContextMenu={(e) => showOpponentCardMenu?.({
                                   event: e,
                                   props: {index, location, id: card.id, name: card.name}
@@ -101,8 +98,7 @@ export default function CardStack(props: CardStackProps) {
         {!opponentSide
             ? cards?.map((card, index) =>
                     <Card style={{...getCardContainerStyles(index, cards.length), width: cardWidth - 1}}
-                          card={card} location={location} wsUtils={wsUtils} draggedCards={draggedCards}
-                          index={index} setDraggedCards={setDraggedCards} key={card.id}
+                          card={card} location={location} wsUtils={wsUtils} index={index} key={card.id}
                           onContextMenu={(e) => showFieldCardMenu?.({
                               event: e,
                               props: {index, location, id: card.id, name: card.name}

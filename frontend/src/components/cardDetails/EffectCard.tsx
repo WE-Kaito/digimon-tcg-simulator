@@ -6,7 +6,7 @@ import {EffectVariant} from "./constants.ts";
 
 type Props = {
     variant: EffectVariant
-    children: (JSX.Element | JSX.Element[])[]
+    children: JSX.Element;
 }
 
 export default function EffectCard({children, variant}: Props) {
@@ -25,10 +25,10 @@ export default function EffectCard({children, variant}: Props) {
                         {variant === EffectVariant.INHERITED && <InheritedIcon sx={{width: 17, position: "absolute", transform: "translate(2px, -11px)"}}/>}
                     </EffectHeader>
                     <hr style={{transform: "translateY(2px)", opacity: 0.75}}/>
-                    {...children}
+                    {children}
                 </EffectText>
                 : <EffectText style={{padding: "3px 5px 0 5px"}} inGame={inGame}>
-                    {...children}
+                    {children}
                 </EffectText>}
         </Wrapper>
     );

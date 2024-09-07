@@ -63,7 +63,7 @@ export default function Profile() {
 
     useEffect(() => {
         if (!isLoading && !orderedDecks.length) () => setRenderAddButton(true)
-    }, [isLoading]);
+    }, [isLoading, orderedDecks.length]);
 
     return (
         <MenuBackgroundWrapper>

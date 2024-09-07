@@ -31,7 +31,7 @@ export default function BattleArea(props : BattleAreaProps) {
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
 
     return (
-        <Container {...props} id={location} ref={dropToField} isOver={side === SIDE.MY && isOverField}>
+        <Container {...props} id={locationCards.length ? "" : location} ref={dropToField} isOver={side === SIDE.MY && isOverField}>
             {isBreeding && <StyledEggIcon side={side} />}
             {!!locationCards.length &&
                 <CardStack cards={locationCards}
