@@ -1,8 +1,8 @@
 import {Tooltip, Zoom as MuiZoom} from "@mui/material";
 import Card from "../../Card.tsx";
 import {getSleeve} from "../../../utils/sleeves.ts";
-import mySecurityAnimation from "../../../assets/lotties/mySecurity.json";
-import opponentSecurityAnimation from "../../../assets/lotties/opponentSecurity.json";
+import mySecurityAnimation from "../../../assets/lotties/my-security-apng.png";
+import opponentSecurityAnimation from "../../../assets/lotties/opponent-security-apng.png";
 import swordAnimation from "../../../assets/lotties/sword.json";
 import {Fragment, RefCallback, useEffect, useRef, useState} from "react";
 import styled from "@emotion/styled";
@@ -69,7 +69,7 @@ export default function SecurityStack({isOpponent = false, wsUtils, dropRef, isO
         <Container ref={containerRef} style={{ transform: isOpponent ? "translateY(10%)" : "translateY(-10%)"}}>
             <InnerContainer ref={dropRef}>
                 {isOverOpponent && isOpponent
-                    ? <Lottie animationData={swordAnimation} loop/>
+                    ? <Lottie animationData={swordAnimation} loop style={{zIndex: 100000}}/>
                     : <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
                                open={cards.length === 0 ? false : isOpen}
                                onClose={() => setIsOpen(false)}
@@ -108,8 +108,10 @@ export default function SecurityStack({isOpponent = false, wsUtils, dropRef, isO
                             {cards.length}
                         </SpanComponent>
                     </Tooltip>}
-                <SecurityStackLottie animationData={isOpponent ? opponentSecurityAnimation : mySecurityAnimation}
-                                     loop onContextMenu={(e) => showSecurityStackMenu({event: e})}/>
+                {isOpponent
+                    ? <SecurityAnimationImg alt={"oppSS"} src={opponentSecurityAnimation} />
+                    : <SecurityAnimationImg alt={"mySS"} src={mySecurityAnimation} />
+                }
             </InnerContainer>
         </Container>
     );
@@ -156,11 +158,11 @@ const MySecuritySpan = styled(OpponentSecuritySpan)`
   }
 `;
 
-const SecurityStackLottie = styled(Lottie)`
+const SecurityAnimationImg = styled.img`
   width: 200%;
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 47%;
   transform: translate(-50%, -50%);
 `;
 

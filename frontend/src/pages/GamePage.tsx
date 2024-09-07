@@ -85,7 +85,8 @@ export default function GamePage() {
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
     const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
     const [phaseLoading, setPhaseLoading] = useState(false);
-
+    // TODO: Remove console.log and figure out what to do with the states
+    console.log(isOpponentOnline, startingPlayer, isRematch, securityContentMoodle, clearAttackAnimation, endScreen, endScreenMessage, restartOrder, restartMoodle, phaseLoading);
     const timeoutRef = useRef<number | null>(null);
 
     const restartAttackAnimation = useCallback((effect?: boolean) => {

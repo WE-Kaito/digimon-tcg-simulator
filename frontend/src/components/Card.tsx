@@ -14,7 +14,7 @@ import {CSSProperties, useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
-import suspendedAnimation from "../assets/lotties/square-sparkle.json";
+import suspendedAPNG from "../assets/lotties/square-sparkle-apng.png";
 import ShieldIcon from '@mui/icons-material/Shield';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
@@ -158,27 +158,27 @@ export default function Card( props : CardProps ) {
     if (numbersWithModifiers.includes(card.cardNumber) && card.cardNumber !== "EX2-007") finalDp = modifiers?.plusDp ?? 0;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
 
+    const isHovered = hoverCard === card;
+    const isPartOfDraggedStack = isDraggingStack && (index !== undefined) && (index <= stackSliceIndex);
+    const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
+    const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
+
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
     const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
-    const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
 
     return (
         <Wrapper id={index === locationCards.length - 1 ? location : ""}
-                 style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999, cursor: "grabbing" })}}
-                 ref={drag}
-                 {...attributes}
-                 {...listeners}
+                 style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999 })}}
+                 ref={drag} {...attributes} {...listeners}
         >
             {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack && <>
                 {index === (locationCards.length - 1) && <>
-                    {isModifiersAllowed && <PlusDpSpan isHovering={hoverCard === card}
-                                                       isNegative={finalDp < card.dp!}
+                    {isModifiersAllowed && <PlusDpSpan isHovering={isHovered} isNegative={finalDp < card.dp!}
                                                        {...(finalDp === card.dp && {style: {color: "ghostwhite"}})}>
                         {finalDp.toString()}
                     </PlusDpSpan>}
-                    {secAtkString && <PlusSecAtkSpan isHovering={hoverCard === card}
-                                                     isNegative={secAtkString.startsWith("-")}>
+                    {secAtkString && <PlusSecAtkSpan isHovering={isHovered} isNegative={secAtkString.startsWith("-")}>
                         {secAtkString}<StyledShieldIcon/>
                     </PlusSecAtkSpan>}
 
@@ -207,10 +207,6 @@ export default function Card( props : CardProps ) {
                         onMouseLeave={() => setHoverCard(null)}
                         src={stackIcon} alt={"stack"}
                     />}
-                {card.isTilted &&
-                    <CardAnimationContainer style={{overflow: "hidden", top: 5, left: 2, right: 2}}>
-                        <Lottie animationData={suspendedAnimation} loop={true}/>
-                    </CardAnimationContainer>}
                 {renderEffectAnimation &&
                     <CardAnimationContainer style={{overflow: "hidden"}}>
                         <Lottie animationData={activateEffectAnimation} loop={true}/>
@@ -220,11 +216,23 @@ export default function Card( props : CardProps ) {
                         <Lottie animationData={targetAnimation} loop={true}/>
                     </CardAnimationContainer>}
             </>}
+            {card.isTilted &&
+                <CardAnimationContainer style={{overflow: "clip", top: 5, left: 5, right: 5, bottom: "25%",
+                transform: CSS.Translate.toString(transform)}}>
+                    <img alt={"suspended"} src={suspendedAPNG}/>
+                </CardAnimationContainer>}
 
-            <StyledImage
-                style={{...(isDragging && {transform: CSS.Translate.toString(transform), cursor: "grabbing"} ),
-                        ...(isDraggingStack && ((index !== undefined) && (index <= stackSliceIndex)) &&
-                            {transform: CSS.Translate.toString(stackTransform), cursor: "grabbing"} )}}
+            {(isDragging || isPartOfDraggedStack) && !isHandHidden &&
+                <DragImage alt={card.name + " " + card.uniqueCardNumber} src={cardImageUrl} isTilted={card.isTilted}
+                           transform={CSS.Translate.toString(isDraggingStack ? stackTransform : transform)}
+                           width={style ? style.width : 95}
+                           style={{ opacity }}
+                />}
+
+            {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && <StyledImage
+                style={{ ...(isDragging && isHandHidden && {transform: CSS.Translate.toString(transform), cursor: "grabbing"} ),
+                    ...(isPartOfDraggedStack && {transform: CSS.Translate.toString(stackTransform) + " scale(1.1)", cursor: "grabbing"})
+                }}
                 onClick={handleClick}
                 onDoubleClick={handleTiltCard}
                 onMouseEnter={handleHover}
@@ -232,7 +240,6 @@ export default function Card( props : CardProps ) {
                 onMouseLeave={handleStopHover}
                 alt={card.name + " " + card.uniqueCardNumber}
                 src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
-                canBeDropped={Boolean(over && isDragging)}
                 isDragging={isDragging || isDraggingStack}
                 location={location}
                 isTilted={card.isTilted}
@@ -248,41 +255,59 @@ export default function Card( props : CardProps ) {
                     onContextMenu?.(e);
                 }}
                 width={style ? style.width : 95}
-            />
+            />}
         </Wrapper>)
 }
 
 type StyledImageProps = {
-    canBeDropped?: boolean,
-    isDragging: boolean,
-    location: string,
-    isTilted: boolean,
-    activeEffect: boolean,
-    targeted?: boolean,
-    isTopCard?: boolean
+    isDragging: boolean;
+    location: string;
+    isTilted: boolean;
+    activeEffect: boolean;
+    targeted?: boolean;
+    isTopCard?: boolean;
 }
 
+const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean}>`
+  cursor: grabbing;
+  outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
+  outline-offset: -1px;
+  border-radius: 5px;
+  transform: ${({transform}) => transform} scale(1.1);
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)) brightness(110%) saturate(1.05);
+  transition: ${({hasOffset}) => (hasOffset ? "transform 0.35s ease" : "unset")};
+`;
+
 const StyledImage = styled.img<StyledImageProps>`
-  max-width: ${({location}) => (["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : "unset")};
+  max-width: ${({ location }) =>
+    ["mySecurityTooltip", "opponentSecurityTooltip"].includes(location)
+        ? "50px"
+        : "unset"};
   border-radius: 5px;
   transition: all 0.15s ease-out, filter 0.5s ease-in-out;
-  cursor: ${({location}) => (opponentFieldLocations.includes(location) ? "pointer" : "grab")};
+  cursor: ${({ location }) =>
+    opponentFieldLocations?.includes(location) ? "pointer" : "grab"};
   touch-action: manipulation;
-  animation: ${({ isTilted, activeEffect, targeted, isTopCard}) => ( targeted 
-          ? `target-pulsate${isTopCard ? "-first" :""} 0.95s ease-in-out infinite` 
-          : activeEffect 
-                  ? `effect${isTopCard ? "-first" :""} 0.85s ease-in-out infinite` 
-                  : isTilted ? "pulsate 5s ease-in-out infinite" : "")};
-  outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
-  outline-offset: -2px;
-  filter:  ${({isTilted}) => (isTilted ? "brightness(0.7) saturate(0.7)" : "")};
-  &:hover {
-  filter: drop-shadow(0 0 ${({isDragging}) => (isDragging ? 2 : 4)}px rgba(0,0,0,0.5)) 
-          ${({isDragging}) => (isDragging ? "brightness(120%)" : "")} 
-          ${({isTilted, isDragging}) => (isTilted && !isDragging ? "brightness(0.7) saturate(0.7)" : "")};
-  transform: scale(1.1);
-  }
+  
+  animation: ${({ isTilted, activeEffect, targeted, isTopCard }) =>
+    targeted
+        ? `target-pulsate${isTopCard ? "-first" : ""} 0.95s ease-in-out infinite`
+        : activeEffect
+            ? `effect${isTopCard ? "-first" : ""} 0.85s ease-in-out infinite`
+            : isTilted
+                ? "pulsate 5s ease-in-out infinite"
+                : "none"};
 
+  outline: ${({ isTilted }) => (isTilted ? "2px solid #191970" : "none")};
+  outline-offset: -1px;
+  filter: ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
+
+  &:hover {
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5))
+      ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
+    transform: scale(1.1);
+  }
+  
   @keyframes effect {
     0%, 40%, 100% {
       filter: drop-shadow(0 0 0px #004567) brightness(0.9) saturate(1.3);
@@ -353,7 +378,7 @@ export const CardAnimationContainer = styled.div`
 
 const PlusDpSpan = styled.span<{isHovering?: boolean, isNegative?: boolean}>`
   position: absolute;
-  z-index: 10;
+  z-index: 11;
   top: ${({isHovering}) => (isHovering ? "-8px" : "-1px")};
   right: ${({isHovering}) => (isHovering ? "-6px" : 0)};
   font-size: ${({isHovering}) => (isHovering ? "1.1em" : "1em")};
@@ -426,6 +451,7 @@ const Wrapper = styled.div`
   position: relative;
   -moz-user-select: none;
   user-select: none;
+  transition: transform 0.35s;
 `;
 
 const ModifierSpan = styled.div<{longSpan: boolean}>`

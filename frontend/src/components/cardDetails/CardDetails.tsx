@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import {useStore} from "../../hooks/useStore.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-import {useEffect, useState, JSX} from "react";
+import {useState} from "react";
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
 import DetailsHeader from "./DetailsHeader.tsx";
 import EffectCard, {EffectText} from "./EffectCard.tsx";
@@ -24,6 +24,8 @@ export default function CardDetails() {
     const hoverCard : CardTypeWithId | CardTypeGame | null  = useStore((state) => state.hoverCard);
     const inheritCardInfo = useGame((state) => state.inheritCardInfo);
 
+    const [selectedTab, setSelectedTab] = useState("effects");
+
     // First Tab
     const name = hoverCard?.name ?? selectedCard?.name;
     const cardType = hoverCard?.cardType ?? selectedCard?.cardType;
@@ -45,27 +47,9 @@ export default function CardDetails() {
     const illustrator = hoverCard?.illustrator ?? (!hoverCard ? (selectedCard?.illustrator ?? "") : "");
     const rulingsUrl = `https://digimoncardgame.fandom.com/wiki/${cardNumber}/Rulings`;
 
-    const [highlightedMainEffect, setHighlightedMainEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedInheritedEffect, setHighlightedInheritedEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedSecurityEffect, setHighlightedSecurityEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedSpecialDigivolve, setHighlightedSpecialDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedBurstDigivolve, setHighlightedBurstDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedDigiXros, setHighlightedDigiXros] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [highlightedDNADigivolution, setHighlightedDNADigivolution] = useState<(JSX.Element | JSX.Element[])[]>([]);
-    const [selectedTab, setSelectedTab] = useState("effects");
 
     const notHybrid =!HybridNames.includes(String(name));
     const notXAntibody = !["BT9-109", "EX5-070"].includes(String(cardNumber));
-
-    useEffect(() => {
-        setHighlightedMainEffect(HighlightedKeyWords({text: mainEffectText}));
-        setHighlightedInheritedEffect(HighlightedKeyWords({text: inheritedEffectText}));
-        setHighlightedSecurityEffect(HighlightedKeyWords({text: securityEffectText}));
-        setHighlightedSpecialDigivolve(HighlightedKeyWords({text: specialDigivolveText}));
-        setHighlightedBurstDigivolve(HighlightedKeyWords({text: burstDigivolveText}));
-        setHighlightedDigiXros(HighlightedKeyWords({text: digiXrosText}));
-        setHighlightedDNADigivolution(HighlightedKeyWords({text: dnaDigivolutionText}));
-    }, [selectedCard, hoverCard]);
 
     if (!selectedCard && !hoverCard) return <div style={{height: 500}}/>;
     return (
@@ -87,40 +71,40 @@ export default function CardDetails() {
                     <TabContainer>
 
                         {dnaDigivolutionText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
-                            {highlightedDNADigivolution}
+                            <HighlightedKeyWords text={dnaDigivolutionText}/>
                         </EffectCard>}
 
                         {digiXrosText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
-                            {highlightedDigiXros}
+                            <HighlightedKeyWords text={digiXrosText}/>
                         </EffectCard>}
 
                         {burstDigivolveText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_burst`}>
-                            {highlightedBurstDigivolve}
+                            <HighlightedKeyWords text={burstDigivolveText}/>
                         </EffectCard>}
 
                         {specialDigivolveText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_spec`}>
-                            {highlightedSpecialDigivolve}
+                            <HighlightedKeyWords text={specialDigivolveText}/>
                         </EffectCard>}
 
                         {mainEffectText && <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
-                            {highlightedMainEffect}
+                            <HighlightedKeyWords text={mainEffectText}/>
                         </EffectCard>}
 
                         {inheritCardInfo[0]?.length > 0 && <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
-                            {[<Stack key={`${cardNumber}_inherited_from_material`} gap={1}>
-                            {inheritCardInfo.map((text, index) => text &&
-                                <span key={index + "inherited_from_material"}>{HighlightedKeyWords({ text })}</span>
-                            )}
-                            </Stack>]}
+                            <Stack key={`${cardNumber}_inherited_from_material`} gap={1}>
+                                {inheritCardInfo.map((text, index) => text &&
+                                    <HighlightedKeyWords key={index + "inherited_from_material"} text={text}/>
+                                )}
+                            </Stack>
                         </EffectCard>}
 
                         {inheritedEffectText && <EffectCard key={`${cardNumber}_to_inherit`}
                             variant={((cardType === "Option" && notXAntibody)|| (cardType === "Tamer" && notHybrid)) ? EffectVariant.SECURITY : EffectVariant.INHERITED}>
-                            {highlightedInheritedEffect}
+                            <HighlightedKeyWords text={inheritedEffectText}/>
                         </EffectCard>}
 
                         {securityEffectText && <EffectCard variant={EffectVariant.SECURITY} key={`${cardNumber}_security`}>
-                            {highlightedSecurityEffect}
+                            <HighlightedKeyWords text={securityEffectText}/>
                         </EffectCard>}
                     </TabContainer>
                 </TabPanel>

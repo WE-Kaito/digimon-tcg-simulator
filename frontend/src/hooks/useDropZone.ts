@@ -250,7 +250,7 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
 
         if (to === "myHand") handleDropToHand(draggedItem);
         if (to === "myDeckField") dropCardToStack(draggedItem, "Top");
-        if (to === "myDeckBottom") dropCardToStack(draggedItem, "Bottom");
+        if (to === "myDeckField_bottom") dropCardToStack(draggedItem, "Bottom");
         if (to === "myEggDeck") handleDropToEggDeck(draggedItem);
         if (to === "mySecurity") handleDropToSecurity(draggedItem);
     }
