@@ -3,8 +3,11 @@ import {devtools, persist} from 'zustand/middleware'
 import {
     AttackPhase,
     BoardState,
-    BootStage, CardModifiers, CardType,
+    BootStage,
+    CardModifiers,
+    CardType,
     CardTypeGame,
+    DragMode,
     GameDistribution,
     OneSideDistribution,
     Phase,
@@ -62,6 +65,7 @@ export type State = BoardState & {
     arrowTo: string,
     isEffectArrow: boolean,
     stackSliceIndex: number,
+    dragMode: DragMode,
 
     // --------------------------------------------------------
 
@@ -117,6 +121,7 @@ export type State = BoardState & {
     setArrowTo: (locationAsId: string) => void,
     setIsEffectArrow: (isEffectArrow: boolean) => void,
     setStackSliceIndex: (index: number) => void,
+    toggleDragMode: () => void,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -217,6 +222,7 @@ export const useGame = create<State>()(
     arrowTo: "",
     isEffectArrow: false,
     stackSliceIndex: 0,
+    dragMode: DragMode.SINGLE,
 
     setOpponentReady: (ready) => set({opponentReady: ready}),
 
@@ -744,6 +750,8 @@ export const useGame = create<State>()(
     setIsEffectArrow: (isEffectArrow) => set({ isEffectArrow }),
 
     setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
+
+    toggleDragMode: () => set(state => ({ dragMode: state.dragMode === DragMode.SINGLE ? DragMode.STACK : DragMode.SINGLE })),
 
             }),
             { name: 'bearStore' },

@@ -274,3 +274,8 @@ export enum SIDE {
     MY = "my",
     OPPONENT = "opponent"
 }
+
+export enum DragMode {
+    SINGLE = "single",
+    STACK = "stack"
+}

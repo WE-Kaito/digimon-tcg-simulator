@@ -10,10 +10,12 @@ import OpponentHand from "./OpponentHand.tsx";
 import {useDroppable} from "@dnd-kit/core";
 
 export default function OpponentBoardSide() {
-    const {setNodeRef, isOver} = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
+    const {setNodeRef, isOver, active} = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
+    const isOverOpponent = isOver && String(active?.id).includes("myDigi");
+
     return (
         <LayoutContainer>
-            <SecurityStack isOpponent dropRef={setNodeRef} isOverOpponent={isOver}/>
+            <SecurityStack isOpponent dropRef={setNodeRef} isOverOpponent={isOverOpponent}/>
             <OpponentEggDeck/>
             {Array.from({ length: 15 }).map((_, index) => (
                 <BattleArea key={index} num={index + 1} side={SIDE.OPPONENT}/>
