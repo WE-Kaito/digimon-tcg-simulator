@@ -2,13 +2,7 @@ import {CardTypeGame, DragMode} from "../utils/types.ts";
 import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useGame} from "../hooks/useGame.ts";
-import {
-    arraysEqualUnordered,
-    getCardColor,
-    getNumericModifier,
-    numbersWithModifiers,
-    topCardInfo
-} from "../utils/functions.ts";
+import {arraysEqualUnordered, getCardColor, getNumericModifier, numbersWithModifiers, topCardInfo} from "../utils/functions.ts";
 import {CSSProperties, useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
@@ -90,6 +84,7 @@ export default function Card( props : CardProps ) {
         isDragging,
         transform,
         over,
+        active,
     } = useDraggable({
         id: card.id + "_" + location,
         data: { type: 'card', content: {id: card.id, location: location === "mySecurityTooltip" ? "mySecurity" : location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name} },
@@ -127,9 +122,9 @@ export default function Card( props : CardProps ) {
     }
 
     function handleHover() {
-        if (isHandHidden) return;
+        if (index && !active && (dragMode === DragMode.STACK)) setStackSliceIndex(index);
+        if (isHandHidden && location === "myHand") return;
         setHoverCard(card);
-        if (index && !isDraggingStack && !isDragging) setStackSliceIndex(index);
         if (inheritAllowed && !["deck", "fetchedData"].includes(location)) setInheritCardInfo(inheritedEffects);
         else setInheritCardInfo([]);
     }
@@ -150,28 +145,29 @@ export default function Card( props : CardProps ) {
     }
 
     const isModifiersAllowed = [...myBALocations, ...opponentBALocations].includes(location) && ((card.cardType === "Digimon") || numbersWithModifiers.includes(card.cardNumber));
-    const modifiers = isModifiersAllowed ? (card as CardTypeGame)?.modifiers : undefined;
+    const modifiers = isModifiersAllowed ? card.modifiers : undefined;
 
     let finalDp = (modifiers && card.dp) ? (card.dp + modifiers.plusDp) < 0 ? 0 : (card.dp + modifiers.plusDp) : 0;
     if (numbersWithModifiers.includes(card.cardNumber) && card.cardNumber !== "EX2-007") finalDp = modifiers?.plusDp ?? 0;
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
-
-    const isHovered = hoverCard === card;
-    const isPartOfDraggedStack = isDraggingStack && (index !== undefined) && (index <= stackSliceIndex);
-    const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
-    const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
-    const dragRef = dragMode === DragMode.SINGLE ? drag : dragStack;
-
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
     const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
 
+    const isHovered = hoverCard === card;
+    const isPartOfDraggedStack = isDraggingStack && (index !== undefined) && (index <= stackSliceIndex);
+
+    const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
+    const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
+
+    const dragRef = dragMode === DragMode.SINGLE ? drag : dragStack;
+    const dragAttributes = dragMode === DragMode.SINGLE ? attributes : stackAttributes;
+    const dragListeners = dragMode === DragMode.SINGLE ? listeners : stackListeners;
+
     return (
         <Wrapper id={index === locationCards.length - 1 ? location : ""}
                  style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999 })}}
-                 ref={dragRef}
-                 {...(dragMode === DragMode.SINGLE && attributes)} {...(dragMode === DragMode.SINGLE && listeners)}
-                 {...(dragMode === DragMode.STACK && stackAttributes)} {...(dragMode === DragMode.STACK && stackListeners)}
+                 ref={dragRef} {...dragAttributes} {...dragListeners}
         >
             {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack && <>
                 {index === (locationCards.length - 1) && <>
@@ -230,7 +226,6 @@ export default function Card( props : CardProps ) {
                 onMouseLeave={handleStopHover}
                 alt={card.name + " " + card.uniqueCardNumber}
                 src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
-                isDragging={isDragging || isDraggingStack}
                 location={location}
                 isTilted={card.isTilted}
                 activeEffect={renderEffectAnimation}
@@ -250,7 +245,6 @@ export default function Card( props : CardProps ) {
 }
 
 type StyledImageProps = {
-    isDragging: boolean;
     location: string;
     isTilted: boolean;
     activeEffect: boolean;
@@ -258,25 +252,11 @@ type StyledImageProps = {
     isTopCard?: boolean;
 }
 
-const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean}>`
-  cursor: grabbing;
-  outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
-  outline-offset: -1px;
-  border-radius: 5px;
-  transform: ${({transform}) => transform} scale(1.1);
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)) brightness(110%) saturate(1.05);
-  transition: ${({hasOffset}) => (hasOffset ? "transform 0.35s ease" : "unset")};
-`;
-
 const StyledImage = styled.img<StyledImageProps>`
-  max-width: ${({ location }) =>
-    ["mySecurityTooltip", "opponentSecurityTooltip"].includes(location)
-        ? "50px"
-        : "unset"};
+  max-width: ${({ location }) => ["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : "unset"};
   border-radius: 5px;
   transition: all 0.15s ease-out, filter 0.5s ease-in-out;
-  cursor: ${({ location }) =>
-    opponentFieldLocations?.includes(location) ? "pointer" : "grab"};
+  cursor: ${({ location }) => opponentFieldLocations?.includes(location) ? "pointer" : "grab"};
   touch-action: manipulation;
   
   animation: ${({ isTilted, activeEffect, targeted, isTopCard }) =>
@@ -337,6 +317,16 @@ const StyledImage = styled.img<StyledImageProps>`
       filter: drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1);
     }
   }
+`;
+
+const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean}>`
+  cursor: grabbing;
+  outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
+  outline-offset: -1px;
+  border-radius: 5px;
+  transform: ${({transform}) => transform} scale(1.1);
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)) brightness(110%) saturate(1.05);
+  transition: ${({hasOffset}) => (hasOffset ? "transform 0.35s ease" : "unset")};
 `;
 
 export const CardAnimationContainer = styled.div`
