@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import noiseBG from "../../assets/noiseBG.png";
 import {getAttributeImage, getCardTypeImage} from "../../utils/functions.ts";
-import stackIconSrc from "../../assets/stackIcon.png";
 import cardBackSrc from "../../assets/cardBack.jpg";
+import suspendedAnimation from "../../assets/lotties/square-sparkle-apng.png";
 
 export default function GameBackground() {
     const color1 = localStorage.getItem("color1") ?? "#214d44";
@@ -24,7 +24,7 @@ export default function GameBackground() {
                 <img width={30} alt={"attribute4"} src={getAttributeImage("Free")}/>
                 <img width={30} alt={"attribute5"} src={getAttributeImage("Variable")}/>
                 <img width={30} alt={"attribute6"} src={getAttributeImage("Unknown")}/>
-                <img width={30} alt={"attribute7"} src={stackIconSrc}/>
+                <img width={30} alt={"attribute7"} src={suspendedAnimation}/>
                 <img width={30} alt={"attribute8"} src={cardBackSrc}/>
             </div>
 

@@ -1,4 +1,4 @@
-import {CardTypeGame} from "../utils/types.ts";
+import {CardTypeGame, DragMode} from "../utils/types.ts";
 import styled from '@emotion/styled';
 import {useStore} from "../hooks/useStore.ts";
 import {useGame} from "../hooks/useGame.ts";
@@ -9,7 +9,6 @@ import {
     numbersWithModifiers,
     topCardInfo
 } from "../utils/functions.ts";
-import stackIcon from "../assets/stackIcon.png";
 import {CSSProperties, useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
@@ -73,6 +72,7 @@ export default function Card( props : CardProps ) {
     const getCardLocationById = useGame((state) => state.getCardLocationById);
     const isHandHidden = useGame((state) => state.isHandHidden);
     const mySleeve = useGame((state) => state.mySleeve);
+    const dragMode = useGame((state) => state.dragMode);
     const [stackSliceIndex, setStackSliceIndex] = useGame((state) => [state.stackSliceIndex, state.setStackSliceIndex]);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
@@ -106,8 +106,6 @@ export default function Card( props : CardProps ) {
         id: location + "_stack",
         data: { type: 'card-stack', content: { location } },
     });
-
-    const showDragIcon: boolean = myBALocations.includes(location) && ((hoverCard === card) || !!('ontouchstart' in window || navigator.maxTouchPoints));
 
     useEffect(() => setRenderEffectAnimation(getIsCardEffect(card.id)), [cardIdWithEffect])
     useEffect(() => setRenderTargetAnimation(getIsCardTarget(card.id)), [cardIdWithTarget])
@@ -162,6 +160,7 @@ export default function Card( props : CardProps ) {
     const isPartOfDraggedStack = isDraggingStack && (index !== undefined) && (index <= stackSliceIndex);
     const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
     const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
+    const dragRef = dragMode === DragMode.SINGLE ? drag : dragStack;
 
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
@@ -170,7 +169,9 @@ export default function Card( props : CardProps ) {
     return (
         <Wrapper id={index === locationCards.length - 1 ? location : ""}
                  style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999 })}}
-                 ref={drag} {...attributes} {...listeners}
+                 ref={dragRef}
+                 {...(dragMode === DragMode.SINGLE && attributes)} {...(dragMode === DragMode.SINGLE && listeners)}
+                 {...(dragMode === DragMode.STACK && stackAttributes)} {...(dragMode === DragMode.STACK && stackListeners)}
         >
             {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack && <>
                 {index === (locationCards.length - 1) && <>
@@ -196,17 +197,6 @@ export default function Card( props : CardProps ) {
                     </>}
                 </>}
 
-                {/*TODO: dragMode (single, stack) einführen*/}
-                {!isDraggingStack && !!(index) && (index > 0) &&
-                    <DragIcon
-                        ref={dragStack}
-                        {...stackListeners}
-                        {...stackAttributes}
-                        style={{ visibility: (showDragIcon || isDraggingStack) ? "visible" : "hidden" }}
-                        onMouseEnter={() => setHoverCard(hoverCard)}
-                        onMouseLeave={() => setHoverCard(null)}
-                        src={stackIcon} alt={"stack"}
-                    />}
                 {renderEffectAnimation &&
                     <CardAnimationContainer style={{overflow: "hidden"}}>
                         <Lottie animationData={activateEffectAnimation} loop={true}/>
@@ -218,7 +208,7 @@ export default function Card( props : CardProps ) {
             </>}
             {card.isTilted &&
                 <CardAnimationContainer style={{overflow: "clip", top: 5, left: 5, right: 5, bottom: "25%",
-                transform: CSS.Translate.toString(transform)}}>
+                transform: CSS.Translate.toString(isPartOfDraggedStack ? stackTransform : transform)}}>
                     <img alt={"suspended"} src={suspendedAPNG}/>
                 </CardAnimationContainer>}
 
@@ -346,23 +336,6 @@ const StyledImage = styled.img<StyledImageProps>`
     70% {
       filter: drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1);
     }
-  }
-`;
-
-const DragIcon = styled.img`
-  width: 17px;
-  position: absolute;
-  z-index: 1;
-  bottom: 2px;
-  left: 1px;
-  pointer-events: auto;
-  transition: all 0.075s ease-in;
-
-  &:hover, &:active {
-    z-index: 1000;
-    cursor: grab;
-    transform: scale(1.75);
-    filter: drop-shadow(0 0 1px ghostwhite) hue-rotate(90deg);
   }
 `;
 
