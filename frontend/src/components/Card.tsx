@@ -106,7 +106,7 @@ export default function Card( props : CardProps ) {
     useEffect(() => setRenderTargetAnimation(getIsCardTarget(card.id)), [cardIdWithTarget])
 
     function handleTiltCard() {
-        if (["myReveal", "myBreedingArea", "myHand"].includes(location) || location.includes("opponent")) return;
+        if (!location.includes("myDigi")) return;
         if (card !== locationCards[locationCards.length - 1] && card.cardType !== "Tamer") return;
         tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx);
         wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/tiltCard:${wsUtils.matchInfo.opponentName}:${card.id}:${location}`);
@@ -122,10 +122,10 @@ export default function Card( props : CardProps ) {
     }
 
     function handleHover() {
-        if (index && !active && (dragMode === DragMode.STACK)) setStackSliceIndex(index);
+        if (index !== undefined && !active && (dragMode === DragMode.STACK)) setStackSliceIndex(index);
         if (isHandHidden && location === "myHand") return;
         setHoverCard(card);
-        if (inheritAllowed && !["deck", "fetchedData"].includes(location)) setInheritCardInfo(inheritedEffects);
+        if (inheritAllowed) setInheritCardInfo(inheritedEffects);
         else setInheritCardInfo([]);
     }
 
@@ -160,9 +160,10 @@ export default function Card( props : CardProps ) {
     const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
     const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
 
-    const dragRef = dragMode === DragMode.SINGLE ? drag : dragStack;
-    const dragAttributes = dragMode === DragMode.SINGLE ? attributes : stackAttributes;
-    const dragListeners = dragMode === DragMode.SINGLE ? listeners : stackListeners;
+    const isSingleDrag = ["myHand", "mySecurity", "myTrash"].includes(location) || dragMode === DragMode.SINGLE
+    const dragRef = isSingleDrag ? drag : dragStack;
+    const dragAttributes = isSingleDrag ? attributes : stackAttributes;
+    const dragListeners = isSingleDrag ? listeners : stackListeners;
 
     return (
         <Wrapper id={index === locationCards.length - 1 ? location : ""}
@@ -216,9 +217,7 @@ export default function Card( props : CardProps ) {
                 />}
 
             {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && <StyledImage
-                style={{ ...(isDragging && isHandHidden && {transform: CSS.Translate.toString(transform), cursor: "grabbing"} ),
-                    ...(isPartOfDraggedStack && {transform: CSS.Translate.toString(stackTransform) + " scale(1.1)", cursor: "grabbing"})
-                }}
+                style={{ ...(isDragging && isHandHidden && {transform: CSS.Translate.toString(transform), cursor: "grabbing"})}}
                 onClick={handleClick}
                 onDoubleClick={handleTiltCard}
                 onMouseEnter={handleHover}
@@ -270,6 +269,7 @@ const StyledImage = styled.img<StyledImageProps>`
 
   outline: ${({ isTilted }) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
+  border-bottom: ${({ location }) => (location.includes("Digi") ? "1px solid rgba(0,0,0, 0.75)" : "none")};
   filter: ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
 
   &:hover {
