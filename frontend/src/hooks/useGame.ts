@@ -22,6 +22,14 @@ const emptyPlayer: Player = {
     sleeveName: "",
 }
 
+const digimonLocations = ["myBreedingArea", "opponentBreedingArea",
+    "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
+    "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
+
+const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+
 export type State = BoardState & {
     gameId: string,
 
@@ -441,7 +449,7 @@ export const useGame = create<State>()(
 
             if(prevTopCard.isTilted) {
                 prevTopCard.isTilted = false;
-                card.isTilted = true;
+                card.isTilted = !tamerLocations.includes(to);
             } else card.isTilted = false;
 
             if(!card.modifiers.plusDp) {
@@ -629,10 +637,12 @@ export const useGame = create<State>()(
 
     moveCardStack: (index, from, to, handleDropToField) => {
         const locationCards = get()[from as keyof State] as CardTypeGame[];
-        const cards = locationCards.slice(0, index + 1);
-        for (const card of cards) {
-            handleDropToField(card.id, from, to, card.name);
+        const cards = tamerLocations.includes(from) ? locationCards.slice(index) : locationCards.slice(0, index + 1);
+
+        if ((tamerLocations.includes(from) && digimonLocations.includes(to)) || (digimonLocations.includes(from) && tamerLocations.includes(to))) {
+            cards.reverse();
         }
+        cards.forEach((card) => handleDropToField(card.id, from, to, card.name));
     },
 
     areCardsSuspended: (from) => {

@@ -77,6 +77,8 @@ export default function Card( props : CardProps ) {
     const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
     const [renderTargetAnimation, setRenderTargetAnimation] = useState(false);
 
+    const inTamerField = tamerLocations.includes(location);
+
     const {
         attributes,
         listeners,
@@ -107,7 +109,7 @@ export default function Card( props : CardProps ) {
 
     function handleTiltCard() {
         if (!location.includes("myDigi")) return;
-        if (card !== locationCards[locationCards.length - 1] && card.cardType !== "Tamer") return;
+        if (card !== locationCards[inTamerField ? 0 : locationCards.length - 1] && card.cardType !== "Tamer") return;
         tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx);
         wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/tiltCard:${wsUtils.matchInfo.opponentName}:${card.id}:${location}`);
     }
@@ -155,7 +157,7 @@ export default function Card( props : CardProps ) {
     const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
 
     const isHovered = hoverCard === card;
-    const isPartOfDraggedStack = isDraggingStack && (index !== undefined) && (index <= stackSliceIndex);
+    const isPartOfDraggedStack = isDraggingStack && (index !== undefined) && (inTamerField ? (index >= stackSliceIndex) : (index <= stackSliceIndex));
 
     const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
     const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
@@ -269,7 +271,8 @@ const StyledImage = styled.img<StyledImageProps>`
 
   outline: ${({ isTilted }) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
-  border-bottom: ${({ location }) => (location.includes("Digi") ? "1px solid rgba(0,0,0, 0.75)" : "none")};
+  border-bottom: ${({ location }) => (location.includes("Digi") && Number(location.split("Digi")[1]) <= 10 ? "1px solid rgba(0,0,0, 0.75)" : "none")};
+  border-right: ${({ location }) => (location.includes("Digi") && Number(location.split("Digi")[1]) > 10 ? "1px solid rgba(0,0,0, 0.75)" : "none")};
   filter: ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
 
   &:hover {
