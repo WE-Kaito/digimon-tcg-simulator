@@ -6,9 +6,9 @@ import {
     Curtains as RevealIcon, DeleteForever as TrashIcon,
     LocalFireDepartment as EffectIcon, Pageview as OpenSecurityIcon, ShuffleOnOutlined as ShuffleIcon
 } from "@mui/icons-material";
-import {CSSProperties} from "react";
+import {CSSProperties, Dispatch, SetStateAction} from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
-import {numbersWithModifiers} from "../../utils/functions.ts";
+import {convertForLog, numbersWithModifiers} from "../../utils/functions.ts";
 import {useGame} from "../../hooks/useGame.ts";
 import {
     CardModifiers,
@@ -18,38 +18,182 @@ import {
 } from "../../utils/types.ts";
 import {useStore} from "../../hooks/useStore.ts";
 import "react-contexify/dist/ReactContexify.css";
+import {WSUtils} from "../../pages/GamePage.tsx";
+import {useSound} from "../../hooks/useSound.ts";
 
-type ContextMenusProps = {
-    moveDeckCard: (to: string, bottomCard?: boolean) => void;
-    revealHandCard: (item: ItemParams<HandCardContextMenuItemProps>) => void;
-    activateEffectAnimation: (item: ItemParams<FieldCardContextMenuItemProps>) => void;
-    activateTargetAnimation: (item: ItemParams<FieldCardContextMenuItemProps>) => void;
-    resetModifiers: (item: ItemParams<FieldCardContextMenuItemProps>) => void;
-    sendSetModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;
-    handleOpenSecurity: (onOpenOrClose: "onOpen" | "onClose") => void;
-    moveSecurityCard: (to: "myTrash" | "myHand", bottomCard?: boolean) => void;
-    handleShuffleSecurity: () => void;
+type Props = {
+    setIsSecurityContentOpen: Dispatch<SetStateAction<boolean>>;
+    wsUtils?: WSUtils;
 }
 
-export default function ContextMenus(props: ContextMenusProps) {
-    const {
-        moveDeckCard,
-        revealHandCard,
-        activateTargetAnimation,
-        activateEffectAnimation,
-        resetModifiers,
-        sendSetModifiers,
-        handleOpenSecurity,
-        moveSecurityCard,
-        handleShuffleSecurity
-    } = props;
+export default function ContextMenus({setIsSecurityContentOpen, wsUtils} : Props) {
+    const {sendMessage, sendChatMessage, sendSfx, sendUpdate, matchInfo, sendMoveCard} = wsUtils ?? {};
 
     const selectedCard = useStore((state) => state.selectedCard);
-    const cardToSend = useGame((state) => state.cardToSend);
+
+    const [
+        cardToSend,
+        mySecurity,
+        myHand,
+        myDeckField,
+        shuffleSecurity,
+        getOpponentReady,
+        moveCard,
+        moveCardToStack,
+        setCardIdWithEffect,
+        setCardIdWithTarget,
+        setModifiers,
+    ] = useGame((state) => [
+        state.cardToSend,
+        state.mySecurity,
+        state.myHand,
+        state.myDeckField,
+        state.shuffleSecurity,
+        state.getOpponentReady,
+        state.moveCard,
+        state.moveCardToStack,
+        state.setCardIdWithEffect,
+        state.setCardIdWithTarget,
+        state.setModifiers,
+    ]);
     const contextCard = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
+    const [
+        playShuffleDeckSfx,
+        playDrawCardSfx,
+        playTrashCardSfx,
+        playRevealCardSfx,
+        playUnsuspendSfx,
+        playActivateEffectSfx,
+        playTargetCardSfx,
+        playModifyCardSfx
+    ] = useSound((state) => [
+        state.playRevealCardSfx,
+        state.playShuffleDeckSfx,
+        state.playDrawCardSfx,
+        state.playTrashCardSfx,
+        state.playUnsuspendSfx,
+        state.playActivateEffectSfx,
+        state.playTargetCardSfx,
+        state.playModifyCardSfx
+    ]);
+
     const hasModifierMenu = contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
-    const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute"};
+    const hideMenuItemStyle = hasModifierMenu ? {} : {visibility: "hidden", position: "absolute"};
+
+    function handleOpenSecurity(onOpenOrClose: "onOpen" | "onClose") {
+        if (onOpenOrClose === "onOpen") {
+            setIsSecurityContentOpen(true);
+            // setTrashMoodle(false); // TODO: Implement with Trash
+            sendMessage?.(matchInfo?.gameId + ":/openedSecurity:" + matchInfo?.opponentName);
+            sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`); // TODO: add visual representation on security
+        } else {
+            setIsSecurityContentOpen(false);
+            // handleShuffleSecurity(); // TODO: Implement this function
+            sendChatMessage?.(`[FIELD_UPDATE]≔【Closed Security】`); // resolve visual representation on security
+        }
+    }
+
+    function handleShuffleSecurity() {
+        shuffleSecurity();
+        playShuffleDeckSfx();
+        sendUpdate?.();
+        sendChatMessage?.(`[FIELD_UPDATE]≔【↻ Security Stack】`);
+        sendSfx?.("playShuffleDeckSfx");
+    }
+
+    function moveSecurityCard(to: "myTrash" | "myHand", bottomCard?: boolean) {
+        if (!getOpponentReady()) return;
+        const card = (bottomCard) ? mySecurity[mySecurity.length - 1] : mySecurity[0];
+        moveCard(card.id, "mySecurity", to);
+        (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
+        sendMoveCard?.(card.id, "mySecurity", to);
+        sendChatMessage?.(`[FIELD_UPDATE]≔【${to === "myHand" ? "Card" : card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`);
+        sendSfx?.((to === "myHand") ? "playDrawCardSfx" : "playTrashCardSfx");
+    }
+
+    function revealHandCard({props}: ItemParams<HandCardContextMenuItemProps>) {
+        if (!getOpponentReady() || props === undefined) return;
+        moveCard(myHand[props.index].id, "myHand", "myReveal");
+        playRevealCardSfx();
+        sendMoveCard?.(myHand[props.index].id, "myHand", "myReveal");
+        sendChatMessage?.(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕Hand ➟ Reveal`);
+        sendSfx?.("playRevealSfx");
+    }
+
+    function moveDeckCard(to: string, bottomCard?: boolean) {
+        if (!getOpponentReady()) return;
+        const cardId = (bottomCard) ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;
+        switch (to) {
+            case "myReveal":
+                playRevealCardSfx();
+                moveCard(cardId, "myDeckField", "myReveal");
+                sendMoveCard?.(cardId, "myDeckField", "myReveal");
+                sendSfx?.("playRevealSfx");
+                if (bottomCard) sendChatMessage?.(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
+                else sendChatMessage?.(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
+                break;
+            case "myTrash":
+                playTrashCardSfx();
+                moveCard(cardId, "myDeckField", "myTrash");
+                sendMoveCard?.(cardId, "myDeckField", "myTrash");
+                sendChatMessage?.(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
+                sendSfx?.("playTrashCardSfx");
+                break;
+            case "mySecurity":
+                playUnsuspendSfx();
+                moveCardToStack("Top", cardId, "myDeckField", "mySecurity");
+                sendMessage?.(`${matchInfo?.gameId}:/moveCardToStack:${matchInfo?.opponentName}:Top:${cardId}:${location}:${to}:false`);
+                sendChatMessage?.(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
+                sendSfx?.("playUnsuspendCardSfx");
+                break;
+            case "myHand":
+                playDrawCardSfx();
+                moveCard(cardId, "myDeckField", "myHand");
+                sendMoveCard?.(cardId, "myDeckField", "myHand");
+                sendChatMessage?.(`[FIELD_UPDATE]≔【Draw Card】`);
+                sendSfx?.("playDrawCardSfx");
+                break;
+        }
+    }
+
+    function activateEffectAnimation({props}: ItemParams<FieldCardContextMenuItemProps>) {
+        if (!getOpponentReady() || props === undefined) return;
+        const {name, id, location} = props;
+        setCardIdWithEffect(id);
+        playActivateEffectSfx();
+        sendMessage?.(`${matchInfo?.gameId}:/activateEffect:${matchInfo?.opponentName}:${id}`);
+        sendChatMessage?.(`[FIELD_UPDATE]≔【${name} at ${convertForLog(location)}】﹕✨ EFFECT ✨`);
+        sendSfx?.("playActivateEffectSfx");
+        const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
+        return () => clearTimeout(timer);
+    }
+
+    function activateTargetAnimation({props}: ItemParams<FieldCardContextMenuItemProps>) {
+        if (!getOpponentReady() || props === undefined) return;
+        const {name, id, location} = props;
+        const logName = (location === "opponentHand") ? `ID: …${id.slice(-5)}` : name;
+        setCardIdWithTarget(id);
+        playTargetCardSfx();
+        sendSfx?.("playTargetCardSfx");
+        sendMessage?.(`${matchInfo?.gameId}:/activateTarget:${matchInfo?.opponentName}:${id}`);
+        sendChatMessage?.(`[FIELD_UPDATE]≔【${logName} at ${convertForLog(location)}】﹕💥 TARGETED 💥`);
+        const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
+        return () => clearTimeout(timer);
+    }
+
+    function sendSetModifiers(cardId: string, location: string, modifiers: CardModifiers) {
+        sendMessage?.(`${matchInfo?.gameId}:/setModifiers:${matchInfo?.opponentName}:${cardId}:${location}:${JSON.stringify(modifiers)}`);
+        sendSfx?.("playModifyCardSfx");
+    }
+
+    function resetModifiers({props}: ItemParams<FieldCardContextMenuItemProps>) {
+        if (props === undefined) return;
+        const modifiers = {plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: contextCard?.color ?? []};
+        setModifiers(props?.id, props?.location, modifiers);
+        playModifyCardSfx();
+        sendSetModifiers(props?.id, props?.location, modifiers);
+    }
 
     return (
         <>
@@ -140,12 +284,15 @@ export const StyledMenu = styled(Menu)`
     transform: translateX(-6px);
     box-shadow: none;
   }
+
   .contexify_submenu-arrow {
     background: none;
   }
+
   .contexify_separator {
     border-bottom: 2px solid rgba(65, 135, 211, 0.72);
   }
+
   .contexify_item:hover {
     font-weight: 600;
   }
@@ -165,21 +312,21 @@ const MiniArrowSpanHand = styled(MiniArrowSpan)`
 `;
 
 const StyledShuffleIcon = styled(ShuffleIcon)`
-    border-radius: 6px;
+  border-radius: 6px;
 `;
 
 const StyledTrashIcon = styled(TrashIcon)`
-    border-radius: 6px;  
-    filter: drop-shadow( 0px 0px 1px var(--contexify-menu-bgColor));
+  border-radius: 6px;
+  filter: drop-shadow(0px 0px 1px var(--contexify-menu-bgColor));
 `;
 
 const StyledOpenSecurityIcon = styled(OpenSecurityIcon)`
-    border-radius: 6px;
+  border-radius: 6px;
 `;
 
 const StyledHandIcon = styled(HandIcon)`
-    border-radius: 8px;
-    filter: drop-shadow(0px 0px 1px var(--contexify-menu-bgColor));
-    transform: rotateY(180deg);
-    color: #ffccbc;
+  border-radius: 8px;
+  filter: drop-shadow(0px 0px 1px var(--contexify-menu-bgColor));
+  transform: rotateY(180deg);
+  color: #ffccbc;
 `;

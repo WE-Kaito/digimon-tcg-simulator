@@ -17,7 +17,7 @@ type UseGameWebSocketProps = {
     setStartingPlayer: Dispatch<SetStateAction<string>>;
     isRematch: boolean;
     setIsRematch: Dispatch<SetStateAction<boolean>>;
-    setSecurityContentMoodle: Dispatch<SetStateAction<boolean>>; //TODO: rename
+    setIsSecurityContentOpen: Dispatch<SetStateAction<boolean>>; //TODO: rename
     clearAttackAnimation: (() => void) | null;
     restartAttackAnimation: (effect?: boolean) => void; // prop for this and useDropZone
     setIsOpponentOnline: Dispatch<SetStateAction<boolean>>;
@@ -52,7 +52,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         setStartingPlayer,
         isRematch,
         setIsRematch,
-        setSecurityContentMoodle,
+        setIsSecurityContentOpen,
         clearAttackAnimation,
         restartAttackAnimation,
         setIsOpponentOnline,
@@ -242,7 +242,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
                 distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx)
-                setSecurityContentMoodle(false);
+                setIsSecurityContentOpen(false);
                 return;
             }
 
