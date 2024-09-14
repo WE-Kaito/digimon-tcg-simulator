@@ -56,7 +56,6 @@ export default function GamePage() {
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
     const [bootStage, setBootStage] = useGame((state) => [state.bootStage, state.setBootStage]);
 
-
     const [playAttackSfx, playEffectAttackSfx, playNextPhaseSfx] = useSound((state) => [
         state.playAttackSfx,
         state.playEffectAttackSfx,
@@ -78,15 +77,14 @@ export default function GamePage() {
 
     const [startingPlayer, setStartingPlayer] = useState<string>("");
     const [isRematch, setIsRematch] = useState<boolean>(false);
-    const [securityContentMoodle, setSecurityContentMoodle] = useState<boolean>(false);
+    const [isSecurityContentOpen, setIsSecurityContentOpen] = useState<boolean>(false);
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
     const [endScreen, setEndScreen] = useState<boolean>(false);
     const [endScreenMessage, setEndScreenMessage] = useState<string>("");
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
     const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
     const [phaseLoading, setPhaseLoading] = useState(false);
-    // TODO: Remove console.log and figure out what to do with the states
-    console.log(isOpponentOnline, startingPlayer, isRematch, securityContentMoodle, clearAttackAnimation, endScreen, endScreenMessage, restartOrder, restartMoodle, phaseLoading);
+
     const timeoutRef = useRef<number | null>(null);
 
     const restartAttackAnimation = useCallback((effect?: boolean) => {
@@ -117,7 +115,7 @@ export default function GamePage() {
         setStartingPlayer,
         isRematch,
         setIsRematch,
-        setSecurityContentMoodle,
+        setIsSecurityContentOpen,
         clearAttackAnimation,
         restartAttackAnimation,
         setIsOpponentOnline,
@@ -207,7 +205,7 @@ export default function GamePage() {
 
     useEffect(() => boardLayoutRef.current?.scrollTo(boardLayoutRef.current?.scrollWidth / 3, 0), [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
-    // TODO: debounce einbauen, damit nicht bei jedem resize event die breite neu berechnet wird für performance + manuell trigger
+    // TODO: make resizing consistent
     useEffect(() => {
         calculateMaxWidth();
         window.addEventListener('resize', calculateMaxWidth);
@@ -229,12 +227,9 @@ export default function GamePage() {
     return (
         <>
             <GameBackground/>
-            {/* TODO: */}
-            <ContextMenus/>
+            <ContextMenus wsUtils={wsUtils} setIsSecurityContentOpen={setIsSecurityContentOpen}/>
             <AttackArrows/>
-            <>
-            {/* Komponente: auslagern von Context Menus und co. */}
-            </>
+
             <Stack width={"100vw"} maxHeight={isMobile ? "unset" : "100%"} sx={{ containerType: "inline-size", postion: "relative" }}>
                 <TopStack isMobile={isMobile}>
                     {isMobile && <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Settings</div>}
@@ -253,7 +248,7 @@ export default function GamePage() {
                                     sensors={[mouseSensor, touchSensor]}>
                             <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
                                 <RevealArea />
-                                {/* TODO: */}
+                                {/* TODO: Trash und Security Area*/}
                                 <MemoryBar wsUtils={wsUtils}/>
                                 <PhaseIndicator wsUtils={wsUtils} />
                                 <OpponentBoardSide />
