@@ -8,7 +8,7 @@ export default function RevealArea() {
     const [myReveal, opponentReveal] = useGame((state) => [state.myReveal, state.opponentReveal]);
     const cardWidth = useStore((state) => state.cardWidth);
 
-    if (!myReveal.length) <></>;
+    if (!myReveal.length) return <></>;
 
     return (
         <Container>

@@ -2,8 +2,8 @@ import {useGame} from "../../hooks/useGame.ts";
 import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
 import {useSound} from "../../hooks/useSound.ts";
-import {useEffect, useRef, useState} from "react";
 import {WSUtils} from "../../pages/GamePage.tsx";
+import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
 
 export default function MemoryBar({wsUtils}: { wsUtils?: WSUtils }) {
     const myMemory = useGame(state => state.myMemory);
@@ -19,25 +19,11 @@ export default function MemoryBar({wsUtils}: { wsUtils?: WSUtils }) {
         wsUtils?.sendSfx("playButtonClickSfx");
     }
 
-    // Resize font size based on container height
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [fontSize, setFontSize] = useState(26);
+    const {fontContainerRef, fontSize} = useResponsiveFontSize(33)
     const bigFontSize = fontSize * 1.3;
 
-    function calculateFontSize() {
-        const container = containerRef.current;
-        setFontSize(container ? container.clientHeight / 3.5 : 26);
-    }
-
-    useEffect(() => {
-        calculateFontSize();
-        window.addEventListener('resize', calculateFontSize);
-        return () => window.removeEventListener('resize', calculateFontSize);
-    }, []);
-    // ------------------------------------------------
-
     return (
-        <MemoryBarContainer ref={containerRef}>
+        <MemoryBarContainer ref={fontContainerRef}>
             <BigMemoryButton onClick={() => handleClick(10)} value={10} myMemory={myMemory} fontSize={bigFontSize}><StyledSpanOneBig>10</StyledSpanOneBig></BigMemoryButton>
 
             <MemoryButton onClick={() => handleClick(9)} value={9} myMemory={myMemory} fontSize={fontSize}><StyledSpan>9</StyledSpan></MemoryButton>

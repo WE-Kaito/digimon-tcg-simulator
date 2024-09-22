@@ -47,6 +47,7 @@ type CardProps = {
 }
 
 export default function Card( props : CardProps ) {
+    "use no memo";
     const {card, location, index, setImageError, style, onContextMenu, wsUtils} = props;
 
     const cardWidth = useStore((state) => state.cardWidth);
@@ -162,7 +163,11 @@ export default function Card( props : CardProps ) {
     const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
     const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
 
-    const isSingleDrag = ["myHand", "mySecurity", "myTrash"].includes(location) || dragMode === DragMode.SINGLE
+    const isSingleDrag = dragMode === DragMode.SINGLE
+        || ["myHand", "mySecurity", "myTrash"].includes(location)
+        || (stackSliceIndex === 0 && !tamerLocations.includes(location))
+        || (stackSliceIndex === locationCards.length - 1 && tamerLocations.includes(location))
+
     const dragRef = isSingleDrag ? drag : dragStack;
     const dragAttributes = isSingleDrag ? attributes : stackAttributes;
     const dragListeners = isSingleDrag ? listeners : stackListeners;
@@ -214,8 +219,9 @@ export default function Card( props : CardProps ) {
             {(isDragging || isPartOfDraggedStack) && !isHandHidden &&
                 <DragImage alt={card.name + " " + card.uniqueCardNumber} src={cardImageUrl} isTilted={card.isTilted}
                            transform={CSS.Translate.toString(isDraggingStack ? stackTransform : transform)}
-                           width={style ? style.width : 95}
+                           width={cardWidth}
                            style={{ opacity }}
+                           location={location}
                 />}
 
             {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && <StyledImage
@@ -322,12 +328,13 @@ const StyledImage = styled.img<StyledImageProps>`
   }
 `;
 
-const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean}>`
+const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean, location: string}>`
   cursor: grabbing;
+  position: ${({location}) => ["myTrash", "mySecurity"].includes(location) ? "fixed" : "unset"};
   outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
   border-radius: 5px;
-  transform: ${({transform}) => transform} scale(1.1);
+  transform: ${({transform}) => transform} ${({location}) => ["myTrash", "mySecurity"].includes(location) ? "translateX(-50%)" : ""} scale(1.1);
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)) brightness(110%) saturate(1.05);
   transition: ${({hasOffset}) => (hasOffset ? "transform 0.35s ease" : "unset")};
 `;

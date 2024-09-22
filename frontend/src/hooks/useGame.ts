@@ -9,11 +9,11 @@ import {
     CardTypeGame,
     DragMode,
     GameDistribution,
-    OneSideDistribution,
+    OneSideDistribution, OpenedCardModal,
     Phase,
     Player,
     SendToStackFunction,
-    Side
+    SIDE,
 } from "../utils/types.ts";
 
 const emptyPlayer: Player = {
@@ -74,6 +74,9 @@ export type State = BoardState & {
     isEffectArrow: boolean,
     stackSliceIndex: number,
     dragMode: DragMode,
+    isOpponentOnline: boolean,
+    startingPlayer: SIDE | "",
+    openedCardModal: OpenedCardModal | false,
 
     // --------------------------------------------------------
 
@@ -97,12 +100,12 @@ export type State = BoardState & {
                location: string,
                playSuspendSfx: () => void,
                playUnsuspendSfx: () => void) => void,
-    createToken: (token: CardType, side: Side, id: string) => void,
+    createToken: (token: CardType, side: SIDE, id: string) => void,
     moveCardStack: (index: number, from: string, to: string,
                     handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
     areCardsSuspended: (from?: string) => boolean,
     nextPhaseTrigger: (nextPhaseFunction: () => void, trigger?: string) => void,
-    unsuspendAll: (side: Side) => void,
+    unsuspendAll: (side: SIDE) => void,
     getIsMyTurn: () => boolean,
     getMyAttackPhase: () => AttackPhase | false,
     getOpponentAttackPhase: () => AttackPhase | false,
@@ -130,6 +133,9 @@ export type State = BoardState & {
     setIsEffectArrow: (isEffectArrow: boolean) => void,
     setStackSliceIndex: (index: number) => void,
     toggleDragMode: () => void,
+    setIsOpponentOnline: (isOpponentOnline: boolean) => void,
+    setStartingPlayer: (side: SIDE | "") => void,
+    setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -231,6 +237,9 @@ export const useGame = create<State>()(
     isEffectArrow: false,
     stackSliceIndex: 0,
     dragMode: DragMode.SINGLE,
+    isOpponentOnline: true,
+    startingPlayer: "",
+    openedCardModal: false,
 
     setOpponentReady: (ready) => set({opponentReady: ready}),
 
@@ -762,6 +771,12 @@ export const useGame = create<State>()(
     setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
 
     toggleDragMode: () => set(state => ({ dragMode: state.dragMode === DragMode.SINGLE ? DragMode.STACK : DragMode.SINGLE })),
+
+    setIsOpponentOnline: (isOpponentOnline) => set({ isOpponentOnline }),
+
+    setStartingPlayer: (startingPlayer) => set({ startingPlayer }),
+
+    setOpenedCardModal: (openedCardModal) => set({ openedCardModal }),
 
             }),
             { name: 'bearStore' },

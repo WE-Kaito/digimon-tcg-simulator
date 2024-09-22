@@ -1,32 +1,32 @@
 import styled from "@emotion/styled";
 import {Item, ItemParams, Menu, Separator} from "react-contexify";
 import {
-    AdsClick as TargetIcon, BackHand as HandIcon,
+    AdsClick as TargetIcon,
+    BackHand as HandIcon,
     Backspace as ClearIcon,
-    Curtains as RevealIcon, DeleteForever as TrashIcon,
-    LocalFireDepartment as EffectIcon, Pageview as OpenSecurityIcon, ShuffleOnOutlined as ShuffleIcon
+    Curtains as RevealIcon,
+    DeleteForever as TrashIcon,
+    LocalFireDepartment as EffectIcon,
+    Pageview as OpenSecurityIcon,
+    ShuffleOnOutlined as ShuffleIcon
 } from "@mui/icons-material";
-import {CSSProperties, Dispatch, SetStateAction} from "react";
+import {CSSProperties} from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
 import {convertForLog, numbersWithModifiers} from "../../utils/functions.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import {useGame} from "../../hooks/useGame.ts";
+import {useSound} from "../../hooks/useSound.ts";
 import {
     CardModifiers,
     CardTypeGame,
     FieldCardContextMenuItemProps,
-    HandCardContextMenuItemProps
+    HandCardContextMenuItemProps,
+    OpenedCardModal
 } from "../../utils/types.ts";
-import {useStore} from "../../hooks/useStore.ts";
 import "react-contexify/dist/ReactContexify.css";
 import {WSUtils} from "../../pages/GamePage.tsx";
-import {useSound} from "../../hooks/useSound.ts";
 
-type Props = {
-    setIsSecurityContentOpen: Dispatch<SetStateAction<boolean>>;
-    wsUtils?: WSUtils;
-}
-
-export default function ContextMenus({setIsSecurityContentOpen, wsUtils} : Props) {
+export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
     const {sendMessage, sendChatMessage, sendSfx, sendUpdate, matchInfo, sendMoveCard} = wsUtils ?? {};
 
     const selectedCard = useStore((state) => state.selectedCard);
@@ -43,6 +43,7 @@ export default function ContextMenus({setIsSecurityContentOpen, wsUtils} : Props
         setCardIdWithEffect,
         setCardIdWithTarget,
         setModifiers,
+        setOpenedCardModal,
     ] = useGame((state) => [
         state.cardToSend,
         state.mySecurity,
@@ -55,6 +56,7 @@ export default function ContextMenus({setIsSecurityContentOpen, wsUtils} : Props
         state.setCardIdWithEffect,
         state.setCardIdWithTarget,
         state.setModifiers,
+        state.setOpenedCardModal
     ]);
     const contextCard = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
@@ -81,17 +83,12 @@ export default function ContextMenus({setIsSecurityContentOpen, wsUtils} : Props
     const hasModifierMenu = contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
     const hideMenuItemStyle = hasModifierMenu ? {} : {visibility: "hidden", position: "absolute"};
 
-    function handleOpenSecurity(onOpenOrClose: "onOpen" | "onClose") {
-        if (onOpenOrClose === "onOpen") {
-            setIsSecurityContentOpen(true);
-            // setTrashMoodle(false); // TODO: Implement with Trash
-            sendMessage?.(matchInfo?.gameId + ":/openedSecurity:" + matchInfo?.opponentName);
-            sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`); // TODO: add visual representation on security
-        } else {
-            setIsSecurityContentOpen(false);
-            // handleShuffleSecurity(); // TODO: Implement this function
-            sendChatMessage?.(`[FIELD_UPDATE]≔【Closed Security】`); // resolve visual representation on security
-        }
+    function handleOpenSecurity() {
+        setOpenedCardModal(OpenedCardModal.MY_SECURITY);
+        // setTrashMoodle(false); // TODO: Implement with Trash
+        sendMessage?.(matchInfo?.gameId + ":/openedSecurity:" + matchInfo?.opponentName);
+        sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`); // TODO: add visual representation on security
+
     }
 
     function handleShuffleSecurity() {
@@ -233,7 +230,7 @@ export default function ContextMenus({setIsSecurityContentOpen, wsUtils} : Props
             </StyledMenu>
 
             <StyledMenu id={"securityStackMenu"} theme="dark">
-                <Item onClick={() => handleOpenSecurity("onOpen")}>
+                <Item onClick={handleOpenSecurity}>
                     <StyledOpenSecurityIcon color={"warning"} sx={{marginRight: 1}}/>
                     Open Security Stack
                 </Item>
