@@ -1,5 +1,5 @@
 import useWebSocket, {SendMessage} from "react-use-websocket";
-import {AttackPhase, BootStage, CardModifiers, Phase, Player} from "../utils/types.ts";
+import {AttackPhase, BootStage, CardModifiers, Phase, Player, SIDE} from "../utils/types.ts";
 import {getOpponentSfx, isTrue} from "../utils/functions.ts";
 import {findTokenByName} from "../utils/tokens.ts";
 import {notifySecurityView} from "../utils/toasts.ts";
@@ -9,18 +9,15 @@ import {Dispatch, SetStateAction, useCallback, useRef, useState} from "react";
 import {useSound} from "./useSound.ts";
 
 const currentPort = window.location.port;
-// TODO: players using www. end up in an empty lobby
+// TODO: players using www. end up in an empty lobby; change this back when deploy live
 const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/game" : "wss://project-drasil.online/api/ws/game";
 
 // TODO: refactor these to store?
 type UseGameWebSocketProps = {
-    setStartingPlayer: Dispatch<SetStateAction<string>>;
     isRematch: boolean;
     setIsRematch: Dispatch<SetStateAction<boolean>>;
-    setIsSecurityContentOpen: Dispatch<SetStateAction<boolean>>; //TODO: rename
     clearAttackAnimation: (() => void) | null;
     restartAttackAnimation: (effect?: boolean) => void; // prop for this and useDropZone
-    setIsOpponentOnline: Dispatch<SetStateAction<boolean>>;
     setEndScreen: Dispatch<SetStateAction<boolean>>;
     setEndScreenMessage: Dispatch<SetStateAction<string>>;
     setRestartOrder: Dispatch<SetStateAction<"second" | "first">>;
@@ -49,13 +46,10 @@ function chunkString(str: string, size: number): string[] {
  */
 export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGameWebSocketReturn {
     const {
-        setStartingPlayer,
         isRematch,
         setIsRematch,
-        setIsSecurityContentOpen,
         clearAttackAnimation,
         restartAttackAnimation,
-        setIsOpponentOnline,
         setEndScreen,
         setEndScreenMessage,
         setRestartOrder,
@@ -95,7 +89,10 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         getMyFieldAsString,
         setArrowFrom,
         setArrowTo,
-        setIsEffectArrow
+        setIsEffectArrow,
+        setStartingPlayer,
+        setIsOpponentOnline,
+        setOpenedCardModal,
     ] = useGame((state) => [
         state.gameId,
         state.bootStage,
@@ -127,7 +124,10 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         state.getMyFieldAsString,
         state.setArrowFrom,
         state.setArrowTo,
-        state.setIsEffectArrow
+        state.setIsEffectArrow,
+        state.setStartingPlayer,
+        state.setIsOpponentOnline,
+        state.setOpenedCardModal,
     ]);
 
     const isPlayerOne = user === gameId.split("‗")[0];
@@ -242,7 +242,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
                 distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx)
-                setIsSecurityContentOpen(false);
+                setOpenedCardModal(false);
                 return;
             }
 
@@ -255,8 +255,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
                 const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
 
+                setStartingPlayer(firstPlayer === user ? SIDE.MY : SIDE.OPPONENT);
                 setBootStage(BootStage.SHOW_STARTING_PLAYER);
-                setStartingPlayer(firstPlayer);
                 playStartSfx();
 
                 const timeout1 = setTimeout(() => {
@@ -353,7 +353,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                 const parts = event.data.substring("[CREATE_TOKEN]:".length).split(":");
                 const id = parts[0];
                 const token = findTokenByName(parts[1]);
-                createToken(token, "opponent", id)
+                createToken(token, SIDE.OPPONENT, id)
                 return;
             }
 
@@ -418,7 +418,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                     break;
                 }
                 case ("[UNSUSPEND_ALL]"): {
-                    unsuspendAll("opponent");
+                    unsuspendAll(SIDE.OPPONENT);
                     break;
                 }
                 case ("[LOADED]"): {

@@ -1,28 +1,24 @@
 import styled from "@emotion/styled";
 import {SIDE} from "../../../utils/types.ts";
 import BattleArea from "../PlayerBoardSide/BattleArea.tsx";
-import Trash from "../PlayerBoardSide/Trash.tsx";
-import SecurityStack from "../PlayerBoardSide/SecurityStack.tsx";
+import OpponentSecurityStack from "./OpponentSecurityStack.tsx";
 import EventUtils from "../PlayerBoardSide/EventUtils/EventUtils.tsx";
 import OpponentEggDeck from "./OpponentEggDeck.tsx";
 import OpponentDeck from "./OpponentDeck.tsx";
 import OpponentHand from "./OpponentHand.tsx";
-import {useDroppable} from "@dnd-kit/core";
+import OpponentTrash from "./OpponentTrash.tsx";
 
 export default function OpponentBoardSide() {
-    const {setNodeRef, isOver, active} = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
-    const isOverOpponent = isOver && String(active?.id).includes("myDigi");
-
     return (
         <LayoutContainer>
-            <SecurityStack isOpponent dropRef={setNodeRef} isOverOpponent={isOverOpponent}/>
+            <OpponentSecurityStack />
             <OpponentEggDeck/>
             {Array.from({ length: 15 }).map((_, index) => (
                 <BattleArea key={index} num={index + 1} side={SIDE.OPPONENT}/>
             ))}
             <BattleArea isBreeding side={SIDE.OPPONENT}/>
             <EventUtils isOpponent/>
-            <Trash side={SIDE.OPPONENT}/>
+            <OpponentTrash />
             <OpponentDeck />
             <OpponentHand />
         </LayoutContainer>

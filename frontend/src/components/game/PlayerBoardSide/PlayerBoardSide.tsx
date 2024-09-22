@@ -1,20 +1,18 @@
 import styled from "@emotion/styled";
-import SecurityStack from "./SecurityStack.tsx";
+import PlayerSecurityStack from "./PlayerSecurityStack.tsx";
 import PlayerHand from "./PlayerHand.tsx";
 import PlayerDeck from "./PlayerDeck.tsx";
 import BattleArea from "./BattleArea.tsx";
 import {SIDE} from "../../../utils/types.ts";
 import TokenButton from "./TokenButton.tsx";
 import PlayerEggDeck from "./PlayerEggDeck.tsx";
-import Trash from "./Trash.tsx";
+import PlayerTrash from "./PlayerTrash.tsx";
 import DeckUtilButtons from "./DeckUtilButtons.tsx";
 import EventUtils from "./EventUtils/EventUtils.tsx";
 import {WSUtils} from "../../../pages/GamePage.tsx";
-import {useDroppable} from "@dnd-kit/core";
 import DragToggleButton from "./DragToggleButton.tsx";
 
 export default function PlayerBoardSide({ wsUtils } : { wsUtils?: WSUtils }) {
-    const {setNodeRef: dropToMySecurity} = useDroppable({ id: "mySecurity", data: { accept: ["card"] } });
     return (
         <LayoutContainer>
             <PlayerEggDeck wsUtils={wsUtils}/>
@@ -22,9 +20,9 @@ export default function PlayerBoardSide({ wsUtils } : { wsUtils?: WSUtils }) {
                 <BattleArea key={index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils}/>
             ))}
             <BattleArea isBreeding side={SIDE.MY} wsUtils={wsUtils}/>
-            <SecurityStack wsUtils={wsUtils} dropRef={dropToMySecurity}/>
+            <PlayerSecurityStack wsUtils={wsUtils} />
             <EventUtils wsUtils={wsUtils}/>
-            <Trash side={SIDE.MY}/>
+            <PlayerTrash />
             <DeckUtilButtons/>
             <PlayerDeck wsUtils={wsUtils} />
             <PlayerHand />

@@ -1,9 +1,10 @@
 import {useGame} from "../../hooks/useGame.ts";
 import {BootStage, Phase} from "../../utils/types.ts";
 import styled from "@emotion/styled";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {useSound} from "../../hooks/useSound.ts";
 import {WSUtils} from "../../pages/GamePage.tsx";
+import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
 
 export default function PhaseIndicator({ wsUtils } : { wsUtils?: WSUtils }) {
 
@@ -45,22 +46,10 @@ export default function PhaseIndicator({ wsUtils } : { wsUtils?: WSUtils }) {
         return () => clearTimeout(timer);
     }, [phase]);
 
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [fontSize, setFontSize] = useState(26);
-
-    function calculateFontSize() {
-        const container = containerRef.current;
-        setFontSize(container ? container.clientHeight / 2.6 : 26);
-    }
-
-    useEffect(() => {
-        calculateFontSize();
-        window.addEventListener('resize', calculateFontSize);
-        return () => window.removeEventListener('resize', calculateFontSize);
-    }, []);
+    const {fontContainerRef, fontSize} = useResponsiveFontSize(12);
 
     return (
-        <Container onClick={handleClick} ref={containerRef} isMyTurn={isMyTurn} isMainPhase={isMainPhase}
+        <Container onClick={handleClick} ref={fontContainerRef} isMyTurn={isMyTurn} isMainPhase={isMainPhase}
                    isPassTurnAllowed={isPassTurnAllowed} gameHasStarted={gameHasStarted}
                    {...(isMyTurn && isMainPhase && !isPassTurnAllowed && { title: "Please set memory before passing turn." })}>
 

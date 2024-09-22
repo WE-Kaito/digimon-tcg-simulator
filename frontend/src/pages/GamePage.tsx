@@ -21,6 +21,7 @@ import AttackArrows from "../components/game/AttackArrows.tsx";
 import {useGame} from "../hooks/useGame.ts";
 import {BootStage} from "../utils/types.ts";
 import {SendMessage} from "react-use-websocket";
+import CardModal from "../components/game/CardModal.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -46,7 +47,6 @@ export type WSUtils = {
 }
 
 export default function GamePage() {
-    //Game Logic
     const selectCard = useStore((state) => state.selectCard);
     const selectedCard = useStore((state) => state.selectedCard);
     const hoverCard = useStore((state) => state.hoverCard);
@@ -68,22 +68,21 @@ export default function GamePage() {
         state.setIsEffectArrow,
         state.setPhase,
         state.getOpponentReady,
-        state.setMessages
+        state.setMessages,
+        state.openedCardModal
     ]);
 
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
 
-    const [isOpponentOnline, setIsOpponentOnline] = useState(true);
-
-    const [startingPlayer, setStartingPlayer] = useState<string>("");
-    const [isRematch, setIsRematch] = useState<boolean>(false);
-    const [isSecurityContentOpen, setIsSecurityContentOpen] = useState<boolean>(false);
-    const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
+    // TODO: reevaluate all the states below
     const [endScreen, setEndScreen] = useState<boolean>(false);
     const [endScreenMessage, setEndScreenMessage] = useState<string>("");
     const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
-    const [restartMoodle, setRestartMoodle] = useState<boolean>(false);
-    const [phaseLoading, setPhaseLoading] = useState(false);
+    const [restartMoodle, setRestartMoodle] = useState<boolean>(false); // see below
+    const [isRematch, setIsRematch] = useState<boolean>(false);
+
+    const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null); // to clear the previous timeRef
+    const [phaseLoading, setPhaseLoading] = useState(false); // helps prevent unexpected multiple phase changes
 
     const timeoutRef = useRef<number | null>(null);
 
@@ -112,13 +111,10 @@ export default function GamePage() {
     }, [playAttackSfx, playEffectAttackSfx]);
 
     const {sendMessage, sendUpdate} = useGameWebSocket({
-        setStartingPlayer,
         isRematch,
         setIsRematch,
-        setIsSecurityContentOpen,
         clearAttackAnimation,
         restartAttackAnimation,
-        setIsOpponentOnline,
         setEndScreen,
         setEndScreenMessage,
         setRestartOrder,
@@ -227,7 +223,7 @@ export default function GamePage() {
     return (
         <>
             <GameBackground/>
-            <ContextMenus wsUtils={wsUtils} setIsSecurityContentOpen={setIsSecurityContentOpen}/>
+            <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
 
             <Stack width={"100vw"} maxHeight={isMobile ? "unset" : "100%"} sx={{ containerType: "inline-size", postion: "relative" }}>
@@ -248,7 +244,7 @@ export default function GamePage() {
                                     sensors={[mouseSensor, touchSensor]}>
                             <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
                                 <RevealArea />
-                                {/* TODO: Trash und Security Area*/}
+                                <CardModal wsUtils={wsUtils} />
                                 <MemoryBar wsUtils={wsUtils}/>
                                 <PhaseIndicator wsUtils={wsUtils} />
                                 <OpponentBoardSide />
