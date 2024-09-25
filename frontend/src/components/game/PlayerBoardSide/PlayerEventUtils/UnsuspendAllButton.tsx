@@ -1,16 +1,11 @@
 import UnsuspendIcon from "@mui/icons-material/ScreenRotation";
 import {useGame} from "../../../../hooks/useGame.ts";
-import {Phase} from "../../../../utils/types.ts";
+import {Phase, SIDE} from "../../../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useSound} from "../../../../hooks/useSound.ts";
+import {WSUtils} from "../../../../pages/GamePage.tsx";
 
-// TODO: how to get these functions? they should not be optional
-type Props = {
-    sendSfx?: (sfx: string) => void;
-    sendUnsuspendAll?: () => void;
-}
-
-export default function UnsuspendAllButton({sendSfx, sendUnsuspendAll} : Props) {
+export default function UnsuspendAllButton({wsUtils} : { wsUtils?: WSUtils }) {
 
     const [phase, isMyTurn, unsuspendAll, areCardsSuspended] = useGame(state =>
         [state.phase, state.isMyTurn, state.unsuspendAll, state.areCardsSuspended()]);
@@ -24,12 +19,14 @@ export default function UnsuspendAllButton({sendSfx, sendUnsuspendAll} : Props) 
     return (
         <Container>
             <div onClick={() => {
-                unsuspendAll("my");
-                sendUnsuspendAll?.();
+                unsuspendAll(SIDE.MY);
                 playUnsuspendSfx();
-                sendSfx?.("playUnsuspendSfx");
+                wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/unsuspendAll:${wsUtils?.matchInfo.opponentName}`);
+                wsUtils?.sendSfx?.("playUnsuspendSfx");
             }}>
-                <span style={{ width: "80%"}}>UNSUSPEND ALL <UnsuspendIcon sx={{transform: "rotate(43deg) translateY(3px)"}}/></span>
+                <span style={{ width: "80%"}}>
+                    UNSUSPEND ALL <UnsuspendIcon sx={{transform: "rotate(43deg) translateY(3px)"}}/>
+                </span>
                 <span/>
             </div>
         </Container>

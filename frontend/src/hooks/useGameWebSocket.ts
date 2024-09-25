@@ -255,7 +255,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
                 const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
 
-                setStartingPlayer(firstPlayer === user ? SIDE.MY : SIDE.OPPONENT);
+                setStartingPlayer(firstPlayer);
                 setBootStage(BootStage.SHOW_STARTING_PLAYER);
                 playStartSfx();
 
