@@ -8,7 +8,7 @@ import TokenButton from "./TokenButton.tsx";
 import PlayerEggDeck from "./PlayerEggDeck.tsx";
 import PlayerTrash from "./PlayerTrash.tsx";
 import DeckUtilButtons from "./DeckUtilButtons.tsx";
-import EventUtils from "./EventUtils/EventUtils.tsx";
+import PlayerEventUtils from "./PlayerEventUtils/PlayerEventUtils.tsx";
 import {WSUtils} from "../../../pages/GamePage.tsx";
 import DragToggleButton from "./DragToggleButton.tsx";
 
@@ -21,7 +21,7 @@ export default function PlayerBoardSide({ wsUtils } : { wsUtils?: WSUtils }) {
             ))}
             <BattleArea isBreeding side={SIDE.MY} wsUtils={wsUtils}/>
             <PlayerSecurityStack wsUtils={wsUtils} />
-            <EventUtils wsUtils={wsUtils}/>
+            <PlayerEventUtils wsUtils={wsUtils}/>
             <PlayerTrash />
             <DeckUtilButtons/>
             <PlayerDeck wsUtils={wsUtils} />

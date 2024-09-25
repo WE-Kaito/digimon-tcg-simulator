@@ -75,7 +75,7 @@ export type State = BoardState & {
     stackSliceIndex: number,
     dragMode: DragMode,
     isOpponentOnline: boolean,
-    startingPlayer: SIDE | "",
+    startingPlayer: string,
     openedCardModal: OpenedCardModal | false,
 
     // --------------------------------------------------------
@@ -538,6 +538,7 @@ export const useGame = create<State>()(
 
     setPhase: () => {
         const phase = get().phase;
+        set({ myAttackPhase: false, opponentAttackPhase: false });
         switch (phase) {
             case Phase.UNSUSPEND:
                 set({phase: Phase.DRAW});

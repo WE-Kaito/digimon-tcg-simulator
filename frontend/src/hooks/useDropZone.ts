@@ -61,7 +61,6 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
     const [setArrowFrom, setArrowTo] = useGame((state) => [state.setArrowFrom, state.setArrowTo]);
     const setIsEffectArrow = useGame((state) => state.setIsEffectArrow);
     const setMyAttackPhase = useGame((state) => state.setMyAttackPhase);
-    const getMyAttackPhase = useGame((state) => state.getMyAttackPhase);
     const getOpponentReady = useGame((state) => state.getOpponentReady);
     const stackSliceIndex = useGame((state) => state.stackSliceIndex);
 
@@ -120,20 +119,10 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
         if ((bootStage === BootStage.MULLIGAN) && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
     }
 
-    function resolveMyAttack(initiating?: boolean) {
-        if (initiating && getPhase() === Phase.MAIN) {
+    function initiateAttack() {
+        if (getPhase() === Phase.MAIN) {
             setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
             sendAttackPhaseUpdate(AttackPhase.WHEN_ATTACKING);
-        } else {
-            const attackPhase = getMyAttackPhase();
-            if (!attackPhase) return;
-            else if (attackPhase === AttackPhase.WHEN_ATTACKING) {
-                setMyAttackPhase(AttackPhase.COUNTER_BLOCK);
-                sendAttackPhaseUpdate(AttackPhase.COUNTER_BLOCK);
-            } else if (attackPhase === AttackPhase.RESOLVE_ATTACK) {
-                setMyAttackPhase(false);
-                sendAttackPhaseUpdate(false);
-            }
         }
         playNextAttackPhaseSfx();
         sendSfx("playNextAttackPhaseSfx");
@@ -176,7 +165,7 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
         if (isEffect) setIsEffectArrow(true);
         sendAttackArrows(from, to, isEffect);
         restartAttackAnimation(isEffect);
-        if (!isEffect && attackAllowed) resolveMyAttack(true);
+        if (!isEffect && attackAllowed) initiateAttack();
     }
 
     function handleDropToField(cardId: string, from: string, to: string, cardName: string) {

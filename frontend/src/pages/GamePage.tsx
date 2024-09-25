@@ -245,9 +245,9 @@ export default function GamePage() {
                             <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
                                 <RevealArea />
                                 <CardModal wsUtils={wsUtils} />
-                                <MemoryBar wsUtils={wsUtils}/>
+                                <MemoryBar wsUtils={wsUtils} />
                                 <PhaseIndicator wsUtils={wsUtils} />
-                                <OpponentBoardSide />
+                                <OpponentBoardSide wsUtils={wsUtils} />
                                 <PlayerBoardSide wsUtils={wsUtils} />
                             </BoardLayout>
                         </DndContext>
@@ -394,7 +394,8 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
 
   container-type: inline-size;
   container-name: board-layout;
-
+  // maybe as "change camera" button:
+  //transform: perspective(2000px) rotateX(35deg) rotateZ(0deg);
   @container board-container (max-width: 900px) {
     width: unset;
     height: 100%;
