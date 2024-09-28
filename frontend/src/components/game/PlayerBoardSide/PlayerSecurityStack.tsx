@@ -19,18 +19,18 @@ export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
     const opponentReveal = useGame((state) => state.opponentReveal);
     const moveCard = useGame((state) => state.moveCard);
     const bootStage = useGame((state) => state.bootStage);
-    const setBootStage = useGame((state) => state.setBootStage);
     const getOpponentReady = useGame((state) => state.getOpponentReady);
 
     const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
 
     const {setNodeRef} = useDroppable({id: "mySecurity", data: {accept: ["card"]}});
 
+    const isDisabled = bootStage !== BootStage.GAME_IN_PROGRESS || !getOpponentReady();
+
     function sendSecurityReveal() {
         if (opponentReveal.length) return;
         moveCard(mySecurity[0].id, "mySecurity", "myReveal");
         playSecurityRevealSfx();
-        if ((bootStage === BootStage.MULLIGAN) && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
         wsUtils?.sendMoveCard(mySecurity[0].id, "mySecurity", "myReveal");
         wsUtils?.sendSfx("playSecurityRevealSfx");
         wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【${mySecurity[0].name}】﹕Security ➟ Reveal`);
@@ -75,10 +75,10 @@ export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
                                      </Fragment>
                                  )}
                              </div>}>
-                    <SecuritySpan onContextMenu={(e) => showSecurityStackMenu({event: e})}
-                                   id={"mySecurity"}
-                                   style={{fontSize}}
-                                   onClick={() => sendSecurityReveal?.()}
+                    <SecuritySpan onContextMenu={(e) => !isDisabled && showSecurityStackMenu({event: e})}
+                                  id={"mySecurity"}
+                                  style={{fontSize, cursor: isDisabled ? "not-allowed" : "pointer"}}
+                                  onClick={() => !isDisabled && sendSecurityReveal?.()}
                     >
                         {mySecurity.length}
                     </SecuritySpan>
