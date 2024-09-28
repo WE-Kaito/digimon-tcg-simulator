@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
 import Mulligan from "./Mulligan.tsx";
-import AttackResolveButton from "../../AttackResolveButton.tsx";
 import UnsuspendAllButton from "./UnsuspendAllButton.tsx";
 import {useGame} from "../../../../hooks/useGame.ts";
 import {BootStage} from "../../../../utils/types.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
+import PlayerAttackResolve from "./PlayerAttackResolve.tsx";
 
 export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const [bootStage, startingPlayer] = useGame((state) => [state.bootStage, state.startingPlayer]);
@@ -20,7 +20,7 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
                 <StyledSpan isFirst={isFirst}>{isFirst ? "1st" :  "2nd"}</StyledSpan>
             }
             <Mulligan wsUtils={wsUtils}/>
-            <AttackResolveButton/>
+            <PlayerAttackResolve  wsUtils={wsUtils}/>
             <UnsuspendAllButton wsUtils={wsUtils}/>
         </Container>
     );
