@@ -3,6 +3,8 @@ import {useGame} from "../../../../hooks/useGame.ts";
 import {BootStage} from "../../../../utils/types.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 import OpponentAttackResolve from "./OpponentAttackResolve.tsx";
+import firstAnimation from "../../../../assets/lotties/net-ball.json";
+import Lottie from "lottie-react";
 
 export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const [bootStage, isOpponentOnline, startingPlayer] = useGame((state) => [
@@ -14,7 +16,10 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
 
     return (
         <Container>
-            {bootStage === BootStage.SHOW_STARTING_PLAYER && <StyledSpan isFirst={isFirst}>{isFirst ? "1st" :  "2nd"}</StyledSpan>}
+            {bootStage === BootStage.SHOW_STARTING_PLAYER &&
+                <Lottie animationData={firstAnimation} autoplay={isFirst} loop={false}
+                        initialSegment={[0, 70]} style={{ transform: "scaleY(-1)"}}/>
+            }
             {!isOpponentOnline && <ErrorSpan>OFFLINE</ErrorSpan>}
             <OpponentAttackResolve wsUtils={wsUtils} />
         </Container>
@@ -29,12 +34,6 @@ const Container = styled.div`
   align-items: center;
   width: 100%;
   height: 100%;
-`;
-
-const StyledSpan = styled.span<{ isFirst: boolean }>`
-  font-family: Pixel Digivolve, sans-serif;
-  font-size: 1.5em;
-  color: ${({ isFirst }) => isFirst ? "#e3d120" : "#e7e7e7"};
 `;
 
 const ErrorSpan = styled.span`

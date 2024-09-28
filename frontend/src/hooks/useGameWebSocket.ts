@@ -134,8 +134,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
     const [
-        playStartSfx,
-        playLoadMemorybarSfx,
+        playCoinFlipSfx,
         playButtonClickSfx,
         playDrawCardSfx,
         playNextPhaseSfx,
@@ -148,8 +147,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         playTrashCardSfx,
         playUnsuspendSfx
     ] = useSound((state) => [
-        state.playStartSfx,
-        state.playLoadMemorybarSfx,
+        state.playCoinFlipSfx,
         state.playButtonClickSfx,
         state.playDrawCardSfx,
         state.playNextPhaseSfx,
@@ -257,23 +255,16 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
 
                 setStartingPlayer(firstPlayer);
                 setBootStage(BootStage.SHOW_STARTING_PLAYER);
-                playStartSfx();
+                playCoinFlipSfx();
 
-                const timeout1 = setTimeout(() => {
+                const timeout = setTimeout(() => {
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                     if (firstPlayer === user) setTurn(true);
                     setOpponentReady(false);
                     if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
                 }, 4800);
 
-                const timeout2 = setTimeout(() => {
-                    playLoadMemorybarSfx();
-                }, 5500);
-
-                return () => {
-                    clearTimeout(timeout1);
-                    clearTimeout(timeout2);
-                };
+                return () => clearTimeout(timeout);
             }
 
             if (event.data.startsWith("[MOVE_CARD]:")) {
