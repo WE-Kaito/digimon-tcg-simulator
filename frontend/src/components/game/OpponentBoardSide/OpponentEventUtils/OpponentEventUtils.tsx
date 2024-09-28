@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import {useGame} from "../../../../hooks/useGame.ts";
 import {BootStage} from "../../../../utils/types.ts";
-import AttackResolveButton from "../../AttackResolveButton.tsx";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
+import OpponentAttackResolve from "./OpponentAttackResolve.tsx";
 
 export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const [bootStage, isOpponentOnline, startingPlayer] = useGame((state) => [
@@ -16,7 +16,7 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
         <Container>
             {bootStage === BootStage.SHOW_STARTING_PLAYER && <StyledSpan isFirst={isFirst}>{isFirst ? "1st" :  "2nd"}</StyledSpan>}
             {!isOpponentOnline && <ErrorSpan>OFFLINE</ErrorSpan>}
-            <AttackResolveButton wsUtils={wsUtils} opponentSide />
+            <OpponentAttackResolve wsUtils={wsUtils} />
         </Container>
     );
 }
