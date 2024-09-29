@@ -11,6 +11,7 @@ import DeckUtilButtons from "./DeckUtilButtons.tsx";
 import PlayerEventUtils from "./PlayerEventUtils/PlayerEventUtils.tsx";
 import {WSUtils} from "../../../pages/GamePage.tsx";
 import DragToggleButton from "./DragToggleButton.tsx";
+import SecurityDropSections from "./SecurityDropSections.tsx";
 
 export default function PlayerBoardSide({ wsUtils } : { wsUtils?: WSUtils }) {
     return (
@@ -20,6 +21,7 @@ export default function PlayerBoardSide({ wsUtils } : { wsUtils?: WSUtils }) {
                 <BattleArea key={index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils}/>
             ))}
             <BattleArea isBreeding side={SIDE.MY} wsUtils={wsUtils}/>
+            <SecurityDropSections />
             <PlayerSecurityStack wsUtils={wsUtils} />
             <PlayerEventUtils wsUtils={wsUtils}/>
             <PlayerTrash />
@@ -39,8 +41,8 @@ const LayoutContainer = styled.div`
   grid-template-columns: subgrid;
   grid-template-rows: subgrid;
   grid-template-areas: 
-          ". SS SS . BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 drag-toggle event-utils event-utils event-utils event-utils trash trash deck-utils deck deck ."
-          ". SS SS . BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 drag-toggle event-utils event-utils event-utils event-utils trash trash deck-utils deck deck ."
+          "SS-TFU SS SS SS-TFD BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 drag-toggle event-utils event-utils event-utils event-utils trash trash deck-utils deck deck ."
+          "SS-BFU SS SS SS-BFD BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 drag-toggle event-utils event-utils event-utils event-utils trash trash deck-utils deck deck ."
           "egg-deck egg-deck breeding breeding BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 . . . . . . . . deck deck eye"
           "egg-deck egg-deck breeding breeding BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 hand hand hand hand hand hand hand hand hand hand hand"
           "tokens tokens breeding breeding BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 BA14 BA14 BA14 BA14 BA15 BA15 BA15 BA15 hand hand hand hand hand hand hand hand hand hand hand"

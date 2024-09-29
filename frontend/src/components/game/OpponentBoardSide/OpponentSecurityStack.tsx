@@ -48,7 +48,7 @@ export default function OpponentSecurityStack() {
                                                    }}/>
                                                }
                                                {card.inSecurityFaceUp
-                                                   ? <Card key={card.id} card={card} location={"opponentSecurityTooltip"} />
+                                                   ? <Card key={card.id} card={card} location={"opponentSecurity"} style={{ width: "50px"}} />
                                                    : <FaceDownCard key={card.id} alt="card" src={getSleeve(opponentSleeve)}/>
                                                }
                                            </Fragment>
