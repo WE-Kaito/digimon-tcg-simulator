@@ -2,16 +2,16 @@ import {Tooltip, Zoom as MuiZoom} from "@mui/material";
 import Card from "../../Card.tsx";
 import {getSleeve} from "../../../utils/sleeves.ts";
 import mySecurityAnimation from "../../../assets/lotties/my-security-apng.png";
-import {Fragment, useState} from "react";
+import {Fragment, useEffect, useState} from "react";
 import styled from "@emotion/styled";
 import {useGame} from "../../../hooks/useGame.ts";
 import {useContextMenu} from "react-contexify";
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import {BootStage} from "../../../utils/types.ts";
 import {useSound} from "../../../hooks/useSound.ts";
-import {useDroppable} from "@dnd-kit/core";
 import useResponsiveFontSize from "../../../hooks/useResponsiveFontSize.ts";
 import {WSUtils} from "../../../pages/GamePage.tsx";
+import {useDndContext} from "@dnd-kit/core";
 
 export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
     const mySleeve = useGame((state) => state.mySleeve);
@@ -22,8 +22,6 @@ export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
     const getOpponentReady = useGame((state) => state.getOpponentReady);
 
     const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
-
-    const {setNodeRef} = useDroppable({id: "mySecurity", data: {accept: ["card"]}});
 
     const isDisabled = bootStage !== BootStage.GAME_IN_PROGRESS || !getOpponentReady();
 
@@ -42,49 +40,52 @@ export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
 
     const {show: showSecurityStackMenu} = useContextMenu({id: "securityStackMenu"});
 
+    const {active} = useDndContext();
+    const isDraggingFromSecurity = String(active?.id)?.includes("mySecurity");
+
+    useEffect(() => {
+        if(!isDraggingFromSecurity) setIsOpen(false); // prevents being stuck in open state after drop
+    }, [isDraggingFromSecurity]);
+
     return (
         <Container ref={fontContainerRef}>
-            <InnerContainer ref={setNodeRef}>
-                <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
-                         open={mySecurity.length === 0 ? false : isOpen}
-                         onClose={() => setIsOpen(false)}
-                         onOpen={() => setIsOpen(!!mySecurity.length)}
-                         arrow placement={"top"}
-                         componentsProps={getTooltipStyles(mySecurity.length)}
-                         title={
-                             <div style={{position: "relative", display: "flex", flexWrap: "wrap", gap: "5px"}}>
-                                 {mySecurity.map((card, index) =>
-                                     <Fragment key={card.id + "_fragment"}>
-                                         {index === 0 &&
-                                             <ArrowDropUpIcon key={card.id + "_arrow"} sx={{
-                                                 position: "absolute",
-                                                 zIndex: 5,
-                                                 fontSize: 35,
-                                                 color: "#3787ff",
-                                                 left: 9,
-                                                 top: -21,
-                                                 filter: "dropShadow(0 0 2px black)"
-                                             }}/>
-                                         }
-                                         {card.inSecurityFaceUp
-                                             ? <Card key={card.id} card={card}
-                                                     location={"mySecurityTooltip"}/>
-                                             : <FaceDownCard key={card.id} alt="card"
-                                                             src={getSleeve(mySleeve)}/>
-                                         }
-                                     </Fragment>
-                                 )}
-                             </div>}>
-                    <SecuritySpan onContextMenu={(e) => !isDisabled && showSecurityStackMenu({event: e})}
-                                  id={"mySecurity"}
-                                  style={{fontSize, cursor: isDisabled ? "not-allowed" : "pointer"}}
-                                  onClick={() => !isDisabled && sendSecurityReveal?.()}
-                    >
-                        {mySecurity.length}
-                    </SecuritySpan>
-                </Tooltip>
-                <SecurityAnimationImg alt={"mySS"} src={mySecurityAnimation}/>
-            </InnerContainer>
+            <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
+                     open={(mySecurity.length === 0 ? false : isOpen)}
+                     onClose={() => setIsOpen(isDraggingFromSecurity)}
+                     onOpen={() => setIsOpen(!!mySecurity.length)}
+                     arrow placement={"top"}
+                     componentsProps={getTooltipStyles(mySecurity.length)}
+                     title={
+                            <div style={{position: "relative", display: "flex", flexWrap: "wrap", gap: "5px"}}>
+                                {mySecurity.map((card, index) =>
+                                        <Fragment key={card.id + "_fragment"}>
+                                            {index === 0 &&
+                                                <ArrowDropUpIcon key={card.id + "_arrow"} sx={{
+                                                    position: "absolute",
+                                                    zIndex: 5,
+                                                    fontSize: 35,
+                                                    color: "#3787ff",
+                                                    left: 9,
+                                                    top: -21,
+                                                    filter: "dropShadow(0 0 2px black)"
+                                                }}/>
+                                            }
+                                            {card.inSecurityFaceUp
+                                                ? <Card key={card.id} card={card} location={"mySecurity"} style={{ width: "50px"}}/>
+                                                : <FaceDownCard key={card.id} alt="card" src={getSleeve(mySleeve)}/>
+                                            }
+                                        </Fragment>
+                                )}
+                            </div>}>
+                <SecuritySpan onContextMenu={(e) => !isDisabled && showSecurityStackMenu({event: e})}
+                              id={"mySecurity"}
+                              style={{fontSize, cursor: isDisabled ? "not-allowed" : "pointer"}}
+                              onClick={() => !isDisabled && sendSecurityReveal?.()}
+                >
+                    {mySecurity.length}
+                </SecuritySpan>
+            </Tooltip>
+            <SecurityAnimationImg alt={"mySS"} src={mySecurityAnimation}/>
         </Container>
     );
 }
@@ -95,11 +96,6 @@ const Container = styled.div`
   width: 100%;
   z-index: 10;
   transform: translateY(-10%);
-`;
-
-const InnerContainer = styled.div`
-  height: 100%;
-  width: 100%;
   position: relative;
   display: flex;
   justify-content: center;

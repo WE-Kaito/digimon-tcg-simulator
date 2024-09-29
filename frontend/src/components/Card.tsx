@@ -47,7 +47,6 @@ type CardProps = {
 }
 
 export default function Card( props : CardProps ) {
-    "use no memo";
     const {card, location, index, setImageError, style, onContextMenu, wsUtils} = props;
 
     const cardWidth = useStore((state) => state.cardWidth);
@@ -90,7 +89,7 @@ export default function Card( props : CardProps ) {
         active,
     } = useDraggable({
         id: card.id + "_" + location,
-        data: { type: 'card', content: {id: card.id, location: location === "mySecurityTooltip" ? "mySecurity" : location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name} },
+        data: { type: 'card', content: {id: card.id, location, cardNumber: card.cardNumber, cardType: card.cardType, name: card.name, imgSrc: card.imgUrl} },
         disabled: opponentFieldLocations.includes(location) || !opponentReady,
     });
 
@@ -160,7 +159,8 @@ export default function Card( props : CardProps ) {
     const isHovered = hoverCard === card;
     const isPartOfDraggedStack = isDraggingStack && (index !== undefined) && (inTamerField ? (index >= stackSliceIndex) : (index <= stackSliceIndex));
 
-    const opacity = over && (String(over.id).includes("bottom") || String(over.id).includes("opponentSecurity")) ? 0.5 : 1;
+    const overId = String(over?.id);
+    const opacity = over ? overId.includes("mySecurity") ? 0 : (overId.includes("bottom") || overId === "opponentSecurity") ? 0.35 : 1 : 1;
     const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
 
     const isSingleDrag = dragMode === DragMode.SINGLE
@@ -211,7 +211,7 @@ export default function Card( props : CardProps ) {
                     </CardAnimationContainer>}
             </>}
             {card.isTilted &&
-                <CardAnimationContainer style={{overflow: "clip", top: 5, left: 5, right: 5, bottom: "25%",
+                <CardAnimationContainer style={{overflow: "clip", top: 5, left: 5, right: 5, bottom: "25%", opacity,
                 transform: CSS.Translate.toString(isPartOfDraggedStack ? stackTransform : transform)}}>
                     <img alt={"suspended"} src={suspendedAPNG}/>
                 </CardAnimationContainer>}
@@ -219,7 +219,7 @@ export default function Card( props : CardProps ) {
             {(isDragging || isPartOfDraggedStack) && !isHandHidden &&
                 <DragImage alt={card.name + " " + card.uniqueCardNumber} src={cardImageUrl} isTilted={card.isTilted}
                            transform={CSS.Translate.toString(isDraggingStack ? stackTransform : transform)}
-                           width={cardWidth}
+                           width={style?.width ?? cardWidth}
                            style={{ opacity }}
                            location={location}
                 />}
@@ -260,7 +260,6 @@ type StyledImageProps = {
 }
 
 const StyledImage = styled.img<StyledImageProps>`
-  max-width: ${({ location }) => ["mySecurityTooltip", "opponentSecurityTooltip"].includes(location) ? "50px" : "unset"};
   border-radius: 5px;
   transition: all 0.15s ease-out, filter 0.5s ease-in-out;
   cursor: ${({ location }) => opponentFieldLocations?.includes(location) ? "pointer" : "grab"};
