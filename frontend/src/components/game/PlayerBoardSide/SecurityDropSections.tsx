@@ -14,7 +14,7 @@ export default function SecurityDropSections() {
     const mySleeve = useGame((state) => state.mySleeve);
     const draggedCardImg = active?.data?.current?.content.imgSrc;
 
-    if (!active) return <></>
+    if (!active || String(active.id).includes("stack")) return <></>
 
     return (
         <>
