@@ -7,12 +7,12 @@ import {useSound} from "../../../../hooks/useSound.ts";
 /**
  * For Player {@link AttackPhase}
  */
-export default function OpponentAttackResolve({ wsUtils } : { wsUtils?: WSUtils }) {
-    const myAttackPhase = useGame((state) => state.myAttackPhase);
-    const getMyAttackPhase = useGame((state) => state.getMyAttackPhase);
-    const setMyAttackPhase = useGame((state) => state.setMyAttackPhase);
-
+export default function OpponentAttackResolve({ wsUtils, fontSize } : { wsUtils?: WSUtils, fontSize: number }) {
+    const [myAttackPhase, getMyAttackPhase, setMyAttackPhase] = useGame((state) => [
+        state.myAttackPhase, state.getMyAttackPhase, state.setMyAttackPhase]);
     const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
+
+    const isDisabled = myAttackPhase === AttackPhase.COUNTER_BLOCK;
 
     function sendAttackPhaseUpdate(attackPhase: AttackPhase | false) {
         wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/updateAttackPhase:${wsUtils?.matchInfo.opponentName}:${attackPhase}`);
@@ -35,7 +35,7 @@ export default function OpponentAttackResolve({ wsUtils } : { wsUtils?: WSUtils 
     if(!myAttackPhase) return <></>
 
     return (
-        <StyledButton onClick={resolveMyAttack} disabled={myAttackPhase === AttackPhase.COUNTER_BLOCK}>
+        <StyledButton style={{fontSize}} onClick={resolveMyAttack} disabled={isDisabled}>
             {myAttackPhase}
         </StyledButton>
     );
@@ -46,17 +46,17 @@ const StyledButton = styled.div<{disabled: boolean}>`
   width: 100%;
 
   --color: ${({disabled}) => disabled ? "#ea6c1f" : "#11eaf1"};
-  font-size: 21px;
+  margin: 2.5% 1% 2.5% 5%;
   padding: 5px;
   letter-spacing: 0.06em;
   position: relative;
-  font-family: Pixel Digivolve, sans-serif;
-  border-radius: 8px;
+  font-family: Sansation, sans-serif;
+  border-radius: 4px;
   overflow: hidden;
   transition: all 0.3s;
   line-height: 1.4em;
   border: 1px solid var(--color);
-  background: linear-gradient(to right, ${({disabled}) => disabled ? "rgba(166,7,90,0.1)" : "rgba(27, 125, 253, 0.1)"} 1%, transparent 40%, transparent 60%, ${({disabled}) => disabled ? "rgba(70,6,114,0.1)" : "rgba(57, 27, 253, 0.1)"} 100%);
+  background: linear-gradient(to bottom, ${({disabled}) => disabled ? "rgba(166,7,90,0.5)" : "rgba(27, 125, 253, 0.3)"} 1%, ${({disabled}) => disabled ? "rgba(70,6,114,0.3)" : "rgba(57, 27, 253, 0.3)"} 100%);
   color: var(--color);
   box-shadow: inset 0 0 10px ${({disabled}) => (disabled) ? "rgba(234,10,124,0.4)" : "rgba(27, 140, 253, 0.4)"} , 0 0 9px 3px ${({disabled}) => disabled ? "rgba(122,11,46,0.27)" : "rgba(27, 140, 253, 0.1)"};
   cursor: ${({disabled}) => disabled ? "default" : "pointer"};

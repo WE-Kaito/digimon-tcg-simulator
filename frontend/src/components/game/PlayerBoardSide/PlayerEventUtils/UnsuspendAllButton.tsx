@@ -1,12 +1,10 @@
-import UnsuspendIcon from "@mui/icons-material/ScreenRotation";
 import {useGame} from "../../../../hooks/useGame.ts";
 import {Phase, SIDE} from "../../../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useSound} from "../../../../hooks/useSound.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 
-export default function UnsuspendAllButton({wsUtils} : { wsUtils?: WSUtils }) {
-
+export default function UnsuspendAllButton({ wsUtils, fontSize } : { wsUtils?: WSUtils, fontSize: number }) {
     const [phase, isMyTurn, unsuspendAll, areCardsSuspended] = useGame(state =>
         [state.phase, state.isMyTurn, state.unsuspendAll, state.areCardsSuspended()]);
 
@@ -18,73 +16,53 @@ export default function UnsuspendAllButton({wsUtils} : { wsUtils?: WSUtils }) {
 
     return (
         <Container>
-            <div onClick={() => {
+            <MulliganButton  style={{ fontSize: fontSize, paddingTop: fontSize / 6 }} onClick={() => {
                 unsuspendAll(SIDE.MY);
                 playUnsuspendSfx();
                 wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/unsuspendAll:${wsUtils?.matchInfo.opponentName}`);
                 wsUtils?.sendSfx?.("playUnsuspendSfx");
             }}>
-                <span style={{ width: "80%"}}>
-                    UNSUSPEND ALL <UnsuspendIcon sx={{transform: "rotate(43deg) translateY(3px)"}}/>
-                </span>
-                <span/>
-            </div>
+                UN-<br/>SUSPEND<br/>ALL
+            </MulliganButton>
         </Container>
     );
 }
 
 const Container = styled.div`
+  width: 100%;
+  height:100%;
   display: flex;
   justify-content: center;
+  align-items: center;
+`;
 
-  div {
-    display: flex;
-    padding: 3px;
-    text-decoration: none;
-    font-family: "Poppins", sans-serif;
-    font-size: 20px;
-    color: ghostwhite;
-    background: #41ffaf;
-    transition: 0.4s;
-    box-shadow: 3px 3px 0 black;
-    transform: skewX(-20deg);
-  }
+const MulliganButton = styled.div`
+  border-radius: 3px;
+  border: 2px solid rgba(77, 250, 146, 0.85);
+  background: rgba(0, 0, 0, 0.15);
+  color: rgb(77, 250, 146);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: "League Spartan", sans-serif;
+  padding: 0 5px 0 5px;
+  line-height: 1.2;
+  filter: drop-shadow(3px 3px 1px #131313);
+  transition: all 0.05s ease;
 
-  div:focus {
-    outline: none;
-  }
-
-  div:hover {
-    transition: 0.5s;
-    box-shadow: 6px 6px 0 #2993d5;
+  &:hover {
     cursor: pointer;
-    background: #fad219;
-
-    span {
-      transition: 0.2s;
-      letter-spacing: 2px;
-    }
+    filter: drop-shadow(2px 2px 1px #131313);
+    background-color: rgba(77, 250, 210, 0.8);
+    transform: translateY(1px);
+    color: black;
   }
 
-  div span:nth-child(2) {
-    transition: 0.5s;
-    margin-right: 0;
-  }
-
-  span {
-    width: 65px;
-    max-height: 30px;
-    overflow: hidden;
-    transform: translateX(12px);
-    color: #0a0a0a;
-    font-family: 'Montelgo Sans Serif', cursive;
-    text-align: center;
-    user-select: none;
-  }
-
-  span:nth-child(2) {
-    width: 20px;
-    position: relative;
-    top: 12%;
+  &:active {
+    filter: none;
+    background-color: rgba(77, 250, 210, 0.8);
+    transform: translate(1px, 2px);
+    color: black;
   }
 `;

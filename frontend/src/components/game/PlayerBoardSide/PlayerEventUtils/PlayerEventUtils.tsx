@@ -7,22 +7,23 @@ import {WSUtils} from "../../../../pages/GamePage.tsx";
 import PlayerAttackResolve from "./PlayerAttackResolve.tsx";
 import Lottie from "lottie-react";
 import firstAnimation from "../../../../assets/lotties/net-ball.json";
+import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
 
 export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const [bootStage, startingPlayer] = useGame((state) => [state.bootStage, state.startingPlayer]);
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.user;
 
-    // TODO: scaling fontSize for all utils
+    const {fontContainerRef, fontSize} = useResponsiveFontSize(7.25);
 
     return (
-        <Container>
+        <Container ref={fontContainerRef}>
             {bootStage === BootStage.SHOW_STARTING_PLAYER &&
                 <Lottie animationData={firstAnimation} autoplay={isFirst} initialSegment={[0, 70]} loop={false}/>
             }
-            <Mulligan wsUtils={wsUtils}/>
-            <PlayerAttackResolve wsUtils={wsUtils}/>
-            <UnsuspendAllButton wsUtils={wsUtils}/>
+            <Mulligan wsUtils={wsUtils} fontSize={fontSize}/>
+            <PlayerAttackResolve wsUtils={wsUtils} fontSize={fontSize}/>
+            <UnsuspendAllButton wsUtils={wsUtils} fontSize={fontSize}/>
         </Container>
     );
 }
@@ -35,4 +36,8 @@ const Container = styled.div`
   align-items: center;
   width: 100%;
   height: 100%;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;
