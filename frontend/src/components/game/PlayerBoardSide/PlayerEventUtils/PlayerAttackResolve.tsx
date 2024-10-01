@@ -3,16 +3,18 @@ import {AttackPhase} from "../../../../utils/types.ts";
 import {useGame} from "../../../../hooks/useGame.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 import {useSound} from "../../../../hooks/useSound.ts";
+import {useEffect} from "react";
 
 /**
  * For Opponent {@link AttackPhase}
  */
-export default function PlayerAttackResolve({ wsUtils } : { wsUtils?: WSUtils }) {
-    const opponentAttackPhase = useGame((state) => state.opponentAttackPhase);
-    const setOpponentAttackPhase = useGame((state) => state.setOpponentAttackPhase);
-
+export default function PlayerAttackResolve({ wsUtils, fontSize } : { wsUtils?: WSUtils, fontSize: number }) {
+    const [opponentAttackPhase, setOpponentAttackPhase] = useGame((state) => [
+        state.opponentAttackPhase, state.setOpponentAttackPhase]);
     const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
 
+    const isDisabled = opponentAttackPhase !== AttackPhase.COUNTER_BLOCK;
+    useEffect(() => console.log(opponentAttackPhase), [opponentAttackPhase]);
     function resolveCounterBlockTiming() {
         setOpponentAttackPhase(AttackPhase.RESOLVE_ATTACK);
         playNextAttackPhaseSfx();
@@ -23,7 +25,7 @@ export default function PlayerAttackResolve({ wsUtils } : { wsUtils?: WSUtils })
     if(!opponentAttackPhase) return <></>;
 
     return (
-        <StyledButton onClick={resolveCounterBlockTiming} disabled={opponentAttackPhase !== AttackPhase.COUNTER_BLOCK}>
+        <StyledButton style={{fontSize}} onClick={resolveCounterBlockTiming} disabled={isDisabled}>
             {opponentAttackPhase}
         </StyledButton>
     );
@@ -34,17 +36,17 @@ const StyledButton = styled.div<{disabled: boolean}>`
   width: 100%;
 
   --color: ${({disabled}) => disabled ? "#ea6c1f" : "#11eaf1"};
-  font-size: 21px;
+  margin: 2.5% 1% 2.5% 5%;
   padding: 5px;
   letter-spacing: 0.06em;
   position: relative;
-  font-family: Pixel Digivolve, sans-serif;
-  border-radius: 8px;
+  font-family: Sansation, sans-serif;
+  border-radius: 4px;
   overflow: hidden;
   transition: all 0.3s;
   line-height: 1.4em;
   border: 1px solid var(--color);
-  background: linear-gradient(to right, ${({disabled}) => disabled ? "rgba(166,7,90,0.1)" : "rgba(27, 125, 253, 0.1)"} 1%, transparent 40%, transparent 60%, ${({disabled}) => disabled ? "rgba(70,6,114,0.1)" : "rgba(57, 27, 253, 0.1)"} 100%);
+  background: linear-gradient(to bottom, ${({disabled}) => disabled ? "rgba(166,7,90,0.5)" : "rgba(27, 125, 253, 0.3)"} 1%, ${({disabled}) => disabled ? "rgba(70,6,114,0.3)" : "rgba(57, 27, 253, 0.3)"} 100%);
   color: var(--color);
   box-shadow: inset 0 0 10px ${({disabled}) => (disabled) ? "rgba(234,10,124,0.4)" : "rgba(27, 140, 253, 0.4)"} , 0 0 9px 3px ${({disabled}) => disabled ? "rgba(122,11,46,0.27)" : "rgba(27, 140, 253, 0.1)"};
   cursor: ${({disabled}) => disabled ? "default" : "pointer"};

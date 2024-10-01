@@ -5,6 +5,7 @@ import {WSUtils} from "../../../../pages/GamePage.tsx";
 import OpponentAttackResolve from "./OpponentAttackResolve.tsx";
 import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import Lottie from "lottie-react";
+import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
 
 export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const [bootStage, isOpponentOnline, startingPlayer] = useGame((state) => [
@@ -12,16 +13,16 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.opponentName;
 
-    // TODO: scaling fontSize for all utils
+    const {fontContainerRef, fontSize} = useResponsiveFontSize(7.25);
 
     return (
-        <Container>
+        <Container ref={fontContainerRef}>
             {bootStage === BootStage.SHOW_STARTING_PLAYER &&
                 <Lottie animationData={firstAnimation} autoplay={isFirst} loop={false}
                         initialSegment={[0, 70]} style={{ transform: "scaleY(-1)"}}/>
             }
             {!isOpponentOnline && <ErrorSpan>OFFLINE</ErrorSpan>}
-            <OpponentAttackResolve wsUtils={wsUtils} />
+            <OpponentAttackResolve wsUtils={wsUtils} fontSize={fontSize}/>
         </Container>
     );
 }

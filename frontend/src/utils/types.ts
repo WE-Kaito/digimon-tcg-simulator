@@ -198,9 +198,9 @@ export enum Phase {
 }
 
 export enum AttackPhase {
-    WHEN_ATTACKING = "When Attacking",
-    COUNTER_BLOCK = "Counter › Block",
-    RESOLVE_ATTACK = "Resolve Attack"
+    WHEN_ATTACKING = "WHEN ATTACKING",
+    COUNTER_BLOCK = "COUNTER ＋ BLOCK",
+    RESOLVE_ATTACK = "RESOLVE ATTACK"
 }
 
 export enum BootStage {

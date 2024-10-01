@@ -19,7 +19,7 @@ export function calculateCardRotation(handCardLength: number, index: number) {
     const middleIndex = Math.floor(handCardLength / 2);
     let value = ((index - middleIndex) / 1.5);
     if (handCardLength <= 6) value *= 2;
-    if (handCardLength > 10) value = ((index - middleIndex) / 3.25);
+    if (handCardLength > 7) value = ((index - middleIndex) / 3.25);
     return value * handCardLength + "deg";
 }
 
@@ -31,12 +31,14 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
     const middleIndex = Math.floor(handCardLength / 2);
     const middleValue = 0;
     let endValue = handCardLength + 5 + (handCardLength / 3) * 2;
-    if (handCardLength > 5) {
+    if (handCardLength >= 5) {
         if (index === 0 || index === handCardLength - 1) endValue += (handCardLength / 3) * 3.25;
         if (index === 1 || index === handCardLength - 2) endValue += (handCardLength / 3) * 1.9;
         if (index === 2 || index === handCardLength - 3) endValue += (handCardLength / 3) * 1.5;
         if (index === 3 || index === handCardLength - 4) endValue += (handCardLength / 3) * 1.25;
         if (index === 4 || index === handCardLength - 5) endValue += (handCardLength / 3) * 1.1;
+        if (index === 5 || index === handCardLength - 6) endValue += (handCardLength / 3);
+        if (index === 6 || index === handCardLength - 7) endValue += (handCardLength / 3) * 0.9;
     }
     const distanceToMiddle = Math.abs(index - middleIndex);
     let offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
