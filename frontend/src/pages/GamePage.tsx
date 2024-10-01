@@ -2,7 +2,7 @@ import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
 import {Stack, useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
 import {useStore} from "../hooks/useStore.ts";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
@@ -27,7 +27,7 @@ const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
     '(orientation: landscape) and (min-resolution: 192dpi) and (pointer: coarse)',
     '(orientation: landscape) and (min-resolution: 2dppx) and (pointer: coarse)',
-    '(max-height: 700px)',
+    '(max-height: 820px)',
     '(orientation: portrait) and (max-width: 1300px)'
 ].join(',');
 
@@ -186,40 +186,30 @@ export default function GamePage() {
     //Layout
     const isMobile = useMediaQuery(mediaQueries);
     const isPortrait = useMediaQuery('(orientation: portrait)');
-
+    const setCardWidth = useStore((state) => state.setCardWidth);
     const boardLayoutRef = useRef<HTMLDivElement>(null);
     const [boardMaxWidth, setBoardMaxWidth] = useState('unset');
 
-    function calculateMaxWidth() {
+    function handleResize() {
         const container = boardLayoutRef.current;
         if (container) {
             const { clientHeight: height, clientWidth: width } = container;
-            const calculatedMaxWidth = width > height * (19 / 9) ? `${height * (19 / 9)}px` : 'unset';
-            setBoardMaxWidth(calculatedMaxWidth);
+            setBoardMaxWidth(width > height * (19 / 9) ? `${height * (19 / 9)}px` : 'unset');
+            setCardWidth(width / 19);
         }
     }
 
-    useEffect(() => boardLayoutRef.current?.scrollTo(boardLayoutRef.current?.scrollWidth / 3, 0), [isMobile]);
+    // TODO: make resizing consistent and fix 'on maximizing window'
+    useLayoutEffect(() => {
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+    useLayoutEffect(() => {
+        handleResize();
+        boardLayoutRef.current?.scrollTo(boardLayoutRef.current?.scrollWidth / 3, 0)
+    }, [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
-    // TODO: make resizing consistent
-    useEffect(() => {
-        calculateMaxWidth();
-        window.addEventListener('resize', calculateMaxWidth);
-        return () => window.removeEventListener('resize', calculateMaxWidth);
-    }, []);
-
-    const setCardWidth = useStore((state) => state.setCardWidth);
-
-    function calculateCardWidth() {
-        setCardWidth(boardLayoutRef.current ? boardLayoutRef.current.clientWidth / 19 : 70);
-    }
-
-    useEffect(() => {
-        calculateCardWidth();
-        window.addEventListener('resize', calculateCardWidth);
-        return () => window.removeEventListener('resize', calculateCardWidth);
-    }, []);
-
+    
     return (
         <>
             <GameBackground/>
