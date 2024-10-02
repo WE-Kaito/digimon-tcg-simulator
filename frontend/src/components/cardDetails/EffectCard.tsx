@@ -10,7 +10,6 @@ type Props = {
 }
 
 export default function EffectCard({children, variant}: Props) {
-
     const location = useLocation();
     const inGame = location.pathname === "/game";
     const isInheritCardInfo = variant === EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS;

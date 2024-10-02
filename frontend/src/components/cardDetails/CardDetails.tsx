@@ -91,9 +91,11 @@ export default function CardDetails() {
                         </EffectCard>}
 
                         {inheritCardInfo[0]?.length > 0 && <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
-                            <Stack key={`${cardNumber}_inherited_from_material`} gap={1}>
-                                {inheritCardInfo.map((text, index) => text &&
-                                    <HighlightedKeyWords key={index + "inherited_from_material"} text={text}/>
+                            <Stack gap={1}>
+                                {inheritCardInfo.map((text, index) => !!text &&
+                                    <span key={`${cardNumber}_inherited_from_material_${index}`}>
+                                        <HighlightedKeyWords text={text}/>
+                                    </span>
                                 )}
                             </Stack>
                         </EffectCard>}
