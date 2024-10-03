@@ -17,6 +17,13 @@ import {useDraggable} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import {WSUtils} from "../pages/GamePage.tsx";
 
+const digimonLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8",
+    "myDigi9", "myDigi10", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
+    "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
+
+const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
+    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
 
@@ -30,9 +37,6 @@ const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea",
     "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
     "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
-
-const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
-    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
 
 const locationsWithAdditionalInfo = [ ...locationsWithInheritedInfo, ...tamerLocations];
 
@@ -172,13 +176,16 @@ export default function Card( props : CardProps ) {
     const dragAttributes = isSingleDrag ? attributes : stackAttributes;
     const dragListeners = isSingleDrag ? listeners : stackListeners;
 
+    const showCardModifiers = locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack;
+    const renderModifiersOnTop = (digimonLocations.includes(location) && index === (locationCards.length - 1)) || (tamerLocations.includes(location) && index === 0);
+
     return (
         <Wrapper id={index === locationCards.length - 1 ? location : ""}
                  style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999 })}}
                  ref={dragRef} {...dragAttributes} {...dragListeners}
         >
-            {locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack && <>
-                {index === (locationCards.length - 1) && <>
+            {showCardModifiers && <>
+                {renderModifiersOnTop && <>
                     {isModifiersAllowed && <PlusDpSpan isHovering={isHovered} isNegative={finalDp < card.dp!}
                                                        {...(finalDp === card.dp && {style: {color: "ghostwhite"}})}>
                         {finalDp.toString()}

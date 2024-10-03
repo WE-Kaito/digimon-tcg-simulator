@@ -38,44 +38,39 @@ export default function CardStack(props: CardStackProps) {
 
     const cardWidth = useStore((state) => state.cardWidth);
 
-    const isSmallWindow = useMediaQuery('(max-height: 500px) or (max-width: 1050px)');
-    const isSmallerWindow = useMediaQuery('(max-height: 400px) or (max-width: 900px)');
-
     const getCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
-            // TODO: find new solution for too many cards
-            const factor = (isSmallerWindow ? 13 : isSmallWindow ? 14 : 15) / (cardCount > 6 ? 1.5 : 1);
-            const offset = isSmallerWindow ? 8 : isSmallWindow ? 7 : 6;
-            const bottom = (cardIndex * factor) - offset;
+            const bottomPercentage = (cardIndex * 7.5) / (cardCount > 14 ? 3 : cardCount > 7 ? 2 : 1);
 
             return {
                 position: "absolute",
-                bottom: `${bottom}px`,
+                bottom: `calc(${bottomPercentage}% - 7px)`,
                 left: 0,
             };
         },
-        [isSmallWindow, isSmallerWindow]
+        []
     );
 
     const getTamerCardContainerStyles = useCallback(
-        (cardIndex: number): CSSProperties => {
-            const left = `${cardIndex * 15}px`;
-            const bottom = isSmallerWindow ? "-12%" : isSmallWindow ? "-10%" : "-7%";
+        (cardIndex: number, cardCount: number): CSSProperties => {
+            const leftPercentage = (cardIndex * 9.5) / (cardCount > 13 ? 2.5 : cardCount > 10 ? 2 : cardCount > 7 ? 1.5 : 1);
 
             return {
                 position: "absolute",
-                left,
-                bottom,
+                left: `${leftPercentage}%`,
+                bottom: "-5%",
                 zIndex: 20 - cardIndex,
             };
         },
-        [isSmallWindow, isSmallerWindow]
+        []
     );
+
+    const isSmallWindow = useMediaQuery('(max-height: 500px) or (max-width: 1050px)');
 
     if (tamerLocations.includes(location)) {
         return !opponentSide
                 ? cards?.map((card, index) =>
-                    <Card style={{...getTamerCardContainerStyles(index), width: cardWidth - 10}}
+                    <Card style={{...getTamerCardContainerStyles(index, cards.length), width: cardWidth - (isSmallWindow ? 10 : 13)}}
                           card={card} location={location} wsUtils={wsUtils} index={index} key={card.id}
                           onContextMenu={(e) => showFieldCardMenu?.({
                               event: e,
@@ -84,8 +79,8 @@ export default function CardStack(props: CardStackProps) {
                     />)
 
                 : cards?.map((card, index) =>
-                    <Fade direction={"down"} duration={500} key={card.id} style={getTamerCardContainerStyles(index)}>
-                        <Card style={{ width: cardWidth - 10 }} card={card} location={location} index={index}
+                    <Fade direction={"down"} duration={500} key={card.id} style={getTamerCardContainerStyles(index, cards.length)}>
+                        <Card style={{ width: cardWidth - (isSmallWindow ? 10 : 13) }} card={card} location={location} index={index}
                               onContextMenu={(e) => showOpponentCardMenu?.({
                                   event: e,
                                   props: {index, location, id: card.id, name: card.name}
