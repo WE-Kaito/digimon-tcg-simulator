@@ -219,7 +219,7 @@ export default function Card( props : CardProps ) {
             {(isDragging || isPartOfDraggedStack) && !isHandHidden &&
                 <DragImage alt={card.name + " " + card.uniqueCardNumber} src={cardImageUrl} isTilted={card.isTilted}
                            transform={CSS.Translate.toString(isDraggingStack ? stackTransform : transform)}
-                           width={style?.width ?? cardWidth}
+                           width={cardWidth}
                            style={{ opacity }}
                            location={location}
                 />}
@@ -329,13 +329,14 @@ const StyledImage = styled.img<StyledImageProps>`
 
 const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean, location: string}>`
   cursor: grabbing;
-  position: ${({location}) => ["myTrash", "mySecurity"].includes(location) ? "fixed" : "unset"};
+  position: fixed;
   outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
   border-radius: 5px;
-  transform: ${({transform}) => transform} ${({location}) => ["myTrash", "mySecurity"].includes(location) ? "translateX(-50%)" : ""} scale(1.1);
+  transform: ${({transform}) => transform} ${({location}) => ["myTrash", "mySecurity"].includes(location) ? "translateX(-50%)" : "translate(-50%, -100%)"} scale(1.1);
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)) brightness(110%) saturate(1.05);
   transition: ${({hasOffset}) => (hasOffset ? "transform 0.35s ease" : "unset")};
+  z-index: 10000;
 `;
 
 export const CardAnimationContainer = styled.div`
