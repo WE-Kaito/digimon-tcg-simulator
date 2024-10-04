@@ -64,17 +64,15 @@ const CustomTooltip = muiStyled(({ className, ...props }: TooltipProps & { open:
 
 const StyledImg = styled.img`
   grid-area: tokens;
-  margin: 35% 20% 10% 20%;
-  width: 60%;
-  height: 55%;
+  margin: 8% 2% 2% 2%;
+  width: 97%;
+  height: 90%;
   transition: all 0.1s ease;
-  opacity: 0.8;
+  opacity: 0.7;
 
   &:hover {
     opacity: 1;
-    margin: 30% 15% 5% 15%;
-    width: 70%;
-    height: 65%;
+    filter: drop-shadow(0 0 3px rgb(245, 190, 87));
   }
 `;
 

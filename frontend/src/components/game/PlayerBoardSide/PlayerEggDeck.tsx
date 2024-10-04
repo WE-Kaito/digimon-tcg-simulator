@@ -5,14 +5,17 @@ import eggBackSrc from "../../../assets/eggBack.jpg";
 import {Phase} from "../../../utils/types.ts";
 import {WSUtils} from "../../../pages/GamePage.tsx";
 import {useDroppable} from "@dnd-kit/core";
+import {ChangeHistoryTwoTone as TriangleIcon} from "@mui/icons-material";
 
 export default function PlayerEggDeck({ wsUtils } : { wsUtils?: WSUtils }) {
-    const [myEggDeck, moveCard] = useGame((state) => [state.myEggDeck, state.moveCard]);
+    const [myEggDeck, moveCard, getOpponentReady, nextPhaseTrigger] = useGame((state) => [
+        state.myEggDeck, state.moveCard, state.getOpponentReady, state.nextPhaseTrigger]);
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx)
-    const getOpponentReady = useGame((state) => state.getOpponentReady);
-    const nextPhaseTrigger = useGame((state) => state.nextPhaseTrigger);
 
     const {setNodeRef} = useDroppable({ id: "myEggDeck", data: { accept: ["card"] } });
+    const {setNodeRef: deckBottomRef, isOver: isOverBottom, active} = useDroppable({ id: "myEggDeck_bottom", data: { accept: ["card"] } });
+
+    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 
     function handleClick(e: React.MouseEvent<HTMLImageElement>) {
         e.stopPropagation();
@@ -28,10 +31,21 @@ export default function PlayerEggDeck({ wsUtils } : { wsUtils?: WSUtils }) {
     }
 
     return (
-        <Container ref={setNodeRef}>
-            <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} />
-            <StyledSpan>{myEggDeck.length}</StyledSpan>
-        </Container>
+        <>
+            <Container ref={setNodeRef}>
+                <StyledSpan>{myEggDeck.length}</StyledSpan>
+                <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} />
+            </Container>
+            <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
+                {canDropToBottom &&
+                    <>
+                       <TriangleIcon />
+                       <TriangleIcon />
+                       <TriangleIcon />
+                    </>
+                }
+            </DeckBottomZone>
+        </>
     );
 }
 
@@ -48,7 +62,7 @@ const Container = styled.div`
 const StyledSpan = styled.span`
   width: 100%;
   position: absolute;
-  bottom: -25px;
+  top: -25px;
   left: 52%;
   transform: translateX(-50%);
   font-family: Awsumsans, sans-serif;
@@ -62,7 +76,9 @@ const StyledSpan = styled.span`
 
 const DeckImg = styled.img<{ isOver?: boolean }>`
   height: 100%;
-  border-radius: 5px;
+  border-radius: 3px;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
   cursor: pointer;
   transition: all 0.1s ease;
   z-index: 2;
@@ -72,4 +88,35 @@ const DeckImg = styled.img<{ isOver?: boolean }>`
     filter: drop-shadow(0 0 2px #1CE0BEFF);
     outline: #084238 solid 1px;
   }
+`;
+
+const DeckBottomZone = styled.div<{ isOver: boolean }>`
+  grid-area: egg-deck-bottom;
+  z-index: 1;
+  height: 60%;
+  transform: translateY(-5%);
+  margin-left: 9%;
+  width: 82.75%;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  background: ${({isOver}) => isOver ? "rgba(255,255,255,0.4)" : "rgba(0, 0, 0, 0.35)"};
+  text-wrap: nowrap;
+  text-overflow: clip;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  cursor: ${({isOver}) => isOver ? "grabbing" : "unset"};
+  svg {
+    line-height: 1;
+    font-size: 90%;
+    color: ghostwhite;
+    opacity: ${({isOver}) => isOver ? 0.75 : 0.35};
+    transition: all 0.25s ease-in-out;
+  }
+  @container board-layout (max-width: 1000px) {
+    gap: 2px;
+    svg {
+      font-size: 70%;
+    }
 `;

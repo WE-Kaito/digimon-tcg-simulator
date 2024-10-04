@@ -80,11 +80,11 @@ const StyledSpan = styled.span`
 
 const DeckImg = styled.img<{ isOver?: boolean }>`
   height: 66.67%;
-  border-radius: 2px;
   cursor: pointer;
   transition: all 0.1s ease;
   z-index: 2;
   filter: ${({isOver}) => isOver ? "drop-shadow(0px 0px 2px ghostwhite) saturate(1.1) brightness(0.95)" : "unset"};
+  border-radius: 2px;
   border-right: 2px solid black;
   border-bottom: 2px solid black;
 
