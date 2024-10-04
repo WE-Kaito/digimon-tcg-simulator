@@ -8,7 +8,8 @@ import {
     DeleteForever as TrashIcon,
     LocalFireDepartment as EffectIcon,
     Pageview as OpenSecurityIcon,
-    ShuffleOnOutlined as ShuffleIcon
+    ShuffleOnOutlined as ShuffleIcon,
+    Search as DetailsIcon,
 } from "@mui/icons-material";
 import {CSSProperties} from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
@@ -44,6 +45,7 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
         setCardIdWithTarget,
         setModifiers,
         setOpenedCardModal,
+        setStackModal
     ] = useGame((state) => [
         state.cardToSend,
         state.mySecurity,
@@ -56,7 +58,8 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
         state.setCardIdWithEffect,
         state.setCardIdWithTarget,
         state.setModifiers,
-        state.setOpenedCardModal
+        state.setOpenedCardModal,
+        state.setStackModal
     ]);
     const contextCard = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
@@ -85,10 +88,8 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
 
     function handleOpenSecurity() {
         setOpenedCardModal(OpenedCardModal.MY_SECURITY);
-        // setTrashMoodle(false); // TODO: Implement with Trash
         sendMessage?.(matchInfo?.gameId + ":/openedSecurity:" + matchInfo?.opponentName);
-        sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`); // TODO: add visual representation on security
-
+        sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`);
     }
 
     function handleShuffleSecurity() {
@@ -154,6 +155,12 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
         }
     }
 
+    function showStack({props}: ItemParams<FieldCardContextMenuItemProps>) {
+        if (!getOpponentReady() || props === undefined) return;
+        const {location} = props;
+        setStackModal(location);
+    }
+
     function activateEffectAnimation({props}: ItemParams<FieldCardContextMenuItemProps>) {
         if (!getOpponentReady() || props === undefined) return;
         const {name, id, location} = props;
@@ -206,6 +213,11 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"fieldCardMenu"} theme="dark">
+                <Item onClick={showStack}>
+                    <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                        <span>Show Stack</span> <DetailsIcon/></div>
+                </Item>
+                <Separator/>
                 <Item onClick={activateEffectAnimation}>
                     <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                         <span>Activate Effect</span> <EffectIcon/></div>
@@ -222,7 +234,23 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
                 <ModifierMenu sendSetModifiers={sendSetModifiers}/>
             </StyledMenu>
 
+            <StyledMenu id={"trashCardMenu"} theme="dark">
+                <Item onClick={activateEffectAnimation}>
+                    <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                        <span>Activate Effect</span> <EffectIcon/></div>
+                </Item>
+                <Item onClick={activateTargetAnimation}>
+                    <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                        <span>Target Card</span> <TargetIcon/></div>
+                </Item>
+            </StyledMenu>
+
             <StyledMenu id={"opponentCardMenu"} theme="dark">
+                <Item onClick={showStack}>
+                    <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                        <span>View Stack</span> <DetailsIcon/></div>
+                </Item>
+                <Separator/>
                 <Item onClick={activateTargetAnimation}>
                     <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                         <span>Target Card</span> <TargetIcon/></div>

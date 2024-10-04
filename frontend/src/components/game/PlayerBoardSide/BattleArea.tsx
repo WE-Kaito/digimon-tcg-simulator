@@ -4,6 +4,7 @@ import {useGame} from "../../../hooks/useGame.ts";
 import {CardTypeGame, SIDE} from "../../../utils/types.ts";
 import {useContextMenu} from "react-contexify";
 import EggIcon from '@mui/icons-material/Egg';
+import DetailsIcon from '@mui/icons-material/Search';
 import {WSUtils} from "../../../pages/GamePage.tsx";
 import {useDroppable} from "@dnd-kit/core";
 import {ChangeHistoryTwoTone as TriangleIcon} from "@mui/icons-material";
@@ -23,17 +24,20 @@ export default function BattleArea(props : BattleAreaProps) {
     const {setNodeRef: dropToField, isOver: isOverField} = useDroppable({ id: location, data: { accept: side === SIDE.MY ? ["card", "card-stack"] : ["card"] } });
     const {setNodeRef: dropToBottom, isOver: isOverBottom, active} = useDroppable({id: location + "_bottom", data: { accept: ["card"] } });
 
-    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
-
+    const stackModal = useGame((state) => state.stackModal);
     const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
+
+    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
+    const stackOpened = stackModal === location;
 
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
 
     return (
-        <Container {...props} id={locationCards.length ? "" : location} ref={dropToField} isOver={side === SIDE.MY && isOverField}>
+        <Container {...props} id={locationCards.length ? "" : location} ref={dropToField} isOver={side === SIDE.MY && isOverField} stackOpened={stackOpened}>
             {isBreeding && <StyledEggIcon side={side} />}
-            {!!locationCards.length &&
+            {stackOpened && <StyledDetailsIcon />}
+            {!!locationCards.length && !stackOpened &&
                 <CardStack cards={locationCards}
                            location={location}
                            opponentSide={side === SIDE.OPPONENT}
@@ -57,7 +61,7 @@ export default function BattleArea(props : BattleAreaProps) {
     );
 }
 
-const Container = styled.div<BattleAreaProps & { isOver: boolean }>`
+const Container = styled.div<BattleAreaProps & { isOver: boolean, stackOpened: boolean }>`
   touch-action: none;
   grid-area: ${({num}) => num ? `BA${num}` : "breeding"};
   position: relative;
@@ -69,7 +73,7 @@ const Container = styled.div<BattleAreaProps & { isOver: boolean }>`
   justify-content: center;
   align-items: center;
   cursor: ${({isOver}) => isOver ? "grabbing" : "unset"};
-  background: rgba(20, 20, 20, 0.25);
+  background: ${({stackOpened}) => stackOpened ? "#F5BE57FF" : "rgba(20, 20, 20, 0.25)"};
   box-shadow: inset 0 0 20px rgba(${({isOver}) => isOver ? "10, 10, 10" : "113, 175, 201"}, 0.2);
   outline: ${({side, isOver}) => side === SIDE.MY ? `2px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})` : "2px solid rgba(30, 20, 20, 0.7)"};
 `;
@@ -81,9 +85,16 @@ const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`
   transform: translate(-50%, -50%) rotate(${({side}) => side === SIDE.MY ? "0" : "180deg"});
   opacity: 0.5;
   font-size: 4em;
-  @media (max-height: 500px) {
-    font-size: 1.5em;
-  }
+`;
+
+const StyledDetailsIcon = styled(DetailsIcon)`
+  color: black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  font-size: 3em;
 `;
 
 const BottomDropZone = styled.div<{ isOver: boolean }>`

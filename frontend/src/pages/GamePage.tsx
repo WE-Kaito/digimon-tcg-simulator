@@ -22,6 +22,7 @@ import {useGame} from "../hooks/useGame.ts";
 import {BootStage} from "../utils/types.ts";
 import {SendMessage} from "react-use-websocket";
 import CardModal from "../components/game/CardModal.tsx";
+import StackModal from "../components/game/StackModal.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -234,6 +235,7 @@ export default function GamePage() {
                                     sensors={[mouseSensor, touchSensor]}>
                             <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
                                 <RevealArea />
+                                <StackModal />
                                 <CardModal wsUtils={wsUtils} />
                                 <MemoryBar wsUtils={wsUtils} />
                                 <PhaseIndicator wsUtils={wsUtils} />

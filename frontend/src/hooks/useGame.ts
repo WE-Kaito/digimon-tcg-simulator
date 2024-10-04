@@ -27,6 +27,8 @@ const digimonLocations = ["myBreedingArea", "opponentBreedingArea",
     "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
 
+type DigimonLocation = typeof digimonLocations[number];
+
 const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
 
@@ -77,6 +79,7 @@ export type State = BoardState & {
     isOpponentOnline: boolean,
     startingPlayer: string,
     openedCardModal: OpenedCardModal | false,
+    stackModal: DigimonLocation | false,
 
     // --------------------------------------------------------
 
@@ -136,6 +139,7 @@ export type State = BoardState & {
     setIsOpponentOnline: (isOpponentOnline: boolean) => void,
     setStartingPlayer: (side: SIDE | "") => void,
     setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void,
+    setStackModal: (location: DigimonLocation | false) => void,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -240,6 +244,7 @@ export const useGame = create<State>()(
     isOpponentOnline: true,
     startingPlayer: "",
     openedCardModal: false,
+    stackModal: false,
 
     setOpponentReady: (ready) => set({opponentReady: ready}),
 
@@ -778,6 +783,8 @@ export const useGame = create<State>()(
     setStartingPlayer: (startingPlayer) => set({ startingPlayer }),
 
     setOpenedCardModal: (openedCardModal) => set({ openedCardModal }),
+
+    setStackModal: (location) => set({ stackModal: location }),
 
             }),
             { name: 'bearStore' },

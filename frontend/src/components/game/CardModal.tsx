@@ -18,7 +18,7 @@ export default function CardModal({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const cardsToRender = locationCards.slice().reverse();
 
-    const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
+    const {show: showTrashCardMenu} = useContextMenu({id: "trashCardMenu", props: {index: -1, location: "", id: ""}});
 
     useEffect(() => {
         if (openedCardModal && !locationCards.length) setOpenedCardModal(false); // correctly close the modal if there are no cards
@@ -29,7 +29,7 @@ export default function CardModal({ wsUtils }: { wsUtils?: WSUtils }) {
         shuffleSecurity();
         playShuffleDeckSfx();
         wsUtils?.sendUpdate?.();
-        wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【Closed Security】`); // TODO: resolve visual representation on security component
+        wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【Closed Security】`);
         wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【↻ Security Stack】`);
         wsUtils?.sendSfx?.("playShuffleDeckSfx");
     }
@@ -43,7 +43,7 @@ export default function CardModal({ wsUtils }: { wsUtils?: WSUtils }) {
                     <Card card={card} location={openedCardModal} style={{ width: cardWidth }} key={card.id}
                           onContextMenu={(e) => {
                               if (openedCardModal === OpenedCardModal.MY_SECURITY) return;
-                              showFieldCardMenu?.({
+                              showTrashCardMenu?.({
                                   event: e, props: {index, location: openedCardModal, id: card.id, name: card.name}
                               });
                           }}/>)
@@ -78,8 +78,8 @@ const InnerContainer = styled.div<{ modal: OpenedCardModal }>`
   pointer-events: auto;
   cursor: default;
   width: 30%;
-  height: 61.5%;
-  padding: 6px ${({modal}) => modal === OpenedCardModal.MY_SECURITY ? "calc( +x 4px)" : "4px"} 6px 6px;
+  height: 62%;
+  padding: 6px 4px 6px 6px;
   background: rgba(2, 1, 1, 0.95);
   display: flex;
   flex-flow: row wrap;
