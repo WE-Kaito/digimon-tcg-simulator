@@ -71,6 +71,7 @@ export default function Card( props : CardProps ) {
     const isHandHidden = useGame((state) => state.isHandHidden);
     const mySleeve = useGame((state) => state.mySleeve);
     const dragMode = useGame((state) => state.dragMode);
+    const stackModal = useGame((state) => state.stackModal);
     const [stackSliceIndex, setStackSliceIndex] = useGame((state) => [state.stackSliceIndex, state.setStackSliceIndex]);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
@@ -104,7 +105,7 @@ export default function Card( props : CardProps ) {
         isDragging: isDraggingStack,
         transform: stackTransform,
     } = useDraggable({
-        id: location + "_stack",
+        id: location + "_stack" + dragMode,
         data: { type: 'card-stack', content: { location } },
     });
 
@@ -171,6 +172,7 @@ export default function Card( props : CardProps ) {
         || ["myHand", "mySecurity", "myTrash"].includes(location)
         || (stackSliceIndex === 0 && !tamerLocations.includes(location))
         || (stackSliceIndex === locationCards.length - 1 && tamerLocations.includes(location))
+        || (stackModal === location);
 
     const dragRef = isSingleDrag ? drag : dragStack;
     const dragAttributes = isSingleDrag ? attributes : stackAttributes;
@@ -228,7 +230,7 @@ export default function Card( props : CardProps ) {
                            transform={CSS.Translate.toString(isDraggingStack ? stackTransform : transform)}
                            width={cardWidth}
                            style={{ opacity }}
-                           location={location}
+                           inModal={["myTrash", "mySecurity"].includes(location) || stackModal === location}
                 />}
 
             {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && <StyledImage
@@ -334,13 +336,13 @@ const StyledImage = styled.img<StyledImageProps>`
   }
 `;
 
-const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean, location: string}>`
+const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean, inModal: boolean}>`
   cursor: grabbing;
   position: fixed;
   outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
   border-radius: 5px;
-  transform: ${({transform}) => transform} ${({location}) => ["myTrash", "mySecurity"].includes(location) ? "translateX(-50%)" : "translate(-50%, -100%)"} scale(1.1);
+  transform: ${({transform}) => transform} ${({inModal}) => inModal ? "translateX(-50%)" : "translate(-50%, -100%)"} scale(1.1);
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)) brightness(110%) saturate(1.05);
   transition: ${({hasOffset}) => (hasOffset ? "transform 0.35s ease" : "unset")};
   z-index: 10000;
