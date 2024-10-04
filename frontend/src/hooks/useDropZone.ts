@@ -192,13 +192,15 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
         if (location !== "myHand") sendChatMessage(`[FIELD_UPDATE]≔【${name}】﹕${convertForLog(location)} ➟ ${convertForLog("myHand")}`);
     }
 
-    function handleDropToEggDeck(item: DraggedItem) {
-        const {id, location} = item;
+    function handleDropToEggDeck(item: DraggedItem, topOrBottom: "Top" | "Bottom") {
+        const {id, name, location} = item;
         if (id.startsWith("TOKEN")) return;
-        setCardToSend(id, location);
-        //TODO: change to same behavior as deck
-        // setEggDeckMoodle(true);
-        // setSecurityMoodle(false);
+        console.log(item, topOrBottom);
+        sendChatMessage(`[FIELD_UPDATE]≔【${location === "myHand" ? `???…${id.slice(-5)}` : name}】﹕${convertForLog(location)} ➟ Egg Deck ${topOrBottom}`);
+        moveCardToStack(topOrBottom, id, location, "myEggDeck");
+        sendCardToStack(topOrBottom, id, location, "myEggDeck");
+        playPlaceCardSfx();
+
     }
 
     function handleDropToSecurity(item: DraggedItem, to: string) {
@@ -226,31 +228,36 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
     function handleDragEnd(event: DragEndEvent) {
         const {active, over} = event;
         const dragItem = active?.data?.current as { type: string; content: DraggedItem | DraggedStack };
-        const to = String(over?.id).includes("_") ? String(over?.id).split("_")[0] : String(over?.id);
         const draggedItem = dragItem.content as DraggedItem;
+        const originalTo = String(over?.id);
+        const to = String(over?.id).includes("_") ? String(over?.id).split("_")[0] : String(over?.id);
 
         if (!over?.data.current?.accept.includes(dragItem.type)) return;
 
-        if (String(over?.id).includes("_bottom")) {
+        if (originalTo.includes("_bottom")) {
             const {id, location, type, name} = draggedItem;
             if (type === "Token" || !handleDropToStackBottom) return;
+            if (originalTo === "myDeckField_bottom") {
+                dropCardToDeck(draggedItem, "Bottom");
+                return;
+            }
+            if (originalTo === "myEggDeck_bottom") {
+                handleDropToEggDeck(draggedItem, "Bottom");
+                return;
+            }
             handleDropToStackBottom(id, location, to, name);
             return;
         }
-
         if (to.startsWith("myDigi") || ["myBreedingArea", "myTrash"].includes(to)) {
             dropCardOrStack(dragItem.content, to);
         }
-
         if (to.startsWith("opponentDigi") || ["opponentSecurity"].includes(to)) {
             handleDropToOpponent(draggedItem.location, to);
         }
-
         if (to.includes("mySecurity")) handleDropToSecurity(draggedItem, String(over?.id))
         if (to === "myHand") handleDropToHand(draggedItem);
         if (to === "myDeckField") dropCardToDeck(draggedItem, "Top");
-        if (to === "myDeckField_bottom") dropCardToDeck(draggedItem, "Bottom");
-        if (to === "myEggDeck") handleDropToEggDeck(draggedItem);
+        if (to === "myEggDeck") handleDropToEggDeck(draggedItem,"Top");
     }
 
     return handleDragEnd;
