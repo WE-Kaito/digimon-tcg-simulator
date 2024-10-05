@@ -285,7 +285,7 @@ const StyledImage = styled.img<StyledImageProps>`
 
   outline: ${({ isTilted }) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
-  border-bottom: ${({ location }) => (location.includes("Digi") && Number(location.split("Digi")[1]) <= 10 ? "1px solid rgba(0,0,0, 0.75)" : "none")};
+  border-bottom: ${({ location }) => ((location.includes("Digi") && (Number(location.split("Digi")[1]) <= 10) || location.includes("Breeding")) ? "1px solid rgba(0,0,0, 0.75)" : "none")};
   border-right: ${({ location }) => (location.includes("Digi") && Number(location.split("Digi")[1]) > 10 ? "1px solid rgba(0,0,0, 0.75)" : "none")};
   filter: ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
 

@@ -10,7 +10,9 @@ export default function SecurityDropSections() {
     const {setNodeRef: dropBottomFaceDownRef, isOver: isOverBottomFaceDown} = useDroppable({id: "mySecurity_bot_faceDown", data: {accept: ["card"]}});
     const {setNodeRef: dropBottomFaceUpRef, isOver: isOverBottomFaceUp} = useDroppable({id: "mySecurity_bot_faceUp", data: {accept: ["card"]}});
 
-    const previewCardWidth = useStore((state) => state.cardWidth) / 2.5;
+    const width = useStore((state) => state.cardWidth) / 2.5;
+    const height = width * (7/5); // prevents breaking layout
+
     const mySleeve = useGame((state) => state.mySleeve);
     const draggedCardImg = active?.data?.current?.content.imgSrc;
 
@@ -19,16 +21,16 @@ export default function SecurityDropSections() {
     return (
         <>
             <DropSectionTopFaceUp ref={dropTopFaceUpRef} isOver={isOverTopFaceUp}>
-                <img alt="top face up" src={draggedCardImg} width={previewCardWidth} />
+                <img alt="top face up" src={draggedCardImg} width={width} height={height} />
             </DropSectionTopFaceUp>
             <DropSectionTopFaceDown ref={dropTopFaceDownRef} isOver={isOverTopFaceDown}>
-                <img alt="top face down" src={getSleeve(mySleeve)} width={previewCardWidth} />
+                <img alt="top face down" src={getSleeve(mySleeve)} width={width} height={height} />
             </DropSectionTopFaceDown>
             <DropSectionBottomFaceDown ref={dropBottomFaceDownRef} isOver={isOverBottomFaceDown}>
-                <img alt="bottom face down" src={getSleeve(mySleeve)} width={previewCardWidth} />
+                <img alt="bottom face down" src={getSleeve(mySleeve)} width={width} height={height} />
             </DropSectionBottomFaceDown>
             <DropSectionBottomFaceUp ref={dropBottomFaceUpRef} isOver={isOverBottomFaceUp}>
-                <img alt="bottom face up" src={draggedCardImg} width={previewCardWidth} />
+                <img alt="bottom face up" src={draggedCardImg} width={width} height={height} />
             </DropSectionBottomFaceUp>
         </>
     );
