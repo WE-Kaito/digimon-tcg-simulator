@@ -15,7 +15,9 @@ type Props = {
 
 /**
  * Custom hook for handling the drop zone logic.
- * Make sure the Id's in useDroppable hook calls are the same as used in handleDragEnd function.
+ * It returns the function for {@link DndContext}'s onDragEnd.
+ *
+ * Make sure the Id's in useDroppable hook calls are the same as used in handleDragEnd function of useDropZone.ts
  *
  * @example
  * PlayerDeck.tsx:

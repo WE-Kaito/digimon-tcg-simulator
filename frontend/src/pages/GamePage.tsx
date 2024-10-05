@@ -1,6 +1,6 @@
 import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
-import {Stack, useMediaQuery} from "@mui/material";
+import {useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
 import {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
@@ -87,6 +87,7 @@ export default function GamePage() {
 
     const timeoutRef = useRef<number | null>(null);
 
+    // This reliably aborts and restarts attack animation whenever it is triggered
     const restartAttackAnimation = useCallback((effect?: boolean) => {
         if (effect) playEffectAttackSfx();
         else playAttackSfx();
@@ -184,7 +185,7 @@ export default function GamePage() {
         },
     });
 
-    //Layout
+    // Layout ##########################################################################################################
     const isMobile = useMediaQuery(mediaQueries);
     const isPortrait = useMediaQuery('(orientation: portrait)');
     const setCardWidth = useStore((state) => state.setCardWidth);
@@ -210,14 +211,15 @@ export default function GamePage() {
         boardLayoutRef.current?.scrollTo(boardLayoutRef.current?.scrollWidth / 3, 0)
     }, [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
-    
+    // #################################################################################################################
+
     return (
         <>
             <GameBackground/>
             <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
 
-            <Stack width={"100vw"} maxHeight={isMobile ? "unset" : "100%"} sx={{ containerType: "inline-size", postion: "relative" }}>
+            <Container style={{ maxHeight: isMobile ? "unset" : "100%" }}>
                 <TopStack isMobile={isMobile}>
                     {isMobile && <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Settings</div>}
                     <div style={{ background: "darkolivegreen", width: 500, justifySelf: "flex-start", alignSelf: "flex-start", maxWidth: "100vw", height: 80 }}>Nameplate ME</div>
@@ -260,10 +262,18 @@ export default function GamePage() {
                     <LogContainer isMobile={isMobile}>Log</LogContainer>
                     <ChatContainer isMobile={isMobile}>Chat</ChatContainer>
                 </BottomStack>
-            </Stack>
+            </Container>
         </>
     );
 }
+
+const Container = styled.div`
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  position: relative;
+`;
 
 const TopStack = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 3 : 1};

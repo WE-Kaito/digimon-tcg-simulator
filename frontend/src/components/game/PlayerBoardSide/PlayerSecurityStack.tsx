@@ -132,7 +132,7 @@ const SecurityAnimationImg = styled.img`
 `;
 
 export const FaceDownCard = styled.img`
-  width: 69.5px;
+  width: 50px;
   max-width: 50px;
   max-height: 70px;
   border-radius: 2px;
