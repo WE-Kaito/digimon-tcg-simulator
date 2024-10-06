@@ -15,7 +15,7 @@ import {EffectVariant} from "./constants.ts";
 const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama",
                 "Satsuki Tamahime", "Eiji Nagasumi", "Marvin Jackson", "Xu Yulin", "Hacker Judge", "Kosuke Kisakata"];
 
-export default function CardDetails() {
+export default function CardDetails({isMobile} : {isMobile?: boolean}) {
 
     const location = useLocation();
     const inGame = location.pathname === "/game";
@@ -52,6 +52,22 @@ export default function CardDetails() {
     const notXAntibody = !["BT9-109", "EX5-070"].includes(String(cardNumber));
 
     if (!selectedCard && !hoverCard) return <div style={{height: 500}}/>;
+
+    if (isMobile) return (
+        inheritCardInfo[0]?.length > 0 &&
+        <div style={{maxWidth: 500}}>
+            <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
+                <Stack gap={1}>
+                    {inheritCardInfo.map((text, index) => !!text &&
+                        <span key={`${cardNumber}_inherited_from_material_${index}`}>
+                                            <HighlightedKeyWords text={text}/>
+                                        </span>
+                    )}
+                </Stack>
+            </EffectCard>
+        </div>
+    );
+
     return (
         <Wrapper inGame={inGame}>
 
