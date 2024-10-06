@@ -29,7 +29,7 @@ const mediaQueries = [
     '(orientation: landscape) and (min-resolution: 192dpi) and (pointer: coarse)',
     '(orientation: landscape) and (min-resolution: 2dppx) and (pointer: coarse)',
     '(max-height: 820px)',
-    '(orientation: portrait) and (max-width: 1300px)'
+    '(max-width: 1400px)'
 ].join(',');
 
 /**
@@ -218,20 +218,26 @@ export default function GamePage() {
             <GameBackground/>
             <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
+            <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", maxHeight: "100vh"}}>
+                {!isMobile && <DetailsContainer  isMobile={isMobile}>
+                    <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
+                             onContextMenu={(e) => showDetailsImageMenu({event: e})}
+                             onClick={() => selectCard(null)}
+                             {...((!selectedCard && !hoverCard) && {
+                                 style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
+                             })}
+                    />
+                    <CardDetails/>
+                </DetailsContainer>}
+                <Container isMobile={isMobile} style={{ maxHeight: isMobile ? "unset" : "100%" }}>
+                    <TopStack isMobile={isMobile}>
+                        <div style={{ background: "darkolivegreen", width: 500, justifySelf: "flex-start", alignSelf: isMobile ? "unset" : "flex-start", maxWidth: "100vw", height: 80 }}>Nameplate ME</div>
+                        <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Nameplate Opponent</div>
+                        {isMobile && <SettingsContainer>
+                            <SoundBar/>
+                        </SettingsContainer>}
+                    </TopStack>
 
-            <Container style={{ maxHeight: isMobile ? "unset" : "100%" }}>
-                <TopStack isMobile={isMobile}>
-                    {isMobile && <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Settings</div>}
-                    <div style={{ background: "darkolivegreen", width: 500, justifySelf: "flex-start", alignSelf: "flex-start", maxWidth: "100vw", height: 80 }}>Nameplate ME</div>
-                    <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Nameplate Opponent</div>
-                </TopStack>
-
-                <MainStack isMobile={isMobile}>
-                    <DetailsContainer isMobile={isMobile}>
-                        {isMobile && <MobileCardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} style={{ height: 450}}
-                                        alt={"cardImg"}/>}
-                        <CardDetails/>
-                    </DetailsContainer>
                     <BoardContainer isMobile={isMobile}>
                         <DndContext onDragEnd={handleDragEnd} autoScroll={false} collisionDetection={pointerWithin}
                                     sensors={[mouseSensor, touchSensor]}>
@@ -246,29 +252,33 @@ export default function GamePage() {
                             </BoardLayout>
                         </DndContext>
                     </BoardContainer>
-                </MainStack>
 
-                <BottomStack isMobile={isMobile}>
-                    {!isMobile && <ImgContainer>
-                        <DesktopCardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
-                                        onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                                        onClick={() => selectCard(null)}
-                                        style={{ pointerEvents: !(selectedCard || hoverCard) ? "none" : "unset"}}/>
-                    </ImgContainer>
-                    }
-                    {!isMobile && <SettingsContainer>
-                        <SoundBar/>
-                    </SettingsContainer>}
-                    <LogContainer isMobile={isMobile}>Log</LogContainer>
-                    <ChatContainer isMobile={isMobile}>Chat</ChatContainer>
-                </BottomStack>
-            </Container>
+                    {isMobile && <DetailsContainer  isMobile={isMobile}>
+                        <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
+                                 onContextMenu={(e) => showDetailsImageMenu({event: e})}
+                                 onClick={() => selectCard(null)}
+                                 {...((!selectedCard && !hoverCard) && {
+                                     style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
+                                 })}
+                        />
+                        <CardDetails isMobile={isMobile}/>
+                    </DetailsContainer>}
+
+                    <BottomStack isMobile={isMobile}>
+                        {!isMobile && <SettingsContainer>
+                            <SoundBar/>
+                        </SettingsContainer>}
+                        <LogContainer isMobile={isMobile}>Log</LogContainer>
+                        <ChatContainer isMobile={isMobile}>Chat</ChatContainer>
+                    </BottomStack>
+                </Container>
+            </div>
         </>
     );
 }
 
-const Container = styled.div`
-  width: 100vw;
+const Container = styled.div<{ isMobile: boolean }>`
+  width: ${({isMobile}) => isMobile ? "100vw" : "calc(100vw - 400px)"};
   display: flex;
   flex-direction: column;
   container-type: inline-size;
@@ -276,84 +286,56 @@ const Container = styled.div`
 `;
 
 const TopStack = styled.div<{ isMobile: boolean }>`
-  order: ${({isMobile}) => isMobile ? 3 : 1};
+  order: ${({isMobile}) => isMobile ? 4 : 1};
   display: flex;
-  width: 100vw;
-  justify-content: ${({isMobile}) => isMobile ? "center" : "space-between"};
-  flex-wrap: ${({isMobile}) => isMobile ? "wrap-reverse" : "wrap"};
-`;
-
-const MainStack = styled.div<{ isMobile: boolean }>`
-  order: ${({isMobile}) => isMobile ? 1 : 2};
-  display: flex;
-  width: 100vw;
-  max-height: ${({isMobile}) => isMobile ? "unset" : "calc(100vh - 230px)"};
-  justify-content: space-evenly;
   flex-direction: ${({isMobile}) => isMobile ? "column" : "row"};
+  width: 100%;
+  justify-content: ${({isMobile}) => isMobile ? "center" : "space-between"};
+  align-items: ${({isMobile}) => isMobile ? "center" : "unset"};
 `;
 
 const BottomStack = styled.div<{ isMobile: boolean }>`
-  order: ${({isMobile}) => isMobile ? 2 : 3};
+  order: 3;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
   height: ${({isMobile}) => isMobile ? "fit-content" : "150px"};
 ;`
 
 const DetailsContainer = styled.div<{ isMobile: boolean }>`
   display: flex;
-  max-height: ${({isMobile}) => isMobile ? "fit-content" : "calc(100vh - 230px)"};
-  min-width: 402px;
+  width: ${({isMobile}) => isMobile ? "100%" : "400px"};
+  max-height: ${({isMobile}) => isMobile ? "fit-content" : "100vh"};
   flex-direction: ${({isMobile}) => isMobile ? "row" : "column"};
-  justify-content: ${({isMobile}) => isMobile ? "center" : "flex-start"};
-  align-items: center;
+  justify-content: ${({isMobile}) => isMobile ? "space-evenly" : "flex-start"};
+  align-items: flex-start;
   flex-wrap: ${({isMobile}) => isMobile ? "wrap" : "unset"};
   order: ${({isMobile}) => isMobile ? 2 : "unset"};
   gap: 5px;
   padding-top: 5px;
-`;
-
-const MobileCardImg = styled.img`
-  border-radius: 3.5%;
-  aspect-ratio: 5 / 7;
-  max-width: calc(100vw - 420px);
-  max-height: calc(100vw - (420px * 5 / 7));
   
-  @media (max-width: 500px) {
-    max-width: 98vw;
-    max-height: unset;
-    padding: 5px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    width: 0;
+    display: none;
   }
 `;
 
-const ImgContainer = styled.div`
-  border-radius: 3.5%;
-  height: 150px;
-  width: 107px; // 150 * (5/7)
-  position: relative;
-`;
-
-const DesktopCardImg = styled.img`
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  
+const CardImg = styled.img`
+  width: 100%;
+  max-width: 400px;
+  max-height: 100%;
   border-radius: 3.5%;
   aspect-ratio: 5 / 7;
-  width: 107px; // 150 * (5/7)
-  
-  &:hover {
-    z-index: 1000;
-    width: 400px;
-    top: unset;
-    left: 0;
-    bottom: 0;
-    transform: unset;
-  }
+  //width: 107px; // 150 * (5/7)
+  z-index: 1000;
 `;
 
 const BoardContainer = styled.div<{ isMobile: boolean }>`
+  order: ${({isMobile}) => isMobile ? 1 : 2};
   position: relative;
   display: flex;
   justify-content: center;
@@ -361,6 +343,7 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
   min-height: 450px;
   width: ${({isMobile}) => isMobile ? "unset" : "calc(100vw - 400px)"}; // 400px = Details width, may change
   height: ${({isMobile}) => isMobile ? "fit-content" : "calc(100vh - 230px)"};
+  max-height: ${({isMobile}) => isMobile ? "unset" : "calc(100vh - 230px)"};
   
   container-type: inline-size;
   container-name: board-container;
@@ -368,7 +351,7 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
   overflow-y: hidden;
   scrollbar-width: none;
   
-  @media (max-width: 1300px) {
+  @media (max-width: 1400px) {
     display: block;
     border-radius: 0;
     scrollbar-width: thin;
@@ -398,6 +381,7 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   container-name: board-layout;
   // maybe as "change camera" button:
   //transform: perspective(2000px) rotateX(35deg) rotateZ(0deg);
+  //padding: 0 5vw 0 3.5vw;
   @container board-container (max-width: 900px) {
     width: unset;
     height: 100%;
@@ -418,8 +402,7 @@ const SettingsContainer = styled.div`
 const ChatContainer = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 1 : 2};
   background: darkgoldenrod;
-  min-width: 400px;
-  width: ${({isMobile}) => isMobile ? "100%" : "calc(100% - 827px)"}; // 900px = Log + Settings, may change
+  width: ${({isMobile}) => isMobile ? "100%" : "calc(100% - 720px)"}; //Log + Settings, may change
   height: ${({isMobile}) => isMobile ? "200px" : "150px"};
   contain: size;
 `;
