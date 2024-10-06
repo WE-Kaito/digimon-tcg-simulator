@@ -298,19 +298,22 @@ const BottomStack = styled.div<{ isMobile: boolean }>`
   order: 3;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
   height: ${({isMobile}) => isMobile ? "fit-content" : "150px"};
+  @media (max-width: 1000px) {
+    justify-content: center;
+  }
 ;`
 
 const DetailsContainer = styled.div<{ isMobile: boolean }>`
   display: flex;
   width: ${({isMobile}) => isMobile ? "100%" : "400px"};
   max-height: ${({isMobile}) => isMobile ? "fit-content" : "100vh"};
+  flex-wrap: ${({isMobile}) => isMobile ? "wrap" : "unset"};
   flex-direction: ${({isMobile}) => isMobile ? "row" : "column"};
   justify-content: ${({isMobile}) => isMobile ? "space-evenly" : "flex-start"};
   align-items: flex-start;
-  flex-wrap: ${({isMobile}) => isMobile ? "wrap" : "unset"};
   order: ${({isMobile}) => isMobile ? 2 : "unset"};
   gap: 5px;
   padding-top: 5px;
@@ -402,7 +405,8 @@ const SettingsContainer = styled.div`
 const ChatContainer = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 1 : 2};
   background: darkgoldenrod;
-  width: ${({isMobile}) => isMobile ? "100%" : "calc(100% - 720px)"}; //Log + Settings, may change
+  width: 100%;
+  max-width: 600px;
   height: ${({isMobile}) => isMobile ? "200px" : "150px"};
   contain: size;
 `;
@@ -410,6 +414,10 @@ const ChatContainer = styled.div<{ isMobile: boolean }>`
 const LogContainer = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 2 : 1};
   background: darkorchid;
-  width: ${({isMobile}) => isMobile ? "100%" : "400px"};
+  width: 100%;
+  max-width: 400px;
   height: ${({isMobile}) => isMobile ? "200px" : "150px"};
+  @media (max-width: 1000px) {
+    max-width: 600px;
+  }
 `;
