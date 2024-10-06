@@ -201,7 +201,7 @@ export default function GamePage() {
         }
     }
 
-    // TODO: make resizing consistent and fix 'on maximizing window'
+    // TODO: make resizing more consistent
     useLayoutEffect(() => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
@@ -279,6 +279,7 @@ export default function GamePage() {
 
 const Container = styled.div<{ isMobile: boolean }>`
   width: ${({isMobile}) => isMobile ? "100vw" : "calc(100vw - 400px)"};
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
   container-type: inline-size;
