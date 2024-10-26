@@ -75,11 +75,34 @@ export type State = BoardState & {
     arrowTo: string,
     isEffectArrow: boolean,
     stackSliceIndex: number,
-    dragMode: DragMode,
     isOpponentOnline: boolean,
     startingPlayer: string,
+
+    // --------------------------------------------------------
+    // TODO: This section (+ more) should be refactored, so boardState is not mixed with UI states
+    dragMode: DragMode,
+    toggleDragMode: () => void,
+
     openedCardModal: OpenedCardModal | false,
+    setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void,
+
     stackModal: DigimonLocation | false,
+    setStackModal: (location: DigimonLocation | false) => void,
+
+    restartPromptModal: boolean,
+    setRestartPromptModal: (open: boolean) => void,
+
+    restartOrder: "first" | "second",
+    setRestartOrder: (restartOrder: "second" | "first") => void,
+
+    isRematch: boolean,
+    setIsRematch: (isRematch: boolean) => void,
+
+    endModal: boolean,
+    setEndModal: (open: boolean) => void,
+
+    endModalText: string,
+    setEndModalText: (text: string) => void,
 
     // --------------------------------------------------------
 
@@ -135,11 +158,8 @@ export type State = BoardState & {
     setArrowTo: (locationAsId: string) => void,
     setIsEffectArrow: (isEffectArrow: boolean) => void,
     setStackSliceIndex: (index: number) => void,
-    toggleDragMode: () => void,
     setIsOpponentOnline: (isOpponentOnline: boolean) => void,
     setStartingPlayer: (side: SIDE | "") => void,
-    setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void,
-    setStackModal: (location: DigimonLocation | false) => void,
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -246,6 +266,21 @@ export const useGame = create<State>()(
     openedCardModal: false,
     stackModal: false,
 
+    restartOrder: "first",
+    setRestartOrder: (restartOrder) => set({ restartOrder }),
+
+    restartPromptModal: false,
+    setRestartPromptModal: (open) => set({ restartPromptModal: open }),
+
+    isRematch: false,
+    setIsRematch: (isRematch) => set({ isRematch }),
+
+    endModal: false,
+    setEndModal: (open) => set({ endModal: open }),
+
+    endModalText: "",
+    setEndModalText: (text) => set({ endModalText: text }),
+
     setOpponentReady: (ready) => set({opponentReady: ready}),
 
     setUpGame: (me, opponent) => {
@@ -318,6 +353,7 @@ export const useGame = create<State>()(
             bootStage: BootStage.CLEAR,
             initialDistributionState: "",
             opponentGameState: "",
+            isRematch: false,
         });
     },
 

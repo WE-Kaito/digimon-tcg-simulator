@@ -5,7 +5,7 @@ import {findTokenByName} from "../utils/tokens.ts";
 import {notifySecurityView} from "../utils/toasts.ts";
 import {useGame} from "./useGame.ts";
 import {useStore} from "./useStore.ts";
-import {Dispatch, SetStateAction, useCallback, useRef, useState} from "react";
+import {useCallback, useRef, useState} from "react";
 import {useSound} from "./useSound.ts";
 
 const currentPort = window.location.port;
@@ -14,14 +14,8 @@ const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/game
 
 // TODO: refactor these to store?
 type UseGameWebSocketProps = {
-    isRematch: boolean;
-    setIsRematch: Dispatch<SetStateAction<boolean>>;
     clearAttackAnimation: (() => void) | null;
     restartAttackAnimation: (effect?: boolean) => void; // prop for this and useDropZone
-    setEndScreen: Dispatch<SetStateAction<boolean>>;
-    setEndScreenMessage: Dispatch<SetStateAction<string>>;
-    setRestartOrder: Dispatch<SetStateAction<"second" | "first">>;
-    setRestartMoodle: Dispatch<SetStateAction<boolean>>; // TODO: rename
 }
 
 type UseGameWebSocketReturn = {
@@ -46,14 +40,8 @@ function chunkString(str: string, size: number): string[] {
  */
 export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGameWebSocketReturn {
     const {
-        isRematch,
-        setIsRematch,
         clearAttackAnimation,
         restartAttackAnimation,
-        setEndScreen,
-        setEndScreenMessage,
-        setRestartOrder,
-        setRestartMoodle,
     } = props;
 
     const user = useStore((state) => state.user);
@@ -93,6 +81,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         setStartingPlayer,
         setIsOpponentOnline,
         setOpenedCardModal,
+        setRestartOrder,
+        setRestartPromptModal,
+        isRematch,
+        setIsRematch,
+        setEndModal,
+        setEndModalText,
     ] = useGame((state) => [
         state.gameId,
         state.bootStage,
@@ -128,6 +122,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         state.setStartingPlayer,
         state.setIsOpponentOnline,
         state.setOpenedCardModal,
+        state.setRestartOrder,
+        state.setRestartPromptModal,
+        state.isRematch,
+        state.setIsRematch,
+        state.setEndModal,
+        state.setEndModalText,
     ]);
 
     const isPlayerOne = user === gameId.split("‗")[0];
@@ -145,7 +145,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         playShuffleDeckSfx,
         playSuspendSfx,
         playTrashCardSfx,
-        playUnsuspendSfx
+        playUnsuspendSfx,
+        playRematchSfx,
     ] = useSound((state) => [
         state.playCoinFlipSfx,
         state.playButtonClickSfx,
@@ -158,7 +159,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         state.playShuffleDeckSfx,
         state.playSuspendSfx,
         state.playTrashCardSfx,
-        state.playUnsuspendSfx
+        state.playUnsuspendSfx,
+        state.playRematchSfx,
     ]);
 
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
@@ -255,14 +257,14 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
 
                 setStartingPlayer(firstPlayer);
                 setBootStage(BootStage.SHOW_STARTING_PLAYER);
-                playCoinFlipSfx();
+                isRematch ? playRematchSfx() : playCoinFlipSfx();
 
                 const timeout = setTimeout(() => {
                     setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                     if (firstPlayer === user) setTurn(true);
                     setOpponentReady(false);
                     if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
-                }, 4800);
+                }, isRematch ? 1500 : 4800);
 
                 return () => clearTimeout(timeout);
             }
@@ -367,8 +369,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                     break;
                 }
                 case "[SURRENDER]": {
-                    setEndScreen(true);
-                    setEndScreenMessage("🎉 Your opponent surrendered!");
+                    setEndModal(true);
+                    setEndModalText("🎉 Your opponent surrendered!");
                     break;
                 }
                 case "[SECURITY_VIEWED]": {
@@ -377,20 +379,20 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                 }
                 case ("[RESTART_AS_FIRST]"): {
                     setRestartOrder("second");
-                    setRestartMoodle(true);
+                    setRestartPromptModal(true);
                     break;
                 }
                 case ("[RESTART_AS_SECOND]"): {
                     setRestartOrder("first");
-                    setRestartMoodle(true);
+                    setRestartPromptModal(true);
                     break;
                 }
                 case ("[ACCEPT_RESTART]"): {
-                    setIsRematch(true);
                     setMyAttackPhase(false);
                     setOpponentAttackPhase(false);
                     clearBoard();
-                    setEndScreen(false);
+                    setIsRematch(true);
+                    setEndModal(false);
                     setUpGame(restartObject.me, restartObject.opponent);
                     break;
                 }

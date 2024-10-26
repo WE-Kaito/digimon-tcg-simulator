@@ -66,7 +66,7 @@ const StyledList = styled.ul<{ cardCount: number }>`
   max-width: 100%;
   height: 100%;
   list-style-type: none;
-  transform: translateX(${({cardCount}) => cardCount > 23 ? "-2%" : "0"});
+  transform: translateX(${({cardCount}) => cardCount > 15 ? "2%" : "10%"});
 `;
 
 const ListItem = styled.li<{ cardCount: number, cardIndex: number, cardWidth: number }>`

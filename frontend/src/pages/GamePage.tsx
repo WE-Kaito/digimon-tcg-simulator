@@ -23,6 +23,10 @@ import {BootStage} from "../utils/types.ts";
 import {SendMessage} from "react-use-websocket";
 import CardModal from "../components/game/CardModal.tsx";
 import StackModal from "../components/game/StackModal.tsx";
+import RestartRequestModal from "../components/game/RestartRequestModal.tsx";
+import RestartPromptModal from "../components/game/RestartPromptModal.tsx";
+import SurrenderModal from "../components/game/SurrenderModal.tsx";
+import EndModal from "../components/game/EndModal.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -75,12 +79,8 @@ export default function GamePage() {
 
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
 
-    // TODO: reevaluate all the states below
-    const [endScreen, setEndScreen] = useState<boolean>(false);
-    const [endScreenMessage, setEndScreenMessage] = useState<string>("");
-    const [restartOrder, setRestartOrder] = useState<"second" | "first">("second");
-    const [restartMoodle, setRestartMoodle] = useState<boolean>(false); // see below
-    const [isRematch, setIsRematch] = useState<boolean>(false);
+    const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
+    const [surrenderModal, setSurrenderModal] = useState<boolean>(false);
 
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null); // to clear the previous timeRef
     const [phaseLoading, setPhaseLoading] = useState(false); // helps prevent unexpected multiple phase changes
@@ -113,14 +113,8 @@ export default function GamePage() {
     }, [playAttackSfx, playEffectAttackSfx]);
 
     const {sendMessage, sendUpdate} = useGameWebSocket({
-        isRematch,
-        setIsRematch,
         clearAttackAnimation,
         restartAttackAnimation,
-        setEndScreen,
-        setEndScreenMessage,
-        setRestartOrder,
-        setRestartMoodle
     });
 
     const handleDragEnd = useDropZone({
@@ -218,6 +212,12 @@ export default function GamePage() {
             <GameBackground/>
             <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
+
+            <EndModal/>
+            <RestartPromptModal wsUtils={wsUtils}/>
+            {restartRequestModal && <RestartRequestModal setRestartRequestModal={setRestartRequestModal} wsUtils={wsUtils}/>}
+            {surrenderModal && <SurrenderModal setSurrenderModal={setSurrenderModal} wsUtils={wsUtils}/>}
+
             <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", maxHeight: "100vh"}}>
                 {!isMobile && <DetailsContainer  isMobile={isMobile}>
                     <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
@@ -232,6 +232,10 @@ export default function GamePage() {
                 <Container isMobile={isMobile} style={{ maxHeight: isMobile ? "unset" : "100%" }}>
                     <TopStack isMobile={isMobile}>
                         <div style={{ background: "darkolivegreen", width: 500, justifySelf: "flex-start", alignSelf: isMobile ? "unset" : "flex-start", maxWidth: "100vw", height: 80 }}>Nameplate ME</div>
+
+                        <button onClick={() => setRestartRequestModal(true)} >!restart!</button>
+                        <button onClick={() => setSurrenderModal(true)} >!surrender!</button>
+
                         <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Nameplate Opponent</div>
                         {isMobile && <SettingsContainer>
                             <SoundBar/>
