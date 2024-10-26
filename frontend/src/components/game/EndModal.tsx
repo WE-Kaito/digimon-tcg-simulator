@@ -1,14 +1,21 @@
 import {useNavigate} from "react-router-dom";
 import styled from "@emotion/styled";
+import {useGame} from "../../hooks/useGame.ts";
 
-export default function EndWindow({message}:{readonly message:string}) {
-
+export default function EndModal() {
+    const [endModal, setEndModal, endModalText] = useGame((state) => [
+        state.endModal, state.setEndModal, state.endModalText]);
     const navigate = useNavigate();
+
+    if (!endModal) return <></>;
 
     return (
         <Container>
-            <StyledSpan>{message}</StyledSpan>
-            <BackButton onClick={() => navigate("/lobby")}>EXIT</BackButton>
+            <StyledSpan>{endModalText}</StyledSpan>
+            <div style={{width: 560, display: "flex", justifyContent: "space-between"}}>
+                <ExitButton onClick={() => navigate("/lobby")}>EXIT</ExitButton>
+                <CancelButton onClick={() => setEndModal(false)}>CLOSE MODAL</CancelButton>
+            </div>
         </Container>
     );
 }
@@ -41,7 +48,7 @@ const Container = styled.div`
   }
 `;
 
-const BackButton = styled.button`
+const ExitButton = styled.button`
   cursor: pointer;
   width: 115px;
   height: 45px;
@@ -71,5 +78,16 @@ const BackButton = styled.button`
     font-size: 23px;
     height: 38px;
     width: 105px;
+  }
+`;
+
+export const CancelButton = styled(ExitButton)`
+  
+  &:hover {
+    background: lightgray;
+  }
+
+  &:active {
+    background: #f8f8f8;
   }
 `;

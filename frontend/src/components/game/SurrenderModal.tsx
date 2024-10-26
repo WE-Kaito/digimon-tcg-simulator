@@ -1,33 +1,37 @@
 import styled from "@emotion/styled";
+import {WSUtils} from "../../pages/GamePage.tsx";
+import {Dispatch, SetStateAction} from "react";
+import {useGame} from "../../hooks/useGame.ts";
 
 type Props = {
-    readonly setRestartMoodle?: (restartMoodle:boolean) => void,
-    readonly handleAcceptRestart?: () => void,
-    readonly setSurrenderOpen?: (surrenderOpen:boolean) => void,
-    readonly handleSurrender?: () => void,
-    readonly restartOrder?: "first" | "second",
+    setSurrenderModal: Dispatch<SetStateAction<boolean>>,
+    wsUtils: WSUtils,
 }
 
-export default function SurrenderRestartWindow({setRestartMoodle, handleAcceptRestart, setSurrenderOpen, handleSurrender, restartOrder}:Props) {
-    return (<>
-            {(setRestartMoodle && handleAcceptRestart) &&
-            <Container>
-                <StyledSpan>Opponent requested a rematch</StyledSpan>
-                <div style={{width: 480, display: "flex", justifyContent: "space-between"}}>
-                    <SurrenderButton onClick={() => setRestartMoodle(false)}>DENY</SurrenderButton>
-                    <AcceptButton style={{width: 300}} onClick={handleAcceptRestart}>ACCEPT ► GOING {restartOrder}</AcceptButton>
-                </div>
-            </Container>}
+export default function SurrenderModal( { setSurrenderModal, wsUtils }: Props ) {
+    const { sendMessage, matchInfo: { gameId, opponentName } } = wsUtils;
 
-            {(setSurrenderOpen && handleSurrender) &&
-            <Container>
-                <StyledSpan>Do you want to surrender?</StyledSpan>
-                <div style={{width: 390, display: "flex", justifyContent: "space-between"}}>
-                    <SurrenderButton onClick={handleSurrender}>SURRENDER</SurrenderButton>
-                    <CancelSurrenderButton onClick={() => setSurrenderOpen(false)}>CANCEL</CancelSurrenderButton>
-                </div>
-            </Container>}
-        </>
+    const [setEndModal, setEndModalText] = useGame((state) => [state.setEndModal, state.setEndModalText]);
+
+    function handleSurrender() {
+        setSurrenderModal(false);
+        setEndModal(true);
+        setEndModalText("🏳️ You surrendered.");
+        sendMessage(`${gameId}:/surrender:${opponentName}`);
+        // if (onlineCheckTimeoutRef.current !== null) {
+        //   clearTimeout(onlineCheckTimeoutRef.current);
+        //   onlineCheckTimeoutRef.current = null;
+        // }
+    }
+
+    return (
+        <Container>
+            <StyledSpan>Do you want to surrender?</StyledSpan>
+            <div style={{width: 390, display: "flex", justifyContent: "space-between"}}>
+                <SurrenderButton onClick={handleSurrender}>SURRENDER</SurrenderButton>
+                <CancelSurrenderButton onClick={() => setSurrenderModal(false)}>CANCEL</CancelSurrenderButton>
+            </div>
+        </Container>
     );
 }
 

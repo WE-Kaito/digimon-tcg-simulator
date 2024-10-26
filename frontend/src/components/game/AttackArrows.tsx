@@ -15,7 +15,7 @@ export default function AttackArrows() {
 
     if (!arrowFrom || !arrowTo) return <></>;
 
-    return <StyledArrow fromOpponent={isFromOpponent} isEffect={isEffectArrow}
+    return <StyledArrow isFromOpponent={isFromOpponent} isEffect={isEffectArrow}
            from={{
                direction: isFromOpponent ? DIRECTION.BOTTOM : DIRECTION.TOP,
                node: () => document.getElementById(arrowFrom),
@@ -35,7 +35,7 @@ const StyledArrow = styled(Arrow)<{isFromOpponent: boolean, isEffect: boolean}>`
   pointer-events: none;
   stroke: ${({isFromOpponent, isEffect}) => isFromOpponent ? (isEffect ? "#ECAA4D" : "crimson") : (isEffect ? "aquamarine" : "#007fff")};
   fill: ${({isFromOpponent, isEffect}) => isFromOpponent ? (isEffect ? "#ECAA4D" : "crimson") :  (isEffect ? "aquamarine" : "#007fff")};
-  filter: drop-shadow(0 0 3px ${({fromOpponent}) => fromOpponent ? "crimson" : "#007fff"});
+  filter: drop-shadow(0 0 3px ${({isFromOpponent}) => isFromOpponent ? "crimson" : "#007fff"});
   stroke-linecap: round;
   transform: scale(0.95);
   animation: arrow-pulsate 0.8s ease infinite;

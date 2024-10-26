@@ -19,6 +19,7 @@ import effectAttackSfx from "../assets/sounds/effect-attack.mp3";
 import activateEffect from "../assets/sounds/activate-effect.mp3";
 import targetCardSfx from "../assets/sounds/effect-target.mp3";
 import modifyCardSfx from "../assets/sounds/modify-card.mp3";
+import rematchSfx from "../assets/sounds/rematch.mp3";
 
 import avant from "../assets/music/sad_gatomon_lofi/Avant (@SadGatomon cover).mp3";
 import brave_heart from "../assets/music/sad_gatomon_lofi/Brave Heart (@SadGatomon cover).mp3";
@@ -93,6 +94,7 @@ type State = {
     playActivateEffectSfx: () => void,
     playTargetCardSfx: () => void,
     playModifyCardSfx: () => void,
+    playRematchSfx: () => void,
 };
 
 export const sadgatomonPlaylist = [
@@ -215,6 +217,7 @@ export const useSound = create<State>((set, get) => {
     const playActivateEffectSfx = (): void => playSound(activateEffect, 0.55,0,true);
     const playTargetCardSfx = (): void => playSound(targetCardSfx, 0.25,0,true);
     const playModifyCardSfx = (): void => playSound(modifyCardSfx, 1);
+    const playRematchSfx = (): void => playSound(rematchSfx, 0.6);
 
     return {
         ...initialState,
@@ -246,7 +249,8 @@ export const useSound = create<State>((set, get) => {
         playEffectAttackSfx,
         playActivateEffectSfx,
         playTargetCardSfx,
-        playModifyCardSfx
+        playModifyCardSfx,
+        playRematchSfx
     };
 });
 
