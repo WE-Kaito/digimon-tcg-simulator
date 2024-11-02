@@ -7,9 +7,8 @@ import {
     CardModifiers,
     CardType,
     CardTypeGame,
-    DragMode,
     GameDistribution,
-    OneSideDistribution, OpenedCardModal,
+    OneSideDistribution,
     Phase,
     Player,
     SendToStackFunction,
@@ -22,12 +21,10 @@ const emptyPlayer: Player = {
     sleeveName: "",
 }
 
-const digimonLocations = ["myBreedingArea", "opponentBreedingArea",
+export const digimonLocations = ["myBreedingArea", "opponentBreedingArea",
     "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9", "myDigi10",
     "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
-
-type DigimonLocation = typeof digimonLocations[number];
 
 const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
@@ -79,30 +76,8 @@ export type State = BoardState & {
     startingPlayer: string,
 
     // --------------------------------------------------------
-    // TODO: This section (+ more) should be refactored, so boardState is not mixed with UI states
-    dragMode: DragMode,
-    toggleDragMode: () => void,
+    // TODO: This section (+ more) should be in own store/slice?, so boardState is not mixed with UI states
 
-    openedCardModal: OpenedCardModal | false,
-    setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void,
-
-    stackModal: DigimonLocation | false,
-    setStackModal: (location: DigimonLocation | false) => void,
-
-    restartPromptModal: boolean,
-    setRestartPromptModal: (open: boolean) => void,
-
-    restartOrder: "first" | "second",
-    setRestartOrder: (restartOrder: "second" | "first") => void,
-
-    isRematch: boolean,
-    setIsRematch: (isRematch: boolean) => void,
-
-    endModal: boolean,
-    setEndModal: (open: boolean) => void,
-
-    endModalText: string,
-    setEndModalText: (text: string) => void,
 
     // --------------------------------------------------------
 
@@ -174,7 +149,7 @@ const opponentLocations = ["opponentHand", "opponentSecurity", "opponentDeckFiel
     "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10",
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15", "opponentReveal"];
 
-export const useGame = create<State>()(
+export const useGameBoardStates = create<State>()(
     devtools(
         persist(
             (set, get) => ({
@@ -260,26 +235,8 @@ export const useGame = create<State>()(
     arrowTo: "",
     isEffectArrow: false,
     stackSliceIndex: 0,
-    dragMode: DragMode.SINGLE,
     isOpponentOnline: true,
     startingPlayer: "",
-    openedCardModal: false,
-    stackModal: false,
-
-    restartOrder: "first",
-    setRestartOrder: (restartOrder) => set({ restartOrder }),
-
-    restartPromptModal: false,
-    setRestartPromptModal: (open) => set({ restartPromptModal: open }),
-
-    isRematch: false,
-    setIsRematch: (isRematch) => set({ isRematch }),
-
-    endModal: false,
-    setEndModal: (open) => set({ endModal: open }),
-
-    endModalText: "",
-    setEndModalText: (text) => set({ endModalText: text }),
 
     setOpponentReady: (ready) => set({opponentReady: ready}),
 
@@ -353,7 +310,6 @@ export const useGame = create<State>()(
             bootStage: BootStage.CLEAR,
             initialDistributionState: "",
             opponentGameState: "",
-            isRematch: false,
         });
     },
 
@@ -812,15 +768,9 @@ export const useGame = create<State>()(
 
     setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
 
-    toggleDragMode: () => set(state => ({ dragMode: state.dragMode === DragMode.SINGLE ? DragMode.STACK : DragMode.SINGLE })),
-
     setIsOpponentOnline: (isOpponentOnline) => set({ isOpponentOnline }),
 
     setStartingPlayer: (startingPlayer) => set({ startingPlayer }),
-
-    setOpenedCardModal: (openedCardModal) => set({ openedCardModal }),
-
-    setStackModal: (location) => set({ stackModal: location }),
 
             }),
             { name: 'bearStore' },

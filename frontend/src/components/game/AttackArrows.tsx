@@ -1,15 +1,15 @@
 import styled from "@emotion/styled";
 // @ts-expect-error cannot find module 'react-arrows', installing dev dependencies didn't help
 import Arrow, {DIRECTION, HEAD} from "react-arrows";
-import {useGame} from "../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 
 const opponentBALocations = ["opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6",
     "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10", "opponentDigi11", "opponentDigi12", "opponentDigi13",
     "opponentDigi14", "opponentDigi15", "opponentBreedingArea"]
 
 export default function AttackArrows() {
-    const [arrowFrom, arrowTo] = useGame((state) => [state.arrowFrom, state.arrowTo]);
-    const isEffectArrow = useGame((state) => state.isEffectArrow);
+    const [arrowFrom, arrowTo] = useGameBoardStates((state) => [state.arrowFrom, state.arrowTo]);
+    const isEffectArrow = useGameBoardStates((state) => state.isEffectArrow);
 
     const isFromOpponent = opponentBALocations.includes(arrowFrom);
 

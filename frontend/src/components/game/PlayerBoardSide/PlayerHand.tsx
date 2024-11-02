@@ -1,17 +1,17 @@
 import Card from "../../Card.tsx";
 import {Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon} from "@mui/icons-material";
 import styled from "@emotion/styled";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import {useContextMenu} from "react-contexify";
 import {CSSProperties, useMemo} from "react";
 import {calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation } from "../../../utils/functions.ts";
-import {useStore} from "../../../hooks/useStore.ts";
+import {useGeneralStates} from "../../../hooks/useGeneralStates.ts";
 import {CardTypeGame} from "../../../utils/types.ts";
 import {useDroppable} from "@dnd-kit/core";
 export default function PlayerHand() {
-    const [isHandHidden, toggleIsHandHidden] = useGame((state) => [state.isHandHidden, state.toggleIsHandHidden]);
-    const myHand = useGame((state) => state.myHand);
-    const cardWidth = useStore((state) => state.cardWidth);
+    const [isHandHidden, toggleIsHandHidden] = useGameBoardStates((state) => [state.isHandHidden, state.toggleIsHandHidden]);
+    const myHand = useGameBoardStates((state) => state.myHand);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     const {setNodeRef} = useDroppable({ id: "myHand", data: { accept: ["card"] } });
 
@@ -36,8 +36,8 @@ export default function PlayerHand() {
 function HandCard({card, index}: { card: CardTypeGame, index: number }) {
     const {show: showHandCardMenu} = useContextMenu({id: "handCardMenu", props: {index}});
 
-    const myHand = useGame((state) => state.myHand);
-    const cardWidth = useStore((state) => state.cardWidth);
+    const myHand = useGameBoardStates((state) => state.myHand);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     const transform = useMemo(() => {
         const transformX = calculateCardOffsetX(myHand.length, index, cardWidth);

@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { Phase } from "../../../utils/types.ts";
 import { getSleeve } from "../../../utils/sleeves.ts";
-import { useGame } from "../../../hooks/useGame.ts";
+import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import {WSUtils} from "../../../pages/GamePage.tsx";
@@ -9,7 +9,7 @@ import {useSound} from "../../../hooks/useSound.ts";
 import {useDroppable} from "@dnd-kit/core";
 
 export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
-    const [myDeckField, mySleeve, nextPhaseTrigger, moveCard] = useGame((state) => [
+    const [myDeckField, mySleeve, nextPhaseTrigger, moveCard] = useGameBoardStates((state) => [
         state.myDeckField, state.mySleeve, state.nextPhaseTrigger, state.moveCard]);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);

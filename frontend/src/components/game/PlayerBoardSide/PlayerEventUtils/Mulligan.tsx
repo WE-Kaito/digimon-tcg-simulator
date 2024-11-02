@@ -1,12 +1,12 @@
 import {BootStage} from "../../../../utils/types.ts";
 import styled from "@emotion/styled";
-import {useGame} from "../../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../../hooks/useGameBoardStates.ts";
 import {useSound} from "../../../../hooks/useSound.ts";
 import { ShuffleOnOutlined as ShuffleIcon } from "@mui/icons-material";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 
 export default function Mulligan({wsUtils, fontSize}: { wsUtils?: WSUtils, fontSize: number }) {
-    const [getOpponentReady, bootStage, mulligan, setBootStage] = useGame((state) =>
+    const [getOpponentReady, bootStage, mulligan, setBootStage] = useGameBoardStates((state) =>
         [state.getOpponentReady, state.bootStage, state.mulligan, state.setBootStage]);
     const [playShuffleDeckSfx] = useSound((state) => [state.playShuffleDeckSfx]);
 

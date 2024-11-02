@@ -1,9 +1,9 @@
 import eggBackSrc from "../../../assets/eggBack.jpg";
 import styled from "@emotion/styled";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 
 export default function OpponentEggDeck() {
-    const opponentEggDeck = useGame((state) => state.opponentEggDeck);
+    const opponentEggDeck = useGameBoardStates((state) => state.opponentEggDeck);
     return (
         <Container>
             {opponentEggDeck.length !== 0 && <StyledSpan>{opponentEggDeck.length}</StyledSpan>}

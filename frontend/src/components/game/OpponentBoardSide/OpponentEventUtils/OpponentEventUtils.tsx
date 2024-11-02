@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import {useGame} from "../../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../../hooks/useGameBoardStates.ts";
 import {BootStage} from "../../../../utils/types.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 import OpponentAttackResolve from "./OpponentAttackResolve.tsx";
@@ -8,7 +8,7 @@ import Lottie from "lottie-react";
 import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
 
 export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
-    const [bootStage, isOpponentOnline, startingPlayer] = useGame((state) => [
+    const [bootStage, isOpponentOnline, startingPlayer] = useGameBoardStates((state) => [
         state.bootStage, state.isOpponentOnline, state.startingPlayer]);
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.opponentName;

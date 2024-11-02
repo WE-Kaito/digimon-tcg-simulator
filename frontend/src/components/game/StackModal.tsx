@@ -1,11 +1,12 @@
 import styled from "@emotion/styled";
 import Card from "../Card.tsx";
-import {useGame} from "../../hooks/useGame.ts";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {CardTypeGame, OpenedCardModal} from "../../utils/types.ts";
 import {useContextMenu} from "react-contexify";
 import {useEffect} from "react";
 import {Button} from "@mui/material";
+import {useGameUIStates} from "../../hooks/useGameUIStates.ts";
 
 const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
@@ -16,10 +17,10 @@ const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi1
  * A possible future improvement would be to add Sortable of dnd-kit.
  */
 export default function StackModal() {
-    const locationCards = useGame((state) => state.stackModal ? state[(state.stackModal) as keyof typeof state] as CardTypeGame[] : []);
-    const [openedCardModal, stackModal, setStackModal] = useGame((state) => [
+    const [openedCardModal, stackModal, setStackModal] = useGameUIStates((state) => [
         state.openedCardModal, state.stackModal, state.setStackModal]);
-    const cardWidth = useStore((state) => state.cardWidth) * 1.07;
+    const locationCards = useGameBoardStates((state) => stackModal ? state[(stackModal) as keyof typeof state] as CardTypeGame[] : []);
+    const cardWidth = useGeneralStates((state) => state.cardWidth) * 1.07;
 
     const cardsToRender = (!!stackModal && tamerLocations.includes(stackModal)) ? locationCards : locationCards.slice().reverse();
 

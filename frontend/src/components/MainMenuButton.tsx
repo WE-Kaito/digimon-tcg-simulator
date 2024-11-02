@@ -1,16 +1,16 @@
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {useSound} from "../hooks/useSound.ts";
 
 export default function MainMenuButton({ name, path }: { name: string, path: string }) {
 
     const navigate = useNavigate();
-    const me = useStore((state) => state.me);
-    const fetchCards = useStore((state) => state.fetchCards);
-    const fetchedCards = useStore((state) => state.fetchedCards);
-    const clearDeck = useStore((state) => state.clearDeck);
+    const me = useGeneralStates((state) => state.me);
+    const fetchCards = useGeneralStates((state) => state.fetchCards);
+    const fetchedCards = useGeneralStates((state) => state.fetchedCards);
+    const clearDeck = useGeneralStates((state) => state.clearDeck);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 

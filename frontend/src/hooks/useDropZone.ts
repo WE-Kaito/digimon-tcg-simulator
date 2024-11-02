@@ -1,10 +1,10 @@
 import {AttackPhase, BootStage, DraggedItem, DraggedStack, Phase} from "../utils/types.ts";
-import {useGame} from "./useGame.ts";
+import {useGameBoardStates} from "./useGameBoardStates.ts";
 import {convertForLog} from "../utils/functions.ts";
 import {DragEndEvent} from '@dnd-kit/core';
 import {useSound} from "./useSound.ts";
 import {SendMessage} from "react-use-websocket";
-import {useStore} from "./useStore.ts";
+import {useGeneralStates} from "./useGeneralStates.ts";
 import {useState} from "react";
 
 type Props = {
@@ -34,17 +34,17 @@ type Props = {
 export default function useDropZone(props : Props) : (event: DragEndEvent) => void {
     const {sendMessage, restartAttackAnimation, clearAttackAnimation} = props;
 
-    const areCardsSuspended = useGame(state => state.areCardsSuspended);
-    const getDigimonNumber = useGame(state => state.getDigimonNumber);
-    const getCardType = useGame(state => state.getCardType);
-    const getIsMyTurn = useGame(state => state.getIsMyTurn);
-    const getPhase = useGame(state => state.getPhase);
-    const moveCardToStack = useGame((state) => state.moveCardToStack);
+    const areCardsSuspended = useGameBoardStates(state => state.areCardsSuspended);
+    const getDigimonNumber = useGameBoardStates(state => state.getDigimonNumber);
+    const getCardType = useGameBoardStates(state => state.getCardType);
+    const getIsMyTurn = useGameBoardStates(state => state.getIsMyTurn);
+    const getPhase = useGameBoardStates(state => state.getPhase);
+    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
 
-    const setCardToSend = useGame((state) => state.setCardToSend);
-    const nextPhaseTrigger = useGame(state => state.nextPhaseTrigger);
-    const moveCardStack = useGame((state) => state.moveCardStack);
-    const moveCard = useGame((state) => state.moveCard);
+    const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
+    const nextPhaseTrigger = useGameBoardStates(state => state.nextPhaseTrigger);
+    const moveCardStack = useGameBoardStates((state) => state.moveCardStack);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
 
     const playCardToHandSfx = useSound((state) => state.playCardToHandSfx);
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
@@ -52,18 +52,18 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
     const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
 
-    const user = useStore((state) => state.user);
-    const gameId = useGame(state => state.gameId);
+    const user = useGeneralStates((state) => state.user);
+    const gameId = useGameBoardStates(state => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
-    const [bootStage, setBootStage] = useGame((state) => [state.bootStage, state.setBootStage]);
+    const [bootStage, setBootStage] = useGameBoardStates((state) => [state.bootStage, state.setBootStage]);
 
-    const setPhase = useGame((state) => state.setPhase);
-    const setMessages = useGame((state) => state.setMessages);
-    const [setArrowFrom, setArrowTo] = useGame((state) => [state.setArrowFrom, state.setArrowTo]);
-    const setIsEffectArrow = useGame((state) => state.setIsEffectArrow);
-    const setMyAttackPhase = useGame((state) => state.setMyAttackPhase);
-    const getOpponentReady = useGame((state) => state.getOpponentReady);
-    const stackSliceIndex = useGame((state) => state.stackSliceIndex);
+    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const setMessages = useGameBoardStates((state) => state.setMessages);
+    const [setArrowFrom, setArrowTo] = useGameBoardStates((state) => [state.setArrowFrom, state.setArrowTo]);
+    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
+    const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
+    const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
 
     const [phaseLoading, setPhaseLoading] = useState(false);
 

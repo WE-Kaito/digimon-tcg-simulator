@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import Mulligan from "./Mulligan.tsx";
 import UnsuspendAllButton from "./UnsuspendAllButton.tsx";
-import {useGame} from "../../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../../hooks/useGameBoardStates.ts";
 import {BootStage} from "../../../../utils/types.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 import PlayerAttackResolve from "./PlayerAttackResolve.tsx";
@@ -10,7 +10,7 @@ import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
 
 export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
-    const [bootStage, startingPlayer] = useGame((state) => [state.bootStage, state.startingPlayer]);
+    const [bootStage, startingPlayer] = useGameBoardStates((state) => [state.bootStage, state.startingPlayer]);
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.user;
 

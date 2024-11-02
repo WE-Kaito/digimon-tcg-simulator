@@ -1,6 +1,6 @@
 import {CardTypeWithId} from "../../utils/types.ts";
 import styled from '@emotion/styled';
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {MouseEvent, useState} from "react";
 import cardBackSrc from "../../assets/cardBack.jpg";
 import {useSound} from "../../hooks/useSound.ts";
@@ -14,9 +14,9 @@ type CardProps = {
 export default function DeckbuilderCard( props : CardProps ) {
     const { card, location, setImageError } = props;
 
-    const selectCard = useStore((state) => state.selectCard);
-    const setHoverCard = useStore((state) => state.setHoverCard);
-    const addCardToDeck = useStore((state) => state.addCardToDeck);
+    const selectCard = useGeneralStates((state) => state.selectCard);
+    const setHoverCard = useGeneralStates((state) => state.setHoverCard);
+    const addCardToDeck = useGeneralStates((state) => state.addCardToDeck);
 
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 

@@ -1,9 +1,9 @@
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import {getSleeve} from "../../../utils/sleeves.ts";
 import styled from "@emotion/styled";
 
 export default function OpponentDeck() {
-    const [opponentDeckField, opponentSleeve] = useGame((state) => [state.opponentDeckField, state.opponentSleeve]);
+    const [opponentDeckField, opponentSleeve] = useGameBoardStates((state) => [state.opponentDeckField, state.opponentSleeve]);
 
     return (
         <Container>

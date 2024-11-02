@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import {AttackPhase} from "../../../../utils/types.ts";
-import {useGame} from "../../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../../hooks/useGameBoardStates.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 import {useSound} from "../../../../hooks/useSound.ts";
 import {useEffect} from "react";
@@ -9,7 +9,7 @@ import {useEffect} from "react";
  * For Opponent {@link AttackPhase}
  */
 export default function PlayerAttackResolve({ wsUtils, fontSize } : { wsUtils?: WSUtils, fontSize: number }) {
-    const [opponentAttackPhase, setOpponentAttackPhase] = useGame((state) => [
+    const [opponentAttackPhase, setOpponentAttackPhase] = useGameBoardStates((state) => [
         state.opponentAttackPhase, state.setOpponentAttackPhase]);
     const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
 

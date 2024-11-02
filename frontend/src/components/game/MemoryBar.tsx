@@ -1,4 +1,4 @@
-import {useGame} from "../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import styled from "@emotion/styled";
 import gradientImage from '../../assets/gradient.png';
 import {useSound} from "../../hooks/useSound.ts";
@@ -6,8 +6,8 @@ import {WSUtils} from "../../pages/GamePage.tsx";
 import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
 
 export default function MemoryBar({wsUtils}: { wsUtils?: WSUtils }) {
-    const myMemory = useGame(state => state.myMemory);
-    const setMemory = useGame(state => state.setMemory);
+    const myMemory = useGameBoardStates(state => state.myMemory);
+    const setMemory = useGameBoardStates(state => state.setMemory);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 

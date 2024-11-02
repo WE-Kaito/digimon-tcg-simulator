@@ -1,19 +1,20 @@
 import styled from "@emotion/styled";
 import Card from "../Card.tsx";
-import {useGame} from "../../hooks/useGame.ts";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {CardTypeGame, OpenedCardModal} from "../../utils/types.ts";
 import {useContextMenu} from "react-contexify";
 import {useEffect} from "react";
 import {WSUtils} from "../../pages/GamePage.tsx";
 import {useSound} from "../../hooks/useSound.ts";
 import {Button} from "@mui/material";
+import {useGameUIStates} from "../../hooks/useGameUIStates.ts";
 
 export default function CardModal({ wsUtils }: { wsUtils?: WSUtils }) {
-    const locationCards = useGame((state) => state.openedCardModal ? state[(state.openedCardModal) as keyof typeof state] as CardTypeGame[] : []);
-    const [openedCardModal, setOpenedCardModal, shuffleSecurity] = useGame((state) => [
-        state.openedCardModal, state.setOpenedCardModal, state.shuffleSecurity]);
-    const cardWidth = useStore((state) => state.cardWidth) * 1.07;
+    const [openedCardModal, setOpenedCardModal] = useGameUIStates((state) => [state.openedCardModal, state.setOpenedCardModal]);
+    const locationCards = useGameBoardStates((state) => openedCardModal ? state[(openedCardModal) as keyof typeof state] as CardTypeGame[] : []);
+    const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
+    const cardWidth = useGeneralStates((state) => state.cardWidth) * 1.07;
     const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
 
     const cardsToRender = locationCards.slice().reverse();

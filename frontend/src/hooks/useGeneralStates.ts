@@ -79,7 +79,7 @@ type State = {
     setCardImage: (imgUrl: string) => void,
 };
 
-export const useStore = create<State>((set, get) => ({
+export const useGeneralStates = create<State>((set, get) => ({
 
     cardWidth: 70,
     fetchedCards: [],

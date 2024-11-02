@@ -4,11 +4,11 @@ import {
     Curtains as RevealIcon,
     RestoreFromTrash as TrashFromDeckIcon
 } from "@mui/icons-material";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import {useSound} from "../../../hooks/useSound.ts";
 
 export default function DeckUtilButtons() {
-    const [myDeckField, opponentReveal,  moveCard, moveCardToStack, getOpponentReady] = useGame((state) =>
+    const [myDeckField, opponentReveal,  moveCard, moveCardToStack, getOpponentReady] = useGameBoardStates((state) =>
         [state.myDeckField, state.opponentReveal, state.moveCard, state.moveCardToStack, state.getOpponentReady]);
 
     const [playRevealCardSfx, playTrashCardSfx, playUnsuspendSfx] = useSound((state) => [state.playRevealCardSfx, state.playTrashCardSfx, state.playUnsuspendSfx]);

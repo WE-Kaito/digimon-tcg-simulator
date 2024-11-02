@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
@@ -18,7 +18,7 @@ export default function LoginPage() {
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
-    const login = useStore((state) => state.login);
+    const login = useGeneralStates((state) => state.login);
 
     const [registerPage, setRegisterPage] = useState(false);
 
@@ -27,7 +27,7 @@ export default function LoginPage() {
     const [repeatedPassword, setRepeatedPassword] = useState("");
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
-    const register = useStore((state) => state.register);
+    const register = useGeneralStates((state) => state.register);
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
     const regexName = /^(?:(?![:_【】﹕≔<>$& ]).){3,16}$/;
     const regexQuestion = /^(?:(?![:_【】﹕≔<>$&]).){1,64}$/;

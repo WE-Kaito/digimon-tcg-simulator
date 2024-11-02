@@ -14,8 +14,8 @@ import {
 import {CSSProperties} from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
 import {convertForLog, numbersWithModifiers} from "../../utils/functions.ts";
-import {useStore} from "../../hooks/useStore.ts";
-import {useGame} from "../../hooks/useGame.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import {useSound} from "../../hooks/useSound.ts";
 import {
     CardModifiers,
@@ -26,11 +26,14 @@ import {
 } from "../../utils/types.ts";
 import "react-contexify/dist/ReactContexify.css";
 import {WSUtils} from "../../pages/GamePage.tsx";
+import {useGameUIStates} from "../../hooks/useGameUIStates.ts";
 
 export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
     const {sendMessage, sendChatMessage, sendSfx, sendUpdate, matchInfo, sendMoveCard} = wsUtils ?? {};
 
-    const selectedCard = useStore((state) => state.selectedCard);
+    const selectedCard = useGeneralStates((state) => state.selectedCard);
+
+    const [setOpenedCardModal, setStackModal] = useGameUIStates((state) => [state.setOpenedCardModal, state.setStackModal])
 
     const [
         cardToSend,
@@ -44,9 +47,7 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
         setCardIdWithEffect,
         setCardIdWithTarget,
         setModifiers,
-        setOpenedCardModal,
-        setStackModal
-    ] = useGame((state) => [
+    ] = useGameBoardStates((state) => [
         state.cardToSend,
         state.mySecurity,
         state.myHand,
@@ -58,10 +59,8 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
         state.setCardIdWithEffect,
         state.setCardIdWithTarget,
         state.setModifiers,
-        state.setOpenedCardModal,
-        state.setStackModal
     ]);
-    const contextCard = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
+    const contextCard = useGameBoardStates((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
     const [
         playShuffleDeckSfx,

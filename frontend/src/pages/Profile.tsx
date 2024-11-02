@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {Fragment, useCallback, useEffect, useState} from "react";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
@@ -22,12 +22,12 @@ import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 export type DeckIdOrder = string[];
 
 export default function Profile() {
-    const user = useStore((state) => state.user);
-    const loadOrderedDecks = useStore((state) => state.loadOrderedDecks);
-    const deckIdOrder = useStore((state) => state.deckIdOrder);
-    const setDeckIdOrder = useStore((state) => state.setDeckIdOrder);
-    const isLoading = useStore((state) => state.isLoading);
-    const clearDeck = useStore((state) => state.clearDeck);
+    const user = useGeneralStates((state) => state.user);
+    const loadOrderedDecks = useGeneralStates((state) => state.loadOrderedDecks);
+    const deckIdOrder = useGeneralStates((state) => state.deckIdOrder);
+    const setDeckIdOrder = useGeneralStates((state) => state.setDeckIdOrder);
+    const isLoading = useGeneralStates((state) => state.isLoading);
+    const clearDeck = useGeneralStates((state) => state.clearDeck);
 
     const [renderAddButton, setRenderAddButton] = useState(false);
     const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);

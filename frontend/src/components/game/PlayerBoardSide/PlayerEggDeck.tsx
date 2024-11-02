@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { useGame } from "../../../hooks/useGame.ts";
+import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import {useSound} from "../../../hooks/useSound.ts";
 import eggBackSrc from "../../../assets/eggBack.jpg";
 import {Phase} from "../../../utils/types.ts";
@@ -8,7 +8,7 @@ import {useDroppable} from "@dnd-kit/core";
 import {ChangeHistoryTwoTone as TriangleIcon} from "@mui/icons-material";
 
 export default function PlayerEggDeck({ wsUtils } : { wsUtils?: WSUtils }) {
-    const [myEggDeck, moveCard, getOpponentReady, nextPhaseTrigger] = useGame((state) => [
+    const [myEggDeck, moveCard, getOpponentReady, nextPhaseTrigger] = useGameBoardStates((state) => [
         state.myEggDeck, state.moveCard, state.getOpponentReady, state.nextPhaseTrigger]);
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx)
 

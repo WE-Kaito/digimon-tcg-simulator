@@ -2,33 +2,24 @@ import {handleImageError} from "../../../utils/functions.ts";
 import effectAnimation from "../../../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../../../assets/lotties/target-animation.json";
 import styled from "@emotion/styled";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
 import {OpenedCardModal} from "../../../utils/types.ts";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {CSS} from "@dnd-kit/utilities";
-import {useStore} from "../../../hooks/useStore.ts";
+import {useGeneralStates} from "../../../hooks/useGeneralStates.ts";
 import {Button} from "@mui/material";
+import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function PlayerTrash() {
-    const [
-        myTrash,
-        getCardLocationById,
-        cardIdWithEffect,
-        cardIdWithTarget,
-        openedCardModal,
-        setOpenedCardModal,
-    ] = useGame((state) => [
-        state.myTrash,
-        state.getCardLocationById,
-        state.cardIdWithEffect,
-        state.cardIdWithTarget,
-        state.openedCardModal,
-        state.setOpenedCardModal,
-    ]);
+    const [myTrash, getCardLocationById, cardIdWithEffect, cardIdWithTarget] = useGameBoardStates((state) => [
+        state.myTrash, state.getCardLocationById, state.cardIdWithEffect, state.cardIdWithTarget]);
 
-    const cardWidth = useStore((state) => state.cardWidth);
+    const [openedCardModal, setOpenedCardModal] = useGameUIStates((state) => [
+        state.openedCardModal, state.setOpenedCardModal]);
+
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     const effectInTrash = getCardLocationById(cardIdWithEffect ?? "") === "myTrash";
     const targetInTrash = getCardLocationById(cardIdWithTarget ?? "") === "myTrash";

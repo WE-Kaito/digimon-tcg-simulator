@@ -1,6 +1,6 @@
 import CardStack from "../CardStack.tsx";
 import styled from "@emotion/styled";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import {CardTypeGame, SIDE} from "../../../utils/types.ts";
 import {useContextMenu} from "react-contexify";
 import EggIcon from '@mui/icons-material/Egg';
@@ -8,6 +8,7 @@ import DetailsIcon from '@mui/icons-material/Search';
 import {WSUtils} from "../../../pages/GamePage.tsx";
 import {useDroppable} from "@dnd-kit/core";
 import {ChangeHistoryTwoTone as TriangleIcon} from "@mui/icons-material";
+import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 type BattleAreaProps = {
     side: SIDE;
@@ -24,8 +25,8 @@ export default function BattleArea(props : BattleAreaProps) {
     const {setNodeRef: dropToField, isOver: isOverField} = useDroppable({ id: location, data: { accept: side === SIDE.MY ? ["card", "card-stack"] : ["card"] } });
     const {setNodeRef: dropToBottom, isOver: isOverBottom, active} = useDroppable({id: location + "_bottom", data: { accept: ["card"] } });
 
-    const stackModal = useGame((state) => state.stackModal);
-    const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
+    const stackModal = useGameUIStates((state) => state.stackModal);
+    const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
     const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
     const stackOpened = stackModal === location;

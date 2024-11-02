@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import styled from "@emotion/styled";
 import {avatars, profilePicture} from "../../utils/avatars.ts";
 import Pen from "../../assets/profile_pictures/pen.tsx";
@@ -7,9 +7,9 @@ import {useSound} from "../../hooks/useSound.ts";
 
 export default function ChooseAvatar() {
 
-    const getAvatar = useStore((state) => state.getAvatar);
-    const avatarName = useStore((state) => state.avatarName);
-    const setAvatar = useStore((state) => state.setAvatar);
+    const getAvatar = useGeneralStates((state) => state.getAvatar);
+    const avatarName = useGeneralStates((state) => state.avatarName);
+    const setAvatar = useGeneralStates((state) => state.setAvatar);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 

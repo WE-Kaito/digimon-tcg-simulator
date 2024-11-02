@@ -3,7 +3,7 @@ import Card from "../Card.tsx";
 import {Fade} from "react-awesome-reveal";
 import {CSSProperties, useCallback} from "react";
 import {ItemParams, ShowContextMenuParams} from "react-contexify";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {useMediaQuery} from "@mui/material";
 import {WSUtils} from "../../pages/GamePage.tsx";
 
@@ -36,7 +36,7 @@ export default function CardStack(props: CardStackProps) {
         showOpponentCardMenu
     } = props;
 
-    const cardWidth = useStore((state) => state.cardWidth);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     const getCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {

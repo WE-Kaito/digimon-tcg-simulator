@@ -8,10 +8,10 @@ import loadingAnimation from "../assets/lotties/loading.json";
 import {useNavigate} from "react-router-dom";
 import {notifyBrokenDeck, notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
 import discordIcon from "../assets/discordLogo.png";
-import {useGame} from "../hooks/useGame.ts";
+import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
 import {Button, MenuItem, Select} from "@mui/material";
 import { SelectChangeEvent } from '@mui/material/Select';
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {VolumeOff as MuteIcon} from '@mui/icons-material';
 import {useSound} from "../hooks/useSound.ts";
 import SoundBar from "../components/SoundBar.tsx";
@@ -36,17 +36,17 @@ export default function Lobby() {
     //TODO: using www.project-drasil.online as the domain is not working, so we need to use the IP address instead?
     const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/chat" : "wss://project-drasil.online/api/ws/chat";
 
-    const user = useStore((state) => state.user)
-    const gameId = useGame((state) => state.gameId);
-    const setGameId = useGame((state) => state.setGameId);
-    const clearBoard = useGame((state) => state.clearBoard);
+    const user = useGeneralStates((state) => state.user)
+    const gameId = useGameBoardStates((state) => state.gameId);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
+    const clearBoard = useGameBoardStates((state) => state.clearBoard);
 
-    const setActiveDeck = useStore(state => state.setActiveDeck);
-    const activeDeckId = useStore(state => state.activeDeckId);
-    const getActiveDeck = useStore(state => state.getActiveDeck);
-    const fetchDecks = useStore(state => state.fetchDecks);
-    const decks = useStore(state => state.decks);
-    const isLoading = useStore(state => state.isLoading);
+    const setActiveDeck = useGeneralStates(state => state.setActiveDeck);
+    const activeDeckId = useGeneralStates(state => state.activeDeckId);
+    const getActiveDeck = useGeneralStates(state => state.getActiveDeck);
+    const fetchDecks = useGeneralStates(state => state.fetchDecks);
+    const decks = useGeneralStates(state => state.decks);
+    const isLoading = useGeneralStates(state => state.isLoading);
 
     const playInvitationSfx = useSound((state) => state.playInvitationSfx);
 

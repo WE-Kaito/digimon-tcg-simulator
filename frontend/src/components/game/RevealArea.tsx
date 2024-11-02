@@ -1,12 +1,12 @@
 import styled from "@emotion/styled";
 import {Flip} from "react-awesome-reveal";
 import Card from "../Card.tsx";
-import {useGame} from "../../hooks/useGame.ts";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 
 export default function RevealArea() {
-    const [myReveal, opponentReveal] = useGame((state) => [state.myReveal, state.opponentReveal]);
-    const cardWidth = useStore((state) => state.cardWidth);
+    const [myReveal, opponentReveal] = useGameBoardStates((state) => [state.myReveal, state.opponentReveal]);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     if (!myReveal.length) return <></>;
 
