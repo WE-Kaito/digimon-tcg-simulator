@@ -20,7 +20,7 @@ export default function RestartRequestModal( { setRestartRequestModal, wsUtils }
     const buttonProps = [
         { text: "GO FIRST", onClick: () => sendRequest("AsFirst"), color: "#1a99e8" },
         { text: "GO SECOND", onClick: () => sendRequest("AsFirst"), color: "#e79831" },
-        { text: "CANCEL", onClick: () => sendRequest("AsFirst"), color: "#D9D9D9" },
+        { text: "CANCEL", onClick: () => setRestartRequestModal(false), color: "#D9D9D9" },
     ]
 
     return <ModalDialog text={"Send Rematch request:"} buttonProps={buttonProps}/>;
