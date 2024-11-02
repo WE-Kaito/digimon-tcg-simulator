@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
 import {useState} from "react";
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
@@ -9,7 +9,7 @@ import {Stack} from "@mui/material";
 import {getDnaColor} from "../../utils/functions.ts";
 import {CardTypeGame, CardTypeWithId} from "../../utils/types.ts";
 import {useLocation} from "react-router-dom";
-import {useGame} from "../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import {EffectVariant} from "./constants.ts";
 
 const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama",
@@ -20,9 +20,9 @@ export default function CardDetails({isMobile} : {isMobile?: boolean}) {
     const location = useLocation();
     const inGame = location.pathname === "/game";
 
-    const selectedCard : CardTypeWithId | CardTypeGame | null = useStore((state) => state.selectedCard);
-    const hoverCard : CardTypeWithId | CardTypeGame | null  = useStore((state) => state.hoverCard);
-    const inheritCardInfo = useGame((state) => state.inheritCardInfo);
+    const selectedCard : CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.selectedCard);
+    const hoverCard : CardTypeWithId | CardTypeGame | null  = useGeneralStates((state) => state.hoverCard);
+    const inheritCardInfo = useGameBoardStates((state) => state.inheritCardInfo);
 
     const [selectedTab, setSelectedTab] = useState("effects");
 

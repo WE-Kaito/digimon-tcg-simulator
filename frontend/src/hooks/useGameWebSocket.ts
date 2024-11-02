@@ -3,10 +3,11 @@ import {AttackPhase, BootStage, CardModifiers, Phase, Player, SIDE} from "../uti
 import {getOpponentSfx, isTrue} from "../utils/functions.ts";
 import {findTokenByName} from "../utils/tokens.ts";
 import {notifySecurityView} from "../utils/toasts.ts";
-import {useGame} from "./useGame.ts";
-import {useStore} from "./useStore.ts";
+import {useGameBoardStates} from "./useGameBoardStates.ts";
+import {useGeneralStates} from "./useGeneralStates.ts";
 import {useCallback, useRef, useState} from "react";
 import {useSound} from "./useSound.ts";
+import {useGameUIStates} from "./useGameUIStates.ts";
 
 const currentPort = window.location.port;
 // TODO: players using www. end up in an empty lobby; change this back when deploy live
@@ -44,7 +45,25 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         restartAttackAnimation,
     } = props;
 
-    const user = useStore((state) => state.user);
+    const user = useGeneralStates((state) => state.user);
+
+    const [
+        setOpenedCardModal,
+        setRestartOrder,
+        setRestartPromptModal,
+        isRematch,
+        setIsRematch,
+        setEndModal,
+        setEndModalText,
+    ] = useGameUIStates((state) => [
+        state.setOpenedCardModal,
+        state.setRestartOrder,
+        state.setRestartPromptModal,
+        state.isRematch,
+        state.setIsRematch,
+        state.setEndModal,
+        state.setEndModalText,
+    ]);
 
     const [
         gameId,
@@ -80,14 +99,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         setIsEffectArrow,
         setStartingPlayer,
         setIsOpponentOnline,
-        setOpenedCardModal,
-        setRestartOrder,
-        setRestartPromptModal,
-        isRematch,
-        setIsRematch,
-        setEndModal,
-        setEndModalText,
-    ] = useGame((state) => [
+    ] = useGameBoardStates((state) => [
         state.gameId,
         state.bootStage,
         state.setBootStage,
@@ -121,13 +133,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         state.setIsEffectArrow,
         state.setStartingPlayer,
         state.setIsOpponentOnline,
-        state.setOpenedCardModal,
-        state.setRestartOrder,
-        state.setRestartPromptModal,
-        state.isRematch,
-        state.setIsRematch,
-        state.setEndModal,
-        state.setEndModalText,
     ]);
 
     const isPlayerOne = user === gameId.split("‗")[0];

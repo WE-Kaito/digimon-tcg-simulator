@@ -1,4 +1,4 @@
-import {useGame} from "../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import {BootStage, Phase} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useEffect, useState} from "react";
@@ -8,12 +8,12 @@ import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
 
 export default function PhaseIndicator({ wsUtils } : { wsUtils?: WSUtils }) {
 
-    const phase = useGame(state => state.phase);
-    const setPhase = useGame(state => state.setPhase);
-    const isMyTurn = useGame(state => state.isMyTurn);
-    const setTurn = useGame(state => state.setTurn);
-    const myMemory = useGame(state => state.myMemory);
-    const bootStage = useGame(state => state.bootStage);
+    const phase = useGameBoardStates(state => state.phase);
+    const setPhase = useGameBoardStates(state => state.setPhase);
+    const isMyTurn = useGameBoardStates(state => state.isMyTurn);
+    const setTurn = useGameBoardStates(state => state.setTurn);
+    const myMemory = useGameBoardStates(state => state.myMemory);
+    const bootStage = useGameBoardStates(state => state.bootStage);
     const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
 
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);

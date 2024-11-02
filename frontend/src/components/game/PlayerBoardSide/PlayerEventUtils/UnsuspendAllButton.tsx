@@ -1,11 +1,11 @@
-import {useGame} from "../../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../../hooks/useGameBoardStates.ts";
 import {Phase, SIDE} from "../../../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useSound} from "../../../../hooks/useSound.ts";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 
 export default function UnsuspendAllButton({ wsUtils, fontSize } : { wsUtils?: WSUtils, fontSize: number }) {
-    const [phase, isMyTurn, unsuspendAll, areCardsSuspended] = useGame(state =>
+    const [phase, isMyTurn, unsuspendAll, areCardsSuspended] = useGameBoardStates(state =>
         [state.phase, state.isMyTurn, state.unsuspendAll, state.areCardsSuspended()]);
 
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);

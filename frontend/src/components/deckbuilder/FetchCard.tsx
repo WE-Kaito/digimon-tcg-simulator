@@ -1,12 +1,12 @@
 import { CardTypeWithId } from "../../utils/types.ts";
 import {lazy, useState} from "react";
 import { LooksOneTwoTone as RestrictedIcon, RemoveCircle as ForbiddenIcon } from '@mui/icons-material';
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 const DeckbuilderCard = lazy(() => import('./DeckbuilderCard.tsx'));
 
 export default function FetchCard({card}: { card: CardTypeWithId}) {
 
-    const selectCard = useStore((state) => state.selectCard);
+    const selectCard = useGeneralStates((state) => state.selectCard);
 
     const [imageError, setImageError] = useState(false);
 

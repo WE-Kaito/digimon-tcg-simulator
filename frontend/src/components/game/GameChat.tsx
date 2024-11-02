@@ -1,5 +1,5 @@
 import {useState} from "react";
-import {useGame} from "../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import styled from "@emotion/styled";
 import sendIcon from "../../assets/sendIcon.svg";
 import {uid} from "uid";
@@ -11,7 +11,7 @@ type Props = {
 
 export default function GameChat({user, sendChatMessage}: Props) {
 
-    const messages = useGame(state => state.messages);
+    const messages = useGameBoardStates(state => state.messages);
     const [myMessage, setMyMessage] = useState<string>("");
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

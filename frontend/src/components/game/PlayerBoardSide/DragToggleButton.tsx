@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
 import {CropPortrait as SingleIcon, ContentCopy as StackIcon} from "@mui/icons-material";
 import {DragMode} from "../../../utils/types.ts";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function DragToggleButton() {
-    const [dragMode, toggleDragMode] = useGame((state) => [state.dragMode, state.toggleDragMode]);
+    const [dragMode, toggleDragMode] = useGameUIStates((state) => [state.dragMode, state.toggleDragMode]);
 
     return (
         <Container onClick={toggleDragMode}>

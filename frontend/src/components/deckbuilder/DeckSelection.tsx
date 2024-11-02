@@ -1,19 +1,19 @@
 import styled from "@emotion/styled";
 import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
 import DeckbuilderCard from "./DeckbuilderCard.tsx";
 import {getCardTypeImage, sortCards} from "../../utils/functions.ts";
 import {useSound} from "../../hooks/useSound.ts";
 
 export default function DeckSelection() {
-    const deckCards = useStore((state) => state.deckCards);
-    const loadingDeck = useStore((state) => state.loadingDeck);
-    const setHoverCard = useStore((state) => state.setHoverCard);
-    const hoverCard = useStore((state) => state.hoverCard);
-    const addCardToDeck = useStore((state) => state.addCardToDeck);
-    const deleteFromDeck = useStore((state) => state.deleteFromDeck);
+    const deckCards = useGeneralStates((state) => state.deckCards);
+    const loadingDeck = useGeneralStates((state) => state.loadingDeck);
+    const setHoverCard = useGeneralStates((state) => state.setHoverCard);
+    const hoverCard = useGeneralStates((state) => state.hoverCard);
+    const addCardToDeck = useGeneralStates((state) => state.addCardToDeck);
+    const deleteFromDeck = useGeneralStates((state) => state.deleteFromDeck);
 
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);

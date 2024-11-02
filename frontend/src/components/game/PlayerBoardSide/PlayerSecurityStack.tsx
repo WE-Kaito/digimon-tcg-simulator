@@ -4,7 +4,7 @@ import {getSleeve} from "../../../utils/sleeves.ts";
 import mySecurityAnimation from "../../../assets/lotties/my-security-apng.png";
 import {Fragment, useEffect, useState} from "react";
 import styled from "@emotion/styled";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import {useContextMenu} from "react-contexify";
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import {BootStage} from "../../../utils/types.ts";
@@ -14,12 +14,12 @@ import {WSUtils} from "../../../pages/GamePage.tsx";
 import {useDndContext} from "@dnd-kit/core";
 
 export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
-    const mySleeve = useGame((state) => state.mySleeve);
-    const mySecurity = useGame((state) => state.mySecurity);
-    const opponentReveal = useGame((state) => state.opponentReveal);
-    const moveCard = useGame((state) => state.moveCard);
-    const bootStage = useGame((state) => state.bootStage);
-    const getOpponentReady = useGame((state) => state.getOpponentReady);
+    const mySleeve = useGameBoardStates((state) => state.mySleeve);
+    const mySecurity = useGameBoardStates((state) => state.mySecurity);
+    const opponentReveal = useGameBoardStates((state) => state.opponentReveal);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
 
     const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
 

@@ -1,7 +1,7 @@
 import {CardTypeGame, DragMode} from "../utils/types.ts";
 import styled from '@emotion/styled';
-import {useStore} from "../hooks/useStore.ts";
-import {useGame} from "../hooks/useGame.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
+import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
 import {arraysEqualUnordered, getCardColor, getNumericModifier, numbersWithModifiers, topCardInfo} from "../utils/functions.ts";
 import {CSSProperties, useEffect, useState} from "react";
 import Lottie from "lottie-react";
@@ -16,6 +16,7 @@ import {getSleeve} from "../utils/sleeves.ts";
 import {useDraggable} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import {WSUtils} from "../pages/GamePage.tsx";
+import {useGameUIStates} from "../hooks/useGameUIStates.ts";
 
 const digimonLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8",
     "myDigi9", "myDigi10", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
@@ -53,26 +54,26 @@ type CardProps = {
 export default function Card( props : CardProps ) {
     const {card, location, index, setImageError, style, onContextMenu, wsUtils} = props;
 
-    const cardWidth = useStore((state) => state.cardWidth);
-    const selectCard = useStore((state) => state.selectCard);
-    const selectedCard = useStore((state) => state.selectedCard);
-    const setHoverCard = useStore((state) => state.setHoverCard);
-    const tiltCard = useGame((state) => state.tiltCard);
-    const locationCards = useGame((state) => state[location as keyof typeof state] as CardTypeGame[]);
-    const opponentReady = useGame((state) => state.opponentReady);
-    const hoverCard = useStore((state) => state.hoverCard)
-    const cardIdWithEffect = useGame((state) => state.cardIdWithEffect);
-    const getIsCardEffect = useGame((state) => state.getIsCardEffect);
-    const cardIdWithTarget = useGame((state) => state.cardIdWithTarget);
-    const getIsCardTarget = useGame((state) => state.getIsCardTarget);
-    const setInheritCardInfo = useGame((state) => state.setInheritCardInfo);
-    const setCardToSend = useGame((state) => state.setCardToSend);
-    const getCardLocationById = useGame((state) => state.getCardLocationById);
-    const isHandHidden = useGame((state) => state.isHandHidden);
-    const mySleeve = useGame((state) => state.mySleeve);
-    const dragMode = useGame((state) => state.dragMode);
-    const stackModal = useGame((state) => state.stackModal);
-    const [stackSliceIndex, setStackSliceIndex] = useGame((state) => [state.stackSliceIndex, state.setStackSliceIndex]);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
+    const selectCard = useGeneralStates((state) => state.selectCard);
+    const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const setHoverCard = useGeneralStates((state) => state.setHoverCard);
+    const tiltCard = useGameBoardStates((state) => state.tiltCard);
+    const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
+    const opponentReady = useGameBoardStates((state) => state.opponentReady);
+    const hoverCard = useGeneralStates((state) => state.hoverCard)
+    const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
+    const getIsCardEffect = useGameBoardStates((state) => state.getIsCardEffect);
+    const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
+    const getIsCardTarget = useGameBoardStates((state) => state.getIsCardTarget);
+    const setInheritCardInfo = useGameBoardStates((state) => state.setInheritCardInfo);
+    const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
+    const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
+    const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
+    const mySleeve = useGameBoardStates((state) => state.mySleeve);
+    const [stackSliceIndex, setStackSliceIndex] = useGameBoardStates((state) => [state.stackSliceIndex, state.setStackSliceIndex]);
+    const dragMode = useGameUIStates((state) => state.dragMode);
+    const stackModal = useGameUIStates((state) => state.stackModal);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -137,7 +138,7 @@ export default function Card( props : CardProps ) {
     }
 
     const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
-    const locationCardsOfSelected = useGame((state) => state[selectedCardLocation as keyof typeof state] as CardTypeGame[]);
+    const locationCardsOfSelected = useGameBoardStates((state) => state[selectedCardLocation as keyof typeof state] as CardTypeGame[]);
     function handleStopHover() {
         if(isDragging) return;
         setHoverCard(null);

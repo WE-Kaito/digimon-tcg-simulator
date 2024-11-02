@@ -1,7 +1,7 @@
 import {CardType, DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {generateGradient, getCardTypeImage, handleImageError} from "../../utils/functions.ts";
 import {getSleeve} from "../../utils/sleeves.ts";
 import LevelDistribution from "./LevelDistribution.tsx";
@@ -25,10 +25,10 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
 
     const {deck, isDragging, setSleeveSelectionOpen, setImageSelectionOpen} = props;
 
-    const fetchedCards = useStore(state => state.fetchedCards);
-    const setSelectedSleeveOrImage = useStore((state) => state.setSelectedSleeveOrImage);
-    const setDeckIdToSetSleeveOrImage = useStore((state) => state.setDeckIdToSetSleeveOrImage);
-    const setDeckById = useStore((state) => state.setDeckById);
+    const fetchedCards = useGeneralStates(state => state.fetchedCards);
+    const setSelectedSleeveOrImage = useGeneralStates((state) => state.setSelectedSleeveOrImage);
+    const setDeckIdToSetSleeveOrImage = useGeneralStates((state) => state.setDeckIdToSetSleeveOrImage);
+    const setDeckById = useGeneralStates((state) => state.setDeckById);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 

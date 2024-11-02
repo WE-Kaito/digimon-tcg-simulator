@@ -5,7 +5,7 @@ import Profile from "./pages/Profile.tsx";
 import MainMenu from "./pages/MainMenu.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import RecoveryPage from "./pages/RecoveryPage.tsx";
-import {useStore} from "./hooks/useStore.ts";
+import {useGeneralStates} from "./hooks/useGeneralStates.ts";
 import {useEffect} from "react";
 import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
@@ -14,7 +14,7 @@ import GamePage from "./pages/GamePage.tsx";
 
 function App() {
 
-    const me = useStore((state) => state.me);
+    const me = useGeneralStates((state) => state.me);
 
     useEffect(() => me(), [me]);
 

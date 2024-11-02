@@ -2,11 +2,12 @@ import {handleImageError} from "../../../utils/functions.ts";
 import effectAnimation from "../../../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../../../assets/lotties/target-animation.json";
 import styled from "@emotion/styled";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
 import {OpenedCardModal} from "../../../utils/types.ts";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {Button} from "@mui/material";
+import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function OpponentTrash() {
     const [
@@ -14,15 +15,19 @@ export default function OpponentTrash() {
         getCardLocationById,
         cardIdWithEffect,
         cardIdWithTarget,
-        openedCardModal,
-        setOpenedCardModal,
-    ] = useGame((state) => [
+    ] = useGameBoardStates((state) => [
         state.opponentTrash,
         state.getCardLocationById,
         state.cardIdWithEffect,
         state.cardIdWithTarget,
+    ]);
+
+    const [
+        openedCardModal,
+        setOpenedCardModal
+    ] = useGameUIStates((state) => [
         state.openedCardModal,
-        state.setOpenedCardModal,
+        state.setOpenedCardModal
     ]);
 
     const effectInTrash = getCardLocationById(cardIdWithEffect ?? "") === "opponentTrash";

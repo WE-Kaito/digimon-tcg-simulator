@@ -1,7 +1,7 @@
 import {useDroppable} from "@dnd-kit/core";
 import styled from "@emotion/styled";
-import {useGame} from "../../../hooks/useGame.ts";
-import {useStore} from "../../../hooks/useStore.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
+import {useGeneralStates} from "../../../hooks/useGeneralStates.ts";
 import {getSleeve} from "../../../utils/sleeves.ts";
 
 export default function SecurityDropSections() {
@@ -10,10 +10,10 @@ export default function SecurityDropSections() {
     const {setNodeRef: dropBottomFaceDownRef, isOver: isOverBottomFaceDown} = useDroppable({id: "mySecurity_bot_faceDown", data: {accept: ["card"]}});
     const {setNodeRef: dropBottomFaceUpRef, isOver: isOverBottomFaceUp} = useDroppable({id: "mySecurity_bot_faceUp", data: {accept: ["card"]}});
 
-    const width = useStore((state) => state.cardWidth) / 2.5;
+    const width = useGeneralStates((state) => state.cardWidth) / 2.5;
     const height = width * (7/5); // prevents breaking layout
 
-    const mySleeve = useGame((state) => state.mySleeve);
+    const mySleeve = useGameBoardStates((state) => state.mySleeve);
     const draggedCardImg = active?.data?.current?.content.imgSrc;
 
     if (!active || String(active.id).includes("stack")) return <></>

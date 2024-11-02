@@ -1,4 +1,4 @@
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {Divider, Stack, Tooltip, tooltipClasses, TooltipProps} from "@mui/material";
 import ColorSpan from "./ColorSpan.tsx";
 import styled from "@emotion/styled";
@@ -26,8 +26,8 @@ function TooltipContent({explanation}: { explanation: string }) {
 
 export default function DetailsHeader() {
 
-    const selectedCard = useStore((state) => state.selectedCard);
-    const hoverCard = useStore((state) => state.hoverCard);
+    const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const hoverCard = useGeneralStates((state) => state.hoverCard);
 
     const name = hoverCard?.name ?? selectedCard?.name;
     const isNameLong = Boolean(hoverCard ? (hoverCard.name?.length >= 30) : (selectedCard && (selectedCard?.name.length >= 30)));

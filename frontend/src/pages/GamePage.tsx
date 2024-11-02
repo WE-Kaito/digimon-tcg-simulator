@@ -4,7 +4,7 @@ import {useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
 import {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useContextMenu} from "react-contexify";
 import SoundBar from "../components/SoundBar.tsx";
@@ -18,15 +18,16 @@ import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoar
 import {DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor} from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
-import {useGame} from "../hooks/useGame.ts";
+import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
 import {BootStage} from "../utils/types.ts";
 import {SendMessage} from "react-use-websocket";
 import CardModal from "../components/game/CardModal.tsx";
 import StackModal from "../components/game/StackModal.tsx";
-import RestartRequestModal from "../components/game/RestartRequestModal.tsx";
-import RestartPromptModal from "../components/game/RestartPromptModal.tsx";
-import SurrenderModal from "../components/game/SurrenderModal.tsx";
-import EndModal from "../components/game/EndModal.tsx";
+import RestartRequestModal from "../components/game/ModalDialog/RestartRequestModal.tsx";
+import RestartPromptModal from "../components/game/ModalDialog/RestartPromptModal.tsx";
+import SurrenderModal from "../components/game/ModalDialog/SurrenderModal.tsx";
+import EndModal from "../components/game/ModalDialog/EndModal.tsx";
+import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -52,14 +53,14 @@ export type WSUtils = {
 }
 
 export default function GamePage() {
-    const selectCard = useStore((state) => state.selectCard);
-    const selectedCard = useStore((state) => state.selectedCard);
-    const hoverCard = useStore((state) => state.hoverCard);
+    const selectCard = useGeneralStates((state) => state.selectCard);
+    const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const hoverCard = useGeneralStates((state) => state.hoverCard);
 
-    const user = useStore((state) => state.user);
-    const gameId = useGame(state => state.gameId);
+    const user = useGeneralStates((state) => state.user);
+    const gameId = useGameBoardStates(state => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
-    const [bootStage, setBootStage] = useGame((state) => [state.bootStage, state.setBootStage]);
+    const [bootStage, setBootStage] = useGameBoardStates((state) => [state.bootStage, state.setBootStage]);
 
     const [playAttackSfx, playEffectAttackSfx, playNextPhaseSfx] = useSound((state) => [
         state.playAttackSfx,
@@ -67,14 +68,13 @@ export default function GamePage() {
         state.playNextPhaseSfx
     ]);
 
-    const [setArrowFrom, setArrowTo, setIsEffectArrow, setPhase, getOpponentReady, setMessages] = useGame((state) => [
+    const [setArrowFrom, setArrowTo, setIsEffectArrow, setPhase, getOpponentReady, setMessages] = useGameBoardStates((state) => [
         state.setArrowFrom,
         state.setArrowTo,
         state.setIsEffectArrow,
         state.setPhase,
         state.getOpponentReady,
         state.setMessages,
-        state.openedCardModal
     ]);
 
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
@@ -182,7 +182,7 @@ export default function GamePage() {
     // Layout ##########################################################################################################
     const isMobile = useMediaQuery(mediaQueries);
     const isPortrait = useMediaQuery('(orientation: portrait)');
-    const setCardWidth = useStore((state) => state.setCardWidth);
+    const setCardWidth = useGeneralStates((state) => state.setCardWidth);
     const boardLayoutRef = useRef<HTMLDivElement>(null);
     const [boardMaxWidth, setBoardMaxWidth] = useState('unset');
 
@@ -213,6 +213,7 @@ export default function GamePage() {
             <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
 
+            <TokenModal wsUtils={wsUtils}/>
             <EndModal/>
             <RestartPromptModal wsUtils={wsUtils}/>
             {restartRequestModal && <RestartRequestModal setRestartRequestModal={setRestartRequestModal} wsUtils={wsUtils}/>}

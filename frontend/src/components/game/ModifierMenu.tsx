@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import {useEffect, useState} from "react";
 import {AddCircleOutlined, RemoveCircleOutlined} from '@mui/icons-material';
-import {useGame} from "../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import {CardModifiers, CardTypeGame} from "../../utils/types.ts";
 import {getCardColor, getNumericModifier, numbersWithModifiers} from "../../utils/functions.ts";
 import {useSound} from "../../hooks/useSound.ts";
@@ -22,10 +22,10 @@ const battleKeywords = [
 
 export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
 
-    const cardToSend = useGame(state => state.cardToSend);
-    const setModifiers = useGame(state => state.setModifiers);
+    const cardToSend = useGameBoardStates(state => state.cardToSend);
+    const setModifiers = useGameBoardStates(state => state.setModifiers);
 
-    const card = useGame((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[]).find(card => card.id === cardToSend.id));
+    const card = useGameBoardStates((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[]).find(card => card.id === cardToSend.id));
 
     const [plusDp, setPlusDp] = useState<number>(0);
     const [plusSecurityAttacks, setPlusSecurityAttacks] = useState<number>(0);

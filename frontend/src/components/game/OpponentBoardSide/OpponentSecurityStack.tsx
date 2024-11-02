@@ -6,13 +6,13 @@ import swordAnimation from "../../../assets/lotties/sword.json";
 import {Fragment, useState} from "react";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
-import {useGame} from "../../../hooks/useGame.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import {useDroppable} from "@dnd-kit/core";
 import useResponsiveFontSize from "../../../hooks/useResponsiveFontSize.ts";
 
 export default function OpponentSecurityStack() {
-    const [opponentSecurity, opponentSleeve] = useGame((state) => [state.opponentSecurity, state.opponentSleeve]);
+    const [opponentSecurity, opponentSleeve] = useGameBoardStates((state) => [state.opponentSecurity, state.opponentSleeve]);
 
     const {setNodeRef, isOver, active} = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
     const isOverOpponent = isOver && String(active?.id).includes("myDigi");

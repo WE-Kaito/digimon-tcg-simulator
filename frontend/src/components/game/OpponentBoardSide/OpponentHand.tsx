@@ -5,14 +5,14 @@ import {getSleeve} from "../../../utils/sleeves.ts";
 import styled from "@emotion/styled";
 import {calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation} from "../../../utils/functions.ts";
 import {useContextMenu} from "react-contexify";
-import {useGame} from "../../../hooks/useGame.ts";
-import {useStore} from "../../../hooks/useStore.ts";
+import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
+import {useGeneralStates} from "../../../hooks/useGeneralStates.ts";
 
 export default function OpponentHand() {
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1}});
 
-    const [opponentHand, opponentSleeve, getIsCardTarget] = useGame((state) => [state.opponentHand, state.opponentSleeve, state.getIsCardTarget]);
-    const cardWidth = useStore((state) => state.cardWidth);
+    const [opponentHand, opponentSleeve, getIsCardTarget] = useGameBoardStates((state) => [state.opponentHand, state.opponentSleeve, state.getIsCardTarget]);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     return (
         <Container>
