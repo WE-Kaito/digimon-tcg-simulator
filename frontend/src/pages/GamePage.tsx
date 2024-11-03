@@ -28,6 +28,8 @@ import RestartPromptModal from "../components/game/ModalDialog/RestartPromptModa
 import SurrenderModal from "../components/game/ModalDialog/SurrenderModal.tsx";
 import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
+import GameChat from "../components/game/GameChat.tsx";
+import GameLog from "../components/game/GameLog.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -273,8 +275,12 @@ export default function GamePage() {
                         {!isMobile && <SettingsContainer>
                             <SoundBar/>
                         </SettingsContainer>}
-                        <LogContainer isMobile={isMobile}>Log</LogContainer>
-                        <ChatContainer isMobile={isMobile}>Chat</ChatContainer>
+                        <LogContainer isMobile={isMobile}>
+                            <GameLog matchInfo={wsUtils.matchInfo} />
+                        </LogContainer>
+                        <ChatContainer isMobile={isMobile}>
+                            <GameChat {...wsUtils} />
+                        </ChatContainer>
                     </BottomStack>
                 </Container>
             </div>
@@ -390,7 +396,7 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
 
   container-type: inline-size;
   container-name: board-layout;
-  // maybe as "change camera" button:
+  // TODO: maybe as "change camera" button:
   //transform: perspective(2000px) rotateX(35deg) rotateZ(0deg);
   //padding: 0 5vw 0 3.5vw;
   @container board-container (max-width: 900px) {
@@ -412,7 +418,6 @@ const SettingsContainer = styled.div`
 
 const ChatContainer = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 2 : 1};
-  background: darkgoldenrod;
   width: 100%;
   max-width: 600px;
   height: ${({isMobile}) => isMobile ? "200px" : "150px"};
@@ -421,7 +426,6 @@ const ChatContainer = styled.div<{ isMobile: boolean }>`
 
 const LogContainer = styled.div<{ isMobile: boolean }>`
   order: ${({isMobile}) => isMobile ? 1 : 2};
-  background: darkorchid;
   width: 100%;
   max-width: 400px;
   height: ${({isMobile}) => isMobile ? "200px" : "150px"};

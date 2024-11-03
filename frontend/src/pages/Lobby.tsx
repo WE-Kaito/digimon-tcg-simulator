@@ -188,7 +188,9 @@ export default function Lobby() {
 
     return (
         <MenuBackgroundWrapper>
-            <SoundBar/>
+            <div style={{ position: "absolute", left: 20, top: 20 }}>
+                <SoundBar/>
+            </div>
 
             {pendingInvitation &&
                 <InvitationMoodle>
