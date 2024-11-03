@@ -13,8 +13,8 @@ import styled from "@emotion/styled";
 import {useSound, projectDrasilPlaylist, sadgatomonPlaylist} from "../hooks/useSound.ts";
 import Lottie from "lottie-react";
 import radioAnimation from "../assets/lotties/radio-animation.json";
-import {Item, useContextMenu} from "react-contexify";
-import {StyledMenu} from "./game/ContextMenus.tsx";
+import {useState} from "react";
+import {Menu, MenuItem} from "@mui/material";
 
 export default function SoundBar() {
     const sfxEnabled = useSound((state) => state.sfxEnabled);
@@ -29,7 +29,10 @@ export default function SoundBar() {
     const stopMusic = useSound((state) => state.stopMusic);
     const nextSong = useSound((state) => state.nextSong);
     const prevSong = useSound((state) => state.prevSong);
+    const currentPlaylist = useSound((state) => state.playlist);
     const setPlaylist = useSound((state) => state.setPlaylist);
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     function handleSetPlaylist(playlist: string[]) {
         setPlaylist(playlist);
@@ -37,18 +40,19 @@ export default function SoundBar() {
         nextSong();
     }
 
-    const {show: showPlaylistMenu} = useContextMenu({id: "playlistMenu"});
+    const isCurrentPlaylist = (playlist: string[]) => Boolean(playlist.find(song => song === currentPlaylist[0]));
 
     return (
+        <>
+            <StyledMenu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
+                <MenuItem onClick={() => handleSetPlaylist(projectDrasilPlaylist)} selected={isCurrentPlaylist(projectDrasilPlaylist)}>
+                    Project Drasil BGM
+                </MenuItem>
+                <MenuItem onClick={() => handleSetPlaylist(sadgatomonPlaylist)} selected={isCurrentPlaylist(sadgatomonPlaylist)}>
+                    @SadGatomon <SubtitleSpan>Lo-Fi Covers</SubtitleSpan>
+                </MenuItem>
+            </StyledMenu>
             <StyledGrid>
-
-                <StyledMenu id={"playlistMenu"} theme="dark">
-                    <Item onClick={() => handleSetPlaylist(projectDrasilPlaylist)}>Project Drasil BGM</Item>
-                    <Item onClick={() => handleSetPlaylist(sadgatomonPlaylist)}>
-                        @SadGatomon <SubtitleSpan>Lo-Fi Covers</SubtitleSpan>
-                    </Item>
-                </StyledMenu>
-
                 <SetSfxIconButton onClick={() => toggleSfxEnabled()} sfxEnabled={sfxEnabled}
                                   title={"Mute / Unmute SFX"}>
                     {sfxEnabled
@@ -57,7 +61,7 @@ export default function SoundBar() {
                 </SetSfxIconButton>
                 <SfxSpan sfxEnabled={sfxEnabled}>SFX</SfxSpan>
 
-                <RadioIconButtonPlaylist showRadioMenu={showRadioMenu} onClick={(e) => showPlaylistMenu({event: e})}>
+                <RadioIconButtonPlaylist showRadioMenu={showRadioMenu} onClick={(e) => setAnchorEl(e.currentTarget)}>
                     <PlaylistIcon fontSize={"large"}/>
                 </RadioIconButtonPlaylist>
 
@@ -67,11 +71,9 @@ export default function SoundBar() {
 
                 <MainRadioIconButton showRadioMenu={showRadioMenu} onClick={toggleRadioMenu}>
                     <RadioIcon titleAccess={currentSong} fontSize={"large"}/>
+                    {isMusicPlaying && <Lottie animationData={radioAnimation}
+                                               style={{ width: 250, position: "absolute", left: -100, top: -28, pointerEvents: "none"}} />}
                 </MainRadioIconButton>
-                {isMusicPlaying &&
-                    <StyledLottie animationData={radioAnimation}
-                                  style={{ transform: !showRadioMenu ? "translateX(-100px)" :  "unset" }}/>
-                }
 
                 <RadioIconButtonStart showRadioMenu={showRadioMenu} onClick={isMusicPlaying ? stopMusic : startMusic}>
                     {isMusicPlaying
@@ -91,13 +93,13 @@ export default function SoundBar() {
                           opacity: showRadioMenu ? 1 : 0, pointerEvents: showRadioMenu ? "unset" : "none" }}
                 />
             </StyledGrid>
+        </>
     );
 }
 
 const StyledGrid = styled.div`
   display: grid;
   gap: 3px;
-  position: relative;
   padding: 5px;
   justify-content: center;
   align-items: center;
@@ -149,45 +151,47 @@ const RadioIconButton = styled.div<{showRadioMenu: boolean}>`
 `;
 
 const RadioIconButtonPlaylist = styled(RadioIconButton)`
-    grid-area: playlist;
+  grid-area: playlist;
 `;
 
 const RadioIconButtonPrev = styled(RadioIconButton)`
-    grid-area: prev-button;
-    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-47px)"};
+  grid-area: prev-button;
+  transform: ${props => props.showRadioMenu ? "unset" : "translateX(-47px)"};
 `;
 
 const RadioIconButtonNext = styled(RadioIconButton)`
-    grid-area: next-button;
-    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-204px)"};
+  grid-area: next-button;
+  transform: ${props => props.showRadioMenu ? "unset" : "translateX(-204px)"};
 `;
 
 const RadioIconButtonStart = styled(RadioIconButton)`
-    grid-area: start-button;
-    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-151px)"};
+  grid-area: start-button;
+  transform: ${props => props.showRadioMenu ? "unset" : "translateX(-151px)"};
 `;
 
 const MainRadioIconButton = styled(RadioIconButton)`
-    grid-area: radio-icon;
-    transform: ${props => props.showRadioMenu ? "unset" : "translateX(-100px)"}; 
-    padding-bottom: 1px;
-    transition: all 0.25s ease;
-    opacity: 0.7;
-    pointer-events: unset;
-`;
-
-const StyledLottie = styled(Lottie)`
-  position: absolute;
-  width: 250px;
-  left: 61.5px;
-  top: -21px;
-  z-index: -1;
-  opacity: 0.5;
+  grid-area: radio-icon;
+  transform: ${props => props.showRadioMenu ? "unset" : "translateX(-100px)"}; 
+  padding-bottom: 1px;
   transition: all 0.25s ease;
+  opacity: 0.7;
+  pointer-events: unset;
+  position: relative;
 `;
 
 const SubtitleSpan = styled.span`
   font-size: 0.9em;
   font-weight: 600;
   transform: translateX(4px);
+`;
+
+const StyledMenu = styled(Menu)`
+  .MuiMenu-paper {
+    background-color: #2C2C2C;
+    color: ghostwhite;
+  }
+  
+  .Mui-selected {
+    background-color: rgba(190,39,85,0.5);
+  }
 `;

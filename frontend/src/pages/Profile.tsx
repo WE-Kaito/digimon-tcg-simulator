@@ -68,7 +68,6 @@ export default function Profile() {
     return (
         <MenuBackgroundWrapper>
             <Stack minHeight={"100vh"} height={"100%"} pt={"20px"} justifyContent={"flex-start"}>
-                <SoundBar/>
                 <Header>
                     <Name>{user}</Name>
                     <BackButton/>

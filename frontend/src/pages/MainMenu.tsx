@@ -9,7 +9,9 @@ export default function MainMenu() {
 
     return (
         <MenuBackgroundWrapper>
-            <SoundBar/>
+            <div style={{ position: "absolute", left: 20, top: 20 }}>
+                <SoundBar/>
+            </div>
             <Stack gap={5}>
                 <Header/>
                 <MainMenuButton name={"Find game"} path={"/lobby"}/>
