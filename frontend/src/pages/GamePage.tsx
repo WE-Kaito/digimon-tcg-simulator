@@ -1,6 +1,6 @@
 import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
-import {useMediaQuery} from "@mui/material";
+import {IconButton, useMediaQuery} from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
 import {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
@@ -30,6 +30,7 @@ import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
 import GameChat from "../components/game/GameChat.tsx";
 import GameLog from "../components/game/GameLog.tsx";
+import {Flag as SurrenderIcon, RestartAlt as RestartIcon} from "@mui/icons-material";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -235,10 +236,6 @@ export default function GamePage() {
                 <Container isMobile={isMobile} style={{ maxHeight: isMobile ? "unset" : "100%" }}>
                     <TopStack isMobile={isMobile}>
                         <div style={{ background: "darkolivegreen", width: 500, justifySelf: "flex-start", alignSelf: isMobile ? "unset" : "flex-start", maxWidth: "100vw", height: 80 }}>Nameplate ME</div>
-
-                        <button onClick={() => setRestartRequestModal(true)} >!restart!</button>
-                        <button onClick={() => setSurrenderModal(true)} >!surrender!</button>
-
                         <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Nameplate Opponent</div>
                         {isMobile && <SettingsContainer>
                             <SoundBar/>
@@ -274,6 +271,14 @@ export default function GamePage() {
                     <BottomStack isMobile={isMobile}>
                         {!isMobile && <SettingsContainer>
                             <SoundBar/>
+                            <div style={{ display: "flex", gap: "10px", paddingBottom: "10px" }}>
+                                <StyledIconButton onClick={() => setSurrenderModal(true)} sx={{ color: "brown" }}>
+                                    <SurrenderIcon fontSize={"large"}/>
+                                </StyledIconButton>
+                                <StyledIconButton onClick={() => setRestartRequestModal(true)} sx={{ color: "seagreen" }}>
+                                    <RestartIcon fontSize={"large"}/>
+                                </StyledIconButton>
+                            </div>
                         </SettingsContainer>}
                         <LogContainer isMobile={isMobile}>
                             <GameLog matchInfo={wsUtils.matchInfo} />
@@ -411,9 +416,11 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
 `;
 
 const SettingsContainer = styled.div`
-  height: fit-content;
-  max-height: 100%;
+  height: 150px;
   width: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
 const ChatContainer = styled.div<{ isMobile: boolean }>`
@@ -432,4 +439,9 @@ const LogContainer = styled.div<{ isMobile: boolean }>`
   @media (max-width: 1000px) {
     max-width: 600px;
   }
+`;
+
+const StyledIconButton = styled(IconButton)`
+  width: fit-content;
+  opacity: 0.7;
 `;
