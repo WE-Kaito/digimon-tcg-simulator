@@ -103,11 +103,9 @@ const History = styled.div`
 `;
 
 const StyledButton = styled.button`
-  padding: 0;
-  padding-bottom: 2px;
+  padding: 0 2px 2px 0;
   cursor: pointer;
   width: 32px;
-  margin-left: 5px;
   height: 32px;
   border-radius: 10%;
   border-bottom-right-radius: 40%;
@@ -161,8 +159,8 @@ const StyledInput = styled.input`
 `;
 
 const InputContainer = styled.form`
-  width: 99%;
-  padding: 0.5%;
+  width: 98%;
+  padding: 1%;
   height: fit-content;
   display: flex;
   align-items: flex-end;

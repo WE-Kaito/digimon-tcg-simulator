@@ -273,7 +273,7 @@ const StyledImage = styled.img<StyledImageProps>`
   border-radius: 5px;
   transition: all 0.15s ease-out, filter 0.5s ease-in-out;
   cursor: ${({ location }) => opponentFieldLocations?.includes(location) ? "pointer" : "grab"};
-  touch-action: manipulation;
+  touch-action: none;
   
   animation: ${({ isTilted, activeEffect, targeted, isTopCard }) =>
     targeted
@@ -338,7 +338,8 @@ const StyledImage = styled.img<StyledImageProps>`
 `;
 
 const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean, inModal: boolean}>`
-  cursor: grabbing;
+  touch-action: none;
+    cursor: grabbing;
   position: fixed;
   outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
@@ -430,7 +431,7 @@ const StyledAceSpan = styled(AceSpan)<{isMega: boolean}>`
 `;
 
 const Wrapper = styled.div`
-  touch-action: manipulation;
+  touch-action: none;
   position: relative;
   -moz-user-select: none;
   user-select: none;

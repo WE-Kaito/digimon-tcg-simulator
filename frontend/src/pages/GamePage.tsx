@@ -7,7 +7,7 @@ import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.
 import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useContextMenu} from "react-contexify";
-import SoundBar from "../components/SoundBar.tsx";
+import SoundBar, {RadioMenuChildIconButton} from "../components/SoundBar.tsx";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import useGameWebSocket from "../hooks/useGameWebSocket.ts";
@@ -30,7 +30,7 @@ import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
 import GameChat from "../components/game/GameChat.tsx";
 import GameLog from "../components/game/GameLog.tsx";
-import {Flag as SurrenderIcon, RestartAlt as RestartIcon} from "@mui/icons-material";
+import {Flag as SurrenderIcon, RestartAlt as RestartIcon, VideocamRounded as CameraIcon, VideoCallRounded as CameraTiltedIcon} from "@mui/icons-material";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -59,8 +59,8 @@ export default function GamePage() {
     const selectCard = useGeneralStates((state) => state.selectCard);
     const selectedCard = useGeneralStates((state) => state.selectedCard);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
-
     const user = useGeneralStates((state) => state.user);
+
     const gameId = useGameBoardStates(state => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
     const [bootStage, setBootStage] = useGameBoardStates((state) => [state.bootStage, state.setBootStage]);
@@ -84,6 +84,7 @@ export default function GamePage() {
 
     const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
     const [surrenderModal, setSurrenderModal] = useState<boolean>(false);
+    const [isCameraTilted, setIsCameraTilted] = useState<boolean>(false);
 
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null); // to clear the previous timeRef
     const [phaseLoading, setPhaseLoading] = useState(false); // helps prevent unexpected multiple phase changes
@@ -177,9 +178,10 @@ export default function GamePage() {
         },
     });
     const touchSensor = useSensor(TouchSensor, {
-        activationConstraint: {
-            tolerance: 10,
-        },
+        activationConstraint:{
+            delay: 1500,
+            distance: 5,
+        }
     });
 
     // Layout ##########################################################################################################
@@ -215,7 +217,7 @@ export default function GamePage() {
             <GameBackground/>
             <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
-
+            <StackModal />
             <TokenModal wsUtils={wsUtils}/>
             <EndModal/>
             <RestartPromptModal wsUtils={wsUtils}/>
@@ -223,31 +225,35 @@ export default function GamePage() {
             {surrenderModal && <SurrenderModal setSurrenderModal={setSurrenderModal} wsUtils={wsUtils}/>}
 
             <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", maxHeight: "100vh"}}>
-                {!isMobile && <DetailsContainer  isMobile={isMobile}>
-                    <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
-                             onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                             onClick={() => selectCard(null)}
-                             {...((!selectedCard && !hoverCard) && {
-                                 style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
-                             })}
-                    />
-                    <CardDetails/>
-                </DetailsContainer>}
+                {!isMobile &&
+                    <DetailsContainer isMobile={isMobile}>
+                        <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
+                                 onContextMenu={(e) => showDetailsImageMenu({event: e})}
+                                 onClick={() => selectCard(null)}
+                                 {...((!selectedCard && !hoverCard) && {
+                                     style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
+                                 })}
+                        />
+                        <CardDetails/>
+                    </DetailsContainer>
+                }
                 <Container isMobile={isMobile} style={{ maxHeight: isMobile ? "unset" : "100%" }}>
-                    <TopStack isMobile={isMobile}>
-                        <div style={{ background: "darkolivegreen", width: 500, justifySelf: "flex-start", alignSelf: isMobile ? "unset" : "flex-start", maxWidth: "100vw", height: 80 }}>Nameplate ME</div>
-                        <div style={{background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>Nameplate Opponent</div>
-                        {isMobile && <SettingsContainer>
-                            <SoundBar/>
-                        </SettingsContainer>}
-                    </TopStack>
-
+                    {!isMobile &&
+                        <TopStack isMobile={isMobile}>
+                            <div style={{ background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>
+                                Nameplate ME
+                            </div>
+                            <div style={{ background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>
+                                Nameplate Opponent
+                            </div>
+                        </TopStack>
+                    }
                     <BoardContainer isMobile={isMobile}>
                         <DndContext onDragEnd={handleDragEnd} autoScroll={false} collisionDetection={pointerWithin}
                                     sensors={[mouseSensor, touchSensor]}>
-                            <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth}>
+                            <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth} isCameraTilted={isCameraTilted}>
                                 <RevealArea />
-                                <StackModal />
+
                                 <CardModal wsUtils={wsUtils} />
                                 <MemoryBar wsUtils={wsUtils} />
                                 <PhaseIndicator wsUtils={wsUtils} />
@@ -257,20 +263,28 @@ export default function GamePage() {
                         </DndContext>
                     </BoardContainer>
 
-                    {isMobile && <DetailsContainer  isMobile={isMobile}>
-                        <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
-                                 onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                                 onClick={() => selectCard(null)}
-                                 {...((!selectedCard && !hoverCard) && {
-                                     style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
-                                 })}
-                        />
-                        <CardDetails isMobile={isMobile}/>
-                    </DetailsContainer>}
-
                     <BottomStack isMobile={isMobile}>
-                        {!isMobile && <SettingsContainer>
-                            <SoundBar/>
+
+                        {isMobile &&
+                            <DetailsContainer isMobile={isMobile}>
+                                <CardDetails isMobile={isMobile}/>
+                                <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
+                                         style={{ maxWidth: "unset" }}
+                                         onContextMenu={(e) => showDetailsImageMenu({event: e})}
+                                         onClick={() => selectCard(null)}
+                                         {...((!selectedCard && !hoverCard) && {
+                                             style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
+                                         })}
+                                />
+                            </DetailsContainer>
+                        }
+
+                        <SettingsContainer isMobile={isMobile}>
+                            <SoundBar>
+                                <RadioMenuChildIconButton onClick={() => setIsCameraTilted(!isCameraTilted)}>
+                                    {isCameraTilted ? <CameraTiltedIcon fontSize={"large"}/> : <CameraIcon fontSize={"large"}/>}
+                                </RadioMenuChildIconButton>
+                            </SoundBar>
                             <div style={{ display: "flex", gap: "10px", paddingBottom: "10px" }}>
                                 <StyledIconButton onClick={() => setSurrenderModal(true)} sx={{ color: "brown" }}>
                                     <SurrenderIcon fontSize={"large"}/>
@@ -279,13 +293,13 @@ export default function GamePage() {
                                     <RestartIcon fontSize={"large"}/>
                                 </StyledIconButton>
                             </div>
-                        </SettingsContainer>}
-                        <LogContainer isMobile={isMobile}>
-                            <GameLog matchInfo={wsUtils.matchInfo} />
-                        </LogContainer>
-                        <ChatContainer isMobile={isMobile}>
+                        </SettingsContainer>
+
+                        <ChatLogContainer isMobile={isMobile}>
                             <GameChat {...wsUtils} />
-                        </ChatContainer>
+                            <GameLog matchInfo={wsUtils.matchInfo} />
+                        </ChatLogContainer>
+
                     </BottomStack>
                 </Container>
             </div>
@@ -304,15 +318,14 @@ const Container = styled.div<{ isMobile: boolean }>`
 
 const TopStack = styled.div<{ isMobile: boolean }>`
   background: rgba(0,0,0,0.2);
-  order: ${({isMobile}) => isMobile ? 4 : 1};
   display: flex;
-  flex-direction: ${({isMobile}) => isMobile ? "column" : "row"};
+  flex-direction: row;
   width: 100%;
-  justify-content: ${({isMobile}) => isMobile ? "center" : "space-between"};
-  align-items: ${({isMobile}) => isMobile ? "center" : "unset"};
+  justify-content: space-between;
 `;
 
 const BottomStack = styled.div<{ isMobile: boolean }>`
+    container-type: inline-size;
   background: rgba(0,0,0,0.2);
   order: 3;
   display: flex;
@@ -326,15 +339,14 @@ const BottomStack = styled.div<{ isMobile: boolean }>`
 ;`
 
 const DetailsContainer = styled.div<{ isMobile: boolean }>`
-  background: rgba(0,0,0,0.2);
+  background: ${({isMobile}) => isMobile ? "unset" : "rgba(0,0,0,0.2)"};
   display: flex;
+  max-width: 500px;
   width: ${({isMobile}) => isMobile ? "100%" : "400px"};
   max-height: ${({isMobile}) => isMobile ? "fit-content" : "100vh"};
-  flex-wrap: ${({isMobile}) => isMobile ? "wrap" : "unset"};
-  flex-direction: ${({isMobile}) => isMobile ? "row" : "column"};
-  justify-content: ${({isMobile}) => isMobile ? "space-evenly" : "flex-start"};
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: flex-start;
-  order: ${({isMobile}) => isMobile ? 2 : "unset"};
   gap: 5px;
   padding-top: 5px;
   overflow-x: hidden;
@@ -344,11 +356,14 @@ const DetailsContainer = styled.div<{ isMobile: boolean }>`
     width: 0;
     display: none;
   }
+    @container (min-width: 1220px) {
+        order: ${({isMobile}) => isMobile ? 2 : "unset"};
+    }
 `;
 
-const CardImg = styled.img`
-  width: 100%;
-  max-width: 400px;
+const CardImg = styled.img<{isMobile?: boolean}>`
+  width: ${({isMobile}) => isMobile ? "500px" : "100%"};
+  max-width: ${({isMobile}) => isMobile ? "100%" : "400px"};
   max-height: 100%;
   border-radius: 3.5%;
   aspect-ratio: 5 / 7;
@@ -373,7 +388,7 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
   overflow-y: hidden;
   scrollbar-width: none;
   
-  @media (max-width: 1400px) {
+  @media (max-width: 1600px) {
     display: block;
     border-radius: 0;
     scrollbar-width: thin;
@@ -384,7 +399,7 @@ const BoardContainer = styled.div<{ isMobile: boolean }>`
   }
 `;
 
-const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
+const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string, isCameraTilted: boolean }>`
   position: relative;
   aspect-ratio: 19 / 9;
   width: ${({isMobile}) => isMobile ? "unset" : "100%"};
@@ -393,17 +408,16 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   max-height: 100%;
   
   border-radius: 15px;
-  padding: 5px;
-  
+
   display: grid;
   grid-template-columns: repeat(35, 1fr);
   grid-template-rows: repeat(14, 1fr);
 
   container-type: inline-size;
   container-name: board-layout;
-  // TODO: maybe as "change camera" button:
-  //transform: perspective(2000px) rotateX(35deg) rotateZ(0deg);
-  //padding: 0 5vw 0 3.5vw;
+
+  transform: ${({isCameraTilted}) => isCameraTilted ? "perspective(2000px) rotateX(35deg) rotateZ(0deg)" : "unset"};
+  padding: ${({isCameraTilted}) => isCameraTilted ? "0 3.5vw 0 5vw" : "5px"};
   @container board-container (max-width: 900px) {
     width: unset;
     height: 100%;
@@ -415,30 +429,33 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string }>`
   }
 `;
 
-const SettingsContainer = styled.div`
+const SettingsContainer = styled.div<{ isMobile: boolean }>`
   height: 150px;
   width: 320px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+    @container (min-width: 1220px){
+        order: ${({isMobile}) => isMobile ? 1 : "unset"};
+    }
+    @container (max-width: 1220px) {
+        order: 3;
+    }
 `;
 
-const ChatContainer = styled.div<{ isMobile: boolean }>`
-  order: ${({isMobile}) => isMobile ? 2 : 1};
-  width: 100%;
-  max-width: 600px;
-  height: ${({isMobile}) => isMobile ? "200px" : "150px"};
-  contain: size;
-`;
-
-const LogContainer = styled.div<{ isMobile: boolean }>`
-  order: ${({isMobile}) => isMobile ? 1 : 2};
-  width: 100%;
-  max-width: 400px;
-  height: ${({isMobile}) => isMobile ? "200px" : "150px"};
-  @media (max-width: 1000px) {
-    max-width: 600px;
-  }
+const ChatLogContainer = styled.div<{ isMobile: boolean }>`
+  display: flex;
+  flex-direction: ${({isMobile}) => isMobile ? "column" : "row"};
+  width: calc(100% - 820px);
+  min-width: 400px;
+  height: ${({isMobile}) => isMobile ? "600px" : "150px"};
+    order: ${({isMobile}) => isMobile ? 2 : "unset"};
+    @container (max-width: 1220px){
+        width: calc(100% - 500px);
+    }
+    @container (max-width: 900px){
+        width: 100%;
+    }
 `;
 
 const StyledIconButton = styled(IconButton)`
