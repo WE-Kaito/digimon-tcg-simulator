@@ -5,6 +5,7 @@ import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
 import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import TermsAndConditionsDialog from "../components/login/TermsAndConditionsDialog.tsx";
 
 enum INPUT_TYPE {
     USERNAME = "username",
@@ -14,7 +15,6 @@ enum INPUT_TYPE {
 }
 
 export default function LoginPage() {
-
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
@@ -74,6 +74,9 @@ export default function LoginPage() {
     return (
         <MenuBackgroundWrapper>
             <Header/>
+
+            <TermsAndConditionsDialog />
+
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
                             type="text" name="userName" placeholder="username" maxLength={16}/>
