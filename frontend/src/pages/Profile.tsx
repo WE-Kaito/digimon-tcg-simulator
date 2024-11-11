@@ -11,13 +11,13 @@ import {closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSe
 import {arrayMove, SortableContext} from "@dnd-kit/sortable";
 import {DeckType} from "../utils/types.ts";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import {Dialog, Stack} from "@mui/material";
+import {Stack} from "@mui/material";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
 import {useNavigate} from "react-router-dom";
-import SoundBar from "../components/SoundBar.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import MenuDialog from "../components/MenuDialog.tsx";
 
 export type DeckIdOrder = string[];
 
@@ -75,18 +75,15 @@ export default function Profile() {
 
                 <UserSettings/>
 
-                <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
-                        sx={{background: "rgba(18,35,66,0.6)"}}
-                        PaperProps={{sx: {background: "rgb(12,12,12)", overflow: "hidden"}}}>
+                <MenuDialog onClose={handleOnClose} open={sleeveSelectionOpen} PaperProps={{sx: {overflow: "hidden"}}}>
                     <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
                     <ChooseCardSleeve/>
-                </Dialog>
+                </MenuDialog>
 
-                <Dialog maxWidth={"xl"} onClose={handleOnClose} open={imageSelectionOpen}
-                        sx={{background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: {background: "rgb(12,12,12)"}}}>
+                <MenuDialog onClose={handleOnClose} open={imageSelectionOpen}>
                     <CustomDialogTitle handleOnClose={handleOnClose} variant={"Image"}/>
                     <ChooseDeckImage/>
-                </Dialog>
+                </MenuDialog>
 
                 <ChooseAvatar/>
 

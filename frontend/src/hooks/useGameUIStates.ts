@@ -33,7 +33,7 @@ type State = {
     setTokenModal: (open: boolean) => void,
 };
 
-export const useGameUIStates = create<State>((set, get) => ({
+export const useGameUIStates = create<State>((set) => ({
 
     dragMode: DragMode.SINGLE,
     toggleDragMode: () => set(state => ({ dragMode: state.dragMode === DragMode.SINGLE ? DragMode.STACK : DragMode.SINGLE })),
