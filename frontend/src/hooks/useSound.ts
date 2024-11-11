@@ -67,7 +67,7 @@ type State = {
     toggleSfxEnabled: () => void,
     setPlaylist: (playlist: string[]) => void,
     setMusicVolume: (volume: number) => void,
-    showRadioMenu: boolean,
+    isRadioMenuExpanded: boolean,
     toggleRadioMenu: () => void,
     nextSong: (onEnded?: boolean) => void,
     prevSong: () => void,
@@ -117,7 +117,7 @@ export const useSound = create<State>((set, get) => {
         musicVolume: parseFloat(localStorage.getItem('musicVolume') ?? '0.5'),
         currentSong: '',
         isMusicPlaying: false,
-        showRadioMenu: false,
+        isRadioMenuExpanded: false,
     };
 
     // Music
@@ -130,7 +130,7 @@ export const useSound = create<State>((set, get) => {
         localStorage.setItem('playlist', JSON.stringify(newPlaylist));
     }
 
-    const toggleRadioMenu = () => set((state) => ({ showRadioMenu: !state.showRadioMenu }));
+    const toggleRadioMenu = () => set((state) => ({ isRadioMenuExpanded: !state.isRadioMenuExpanded }));
 
     function startMusic() {
         music.volume = (parseFloat(localStorage.getItem('musicVolume') ?? '0.5') * 0.75);
