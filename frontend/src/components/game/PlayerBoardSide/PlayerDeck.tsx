@@ -7,6 +7,7 @@ import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import {WSUtils} from "../../../pages/GamePage.tsx";
 import {useSound} from "../../../hooks/useSound.ts";
 import {useDroppable} from "@dnd-kit/core";
+import {useLongPress} from "../../../hooks/useLongPress.ts";
 
 export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
     const [myDeckField, mySleeve, nextPhaseTrigger, moveCard] = useGameBoardStates((state) => [
@@ -32,6 +33,10 @@ export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
         }
     }
 
+    const onLongPress = (event: React.TouchEvent) => showDeckMenu({event});
+
+    const { handleTouchStart, handleTouchEnd } = useLongPress({onLongPress})
+
     return (
         <Container>
             <StyledSpan>{myDeckField.length}</StyledSpan>
@@ -39,6 +44,8 @@ export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
             <DeckImg ref={deckTopRef} alt="deck" src={getSleeve(mySleeve)} isOver={isOverTop}
                      onClick={handleClick} onContextMenu={(e) => showDeckMenu({event: e})}
                      style={{ pointerEvents: canDropToBottom ? "none" : "unset", zIndex: isOverTop? -1: "unset" }}
+                     className={"prevent-default-long-press"}
+                     onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
             />
 
             <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
