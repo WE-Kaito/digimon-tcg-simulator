@@ -17,6 +17,7 @@ import {useDraggable} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import {WSUtils} from "../pages/GamePage.tsx";
 import {useGameUIStates} from "../hooks/useGameUIStates.ts";
+import {useLongPress} from "../hooks/useLongPress.ts";
 
 const digimonLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8",
     "myDigi9", "myDigi10", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
@@ -182,6 +183,13 @@ export default function Card( props : CardProps ) {
     const showCardModifiers = locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack;
     const renderModifiersOnTop = (digimonLocations.includes(location) && index === (locationCards.length - 1)) || (tamerLocations.includes(location) && index === 0);
 
+    function onLongPress(e: React.TouchEvent<HTMLImageElement>) {
+        if (myBALocations.includes(location)) setCardToSend(card.id, location);
+        onContextMenu?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+    }
+
+    const { handleTouchStart, handleTouchEnd } = useLongPress({onLongPress});
+
     return (
         <Wrapper id={index === locationCards.length - 1 ? location : ""}
                  style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999 })}}
@@ -236,6 +244,7 @@ export default function Card( props : CardProps ) {
 
             {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && <StyledImage
                 style={{ ...(isDragging && isHandHidden && {transform: CSS.Translate.toString(transform), cursor: "grabbing"})}}
+                className={"prevent-default-long-press"}
                 onClick={handleClick}
                 onDoubleClick={handleTiltCard}
                 onMouseEnter={handleHover}
@@ -248,6 +257,9 @@ export default function Card( props : CardProps ) {
                 activeEffect={renderEffectAnimation}
                 targeted={renderTargetAnimation}
                 isTopCard={index === locationCards?.length - 1}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchEnd}
                 onError={() => {
                     setImageError?.(true);
                     setCardImageUrl(cardBackSrc);

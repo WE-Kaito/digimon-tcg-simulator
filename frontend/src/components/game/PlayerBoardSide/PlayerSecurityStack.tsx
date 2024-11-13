@@ -12,6 +12,7 @@ import {useSound} from "../../../hooks/useSound.ts";
 import useResponsiveFontSize from "../../../hooks/useResponsiveFontSize.ts";
 import {WSUtils} from "../../../pages/GamePage.tsx";
 import {useDndContext} from "@dnd-kit/core";
+import {useLongPress} from "../../../hooks/useLongPress.ts";
 
 export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
     const mySleeve = useGameBoardStates((state) => state.mySleeve);
@@ -47,6 +48,12 @@ export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
         if(!isDraggingFromSecurity) setIsOpen(false); // prevents being stuck in open state after drop
     }, [isDraggingFromSecurity]);
 
+    function onLongPress(event: React.TouchEvent<HTMLImageElement>) {
+        if (!isDisabled) showSecurityStackMenu({event})
+    }
+
+    const { handleTouchStart, handleTouchEnd } = useLongPress({onLongPress});
+
     return (
         <Container ref={fontContainerRef}>
             <Tooltip TransitionComponent={MuiZoom} sx={{width: "100%"}}
@@ -76,16 +83,20 @@ export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
                                             }
                                         </Fragment>
                                 )}
-                            </div>}>
+                            </div>}
+            >
                 <SecuritySpan onContextMenu={(e) => !isDisabled && showSecurityStackMenu({event: e})}
                               id={"mySecurity"}
                               style={{fontSize, cursor: isDisabled ? "not-allowed" : "pointer"}}
                               onClick={() => !isDisabled && sendSecurityReveal?.()}
+                              onTouchStart={handleTouchStart}
+                              onTouchEnd={handleTouchEnd}
+                              className={"prevent-default-long-press"}
                 >
                     {mySecurity.length}
                 </SecuritySpan>
             </Tooltip>
-            <SecurityAnimationImg alt={"mySS"} src={mySecurityAnimation}/>
+            <SecurityAnimationImg alt={"mySS"} src={mySecurityAnimation} className={"prevent-default-long-press"}/>
         </Container>
     );
 }
@@ -108,7 +119,6 @@ const SecuritySpan = styled.span`
   font-style: normal;
   font-size: 2em;
   text-shadow: #111921 1px 1px 1px;
-  user-select: none;
   cursor: pointer;
   color: #5ba2cb;
   transition: all 0.15s ease;
