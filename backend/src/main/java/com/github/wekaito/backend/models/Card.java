@@ -1,11 +1,8 @@
-package com.github.wekaito.backend.websocket;
-
-import com.github.wekaito.backend.DigivolveCondition;
-import com.github.wekaito.backend.Restrictions;
+package com.github.wekaito.backend.models;
 
 import java.util.List;
 
-public record GameCard (
+public record Card(
         String uniqueCardNumber,
         String name,
         String imgUrl,
@@ -28,18 +25,9 @@ public record GameCard (
         String dnaDigivolve,
         String securityEffect,
         Restrictions restrictions,
-        String illustrator,
-        String id,
-        Modifiers modifiers,
-        Boolean isTilted
+        String illustrator
+
 ) {
 
 }
 
-record Modifiers(
-        Integer plusDp,
-        Integer plusSecurityAttacks,
-        List<String> keywords,
-        List<String> colors
-) {
-}

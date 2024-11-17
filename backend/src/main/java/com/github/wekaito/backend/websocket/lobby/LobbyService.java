@@ -1,9 +1,10 @@
-package com.github.wekaito.backend.websocket;
+package com.github.wekaito.backend.websocket.lobby;
 
-import com.github.wekaito.backend.Card;
+import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import com.github.wekaito.backend.websocket.game.GameService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ import java.util.*;
 @Getter
 @Service
 @RequiredArgsConstructor
-public class ChatService extends TextWebSocketHandler {
+public class LobbyService extends TextWebSocketHandler {
 
     private final MongoUserDetailsService mongoUserDetailsService;
     private final DeckService deckService;

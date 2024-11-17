@@ -1,9 +1,8 @@
-package com.github.wekaito.backend.websocket;
+package com.github.wekaito.backend.websocket.game;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.wekaito.backend.Card;
-import com.github.wekaito.backend.IdService;
+import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import jakarta.validation.constraints.NotNull;
@@ -29,9 +28,7 @@ public class GameService extends TextWebSocketHandler {
 
     private final DeckService deckService;
 
-    private final IdService idService;
-
-    final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
+    public final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -359,7 +356,7 @@ public class GameService extends TextWebSocketHandler {
                     card.securityEffect(),
                     card.restrictions(),
                     card.illustrator(),
-                    idService.createId(),
+                    UUID.randomUUID().toString(),
                     new Modifiers(0,0, new ArrayList<>(), card.color()),
                     false);
             gameDeck.add(newCard);

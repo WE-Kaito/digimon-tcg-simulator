@@ -1,9 +1,9 @@
-package com.github.wekaito.backend.websocket;
+package com.github.wekaito.backend.websocket.game;
 
-import com.github.wekaito.backend.Deck;
-import com.github.wekaito.backend.IdService;
+import com.github.wekaito.backend.models.Deck;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import com.github.wekaito.backend.websocket.game.GameService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,8 +28,6 @@ class GameServiceTest {
     private MongoUserDetailsService mongoUserDetailsService;
     @Mock
     private DeckService deckService;
-    @Mock
-    private IdService idService;
     @InjectMocks
     private GameService gameService;
     private WebSocketSession session1;
@@ -56,7 +54,7 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
-        gameService = new GameService(mongoUserDetailsService, deckService, idService);
+        gameService = new GameService(mongoUserDetailsService, deckService);
         session1 = createMockSession(username1);
         session2 = createMockSession(username2);
 

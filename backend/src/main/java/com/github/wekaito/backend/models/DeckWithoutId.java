@@ -1,4 +1,4 @@
-package com.github.wekaito.backend;
+package com.github.wekaito.backend.models;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
