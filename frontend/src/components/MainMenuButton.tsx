@@ -8,8 +8,6 @@ export default function MainMenuButton({ name, path }: { name: string, path: str
 
     const navigate = useNavigate();
     const me = useGeneralStates((state) => state.me);
-    const fetchCards = useGeneralStates((state) => state.fetchCards);
-    const fetchedCards = useGeneralStates((state) => state.fetchedCards);
     const clearDeck = useGeneralStates((state) => state.clearDeck);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
@@ -19,7 +17,6 @@ export default function MainMenuButton({ name, path }: { name: string, path: str
         playButtonClickSfx();
 
         if (name !== "LOGOUT") {
-            if(fetchedCards.length === 0) fetchCards();
             if(path === "/deckbuilder") clearDeck();
             if(path === "/lobby") localStorage.removeItem('deckCards');
             navigate(path);

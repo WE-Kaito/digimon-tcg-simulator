@@ -3,7 +3,7 @@ import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
-import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
+import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import TermsAndConditionsDialog from "../components/login/TermsAndConditionsDialog.tsx";
 
@@ -128,7 +128,7 @@ export default function LoginPage() {
                     </ButtonContainer>
                 </StyledForm2>
             }
-            {!registerPage && <PatchnotesAndDisclaimer/>}
+            {!registerPage && <PatchnotesLink/>}
         </MenuBackgroundWrapper>
     );
 }

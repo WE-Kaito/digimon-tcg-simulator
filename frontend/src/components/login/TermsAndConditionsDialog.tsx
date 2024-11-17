@@ -35,7 +35,8 @@ export default function TermsAndConditionsDialog() {
                     Breaking these rules will result in a warning, a temporary ban, or a permanent ban from the game and/or the discord server.
                     <br />
                     <br />
-                    <u>This is a non-commercial fan project and not affiliated with the Digimon brand or its creators.</u>
+                    This is a non-commercial fan-made project and is not affiliated with the Digimon brand or Bandai Co., Ltd.
+                    The purpose of this project is to celebrate and advertise the Digimon Card Game.
                 </p>
                 <div style={{ width: "100%", display: "flex", justifyContent: "space-between"}}>
                     <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
