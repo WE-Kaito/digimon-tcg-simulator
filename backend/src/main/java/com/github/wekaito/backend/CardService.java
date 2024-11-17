@@ -113,7 +113,7 @@ public class CardService {
 
             cards.add(new Card(
                     card.id(),
-                    card.name().english(),
+                    card.fetchCardName().english(),
                     BASE_URL + card.cardImage(),
                     card.cardType(),
                     colors,
