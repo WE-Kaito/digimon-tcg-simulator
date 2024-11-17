@@ -108,33 +108,33 @@ public class CardService {
                 ))
                 .toList();
 
-        List<String> digiTypes = Arrays.stream(card.type().split("/")).toList();
-        List<String> colors = Arrays.stream(card.color().split("/")).toList();
+            List<String> digiTypes = Arrays.stream(card.type().split("/")).toList();
+            List<String> colors = Arrays.stream(card.color().split("/")).toList();
 
-        cards.add(new Card(
-                card.id(),
-                card.name().english(),
-                BASE_URL + card.cardImage(),
-                card.cardType(),
-                colors,
-                (card.attribute().equals("-")) ? null : card.attribute(),
-                (card.cardNumber().equals("-")) ? null : card.cardNumber(),
-                digivolveConditions,
-                (card.specialDigivolve().equals("-")) ? null : card.specialDigivolve(),
-                (card.form().equals("-")) ? null : card.form(),
-                digiTypes,
-                (card.dp().equals("-")) ? null : Integer.parseInt(card.dp()),
-                (card.playCost().equals("-")) ? null : Integer.parseInt(card.playCost()),
-                (card.cardLv().equals("-")) ? null : Integer.parseInt(card.cardLv().split("\\.")[1]),
-                (card.effect().equals("-")) ? null : card.effect(),
-                (card.digivolveEffect().equals("-")) ? null : card.digivolveEffect(),
-                (card.aceEffect().equals("-")) ? null : card.aceEffect(),
-                (card.burstDigivolve().equals("-")) ? null : card.burstDigivolve(),
-                (card.digiXros().equals("-")) ? null : card.digiXros(),
-                (card.dnaDigivolve().equals("-")) ? null : card.dnaDigivolve(),
-                (card.securityEffect().equals("-")) ? null : card.securityEffect(),
-                card.restrictions(),
-                card.illustrator()));
+            cards.add(new Card(
+                    card.id(),
+                    card.name().english(),
+                    BASE_URL + card.cardImage(),
+                    card.cardType(),
+                    colors,
+                    (card.attribute().equals("-")) ? null : card.attribute(),
+                    (card.cardNumber().equals("-")) ? null : card.cardNumber(),
+                    digivolveConditions,
+                    (card.specialDigivolve().equals("-")) ? null : card.specialDigivolve(),
+                    (card.form().equals("-")) ? null : card.form(),
+                    digiTypes,
+                    (card.dp().equals("-")) ? null : Integer.parseInt(card.dp()),
+                    (card.playCost().equals("-")) ? null : Integer.parseInt(card.playCost()),
+                    (card.cardLv().equals("-")) ? null : Integer.parseInt(card.cardLv().split("\\.")[1]),
+                    (card.effect().equals("-")) ? null : card.effect(),
+                    (card.digivolveEffect().equals("-")) ? null : card.digivolveEffect(),
+                    (card.aceEffect().equals("-")) ? null : card.aceEffect(),
+                    (card.burstDigivolve().equals("-")) ? null : card.burstDigivolve(),
+                    (card.digiXros().equals("-")) ? null : card.digiXros(),
+                    (card.dnaDigivolve().equals("-")) ? null : card.dnaDigivolve(),
+                    (card.securityEffect().equals("-")) ? null : card.securityEffect(),
+                    card.restrictions(),
+                    card.illustrator()));
         });
 
         // CardRepo is a fail-safe in case the API is missing cards or shuts down

@@ -28,12 +28,12 @@ public record FetchCard(
         String illustrator) {
 }
 
-record Name(
+public record Name(
         String english
 ) {
 }
 
-record FetchDigivolveCondition(
+public record FetchDigivolveCondition(
         String color,
         String cost,
         String level
