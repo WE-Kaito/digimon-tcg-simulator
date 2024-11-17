@@ -1,27 +1,33 @@
-import BackButton from "../components/BackButton.tsx";
-import useWebSocket from "react-use-websocket";
-import {FormEvent, useCallback, useEffect, useRef, useState} from "react";
-import {Headline2} from "../components/Header.tsx";
 import styled from "@emotion/styled";
-import Lottie from "lottie-react";
-import loadingAnimation from "../assets/lotties/loading.json";
-import {useNavigate} from "react-router-dom";
-import {notifyBrokenDeck, notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
-import discordIcon from "../assets/discordLogo.png";
-import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
-import {Button, MenuItem, Select} from "@mui/material";
-import { SelectChangeEvent } from '@mui/material/Select';
-import {useGeneralStates} from "../hooks/useGeneralStates.ts";
-import {VolumeOff as MuteIcon} from '@mui/icons-material';
-import {useSound} from "../hooks/useSound.ts";
-import SoundBar from "../components/SoundBar.tsx";
+import {ChangeEvent, useCallback, useEffect, useState} from "react";
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
+import useWebSocket from "react-use-websocket";
+import {notifyBrokenDeck, notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
+import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
+import {useSound} from "../hooks/useSound.ts";
+import {useNavigate} from "react-router-dom";
+import SoundBar from "../components/SoundBar.tsx";
+import BackButton from "../components/BackButton.tsx";
+import {DeckType} from "../utils/types.ts";
+import ProfileDeck from "../components/profile/ProfileDeck.tsx";
+import axios from "axios";
+import MenuDialog from "../components/MenuDialog.tsx";
+import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
+import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
+import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
+import Chat from "../components/lobby/Chat.tsx";
 
-export default function Lobby() {
+export default function NewLobby() {
+    const [onlineUsers, setOnlineUsers] = useState(42)
+    const rooms = [{ id: 1, name: 'Cyber Arena' }, {id: 2, name: 'Neon Battleground' }]
+    const [selectedFormat, setSelectedFormat] = useState('')
+// ----------------------------------------------------------------------------------------------------
+
     const [usernames, setUsernames] = useState<string[]>([]);
     const [messages, setMessages] = useState<string[]>([]);
-    const [message, setMessage] = useState<string>("");
-    const historyRef = useRef<HTMLDivElement>(null);
+
     const [pendingInvitation, setPendingInvitation] = useState<boolean>(false);
     const [invitationSent, setInvitationSent] = useState<boolean>(false);
     const [inviteFrom, setInviteFrom] = useState<string>("");
@@ -37,18 +43,21 @@ export default function Lobby() {
     const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/chat" : "wss://project-drasil.online/api/ws/chat";
 
     const user = useGeneralStates((state) => state.user)
-    const gameId = useGameBoardStates((state) => state.gameId);
-    const setGameId = useGameBoardStates((state) => state.setGameId);
-    const clearBoard = useGameBoardStates((state) => state.clearBoard);
-
     const setActiveDeck = useGeneralStates(state => state.setActiveDeck);
     const activeDeckId = useGeneralStates(state => state.activeDeckId);
     const getActiveDeck = useGeneralStates(state => state.getActiveDeck);
     const fetchDecks = useGeneralStates(state => state.fetchDecks);
     const decks = useGeneralStates(state => state.decks);
-    const isLoading = useGeneralStates(state => state.isLoading);
+
+    const gameId = useGameBoardStates((state) => state.gameId);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
+    const clearBoard = useGameBoardStates((state) => state.clearBoard);
 
     const playInvitationSfx = useSound((state) => state.playInvitationSfx);
+
+    const [deckObject, setDeckObject] = useState<DeckType | null>(null);
+    const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
+    const [imageSelectionOpen, setImageSelectionOpen] = useState(false)
 
     const navigate = useNavigate();
     const navigateToGame = () => navigate("/game");
@@ -125,17 +134,6 @@ export default function Lobby() {
         },
     });
 
-    function handleSubmit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-
-        if ((message !== "") && (message !== "/invite:" + user)
-            && (!message.startsWith("/abortInvite") && !message.startsWith("/acceptInvite"))) {
-
-            websocket.sendMessage(message);
-            setMessage("");
-        }
-    }
-
     function handleInvite(invitedUsername: string) {
         clearBoard();
         localStorage.removeItem("bearStore");
@@ -167,7 +165,13 @@ export default function Lobby() {
         handleAbortInvite(false);
     }
 
-    const handleDeckChange = (event: SelectChangeEvent<unknown>) => {
+    function handleOnCloseSetImageDialog() {
+        setSleeveSelectionOpen(false);
+        setImageSelectionOpen(false);
+        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
+    }
+
+    const handleDeckChange = (event: ChangeEvent<HTMLSelectElement>) => {
         setActiveDeck(String(event.target.value))
         if(noActiveDeck) window.location.reload();
     };
@@ -176,141 +180,293 @@ export default function Lobby() {
         return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
     }
 
-    useEffect(() => {
-        if (historyRef.current) historyRef.current.scrollTop = historyRef.current.scrollHeight;
-    }, [messages]);
-
     const initialFetch = useCallback(() => {
         getActiveDeck();
         fetchDecks();
     }, [getActiveDeck, fetchDecks]);
     useEffect(() => initialFetch(), [initialFetch]);
 
+    useEffect(() => {
+        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
+    }, [activeDeckId]);
+
     return (
         <MenuBackgroundWrapper>
-            <div style={{ position: "absolute", left: 20, top: 20 }}>
-                <SoundBar/>
-            </div>
+            <MenuDialog onClose={handleOnCloseSetImageDialog} open={sleeveSelectionOpen} PaperProps={{sx: {overflow: "hidden"}}}>
+                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Sleeve"}/>
+                <ChooseCardSleeve/>
+            </MenuDialog>
 
-            {pendingInvitation &&
-                <InvitationMoodle>
-                    <div title="Stop receiving invites from this player until you re-enter the lobby.">
-                        <Mute onClick={handleMuteInvites}/>
-                    </div>
-                    <span>Invitation from {inviteFrom}</span>
-                    <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
-                        <AcceptButton onClick={handleAcceptInvite}>ACCEPT</AcceptButton>
-                        <DeclineButton onClick={() => handleAbortInvite(false)}>DECLINE</DeclineButton>
-                    </div>
-                </InvitationMoodle>}
-
-            {invitationSent &&
-                <InvitationMoodle style={{gap: 12}}>
-                    <span>Waiting for answer from {inviteTo} ...</span>
-                    <Lottie animationData={loadingAnimation} loop={true} style={{width: "60px"}}/>
-                    <DeclineButton onClick={() => handleAbortInvite(true)} style={{margin: 0}}>ABORT</DeclineButton>
-                </InvitationMoodle>}
-
-            {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
-            {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
-            {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
-
-            <Header>
-                <Headline2 style={{flexWrap: "nowrap"}}>Online: {userCount}</Headline2>
-
-                {!isLoading && <StyledSelect label="Deck" onChange={handleDeckChange} value={activeDeckId} labelId={"decks"}
-                                             color={"primary"} defaultValue={activeDeckId} variant={"filled"}>
-                    {decks.map((deck) => <MenuItem value={deck.id} key={deck.id}>{deck.name}</MenuItem>)}
-                </StyledSelect>}
-
-                <ButtonContainer>
-                    <Button onClick={navigateToGame} disabled={!isRejoinable} sx={{mr: 10}}
-                            variant="outlined" color="success">RECONNECT</Button>
+            <MenuDialog onClose={handleOnCloseSetImageDialog} open={imageSelectionOpen}>
+                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Image"}/>
+                <ChooseDeckImage/>
+            </MenuDialog>
+            <Layout>
+                <Header>
+                    <SoundBar>
+                        {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
+                        {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
+                        {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
+                    </SoundBar>
+                    <OnlineUsers>
+                        <PeopleAltIcon fontSize={"large"} />
+                        <span>{onlineUsers} Online</span>
+                    </OnlineUsers>
+                    <span style={{ padding: 25, fontWeight: 800, background: "white", color: "black" }}>
+                        USER NAMEPLATE HERE
+                    </span>
                     <BackButton/>
-                </ButtonContainer>
-            </Header>
+                </Header>
 
-            <Container>
-                <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder={"user search..."}/>
+                <Content>
+                    <LeftColumn>
+                        <Card style={{ height: 'calc(66.666% - 0.5rem)' }}>
+                            <CardTitle>Available Rooms</CardTitle>
+                            <ScrollArea>
+                                <RoomList>
+                                    {rooms.map((room) => (
+                                        <RoomItem key={room.id}>
+                                            <span>{room.name}</span>
+                                            <Button>Join</Button>
+                                        </RoomItem>
+                                    ))}
+                                </RoomList>
+                            </ScrollArea>
+                        </Card>
 
-                <UserList>
-                    {usernames.length > 1 ?
-                        usernames.map((username) => (userVisible(username) && username &&
-                            <User key={username}>
-                                {username}
-                                <InviteButton onClick={() => handleInvite(username)}>INVITE</InviteButton>
-                            </User>))
-                        : <span style={{fontFamily: "'Pixel Digivolve', sans-serif", fontSize: 20}}>Currently nobody here...</span>}
-                </UserList>
+                        <Chat sendMessage={websocket.sendMessage} messages={messages}/>
+                    </LeftColumn>
 
-                <Chat>
-                    <History ref={historyRef}>
-                        {messages.map((message, index) => {
-                            const colonIndex = message.indexOf(":");
-                            if (colonIndex !== -1) {
-                                const name = message.substring(0, colonIndex);
-                                const content = message.substring(colonIndex + 1);
+                    <RightColumn>
+                        <Card>
+                            <CardTitle>Deck Selection</CardTitle>
+                            <Select value={activeDeckId} onChange={handleDeckChange}>
+                                {decks.map((deck) => <option value={deck.id} key={deck.id}>{deck.name}</option>)}
+                            </Select>
+                            <DeckCard>
+                                {deckObject && <ProfileDeck deck={deckObject} lobbyView
+                                                            setSleeveSelectionOpen={setSleeveSelectionOpen}
+                                                            setImageSelectionOpen={setImageSelectionOpen}/>}
+                            </DeckCard>
+                        </Card>
 
-                                if (name === "【SERVER】"){
-                                    return (
-                                        <div style={{display: "flex"}} key={index}>
-                                            {content === " Join our Discord!"
-                                                ? <StyledSpan name={name} user={user}>
-                                                    <span style={{color:"#31da75"}}>Server</span>:
-                                                    <a href="https://discord.gg/sBdByGAh2y" target="_blank" rel="noopener noreferrer">{content}</a>
-                                                    <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
-                                                </StyledSpan>
-                                                : <StyledSpan name={name} user={user}>
-                                                    <span style={{color:"#31da75"}}>Server</span>:{content}
-                                                </StyledSpan>}
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <div style={{display: "flex"}} key={index}>
-                                        <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>
-                                    </div>
-                                );
-                            }
-                            return <div key={index}>{message}</div>;
-                        })}
-                    </History>
-                    <InputContainer onSubmit={handleSubmit}>
-                        <StyledInput value={message} placeholder="..."
-                                     onChange={(e) => setMessage(e.target.value)}></StyledInput>
-                        <StyledButton>SEND</StyledButton>
-                    </InputContainer>
-                </Chat>
-            </Container>
+                        <Card>
+                            <CardTitle>Room Setup</CardTitle>
+                            <Input
+                                value={""}
+                                placeholder="Enter room title"
+                                style={{ marginBottom: '1rem' }}
+                            />
+                            <Select
+                                value={selectedFormat}
+                                onChange={(e) => setSelectedFormat(e.target.value)}
+                            >
+                                <option value="">Choose format</option>
+                                <option value="standard">Standard</option>
+                                <option value="turbo">Turbo</option>
+                                <option value="custom">Custom</option>
+                            </Select>
+                            <Button style={{ width: '100%' }}>Create Room</Button>
+                        </Card>
+                        <Card>
+                            <QuickPlayButton>Quick Play</QuickPlayButton>
+                        </Card>
+                    </RightColumn>
+                </Content>
+            </Layout>
         </MenuBackgroundWrapper>
-    );
+    )
 }
 
-const Header = styled.div`
+const Layout = styled.div`
   display: flex;
-  grid-template-columns: 1fr 1fr 1fr;
+  flex-direction: column;
+  max-height: calc(100vh - 40px);
+  width: calc(100% - 20px);
+  padding: 20px;
+
+  @media (max-width: 1024px) {
+    max-width: 750px;
+    max-height: unset;
+  }
+`
+
+const Header = styled.header`
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 5vh;
-  width: 100%;
-  max-width: 900px;
-  position: relative;
-  
-  @media (max-width: 766px) {
-    margin-top: 1.5vh;
-  }
-`;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #771417;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(173, 62, 71, 0.8);
+`
 
-const ButtonContainer = styled.div`
-  grid-column-start: 3;
-  grid-row-start: 1;
-  justify-self: center;
-  align-self: start;
-  margin-left: 30px;
-  transform: scale(0.95);
+const OnlineUsers = styled.div`
   display: flex;
-`;
+  align-items: center;
+  gap: 0.5rem;
+  color: ghostwhite;
+`
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    height: calc(100vh - 120px); // Adjust based on your header height
+  }
+`
+
+const LeftColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (min-width: 1024px) {
+    width: 66.666%;
+    height: 100%;
+    max-height: calc(100vh - 150px);
+  }
+`
+
+const RightColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (min-width: 1024px) {
+    width: 33.333%;
+  }
+`
+
+const Card = styled.div`
+  border-radius: 4px;
+  box-shadow: 0 0 8px var(--christmas-green-shadow);
+  padding: 1rem;
+  border: 2px solid var(--christmas-green);
+`
+
+const CardTitle = styled.h2`
+  font-family: 'Pixel Digivolve', sans-serif;
+  font-size: 1.5rem;
+  color: var(--yellow);
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  text-shadow: 0 0 5px rgba(148, 105, 28, 0.32);
+`
+
+const ScrollArea = styled.div`
+  height: 100%;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #0c0c0c;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--christmas-green);
+    border-radius: 2px;
+  }
+`
+
+const RoomList = styled.ul`
+  list-style-type: none;
+  padding: 0;
+`
+
+const RoomItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--christmas-green);
+  transition: background-color 0.3s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: rgba(29, 125, 252, 0.1);
+  }
+`
+
+const Button = styled.button`
+  background-color: var(--christmas-green);
+  color: #0c0c0c;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-family: 'Amiga Forever Pro2', sans-serif;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #1d7dfc;
+    color: ghostwhite;
+    box-shadow: 0 0 10px rgba(29, 125, 252, 0.5);
+  }
+`
+
+const Input = styled.input`
+  flex-grow: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--christmas-green);
+  border-radius: 2px;
+  background-color: #0c0c0c;
+  color: ghostwhite;
+  font-family: 'Cousine', monospace;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 5px var(--christmas-green-shadow);
+  }
+`
+
+const Select = styled.select`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--christmas-green);
+  border-radius: 2px;
+  background-color: #0c0c0c;
+  color: ghostwhite;
+  font-family: 'League Spartan', sans-serif;
+  margin-bottom: 1rem;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 5px var(--christmas-green-shadow);
+  }
+`
+
+const DeckCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+`
+
+const QuickPlayButton = styled(Button)`
+  width: 100%;
+  background-color: var(--christmas-green);
+  color: #0c0c0c;
+  font-size: 1.2rem;
+  padding: 1rem;
+
+  &:hover {
+    background-color: #1d7dfc;
+    color: ghostwhite;
+  }
+`
 
 const ConnectionSpanGreen = styled.span`
   color: #0b790b;
@@ -333,315 +489,4 @@ const ConnectionSpanRed = styled(ConnectionSpanGreen)`
   color: #790b0b;
   filter: drop-shadow(0 0 2px #ce1515);
   font-size: 1.5em;
-`;
-
-const Container = styled.div`
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  margin-top: 5vh;
-  width: 100%;
-  max-width: 1000px;
-
-  @media (min-width: 1000px) {
-    border-top-right-radius: 15px;
-    border-top-left-radius: 15px;
-  }
-`;
-
-const UserList = styled.div`
-  margin-top: 3vh;
-  padding-top: 1vh;
-  width: 85%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
-  overflow-y: scroll;
-  max-height: 41.5vh;
-
-  @supports (-moz-appearance:none) {
-    scrollbar-width: thin;
-  }
-
-  @media (max-width: 500px) {
-    gap: 8px;
-  }
-`;
-
-const User = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  width: 80%;
-  min-height: 30px;
-  color: ghostwhite;
-  background: black;
-  font-family: Amiga Forever Pro2, sans-serif;
-  text-align: left;
-  padding: 5px;
-  text-overflow: clip;
-  font-size: 28px;
-  border: 3px solid #dcb415;
-  box-shadow: inset 0 0 5px #dcb415;
-  filter: drop-shadow(0 0 4px #dcb415);
-  flex-shrink: 0;
-  @media (min-width: 1000px) {
-    border-width: 3px;
-    padding-right: 3vw;
-    padding-left: 3vw;
-  }
-
-  @media (min-width: 2000px) {
-    padding-right: 2vw;
-    padding-left: 2vw;
-  }
-
-  @media (max-width: 500px)  or (max-height: 680px) {
-    font-size: 18px;
-    width: 87%;
-    padding-right: 2vw;
-    box-shadow: inset 0 0 3px #dcb415;
-    filter: drop-shadow(0 0 2px #dcb415);
-  }
-`;
-
-const Chat = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  background: black;
-  border: 5px solid white;
-  border-radius: 2px;
-  box-shadow: inset 0 0 3px white;
-  filter: drop-shadow(0 0 3px ghostwhite);
-  padding: 0.25% 1% 1% 1%;
-  width: 85%;
-  height: 300px;
-
-  @media (max-width: 500px) {
-    border: 3px solid white;
-    padding: 4vw;
-    transform: translate(-33px, 0.7vh);
-    width: 75.5%;
-  }
-`;
-
-const History = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  height: 370px;
-  width: 100%;
-  overflow-y: scroll;
-
-  ::-webkit-scrollbar {
-    background: #1e1f10;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: papayawhip;
-  }
-`;
-
-const StyledSpan = styled.span<{name: string, user: string}>`
-
-  font-family: Cousine, sans-serif;
-  text-align: left;
-  color: papayawhip;
-
-  span {
-    color: ${({name, user}) => name === user ? '#f55f02' : '#e1b70f'};
-    text-shadow: 0 0 1px #ffd11e;
-    font-weight: bold;
-  }
-
-`;
-
-const StyledInput = styled.input`
-  width: 90%;
-  padding-left: 10px;
-  overflow-y: clip;
-  height: 30px;
-  font-family: Cousine, sans-serif;
-  border: none;
-  font-size: 1.05em;
-  background: papayawhip;
-  color: #1a1a1a;
-
-  :focus {
-    outline: none;
-    filter: drop-shadow(0 0 2px white);
-    background: ghostwhite;
-    border-radius: 2px;
-  }
-`;
-
-const InputContainer = styled.form`
-  width: 100%;
-  margin-top: 12px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-`;
-
-const StyledButton = styled.button`
-  padding: 0;
-  cursor: pointer;
-  width: 100px;
-  margin-left: 20px;
-  height: 32px;
-  border-radius: 0;
-  background: #dcb415;
-  font-family: Pixel Digivolve, sans-serif;
-  font-size: 24px;
-  color: #0e0e0e;
-  box-shadow: 2px 2px 2px 0 #262626;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #fccb0b;
-    color: black;
-    transform: translateY(1px);
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-  &:active {
-    background: #a3da31;
-    transform: translateY(2px);
-  }
-
-  @media (max-width: 500px) {
-    font-size: 18px;
-    width: 70px;
-  }
-`;
-
-const InviteButton = styled(StyledButton)`
-  margin-bottom: 5px;
-  @media (max-width: 500px)  or (max-height: 680px) {
-    font-size: 17px;
-    height: 22px;
-    width: 70px;
-    margin-bottom: 2.5px;
-  }
-`;
-
-const InvitationMoodle = styled.div`
-  position: absolute;
-  top: 25%;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 40px 20px 40px 10px;
-
-  width: 24vw;
-  height: 14vh;
-  min-width: 320px;
-  min-height: 120px;
-  background: black;
-  z-index: 10;
-  border: 3px solid #dcb415;
-  box-shadow: inset 0 0 5px #dcb415;
-  filter: drop-shadow(0 0 4px #dcb415);
-
-  @media (max-width: 500px) {
-    top: 18%;
-    border: 3px solid #dcb415;
-    padding: 20px 40px 20px 5px;
-    width: 60%;
-    height: 140px;
-    transform: translateY(0.7vh);
-  }
-`;
-
-const AcceptButton = styled(StyledButton)`
-  background: #289a78;
-  font-size: 20px;
-
-  &:hover {
-    background-color: #22c768;
-  }
-
-  &:active {
-    background: #64e7a1;
-  }
-`;
-
-const DeclineButton = styled(StyledButton)`
-  background: #9d1d33;
-  font-size: 20px;
-
-  &:hover {
-    background-color: #b72311;
-  }
-
-  &:active {
-    background: #e12909;
-  }
-`;
-
-const SearchBar = styled.input`
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 25px;
-  border: none;
-  width: 300px;
-  height: 35px;
-  font-family: Naston, sans-serif;
-  font-size: 20px;
-  position: absolute;
-  transform: translateY(-50%);
-  padding: 2px 15px 2px 15px;
-  text-align: center;
-  color: black;
-  ::placeholder {
-    color: ghostwhite;
-  }
-`;
-
-const StyledSelect = styled(Select)`
-  color: aquamarine;
-  background: rgba(29, 123, 239, 0.35);
-  height: 32px;
-  width: 300px;
-  position: absolute;
-  top: 28px;
-  left: 310px;
-  font-family: "League Spartan", sans-serif;
-  
-  .MuiInputBase-input {
-    transform: translateY(-7px);
-  }
-  
-  @media (max-width: 800px) {
-    left: 30%;
-    width: 240px;
-  }
-
-  @media (max-width: 500px) {
-    top: 64px;
-    width: 240px;
-  }
-`;
-
-const Mute = styled(MuteIcon)`
-  position: absolute;
-  top: 20px; 
-  right: 20px;
-  cursor: pointer;
-  &:hover {
-    opacity: 50%;
-  }
 `;

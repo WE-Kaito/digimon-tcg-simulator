@@ -2,7 +2,6 @@ import './App.css'
 import Deckbuilder from "./pages/Deckbuilder.tsx";
 import {Navigate, Route, Routes} from "react-router-dom";
 import Profile from "./pages/Profile.tsx";
-import MainMenu from "./pages/MainMenu.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import RecoveryPage from "./pages/RecoveryPage.tsx";
 import {useGeneralStates} from "./hooks/useGeneralStates.ts";
@@ -15,15 +14,17 @@ import GamePage from "./pages/GamePage.tsx";
 function App() {
 
     const me = useGeneralStates((state) => state.me);
-
+    const fetchCards = useGeneralStates((state) => state.fetchCards);
+    
     useEffect(() => me(), [me]);
+    useEffect(() => fetchCards(), [fetchCards]);
 
     return (
         <>
             <CustomToastContainer/>
                 <Routes>
                     <Route element={<ProtectedRoutes/>}>
-                        <Route path="/" element={<MainMenu/>}/>
+                        <Route path="/" element={<Lobby/>}/>
                         <Route path="/profile" element={<Profile/>}/>
                         <Route path="/deckbuilder" element={<Deckbuilder/>}/>
                         <Route path="/update-deck" element={<Deckbuilder isEditMode/>}/>
