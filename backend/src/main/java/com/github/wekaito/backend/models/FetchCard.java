@@ -4,7 +4,7 @@ import java.util.List;
 
 public record FetchCard(
         String id,
-        Name name,
+        FetchCardName fetchCardName,
         String cardImage,
         String cardType,
         String color,
@@ -28,14 +28,3 @@ public record FetchCard(
         String illustrator) {
 }
 
-public record Name(
-        String english
-) {
-}
-
-public record FetchDigivolveCondition(
-        String color,
-        String cost,
-        String level
-) {
-}
