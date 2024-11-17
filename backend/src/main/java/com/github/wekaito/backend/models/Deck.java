@@ -1,9 +1,8 @@
-package com.github.wekaito.backend;
+package com.github.wekaito.backend.models;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
-import java.util.Optional;
 
 @Document("decks")
 public record Deck(

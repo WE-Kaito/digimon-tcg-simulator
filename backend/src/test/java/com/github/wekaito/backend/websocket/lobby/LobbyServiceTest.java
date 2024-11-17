@@ -1,6 +1,6 @@
 //package com.github.wekaito.backend.websocket;
 //
-//import com.github.wekaito.backend.Deck;
+//import com.github.wekaito.backend.models.Deck;
 //import com.github.wekaito.backend.DeckService;
 //import com.github.wekaito.backend.security.MongoUserDetailsService;
 //import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,7 @@
 //import static org.mockito.Mockito.*;
 //
 //@ExtendWith(SpringExtension.class)
-//class ChatServiceTest {
+//class LobbyServiceTest {
 //
 //    @Mock
 //    private MongoUserDetailsService mongoUserDetailsService;

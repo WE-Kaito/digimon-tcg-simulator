@@ -1,4 +1,4 @@
-package com.github.wekaito.backend;
+package com.github.wekaito.backend.models;
 
 public record DigivolveCondition(
         String color,

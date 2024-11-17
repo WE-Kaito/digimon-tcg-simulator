@@ -1,5 +1,9 @@
 package com.github.wekaito.backend;
 
+import com.github.wekaito.backend.models.Card;
+import com.github.wekaito.backend.models.DigivolveCondition;
+import com.github.wekaito.backend.models.FetchCard;
+import com.github.wekaito.backend.models.Restrictions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import jakarta.annotation.PostConstruct;

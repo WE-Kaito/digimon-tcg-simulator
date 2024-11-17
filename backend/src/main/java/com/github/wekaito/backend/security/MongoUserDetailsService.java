@@ -1,6 +1,5 @@
 package com.github.wekaito.backend.security;
 
-import com.github.wekaito.backend.IdService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -12,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +20,6 @@ public class MongoUserDetailsService implements UserDetailsService {
     private final MongoUserRepository mongoUserRepository;
 
     private final String[] BadWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "boob", "fuck", "fuuck", "rape", "whore"};
-
-    private final IdService idService = new IdService();
 
     String exceptionMessage = " not found";
 
@@ -63,7 +61,7 @@ public class MongoUserDetailsService implements UserDetailsService {
         }
 
         MongoUser newUser = new MongoUser(
-                idService.createId(),
+                UUID.randomUUID().toString(),
                 registrationUser.username(),
                 getEncodedPassword(registrationUser.password()),
                 registrationUser.question(),

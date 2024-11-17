@@ -20,7 +20,6 @@ import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import Chat from "../components/lobby/Chat.tsx";
 
 export default function NewLobby() {
-    const [onlineUsers, setOnlineUsers] = useState(42)
     const rooms = [{ id: 1, name: 'Cyber Arena' }, {id: 2, name: 'Neon Battleground' }]
     const [selectedFormat, setSelectedFormat] = useState('')
 // ----------------------------------------------------------------------------------------------------
@@ -40,7 +39,7 @@ export default function NewLobby() {
 
     const currentPort = window.location.port;
     //TODO: using www.project-drasil.online as the domain is not working, so we need to use the IP address instead?
-    const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/chat" : "wss://project-drasil.online/api/ws/chat";
+    const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/lobby" : "wss://project-drasil.online/api/ws/lobby";
 
     const user = useGeneralStates((state) => state.user)
     const setActiveDeck = useGeneralStates(state => state.setActiveDeck);
@@ -204,17 +203,22 @@ export default function NewLobby() {
             <Layout>
                 <Header>
                     <SoundBar>
+                        <div style={{ display: "flex", alignItems: "center", gap: 40, marginLeft: 20 }}>
                         {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
                         {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
                         {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
+                        <OnlineUsers>
+                            <PeopleAltIcon fontSize={"large"} />
+                            <span>{userCount} online</span>
+                        </OnlineUsers>
+                        </div>
                     </SoundBar>
-                    <OnlineUsers>
-                        <PeopleAltIcon fontSize={"large"} />
-                        <span>{onlineUsers} Online</span>
-                    </OnlineUsers>
                     <span style={{ padding: 25, fontWeight: 800, background: "white", color: "black" }}>
                         USER NAMEPLATE HERE
                     </span>
+                    <Button onClick={navigateToGame} disabled={!isRejoinable}>
+                        RECONNECT
+                    </Button>
                     <BackButton/>
                 </Header>
 
@@ -470,23 +474,17 @@ const QuickPlayButton = styled(Button)`
 
 const ConnectionSpanGreen = styled.span`
   color: #0b790b;
-  grid-column-start: 2;
-  font-size: 1.1em;
-  opacity: 0.8;
   filter: drop-shadow(0 0 3px #19cb19);
-  position: absolute;
-  top: 4px;
-  left: 4px;
+  font-size: 1.2em;
+  opacity: 0.8;
 `;
 
 const ConnectionSpanYellow = styled(ConnectionSpanGreen)`
   color: #9f811f;
   filter: drop-shadow(0 0 3px #e1bd29);
-  font-size: 1.2em;
 `;
 
 const ConnectionSpanRed = styled(ConnectionSpanGreen)`
-  color: #790b0b;
-  filter: drop-shadow(0 0 2px #ce1515);
-  font-size: 1.5em;
+  color: #ce1515;
+  filter: drop-shadow(0 0 2px #090101);
 `;
