@@ -10,11 +10,14 @@ import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
 
 export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
-    const [bootStage, startingPlayer] = useGameBoardStates((state) => [state.bootStage, state.startingPlayer]);
+    const [bootStage, startingPlayer, isOpponentOnline] = useGameBoardStates((state) => [
+        state.bootStage, state.startingPlayer, state.isOpponentOnline]);
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.user;
 
     const {fontContainerRef, fontSize} = useResponsiveFontSize(7.25);
+
+    if (!isOpponentOnline) return <></>;
 
     return (
         <Container ref={fontContainerRef}>

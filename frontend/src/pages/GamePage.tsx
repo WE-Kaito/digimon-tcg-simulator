@@ -217,7 +217,6 @@ export default function GamePage() {
             <GameBackground/>
             <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
-            <StackModal />
             <TokenModal wsUtils={wsUtils}/>
             <EndModal/>
             <RestartPromptModal wsUtils={wsUtils}/>
@@ -253,7 +252,7 @@ export default function GamePage() {
                                     sensors={[mouseSensor, touchSensor]}>
                             <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth} isCameraTilted={isCameraTilted}>
                                 <RevealArea />
-
+                                <StackModal />
                                 <CardModal wsUtils={wsUtils} />
                                 <MemoryBar wsUtils={wsUtils} />
                                 <PhaseIndicator wsUtils={wsUtils} />
@@ -356,9 +355,10 @@ const DetailsContainer = styled.div<{ isMobile: boolean }>`
     width: 0;
     display: none;
   }
-    @container (min-width: 1220px) {
-        order: ${({isMobile}) => isMobile ? 2 : "unset"};
-    }
+  
+  @container (min-width: 1400px) {
+      order: ${({isMobile}) => isMobile ? 2 : "unset"};
+  }
 `;
 
 const CardImg = styled.img<{isMobile?: boolean}>`
@@ -418,6 +418,7 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string, isCameraTi
 
   transform: ${({isCameraTilted}) => isCameraTilted ? "perspective(2000px) rotateX(35deg) rotateZ(0deg)" : "unset"};
   padding: ${({isCameraTilted}) => isCameraTilted ? "0 3.5vw 0 5vw" : "5px"};
+  
   @container board-container (max-width: 900px) {
     width: unset;
     height: 100%;
@@ -435,27 +436,29 @@ const SettingsContainer = styled.div<{ isMobile: boolean }>`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-    @container (min-width: 1220px){
-        order: ${({isMobile}) => isMobile ? 1 : "unset"};
-    }
-    @container (max-width: 1220px) {
-        order: 3;
-    }
+  
+  @container (min-width: 1400px){
+      order: ${({isMobile}) => isMobile ? 1 : "unset"};
+  }
+  @media (max-width: 1400px) {
+      order: 3;
+  }
 `;
 
 const ChatLogContainer = styled.div<{ isMobile: boolean }>`
   display: flex;
   flex-direction: ${({isMobile}) => isMobile ? "column" : "row"};
-  width: calc(100% - 820px);
+  width: calc(100% - 320px);
   min-width: 400px;
   height: ${({isMobile}) => isMobile ? "600px" : "150px"};
-    order: ${({isMobile}) => isMobile ? 2 : "unset"};
-    @container (max-width: 1220px){
-        width: calc(100% - 500px);
-    }
-    @container (max-width: 900px){
-        width: 100%;
-    }
+  order: ${({isMobile}) => isMobile ? 2 : "unset"};
+  
+  @media (max-width: 1400px){
+      width: calc(100% - 820px);
+  }
+  @container (max-width: 900px){
+      width: 100%;
+  }
 `;
 
 const StyledIconButton = styled(IconButton)`

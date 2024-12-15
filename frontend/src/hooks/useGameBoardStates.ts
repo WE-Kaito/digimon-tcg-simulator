@@ -105,7 +105,7 @@ export type State = BoardState & {
     moveCardStack: (index: number, from: string, to: string,
                     handleDropToField: (id: string, from: string, to: string, name: string) => void) => void
     areCardsSuspended: (from?: string) => boolean,
-    nextPhaseTrigger: (nextPhaseFunction: () => void, trigger?: string) => void,
+    nextPhaseTrigger: (nextPhaseFunction: () => void, currentPhase?: string) => void,
     unsuspendAll: (side: SIDE) => void,
     getIsMyTurn: () => boolean,
     getMyAttackPhase: () => AttackPhase | false,
@@ -310,6 +310,7 @@ export const useGameBoardStates = create<State>()(
             bootStage: BootStage.CLEAR,
             initialDistributionState: "",
             opponentGameState: "",
+            isOpponentOnline: true,
         });
     },
 
@@ -665,11 +666,11 @@ export const useGameBoardStates = create<State>()(
             || get().myDigi14.some(card => card.isTilted) || get().myDigi15.some(card => card.isTilted)
     },
 
-    nextPhaseTrigger: (nextPhaseFunction, trigger) => {
+    nextPhaseTrigger: (nextPhaseFunction, currentPhase) => {
         if (get().phase === Phase.MAIN || !get().isMyTurn) return;
 
-        if ((get().phase === Phase.BREEDING && trigger === Phase.BREEDING)
-            || (get().phase === Phase.DRAW && trigger === Phase.DRAW)
+        if ((get().phase === Phase.BREEDING && currentPhase === Phase.BREEDING)
+            || (get().phase === Phase.DRAW && currentPhase === Phase.DRAW)
             || (get().phase === Phase.UNSUSPEND && !get().areCardsSuspended())) {
             nextPhaseFunction();
         }

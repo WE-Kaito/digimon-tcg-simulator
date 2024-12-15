@@ -233,7 +233,14 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
                 <ModifierMenu sendSetModifiers={sendSetModifiers}/>
             </StyledMenu>
 
-            <StyledMenu id={"trashCardMenu"} theme="dark">
+            <StyledMenu id={"modalMenuOpponent"} theme="dark">
+                <Item onClick={activateTargetAnimation}>
+                    <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
+                        <span>Target Card</span> <TargetIcon/></div>
+                </Item>
+            </StyledMenu>
+
+            <StyledMenu id={"modalMenu"} theme="dark">
                 <Item onClick={activateEffectAnimation}>
                     <div style={{display: "flex", justifyContent: "space-between", width: "100%"}}>
                         <span>Activate Effect</span> <EffectIcon/></div>

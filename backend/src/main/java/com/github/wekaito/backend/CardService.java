@@ -32,13 +32,13 @@ public class CardService {
     private final List<Card> cardCollection;
 
     private final Card fallbackCard = new Card(
-            "1110101",
+            "1110101", // fallbackCardNumber defined in useGeneralStates.ts
             "Fallback Card",
             "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/tokens/tokenCard.jpg",
             "Digimon",
             List.of("Unknown"),
             "Fallback",
-            "1110101",
+            "1110101", // fallbackCardNumber defined in useGeneralStates.ts
             List.of(new DigivolveCondition("Unknown", 0, 0)),
             null,
             "Rookie",

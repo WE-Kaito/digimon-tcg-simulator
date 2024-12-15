@@ -17,12 +17,14 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
 
     return (
         <Container ref={fontContainerRef}>
-            {bootStage === BootStage.SHOW_STARTING_PLAYER &&
-                <Lottie animationData={firstAnimation} autoplay={isFirst} loop={false}
-                        initialSegment={[0, 70]} style={{ transform: "scaleY(-1)"}}/>
-            }
-            {!isOpponentOnline && <ErrorSpan>OFFLINE</ErrorSpan>}
-            <OpponentAttackResolve wsUtils={wsUtils} fontSize={fontSize}/>
+            {!isOpponentOnline ? <ErrorSpan>OFFLINE</ErrorSpan> :
+            <>
+                {bootStage === BootStage.SHOW_STARTING_PLAYER &&
+                    <Lottie animationData={firstAnimation} autoplay={isFirst} loop={false}
+                            initialSegment={[0, 70]} style={{ transform: "scaleY(-1)"}}/>
+                }
+                <OpponentAttackResolve wsUtils={wsUtils} fontSize={fontSize}/>
+            </>}
         </Container>
     );
 }

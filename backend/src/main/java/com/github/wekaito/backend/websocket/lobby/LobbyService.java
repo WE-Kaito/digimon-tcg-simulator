@@ -17,7 +17,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.*;
 
 @Getter
@@ -40,7 +39,7 @@ public class LobbyService extends TextWebSocketHandler {
     private GameService gameService;
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
+    public synchronized void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
         if (activeDeck.equals("") || deckService.getDeckById(activeDeck) == null) {
@@ -49,13 +48,20 @@ public class LobbyService extends TextWebSocketHandler {
         }
 
         List<Card> deckCards = deckService.getDeckCardsById(activeDeck);
-        if (deckCards.stream().anyMatch(c -> "1110101".equals(c.cardNumber()))) {
+        if (deckCards.stream().anyMatch(c -> "1110101".equals(c.cardNumber()))) { // fallbackCardNumber defined in useGeneralStates.ts
             session.sendMessage(new TextMessage("[BROKEN_DECK]"));
             return;
         }
 
         if (globalActiveSessions.stream().anyMatch(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username))) {
             session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected in another tab."));
+            session.sendMessage(new TextMessage("[SESSION_ALREADY_CONNECTED]"));
+            return;
+        }
+
+        if (rooms.stream().anyMatch(room -> room.getPlayers().stream().anyMatch(player -> player.getName().equals(username)))) {
+            session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected in another tab."));
+            session.sendMessage(new TextMessage("[SESSION_ALREADY_CONNECTED]"));
             return;
         }
 
@@ -69,15 +75,7 @@ public class LobbyService extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        Principal principal = session.getPrincipal();
-        if (principal == null) {
-            globalActiveSessions.remove(session);
-            return;
-        }
-
-        quickPlayQueue.remove(session);
-
-        String username = principal.getName();
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
         synchronized (rooms) {
             Room playerRoom = rooms.stream()
@@ -87,12 +85,16 @@ public class LobbyService extends TextWebSocketHandler {
 
             if (playerRoom != null) {
                 playerRoom.getPlayers().removeIf(player -> player.getName().equals(username));
-                if (playerRoom.getPlayers().isEmpty()) {
-                    rooms.remove(playerRoom);
-                }
-            } else {
-                globalActiveSessions.remove(session);
+                if (playerRoom.getPlayers().isEmpty()) rooms.remove(playerRoom);
             }
+        }
+
+        synchronized (quickPlayQueue) {
+            quickPlayQueue.remove(session);
+        }
+
+        synchronized (globalActiveSessions) {
+            globalActiveSessions.remove(session);
         }
     }
 

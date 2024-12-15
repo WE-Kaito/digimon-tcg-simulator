@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {fallbackCardNumber, useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
 import DeckbuilderCard from "./DeckbuilderCard.tsx";
 import {getCardTypeImage, sortCards} from "../../utils/functions.ts";
@@ -34,7 +34,7 @@ export default function DeckSelection() {
     });
 
     const filteredDeckLength = deckCards.length - eggLength;
-    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "1110101"];
+    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", fallbackCardNumber];
     function getAddAllowed(card: CardTypeWithId, lastIndex: boolean) {
         return !!hoverCard
             && ((hoverCard === card))
@@ -45,7 +45,7 @@ export default function DeckSelection() {
     }
 
     function AddButton(card: CardTypeWithId) {
-        if (card.cardNumber === "1110101") return <></>
+        if (card.cardNumber === fallbackCardNumber) return <></>
         return <AddIcon
             onClick={() => {
                 addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);

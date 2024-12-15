@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import Card from "../Card.tsx";
 import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
-import {CardTypeGame, OpenedCardModal} from "../../utils/types.ts";
+import {CardTypeGame} from "../../utils/types.ts";
 import {useContextMenu} from "react-contexify";
 import {useEffect} from "react";
 import {Button} from "@mui/material";
@@ -24,7 +24,10 @@ export default function StackModal() {
 
     const cardsToRender = (!!stackModal && tamerLocations.includes(stackModal)) ? locationCards : locationCards.slice().reverse();
 
-    const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
+    const {show: showCardMenu } = useContextMenu({
+        id: (stackModal !== false && stackModal.includes("opponent")) ? "modalMenuOpponent" : "modalMenu",
+        props: { index: -1, location: "", id: "" }
+    });
 
     useEffect(() => {
         if (openedCardModal) setStackModal(false);
@@ -38,8 +41,7 @@ export default function StackModal() {
                 {cardsToRender.map((card, index) =>
                     <Card card={card} location={stackModal} style={{ width: cardWidth }} key={card.id}
                           onContextMenu={(e) => {
-                              if (openedCardModal === OpenedCardModal.MY_SECURITY) return;
-                              showFieldCardMenu?.({
+                              showCardMenu?.({
                                   event: e, props: {index, location: openedCardModal, id: card.id, name: card.name}
                               });
                           }}/>)

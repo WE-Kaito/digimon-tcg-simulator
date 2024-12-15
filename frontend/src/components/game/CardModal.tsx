@@ -19,7 +19,7 @@ export default function CardModal({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const cardsToRender = locationCards.slice().reverse();
 
-    const {show: showTrashCardMenu} = useContextMenu({id: "trashCardMenu", props: {index: -1, location: "", id: ""}});
+    const {show: showTrashCardMenu} = useContextMenu({id: "modalMenu", props: {index: -1, location: "", id: ""}});
 
     useEffect(() => {
         if (openedCardModal && !locationCards.length) setOpenedCardModal(false); // correctly close the modal if there are no cards

@@ -20,6 +20,8 @@ import {DeckIdOrder} from "../pages/Profile.tsx";
 import {Dispatch, SetStateAction} from "react";
 import {generalToken} from "../utils/tokens.ts";
 
+export const fallbackCardNumber = "1110101";
+
 type State = {
     cardWidth: number,
     fetchedCards: CardTypeWithId[],
