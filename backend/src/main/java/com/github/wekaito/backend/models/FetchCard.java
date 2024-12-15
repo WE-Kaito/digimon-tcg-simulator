@@ -4,7 +4,7 @@ import java.util.List;
 
 public record FetchCard(
         String id,
-        FetchCardName fetchCardName,
+        FetchCardName name,
         String cardImage,
         String cardType,
         String color,

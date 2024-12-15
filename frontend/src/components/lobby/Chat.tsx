@@ -4,7 +4,13 @@ import {FormEvent, useEffect, useRef, useState} from "react";
 import {SendMessage} from "react-use-websocket";
 import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 
-export default function Chat({sendMessage, messages}: {sendMessage: SendMessage, messages: string[]}) {
+type Props = {
+    sendMessage: SendMessage;
+    messages: string[];
+    roomId?: string;
+}
+
+export default function Chat({ sendMessage, messages, roomId }: Props) {
     const user = useGeneralStates((state) => state.user)
 
     const [message, setMessage] = useState<string>("");
@@ -13,13 +19,11 @@ export default function Chat({sendMessage, messages}: {sendMessage: SendMessage,
 
     function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        if (!message.trim().length) return;
 
-        if ((message !== "") && (message !== "/invite:" + user)
-            && (!message.startsWith("/abortInvite") && !message.startsWith("/acceptInvite"))) {
-
-            sendMessage(message);
-            setMessage("");
-        }
+        if (roomId) sendMessage("/roomChatMessage:" + message + ":" + roomId);
+        else sendMessage("/chatMessage:" + message);
+        setMessage("");
     }
 
     useEffect(() => {
@@ -61,8 +65,7 @@ export default function Chat({sendMessage, messages}: {sendMessage: SendMessage,
                 })}
             </History>
             <InputContainer onSubmit={handleSubmit}>
-                <StyledInput value={message} placeholder="..."
-                             onChange={(e) => setMessage(e.target.value)}></StyledInput>
+                <StyledInput value={message} placeholder={"..."} onChange={(e) => setMessage(e.target.value)}/>
                 <SubmitButton>SEND</SubmitButton>
             </InputContainer>
         </Wrapper>

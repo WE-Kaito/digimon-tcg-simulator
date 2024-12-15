@@ -460,56 +460,12 @@
 //         }
 //     }
 //
-//     function handleOpenSecurity(onOpenOrClose: "onOpen" | "onClose") {
-//         if (onOpenOrClose === "onOpen") {
-//             setSecurityContentMoodle(true);
-//             setTrashMoodle(false);
-//             websocket.sendMessage(gameId + ":/openedSecurity:" + opponentName);
-//             sendChatMessage(`[FIELD_UPDATE]≔【Opened Security】`);
-//         } else {
-//             setSecurityContentMoodle(false);
-//             handleShuffleSecurity();
-//             sendChatMessage(`[FIELD_UPDATE]≔【Closed Security】`);
-//         }
-//     }
 //
-//     function handleShuffleSecurity() {
-//         shuffleSecurity();
-//         sendUpdate();
-//         playShuffleDeckSfx();
-//         sendChatMessage(`[FIELD_UPDATE]≔【↻ Security Stack】`);
-//         sendSfx("playShuffleDeckSfx");
-//     }
+
 //
-//     function moveSecurityCard(to: "myTrash" | "myHand", bottomCard?: boolean) {
-//         if (!getOpponentReady()) return;
-//         const card = (bottomCard) ? mySecurity[mySecurity.length - 1] : mySecurity[0];
-//         moveCard(card.id, "mySecurity", to);
-//         sendMoveCard(card.id, "mySecurity", to);
-//         sendChatMessage(`[FIELD_UPDATE]≔【${to === "myHand" ? "Card" : card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`);
-//         sendSfx((to === "myHand") ? "playDrawCardSfx" : "playTrashCardSfx");
-//         (to === "myHand") ? playDrawCardSfx() : playTrashCardSfx();
-//     }
+
 //
-//     function revealHandCard({props}: ItemParams<HandCardContextMenuItemProps>) {
-//         if (!getOpponentReady() || props === undefined) return;
-//         moveCard(myHand[props.index].id, "myHand", "myReveal");
-//         sendMoveCard(myHand[props.index].id, "myHand", "myReveal");
-//         sendChatMessage(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕Hand ➟ Reveal`);
-//         playRevealCardSfx();
-//         sendSfx("playRevealSfx");
-//     }
-//
-//     function activateEffectAnimation({props}: ItemParams<FieldCardContextMenuItemProps>) {
-//         if (!getOpponentReady() || props === undefined) return;
-//         const {name, id, location} = props;
-//         websocket.sendMessage(`${gameId}:/activateEffect:${opponentName}:${id}`);
-//         sendChatMessage(`[FIELD_UPDATE]≔【${name} at ${convertForLog(location)}】﹕✨ EFFECT ✨`);
-//         setCardIdWithEffect(id);
-//         playActivateEffectSfx();
-//         sendSfx("playActivateEffectSfx");
-//         clearCardEffect();
-//     }
+
 //
 //     function clearCardEffect() {
 //         const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
