@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
 import {ChangeEvent, useCallback, useEffect, useState} from "react";
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import {PeopleAlt as PopulationIcon, HttpsOutlined as PrivateIcon} from '@mui/icons-material';
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import useWebSocket from "react-use-websocket";
-import {notifyBrokenDeck, notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
+import {notifyBrokenDeck, notifyNoActiveDeck} from "../utils/toasts.ts";
 import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
 import {useSound} from "../hooks/useSound.ts";
 import {useNavigate} from "react-router-dom";
@@ -18,25 +18,31 @@ import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import Chat from "../components/lobby/Chat.tsx";
+import {profilePicture} from "../utils/avatars.ts";
+import {DialogContent} from "@mui/material";
 
-export default function NewLobby() {
-    const rooms = [{ id: 1, name: 'Cyber Arena' }, {id: 2, name: 'Neon Battleground' }]
-    const [selectedFormat, setSelectedFormat] = useState('')
-// ----------------------------------------------------------------------------------------------------
+enum Format {
+    CUSTOM = "CUSTOM",
+    JP = "JP",
+    EN = "EN",
+}
 
-    const [usernames, setUsernames] = useState<string[]>([]);
-    const [messages, setMessages] = useState<string[]>([]);
+type LobbyPlayer = {
+    name: string;
+    avatarName: string;
+    ready: boolean;
+}
 
-    const [pendingInvitation, setPendingInvitation] = useState<boolean>(false);
-    const [invitationSent, setInvitationSent] = useState<boolean>(false);
-    const [inviteFrom, setInviteFrom] = useState<string>("");
-    const [inviteTo, setInviteTo] = useState<string>("");
-    const [search, setSearch] = useState<string>("");
-    const [userCount, setUserCount] = useState<number>(0);
-    const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
-    const [mutedInvitesFrom, setMutedInvitesFrom] = useState<string[]>([]);
-    const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
+type Room = {
+    id: string;
+    name: string;
+    hostName: string;
+    hasPassword: boolean;
+    format: Format;
+    players: LobbyPlayer[];
+}
 
+export default function Lobby() {
     const currentPort = window.location.port;
     //TODO: using www.project-drasil.online as the domain is not working, so we need to use the IP address instead?
     const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/lobby" : "wss://project-drasil.online/api/ws/lobby";
@@ -52,11 +58,33 @@ export default function NewLobby() {
     const setGameId = useGameBoardStates((state) => state.setGameId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
 
-    const playInvitationSfx = useSound((state) => state.playInvitationSfx);
+    const playJoinSfx = useSound((state) => state.playJoinSfx);
+    const playKickSfx = useSound((state) => state.playKickSfx);
+
+    const [userCount, setUserCount] = useState<number>(0);
+    const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
+    const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [deckObject, setDeckObject] = useState<DeckType | null>(null);
     const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
     const [imageSelectionOpen, setImageSelectionOpen] = useState(false)
+
+    const [messages, setMessages] = useState<string[]>([]);
+    const [rooms, setRooms] = useState<Room[]>([]);
+
+    const [newRoomName, setNewRoomName] = useState<string>("");
+    const [newRoomPassword, setNewRoomPassword] = useState<string>("");
+    const [newRoomFormat, setNewRoomFormat] = useState<Format>(Format.CUSTOM);
+
+    const [roomToJoinId, setRoomToJoinId] = useState<string>(""); // for password protected rooms
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState<boolean>(false);
+    const [password, setPassword] = useState<string>("");
+    const [isWrongPassword, setIsWrongPassword] = useState<boolean>(false);
+
+    const [joinedRoom, setJoinedRoom] = useState<Room | null>(null);
+
+    const [isSearchingGame, setIsSearchingGame] = useState<boolean>(false);
 
     const navigate = useNavigate();
     const navigateToGame = () => navigate("/game");
@@ -65,104 +93,94 @@ export default function NewLobby() {
         onMessage: (event) => {
             if (event.data === "[HEARTBEAT]") {
                 websocket.sendMessage("/heartbeat/");
-                return;
             }
 
-            if (event.data.startsWith("[INVITATION]")) {
-                if (pendingInvitation) return;
-                const otherPlayer = event.data.substring(event.data.indexOf(":") + 1);
-                if (mutedInvitesFrom.includes(otherPlayer)) return;
-                playInvitationSfx();
-                setPendingInvitation(true);
-                setInviteFrom(otherPlayer);
-                setInviteTo("");
-                return;
-            }
-
-            if (event.data.startsWith("[INVITATION_ABORTED]")) {
-                setInvitationSent(false);
-                setPendingInvitation(false);
-                return;
-            }
-
-            if (event.data.startsWith("[INVITATION_ACCEPTED]")) {
-                const acceptedFrom: string = event.data.substring(event.data.indexOf(":") + 1);
-                if (acceptedFrom === inviteTo) {
-                    const newGameID = user + "‗" + acceptedFrom;
-                    setGameId(newGameID);
-                    navigateToGame();
-                }
-                return;
+            if (event.data === "[SUCCESS]") {
+                setIsLoading(false);
             }
 
             if (event.data === "[NO_ACTIVE_DECK]") {
                 notifyNoActiveDeck();
                 setNoActiveDeck(true);
-                return;
+                setIsLoading(true);
             }
 
             if (event.data === "[BROKEN_DECK]") {
                 notifyBrokenDeck();
                 setNoActiveDeck(true);
-                return;
-            }
-
-            if (event.data.startsWith("[RECONNECT_ENABLED]")) {
-                const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length)
-                setIsRejoinable(matchingRoomId === gameId);
-                // gameId could be set to older matching room id here, but not sure if this makes sense
-                return;
-            }
-
-            if (event.data === "[RECONNECT_DISABLED]") {
-                setIsRejoinable(false);
-                return;
+                setIsLoading(true);
             }
 
             if (event.data.startsWith("[USER_COUNT]:")) {
                 setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
-                return;
             }
 
-            if (event.data.startsWith("[CHAT_MESSAGE]")) {
+            if (event.data.startsWith("[ROOMS]:")) {
+                setRooms(JSON.parse(event.data.substring("[ROOMS]:".length)));
+            }
+
+            if (event.data === ("[PROMPT_PASSWORD]")) {
+                setIsWrongPassword(false);
+                setPassword("");
+                setIsPasswordDialogOpen(true);
+            }
+
+            if (event.data.startsWith("[JOIN_ROOM]:")) {
+                setJoinedRoom(JSON.parse(event.data.substring("[JOIN_ROOM]:".length)));
+                setIsLoading(false);
+                setNewRoomName("");
+                setNewRoomPassword("");
+                setIsPasswordDialogOpen(false);
+                setNewRoomFormat(Format.CUSTOM);
+            }
+
+            if (event.data.startsWith("[ROOM_UPDATE]:")) {
+                setJoinedRoom(JSON.parse(event.data.substring("[ROOM_UPDATE]:".length)));
+            }
+
+            if (event.data === "[LEAVE_ROOM]") {
+                setJoinedRoom(null);
+                setIsLoading(false);
+                playJoinSfx(); // new sound?
+            }
+
+            if (event.data === "[KICKED]") {
+                setJoinedRoom(null);
+                playKickSfx();
+            }
+
+            if (event.data === "[PLAYER_JOINED]") {
+                playJoinSfx();
+            }
+
+            if (event.data === "[WRONG_PASSWORD]") {
+                setIsLoading(false);
+                setIsWrongPassword(true);
+            }
+
+            if (event.data.startsWith("[START_GAME]:")) {
+                const gameId = event.data.substring("[START_GAME]:".length);
+                setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
+                clearBoard();
+                setIsLoading(false);
+                navigateToGame();
+            }
+
+            if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
+                const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length)
+                setIsRejoinable(matchingRoomId === gameId);
+                // gameId could be set to older matching room id here, but not sure if this makes sense
+            }
+
+            if (event.data === "[RECONNECT_DISABLED]") {
+                setIsRejoinable(false);
+            }
+
+            if (event.data.startsWith("[CHAT_MESSAGE]:")) {
                 setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
-                return;
             }
-
-            setUsernames(event.data.split(", "));
         },
     });
-
-    function handleInvite(invitedUsername: string) {
-        clearBoard();
-        localStorage.removeItem("bearStore");
-        setInvitationSent(true);
-        setInviteTo(invitedUsername);
-        const invitationMessage = `/invite:` + invitedUsername;
-        websocket.sendMessage(invitationMessage);
-    }
-
-    function handleAbortInvite(isSender: boolean) {
-        setInvitationSent(false);
-        setPendingInvitation(false);
-        const abortMessage = `/abortInvite:` + (isSender ? inviteTo : inviteFrom);
-        websocket.sendMessage(abortMessage);
-    }
-
-    function handleAcceptInvite() {
-        clearBoard();
-        localStorage.removeItem("bearStore");
-        websocket.sendMessage(`/acceptInvite:` + inviteFrom);
-        const newGameId = inviteFrom + "‗" + user;
-        setGameId(newGameId);
-        navigateToGame();
-    }
-
-    function handleMuteInvites() {
-        notifyMuteInvites(inviteFrom);
-        setMutedInvitesFrom([...mutedInvitesFrom, inviteFrom]);
-        handleAbortInvite(false);
-    }
 
     function handleOnCloseSetImageDialog() {
         setSleeveSelectionOpen(false);
@@ -170,13 +188,69 @@ export default function NewLobby() {
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }
 
-    const handleDeckChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setActiveDeck(String(event.target.value))
-        if(noActiveDeck) window.location.reload();
-    };
+    function handleDeckChange (event: ChangeEvent<HTMLSelectElement>) {
+        setActiveDeck(String(event.target.value)) // TODO: check if backend checks validity on each change:
+        if(noActiveDeck) {
+            setNoActiveDeck(false);
+            setIsLoading(false);
+        }
+    }
 
-    function userVisible(username: string) {
-        return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
+    function handleCreateRoom() {
+        setIsLoading(true);
+        cancelQuickPlayQueue();
+        websocket.sendMessage("/createRoom:" + newRoomName + ":" + newRoomPassword + ":" + newRoomFormat);
+    }
+
+    function handleJoinRoom(roomId: string) {
+        setIsLoading(true);
+        cancelQuickPlayQueue();
+        setPassword("");
+        setRoomToJoinId(roomId);
+        websocket.sendMessage("/joinRoom:" + roomId);
+    }
+
+    function handleJoinRoomWithPassword() {
+        setIsLoading(true);
+        websocket.sendMessage("/password:" + roomToJoinId + ":" + password);
+    }
+
+    function handleToggleReady() {
+        setIsLoading(true);
+        websocket.sendMessage("/toggleReady:" + joinedRoom?.id);
+    }
+
+    function handleLeaveRoom() {
+        setIsLoading(true);
+        websocket.sendMessage("/leave:" + joinedRoom?.id + ":" + user);
+    }
+
+    function handleKickPlayer(userName: string) {
+        setIsLoading(true);
+        websocket.sendMessage("/kick:" + joinedRoom?.id + ":" + userName);
+        playKickSfx();
+        console.log("Kicked " + userName);
+    }
+
+    function handleStartGame() {
+        setIsLoading(true);
+        cancelQuickPlayQueue();
+        const newGameID = user + "‗" + joinedRoom?.players.find(p => p.name !== user)?.name;
+        websocket.sendMessage("/startGame:" + joinedRoom?.id + ":" + newGameID);
+    }
+
+    function cancelQuickPlayQueue() {
+        setIsSearchingGame(false);
+        websocket.sendMessage("/cancelQuickPlay");
+    }
+
+    function handleQuickPlay() {
+        if (isSearchingGame) {
+            cancelQuickPlayQueue();
+        } else {
+            setIsSearchingGame(true);
+            websocket.sendMessage("/quickPlay");
+        }
     }
 
     const initialFetch = useCallback(() => {
@@ -189,6 +263,9 @@ export default function NewLobby() {
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }, [activeDeckId]);
 
+    const meInRoom = joinedRoom?.players.find(p => p.name === user);
+    const startGameDisabled = !!joinedRoom && (isLoading || !!joinedRoom.players.find(p => !p.ready) || joinedRoom.players.length < 2);
+
     return (
         <MenuBackgroundWrapper>
             <MenuDialog onClose={handleOnCloseSetImageDialog} open={sleeveSelectionOpen} PaperProps={{sx: {overflow: "hidden"}}}>
@@ -200,6 +277,23 @@ export default function NewLobby() {
                 <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Image"}/>
                 <ChooseDeckImage/>
             </MenuDialog>
+
+            <MenuDialog onClose={() => setIsPasswordDialogOpen(false)} open={isPasswordDialogOpen}>
+                <DialogContent>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center", width: 300, maxWidth: "100vw" }}>
+                        <Input value={password} error={isWrongPassword} type={"password"}
+                               style={{ width: "calc(100% - 1.5rem)", border: `2px solid ${isWrongPassword ? "crimson" : "#1C7540FF"}`}}
+                               onChange={(e) => {
+                                   setPassword(e.target.value);
+                                   setIsWrongPassword(false);
+                               }} />
+                        <Button disabled={!password} onClick={handleJoinRoomWithPassword} style={{ width: "50%", minWidth: 100, background: "#1C7540FF" }}>
+                            {isWrongPassword ? "wrong password" : "Submit"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </MenuDialog>
+
             <Layout>
                 <Header>
                     <SoundBar>
@@ -208,7 +302,7 @@ export default function NewLobby() {
                         {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
                         {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
                         <OnlineUsers>
-                            <PeopleAltIcon fontSize={"large"} />
+                            <PopulationIcon fontSize={"large"} />
                             <span>{userCount} online</span>
                         </OnlineUsers>
                         </div>
@@ -216,29 +310,52 @@ export default function NewLobby() {
                     <span style={{ padding: 25, fontWeight: 800, background: "white", color: "black" }}>
                         USER NAMEPLATE HERE
                     </span>
-                    <Button onClick={navigateToGame} disabled={!isRejoinable}>
-                        RECONNECT
-                    </Button>
+                    {isRejoinable && <Button onClick={navigateToGame}>RECONNECT</Button>}
                     <BackButton/>
                 </Header>
 
                 <Content>
                     <LeftColumn>
-                        <Card style={{ height: 'calc(66.666% - 0.5rem)' }}>
-                            <CardTitle>Available Rooms</CardTitle>
+                        <Card style={{ height: 'calc(66.666% - 0.5rem)', maxHeight: 800 }}>
+                            <CardTitle>{joinedRoom?.name ?? "Available Rooms"}</CardTitle>
                             <ScrollArea>
-                                <RoomList>
-                                    {rooms.map((room) => (
-                                        <RoomItem key={room.id}>
-                                            <span>{room.name}</span>
-                                            <Button>Join</Button>
-                                        </RoomItem>
-                                    ))}
-                                </RoomList>
+                                {joinedRoom
+                                    ? <RoomList>
+                                        {/*TODO: Replace by name plates later*/}
+                                        {joinedRoom.players.map((player) => {
+                                            const me = player.name === user;
+                                            const host = player.name === joinedRoom.hostName;
+                                            const amIHost = user === joinedRoom.hostName;
+
+                                            return (
+                                                <RoomItem key={player.name}>
+                                                    <span>{player.name}{host && "👑"}</span>
+
+                                                    {me && <Button disabled={isLoading} onClick={handleLeaveRoom}>LEAVE</Button>}
+                                                    {!me && amIHost && <Button disabled={isLoading} onClick={() => handleKickPlayer(player.name)}>KICK</Button>}
+
+                                                    {(!me && !host) &&  <span>{player.ready ? "READY" : "NOT READY"}</span>}
+
+                                                    <img alt={player.name + "img"} width={96} height={96}
+                                                         src={profilePicture(player.avatarName)}/>
+                                                </RoomItem>)
+                                        })}
+                                      </RoomList>
+                                    : <RoomList>
+                                          {rooms.map((room) => (
+                                              <RoomItem key={room.id}>
+                                                <span>{room.name}</span>
+                                                {room.hasPassword && <PrivateIcon/>}
+                                                {/*{TODO: handleJoin needs hasPassword as prop}*/}
+                                                <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>Join</Button>
+                                              </RoomItem>)
+                                          )}
+                                      </RoomList>
+                                }
                             </ScrollArea>
                         </Card>
 
-                        <Chat sendMessage={websocket.sendMessage} messages={messages}/>
+                        <Chat sendMessage={websocket.sendMessage} messages={messages} roomId={joinedRoom?.id}/>
                     </LeftColumn>
 
                     <RightColumn>
@@ -254,26 +371,37 @@ export default function NewLobby() {
                             </DeckCard>
                         </Card>
 
-                        <Card>
+                        {!joinedRoom && <Card>
                             <CardTitle>Room Setup</CardTitle>
                             <Input
-                                value={""}
-                                placeholder="Enter room title"
-                                style={{ marginBottom: '1rem' }}
+                                value={newRoomName}
+                                onChange={(e) => setNewRoomName(e.target.value)}
+                                placeholder="Room name"
+                                style={{marginBottom: '1rem', width: "95%"}}
                             />
-                            <Select
-                                value={selectedFormat}
-                                onChange={(e) => setSelectedFormat(e.target.value)}
-                            >
-                                <option value="">Choose format</option>
-                                <option value="standard">Standard</option>
-                                <option value="turbo">Turbo</option>
-                                <option value="custom">Custom</option>
+                            <Input
+                                value={newRoomPassword}
+                                onChange={(e) => setNewRoomPassword(e.target.value)}
+                                placeholder="Password (optional)"
+                                style={{marginBottom: '1rem', width: "95%"}}
+                            />
+                            <Select value={newRoomFormat} onChange={(e) => setNewRoomFormat(e.target.value as Format)}>
+                                {Object.values(Format).map((format) => <option value={format}
+                                                                               key={format}>{format}</option>)}
                             </Select>
-                            <Button style={{ width: '100%' }}>Create Room</Button>
-                        </Card>
+                            <Button disabled={!newRoomName || isLoading} onClick={handleCreateRoom}
+                                    style={{width: '100%'}}>
+                                Create Room
+                            </Button>
+                        </Card>}
                         <Card>
-                            <QuickPlayButton>Quick Play</QuickPlayButton>
+                            {joinedRoom
+                                ? user === joinedRoom.hostName
+                                    ? <StartButton disabled={startGameDisabled} onClick={handleStartGame}>START GAME</StartButton>
+                                    : <ReadyButton disabled={isLoading} isReady={meInRoom?.ready} onClick={handleToggleReady}>READY</ReadyButton>
+                                : <QuickPlayButton disabled={isLoading} onClick={handleQuickPlay}>
+                                    {isSearchingGame ? "LOOKING FOR GAME..." :"Quick Play"}
+                                </QuickPlayButton>}
                         </Card>
                     </RightColumn>
                 </Content>
@@ -420,10 +548,10 @@ const Button = styled.button`
   }
 `
 
-const Input = styled.input`
+const Input = styled.input<{ error?: boolean }>`
   flex-grow: 1;
   padding: 0.5rem;
-  border: 1px solid var(--christmas-green);
+  border: 1px solid ${({error}) => error ? "crimson" : "var(--christmas-green)"};
   border-radius: 2px;
   background-color: #0c0c0c;
   color: ghostwhite;
@@ -469,6 +597,31 @@ const QuickPlayButton = styled(Button)`
   &:hover {
     background-color: #1d7dfc;
     color: ghostwhite;
+  }
+`
+
+const ReadyButton = styled(QuickPlayButton)<{ isReady?: boolean }>`
+  width: 100%;
+  background-color: ${props => props.isReady ? 'var(--christmas-green)' : 'var(--yellow)'};
+  color: #0c0c0c;
+  font-size: 1.2rem;
+  padding: 1rem;
+  
+  &:hover {
+    background-color: ${props => props.isReady ? '#38423f' : '#1d7dfc'};
+    color: ${props => props.isReady ? '#0c0c0c' : 'ghostwhite'};
+  }
+`
+const StartButton = styled(Button)<{disabled: boolean}>`
+  width: 100%;
+  background-color: ${props => props.disabled ? '#38423f' : '#218f3c'};
+  color: #0c0c0c;
+  font-size: 1.2rem;
+  padding: 1rem;
+
+  &:hover {
+    background-color: ${props => props.disabled ? '#38423f' : '#1d7dfc'};
+    color: ${props => props.disabled ? '#0c0c0c' : 'ghostwhite'};
   }
 `
 

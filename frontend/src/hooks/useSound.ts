@@ -11,7 +11,6 @@ import shuffleDeckSfx from "../assets/sounds/shuffle-deck.mp3";
 import suspendSfx from "../assets/sounds/suspend.mp3";
 import unsuspendSfx from "../assets/sounds/unsuspend.mp3";
 import opponentPlaceCardSfx from "../assets/sounds/opponent-place-card.mp3";
-import invitationSfx from "../assets/sounds/invite.mp3";
 import nextPhaseSfx from "../assets/sounds/next-phase.mp3";
 import passTurnSfx from "../assets/sounds/pass-turn.mp3";
 import nextAttackPhaseSfx from "../assets/sounds/next-attack-phase.mp3";
@@ -20,6 +19,9 @@ import activateEffect from "../assets/sounds/activate-effect.mp3";
 import targetCardSfx from "../assets/sounds/effect-target.mp3";
 import modifyCardSfx from "../assets/sounds/modify-card.mp3";
 import rematchSfx from "../assets/sounds/rematch.mp3";
+import joinSfx from "../assets/sounds/player-joined.mp3";
+import countdownSfx from "../assets/sounds/countdown.mp3";
+import kickSfx from "../assets/sounds/kick.mp3";
 
 import avant from "../assets/music/sad_gatomon_lofi/Avant (@SadGatomon cover).mp3";
 import brave_heart from "../assets/music/sad_gatomon_lofi/Brave Heart (@SadGatomon cover).mp3";
@@ -86,7 +88,6 @@ type State = {
     playSuspendSfx: () => void,
     playUnsuspendSfx: () => void,
     playOpponentPlaceCardSfx: () => void,
-    playInvitationSfx: () => void,
     playNextPhaseSfx: () => void,
     playPassTurnSfx: () => void,
     playNextAttackPhaseSfx: () => void,
@@ -95,6 +96,9 @@ type State = {
     playTargetCardSfx: () => void,
     playModifyCardSfx: () => void,
     playRematchSfx: () => void,
+    playJoinSfx: () => void,
+    playCountdownSfx: () => void,
+    playKickSfx: () => void,
 };
 
 export const sadgatomonPlaylist = [
@@ -209,7 +213,6 @@ export const useSound = create<State>((set, get) => {
     const playSuspendSfx = (): void => playSound(suspendSfx, 1);
     const playUnsuspendSfx = (): void => playSound(unsuspendSfx, 0.15);
     const playOpponentPlaceCardSfx = (): void => playSound(opponentPlaceCardSfx, 0.7, 100);
-    const playInvitationSfx = (): void => playSound(invitationSfx, 0.8);
     const playNextPhaseSfx = (): void => playSound(nextPhaseSfx, 0.25);
     const playPassTurnSfx = (): void => playSound(passTurnSfx, 0.7);
     const playNextAttackPhaseSfx = (): void => playSound(nextAttackPhaseSfx, 1);
@@ -218,6 +221,9 @@ export const useSound = create<State>((set, get) => {
     const playTargetCardSfx = (): void => playSound(targetCardSfx, 0.25,0,true);
     const playModifyCardSfx = (): void => playSound(modifyCardSfx, 1);
     const playRematchSfx = (): void => playSound(rematchSfx, 0.6);
+    const playJoinSfx = (): void => playSound(joinSfx, 0.6);
+    const playCountdownSfx = (): void => playSound(countdownSfx, 0.9);
+    const playKickSfx = (): void => playSound(kickSfx, 0.9);
 
     return {
         ...initialState,
@@ -242,7 +248,6 @@ export const useSound = create<State>((set, get) => {
         playSuspendSfx,
         playUnsuspendSfx,
         playOpponentPlaceCardSfx,
-        playInvitationSfx,
         playNextPhaseSfx,
         playPassTurnSfx,
         playNextAttackPhaseSfx,
@@ -250,7 +255,10 @@ export const useSound = create<State>((set, get) => {
         playActivateEffectSfx,
         playTargetCardSfx,
         playModifyCardSfx,
-        playRematchSfx
+        playRematchSfx,
+        playJoinSfx,
+        playCountdownSfx,
+        playKickSfx
     };
 });
 
