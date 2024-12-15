@@ -212,6 +212,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
     }, [setIsOpponentOnline]);
 
     const websocket = useWebSocket(websocketURL, {
+        heartbeat: { interval: 5000, message: `${gameId}:/online:${opponentName}` },
+        shouldReconnect: () => true,
 
         onOpen: () => {
             if(bootStage > BootStage.SHOW_STARTING_PLAYER) {

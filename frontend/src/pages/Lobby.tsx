@@ -57,9 +57,12 @@ export default function Lobby() {
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
+    const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
 
     const playJoinSfx = useSound((state) => state.playJoinSfx);
     const playKickSfx = useSound((state) => state.playKickSfx);
+
+    const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
@@ -89,12 +92,17 @@ export default function Lobby() {
     const navigate = useNavigate();
     const navigateToGame = () => navigate("/game");
 
-    const websocket = useWebSocket(websocketURL, {
-        onMessage: (event) => {
-            if (event.data === "[HEARTBEAT]") {
-                websocket.sendMessage("/heartbeat/");
-            }
+    function handleReconnect(){
+        setIsOpponentOnline(true);
+        setIsLoading(false);
+        navigateToGame();
+    }
 
+    const websocket = useWebSocket(websocketURL, {
+        heartbeat: { interval: 5000, message: "/heartbeat/" },
+        shouldReconnect: () => true,
+
+        onMessage: (event) => {
             if (event.data === "[SUCCESS]") {
                 setIsLoading(false);
             }
@@ -174,6 +182,10 @@ export default function Lobby() {
 
             if (event.data === "[RECONNECT_DISABLED]") {
                 setIsRejoinable(false);
+            }
+
+            if(event.data === "[SESSION_ALREADY_CONNECTED]"){
+                setIsAlreadyOpenedInOtherTab(true);
             }
 
             if (event.data.startsWith("[CHAT_MESSAGE]:")) {
@@ -298,9 +310,12 @@ export default function Lobby() {
                 <Header>
                     <SoundBar>
                         <div style={{ display: "flex", alignItems: "center", gap: 40, marginLeft: 20 }}>
-                        {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
-                        {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
-                        {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
+                        {isAlreadyOpenedInOtherTab ? <ConnectionSpanYellow>⦾</ConnectionSpanYellow> :
+                            <>
+                                {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
+                                {[0,3].includes(websocket.readyState) && <ConnectionSpanRed>○</ConnectionSpanRed>}
+                            </>
+                        }
                         <OnlineUsers>
                             <PopulationIcon fontSize={"large"} />
                             <span>{userCount} online</span>
@@ -310,7 +325,7 @@ export default function Lobby() {
                     <span style={{ padding: 25, fontWeight: 800, background: "white", color: "black" }}>
                         USER NAMEPLATE HERE
                     </span>
-                    {isRejoinable && <Button onClick={navigateToGame}>RECONNECT</Button>}
+                    {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
                     <BackButton/>
                 </Header>
 

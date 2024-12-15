@@ -1,7 +1,7 @@
 import {CardType, DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {fallbackCardNumber, useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {generateGradient, getCardTypeImage, handleImageError} from "../../utils/functions.ts";
 import {getSleeve} from "../../utils/sleeves.ts";
 import LevelDistribution from "./LevelDistribution.tsx";
@@ -56,7 +56,7 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const deckCards : CardType[] = deck.decklist.map((uniqueCardNumber) =>
         fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0]
         ?? fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]
-        ?? {...generalToken, cardNumber: "1110101"}
+        ?? {...generalToken, cardNumber: fallbackCardNumber}
     );
 
     const digimonCount = deckCards.filter(card => card.cardType === "Digimon").length;
@@ -64,7 +64,7 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const optionCount = deckCards.filter(card => card.cardType === "Option").length;
     const eggCount = deckCards.filter(card => card.cardType === "Digi-Egg").length;
 
-    const errorCount = deckCards.filter(card => card.cardNumber === "1110101").length;
+    const errorCount = deckCards.filter(card => card.cardNumber === fallbackCardNumber).length;
 
     return (
         <WrapperDiv style={{ pointerEvents: isDragging ? "none" : "unset"}} lobbyView={lobbyView}>

@@ -256,7 +256,7 @@ export default function Card( props : CardProps ) {
                 isTilted={card.isTilted}
                 activeEffect={renderEffectAnimation}
                 targeted={renderTargetAnimation}
-                isTopCard={index === locationCards?.length - 1}
+                isTopCard={index === locationCards?.length - 1 || stackModal === location}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
                 onTouchMove={handleTouchEnd}
@@ -351,7 +351,7 @@ const StyledImage = styled.img<StyledImageProps>`
 
 const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean, inModal: boolean}>`
   touch-action: none;
-    cursor: grabbing;
+  cursor: grabbing;
   position: fixed;
   outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;

@@ -21,6 +21,7 @@ export default function UnsuspendAllButton({ wsUtils, fontSize } : { wsUtils?: W
                 playUnsuspendSfx();
                 wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/unsuspendAll:${wsUtils?.matchInfo.opponentName}`);
                 wsUtils?.sendSfx?.("playUnsuspendSfx");
+                wsUtils?.nextPhase();
             }}>
                 UN-<br/>SUSPEND<br/>ALL
             </MulliganButton>
