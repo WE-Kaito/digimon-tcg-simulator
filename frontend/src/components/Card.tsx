@@ -53,6 +53,7 @@ type CardProps = {
 }
 
 export default function Card( props : CardProps ) {
+    "use no memo"; // opts out this component from being compiled by React Compiler
     const {card, location, index, setImageError, style, onContextMenu, wsUtils} = props;
 
     const cardWidth = useGeneralStates((state) => state.cardWidth);

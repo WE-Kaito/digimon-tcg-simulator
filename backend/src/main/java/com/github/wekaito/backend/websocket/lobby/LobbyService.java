@@ -35,6 +35,8 @@ public class LobbyService extends TextWebSocketHandler {
     private final Set<WebSocketSession> globalActiveSessions = new HashSet<>();
     private final Set<Room> rooms = new HashSet<>();
 
+    private final String warning = "[CHAT_MESSAGE]:【SERVER】: ⚠ The server detected multiple connections for the same user. Make sure to only use one tab per account. ⚠";
+
     @Autowired
     private GameService gameService;
 
@@ -54,15 +56,17 @@ public class LobbyService extends TextWebSocketHandler {
         }
 
         if (globalActiveSessions.stream().anyMatch(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username))) {
-            session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected in another tab."));
-            session.sendMessage(new TextMessage("[SESSION_ALREADY_CONNECTED]"));
-            return;
+            session.sendMessage(new TextMessage(warning));
+            // System.out.println("already connected in global: " + username);
+            // session.sendMessage(new TextMessage("[SESSION_ALREADY_CONNECTED]"));
+            // return;
         }
 
         if (rooms.stream().anyMatch(room -> room.getPlayers().stream().anyMatch(player -> player.getName().equals(username)))) {
-            session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You are already connected in another tab."));
-            session.sendMessage(new TextMessage("[SESSION_ALREADY_CONNECTED]"));
-            return;
+            session.sendMessage(new TextMessage(warning));
+            // System.out.println("already connected in room: " + username);
+            // session.sendMessage(new TextMessage("[SESSION_ALREADY_CONNECTED]"));
+            // return;
         }
 
         globalActiveSessions.add(session);
@@ -74,7 +78,7 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
         synchronized (rooms) {
@@ -85,7 +89,10 @@ public class LobbyService extends TextWebSocketHandler {
 
             if (playerRoom != null) {
                 playerRoom.getPlayers().removeIf(player -> player.getName().equals(username));
-                if (playerRoom.getPlayers().isEmpty()) rooms.remove(playerRoom);
+                if (playerRoom.getPlayers().isEmpty()) {
+                    rooms.remove(playerRoom);
+                    broadcastRooms();
+                }
             }
         }
 

@@ -19,7 +19,11 @@ import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import Chat from "../components/lobby/Chat.tsx";
 import {profilePicture} from "../utils/avatars.ts";
-import {DialogContent} from "@mui/material";
+import {Chip, Dialog, DialogContent} from "@mui/material";
+import {grey, teal} from "@mui/material/colors";
+import crownSrc from "../assets/crown.webp";
+import countdownAnimation from "../assets/lotties/countdown.json";
+import Lottie from "lottie-react";
 
 enum Format {
     CUSTOM = "CUSTOM",
@@ -61,6 +65,7 @@ export default function Lobby() {
 
     const playJoinSfx = useSound((state) => state.playJoinSfx);
     const playKickSfx = useSound((state) => state.playKickSfx);
+    const playCountdownSfx = useSound((state) => state.playCountdownSfx);
 
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
@@ -88,6 +93,8 @@ export default function Lobby() {
     const [joinedRoom, setJoinedRoom] = useState<Room | null>(null);
 
     const [isSearchingGame, setIsSearchingGame] = useState<boolean>(false);
+
+    const [showCountdown, setShowCountdown] = useState<boolean>(false);
 
     const navigate = useNavigate();
     const navigateToGame = () => navigate("/game");
@@ -168,10 +175,7 @@ export default function Lobby() {
 
             if (event.data.startsWith("[START_GAME]:")) {
                 const gameId = event.data.substring("[START_GAME]:".length);
-                setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
-                clearBoard();
-                setIsLoading(false);
-                navigateToGame();
+                startGameSequence(gameId);
             }
 
             if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
@@ -251,6 +255,18 @@ export default function Lobby() {
         websocket.sendMessage("/startGame:" + joinedRoom?.id + ":" + newGameID);
     }
 
+    function startGameSequence(gameId: string) {
+        playCountdownSfx();
+        setShowCountdown(true);
+        const timer = setTimeout(() => {
+            setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
+            clearBoard();
+            setIsLoading(false);
+            navigateToGame();
+        }, 3150);
+        return () => clearTimeout(timer);
+    }
+
     function cancelQuickPlayQueue() {
         setIsSearchingGame(false);
         websocket.sendMessage("/cancelQuickPlay");
@@ -290,6 +306,11 @@ export default function Lobby() {
                 <ChooseDeckImage/>
             </MenuDialog>
 
+            {showCountdown &&
+                <Dialog open={true} sx={{background: "rgba(8,8,8,0.5)"}} PaperProps={{ sx: {background: "none", overflow: "hidden", boxShadow: "none"} }}>
+                    <Lottie animationData={countdownAnimation}/>
+                </Dialog>}
+
             <MenuDialog onClose={() => setIsPasswordDialogOpen(false)} open={isPasswordDialogOpen}>
                 <DialogContent>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center", width: 300, maxWidth: "100vw" }}>
@@ -322,9 +343,7 @@ export default function Lobby() {
                         </OnlineUsers>
                         </div>
                     </SoundBar>
-                    <span style={{ padding: 25, fontWeight: 800, background: "white", color: "black" }}>
-                        USER NAMEPLATE HERE
-                    </span>
+                    {/*TODO: Add own name plate here*/}
                     {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
                     <BackButton/>
                 </Header>
@@ -336,7 +355,6 @@ export default function Lobby() {
                             <ScrollArea>
                                 {joinedRoom
                                     ? <RoomList>
-                                        {/*TODO: Replace by name plates later*/}
                                         {joinedRoom.players.map((player) => {
                                             const me = player.name === user;
                                             const host = player.name === joinedRoom.hostName;
@@ -344,26 +362,28 @@ export default function Lobby() {
 
                                             return (
                                                 <RoomItem key={player.name}>
-                                                    <span>{player.name}{host && "👑"}</span>
+                                                    <StyledSpan>{player.name}</StyledSpan>
 
                                                     {me && <Button disabled={isLoading} onClick={handleLeaveRoom}>LEAVE</Button>}
                                                     {!me && amIHost && <Button disabled={isLoading} onClick={() => handleKickPlayer(player.name)}>KICK</Button>}
+                                                    {!me && !amIHost && <div />}
 
-                                                    {(!me && !host) &&  <span>{player.ready ? "READY" : "NOT READY"}</span>}
+                                                    {host ? <img alt={"HOST"} width={48} src={crownSrc} style={{ justifySelf: "center" }}/>
+                                                          : <StyledChip label={"READY"} sx={{backgroundColor: player.ready ? teal["A700"] : grey[800]}} />}
 
-                                                    <img alt={player.name + "img"} width={96} height={96}
-                                                         src={profilePicture(player.avatarName)}/>
+                                                    {/*TODO: Replace name and avatar by name plates later*/}
+                                                    <img alt={player.name + "img"} width={96} height={96} style={{ justifySelf: "flex-end" }} src={profilePicture(player.avatarName)}/>
                                                 </RoomItem>)
                                         })}
                                       </RoomList>
                                     : <RoomList>
                                           {rooms.map((room) => (
-                                              <RoomItem key={room.id}>
-                                                <span>{room.name}</span>
+                                              <RoomItemLobby key={room.id}>
+                                                <StyledSpan>{room.name}</StyledSpan>
                                                 {room.hasPassword && <PrivateIcon/>}
                                                 {/*{TODO: handleJoin needs hasPassword as prop}*/}
                                                 <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>Join</Button>
-                                              </RoomItem>)
+                                              </RoomItemLobby>)
                                           )}
                                       </RoomList>
                                 }
@@ -400,10 +420,11 @@ export default function Lobby() {
                                 placeholder="Password (optional)"
                                 style={{marginBottom: '1rem', width: "95%"}}
                             />
-                            <Select value={newRoomFormat} onChange={(e) => setNewRoomFormat(e.target.value as Format)}>
-                                {Object.values(Format).map((format) => <option value={format}
-                                                                               key={format}>{format}</option>)}
-                            </Select>
+                            {/*TODO: enable when working enforcement can be implemented */}
+                            {/*<Select value={newRoomFormat} disabled onChange={(e) => setNewRoomFormat(e.target.value as Format)}>*/}
+                            {/*    {Object.values(Format).map((format) => <option value={format}*/}
+                            {/*                                                   key={format}>{format}</option>)}*/}
+                            {/*</Select>*/}
                             <Button disabled={!newRoomName || isLoading} onClick={handleCreateRoom}
                                     style={{width: '100%'}}>
                                 Create Room
@@ -528,8 +549,10 @@ const RoomList = styled.ul`
 `
 
 const RoomItem = styled.li`
-  display: flex;
-  justify-content: space-between;
+  width: calc(100% - 1rem);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 100px;
+  justify-content: center;
   align-items: center;
   padding: 0.5rem;
   border-bottom: 1px solid var(--christmas-green);
@@ -542,6 +565,13 @@ const RoomItem = styled.li`
   &:hover {
     background-color: rgba(29, 125, 252, 0.1);
   }
+`
+
+const RoomItemLobby = styled(RoomItem)`
+  width: unset;
+  display: flex;
+  grid-template-columns: unset;
+  justify-content: space-between;
 `
 
 const Button = styled.button`
@@ -655,4 +685,22 @@ const ConnectionSpanYellow = styled(ConnectionSpanGreen)`
 const ConnectionSpanRed = styled(ConnectionSpanGreen)`
   color: #ce1515;
   filter: drop-shadow(0 0 2px #090101);
+`;
+
+const StyledChip = styled(Chip)`
+  width: 40%;
+  justify-self: center;
+  border-radius: 5px;
+  height: 40px;
+  letter-spacing: 1px;
+  font-size: 1.05rem;
+  box-shadow: inset 0 0 5px 0 rgba(0, 0, 0, 0.8);
+`;
+
+const StyledSpan = styled.span`
+    font-size: 1.2rem;
+    font-family: 'League Spartan', sans-serif;
+    color: ghostwhite;
+    text-shadow: 0 0 5px var(--christmas-green-shadow);
+    justify-self: flex-start;
 `;
