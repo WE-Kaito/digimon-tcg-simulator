@@ -222,7 +222,7 @@ export const useSound = create<State>((set, get) => {
     const playModifyCardSfx = (): void => playSound(modifyCardSfx, 1);
     const playRematchSfx = (): void => playSound(rematchSfx, 0.6);
     const playJoinSfx = (): void => playSound(joinSfx, 0.6);
-    const playCountdownSfx = (): void => playSound(countdownSfx, 0.9);
+    const playCountdownSfx = (): void => playSound(countdownSfx, 0.95);
     const playKickSfx = (): void => playSound(kickSfx, 0.9);
 
     return {
