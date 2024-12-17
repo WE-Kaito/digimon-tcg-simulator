@@ -31,6 +31,8 @@ import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
 import GameChat from "../components/game/GameChat.tsx";
 import GameLog from "../components/game/GameLog.tsx";
 import {Flag as SurrenderIcon, RestartAlt as RestartIcon, VideocamRounded as CameraIcon, VideoCallRounded as CameraTiltedIcon} from "@mui/icons-material";
+import {profilePicture} from "../utils/avatars.ts";
+import ReportButton from "../components/game/ReportButton.tsx";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -64,6 +66,8 @@ export default function GamePage() {
     const gameId = useGameBoardStates(state => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
     const [bootStage, setBootStage] = useGameBoardStates((state) => [state.bootStage, state.setBootStage]);
+    const opponentAvatar = useGameBoardStates(state => state.opponentAvatar);
+    const myAvatar = useGameBoardStates(state => state.myAvatar);
 
     const [playAttackSfx, playEffectAttackSfx, playNextPhaseSfx] = useSound((state) => [
         state.playAttackSfx,
@@ -239,11 +243,10 @@ export default function GamePage() {
                 <Container isMobile={isMobile} style={{ maxHeight: isMobile ? "unset" : "100%" }}>
                     {!isMobile &&
                         <TopStack isMobile={isMobile}>
-                            <div style={{ background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>
-                                Nameplate ME
-                            </div>
-                            <div style={{ background: "darkolivegreen", width: 500, height: 80, maxWidth: "100vw" }}>
-                                Nameplate Opponent
+                            <img alt={"opponentAvatar"} src={profilePicture(myAvatar)} height={80} width={80}/>
+                            <div>
+                                <ReportButton matchInfo={wsUtils.matchInfo}/>
+                                <img alt={"opponentAvatar"} src={profilePicture(opponentAvatar)} height={80} width={80}/>
                             </div>
                         </TopStack>
                     }
