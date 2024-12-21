@@ -174,6 +174,7 @@ export default function Lobby() {
             }
 
             if (event.data.startsWith("[START_GAME]:")) {
+                localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
                 const gameId = event.data.substring("[START_GAME]:".length);
                 startGameSequence(gameId);
             }
@@ -420,7 +421,7 @@ export default function Lobby() {
                                 placeholder="Password (optional)"
                                 style={{marginBottom: '1rem', width: "95%"}}
                             />
-                            {/*TODO: enable when working enforcement can be implemented */}
+                            {/*TODO: enable when format enforcement can be implemented */}
                             {/*<Select value={newRoomFormat} disabled onChange={(e) => setNewRoomFormat(e.target.value as Format)}>*/}
                             {/*    {Object.values(Format).map((format) => <option value={format}*/}
                             {/*                                                   key={format}>{format}</option>)}*/}
