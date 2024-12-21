@@ -438,27 +438,16 @@ export function generateGradient(deckCards : CardType[]) {
     return `linear-gradient(90deg, ${gradientParts.join(', ')})`;
 }
 
-export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("en" | "jp")) : boolean {
+export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("english" | "japanese")) : boolean {
+    if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions[format]))) return false;
+
+    const restrictedCards = deck.filter((card) => card.restrictions[format] === "Restricted to 1")
     let lastCard: CardTypeWithId;
 
-    if (format === "en") {
-        if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions.english))) return false;
-
-        const restrictedCards_en = deck.filter((card) => card.restrictions.english === "Restricted to 1")
-        restrictedCards_en.forEach((card) => {
-            if (lastCard === card) return false;
-            lastCard = card;
-        })
-    }
-    if (format === "jp") {
-        if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions.japanese))) return false;
-
-        const restrictedCards_jp = deck.filter((card) => card.restrictions.japanese === "Restricted to 1")
-        restrictedCards_jp.forEach((card) => {
-            if (lastCard === card) return false;
-            lastCard = card;
-        })
-    }
+    restrictedCards.forEach((card) => {
+        if (lastCard === card) return false;
+        lastCard = card;
+    })
 
     return true;
 }

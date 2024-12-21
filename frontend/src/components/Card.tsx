@@ -212,7 +212,7 @@ export default function Card( props : CardProps ) {
                         </ColorStack>}
                         <KeywordWrapper>
                             {modifiers?.keywords.map((keyword) =>
-                                <ModifierSpan longSpan={keyword.length >= 8} key={`${keyword}_${card.id}`}>
+                                <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
                                     <span>{keyword}</span></ModifierSpan>)}
                         </KeywordWrapper>
                         {card.level && <LevelSpan isMega={card.level >= 6}><span>Lv.</span>{card.level}</LevelSpan>}
@@ -451,16 +451,16 @@ const Wrapper = styled.div`
   transition: transform 0.35s;
 `;
 
-const ModifierSpan = styled.div<{longSpan: boolean}>`
+const ModifierSpan = styled.div<{keyword: string}>`
   font-family: "League Spartan", sans-serif;
   color: ghostwhite;
-  background: rgba(110, 48, 5, 0.9);
+  background: ${({keyword}) => (keyword === "SICK" ? "rgba(1,78,114,0.9)" : "rgba(110, 48, 5, 0.9)")};
   border-radius: 25px;
   height: 18px;
   text-align: center;
   transition: background 0.3s;
-  padding: ${({longSpan}) => (longSpan ? "2px" : "1px")} 5px ${({longSpan}) => (longSpan ? "1px" : "2px")} 5px;
-  font-size: ${({longSpan}) => (longSpan ? "0.8em" : "1em")};
+  padding: ${({keyword}) => (keyword.length >= 8 ? "2px" : "1px")} 5px ${({keyword}) => (keyword.length >= 8 ? "1px" : "2px")} 5px;
+  font-size: ${({keyword}) => (keyword.length >= 8 ? "0.8em" : "1em")};
 
   span {
     filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));

@@ -228,8 +228,8 @@ export const useGeneralStates = create<State>((set, get) => ({
             decklist: sortedDeck.map((card) => card.uniqueCardNumber),
             deckImageCardUrl: sortedDeck.at(-1)?.imgUrl,
             sleeveName: "Default",
-            isAllowed_en: getIsDeckAllowed(sortedDeck, "en"),
-            isAllowed_jp: getIsDeckAllowed(sortedDeck, "jp")
+            isAllowed_en: getIsDeckAllowed(sortedDeck, "english"),
+            isAllowed_jp: getIsDeckAllowed(sortedDeck, "japanese")
         }
 
         axios
@@ -284,8 +284,8 @@ export const useGeneralStates = create<State>((set, get) => ({
         const deckWithoutId = {
             name: name,
             decklist: sortedDeck.map((card) => card.uniqueCardNumber),
-            isAllowed_en: getIsDeckAllowed(sortedDeck, "en"),
-            isAllowed_jp: getIsDeckAllowed(sortedDeck, "jp")
+            isAllowed_en: getIsDeckAllowed(sortedDeck, "english"),
+            isAllowed_jp: getIsDeckAllowed(sortedDeck, "japanese")
         }
 
         axios

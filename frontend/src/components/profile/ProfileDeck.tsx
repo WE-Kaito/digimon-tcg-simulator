@@ -82,7 +82,7 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
                 <ChipEn label={"EN"} sx={{backgroundColor: deck.isAllowed_en ? teal["A700"] : grey[800]}} />
                 <ChipJp label={"JP"} sx={{backgroundColor: deck.isAllowed_jp ? teal["A700"] : grey[800]}} />
 
-                <EditButton onClick={navigateToDeck}>EDIT➤</EditButton>
+                {!lobbyView && <EditButton onClick={navigateToDeck}>EDIT➤</EditButton>}
 
                 <SleeveImage src={getSleeve(deck.sleeveName)} onError={handleImageError} onClick={onSleeveClick}/>
 
