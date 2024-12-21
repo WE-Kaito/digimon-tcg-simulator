@@ -6,6 +6,7 @@ import OpponentAttackResolve from "./OpponentAttackResolve.tsx";
 import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import Lottie from "lottie-react";
 import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
+import { WifiOffRounded as OfflineIcon } from "@mui/icons-material";
 
 export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const [bootStage, isOpponentOnline, startingPlayer] = useGameBoardStates((state) => [
@@ -17,7 +18,7 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
 
     return (
         <Container ref={fontContainerRef}>
-            {!isOpponentOnline ? <ErrorSpan>OFFLINE</ErrorSpan> :
+            {!isOpponentOnline ? <OfflineIcon fontSize={"large"} color={"error"}/> :
             <>
                 {bootStage === BootStage.SHOW_STARTING_PLAYER &&
                     <Lottie animationData={firstAnimation} autoplay={isFirst} loop={false}
@@ -37,10 +38,4 @@ const Container = styled.div`
   align-items: center;
   width: 100%;
   height: 100%;
-`;
-
-const ErrorSpan = styled.span`
-  font-family: Pixel Digivolve, sans-serif;
-  font-size: 1.5em;
-  color: #e30a4c;
 `;

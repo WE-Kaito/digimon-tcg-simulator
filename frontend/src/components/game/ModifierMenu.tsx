@@ -17,7 +17,7 @@ type ModifierMenuProps = {
 const battleKeywords = [
     "Alliance", "Alliance ×2", "Arm. Purge", "Barrier", "Blitz", "Blocker", "Collision", "Decoy", "Evade", "Fortitude",
     "Ice Armor", "Jamming", "Mat. Save", "Overclock", "Partition", "Piercing", "Raid", "Reboot", "Retaliation",
-    "Retal. ×2", "Vortex"
+    "Retal. ×2", "Vortex", "SICK"
 ];
 
 export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
@@ -101,6 +101,7 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                         <Stack direction={"row"} gap={0.5} maxWidth={"100%"} flexWrap={"wrap"}>
                             {keywords.map((keyword) =>
                                 <ModifierSpan  onClick={() => setKeywords((prev) => prev.filter((kw) => kw !== keyword))}
+                                               specialKeyword={keyword === "SICK"}
                                                key={`${keyword}_active`}>{keyword}</ModifierSpan>)}
                         </Stack>
 
@@ -110,6 +111,7 @@ export default function ModifierMenu({ sendSetModifiers } : ModifierMenuProps) {
                                 <Stack maxHeight={400} flexWrap={"wrap"}>
                                 {battleKeywords.map((keyword) => !keywords.includes(keyword) &&
                                     <Item closeOnClick={false} disabled={keywords.length >= 6} key={`${keyword}_selection`}
+                                          style={{ ...(keyword === "SICK" && { background: "rgba(1,78,114,0.9)", borderRadius: 3 }) }}
                                           onClick={() => setKeywords([...keywords, keyword])}>{keyword}</Item>)}
                                 </Stack>
                             </StyledFieldset>
@@ -173,9 +175,9 @@ const SubmitItem = styled(Item)`
   }
 `;
 
-const ModifierSpan = styled.div`
+const ModifierSpan = styled.div<{specialKeyword?: boolean}>`
   color: ghostwhite;
-  background: linear-gradient(to top, #ce570d, #883b09);
+  background: ${({specialKeyword}) => specialKeyword ? "rgba(1,78,114,0.9)" : "linear-gradient(to top, #ce570d, #883b09)"};
   border-radius: 25px;
   height: 30px;
   text-align: center;
