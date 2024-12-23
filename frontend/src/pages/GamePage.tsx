@@ -30,7 +30,14 @@ import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
 import GameChat from "../components/game/GameChat.tsx";
 import GameLog from "../components/game/GameLog.tsx";
-import {Flag as SurrenderIcon, RestartAlt as RestartIcon, VideocamRounded as CameraIcon, VideoCallRounded as CameraTiltedIcon} from "@mui/icons-material";
+import {
+    Flag as SurrenderIcon,
+    RestartAlt as RestartIcon,
+    VideocamRounded as CameraIcon,
+    VideoCallRounded as CameraTiltedIcon,
+    Gavel as RulingsIcon,
+    OpenInNew as LinkIcon,
+} from "@mui/icons-material";
 import {profilePicture} from "../utils/avatars.ts";
 import ReportButton from "../components/game/ReportButton.tsx";
 
@@ -297,6 +304,14 @@ export default function GamePage() {
                                 <StyledIconButton onClick={() => setRestartRequestModal(true)} sx={{ color: "mediumaquamarine" }}>
                                     <RestartIcon fontSize={"large"}/>
                                 </StyledIconButton>
+                                <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
+                                   target="_blank" rel="noopener noreferrer" title={"Rulings"}>
+                                    <StyledIconButton sx={{ color: "dodgerblue", position: "relative" }}>
+                                        <RulingsIcon sx={{ fontSize: "28px", transform: "translateY(2px)"}} />
+                                        <LinkIcon sx={{position: "absolute", right: 0, top: 9, fontSize: "14px"}} />
+                                    </StyledIconButton>
+                                </a>
+
                             </div>
                         </SettingsContainer>
 
@@ -482,6 +497,7 @@ const ChatLogContainer = styled.div<{ isMobile: boolean }>`
 const StyledIconButton = styled(IconButton)`
   width: fit-content;
   opacity: 0.7;
+  display: flex;
 `;
 
 const UserNameSpan = styled.span`
