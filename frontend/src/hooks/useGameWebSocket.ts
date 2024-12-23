@@ -10,10 +10,9 @@ import {useSound} from "./useSound.ts";
 import {useGameUIStates} from "./useGameUIStates.ts";
 
 const currentPort = window.location.port;
-// TODO: players using www. end up in an empty lobby; change this back when deploy live
+// TODO: using www.project-drasil.online as the domain is not working, need a fix
 const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/game" : "wss://project-drasil.online/api/ws/game";
 
-// TODO: refactor these to store?
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;
     restartAttackAnimation: (effect?: boolean) => void; // prop for this and useDropZone
