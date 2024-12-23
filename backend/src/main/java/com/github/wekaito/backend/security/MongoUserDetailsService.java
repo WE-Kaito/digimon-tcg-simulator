@@ -19,6 +19,8 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     private final MongoUserRepository mongoUserRepository;
 
+    private static final String[] badWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "fuck", "fuuck", "rape", "whore", "nigger", "nazi", "jews"};
+
     String exceptionMessage = " not found";
 
     public MongoUser getCurrentUser() {
@@ -50,6 +52,12 @@ public class MongoUserDetailsService implements UserDetailsService {
     public String registerNewUser(RegistrationUser registrationUser){
         if (mongoUserRepository.findByUsername(registrationUser.username()).isPresent()) {
             return "Username already exists!";
+        }
+
+        for (String badWord : badWords) {
+            if (registrationUser.username().toLowerCase().contains(badWord)) {
+                return "Invalid username!";
+            }
         }
 
         MongoUser newUser = new MongoUser(

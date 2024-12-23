@@ -3,7 +3,7 @@ import {CardType, CardTypeGame, CardTypeWithId, DeckType, SearchCards} from "../
 import axios from "axios";
 import { uid } from "uid";
 import 'react-toastify/dist/ReactToastify.css';
-import { notifyAlreadyExists, notifyCredentials, notifyDelete, notifyError, notifyGeneralError, notifyInvalidImport,
+import { notifyAlreadyExists, notifyInvalidUsername, notifyCredentials, notifyDelete, notifyError, notifyGeneralError, notifyInvalidImport,
          notifyLength, notifyName, notifyPasswordChanged, notifyQuestionChanged, notifyRegistered, notifySuccess,
          notifyUpdate, notifyWrongAnswer
 } from "../utils/toasts.ts";
@@ -394,6 +394,9 @@ export const useGeneralStates = create<State>((set, get) => ({
                 setRegisterPage(false);
                 if (response.data === "Username already exists!") {
                     notifyAlreadyExists();
+                }
+                if (response.data === "Invalid username!") {
+                    notifyInvalidUsername();
                 }
                 if (response.data === "Successfully registered!") {
                     notifyRegistered();

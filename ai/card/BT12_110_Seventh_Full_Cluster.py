@@ -15,7 +15,7 @@ class BT12_110_Seventh_Full_Cluster(Card):
         if len(opponent_digimons) > 0:
             await self.bot.delete_card_from_opponent_battle_area(ws, sorted(opponent_digimons)[0][1])
         else:
-            self.bot.send_message('No digimons to delete in opponent battle area.')
+            await self.bot.send_message(ws, 'No digimons to delete in opponent battle area.')
 
     ## TODO: Can make this optional
     async def trash_effect(self, ws):
