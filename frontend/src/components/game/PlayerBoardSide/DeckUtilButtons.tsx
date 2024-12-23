@@ -6,37 +6,37 @@ import {
 } from "@mui/icons-material";
 import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
 import {useSound} from "../../../hooks/useSound.ts";
+import {WSUtils} from "../../../pages/GamePage.tsx";
 
-export default function DeckUtilButtons() {
+export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
     const [myDeckField, opponentReveal,  moveCard, moveCardToStack, getOpponentReady] = useGameBoardStates((state) =>
         [state.myDeckField, state.opponentReveal, state.moveCard, state.moveCardToStack, state.getOpponentReady]);
 
     const [playRevealCardSfx, playTrashCardSfx, playUnsuspendSfx] = useSound((state) => [state.playRevealCardSfx, state.playTrashCardSfx, state.playUnsuspendSfx]);
 
-    // TODO:
     function moveDeckCard(to: string, bottomCard?: boolean) {
         const cardId = (bottomCard) ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;
         if (to === "myReveal") {
             playRevealCardSfx();
-            // sendSfx("playRevealSfx");
+            wsUtils?.sendSfx("playRevealSfx");
             moveCard(cardId, "myDeckField", "myReveal");
-            // sendMoveCard(cardId, "myDeckField", "myReveal");
-            // if (bottomCard) sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
-            // else sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
+            wsUtils?.sendMoveCard(cardId, "myDeckField", "myReveal");
+            if (bottomCard) wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[myDeckField.length - 1].name}】﹕Deck Bottom ➟ Reveal`);
+            else wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Reveal`);
         }
         if (to === "myTrash") {
             playTrashCardSfx();
-            // sendSfx("playTrashCardSfx");
+            wsUtils?.sendSfx("playTrashCardSfx");
             moveCard(cardId, "myDeckField", "myTrash");
-            // sendMoveCard(cardId, "myDeckField", "myTrash");
-            // sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
+            wsUtils?.sendMoveCard(cardId, "myDeckField", "myTrash");
+            wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【${myDeckField[0].name}】﹕Deck ➟ Trash`);
         }
         if (to === "mySecurity") {
             playUnsuspendSfx();
-            // sendSfx("playUnsuspendCardSfx");
+            wsUtils?.sendSfx("playUnsuspendCardSfx");
             moveCardToStack("Top", cardId, "myDeckField", "mySecurity");
-            // sendCardToStack("Top", cardId, "myDeckField", "mySecurity");
-            // sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
+            wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/moveCardToStack:${wsUtils.matchInfo.opponentName}:Top:${cardId}:myDeckField:mySecurity:false`)
+            wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`)
         }
     }
 

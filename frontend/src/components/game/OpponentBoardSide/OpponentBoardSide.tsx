@@ -15,7 +15,7 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
             <OpponentSecurityStack />
             <OpponentEggDeck/>
             {Array.from({ length: 15 }).map((_, index) => (
-                <BattleArea key={index} num={index + 1} side={SIDE.OPPONENT}/>
+                <BattleArea key={"opponentBA" + index} num={index + 1} side={SIDE.OPPONENT}/>
             ))}
             <BattleArea isBreeding side={SIDE.OPPONENT}/>
             <OpponentEventUtils wsUtils={wsUtils}/>

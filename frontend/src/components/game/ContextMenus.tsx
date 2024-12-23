@@ -114,7 +114,7 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
         moveCard(myHand[props.index].id, "myHand", "myReveal");
         playRevealCardSfx();
         sendMoveCard?.(myHand[props.index].id, "myHand", "myReveal");
-        sendChatMessage?.(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕Hand ➟ Reveal`);
+        sendChatMessage?.(`[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕…${myHand[props.index].id.slice(-5)}(ID) at Hand ➟ Reveal`);
         sendSfx?.("playRevealSfx");
     }
 
@@ -175,7 +175,7 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
     function activateTargetAnimation({props}: ItemParams<FieldCardContextMenuItemProps>) {
         if (!getOpponentReady() || props === undefined) return;
         const {name, id, location} = props;
-        const logName = (location === "opponentHand") ? `ID: …${id.slice(-5)}` : name;
+        const logName = (location === "opponentHand") ? `…${id.slice(-5)}(ID)` : name;
         setCardIdWithTarget(id);
         playTargetCardSfx();
         sendSfx?.("playTargetCardSfx");

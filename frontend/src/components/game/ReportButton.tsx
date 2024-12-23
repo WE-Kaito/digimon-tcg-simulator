@@ -47,9 +47,9 @@ export default function ReportButton({ matchInfo } : { matchInfo: WSUtils["match
             </MenuDialog>
 
             <IconButton disabled={isDisabled} onClick={() => setIsReportDialogOpen(true)}
-                        sx={{ color: "coral", opacity: 0.5, "&:hover": { opacity: 1 }
+                        sx={{ color: "indianred", opacity: 0.7,
             }}>
-                <ReportIcon />
+                <ReportIcon fontSize={"large"} />
             </IconButton>
         </>
     );

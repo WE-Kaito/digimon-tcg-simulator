@@ -241,15 +241,17 @@ export default function GamePage() {
                     </DetailsContainer>
                 }
                 <Container isMobile={isMobile} style={{ maxHeight: isMobile ? "unset" : "100%" }}>
-                    {!isMobile &&
-                        <TopStack isMobile={isMobile}>
+                    <TopStack isMobile={isMobile}>
+                        <div>
                             <img alt={"opponentAvatar"} src={profilePicture(myAvatar)} height={80} width={80}/>
-                            <div>
-                                <ReportButton matchInfo={wsUtils.matchInfo}/>
-                                <img alt={"opponentAvatar"} src={profilePicture(opponentAvatar)} height={80} width={80}/>
-                            </div>
-                        </TopStack>
-                    }
+                            <UserNameSpan>{user}</UserNameSpan>
+                        </div>
+                        <div>
+                            <UserNameSpan>{opponentName}</UserNameSpan>
+                            <img alt={"opponentAvatar"} src={profilePicture(opponentAvatar)} height={80} width={80}/>
+                        </div>
+                    </TopStack>
+
                     <BoardContainer isMobile={isMobile}>
                         <DndContext onDragEnd={handleDragEnd} autoScroll={false} collisionDetection={pointerWithin}
                                     sensors={[mouseSensor, touchSensor]}>
@@ -287,11 +289,12 @@ export default function GamePage() {
                                     {isCameraTilted ? <CameraTiltedIcon fontSize={"large"}/> : <CameraIcon fontSize={"large"}/>}
                                 </RadioMenuChildIconButton>
                             </SoundBar>
-                            <div style={{ display: "flex", gap: "10px", paddingBottom: "10px" }}>
-                                <StyledIconButton onClick={() => setSurrenderModal(true)} sx={{ color: "brown" }}>
+                            <div style={{ display: "flex", gap: "9px", paddingBottom: "10px" }}>
+                                <ReportButton matchInfo={wsUtils.matchInfo}/>
+                                <StyledIconButton onClick={() => setSurrenderModal(true)} sx={{ color: "blanchedalmond" }}>
                                     <SurrenderIcon fontSize={"large"}/>
                                 </StyledIconButton>
-                                <StyledIconButton onClick={() => setRestartRequestModal(true)} sx={{ color: "seagreen" }}>
+                                <StyledIconButton onClick={() => setRestartRequestModal(true)} sx={{ color: "mediumaquamarine" }}>
                                     <RestartIcon fontSize={"large"}/>
                                 </StyledIconButton>
                             </div>
@@ -323,7 +326,19 @@ const TopStack = styled.div<{ isMobile: boolean }>`
   display: flex;
   flex-direction: row;
   width: 100%;
-  justify-content: space-between;
+  //justify-content: space-between;
+  order: ${({isMobile}) => isMobile ? 5 : "unset"};
+  flex-wrap: ${({isMobile}) => isMobile ? "wrap" : "unset"};
+
+  div {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+  }
+  
+  div:nth-of-type(2) {
+    justify-content: flex-end;
+  }
 `;
 
 const BottomStack = styled.div<{ isMobile: boolean }>`
@@ -420,7 +435,7 @@ const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string, isCameraTi
   container-name: board-layout;
 
   transform: ${({isCameraTilted}) => isCameraTilted ? "perspective(2000px) rotateX(35deg) rotateZ(0deg)" : "unset"};
-  padding: ${({isCameraTilted}) => isCameraTilted ? "0 3.5vw 0 5vw" : "5px"};
+  padding: ${({isCameraTilted}) => isCameraTilted ? "0 3.5vw 0 5vw" : "0"};
   
   @container board-container (max-width: 900px) {
     width: unset;
@@ -467,4 +482,13 @@ const ChatLogContainer = styled.div<{ isMobile: boolean }>`
 const StyledIconButton = styled(IconButton)`
   width: fit-content;
   opacity: 0.7;
+`;
+
+const UserNameSpan = styled.span`
+  font-family: League Spartan, sans-serif;
+  font-size: 68px;
+  line-height: 1;
+  align-self: flex-end;
+  color: ghostwhite;
+  opacity: 0.5;
 `;

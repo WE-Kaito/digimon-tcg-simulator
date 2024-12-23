@@ -18,17 +18,17 @@ export default function PlayerBoardSide({ wsUtils } : { wsUtils?: WSUtils }) {
         <LayoutContainer>
             <PlayerEggDeck wsUtils={wsUtils}/>
             {Array.from({ length: 15 }).map((_, index) => (
-                <BattleArea key={index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils}/>
+                <BattleArea key={"playerBA" + index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils}/>
             ))}
             <BattleArea isBreeding side={SIDE.MY} wsUtils={wsUtils}/>
             <SecurityDropSections />
             <PlayerSecurityStack wsUtils={wsUtils} />
             <PlayerEventUtils wsUtils={wsUtils}/>
             <PlayerTrash />
-            <DeckUtilButtons/>
+            <DeckUtilButtons wsUtils={wsUtils}/>
             <PlayerDeck wsUtils={wsUtils} />
             <PlayerHand />
-            <TokenButton wsUtils={wsUtils}/>
+            <TokenButton />
             <DragToggleButton/>
         </LayoutContainer>
     );
@@ -49,4 +49,6 @@ const LayoutContainer = styled.div`
           "egg-deck-bottom egg-deck-bottom breeding breeding BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 BA14 BA14 BA14 BA14 BA15 BA15 BA15 BA15 hand hand hand hand hand hand hand hand hand hand hand";
   gap: 1px;
   position: relative;
+  max-height: 100%;
+  max-width: 100%;
 `;

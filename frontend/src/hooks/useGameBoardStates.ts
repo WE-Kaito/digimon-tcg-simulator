@@ -28,7 +28,7 @@ export const digimonLocations = ["myBreedingArea", "opponentBreedingArea",
 
 const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
     "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
-
+// TODO: check for mor states to move into UIStates or Tutorial
 export type State = BoardState & {
     gameId: string,
 
@@ -74,10 +74,6 @@ export type State = BoardState & {
     stackSliceIndex: number,
     isOpponentOnline: boolean,
     startingPlayer: string,
-
-    // --------------------------------------------------------
-    // TODO: This section (+ more) should be in own store/slice?, so boardState is not mixed with UI states
-
 
     // --------------------------------------------------------
 
