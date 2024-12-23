@@ -382,7 +382,6 @@ export default function Lobby() {
                                               <RoomItemLobby key={room.id}>
                                                 <StyledSpan>{room.name}</StyledSpan>
                                                 {room.hasPassword && <PrivateIcon/>}
-                                                {/*{TODO: handleJoin needs hasPassword as prop}*/}
                                                 <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>Join</Button>
                                               </RoomItemLobby>)
                                           )}

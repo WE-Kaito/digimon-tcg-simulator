@@ -40,10 +40,10 @@ export default function TermsAndConditionsDialog() {
                 </p>
                 <div style={{ width: "100%", display: "flex", justifyContent: "space-between"}}>
                     <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
-                        <Checkbox checked={checked} onChange={() => setChecked(!checked)}/>
+                        <Checkbox sx={!checked && { svg: {color: "ghostwhite" }}} checked={checked} onChange={() => setChecked(!checked)}/>
                         <span style={{ transform: "translateY(1px)"}}>I have read and acknowledged the terms of use</span>
                     </div>
-                    <Button disabled={!checked} onClick={() => setHasAcceptedRules(true)}>START ››</Button>
+                    <Button sx={{fontWeight: 600}} variant={"outlined"} disabled={!checked} onClick={() => setHasAcceptedRules(true)}>START ››</Button>
                 </div>
             </DialogContent>
         </MenuDialog>

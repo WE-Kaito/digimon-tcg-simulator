@@ -21,4 +21,9 @@ const StyledImg = styled.img`
     opacity: 1;
     filter: drop-shadow(0 0 3px rgb(245, 190, 87));
   }
+  
+  @media (max-width: 768px) {
+    max-width: 26px;
+    max-height: 26px;
+  }
 `;
