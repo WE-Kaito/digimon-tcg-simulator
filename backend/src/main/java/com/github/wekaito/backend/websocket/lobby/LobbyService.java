@@ -220,7 +220,7 @@ public class LobbyService extends TextWebSocketHandler {
 
         if (player1 == null || player2 == null) return;
 
-        String newGameId = player1.getPrincipal().getName() + "‗" + player2.getPrincipal().getName();
+        String newGameId = Objects.requireNonNull(player1.getPrincipal()).getName() + "‗" + Objects.requireNonNull(player2.getPrincipal()).getName();
 
         globalActiveSessions.remove(player1);
         globalActiveSessions.remove(player2);
