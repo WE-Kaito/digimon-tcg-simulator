@@ -16,18 +16,13 @@ public class ReportController {
 
     @PostMapping
     public ResponseEntity<String> sendReport(@RequestBody Map<String, Object> payload) {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> discordResponse = restTemplate.postForEntity(discordWebhookUrl, payload, String.class);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> discordResponse = restTemplate.postForEntity(discordWebhookUrl, payload, String.class);
 
-            if (discordResponse.getStatusCode().is2xxSuccessful()) {
-                return ResponseEntity.ok("Report sent successfully.");
-            } else {
-                return ResponseEntity.status(discordResponse.getStatusCode()).body("Failed to send report to Discord.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while sending the report.");
+        if (discordResponse.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.ok("Report sent successfully.");
+        } else {
+            return ResponseEntity.status(discordResponse.getStatusCode()).body("Failed to send report to Discord.");
         }
     }
 }
