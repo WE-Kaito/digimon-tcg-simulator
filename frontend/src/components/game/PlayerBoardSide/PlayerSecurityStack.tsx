@@ -88,7 +88,7 @@ export default function PlayerSecurityStack({wsUtils}: { wsUtils?: WSUtils }) {
                 <SecuritySpan onContextMenu={(e) => !isDisabled && showSecurityStackMenu({event: e})}
                               id={"mySecurity"}
                               style={{fontSize, cursor: isDisabled ? "not-allowed" : "pointer"}}
-                              onClick={() => !isDisabled && sendSecurityReveal?.()}
+                              onClick={() => !isDisabled && sendSecurityReveal()}
                               onTouchStart={handleTouchStart}
                               onTouchEnd={handleTouchEnd}
                               className={"prevent-default-long-press"}

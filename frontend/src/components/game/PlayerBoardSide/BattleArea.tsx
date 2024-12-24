@@ -106,7 +106,7 @@ const BottomDropZone = styled.div<{ isOver: boolean }>`
   height: 10%;
   width: 100%;
   background-color: ${({isOver}) => isOver ? "ghostwhite" : "black"};
-  opacity: ${({isOver}) => isOver ? 0.75 : 0.75};
+  opacity: ${({isOver}) => isOver ? 0.9 : 0.75};
   border-radius: 3px;
   transition: all 0.15s ease-in-out;
   text-wrap: nowrap;

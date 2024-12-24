@@ -62,7 +62,7 @@ export default function Profile() {
     useEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
 
     useEffect(() => {
-        if (!isLoading && !orderedDecks.length) () => setRenderAddButton(true)
+        if (!isLoading && !orderedDecks.length) setRenderAddButton(true);
     }, [isLoading, orderedDecks.length]);
 
     return (
