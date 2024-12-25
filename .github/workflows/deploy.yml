@@ -89,7 +89,7 @@ jobs:
     environment: Musubi
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Deploy to Server
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
