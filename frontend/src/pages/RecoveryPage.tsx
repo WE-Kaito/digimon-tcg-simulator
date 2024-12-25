@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Headline2} from "../components/Header.tsx";
@@ -12,10 +12,10 @@ export default function RecoveryPage() {
     const navigate = useNavigate();
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
 
-    const usernameForRecovery = useStore((state) => state.usernameForRecovery);
-    const recoveryQuestion = useStore((state) => state.recoveryQuestion);
-    const getRecoveryQuestion = useStore((state) => state.getRecoveryQuestion);
-    const recoverPassword = useStore((state) => state.recoverPassword);
+    const usernameForRecovery = useGeneralStates((state) => state.usernameForRecovery);
+    const recoveryQuestion = useGeneralStates((state) => state.recoveryQuestion);
+    const getRecoveryQuestion = useGeneralStates((state) => state.getRecoveryQuestion);
+    const recoverPassword = useGeneralStates((state) => state.recoverPassword);
 
     const [newPassword, setNewPassword] = useState("");
     const [newPasswordRepeated, setNewPasswordRepeated] = useState("");

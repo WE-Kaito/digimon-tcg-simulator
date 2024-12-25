@@ -1,11 +1,11 @@
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import styled from "@emotion/styled";
 import {useSound} from "../../hooks/useSound.ts";
 export default function ChooseDeckImage() {
 
-    const selectedSleeveOrImage = useStore((state) => state.selectedSleeveOrImage);
-    const setCardImage = useStore((state) => state.setCardImage);
-    const imageUrls = useStore((state) => state.getCardImagesInDeck());
+    const selectedSleeveOrImage = useGeneralStates((state) => state.selectedSleeveOrImage);
+    const setCardImage = useGeneralStates((state) => state.setCardImage);
+    const imageUrls = useGeneralStates((state) => state.getCardImagesInDeck());
     const rows = Math.ceil(imageUrls.length / 10);
     const mobileRows = Math.ceil(imageUrls.length / 5);
 

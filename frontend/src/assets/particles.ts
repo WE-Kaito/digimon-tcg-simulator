@@ -593,3 +593,56 @@ export const blueTriangles: ISourceOptions = {
     }
   }
 };
+
+export const snow: ISourceOptions = {
+  particles: {
+    color: { value: "#fff" },
+    move: {
+      direction: "bottom",
+      enable: true,
+      outModes: "out",
+      speed: 2
+    },
+    number: {
+      density: {
+        enable: true,
+        area: 800
+      },
+      value: 400
+    },
+    opacity: {
+      value: {min: 0.3, max: 0.7 }
+    },
+    shape: {
+      type: "circle"
+    },
+    size: {
+      value: 10
+    },
+    wobble: {
+      enable: true,
+      distance: 8,
+      speed: 12
+    },
+    zIndex: {
+      value: { min: 25, max: 120 }
+    },
+    push: {
+      default: true,
+      groups: [],
+      quantity: 4
+    },
+    "repulse": {
+      "random": {
+        "enable": false,
+        "minimumValue": 0
+      },
+      "value": 0,
+      "enabled": false,
+      "distance": 1,
+      "duration": 1,
+      "factor": 1,
+      "speed": 1
+    }
+  }
+};

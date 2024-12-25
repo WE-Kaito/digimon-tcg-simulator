@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import {useCallback, useEffect, useState} from "react";
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
@@ -14,12 +14,12 @@ import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
 export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
 
-    const selectedCard = useStore((state) => state.selectedCard);
-    const hoverCard = useStore((state) => state.hoverCard);
-    const decks = useStore((state) => state.decks);
-    const fetchDecks = useStore((state) => state.fetchDecks);
-    const fetchCards = useStore((state) => state.fetchCards);
-    const nameOfDeckToEdit = useStore(state => state.nameOfDeckToEdit);
+    const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const hoverCard = useGeneralStates((state) => state.hoverCard);
+    const decks = useGeneralStates((state) => state.decks);
+    const fetchDecks = useGeneralStates((state) => state.fetchDecks);
+    const fetchCards = useGeneralStates((state) => state.fetchCards);
+    const nameOfDeckToEdit = useGeneralStates(state => state.nameOfDeckToEdit);
 
     const [deckName, setDeckName] = useState<string>("New Deck");
     const [currentDeckLength, setCurrentDeckLength] = useState<number>(0);
@@ -30,6 +30,7 @@ export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
         setCurrentDeckLength(decks.length);
         if (isEditMode) setDeckName(nameOfDeckToEdit);
     }, [decks.length, fetchCards, fetchDecks, isEditMode, nameOfDeckToEdit]);
+
     useEffect(() => initialFetch(), [initialFetch]);
 
     return (

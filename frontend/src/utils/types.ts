@@ -171,7 +171,6 @@ export type DraggedItem = {
 }
 
 export type DraggedStack = {
-    index: number,
     location: string,
 }
 
@@ -192,16 +191,16 @@ export type Picture = {
 }
 
 export enum Phase {
-    UNSUSPEND = "Unsuspend",
-    DRAW = "Draw",
-    BREEDING = "Breeding",
-    MAIN = "Main"
+    UNSUSPEND = "UNSUSPEND",
+    DRAW = "DRAW",
+    BREEDING = "BREEDING",
+    MAIN = "MAIN"
 }
 
 export enum AttackPhase {
-    WHEN_ATTACKING = "When Attacking",
-    COUNTER_BLOCK = "Counter › Block",
-    RESOLVE_ATTACK = "Resolve Attack"
+    WHEN_ATTACKING = "WHEN ATTACKING",
+    COUNTER_BLOCK = "COUNTER ＋ BLOCK",
+    RESOLVE_ATTACK = "RESOLVE ATTACK"
 }
 
 export enum BootStage {
@@ -269,4 +268,18 @@ export type BoardState = {
 export type SendToStackFunction =
     (topOrBottom: "Top" | "Bottom", cardId: string, cardLocation: string, to: string, sendFaceUp?: boolean) => void;
 
-export type Side = "my" | "opponent";
+export enum SIDE {
+    MY = "my",
+    OPPONENT = "opponent"
+}
+
+export enum DragMode {
+    SINGLE = "single",
+    STACK = "stack"
+}
+
+export enum OpenedCardModal {
+    MY_SECURITY = "mySecurity",
+    MY_TRASH = "myTrash",
+    OPPONENT_TRASH = "opponentTrash",
+}
