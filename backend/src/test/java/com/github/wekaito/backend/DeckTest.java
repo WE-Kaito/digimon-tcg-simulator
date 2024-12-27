@@ -1,6 +1,5 @@
 package com.github.wekaito.backend;
 
-import com.github.wekaito.backend.models.Deck;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;

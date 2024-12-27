@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import {useEffect, useState} from "react";
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import {Checkbox, FormControlLabel} from "@mui/material";
 import {pink} from "@mui/material/colors";
 
@@ -21,7 +21,7 @@ function ColorOptions() {
 
 export default function SearchForm() {
 
-    const filterCards = useGeneralStates((state) => state.filterCards);
+    const filterCards = useStore((state) => state.filterCards);
 
     const [name, setName] = useState<string>("");
     const [color, setColor] = useState<string>("");

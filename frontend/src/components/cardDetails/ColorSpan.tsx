@@ -1,11 +1,11 @@
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import {getCardColor} from "../../utils/functions.ts";
 import {StyledSpan, TypeStack, StyledDivider} from "./DetailsHeader.tsx";
 
 export default function ColorSpan() {
 
-    const selectedCard = useGeneralStates((state) => state.selectedCard);
-    const hoverCard = useGeneralStates((state) => state.hoverCard);
+    const selectedCard = useStore((state) => state.selectedCard);
+    const hoverCard = useStore((state) => state.hoverCard);
     const currentColors = hoverCard?.color ?? selectedCard?.color;
     const aceEffect = hoverCard?.aceEffect ?? (!hoverCard ? selectedCard?.aceEffect : null);
 

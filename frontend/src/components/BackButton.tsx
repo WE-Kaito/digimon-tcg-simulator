@@ -12,45 +12,36 @@ export default function BackButton( {isOnEditPage}: {isOnEditPage?: boolean}) {
         playButtonClickSfx();
     }
 
-    return <StyledButton onClick={handleClick}>back➤</StyledButton>
+    return <StyledButton onClick={handleClick}><StyledSpan>back</StyledSpan>
+    </StyledButton>
 }
 
 const StyledButton = styled.button`
-  height: 35px;
-  width: 85px;
-  
-  font-family: 'Pixel Digivolve', sans-serif;
-  font-weight: bold;
-  font-size: 0.9em;
-  text-align: center;
-  margin: 0;
-  letter-spacing: 2px;
-  color: #e1e1e0;
-  padding: 0 0 0 5px;
-  
-  border-bottom: 1px solid #131313;
-  border-right: 1px solid #131313;
-
+  height: 40px;
+  width: 70px;
+  background: rgba(20, 20, 20, 0.9);
+  border: none;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  border-radius: 0;
-  background: black;
-  box-shadow: 3px 6px 1px 0 rgb(0, 0, 0);
-  transition: all 0.15s ease;
+  transition: all 0.2s ease-in-out;
+  filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.25)) ;
 
   &:hover {
-    background: lightgray;
-    transform: translateY(1px);
-    box-shadow: 2px 4px 1px 0 rgba(0, 0, 0, 0.9);
-    color: #0c0c0c;
+    background: rgba(192, 192, 192, 0.85);
+    filter: drop-shadow(1px 2px 1px rgba(0, 0, 0, 0.25));
   }
+`;
 
-  &:focus {
-    outline: none;
-  }
-
-  &:active {
-    background: #f8f8f8;
-    transform: translateY(2px);
-    box-shadow: 1px 2px 1px 0 rgba(0, 0, 0, 0.8);
-  }
+const StyledSpan = styled.span`
+  font-family: 'Pixel Digivolve', sans-serif;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin: 0;
+  text-shadow: 1px 2px 1px #03060a;
+  letter-spacing: 2px;
+  color: #e1e1e0;
 `;

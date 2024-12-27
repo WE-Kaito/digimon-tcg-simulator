@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import {FormEvent, useMemo, useState} from "react";
 import {MuiColorInput} from "mui-color-input";
 import ResetIcon from '@mui/icons-material/SettingsBackupRestore';
@@ -7,7 +7,7 @@ import {IconButton, Stack} from "@mui/material";
 
 export default function UserSettings() {
 
-    const changeSafetyQuestion = useGeneralStates((state) => state.changeSafetyQuestion);
+    const changeSafetyQuestion = useStore((state) => state.changeSafetyQuestion);
 
     const getStoredValue = (key: string, defaultValue: string) => {
         const storedValue = localStorage.getItem(key);

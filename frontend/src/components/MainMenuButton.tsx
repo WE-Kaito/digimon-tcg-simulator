@@ -1,14 +1,16 @@
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {useGeneralStates} from "../hooks/useGeneralStates.ts";
+import {useStore} from "../hooks/useStore.ts";
 import {useSound} from "../hooks/useSound.ts";
 
 export default function MainMenuButton({ name, path }: { name: string, path: string }) {
 
     const navigate = useNavigate();
-    const me = useGeneralStates((state) => state.me);
-    const clearDeck = useGeneralStates((state) => state.clearDeck);
+    const me = useStore((state) => state.me);
+    const fetchCards = useStore((state) => state.fetchCards);
+    const fetchedCards = useStore((state) => state.fetchedCards);
+    const clearDeck = useStore((state) => state.clearDeck);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
@@ -17,6 +19,7 @@ export default function MainMenuButton({ name, path }: { name: string, path: str
         playButtonClickSfx();
 
         if (name !== "LOGOUT") {
+            if(fetchedCards.length === 0) fetchCards();
             if(path === "/deckbuilder") clearDeck();
             if(path === "/lobby") localStorage.removeItem('deckCards');
             navigate(path);

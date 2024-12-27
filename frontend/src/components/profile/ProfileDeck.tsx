@@ -1,7 +1,7 @@
 import {CardType, DeckType} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
-import {fallbackCardNumber, useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import {generateGradient, getCardTypeImage, handleImageError} from "../../utils/functions.ts";
 import {getSleeve} from "../../utils/sleeves.ts";
 import LevelDistribution from "./LevelDistribution.tsx";
@@ -16,20 +16,19 @@ const tokenImageUrl = "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-si
 
 export type ProfileDeckProps = {
     deck: DeckType;
+    isDragging: boolean;
     setSleeveSelectionOpen: Dispatch<SetStateAction<boolean>>;
     setImageSelectionOpen: Dispatch<SetStateAction<boolean>>;
-    isDragging?: boolean;
-    lobbyView?: boolean;
 }
 
 export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
 
-    const {deck, isDragging, setSleeveSelectionOpen, setImageSelectionOpen, lobbyView} = props;
+    const {deck, isDragging, setSleeveSelectionOpen, setImageSelectionOpen} = props;
 
-    const fetchedCards = useGeneralStates(state => state.fetchedCards);
-    const setSelectedSleeveOrImage = useGeneralStates((state) => state.setSelectedSleeveOrImage);
-    const setDeckIdToSetSleeveOrImage = useGeneralStates((state) => state.setDeckIdToSetSleeveOrImage);
-    const setDeckById = useGeneralStates((state) => state.setDeckById);
+    const fetchedCards = useStore(state => state.fetchedCards);
+    const setSelectedSleeveOrImage = useStore((state) => state.setSelectedSleeveOrImage);
+    const setDeckIdToSetSleeveOrImage = useStore((state) => state.setDeckIdToSetSleeveOrImage);
+    const setDeckById = useStore((state) => state.setDeckById);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -56,7 +55,7 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const deckCards : CardType[] = deck.decklist.map((uniqueCardNumber) =>
         fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0]
         ?? fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0]
-        ?? {...generalToken, cardNumber: fallbackCardNumber}
+        ?? {...generalToken, cardNumber: "1110101"}
     );
 
     const digimonCount = deckCards.filter(card => card.cardType === "Digimon").length;
@@ -64,13 +63,13 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const optionCount = deckCards.filter(card => card.cardType === "Option").length;
     const eggCount = deckCards.filter(card => card.cardType === "Digi-Egg").length;
 
-    const errorCount = deckCards.filter(card => card.cardNumber === fallbackCardNumber).length;
+    const errorCount = deckCards.filter(card => card.cardNumber === "1110101").length;
 
     return (
-        <WrapperDiv style={{ pointerEvents: isDragging ? "none" : "unset"}} lobbyView={lobbyView}>
+        <WrapperDiv style={{ pointerEvents: isDragging ? "none" : "unset"}}>
             {!!errorCount && <ErrorSpan>{`${errorCount} missing cards`}</ErrorSpan>}
-            {!lobbyView && <DeckName>{deck.name}</DeckName>}
-            <ContainerDiv style={{ transform: isDragging ? "scale(0.95)" : "unset" }} lobbyView={lobbyView}>
+            <DeckName>{deck.name}</DeckName>
+            <ContainerDiv style={{ transform: isDragging ? "scale(0.95)" : "unset" }}>
 
                 <LevelDistribution deckCards={deckCards}/>
 
@@ -82,7 +81,7 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
                 <ChipEn label={"EN"} sx={{backgroundColor: deck.isAllowed_en ? teal["A700"] : grey[800]}} />
                 <ChipJp label={"JP"} sx={{backgroundColor: deck.isAllowed_jp ? teal["A700"] : grey[800]}} />
 
-                {!lobbyView && <EditButton onClick={navigateToDeck}>EDIT➤</EditButton>}
+                <EditButton onClick={navigateToDeck}>EDIT➤</EditButton>
 
                 <SleeveImage src={getSleeve(deck.sleeveName)} onError={handleImageError} onClick={onSleeveClick}/>
 
@@ -95,23 +94,23 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     );
 }
 
-const WrapperDiv = styled.div<{lobbyView?: boolean}>`
+const WrapperDiv = styled.div`
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   border-radius: 12px;
-  height: ${({lobbyView}) => lobbyView ? 160 : 180}px;
+  height: 180px;
   width: 280px;
   background: linear-gradient(20deg, rgba(87, 171, 255, 0.12) 0%, rgba(93, 159, 236, 0.12) 70%, rgba(94, 187, 245, 0.22) 100%);
   padding: 3px;
   box-shadow: inset 0 0 3px 0 rgba(148, 224, 255, 0.4);
 `;
 
-const ContainerDiv = styled.div<{lobbyView?: boolean}>`
+const ContainerDiv = styled.div`
   position: relative;
   width: 100%;
-  height: ${({lobbyView}) => lobbyView ? "92.5%" : "81.5%"};
+  height: 81.5%;
   padding: 6px;
   display: grid;
   justify-content: center;

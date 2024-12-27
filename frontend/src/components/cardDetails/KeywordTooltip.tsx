@@ -93,17 +93,17 @@ function getExplanation(keyword: string) {
         case "Mind":
             return "Place this Tamer under 1 of your Digimon without a Tamer in its digivolution cards.";
         case "Fortitude":
-            return "When this Digimon with Digivolution cards is deleted, play this card without paying the cost.";
+            return "When this Digimon is deleted, if it had any Digivolution cards, it can be played again for no cost.";
         case "Partition":
             return "When this Digimon that has 1 of each specified cards in its digivolution cards would leave the battle area other than by your own effects or by battle, you may play 1 of each card without paying their costs.";
         case "Overclock":
-            return "At the end of your turn, by deleting 1 of your tokens or 1 of your other [X] trait Digimon, this Digimon attacks a player without suspending."
+            return "At the end of your turn, by deleting 1 of your tokens or 1 of your other Digimon with the [X] trait, this Digimon may attack a player without suspending."
         case "Vortex":
-            return "At the end of your turn, this Digimon may attack an opponent's Digimon. With this effect it can attack the turn it was played."
+            return "At the end of your turn on which this Digimon was played, it may attack an opponent's Digimon."
         case "Ice":
-            return "Other than against Security Digimon, compare the number of digivolution cards instead of DP in this Digimon's battles.";
+            return "This Digimon compares its number of digivolution cards instead of DP in battles other than with security Digimon.";
         case "Collision":
-            return "During this Digimon's attack, all of your opponent's Digimon gain ＜Blocker＞, and the opponent blocks if possible.";
+            return "When this Digimon declares an attack, all of your opponent's Digimon gain ＜Blocker＞, and must block if possible.";
             default:
             return "";
     }

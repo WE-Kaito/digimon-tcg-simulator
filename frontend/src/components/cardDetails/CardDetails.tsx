@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-import {useState} from "react";
+import {useEffect, useState, JSX} from "react";
 import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
 import DetailsHeader from "./DetailsHeader.tsx";
 import EffectCard, {EffectText} from "./EffectCard.tsx";
@@ -9,25 +9,24 @@ import {Stack} from "@mui/material";
 import {getDnaColor} from "../../utils/functions.ts";
 import {CardTypeGame, CardTypeWithId} from "../../utils/types.ts";
 import {useLocation} from "react-router-dom";
-import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
+import {useGame} from "../../hooks/useGame.ts";
 import {EffectVariant} from "./constants.ts";
 
 const HybridNames = ["Takuya Kanbara", "Koji Minamoto", "Koichi Kimura", "Tommy Himi", "Zoe Orimoto", "J.P. Shibayama",
                 "Satsuki Tamahime", "Eiji Nagasumi", "Marvin Jackson", "Xu Yulin", "Hacker Judge", "Kosuke Kisakata"];
 
-export default function CardDetails({isMobile} : {isMobile?: boolean}) {
+export default function CardDetails() {
 
     const location = useLocation();
     const inGame = location.pathname === "/game";
 
-    const selectedCard : CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.selectedCard);
-    const hoverCard : CardTypeWithId | CardTypeGame | null  = useGeneralStates((state) => state.hoverCard);
-    const inheritCardInfo = useGameBoardStates((state) => state.inheritCardInfo);
-
-    const [selectedTab, setSelectedTab] = useState("effects");
+    const selectedCard : CardTypeWithId | CardTypeGame | null = useStore((state) => state.selectedCard);
+    const hoverCard : CardTypeWithId | CardTypeGame | null  = useStore((state) => state.hoverCard);
+    const inheritCardInfo = useGame((state) => state.inheritCardInfo);
 
     // First Tab
     const name = hoverCard?.name ?? selectedCard?.name;
+    const isNameLong = Boolean(hoverCard ? (hoverCard.name?.length >= 30) : (selectedCard && (selectedCard?.name.length >= 30)));
     const cardType = hoverCard?.cardType ?? selectedCard?.cardType;
     const mainEffectText = hoverCard?.mainEffect ?? (!hoverCard ? (selectedCard?.mainEffect ?? "") : "");
     const inheritedEffectText = hoverCard?.inheritedEffect ?? (!hoverCard ? (selectedCard?.inheritedEffect ?? "") : "");
@@ -47,27 +46,29 @@ export default function CardDetails({isMobile} : {isMobile?: boolean}) {
     const illustrator = hoverCard?.illustrator ?? (!hoverCard ? (selectedCard?.illustrator ?? "") : "");
     const rulingsUrl = `https://digimoncardgame.fandom.com/wiki/${cardNumber}/Rulings`;
 
+    const [highlightedMainEffect, setHighlightedMainEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedInheritedEffect, setHighlightedInheritedEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedSecurityEffect, setHighlightedSecurityEffect] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedSpecialDigivolve, setHighlightedSpecialDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedBurstDigivolve, setHighlightedBurstDigivolve] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedDigiXros, setHighlightedDigiXros] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [highlightedDNADigivolution, setHighlightedDNADigivolution] = useState<(JSX.Element | JSX.Element[])[]>([]);
+    const [selectedTab, setSelectedTab] = useState("effects");
 
     const notHybrid =!HybridNames.includes(String(name));
     const notXAntibody = !["BT9-109", "EX5-070"].includes(String(cardNumber));
 
+    useEffect(() => {
+        setHighlightedMainEffect(HighlightedKeyWords({text: mainEffectText}));
+        setHighlightedInheritedEffect(HighlightedKeyWords({text: inheritedEffectText}));
+        setHighlightedSecurityEffect(HighlightedKeyWords({text: securityEffectText}));
+        setHighlightedSpecialDigivolve(HighlightedKeyWords({text: specialDigivolveText}));
+        setHighlightedBurstDigivolve(HighlightedKeyWords({text: burstDigivolveText}));
+        setHighlightedDigiXros(HighlightedKeyWords({text: digiXrosText}));
+        setHighlightedDNADigivolution(HighlightedKeyWords({text: dnaDigivolutionText}));
+    }, [selectedCard, hoverCard]);
+
     if (!selectedCard && !hoverCard) return <div style={{height: 500}}/>;
-
-    if (isMobile) return (
-        inheritCardInfo[0]?.length > 0 &&
-        <div style={{maxWidth: 500}}>
-            <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
-                <Stack gap={1}>
-                    {inheritCardInfo.map((text, index) => !!text &&
-                        <span key={`${cardNumber}_inherited_from_material_${index}`}>
-                                            <HighlightedKeyWords text={text}/>
-                                        </span>
-                    )}
-                </Stack>
-            </EffectCard>
-        </div>
-    );
-
     return (
         <Wrapper inGame={inGame}>
 
@@ -83,46 +84,44 @@ export default function CardDetails({isMobile} : {isMobile?: boolean}) {
                     </StyledTab>
                 </TabList>
 
-                <TabPanel item="effects" style={{ height: "100%" }}>
-                    <TabContainer>
+                <TabPanel item="effects">
+                    <TabContainer inGame={inGame} isNameLong={isNameLong}>
 
                         {dnaDigivolutionText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
-                            <HighlightedKeyWords text={dnaDigivolutionText}/>
+                            {highlightedDNADigivolution}
                         </EffectCard>}
 
                         {digiXrosText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
-                            <HighlightedKeyWords text={digiXrosText}/>
+                            {highlightedDigiXros}
                         </EffectCard>}
 
                         {burstDigivolveText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_burst`}>
-                            <HighlightedKeyWords text={burstDigivolveText}/>
+                            {highlightedBurstDigivolve}
                         </EffectCard>}
 
                         {specialDigivolveText && <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_spec`}>
-                            <HighlightedKeyWords text={specialDigivolveText}/>
+                            {highlightedSpecialDigivolve}
                         </EffectCard>}
 
                         {mainEffectText && <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
-                            <HighlightedKeyWords text={mainEffectText}/>
+                            {highlightedMainEffect}
                         </EffectCard>}
 
                         {inheritCardInfo[0]?.length > 0 && <EffectCard variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS} key={`${cardNumber}_inherited`}>
-                            <Stack gap={1}>
-                                {inheritCardInfo.map((text, index) => !!text &&
-                                    <span key={`${cardNumber}_inherited_from_material_${index}`}>
-                                        <HighlightedKeyWords text={text}/>
-                                    </span>
-                                )}
-                            </Stack>
+                            {[<Stack key={`${cardNumber}_inherited_from_material`} gap={1}>
+                            {inheritCardInfo.map((text, index) => text &&
+                                <span key={index + "inherited_from_material"}>{HighlightedKeyWords({ text })}</span>
+                            )}
+                            </Stack>]}
                         </EffectCard>}
 
                         {inheritedEffectText && <EffectCard key={`${cardNumber}_to_inherit`}
                             variant={((cardType === "Option" && notXAntibody)|| (cardType === "Tamer" && notHybrid)) ? EffectVariant.SECURITY : EffectVariant.INHERITED}>
-                            <HighlightedKeyWords text={inheritedEffectText}/>
+                            {highlightedInheritedEffect}
                         </EffectCard>}
 
                         {securityEffectText && <EffectCard variant={EffectVariant.SECURITY} key={`${cardNumber}_security`}>
-                            <HighlightedKeyWords text={securityEffectText}/>
+                            {highlightedSecurityEffect}
                         </EffectCard>}
                     </TabContainer>
                 </TabPanel>
@@ -213,14 +212,14 @@ export default function CardDetails({isMobile} : {isMobile?: boolean}) {
 }
 
 const Wrapper = styled.div<{inGame: boolean}>`
-  width: ${({inGame}) => inGame ? "392px" : "100%"};
-  height: fit-content;
+  width: 100%;
+  height: ${({inGame}) => inGame ? "100%" : "99%"};
   padding: 5px;
   border-radius: 5px;
   grid-area: details;
+  margin-top: ${({inGame}) => inGame ? "15px" : "unset"};
+  transform: ${({inGame}) => inGame ? "translateX(-8px)" : "unset"};
   overflow-y: ${({inGame}) => inGame ? "unset" : "scroll"};
-  container-type: inline-size;
-  container-name: details-container;
 
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;
@@ -288,16 +287,17 @@ const TabLabel2 = styled(TabLabel1)`
   right: 5px;
 `;
 
-const TabContainer = styled.div`
+const TabContainer = styled.div<{ inGame : boolean, isNameLong: boolean }>`
   width: 100%;
-  max-height: calc(100vh - 392px);
+  height: ${({inGame, isNameLong}) => inGame ? (isNameLong ? "343px" : "372px") : ("100%")};
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding: 5px 1px 5px 0;
   gap: 6px;
+  border-bottom-left-radius: ${({inGame}) => inGame ? "8px" : "unset"};
 
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;

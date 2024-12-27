@@ -1,10 +1,6 @@
 import {PropsWithChildren} from "react";
 import styled from "@emotion/styled";
-import {snow} from "../assets/particles.ts";
-import ParticlesBackground from "./ParticlesBackground.tsx";
 export default function MenuBackgroundWrapper({children}: PropsWithChildren) {
-
-    const options = useMemo(() => (snow),[]);
 
     return (
         <StyledDiv>
@@ -14,7 +10,6 @@ export default function MenuBackgroundWrapper({children}: PropsWithChildren) {
 }
 
 const StyledDiv = styled.div`
-  background: #070202;
   display: flex;
   min-height: 100vh;
   min-width: 100vw;

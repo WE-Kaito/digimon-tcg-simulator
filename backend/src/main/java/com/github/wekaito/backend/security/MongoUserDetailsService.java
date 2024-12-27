@@ -1,5 +1,6 @@
 package com.github.wekaito.backend.security;
 
+import com.github.wekaito.backend.IdService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -11,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +19,9 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     private final MongoUserRepository mongoUserRepository;
 
-    private static final String[] badWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "fuck", "fuuck", "rape", "whore", "nigger", "nazi", "jews"};
+    private final String[] BadWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "boob", "fuck", "fuuck", "rape", "whore"};
+
+    private final IdService idService = new IdService();
 
     String exceptionMessage = " not found";
 
@@ -54,14 +56,14 @@ public class MongoUserDetailsService implements UserDetailsService {
             return "Username already exists!";
         }
 
-        for (String badWord : badWords) {
+        for (String badWord : BadWords) {
             if (registrationUser.username().toLowerCase().contains(badWord)) {
                 return "Invalid username!";
             }
         }
 
         MongoUser newUser = new MongoUser(
-                UUID.randomUUID().toString(),
+                idService.createId(),
                 registrationUser.username(),
                 getEncodedPassword(registrationUser.password()),
                 registrationUser.question(),

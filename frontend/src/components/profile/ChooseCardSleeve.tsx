@@ -1,12 +1,12 @@
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import styled from "@emotion/styled";
 import {sleeves, getSleeve} from "../../utils/sleeves.ts";
 import {useSound} from "../../hooks/useSound.ts";
 
 export default function ChooseCardSleeve() {
 
-    const selectedSleeveOrImage = useGeneralStates((state) => state.selectedSleeveOrImage);
-    const setSleeve = useGeneralStates((state) => state.setSleeve);
+    const selectedSleeveOrImage = useStore((state) => state.selectedSleeveOrImage);
+    const setSleeve = useStore((state) => state.setSleeve);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 

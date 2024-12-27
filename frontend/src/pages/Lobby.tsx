@@ -1,286 +1,182 @@
-import styled from "@emotion/styled";
-import {ChangeEvent, useCallback, useEffect, useState} from "react";
-import {PeopleAlt as PopulationIcon, HttpsOutlined as PrivateIcon} from '@mui/icons-material';
-import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
-import {useGeneralStates} from "../hooks/useGeneralStates.ts";
-import useWebSocket from "react-use-websocket";
-import {notifyBrokenDeck, notifyNoActiveDeck} from "../utils/toasts.ts";
-import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
-import {useSound} from "../hooks/useSound.ts";
-import {useNavigate} from "react-router-dom";
-import SoundBar from "../components/SoundBar.tsx";
 import BackButton from "../components/BackButton.tsx";
-import {DeckType} from "../utils/types.ts";
-import ProfileDeck from "../components/profile/ProfileDeck.tsx";
-import axios from "axios";
-import MenuDialog from "../components/MenuDialog.tsx";
-import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
-import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
-import Chat from "../components/lobby/Chat.tsx";
-import {profilePicture} from "../utils/avatars.ts";
-import {Chip, Dialog, DialogContent} from "@mui/material";
-import {grey, teal} from "@mui/material/colors";
-import crownSrc from "../assets/crown.webp";
-import countdownAnimation from "../assets/lotties/countdown.json";
+import useWebSocket from "react-use-websocket";
+import {FormEvent, useCallback, useEffect, useRef, useState} from "react";
+import {Headline2} from "../components/Header.tsx";
+import styled from "@emotion/styled";
 import Lottie from "lottie-react";
+import loadingAnimation from "../assets/lotties/loading.json";
+import {useNavigate} from "react-router-dom";
+import {notifyBrokenDeck, notifyMuteInvites, notifyNoActiveDeck} from "../utils/toasts.ts";
+import discordIcon from "../assets/discordLogo.png";
+import {useGame} from "../hooks/useGame.ts";
+import {Button, MenuItem, Select} from "@mui/material";
+import { SelectChangeEvent } from '@mui/material/Select';
+import {useStore} from "../hooks/useStore.ts";
+import {VolumeOff as MuteIcon} from '@mui/icons-material';
+import {useSound} from "../hooks/useSound.ts";
+import SoundBar from "../components/SoundBar.tsx";
+import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
-enum Format {
-    CUSTOM = "CUSTOM",
-    JP = "JP",
-    EN = "EN",
-}
-
-type LobbyPlayer = {
-    name: string;
-    avatarName: string;
-    ready: boolean;
-}
-
-type Room = {
-    id: string;
-    name: string;
-    hostName: string;
-    hasPassword: boolean;
-    format: Format;
-    players: LobbyPlayer[];
-}
-
-export default function Lobby() {
-    const currentPort = window.location.port;
-    //TODO: using www.project-drasil.online as the domain is not working, need a fix
-    const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/lobby" : "wss://project-drasil.online/api/ws/lobby";
-
-    const user = useGeneralStates((state) => state.user)
-    const setActiveDeck = useGeneralStates(state => state.setActiveDeck);
-    const activeDeckId = useGeneralStates(state => state.activeDeckId);
-    const getActiveDeck = useGeneralStates(state => state.getActiveDeck);
-    const fetchDecks = useGeneralStates(state => state.fetchDecks);
-    const decks = useGeneralStates(state => state.decks);
-
-    const gameId = useGameBoardStates((state) => state.gameId);
-    const setGameId = useGameBoardStates((state) => state.setGameId);
-    const clearBoard = useGameBoardStates((state) => state.clearBoard);
-    const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
-
-    const playJoinSfx = useSound((state) => state.playJoinSfx);
-    const playKickSfx = useSound((state) => state.playKickSfx);
-    const playCountdownSfx = useSound((state) => state.playCountdownSfx);
-
-    const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
-
+export default function Lobby({user}: { user: string }) {
+    const [usernames, setUsernames] = useState<string[]>([]);
+    const [messages, setMessages] = useState<string[]>([]);
+    const [message, setMessage] = useState<string>("");
+    const historyRef = useRef<HTMLDivElement>(null);
+    const [pendingInvitation, setPendingInvitation] = useState<boolean>(false);
+    const [invitationSent, setInvitationSent] = useState<boolean>(false);
+    const [inviteFrom, setInviteFrom] = useState<string>("");
+    const [inviteTo, setInviteTo] = useState<string>("");
+    const [search, setSearch] = useState<string>("");
     const [userCount, setUserCount] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
+    const [mutedInvitesFrom, setMutedInvitesFrom] = useState<string[]>([]);
     const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const [deckObject, setDeckObject] = useState<DeckType | null>(null);
-    const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
-    const [imageSelectionOpen, setImageSelectionOpen] = useState(false)
+    const currentPort = window.location.port;
+    const websocketURL = currentPort === "5173" ? "ws://localhost:8080/api/ws/chat" : "wss://project-drasil.online/api/ws/chat";
 
-    const [messages, setMessages] = useState<string[]>([]);
-    const [rooms, setRooms] = useState<Room[]>([]);
+    const gameId = useGame((state) => state.gameId);
+    const setGameId = useGame((state) => state.setGameId);
+    const clearBoard = useGame((state) => state.clearBoard);
 
-    const [newRoomName, setNewRoomName] = useState<string>("");
-    const [newRoomPassword, setNewRoomPassword] = useState<string>("");
-    const [newRoomFormat, setNewRoomFormat] = useState<Format>(Format.CUSTOM);
+    const setActiveDeck = useStore(state => state.setActiveDeck);
+    const activeDeckId = useStore(state => state.activeDeckId);
+    const getActiveDeck = useStore(state => state.getActiveDeck);
+    const fetchDecks = useStore(state => state.fetchDecks);
+    const decks = useStore(state => state.decks);
+    const isLoading = useStore(state => state.isLoading);
 
-    const [roomToJoinId, setRoomToJoinId] = useState<string>(""); // for password protected rooms
-    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState<boolean>(false);
-    const [password, setPassword] = useState<string>("");
-    const [isWrongPassword, setIsWrongPassword] = useState<boolean>(false);
-
-    const [joinedRoom, setJoinedRoom] = useState<Room | null>(null);
-
-    const [isSearchingGame, setIsSearchingGame] = useState<boolean>(false);
-
-    const [showCountdown, setShowCountdown] = useState<boolean>(false);
+    const playInvitationSfx = useSound((state) => state.playInvitationSfx);
 
     const navigate = useNavigate();
     const navigateToGame = () => navigate("/game");
 
-    function handleReconnect(){
-        setIsOpponentOnline(true);
-        setIsLoading(false);
-        navigateToGame();
-    }
-
     const websocket = useWebSocket(websocketURL, {
-        heartbeat: { interval: 5000, message: "/heartbeat/" },
-        shouldReconnect: () => true,
-
         onMessage: (event) => {
-            if (event.data === "[SUCCESS]") {
-                setIsLoading(false);
+            if (event.data === "[HEARTBEAT]") {
+                websocket.sendMessage("/heartbeat/");
+                return;
+            }
+
+            if (event.data.startsWith("[INVITATION]")) {
+                if (pendingInvitation) return;
+                const otherPlayer = event.data.substring(event.data.indexOf(":") + 1);
+                if (mutedInvitesFrom.includes(otherPlayer)) return;
+                playInvitationSfx();
+                setPendingInvitation(true);
+                setInviteFrom(otherPlayer);
+                setInviteTo("");
+                return;
+            }
+
+            if (event.data.startsWith("[INVITATION_ABORTED]")) {
+                setInvitationSent(false);
+                setPendingInvitation(false);
+                return;
+            }
+
+            if (event.data.startsWith("[INVITATION_ACCEPTED]")) {
+                const acceptedFrom: string = event.data.substring(event.data.indexOf(":") + 1);
+                if (acceptedFrom === inviteTo) {
+                    const newGameID = user + "‗" + acceptedFrom;
+                    setGameId(newGameID);
+                    navigateToGame();
+                }
+                return;
             }
 
             if (event.data === "[NO_ACTIVE_DECK]") {
                 notifyNoActiveDeck();
                 setNoActiveDeck(true);
-                setIsLoading(true);
+                return;
             }
 
             if (event.data === "[BROKEN_DECK]") {
                 notifyBrokenDeck();
                 setNoActiveDeck(true);
-                setIsLoading(true);
+                return;
             }
 
-            if (event.data.startsWith("[USER_COUNT]:")) {
-                setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
-            }
-
-            if (event.data.startsWith("[ROOMS]:")) {
-                setRooms(JSON.parse(event.data.substring("[ROOMS]:".length)));
-            }
-
-            if (event.data === ("[PROMPT_PASSWORD]")) {
-                setIsWrongPassword(false);
-                setPassword("");
-                setIsPasswordDialogOpen(true);
-            }
-
-            if (event.data.startsWith("[JOIN_ROOM]:")) {
-                setJoinedRoom(JSON.parse(event.data.substring("[JOIN_ROOM]:".length)));
-                setIsLoading(false);
-                setNewRoomName("");
-                setNewRoomPassword("");
-                setIsPasswordDialogOpen(false);
-                setNewRoomFormat(Format.CUSTOM);
-            }
-
-            if (event.data.startsWith("[ROOM_UPDATE]:")) {
-                setJoinedRoom(JSON.parse(event.data.substring("[ROOM_UPDATE]:".length)));
-            }
-
-            if (event.data === "[LEAVE_ROOM]") {
-                setJoinedRoom(null);
-                setIsLoading(false);
-                playJoinSfx(); // new sound?
-            }
-
-            if (event.data === "[KICKED]") {
-                setJoinedRoom(null);
-                playKickSfx();
-            }
-
-            if (event.data === "[PLAYER_JOINED]") {
-                playJoinSfx();
-            }
-
-            if (event.data === "[WRONG_PASSWORD]") {
-                setIsLoading(false);
-                setIsWrongPassword(true);
-            }
-
-            if (event.data.startsWith("[START_GAME]:")) {
-                localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
-                const gameId = event.data.substring("[START_GAME]:".length);
-                startGameSequence(gameId);
-            }
-
-            if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
+            if (event.data.startsWith("[RECONNECT_ENABLED]")) {
                 const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length)
                 setIsRejoinable(matchingRoomId === gameId);
                 // gameId could be set to older matching room id here, but not sure if this makes sense
+                return;
             }
 
             if (event.data === "[RECONNECT_DISABLED]") {
                 setIsRejoinable(false);
+                return;
             }
 
-            if(event.data === "[SESSION_ALREADY_CONNECTED]"){
-                setIsAlreadyOpenedInOtherTab(true);
+            if (event.data.startsWith("[USER_COUNT]:")) {
+                setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
+                return;
             }
 
-            if (event.data.startsWith("[CHAT_MESSAGE]:")) {
+            if (event.data.startsWith("[CHAT_MESSAGE]")) {
                 setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+                return;
             }
+
+            setUsernames(event.data.split(", "));
         },
     });
 
-    function handleOnCloseSetImageDialog() {
-        setSleeveSelectionOpen(false);
-        setImageSelectionOpen(false);
-        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
-    }
+    function handleSubmit(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
 
-    function handleDeckChange (event: ChangeEvent<HTMLSelectElement>) {
-        setActiveDeck(String(event.target.value)) // TODO: check if backend checks validity on each change:
-        if(noActiveDeck) {
-            setNoActiveDeck(false);
-            setIsLoading(false);
+        if ((message !== "") && (message !== "/invite:" + user)
+            && (!message.startsWith("/abortInvite") && !message.startsWith("/acceptInvite"))) {
+
+            websocket.sendMessage(message);
+            setMessage("");
         }
     }
 
-    function handleCreateRoom() {
-        setIsLoading(true);
-        cancelQuickPlayQueue();
-        websocket.sendMessage("/createRoom:" + newRoomName + ":" + newRoomPassword + ":" + newRoomFormat);
+    function handleInvite(invitedUsername: string) {
+        clearBoard();
+        localStorage.removeItem("bearStore");
+        setInvitationSent(true);
+        setInviteTo(invitedUsername);
+        const invitationMessage = `/invite:` + invitedUsername;
+        websocket.sendMessage(invitationMessage);
     }
 
-    function handleJoinRoom(roomId: string) {
-        setIsLoading(true);
-        cancelQuickPlayQueue();
-        setPassword("");
-        setRoomToJoinId(roomId);
-        websocket.sendMessage("/joinRoom:" + roomId);
+    function handleAbortInvite(isSender: boolean) {
+        setInvitationSent(false);
+        setPendingInvitation(false);
+        const abortMessage = `/abortInvite:` + (isSender ? inviteTo : inviteFrom);
+        websocket.sendMessage(abortMessage);
     }
 
-    function handleJoinRoomWithPassword() {
-        setIsLoading(true);
-        websocket.sendMessage("/password:" + roomToJoinId + ":" + password);
+    function handleAcceptInvite() {
+        clearBoard();
+        localStorage.removeItem("bearStore");
+        websocket.sendMessage(`/acceptInvite:` + inviteFrom);
+        const newGameId = inviteFrom + "‗" + user;
+        setGameId(newGameId);
+        navigateToGame();
     }
 
-    function handleToggleReady() {
-        setIsLoading(true);
-        websocket.sendMessage("/toggleReady:" + joinedRoom?.id);
+    function handleMuteInvites() {
+        notifyMuteInvites(inviteFrom);
+        setMutedInvitesFrom([...mutedInvitesFrom, inviteFrom]);
+        handleAbortInvite(false);
     }
 
-    function handleLeaveRoom() {
-        setIsLoading(true);
-        websocket.sendMessage("/leave:" + joinedRoom?.id + ":" + user);
+    const handleDeckChange = (event: SelectChangeEvent<unknown>) => {
+        setActiveDeck(String(event.target.value))
+        if(noActiveDeck) window.location.reload();
+    };
+
+    function userVisible(username: string) {
+        return !pendingInvitation && !invitationSent && username !== user && (username.toLowerCase().includes(search.toLowerCase()) || search === "");
     }
 
-    function handleKickPlayer(userName: string) {
-        setIsLoading(true);
-        websocket.sendMessage("/kick:" + joinedRoom?.id + ":" + userName);
-        playKickSfx();
-        console.log("Kicked " + userName);
-    }
-
-    function handleStartGame() {
-        setIsLoading(true);
-        cancelQuickPlayQueue();
-        const newGameID = user + "‗" + joinedRoom?.players.find(p => p.name !== user)?.name;
-        websocket.sendMessage("/startGame:" + joinedRoom?.id + ":" + newGameID);
-    }
-
-    function startGameSequence(gameId: string) {
-        playCountdownSfx();
-        setShowCountdown(true);
-        const timer = setTimeout(() => {
-            setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
-            clearBoard();
-            setIsLoading(false);
-            navigateToGame();
-        }, 3150);
-        return () => clearTimeout(timer);
-    }
-
-    function cancelQuickPlayQueue() {
-        setIsSearchingGame(false);
-        websocket.sendMessage("/cancelQuickPlay");
-    }
-
-    function handleQuickPlay() {
-        if (isSearchingGame) {
-            cancelQuickPlayQueue();
-        } else {
-            setIsSearchingGame(true);
-            websocket.sendMessage("/quickPlay");
-        }
-    }
+    useEffect(() => {
+        if (historyRef.current) historyRef.current.scrollTop = historyRef.current.scrollHeight;
+    }, [messages]);
 
     const initialFetch = useCallback(() => {
         getActiveDeck();
@@ -288,419 +184,460 @@ export default function Lobby() {
     }, [getActiveDeck, fetchDecks]);
     useEffect(() => initialFetch(), [initialFetch]);
 
-    useEffect(() => {
-        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
-    }, [activeDeckId]);
-
-    const meInRoom = joinedRoom?.players.find(p => p.name === user);
-    const startGameDisabled = !!joinedRoom && (isLoading || !!joinedRoom.players.find(p => !p.ready) || joinedRoom.players.length < 2);
-
     return (
         <MenuBackgroundWrapper>
-            <MenuDialog onClose={handleOnCloseSetImageDialog} open={sleeveSelectionOpen} PaperProps={{sx: {overflow: "hidden"}}}>
-                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Sleeve"}/>
-                <ChooseCardSleeve/>
-            </MenuDialog>
+            <SoundBar/>
 
-            <MenuDialog onClose={handleOnCloseSetImageDialog} open={imageSelectionOpen}>
-                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Image"}/>
-                <ChooseDeckImage/>
-            </MenuDialog>
-
-            {showCountdown &&
-                <Dialog open={true} sx={{background: "rgba(8,8,8,0.5)"}} PaperProps={{ sx: {background: "none", overflow: "hidden", boxShadow: "none"} }}>
-                    <Lottie animationData={countdownAnimation}/>
-                </Dialog>}
-
-            <MenuDialog onClose={() => setIsPasswordDialogOpen(false)} open={isPasswordDialogOpen}>
-                <DialogContent>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center", width: 300, maxWidth: "100vw" }}>
-                        <Input value={password} error={isWrongPassword} type={"password"}
-                               style={{ width: "calc(100% - 1.5rem)", border: `2px solid ${isWrongPassword ? "crimson" : "#1C7540FF"}`}}
-                               onChange={(e) => {
-                                   setPassword(e.target.value);
-                                   setIsWrongPassword(false);
-                               }} />
-                        <Button disabled={!password} onClick={handleJoinRoomWithPassword} style={{ width: "50%", minWidth: 100, background: "#1C7540FF" }}>
-                            {isWrongPassword ? "wrong password" : "Submit"}
-                        </Button>
+            {pendingInvitation &&
+                <InvitationMoodle>
+                    <div title="Stop receiving invites from this player until you re-enter the lobby.">
+                        <Mute onClick={handleMuteInvites}/>
                     </div>
-                </DialogContent>
-            </MenuDialog>
+                    <span>Invitation from {inviteFrom}</span>
+                    <div style={{width: "80%", display: "flex", justifyContent: "space-between"}}>
+                        <AcceptButton onClick={handleAcceptInvite}>ACCEPT</AcceptButton>
+                        <DeclineButton onClick={() => handleAbortInvite(false)}>DECLINE</DeclineButton>
+                    </div>
+                </InvitationMoodle>}
 
-            <Layout>
-                <Header>
-                    <SoundBar>
-                        <div style={{ display: "flex", alignItems: "center", gap: 40, marginLeft: 20 }}>
-                        {isAlreadyOpenedInOtherTab ? <ConnectionSpanYellow>⦾</ConnectionSpanYellow> :
-                            <>
-                                {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
-                                {[0,3].includes(websocket.readyState) && <ConnectionSpanRed>○</ConnectionSpanRed>}
-                            </>
-                        }
-                        <OnlineUsers>
-                            <PopulationIcon fontSize={"large"} />
-                            <span>{userCount} online</span>
-                        </OnlineUsers>
-                        </div>
-                    </SoundBar>
-                    {/*TODO: Add own name plate here*/}
-                    {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
+            {invitationSent &&
+                <InvitationMoodle style={{gap: 12}}>
+                    <span>Waiting for answer from {inviteTo} ...</span>
+                    <Lottie animationData={loadingAnimation} loop={true} style={{width: "60px"}}/>
+                    <DeclineButton onClick={() => handleAbortInvite(true)} style={{margin: 0}}>ABORT</DeclineButton>
+                </InvitationMoodle>}
+
+            {websocket.readyState === 0 && <ConnectionSpanYellow>⦾</ConnectionSpanYellow>}
+            {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
+            {websocket.readyState === 3 && <ConnectionSpanRed>○</ConnectionSpanRed>}
+
+            <Header>
+                <Headline2 style={{flexWrap: "nowrap"}}>Online: {userCount}</Headline2>
+
+                {!isLoading && <StyledSelect label="Deck" onChange={handleDeckChange} value={activeDeckId} labelId={"decks"}
+                                             color={"primary"} defaultValue={activeDeckId} variant={"filled"}>
+                    {decks.map((deck) => <MenuItem value={deck.id} key={deck.id}>{deck.name}</MenuItem>)}
+                </StyledSelect>}
+
+                <ButtonContainer>
+                    <Button onClick={navigateToGame} disabled={!isRejoinable} sx={{mr: 10}}
+                            variant="outlined" color="success">RECONNECT</Button>
                     <BackButton/>
-                </Header>
+                </ButtonContainer>
+            </Header>
 
-                <Content>
-                    <LeftColumn>
-                        <Card style={{ height: 'calc(66.666% - 0.5rem)', maxHeight: 800 }}>
-                            <CardTitle>{joinedRoom?.name ?? "Available Rooms"}</CardTitle>
-                            <ScrollArea>
-                                {joinedRoom
-                                    ? <RoomList>
-                                        {joinedRoom.players.map((player) => {
-                                            const me = player.name === user;
-                                            const host = player.name === joinedRoom.hostName;
-                                            const amIHost = user === joinedRoom.hostName;
+            <Container>
+                <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder={"user search..."}/>
 
-                                            return (
-                                                <RoomItem key={player.name}>
-                                                    <StyledSpan>{player.name}</StyledSpan>
+                <UserList>
+                    {usernames.length > 1 ?
+                        usernames.map((username) => (userVisible(username) && username &&
+                            <User key={username}>
+                                {username}
+                                <InviteButton onClick={() => handleInvite(username)}>INVITE</InviteButton>
+                            </User>))
+                        : <span style={{fontFamily: "'Pixel Digivolve', sans-serif", fontSize: 20}}>Currently nobody here...</span>}
+                </UserList>
 
-                                                    {me && <Button disabled={isLoading} onClick={handleLeaveRoom}>LEAVE</Button>}
-                                                    {!me && amIHost && <Button disabled={isLoading} onClick={() => handleKickPlayer(player.name)}>KICK</Button>}
-                                                    {!me && !amIHost && <div />}
+                <Chat>
+                    <History ref={historyRef}>
+                        {messages.map((message, index) => {
+                            const colonIndex = message.indexOf(":");
+                            if (colonIndex !== -1) {
+                                const name = message.substring(0, colonIndex);
+                                const content = message.substring(colonIndex + 1);
 
-                                                    {host ? <img alt={"HOST"} width={48} src={crownSrc} style={{ justifySelf: "center" }}/>
-                                                          : <StyledChip label={"READY"} sx={{backgroundColor: player.ready ? teal["A700"] : grey[800]}} />}
-
-                                                    {/*TODO: Replace name and avatar by name plates later*/}
-                                                    <img alt={player.name + "img"} width={96} height={96} style={{ justifySelf: "flex-end" }} src={profilePicture(player.avatarName)}/>
-                                                </RoomItem>)
-                                        })}
-                                      </RoomList>
-                                    : <RoomList>
-                                          {rooms.map((room) => (
-                                              <RoomItemLobby key={room.id}>
-                                                <StyledSpan>{room.name}</StyledSpan>
-                                                {room.hasPassword && <PrivateIcon/>}
-                                                <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>Join</Button>
-                                              </RoomItemLobby>)
-                                          )}
-                                      </RoomList>
+                                if (name === "【SERVER】"){
+                                    return (
+                                        <div style={{display: "flex"}} key={index}>
+                                            {content === " Join our Discord!"
+                                                ? <StyledSpan name={name} user={user}>
+                                                    <span style={{color:"#31da75"}}>Server</span>:
+                                                    <a href="https://discord.gg/sBdByGAh2y" target="_blank" rel="noopener noreferrer">{content}</a>
+                                                    <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
+                                                </StyledSpan>
+                                                : <StyledSpan name={name} user={user}>
+                                                    <span style={{color:"#31da75"}}>Server</span>:{content}
+                                                </StyledSpan>}
+                                        </div>
+                                    );
                                 }
-                            </ScrollArea>
-                        </Card>
 
-                        <Chat sendMessage={websocket.sendMessage} messages={messages} roomId={joinedRoom?.id}/>
-                    </LeftColumn>
-
-                    <RightColumn>
-                        <Card>
-                            <CardTitle>Deck Selection</CardTitle>
-                            <Select value={activeDeckId} onChange={handleDeckChange}>
-                                {decks.map((deck) => <option value={deck.id} key={deck.id}>{deck.name}</option>)}
-                            </Select>
-                            <DeckCard>
-                                {deckObject && <ProfileDeck deck={deckObject} lobbyView
-                                                            setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                                            setImageSelectionOpen={setImageSelectionOpen}/>}
-                            </DeckCard>
-                        </Card>
-
-                        {!joinedRoom && <Card>
-                            <CardTitle>Room Setup</CardTitle>
-                            <Input
-                                value={newRoomName}
-                                onChange={(e) => setNewRoomName(e.target.value)}
-                                placeholder="Room name"
-                                style={{marginBottom: '1rem', width: "95%"}}
-                            />
-                            <Input
-                                value={newRoomPassword}
-                                onChange={(e) => setNewRoomPassword(e.target.value)}
-                                placeholder="Password (optional)"
-                                style={{marginBottom: '1rem', width: "95%"}}
-                            />
-                            {/*TODO: enable when format enforcement can be implemented */}
-                            {/*<Select value={newRoomFormat} disabled onChange={(e) => setNewRoomFormat(e.target.value as Format)}>*/}
-                            {/*    {Object.values(Format).map((format) => <option value={format}*/}
-                            {/*                                                   key={format}>{format}</option>)}*/}
-                            {/*</Select>*/}
-                            <Button disabled={!newRoomName || isLoading} onClick={handleCreateRoom}
-                                    style={{width: '100%'}}>
-                                Create Room
-                            </Button>
-                        </Card>}
-                        <Card>
-                            {joinedRoom
-                                ? user === joinedRoom.hostName
-                                    ? <StartButton disabled={startGameDisabled} onClick={handleStartGame}>START GAME</StartButton>
-                                    : <ReadyButton disabled={isLoading} isReady={meInRoom?.ready} onClick={handleToggleReady}>READY</ReadyButton>
-                                : <QuickPlayButton disabled={isLoading} onClick={handleQuickPlay}>
-                                    {isSearchingGame ? "LOOKING FOR GAME..." :"Quick Play"}
-                                </QuickPlayButton>}
-                        </Card>
-                    </RightColumn>
-                </Content>
-            </Layout>
+                                return (
+                                    <div style={{display: "flex"}} key={index}>
+                                        <StyledSpan name={name} user={user}><span>{name}</span>:{content}</StyledSpan>
+                                    </div>
+                                );
+                            }
+                            return <div key={index}>{message}</div>;
+                        })}
+                    </History>
+                    <InputContainer onSubmit={handleSubmit}>
+                        <StyledInput value={message} placeholder="..."
+                                     onChange={(e) => setMessage(e.target.value)}></StyledInput>
+                        <StyledButton>SEND</StyledButton>
+                    </InputContainer>
+                </Chat>
+            </Container>
         </MenuBackgroundWrapper>
-    )
+    );
 }
 
-const Layout = styled.div`
+const Header = styled.div`
   display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - 40px);
-  width: calc(100% - 20px);
-  padding: 20px;
-
-  @media (max-width: 1024px) {
-    max-width: 750px;
-    max-height: unset;
-  }
-`
-
-const Header = styled.header`
-  display: flex;
+  grid-template-columns: 1fr 1fr 1fr;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  background-color: #771417;
-  border-radius: 2px;
-  box-shadow: 0 0 8px rgba(173, 62, 71, 0.8);
-`
-
-const OnlineUsers = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: ghostwhite;
-`
-
-const Content = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  margin-top: 5vh;
   width: 100%;
-
-  @media (min-width: 1024px) {
-    flex-direction: row;
-    height: calc(100vh - 120px); // Adjust based on your header height
-  }
-`
-
-const LeftColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media (min-width: 1024px) {
-    width: 66.666%;
-    height: 100%;
-    max-height: calc(100vh - 150px);
-  }
-`
-
-const RightColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media (min-width: 1024px) {
-    width: 33.333%;
-  }
-`
-
-const Card = styled.div`
-  border-radius: 4px;
-  box-shadow: 0 0 8px var(--christmas-green-shadow);
-  padding: 1rem;
-  border: 2px solid var(--christmas-green);
-`
-
-const CardTitle = styled.h2`
-  font-family: 'Pixel Digivolve', sans-serif;
-  font-size: 1.5rem;
-  color: var(--yellow);
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  text-shadow: 0 0 5px rgba(148, 105, 28, 0.32);
-`
-
-const ScrollArea = styled.div`
-  height: 100%;
-  overflow-y: auto;
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #0c0c0c;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--christmas-green);
-    border-radius: 2px;
-  }
-`
-
-const RoomList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-`
-
-const RoomItem = styled.li`
-  width: calc(100% - 1rem);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr) 100px;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--christmas-green);
-  transition: background-color 0.3s ease;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background-color: rgba(29, 125, 252, 0.1);
-  }
-`
-
-const RoomItemLobby = styled(RoomItem)`
-  width: unset;
-  display: flex;
-  grid-template-columns: unset;
-  justify-content: space-between;
-`
-
-const Button = styled.button`
-  background-color: var(--christmas-green);
-  color: #0c0c0c;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-family: 'Amiga Forever Pro2', sans-serif;
-  text-transform: uppercase;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: #1d7dfc;
-    color: ghostwhite;
-    box-shadow: 0 0 10px rgba(29, 125, 252, 0.5);
-  }
-`
-
-const Input = styled.input<{ error?: boolean }>`
-  flex-grow: 1;
-  padding: 0.5rem;
-  border: 1px solid ${({error}) => error ? "crimson" : "var(--christmas-green)"};
-  border-radius: 2px;
-  background-color: #0c0c0c;
-  color: ghostwhite;
-  font-family: 'Cousine', monospace;
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 5px var(--christmas-green-shadow);
-  }
-`
-
-const Select = styled.select`
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--christmas-green);
-  border-radius: 2px;
-  background-color: #0c0c0c;
-  color: ghostwhite;
-  font-family: 'League Spartan', sans-serif;
-  margin-bottom: 1rem;
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 5px var(--christmas-green-shadow);
-  }
-`
-
-const DeckCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: fit-content;
-`
-
-const QuickPlayButton = styled(Button)`
-  width: 100%;
-  background-color: var(--christmas-green);
-  color: #0c0c0c;
-  font-size: 1.2rem;
-  padding: 1rem;
-
-  &:hover {
-    background-color: #1d7dfc;
-    color: ghostwhite;
-  }
-`
-
-const ReadyButton = styled(QuickPlayButton)<{ isReady?: boolean }>`
-  width: 100%;
-  background-color: ${props => props.isReady ? 'var(--christmas-green)' : 'var(--yellow)'};
-  color: #0c0c0c;
-  font-size: 1.2rem;
-  padding: 1rem;
+  max-width: 900px;
+  position: relative;
   
-  &:hover {
-    background-color: ${props => props.isReady ? '#38423f' : '#1d7dfc'};
-    color: ${props => props.isReady ? '#0c0c0c' : 'ghostwhite'};
+  @media (max-width: 766px) {
+    margin-top: 1.5vh;
   }
-`
-const StartButton = styled(Button)<{disabled: boolean}>`
-  width: 100%;
-  background-color: ${props => props.disabled ? '#38423f' : '#218f3c'};
-  color: #0c0c0c;
-  font-size: 1.2rem;
-  padding: 1rem;
+`;
 
-  &:hover {
-    background-color: ${props => props.disabled ? '#38423f' : '#1d7dfc'};
-    color: ${props => props.disabled ? '#0c0c0c' : 'ghostwhite'};
-  }
-`
+const ButtonContainer = styled.div`
+  grid-column-start: 3;
+  grid-row-start: 1;
+  justify-self: center;
+  align-self: start;
+  margin-left: 30px;
+  transform: scale(0.95);
+  display: flex;
+`;
 
 const ConnectionSpanGreen = styled.span`
   color: #0b790b;
-  filter: drop-shadow(0 0 3px #19cb19);
-  font-size: 1.2em;
+  grid-column-start: 2;
+  font-size: 1.1em;
   opacity: 0.8;
+  filter: drop-shadow(0 0 3px #19cb19);
+  position: absolute;
+  top: 4px;
+  left: 4px;
 `;
 
 const ConnectionSpanYellow = styled(ConnectionSpanGreen)`
   color: #9f811f;
   filter: drop-shadow(0 0 3px #e1bd29);
+  font-size: 1.2em;
 `;
 
 const ConnectionSpanRed = styled(ConnectionSpanGreen)`
-  color: #ce1515;
-  filter: drop-shadow(0 0 2px #090101);
+  color: #790b0b;
+  filter: drop-shadow(0 0 2px #ce1515);
+  font-size: 1.5em;
 `;
 
-const StyledChip = styled(Chip)`
-  width: 40%;
-  justify-self: center;
-  border-radius: 5px;
-  height: 40px;
-  letter-spacing: 1px;
-  font-size: 1.05rem;
-  box-shadow: inset 0 0 5px 0 rgba(0, 0, 0, 0.8);
+const Container = styled.div`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 5vh;
+  width: 100%;
+  max-width: 1000px;
+
+  @media (min-width: 1000px) {
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
+  }
 `;
 
-const StyledSpan = styled.span`
-    font-size: 1.2rem;
-    font-family: 'League Spartan', sans-serif;
+const UserList = styled.div`
+  margin-top: 3vh;
+  padding-top: 1vh;
+  width: 85%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  overflow-y: scroll;
+  max-height: 41.5vh;
+
+  @supports (-moz-appearance:none) {
+    scrollbar-width: thin;
+  }
+
+  @media (max-width: 500px) {
+    gap: 8px;
+  }
+`;
+
+const User = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 80%;
+  min-height: 30px;
+  color: ghostwhite;
+  background: black;
+  font-family: Amiga Forever Pro2, sans-serif;
+  text-align: left;
+  padding: 5px;
+  text-overflow: clip;
+  font-size: 28px;
+  border: 3px solid #dcb415;
+  box-shadow: inset 0 0 5px #dcb415;
+  filter: drop-shadow(0 0 4px #dcb415);
+  flex-shrink: 0;
+  @media (min-width: 1000px) {
+    border-width: 3px;
+    padding-right: 3vw;
+    padding-left: 3vw;
+  }
+
+  @media (min-width: 2000px) {
+    padding-right: 2vw;
+    padding-left: 2vw;
+  }
+
+  @media (max-width: 500px)  or (max-height: 680px) {
+    font-size: 18px;
+    width: 87%;
+    padding-right: 2vw;
+    box-shadow: inset 0 0 3px #dcb415;
+    filter: drop-shadow(0 0 2px #dcb415);
+  }
+`;
+
+const Chat = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: black;
+  border: 5px solid white;
+  border-radius: 2px;
+  box-shadow: inset 0 0 3px white;
+  filter: drop-shadow(0 0 3px ghostwhite);
+  padding: 0.25% 1% 1% 1%;
+  width: 85%;
+  height: 300px;
+
+  @media (max-width: 500px) {
+    border: 3px solid white;
+    padding: 4vw;
+    transform: translate(-33px, 0.7vh);
+    width: 75.5%;
+  }
+`;
+
+const History = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  height: 370px;
+  width: 100%;
+  overflow-y: scroll;
+
+  ::-webkit-scrollbar {
+    background: #1e1f10;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: papayawhip;
+  }
+`;
+
+const StyledSpan = styled.span<{name: string, user: string}>`
+
+  font-family: Cousine, sans-serif;
+  text-align: left;
+  color: papayawhip;
+
+  span {
+    color: ${({name, user}) => name === user ? '#f55f02' : '#e1b70f'};
+    text-shadow: 0 0 1px #ffd11e;
+    font-weight: bold;
+  }
+
+`;
+
+const StyledInput = styled.input`
+  width: 90%;
+  padding-left: 10px;
+  overflow-y: clip;
+  height: 30px;
+  font-family: Cousine, sans-serif;
+  border: none;
+  font-size: 1.05em;
+  background: papayawhip;
+  color: #1a1a1a;
+
+  :focus {
+    outline: none;
+    filter: drop-shadow(0 0 2px white);
+    background: ghostwhite;
+    border-radius: 2px;
+  }
+`;
+
+const InputContainer = styled.form`
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+`;
+
+const StyledButton = styled.button`
+  padding: 0;
+  cursor: pointer;
+  width: 100px;
+  margin-left: 20px;
+  height: 32px;
+  border-radius: 0;
+  background: #dcb415;
+  font-family: Pixel Digivolve, sans-serif;
+  font-size: 24px;
+  color: #0e0e0e;
+  box-shadow: 2px 2px 2px 0 #262626;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #fccb0b;
+    color: black;
+    transform: translateY(1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:active {
+    background: #a3da31;
+    transform: translateY(2px);
+  }
+
+  @media (max-width: 500px) {
+    font-size: 18px;
+    width: 70px;
+  }
+`;
+
+const InviteButton = styled(StyledButton)`
+  margin-bottom: 5px;
+  @media (max-width: 500px)  or (max-height: 680px) {
+    font-size: 17px;
+    height: 22px;
+    width: 70px;
+    margin-bottom: 2.5px;
+  }
+`;
+
+const InvitationMoodle = styled.div`
+  position: absolute;
+  top: 25%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 20px 40px 10px;
+
+  width: 24vw;
+  height: 14vh;
+  min-width: 320px;
+  min-height: 120px;
+  background: black;
+  z-index: 10;
+  border: 3px solid #dcb415;
+  box-shadow: inset 0 0 5px #dcb415;
+  filter: drop-shadow(0 0 4px #dcb415);
+
+  @media (max-width: 500px) {
+    top: 18%;
+    border: 3px solid #dcb415;
+    padding: 20px 40px 20px 5px;
+    width: 60%;
+    height: 140px;
+    transform: translateY(0.7vh);
+  }
+`;
+
+const AcceptButton = styled(StyledButton)`
+  background: #289a78;
+  font-size: 20px;
+
+  &:hover {
+    background-color: #22c768;
+  }
+
+  &:active {
+    background: #64e7a1;
+  }
+`;
+
+const DeclineButton = styled(StyledButton)`
+  background: #9d1d33;
+  font-size: 20px;
+
+  &:hover {
+    background-color: #b72311;
+  }
+
+  &:active {
+    background: #e12909;
+  }
+`;
+
+const SearchBar = styled.input`
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 25px;
+  border: none;
+  width: 300px;
+  height: 35px;
+  font-family: Naston, sans-serif;
+  font-size: 20px;
+  position: absolute;
+  transform: translateY(-50%);
+  padding: 2px 15px 2px 15px;
+  text-align: center;
+  color: black;
+  ::placeholder {
     color: ghostwhite;
-    text-shadow: 0 0 5px var(--christmas-green-shadow);
-    justify-self: flex-start;
+  }
+`;
+
+const StyledSelect = styled(Select)`
+  color: aquamarine;
+  background: rgba(29, 123, 239, 0.35);
+  height: 32px;
+  width: 300px;
+  position: absolute;
+  top: 28px;
+  left: 310px;
+  font-family: "League Spartan", sans-serif;
+  
+  .MuiInputBase-input {
+    transform: translateY(-7px);
+  }
+  
+  @media (max-width: 800px) {
+    left: 30%;
+    width: 240px;
+  }
+
+  @media (max-width: 500px) {
+    top: 64px;
+    width: 240px;
+  }
+`;
+
+const Mute = styled(MuteIcon)`
+  position: absolute;
+  top: 20px; 
+  right: 20px;
+  cursor: pointer;
+  &:hover {
+    opacity: 50%;
+  }
 `;

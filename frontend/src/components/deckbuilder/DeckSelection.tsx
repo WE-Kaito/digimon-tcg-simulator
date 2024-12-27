@@ -1,19 +1,19 @@
 import styled from "@emotion/styled";
 import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
-import {fallbackCardNumber, useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import {CardTypeWithId} from "../../utils/types.ts";
-import DeckbuilderCard from "./DeckbuilderCard.tsx";
+import Card from "../Card.tsx";
 import {getCardTypeImage, sortCards} from "../../utils/functions.ts";
 import {useSound} from "../../hooks/useSound.ts";
 
 export default function DeckSelection() {
-    const deckCards = useGeneralStates((state) => state.deckCards);
-    const loadingDeck = useGeneralStates((state) => state.loadingDeck);
-    const setHoverCard = useGeneralStates((state) => state.setHoverCard);
-    const hoverCard = useGeneralStates((state) => state.hoverCard);
-    const addCardToDeck = useGeneralStates((state) => state.addCardToDeck);
-    const deleteFromDeck = useGeneralStates((state) => state.deleteFromDeck);
+    const deckCards = useStore((state) => state.deckCards);
+    const loadingDeck = useStore((state) => state.loadingDeck);
+    const setHoverCard = useStore((state) => state.setHoverCard);
+    const hoverCard = useStore((state) => state.hoverCard);
+    const addCardToDeck = useStore((state) => state.addCardToDeck);
+    const deleteFromDeck = useStore((state) => state.deleteFromDeck);
 
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
@@ -34,7 +34,7 @@ export default function DeckSelection() {
     });
 
     const filteredDeckLength = deckCards.length - eggLength;
-    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", fallbackCardNumber];
+    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "1110101"];
     function getAddAllowed(card: CardTypeWithId, lastIndex: boolean) {
         return !!hoverCard
             && ((hoverCard === card))
@@ -45,7 +45,7 @@ export default function DeckSelection() {
     }
 
     function AddButton(card: CardTypeWithId) {
-        if (card.cardNumber === fallbackCardNumber) return <></>
+        if (card.cardNumber === "1110101") return <></>
         return <AddIcon
             onClick={() => {
                 addCardToDeck(card.cardNumber, card.cardType, card.uniqueCardNumber);
@@ -109,11 +109,12 @@ export default function DeckSelection() {
                                 const countBGTransform = index >= 4 ? index < 9 ? "translate(69px, 89px)" :  "translate(63px, 80px)" : "unset";
                                 if (index > 0) {
                                     if (group[index - 1]?.uniqueCardNumber === card.uniqueCardNumber) {
-                                        const pos = index < 3 ? 4 * index : 4 * 3;
+                                        const pos = index < 3 ? 4*index : 4*3;
                                         return <div key={card.id} style={{position: "absolute", left: pos, top: pos}}>
                                             {getAddAllowed(card, isFrontCard) && AddButton(card)}
-                                            {(hoverCard?.id === card.id) && (isFrontCard || cardsWithoutLimit.includes(card.cardNumber)) && DeleteButton(card.id)}
-                                            {index < 4 && <DeckbuilderCard card={card} location={"deck"}/>}
+                                            {(hoverCard?.id === card.id) && ( isFrontCard
+                                                || cardsWithoutLimit.includes(card.cardNumber)) && DeleteButton(card.id)}
+                                            {index < 4 && <Card card={card} location={"deck"}/>}
                                             {(group.length > 1) && isFrontCard && <CardstackCount style={{transform: countTransform}} length={group.length}>×{group.length}</CardstackCount>}
                                             {(group.length > 1) && isFrontCard && <CountBox style={{transform: countBGTransform}} length={group.length}/>}
                                         </div>
@@ -122,7 +123,7 @@ export default function DeckSelection() {
                                 return <div key={card.id} >
                                     {getAddAllowed(card, isFrontCard) && AddButton(card)}
                                     {(hoverCard?.id === card.id) && isFrontCard && DeleteButton(card.id)}
-                                    <DeckbuilderCard card={card} location={"deck"}/>
+                                    <Card card={card} location={"deck"}/>
                                 </div>
                             })}
                             </GroupContainer>

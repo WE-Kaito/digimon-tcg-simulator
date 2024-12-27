@@ -1,14 +1,14 @@
 import {StyledSpanSaveDeck} from "./AddDeckButton.tsx";
 import styled from "@emotion/styled";
 import {useNavigate} from "react-router-dom";
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import {useStore} from "../../hooks/useStore.ts";
 import {useState} from "react";
 
 export default function UpdateDeleteDeckButtons({deckName}: { deckName: string }) {
 
-    const deleteDeck = useGeneralStates((state) => state.deleteDeck);
-    const idOfDeckToEdit = useGeneralStates(state => state.idOfDeckToEdit);
-    const updateDeck = useGeneralStates(state => state.updateDeck);
+    const deleteDeck = useStore((state) => state.deleteDeck);
+    const idOfDeckToEdit = useStore(state => state.idOfDeckToEdit);
+    const updateDeck = useStore(state => state.updateDeck);
     const navigate = useNavigate();
 
     const [isDeleting, setIsDeleting] = useState<boolean>(false);

@@ -6,12 +6,7 @@ import Fujitsumon from '../assets/tokens/Fujitsumon.webp';
 import Gyuukimon from '../assets/tokens/Gyuukimon.webp';
 import HackmonToken from '../assets/tokens/tokenCard.jpg';
 import VoleeUndZerdruecken from '../assets/tokens/VoleeUndZerdruecken.webp';
-import Familiar from '../assets/tokens/Familiar.webp';
-import PipeFox from '../assets/tokens/kuda-kitsune.webp';
-import UkaNoMitama from '../assets/tokens/Uka-no-Mitama.webp';
-import Rapidmon from '../assets/tokens/Rapidmon V-Pet.webp';
-import WarGrowlmon from '../assets/tokens/WarGrowlmon V-Pet.webp';
-import Taomon from '../assets/tokens/Taomon V-Pet.webp';
+import Familiar from '../assets/tokens/Familiar.png';
 import {CardType} from "./types.ts";
 
 const tokenEffect = (digimon: string): string => `•This card can be used as a [${digimon}] token.\n•Tokens can't be included in decks.\n•Tokens can't digivolve or be used as digivolution cards.\n•Tokens are removed from the game when they leave play.`;
@@ -23,7 +18,6 @@ const emptyRestrictions = {
     korean: "",
 }
 
-const GYUUKIMON_TOKEN_NAME = "Gyuukimon";
 export const gyuukimonToken: CardType = {
     imgUrl: Gyuukimon,
     uniqueCardNumber: "LM-018-TOKEN",
@@ -36,13 +30,12 @@ export const gyuukimonToken: CardType = {
     attribute: "Virus",
     stage: "Ultimate",
     digiType: ["Dark Animal"],
-    name: GYUUKIMON_TOKEN_NAME,
-    mainEffect: tokenEffect(GYUUKIMON_TOKEN_NAME),
+    name: "Gyuukimon",
+    mainEffect: tokenEffect("Gyuukimon"),
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
-const FUJITSUMON_TOKEN_NAME = "Fujitsumon";
 export const fujitsumonToken: CardType = {
     imgUrl: Fujitsumon,
     uniqueCardNumber: "EX5-058-TOKEN",
@@ -50,13 +43,12 @@ export const fujitsumonToken: CardType = {
     color: ["Purple"],
     cardType: "Digimon",
     dp: 3000,
-    mainEffect: "[All Turns] This Digimon doesn't unsuspend.\n[On Deletion] Trash 1 card in your hand.\n"+ tokenEffect(FUJITSUMON_TOKEN_NAME),
-    name: FUJITSUMON_TOKEN_NAME,
+    mainEffect: "[All Turns] This Digimon doesn't unsuspend.\n[On Deletion] Trash 1 card in your hand.\n"+ tokenEffect("Fujitsumon"),
+    name: "Fujitsumon",
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
-const KO_HAGURUMON_TOKEN_NAME = "KoHagurumon";
 export const koHagurumonToken: CardType = {
     imgUrl: KoHagurumon,
     uniqueCardNumber: "BT16-052-TOKEN",
@@ -64,13 +56,12 @@ export const koHagurumonToken: CardType = {
     color: ["Black"],
     cardType: "Digimon",
     dp: 1000,
-    mainEffect: "＜Blocker＞ ＜Decoy (Black)＞\n" + tokenEffect(KO_HAGURUMON_TOKEN_NAME),
-    name: KO_HAGURUMON_TOKEN_NAME,
+    mainEffect: "＜Blocker＞ ＜Decoy (Black)＞\n" + tokenEffect("KoHagurumon"),
+    name: "KoHagurumon",
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
-const DIABOROMON_TOKEN_NAME = "Diaboromon";
 export const diaboromonToken: CardType = {
     imgUrl: Diaboromon,
     uniqueCardNumber: "DIABOROMON-TOKEN",
@@ -83,13 +74,12 @@ export const diaboromonToken: CardType = {
     attribute: "Unknown",
     stage: "Mega",
     digiType: ["Unidentified"],
-    name: DIABOROMON_TOKEN_NAME,
-    mainEffect: tokenEffect(DIABOROMON_TOKEN_NAME),
+    name: "Diaboromon",
+    mainEffect: tokenEffect("Diaboromon"),
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
-const UMUMON_OF_BLUE_THUNDER_TOKEN_NAME = "Umon of Blue Thunder";
 export const umonToken: CardType = {
     imgUrl: Umon,
     uniqueCardNumber: "BT14-018-Umon-TOKEN",
@@ -97,13 +87,12 @@ export const umonToken: CardType = {
     color: ["Yellow"],
     cardType: "Digimon",
     dp: 6000,
-    mainEffect: "＜Blocker＞\n" + tokenEffect(UMUMON_OF_BLUE_THUNDER_TOKEN_NAME),
-    name: UMUMON_OF_BLUE_THUNDER_TOKEN_NAME,
+    mainEffect: "＜Blocker＞\n" + tokenEffect("Umon of Blue Thunder"),
+    name: "Umon of Blue Thunder",
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
-const AMON_OF_CRIMSON_FLAME_TOKEN_NAME = "Amon of Crimson Flame";
 export const amonToken: CardType = {
     imgUrl: Amon,
     uniqueCardNumber: "BT14-018-Amon-TOKEN",
@@ -111,13 +100,12 @@ export const amonToken: CardType = {
     color: ["Red"],
     cardType: "Digimon",
     dp: 6000,
-    mainEffect: "＜Rush＞\n" + tokenEffect(AMON_OF_CRIMSON_FLAME_TOKEN_NAME),
-    name: AMON_OF_CRIMSON_FLAME_TOKEN_NAME,
+    mainEffect: "＜Rush＞\n" + tokenEffect("Amon of Crimson Flame"),
+    name: "Amon of Crimson Flame",
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
-const VOLEE_UND_ZERDRUECKEN_TOKEN_NAME = "Volée & Zerdrücken";
 export const voleeToken: CardType = {
     imgUrl: VoleeUndZerdruecken,
     uniqueCardNumber: "EX7-058-TOKEN",
@@ -126,92 +114,21 @@ export const voleeToken: CardType = {
     cardType: "Digimon",
     dp: 5000,
     level: 4,
-    mainEffect: "＜Blocker＞ ＜Retaliation＞\n" + tokenEffect(VOLEE_UND_ZERDRUECKEN_TOKEN_NAME),
-    name: VOLEE_UND_ZERDRUECKEN_TOKEN_NAME,
+    mainEffect: "＜Blocker＞ ＜Retaliation＞\n" + tokenEffect("Volée & Zerdrücken"),
+    name: "Volée & Zerdrücken",
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
 
-const PIPE_FOX_TOKEN_NAME = "Pipe Fox";
-export const pipeFoxToken: CardType = {
-    imgUrl: PipeFox,
-    uniqueCardNumber: "EX7-058-TOKEN",
-    cardNumber: "EX7-058-TOKEN",
-    color: ["Yellow"],
-    cardType: "Digimon",
-    dp: 6000,
-    mainEffect: "＜Blocker＞\n" + tokenEffect(PIPE_FOX_TOKEN_NAME),
-    name: PIPE_FOX_TOKEN_NAME,
-    restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol"
-}
-
-const UKA_NO_MITAMA_TOKEN_NAME = "Uka-no-Mitama";
-export const ukaNoMitamaToken: CardType = {
-    imgUrl: UkaNoMitama,
-    uniqueCardNumber: "EX8-037-TOKEN",
-    cardNumber: "EX8-037-TOKEN",
-    color: ["Yellow"],
-    cardType: "Digimon",
-    dp: 9000,
-    mainEffect: "＜Rush＞\n" + tokenEffect(UKA_NO_MITAMA_TOKEN_NAME),
-    name: UKA_NO_MITAMA_TOKEN_NAME,
-    restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol"
-}
-
-const RAPIDMON_TOKEN_NAME = "Rapidmon";
-export const rapidmonToken: CardType = {
-    imgUrl: Rapidmon,
-    uniqueCardNumber: "BT19-091-Rapidmon-TOKEN",
-    cardNumber: "BT19-091-TOKEN",
-    color: ["Green"],
-    cardType: "Digimon",
-    dp: 6000,
-    mainEffect: tokenEffect(RAPIDMON_TOKEN_NAME),
-    name: RAPIDMON_TOKEN_NAME,
-    restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol"
-}
-
-const WAR_GROWLMON_TOKEN_NAME = "WarGrowlmon";
-export const warGrowlmonToken: CardType = {
-    imgUrl: WarGrowlmon,
-    uniqueCardNumber: "BT19-091-WarGrowlmon-TOKEN",
-    cardNumber: "BT19-091-TOKEN",
-    color: ["Red"],
-    cardType: "Digimon",
-    dp: 6000,
-    mainEffect: tokenEffect(WAR_GROWLMON_TOKEN_NAME),
-    name: WAR_GROWLMON_TOKEN_NAME,
-    restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol"
-}
-
-const TAOMON_TOKEN_NAME = "Taomon";
-export const taomonToken: CardType = {
-    imgUrl: Taomon,
-    uniqueCardNumber: "BT19-091-Taomon-TOKEN",
-    cardNumber: "BT19-091-TOKEN",
-    color: ["Yellow"],
-    cardType: "Digimon",
-    dp: 6000,
-    mainEffect: tokenEffect(TAOMON_TOKEN_NAME),
-    name: TAOMON_TOKEN_NAME,
-    restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol"
-}
-
-const FAMILIAR_TOKEN_NAME = "Familiar";
 export const familiarToken: CardType = {
     imgUrl: Familiar,
     uniqueCardNumber: "Familiar-TOKEN",
-    cardNumber: "EX7-030- / ST19-12-TOKEN",
+    cardNumber: "",
     color: ["Yellow"],
     cardType: "Digimon",
     dp: 3000,
-    mainEffect: "＜On Deletion＞ 1 of your opponent's Digimon gets -3000 DP for the turn.\n" + tokenEffect(FAMILIAR_TOKEN_NAME),
-    name: FAMILIAR_TOKEN_NAME,
+    mainEffect: "＜On Deletion＞ 1 of your opponent's Digimon gets -3000 DP for the turn.\n" + tokenEffect("Familiar"),
+    name: "Familiar",
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
@@ -228,20 +145,27 @@ export const generalToken: CardType = {
     illustrator: "",
 }
 
-export const tokenCollection = [
-    amonToken,
-    diaboromonToken,
-    familiarToken,
-    fujitsumonToken,
-    gyuukimonToken,
-    koHagurumonToken,
-    pipeFoxToken,
-    rapidmonToken,
-    taomonToken,
-    ukaNoMitamaToken,
-    umonToken,
-    voleeToken,
-    warGrowlmonToken
-];
+export const tokenCollection = [amonToken, umonToken, gyuukimonToken, fujitsumonToken, koHagurumonToken, diaboromonToken, voleeToken, familiarToken];
 
-export const findTokenByName = (name: string): CardType => tokenCollection.find(token => token.name === name) ?? generalToken;
+export function findTokenByName(name: string): CardType {
+    switch (name) {
+        case "Gyuukimon":
+            return gyuukimonToken;
+        case "Fujitsumon":
+            return fujitsumonToken;
+        case "KoHagurumon":
+            return koHagurumonToken;
+        case "Diaboromon":
+            return diaboromonToken;
+        case "Umon of Blue Thunder":
+            return umonToken;
+        case "Amon of Crimson Flame":
+            return amonToken;
+        case "Volée & Zerdrücken":
+            return voleeToken;
+        case "Familiar":
+            return familiarToken;
+        default:
+            return generalToken;
+    }
+}

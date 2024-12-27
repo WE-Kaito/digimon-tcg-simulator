@@ -1,10 +1,4 @@
 #root {
-  --black: #0C0C0C;
-  --yellow: #DCB415;
-  --blue: #386ff0;
-  --christmas-green: #1c7540;
-  --christmas-green-shadow: rgba(28, 117, 21, 0.25);
-
   margin: 0 auto;
   text-align: center;
 }

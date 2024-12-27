@@ -1,8 +1,5 @@
 package com.github.wekaito.backend;
 
-import com.github.wekaito.backend.models.Card;
-import com.github.wekaito.backend.models.Deck;
-import com.github.wekaito.backend.models.DeckWithoutId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +7,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +16,13 @@ public class DeckService {
 
     private final CardService cardService;
 
+    private final IdService idService;
+
     private final UserIdService userIdService;
 
     public void addDeck(DeckWithoutId deckWithoutId) {
         Deck deckToSave = new Deck(
-                UUID.randomUUID().toString(),
+                idService.createId(),
                 deckWithoutId.name(),
                 deckWithoutId.decklist(),
                 deckWithoutId.deckImageCardUrl(),
