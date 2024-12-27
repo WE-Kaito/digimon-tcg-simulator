@@ -1,10 +1,11 @@
 import styled from "@emotion/styled";
-import {useStore} from "../hooks/useStore.ts";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Header from "../components/Header.tsx";
-import PatchnotesAndDisclaimer from "../components/PatchnotesAndDisclaimer.tsx";
+import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import TermsAndConditionsDialog from "../components/login/TermsAndConditionsDialog.tsx";
 
 enum INPUT_TYPE {
     USERNAME = "username",
@@ -14,11 +15,10 @@ enum INPUT_TYPE {
 }
 
 export default function LoginPage() {
-
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
-    const login = useStore((state) => state.login);
+    const login = useGeneralStates((state) => state.login);
 
     const [registerPage, setRegisterPage] = useState(false);
 
@@ -27,7 +27,7 @@ export default function LoginPage() {
     const [repeatedPassword, setRepeatedPassword] = useState("");
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
-    const register = useStore((state) => state.register);
+    const register = useGeneralStates((state) => state.register);
     const regex = /^(?=.*[a-zA-Z])(?=.*\d).{6,128}$/;
     const regexName = /^(?:(?![:_【】﹕≔<>$& ]).){3,16}$/;
     const regexQuestion = /^(?:(?![:_【】﹕≔<>$&]).){1,64}$/;
@@ -74,6 +74,9 @@ export default function LoginPage() {
     return (
         <MenuBackgroundWrapper>
             <Header/>
+
+            <TermsAndConditionsDialog />
+
             {!registerPage && <StyledForm onSubmit={handleSubmitLogin}>
                 <InputField value={userName} onChange={(e) => setUserName(e.target.value)}
                             type="text" name="userName" placeholder="username" maxLength={16}/>
@@ -125,7 +128,7 @@ export default function LoginPage() {
                     </ButtonContainer>
                 </StyledForm2>
             }
-            {!registerPage && <PatchnotesAndDisclaimer/>}
+            {!registerPage && <PatchnotesLink/>}
         </MenuBackgroundWrapper>
     );
 }
