@@ -15,29 +15,30 @@ import axios from "axios";
 import {starterBeelzemon, starterDragonOfCourage, starterGallantmon, starterVortexWarriors} from "./starterDecks.ts";
 
 export function calculateCardRotation(handCardLength: number, index: number) {
+    if (handCardLength > 15) return "0deg";
     const middleIndex = Math.floor(handCardLength / 2);
-    let value = ((index - middleIndex) / 2);
+    let value = ((index - middleIndex) / 1.5);
     if (handCardLength <= 6) value *= 2;
-    if (handCardLength > 10) value = ((index - middleIndex) / 3.5);
-    if (handCardLength > 15) value = ((index - middleIndex) / 4);
-    if (handCardLength > 20) value = ((index - middleIndex) / 5.5);
-    if (handCardLength > 25) value = ((index - middleIndex) / 8);
+    if (handCardLength > 7) value = ((index - middleIndex) / 3.25);
     return value * handCardLength + "deg";
 }
 
 export function calculateCardOffsetY(handCardLength: number, index: number) {
     if (handCardLength === 3 && index === 1) return "-5px";
     if (handCardLength <= 3) return "0px";
+    if (handCardLength > 15) return "5%";
 
     const middleIndex = Math.floor(handCardLength / 2);
     const middleValue = 0;
     let endValue = handCardLength + 5 + (handCardLength / 3) * 2;
-    if (handCardLength > 5) {
+    if (handCardLength >= 5) {
         if (index === 0 || index === handCardLength - 1) endValue += (handCardLength / 3) * 3.25;
         if (index === 1 || index === handCardLength - 2) endValue += (handCardLength / 3) * 1.9;
         if (index === 2 || index === handCardLength - 3) endValue += (handCardLength / 3) * 1.5;
         if (index === 3 || index === handCardLength - 4) endValue += (handCardLength / 3) * 1.25;
         if (index === 4 || index === handCardLength - 5) endValue += (handCardLength / 3) * 1.1;
+        if (index === 5 || index === handCardLength - 6) endValue += (handCardLength / 3);
+        if (index === 6 || index === handCardLength - 7) endValue += (handCardLength / 3) * 0.9;
     }
     const distanceToMiddle = Math.abs(index - middleIndex);
     let offset = ((middleValue + (endValue - middleValue) * (distanceToMiddle / (middleIndex - 1))) - handCardLength);
@@ -45,11 +46,14 @@ export function calculateCardOffsetY(handCardLength: number, index: number) {
     return (index === middleIndex || index === 0 && handCardLength == 6) ? offset + 10 - handCardLength / 3 + handCardLength / 10 + "px" : offset + "px";
 }
 
-export function calculateCardOffsetX(handCardLength: number, index: number) {
-    if (handCardLength === 1) return "150px";
-    if (handCardLength === 2) return (index * 200) / handCardLength + 80 + "px";
-    if (handCardLength === 3) return (index * 300) / handCardLength + 50 + "px";
-    if (handCardLength >= 4) return (index * 400) / handCardLength + "px";
+export function calculateCardOffsetX(handCardLength: number, index: number, cardWidth: number) {
+    const scale = cardWidth /  (70 - (handCardLength > 30 ?(handCardLength - 30) / 3 : 0));
+
+    if (handCardLength === 1) return `${150 * scale}px`;
+    if (handCardLength === 2) return `${(index * 150 * scale) / handCardLength + 80 * scale}px`;
+    if (handCardLength === 3) return `${(index * 250 * scale) / handCardLength + 50 * scale}px`;
+    if (handCardLength > 30) return `${((index * 350 * scale) / handCardLength) - 10 }px`;
+    if (handCardLength > 3) return `${(index * 350 * scale) / handCardLength }px`;
 }
 
 export function topCardInfo(locationCards: CardTypeGame[]) {
@@ -177,23 +181,6 @@ function compareCardTypes(a: CardTypeWithId, b: CardTypeWithId) {
     if (aTypeOrder > bTypeOrder) return 1;
 
     return 0;
-}
-
-export function getCardSize(location: string) {
-    switch (location) {
-        case "myTrash":
-            return "105px";
-        case "mySecurity":
-            return "105px";
-        case "opponentTrash":
-            return "105px";
-        case "deck":
-            return "5.9vw";
-        case "fetchedData":
-            return "105px";
-        default:
-            return "95px";
-    }
 }
 
 export function convertForLog(location: string) {
@@ -451,27 +438,16 @@ export function generateGradient(deckCards : CardType[]) {
     return `linear-gradient(90deg, ${gradientParts.join(', ')})`;
 }
 
-export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("en" | "jp")) : boolean {
+export function getIsDeckAllowed(deck : CardTypeWithId[], format : ("english" | "japanese")) : boolean {
+    if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions[format]))) return false;
+
+    const restrictedCards = deck.filter((card) => card.restrictions[format] === "Restricted to 1")
     let lastCard: CardTypeWithId;
 
-    if (format === "en") {
-        if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions.english))) return false;
-
-        const restrictedCards_en = deck.filter((card) => card.restrictions.english === "Restricted to 1")
-        restrictedCards_en.forEach((card) => {
-            if (lastCard === card) return false;
-            lastCard = card;
-        })
-    }
-    if (format === "jp") {
-        if (deck.find((card) => ["Banned","Not released"].includes(card.restrictions.japanese))) return false;
-
-        const restrictedCards_jp = deck.filter((card) => card.restrictions.japanese === "Restricted to 1")
-        restrictedCards_jp.forEach((card) => {
-            if (lastCard === card) return false;
-            lastCard = card;
-        })
-    }
+    restrictedCards.forEach((card) => {
+        if (lastCard === card) return false;
+        lastCard = card;
+    })
 
     return true;
 }

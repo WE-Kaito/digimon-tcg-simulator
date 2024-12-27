@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import {useStore} from "../../hooks/useStore.ts";
+import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import {Dispatch, SetStateAction} from "react";
 
 type AddDeckButtonProps = {
@@ -12,9 +12,9 @@ export default function AddDeckButton(props: AddDeckButtonProps) {
 
     const {deckName, currentDeckLength, setCurrentDeckLength} = props;
 
-    const decks = useStore((state) => state.decks);
-    const saveDeck = useStore((state) => state.saveDeck);
-    const isSaving = useStore((state) => state.isSaving);
+    const decks = useGeneralStates((state) => state.decks);
+    const saveDeck = useGeneralStates((state) => state.saveDeck);
+    const isSaving = useGeneralStates((state) => state.isSaving);
 
     const handleSaveDeck = () => saveDeck(deckName, setCurrentDeckLength);
 
