@@ -1,5 +1,8 @@
 package com.github.wekaito.backend;
 
+import com.github.wekaito.backend.models.Card;
+import com.github.wekaito.backend.models.Deck;
+import com.github.wekaito.backend.models.DeckWithoutId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

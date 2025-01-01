@@ -5,14 +5,12 @@ import cardToHandSfx from "../assets/sounds/card-to-hand.mp3";
 import placeCardSfx from "../assets/sounds/place-card.mp3";
 import trashCardSfx from "../assets/sounds/trash-card.mp3";
 import attackSfx from "../assets/sounds/attack.mp3";
-import startSfx from "../assets/sounds/start-whoosh.mp3";
+import coinFlipSfx from "../assets/sounds/coin-flip.mp3";
 import securityRevealSfx from "../assets/sounds/security-reveal.mp3";
 import shuffleDeckSfx from "../assets/sounds/shuffle-deck.mp3";
 import suspendSfx from "../assets/sounds/suspend.mp3";
 import unsuspendSfx from "../assets/sounds/unsuspend.mp3";
 import opponentPlaceCardSfx from "../assets/sounds/opponent-place-card.mp3";
-import loadMemorybarSfx from "../assets/sounds/load-memorybar.mp3";
-import invitationSfx from "../assets/sounds/invite.mp3";
 import nextPhaseSfx from "../assets/sounds/next-phase.mp3";
 import passTurnSfx from "../assets/sounds/pass-turn.mp3";
 import nextAttackPhaseSfx from "../assets/sounds/next-attack-phase.mp3";
@@ -20,6 +18,10 @@ import effectAttackSfx from "../assets/sounds/effect-attack.mp3";
 import activateEffect from "../assets/sounds/activate-effect.mp3";
 import targetCardSfx from "../assets/sounds/effect-target.mp3";
 import modifyCardSfx from "../assets/sounds/modify-card.mp3";
+import rematchSfx from "../assets/sounds/rematch.mp3";
+import joinSfx from "../assets/sounds/player-joined.mp3";
+import countdownSfx from "../assets/sounds/countdown.mp3";
+import kickSfx from "../assets/sounds/kick.mp3";
 
 import avant from "../assets/music/sad_gatomon_lofi/Avant (@SadGatomon cover).mp3";
 import brave_heart from "../assets/music/sad_gatomon_lofi/Brave Heart (@SadGatomon cover).mp3";
@@ -67,7 +69,7 @@ type State = {
     toggleSfxEnabled: () => void,
     setPlaylist: (playlist: string[]) => void,
     setMusicVolume: (volume: number) => void,
-    showRadioMenu: boolean,
+    isRadioMenuExpanded: boolean,
     toggleRadioMenu: () => void,
     nextSong: (onEnded?: boolean) => void,
     prevSong: () => void,
@@ -80,14 +82,12 @@ type State = {
     playPlaceCardSfx: () => void,
     playTrashCardSfx: () => void,
     playAttackSfx: () => void,
-    playStartSfx: () => void,
+    playCoinFlipSfx: () => void,
     playSecurityRevealSfx: () => void,
     playShuffleDeckSfx: () => void,
     playSuspendSfx: () => void,
     playUnsuspendSfx: () => void,
     playOpponentPlaceCardSfx: () => void,
-    playLoadMemorybarSfx: () => void,
-    playInvitationSfx: () => void,
     playNextPhaseSfx: () => void,
     playPassTurnSfx: () => void,
     playNextAttackPhaseSfx: () => void,
@@ -95,6 +95,10 @@ type State = {
     playActivateEffectSfx: () => void,
     playTargetCardSfx: () => void,
     playModifyCardSfx: () => void,
+    playRematchSfx: () => void,
+    playJoinSfx: () => void,
+    playCountdownSfx: () => void,
+    playKickSfx: () => void,
 };
 
 export const sadgatomonPlaylist = [
@@ -117,7 +121,7 @@ export const useSound = create<State>((set, get) => {
         musicVolume: parseFloat(localStorage.getItem('musicVolume') ?? '0.5'),
         currentSong: '',
         isMusicPlaying: false,
-        showRadioMenu: false,
+        isRadioMenuExpanded: false,
     };
 
     // Music
@@ -130,7 +134,7 @@ export const useSound = create<State>((set, get) => {
         localStorage.setItem('playlist', JSON.stringify(newPlaylist));
     }
 
-    const toggleRadioMenu = () => set((state) => ({ showRadioMenu: !state.showRadioMenu }));
+    const toggleRadioMenu = () => set((state) => ({ isRadioMenuExpanded: !state.isRadioMenuExpanded }));
 
     function startMusic() {
         music.volume = (parseFloat(localStorage.getItem('musicVolume') ?? '0.5') * 0.75);
@@ -203,14 +207,12 @@ export const useSound = create<State>((set, get) => {
     const playPlaceCardSfx = (): void => playSound(placeCardSfx, 0.8);
     const playTrashCardSfx = (): void => playSound(trashCardSfx, 1);
     const playAttackSfx = (): void => playSound(attackSfx, 0.25,0,true);
-    const playStartSfx = (): void => playSound(startSfx, 0.6);
+    const playCoinFlipSfx = (): void => playSound(coinFlipSfx, 0.1);
     const playSecurityRevealSfx = (): void => playSound(securityRevealSfx, 0.5,0,true);
     const playShuffleDeckSfx = (): void => playSound(shuffleDeckSfx, 0.8,0,true);
     const playSuspendSfx = (): void => playSound(suspendSfx, 1);
     const playUnsuspendSfx = (): void => playSound(unsuspendSfx, 0.15);
     const playOpponentPlaceCardSfx = (): void => playSound(opponentPlaceCardSfx, 0.7, 100);
-    const playLoadMemorybarSfx = (): void => playSound(loadMemorybarSfx, 0.7);
-    const playInvitationSfx = (): void => playSound(invitationSfx, 0.8);
     const playNextPhaseSfx = (): void => playSound(nextPhaseSfx, 0.25);
     const playPassTurnSfx = (): void => playSound(passTurnSfx, 0.7);
     const playNextAttackPhaseSfx = (): void => playSound(nextAttackPhaseSfx, 1);
@@ -218,6 +220,10 @@ export const useSound = create<State>((set, get) => {
     const playActivateEffectSfx = (): void => playSound(activateEffect, 0.55,0,true);
     const playTargetCardSfx = (): void => playSound(targetCardSfx, 0.25,0,true);
     const playModifyCardSfx = (): void => playSound(modifyCardSfx, 1);
+    const playRematchSfx = (): void => playSound(rematchSfx, 0.6);
+    const playJoinSfx = (): void => playSound(joinSfx, 0.6);
+    const playCountdownSfx = (): void => playSound(countdownSfx, 0.95);
+    const playKickSfx = (): void => playSound(kickSfx, 0.9);
 
     return {
         ...initialState,
@@ -236,21 +242,23 @@ export const useSound = create<State>((set, get) => {
         playPlaceCardSfx,
         playTrashCardSfx,
         playAttackSfx,
-        playStartSfx,
+        playCoinFlipSfx,
         playSecurityRevealSfx,
         playShuffleDeckSfx,
         playSuspendSfx,
         playUnsuspendSfx,
         playOpponentPlaceCardSfx,
-        playLoadMemorybarSfx,
-        playInvitationSfx,
         playNextPhaseSfx,
         playPassTurnSfx,
         playNextAttackPhaseSfx,
         playEffectAttackSfx,
         playActivateEffectSfx,
         playTargetCardSfx,
-        playModifyCardSfx
+        playModifyCardSfx,
+        playRematchSfx,
+        playJoinSfx,
+        playCountdownSfx,
+        playKickSfx
     };
 });
 
