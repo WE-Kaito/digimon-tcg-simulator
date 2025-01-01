@@ -400,7 +400,7 @@ export default function Lobby() {
                                 {decks.map((deck) => <option value={deck.id} key={deck.id}>{deck.name}</option>)}
                             </Select>
                             <DeckCard>
-                                {deckObject && <ProfileDeck deck={deckObject} lobbyView
+                                {deckObject?.decklist?.length && <ProfileDeck deck={deckObject} lobbyView
                                                             setSleeveSelectionOpen={setSleeveSelectionOpen}
                                                             setImageSelectionOpen={setImageSelectionOpen}/>}
                             </DeckCard>
