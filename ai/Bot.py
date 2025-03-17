@@ -744,6 +744,8 @@ class Bot(ABC):
             self.cant_block_until_end_of_opponent_turn.add(digivolution_card['id'])
         if digimon['id'] in self.start_mp_attack:
             self.start_mp_attack.add(digivolution_card['id'])
+        if digimon['id'] in self.placed_this_turn:
+            self.placed_this_turn.add(digivolution_card['id'])
         if cost > 0:
             await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
