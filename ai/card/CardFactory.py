@@ -1,3 +1,5 @@
+import json
+
 from card.P_040_Purple_Memory_Boost import P_040_Purple_Memory_Boost
 from card.BT2_068_Impmon import BT2_068_Impmon
 from card.BT10_081_Baalmon import BT10_081_Baalmon
@@ -15,6 +17,9 @@ from card.ST14_012_Rivals_Barrage import ST14_012_Rivals_Barrage
 from card.EX2_039_Impmon import EX2_039_Impmon
 from card.EX2_044_Beelzemon import EX2_044_Beelzemon
 from card.EX2_071_Death_Slinger import EX2_071_Death_Slinger
+
+
+
 
 class CardFactory():
 
@@ -39,6 +44,12 @@ class CardFactory():
             'EX2-071': EX2_071_Death_Slinger
         }
         self.bot = bot
+    
+    def get_token_by_name(self, name, card_id):
+        token_data = json.load(open('data/tokens.json'))
+        token = token_data[name]
+        token['id'] = card_id
+        return token
     
     def get_card(self, unique_card_number, **kwargs):
         return self.cards[unique_card_number](self.bot, **kwargs)

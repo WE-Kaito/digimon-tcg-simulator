@@ -10,6 +10,7 @@ import requests
 import websockets
 from decouple import config
 
+from card.CardFactory import CardFactory
 from Waiter import Waiter
 
 FIELD_UPDATE_MAP = {
@@ -63,6 +64,7 @@ class Bot(ABC):
             'X-Xsrf-Token': cookies['XSRF-TOKEN']
         }
         self.loop = asyncio.get_event_loop()
+        self.card_factory = CardFactory(self)
         self.deck = json.load(open(self.deck_path))
         self.username = username
         self.game_ws = f'{self.ws_prefix}://{self.host}/api/ws/game'
@@ -279,6 +281,14 @@ class Bot(ABC):
             if card['id'] == id:
                 return i
         raise RuntimeError(f'Card with id {id} not found in trash.')
+    
+    def spawn_token(self, card_id, card_name):
+        empty_slot = self.get_empty_slot_in_battle_area(back=False, token=True)
+        if empty_slot is None:
+            return
+        token = self.card_factory.get_token_by_name(card_name, card_id)
+        self.game['player1Digi'][empty_slot] = [token]
+        
 
     def get_first_digit_index(self, s):
         for i in range(len(s)):
@@ -302,19 +312,21 @@ class Bot(ABC):
             self.logger.debug(f'STACK:{stack}')
         return stack
 
-    def get_empty_slot_in_battle_area(self, back):
+    def get_empty_slot_in_battle_area(self, back, token=False):
         self.logger.debug('Searching for empty slot in my battle area.')
         if back:
             min_index=10
             max_index=15
         else:
             min_index=0
-            max_index=5
+            max_index=10
         found = False
         for i in range(min_index, max_index):
             if len(self.game['player2Digi'][i]) == 0:
                 return i
         if not found:
+            if token:
+                return None
             if back:
                 return 10
             else:
@@ -339,6 +351,7 @@ class Bot(ABC):
         await ws.send(f'{self.game_name}:/moveCardToStack:{self.opponent}:{to}:{card_id}:myDigi{card_index + 1}:myDeckField:false')
 
     async def move_card(self, ws, fr, to, target_card_id=None, field_update=True):
+        self.logger.debug(self.game['player1Digi'])
         self.logger.debug(f'Moving card from {fr} to {to}.')
         stack = self.get_stack(fr)
         if type(stack) == dict:
