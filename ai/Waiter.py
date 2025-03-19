@@ -52,7 +52,10 @@ class Waiter:
                 break
         if source_card_index < 0:
             raise RuntimeError(f'Card with id {card_id} not found in {source}')
-        destination_location.append(source_location.pop(source_card_index))
+        if not (card_id.startswith('TOKEN-') and destination == "Trash"):
+            destination_location.append(source_location.pop(source_card_index))
+        else:
+            source_location.pop(source_card_index)
     
     def process_move_to_deck_action(self, message):
         record = message.split(':')

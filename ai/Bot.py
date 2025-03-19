@@ -283,11 +283,12 @@ class Bot(ABC):
         raise RuntimeError(f'Card with id {id} not found in trash.')
     
     def spawn_token(self, card_id, card_name):
-        empty_slot = self.get_empty_slot_in_battle_area(back=False, token=True)
+        empty_slot = self.get_empty_slot_in_battle_area(back=False, token=True, location='player1Digi')
         if empty_slot is None:
             return
         token = self.card_factory.get_token_by_name(card_name, card_id)
         self.game['player1Digi'][empty_slot] = [token]
+        self.logger.debug(self.game['player1Digi'])
         
 
     def get_first_digit_index(self, s):
@@ -312,7 +313,7 @@ class Bot(ABC):
             self.logger.debug(f'STACK:{stack}')
         return stack
 
-    def get_empty_slot_in_battle_area(self, back, token=False):
+    def get_empty_slot_in_battle_area(self, back, token=False, location='player2Digi'):
         self.logger.debug('Searching for empty slot in my battle area.')
         if back:
             min_index=10
@@ -322,7 +323,7 @@ class Bot(ABC):
             max_index=10
         found = False
         for i in range(min_index, max_index):
-            if len(self.game['player2Digi'][i]) == 0:
+            if len(self.game[location][i]) == 0:
                 return i
         if not found:
             if token:
