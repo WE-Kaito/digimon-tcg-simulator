@@ -1,5 +1,7 @@
 import json
 
+from decouple import config
+
 from card.P_040_Purple_Memory_Boost import P_040_Purple_Memory_Boost
 from card.BT2_068_Impmon import BT2_068_Impmon
 from card.BT10_081_Baalmon import BT10_081_Baalmon
@@ -46,7 +48,7 @@ class CardFactory():
         self.bot = bot
     
     def get_token_by_name(self, name, card_id):
-        token_data = json.load(open('data/tokens.json'))
+        token_data = json.load(open(config('TOKENS_PATH')))
         token = token_data[name]
         token['id'] = card_id
         return token
