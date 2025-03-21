@@ -13,9 +13,18 @@ export default function useResponsiveFontSize(containerWidthDividedBy: number, m
     };
 
     useEffect(() => {
+        const timer = setTimeout(() => calculateFontSize(), 300);
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
         calculateFontSize();
         window.addEventListener('resize', calculateFontSize);
-        return () => window.removeEventListener('resize', calculateFontSize);
+        window.addEventListener('fullscreenchange', calculateFontSize);
+        return () => {
+            window.removeEventListener('resize', calculateFontSize);
+            window.removeEventListener('fullscreenchange', calculateFontSize);
+        };
     }, [containerWidthDividedBy, maxWidth]);
 
     return { fontSize, fontContainerRef };

@@ -39,133 +39,68 @@ function chunkString(str: string, size: number): string[] {
  * Needs to be instantiated in the GamePage component. Use the returned SendMessage function to send messages to the server.
  */
 export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGameWebSocketReturn {
-    const {
-        clearAttackAnimation,
-        restartAttackAnimation,
-    } = props;
+    const { clearAttackAnimation, restartAttackAnimation } = props;
 
     const user = useGeneralStates((state) => state.user);
 
-    const [
-        setOpenedCardModal,
-        setRestartOrder,
-        setRestartPromptModal,
-        isRematch,
-        setIsRematch,
-        setEndModal,
-        setEndModalText,
-    ] = useGameUIStates((state) => [
-        state.setOpenedCardModal,
-        state.setRestartOrder,
-        state.setRestartPromptModal,
-        state.isRematch,
-        state.setIsRematch,
-        state.setEndModal,
-        state.setEndModalText,
-    ]);
+    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+    const setRestartOrder = useGameUIStates((state) => state.setRestartOrder);
+    const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
+    const isRematch = useGameUIStates((state) => state.isRematch);
+    const setIsRematch = useGameUIStates((state) => state.setIsRematch);
+    const setEndModal = useGameUIStates((state) => state.setEndModal);
+    const setEndModalText = useGameUIStates((state) => state.setEndModalText);
 
-    const [
-        gameId,
-        bootStage,
-        setBootStage,
-        setUpGame,
-        setMyAttackPhase,
-        setOpponentAttackPhase,
-        distributeCards,
-        updateOpponentField,
-        setMessages,
-        setTurn,
-        moveCard,
-        moveCardToStack,
-        restartObject,
-        setRestartObject,
-        getOpponentReady,
-        setOpponentReady,
-        setIsLoading,
-        tiltCard,
-        setCardIdWithEffect,
-        setCardIdWithTarget,
-        setMemory,
-        createToken,
-        setModifiers,
-        clearBoard,
-        getPhase,
-        setPhase,
-        unsuspendAll,
-        getMyFieldAsString,
-        setArrowFrom,
-        setArrowTo,
-        setIsEffectArrow,
-        setStartingPlayer,
-        setIsOpponentOnline,
-    ] = useGameBoardStates((state) => [
-        state.gameId,
-        state.bootStage,
-        state.setBootStage,
-        state.setUpGame,
-        state.setMyAttackPhase,
-        state.setOpponentAttackPhase,
-        state.distributeCards,
-        state.updateOpponentField,
-        state.setMessages,
-        state.setTurn,
-        state.moveCard,
-        state.moveCardToStack,
-        state.restartObject,
-        state.setRestartObject,
-        state.getOpponentReady,
-        state.setOpponentReady,
-        state.setIsLoading,
-        state.tiltCard,
-        state.setCardIdWithEffect,
-        state.setCardIdWithTarget,
-        state.setMemory,
-        state.createToken,
-        state.setModifiers,
-        state.clearBoard,
-        state.getPhase,
-        state.setPhase,
-        state.unsuspendAll,
-        state.getMyFieldAsString,
-        state.setArrowFrom,
-        state.setArrowTo,
-        state.setIsEffectArrow,
-        state.setStartingPlayer,
-        state.setIsOpponentOnline,
-    ]);
+    const gameId = useGameBoardStates((state) => state.gameId);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const setBootStage = useGameBoardStates((state) => state.setBootStage);
+    const setUpGame = useGameBoardStates((state) => state.setUpGame);
+    const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
+    const setOpponentAttackPhase = useGameBoardStates((state) => state.setOpponentAttackPhase);
+    const distributeCards = useGameBoardStates((state) => state.distributeCards);
+    const updateOpponentField = useGameBoardStates((state) => state.updateOpponentField);
+    const setMessages = useGameBoardStates((state) => state.setMessages);
+    const setTurn = useGameBoardStates((state) => state.setTurn);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
+    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
+    const restartObject = useGameBoardStates((state) => state.restartObject);
+    const setRestartObject = useGameBoardStates((state) => state.setRestartObject);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
+    const setOpponentReady = useGameBoardStates((state) => state.setOpponentReady);
+    const setIsLoading = useGameBoardStates((state) => state.setIsLoading);
+    const tiltCard = useGameBoardStates((state) => state.tiltCard);
+    const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
+    const setCardIdWithTarget = useGameBoardStates((state) => state.setCardIdWithTarget);
+    const setMemory = useGameBoardStates((state) => state.setMemory);
+    const createToken = useGameBoardStates((state) => state.createToken);
+    const setModifiers = useGameBoardStates((state) => state.setModifiers);
+    const clearBoard = useGameBoardStates((state) => state.clearBoard);
+    const getPhase = useGameBoardStates((state) => state.getPhase);
+    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
+    const getMyFieldAsString = useGameBoardStates((state) => state.getMyFieldAsString);
+    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
+    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
+    const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
+    const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
 
     const isPlayerOne = user === gameId.split("‗")[0];
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
-    const [
-        playCoinFlipSfx,
-        playButtonClickSfx,
-        playDrawCardSfx,
-        playNextPhaseSfx,
-        playOpponentPlaceCardSfx,
-        playPassTurnSfx,
-        playRevealCardSfx,
-        playSecurityRevealSfx,
-        playShuffleDeckSfx,
-        playSuspendSfx,
-        playTrashCardSfx,
-        playUnsuspendSfx,
-        playRematchSfx,
-    ] = useSound((state) => [
-        state.playCoinFlipSfx,
-        state.playButtonClickSfx,
-        state.playDrawCardSfx,
-        state.playNextPhaseSfx,
-        state.playOpponentPlaceCardSfx,
-        state.playPassTurnSfx,
-        state.playRevealCardSfx,
-        state.playSecurityRevealSfx,
-        state.playShuffleDeckSfx,
-        state.playSuspendSfx,
-        state.playTrashCardSfx,
-        state.playUnsuspendSfx,
-        state.playRematchSfx,
-    ]);
+    const playCoinFlipSfx = useSound((state) => state.playCoinFlipSfx);
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
+    const playOpponentPlaceCardSfx = useSound((state) => state.playOpponentPlaceCardSfx);
+    const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
+    const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
+    const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
+    const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
+    const playSuspendSfx = useSound((state) => state.playSuspendSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+    const playRematchSfx = useSound((state) => state.playRematchSfx);
 
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
 

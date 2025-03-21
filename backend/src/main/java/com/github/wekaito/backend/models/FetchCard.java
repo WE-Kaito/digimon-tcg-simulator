@@ -24,7 +24,9 @@ public record FetchCard(
         String digiXros,
         String dnaDigivolve,
         String securityEffect,
+        String linkDP,
+        String linkEffect,
+        String linkRequirement,
         Restrictions restrictions,
         String illustrator) {
 }
-

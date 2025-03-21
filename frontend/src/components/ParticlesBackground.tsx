@@ -1,8 +1,6 @@
-import type { ISourceOptions } from "tsparticles-engine";
-import {Engine} from "tsparticles-engine";
-import {loadSlim} from "tsparticles-slim";
-import Particles from "react-particles";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
 import {useCallback} from "react";
+import {Engine, ISourceOptions} from "@tsparticles/engine";
 
 export default function ParticlesBackground({options}: {readonly options: ISourceOptions}) {
 

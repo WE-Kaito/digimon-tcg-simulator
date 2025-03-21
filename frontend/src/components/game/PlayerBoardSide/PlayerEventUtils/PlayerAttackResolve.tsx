@@ -9,8 +9,9 @@ import {useEffect} from "react";
  * For Opponent {@link AttackPhase}
  */
 export default function PlayerAttackResolve({ wsUtils, fontSize } : { wsUtils?: WSUtils, fontSize: number }) {
-    const [opponentAttackPhase, setOpponentAttackPhase] = useGameBoardStates((state) => [
-        state.opponentAttackPhase, state.setOpponentAttackPhase]);
+    const opponentAttackPhase = useGameBoardStates((state) => state.opponentAttackPhase);
+    const setOpponentAttackPhase = useGameBoardStates((state) => state.setOpponentAttackPhase);
+
     const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
 
     const isDisabled = opponentAttackPhase !== AttackPhase.COUNTER_BLOCK;

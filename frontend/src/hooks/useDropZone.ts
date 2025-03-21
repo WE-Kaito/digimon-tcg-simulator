@@ -6,6 +6,7 @@ import {useSound} from "./useSound.ts";
 import {SendMessage} from "react-use-websocket";
 import {useGeneralStates} from "./useGeneralStates.ts";
 import {useState} from "react";
+import {useGameUIStates} from "./useGameUIStates.ts";
 
 type Props = {
     sendMessage: SendMessage,
@@ -55,15 +56,19 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
     const user = useGeneralStates((state) => state.user);
     const gameId = useGameBoardStates(state => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
-    const [bootStage, setBootStage] = useGameBoardStates((state) => [state.bootStage, state.setBootStage]);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const setBootStage = useGameBoardStates((state) => state.setBootStage);
 
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
-    const [setArrowFrom, setArrowTo] = useGameBoardStates((state) => [state.setArrowFrom, state.setArrowTo]);
+    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
     const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
     const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
+
+    const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
 
     const [phaseLoading, setPhaseLoading] = useState(false);
 
@@ -135,6 +140,7 @@ export default function useDropZone(props : Props) : (event: DragEndEvent) => vo
         if (isCardStack(item)) {
             const {location} = item;
             moveCardStack(stackSliceIndex, location, targetField, handleDropToField);
+            setStackDragIcon(null);
         } else {
             const {id, location, name} = item;
             handleDropToField(id, location, targetField, name);

@@ -2,7 +2,6 @@ import styled from "@emotion/styled";
 import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
 import {useState} from "react";
-import {Tabs, TabList, Tab, TabPanel} from '@zendeskgarden/react-tabs';
 import DetailsHeader from "./DetailsHeader.tsx";
 import EffectCard, {EffectText} from "./EffectCard.tsx";
 import {Stack} from "@mui/material";

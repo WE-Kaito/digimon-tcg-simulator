@@ -3,8 +3,9 @@ import ModalDialog from "./ModalDialog.tsx";
 import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function EndModal() {
-    const [endModal, setEndModal, endModalText] = useGameUIStates((state) => [
-        state.endModal, state.setEndModal, state.endModalText]);
+    const endModal = useGameUIStates((state) => state.endModal);
+    const setEndModal = useGameUIStates((state) => state.setEndModal);
+    const endModalText = useGameUIStates((state) => state.endModalText);
 
     const navigate = useNavigate();
 

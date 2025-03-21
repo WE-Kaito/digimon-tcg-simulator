@@ -17,8 +17,10 @@ const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi1
  * A possible future improvement would be to add Sortable of dnd-kit.
  */
 export default function StackModal() {
-    const [openedCardModal, stackModal, setStackModal] = useGameUIStates((state) => [
-        state.openedCardModal, state.stackModal, state.setStackModal]);
+    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+    const stackModal = useGameUIStates((state) => state.stackModal);
+    const setStackModal = useGameUIStates((state) => state.setStackModal);
+
     const locationCards = useGameBoardStates((state) => stackModal ? state[(stackModal) as keyof typeof state] as CardTypeGame[] : []);
     const cardWidth = useGeneralStates((state) => state.cardWidth) * 1.07;
 

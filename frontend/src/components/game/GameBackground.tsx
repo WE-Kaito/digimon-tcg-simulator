@@ -36,11 +36,15 @@ export default function GameBackground() {
 
 const BackGround = styled.div<{ color1: string, color2: string, color3: string }>`
   position: fixed;
+  top:0;
+  left:0;
   z-index: -10;
-  width: 100vw;
-  height: 100vh;
-  max-width: 100vw;
-  max-height: 100vh;
+  width: 100%;
+  height: 100%;
+  min-width: 100vw;
+  min-height: 100vh;
+  //max-width: 100vw;
+  //max-height: 100vh;
   background: linear-gradient(253deg, ${({color1}) => color1}, ${({color2}) => color2}, ${({color3}) => color3});
   background-size: 200% 200%;
   -webkit-animation: Background 25s ease infinite;

@@ -11,7 +11,8 @@ type Props = {
 export default function SurrenderModal( { setSurrenderModal, wsUtils }: Props ) {
     const { sendMessage, matchInfo: { gameId, opponentName } } = wsUtils;
 
-    const [setEndModal, setEndModalText] = useGameUIStates((state) => [state.setEndModal, state.setEndModalText]);
+    const setEndModal = useGameUIStates((state) => state.setEndModal);
+    const setEndModalText = useGameUIStates((state) => state.setEndModalText);
 
     function handleSurrender() {
         setSurrenderModal(false);

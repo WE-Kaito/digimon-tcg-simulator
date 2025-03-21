@@ -37,7 +37,9 @@ const StyledSpan = styled.span`
 
 const DeckImg = styled.img`
   height: 100%;
-  padding: 0 7% 0 7%;
-  border-radius: 5px;
+  margin: 0 12.5% 0 12.5%;
+  border-radius: 3px;
+  border-left: 1px solid black;
+  border-top: 1px solid black;
   transform: rotate(180deg);
 `;

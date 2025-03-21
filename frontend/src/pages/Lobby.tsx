@@ -580,7 +580,6 @@ const Button = styled.button`
   border: none;
   border-radius: 4px;
   padding: 0.5rem 1rem;
-  cursor: pointer;
   font-size: 0.875rem;
   font-family: 'Amiga Forever Pro2', sans-serif;
   text-transform: uppercase;

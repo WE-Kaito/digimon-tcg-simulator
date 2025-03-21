@@ -11,7 +11,8 @@ import {Button} from "@mui/material";
 import {useGameUIStates} from "../../hooks/useGameUIStates.ts";
 
 export default function CardModal({ wsUtils }: { wsUtils?: WSUtils }) {
-    const [openedCardModal, setOpenedCardModal] = useGameUIStates((state) => [state.openedCardModal, state.setOpenedCardModal]);
+    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
     const locationCards = useGameBoardStates((state) => openedCardModal ? state[(openedCardModal) as keyof typeof state] as CardTypeGame[] : []);
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
     const cardWidth = useGeneralStates((state) => state.cardWidth) * 1.07;

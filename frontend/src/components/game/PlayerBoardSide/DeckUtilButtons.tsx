@@ -9,10 +9,15 @@ import {useSound} from "../../../hooks/useSound.ts";
 import {WSUtils} from "../../../pages/GamePage.tsx";
 
 export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
-    const [myDeckField, opponentReveal,  moveCard, moveCardToStack, getOpponentReady] = useGameBoardStates((state) =>
-        [state.myDeckField, state.opponentReveal, state.moveCard, state.moveCardToStack, state.getOpponentReady]);
+    const myDeckField = useGameBoardStates((state) => state.myDeckField);
+    const opponentReveal = useGameBoardStates((state) => state.opponentReveal);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
+    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
 
-    const [playRevealCardSfx, playTrashCardSfx, playUnsuspendSfx] = useSound((state) => [state.playRevealCardSfx, state.playTrashCardSfx, state.playUnsuspendSfx]);
+    const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
 
     function moveDeckCard(to: string, bottomCard?: boolean) {
         const cardId = (bottomCard) ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;

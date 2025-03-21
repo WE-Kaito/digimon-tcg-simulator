@@ -13,11 +13,13 @@ import {Button} from "@mui/material";
 import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function PlayerTrash() {
-    const [myTrash, getCardLocationById, cardIdWithEffect, cardIdWithTarget] = useGameBoardStates((state) => [
-        state.myTrash, state.getCardLocationById, state.cardIdWithEffect, state.cardIdWithTarget]);
+    const myTrash = useGameBoardStates((state) => state.myTrash);
+    const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
+    const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
+    const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
 
-    const [openedCardModal, setOpenedCardModal] = useGameUIStates((state) => [
-        state.openedCardModal, state.setOpenedCardModal]);
+    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
 
     const cardWidth = useGeneralStates((state) => state.cardWidth);
 
@@ -119,11 +121,12 @@ const CardImg = styled.img<{ isOver?: boolean }>`
 
 const StyledSpan = styled.span`
   position: absolute;
-  top: -25px;
+  bottom: -26px;
   left: 46%;
   font-family: Awsumsans, sans-serif;
   font-style: italic;
   transition: all 0.1s ease;
+  pointer-events: none;
   @media (max-height: 500px) {
     font-size: 0.8em;
     left: 42.5%;

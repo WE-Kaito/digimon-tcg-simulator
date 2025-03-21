@@ -8,7 +8,8 @@ const opponentBALocations = ["opponentDigi1", "opponentDigi2", "opponentDigi3", 
     "opponentDigi14", "opponentDigi15", "opponentBreedingArea"]
 
 export default function AttackArrows() {
-    const [arrowFrom, arrowTo] = useGameBoardStates((state) => [state.arrowFrom, state.arrowTo]);
+    const arrowFrom = useGameBoardStates((state) => state.arrowFrom);
+    const arrowTo = useGameBoardStates((state) => state.arrowTo);
     const isEffectArrow = useGameBoardStates((state) => state.isEffectArrow);
 
     const isFromOpponent = opponentBALocations.includes(arrowFrom);

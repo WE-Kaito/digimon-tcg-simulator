@@ -8,8 +8,11 @@ import {useDroppable} from "@dnd-kit/core";
 import {ChangeHistoryTwoTone as TriangleIcon} from "@mui/icons-material";
 
 export default function PlayerEggDeck({ wsUtils } : { wsUtils?: WSUtils }) {
-    const [myEggDeck, moveCard, getOpponentReady, nextPhaseTrigger] = useGameBoardStates((state) => [
-        state.myEggDeck, state.moveCard, state.getOpponentReady, state.nextPhaseTrigger]);
+    const myEggDeck = useGameBoardStates((state) => state.myEggDeck);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
+    const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
+
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx)
 
     const {setNodeRef} = useDroppable({ id: "myEggDeck", data: { accept: ["card"] } });
@@ -95,8 +98,8 @@ const DeckBottomZone = styled.div<{ isOver: boolean }>`
   z-index: 1;
   height: 60%;
   transform: translateY(-5%);
-  margin-left: 9%;
-  width: 82.75%;
+  margin-left: 14%;
+  width: 72%;
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
   background: ${({isOver}) => isOver ? "rgba(255,255,255,0.4)" : "rgba(0, 0, 0, 0.35)"};

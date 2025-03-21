@@ -5,6 +5,9 @@ import {digimonLocations} from "./useGameBoardStates.ts";
 type DigimonLocation = typeof digimonLocations[number];
 
 type State = {
+    isMobileUI: boolean,
+    setIsMobileUI: (isMobileUI: boolean) => void,
+
     dragMode: DragMode,
     toggleDragMode: () => void,
 
@@ -31,9 +34,14 @@ type State = {
 
     tokenModal: boolean,
     setTokenModal: (open: boolean) => void,
+
+    stackDragIcon: null | { location: string, index: number },
+    setStackDragIcon: (stackDragIcon: { location: string, index: number } | null) => void,
 };
 
 export const useGameUIStates = create<State>((set) => ({
+    isMobileUI: false,
+    setIsMobileUI: (isMobileUI) => set({ isMobileUI }),
 
     dragMode: DragMode.SINGLE,
     toggleDragMode: () => set(state => ({ dragMode: state.dragMode === DragMode.SINGLE ? DragMode.STACK : DragMode.SINGLE })),
@@ -62,4 +70,6 @@ export const useGameUIStates = create<State>((set) => ({
     tokenModal: false,
     setTokenModal: (open) => set({ tokenModal: open }),
 
+    stackDragIcon: null,
+    setStackDragIcon: (stackDragIcon) => set({ stackDragIcon }),
 }));

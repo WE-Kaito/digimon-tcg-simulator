@@ -9,6 +9,7 @@ import {WSUtils} from "../../../pages/GamePage.tsx";
 import {useDroppable} from "@dnd-kit/core";
 import {ChangeHistoryTwoTone as TriangleIcon} from "@mui/icons-material";
 import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
+import {useGeneralStates} from "../../../hooks/useGeneralStates.ts";
 
 type BattleAreaProps = {
     side: SIDE;
@@ -34,30 +35,37 @@ export default function BattleArea(props : BattleAreaProps) {
     const {show: showFieldCardMenu} = useContextMenu({id: "fieldCardMenu", props: {index: -1, location: "", id: ""}});
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1, location: "", id: ""}});
 
+    const setCardWidth = useGeneralStates((state) => state.setCardWidth);
+
     return (
         <Container {...props} id={locationCards.length ? "" : location} ref={dropToField} isOver={side === SIDE.MY && isOverField} stackOpened={stackOpened}>
-            {isBreeding && <StyledEggIcon side={side} />}
-            {stackOpened && <StyledDetailsIcon />}
-            {!!locationCards.length && !stackOpened &&
-                <CardStack cards={locationCards}
-                           location={location}
-                           opponentSide={side === SIDE.OPPONENT}
-                           wsUtils={wsUtils}
-                           showFieldCardMenu={showFieldCardMenu}
-                           showOpponentCardMenu={showOpponentCardMenu}
-                />
-            }
-            {side === SIDE.MY && (isBreeding || num <= 10) && canDropToBottom && locationCards.length !== 0 &&
-                <BottomDropZone isOver={isOverBottom} ref={dropToBottom}>
-                    {canDropToBottom &&
-                        <>
-                            <TriangleIcon sx={{opacity: 0.75}}/>
-                            <TriangleIcon sx={{opacity: 0.75}}/>
-                            <TriangleIcon sx={{opacity: 0.75}}/>
-                        </>
-                    }
-                </BottomDropZone>
-            }
+            <div ref={(e) => {
+                if(side === SIDE.MY && num === 1 && e?.scrollWidth) setCardWidth(e.scrollWidth)
+            }}
+                 style={{position: "relative", height: "100%", width: "100%"}}>
+                {isBreeding && <StyledEggIcon side={side} />}
+                {stackOpened && <StyledDetailsIcon />}
+                {!!locationCards.length && !stackOpened &&
+                    <CardStack cards={locationCards}
+                               location={location}
+                               opponentSide={side === SIDE.OPPONENT}
+                               wsUtils={wsUtils}
+                               showFieldCardMenu={showFieldCardMenu}
+                               showOpponentCardMenu={showOpponentCardMenu}
+                    />
+                }
+                {side === SIDE.MY && (isBreeding || num <= 10) && canDropToBottom && locationCards.length !== 0 &&
+                    <BottomDropZone isOver={isOverBottom} ref={dropToBottom}>
+                        {canDropToBottom &&
+                            <>
+                                <TriangleIcon sx={{opacity: 0.75}}/>
+                                <TriangleIcon sx={{opacity: 0.75}}/>
+                                <TriangleIcon sx={{opacity: 0.75}}/>
+                            </>
+                        }
+                    </BottomDropZone>
+                }
+            </div>
         </Container>
     );
 }

@@ -5,15 +5,12 @@ import carbackSrc from "../assets/cardBack.jpg";
 import {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
 import {useGeneralStates} from "../hooks/useGeneralStates.ts";
-import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import {useContextMenu} from "react-contexify";
-import SoundBar, {RadioMenuChildIconButton} from "../components/SoundBar.tsx";
+import SoundBar from "../components/SoundBar.tsx";
 import MemoryBar from "../components/game/MemoryBar.tsx";
-import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import useGameWebSocket from "../hooks/useGameWebSocket.ts";
 import {useSound} from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus.tsx";
-import RevealArea from "../components/game/RevealArea.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
 import {DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor} from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
@@ -21,25 +18,11 @@ import AttackArrows from "../components/game/AttackArrows.tsx";
 import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
 import {BootStage} from "../utils/types.ts";
 import {SendMessage} from "react-use-websocket";
-import CardModal from "../components/game/CardModal.tsx";
-import StackModal from "../components/game/StackModal.tsx";
-import RestartRequestModal from "../components/game/ModalDialog/RestartRequestModal.tsx";
 import RestartPromptModal from "../components/game/ModalDialog/RestartPromptModal.tsx";
-import SurrenderModal from "../components/game/ModalDialog/SurrenderModal.tsx";
 import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
-import GameChat from "../components/game/GameChat.tsx";
-import GameLog from "../components/game/GameLog.tsx";
-import {
-    Flag as SurrenderIcon,
-    RestartAlt as RestartIcon,
-    VideocamRounded as CameraIcon,
-    VideoCallRounded as CameraTiltedIcon,
-    Gavel as RulingsIcon,
-    OpenInNew as LinkIcon,
-} from "@mui/icons-material";
-import {profilePicture} from "../utils/avatars.ts";
-import ReportButton from "../components/game/ReportButton.tsx";
+import GameChatLog from "../components/game/GameChatLog.tsx";
+import { Gavel as RulingsIcon, OpenInNew as LinkIcon } from "@mui/icons-material";
 
 const mediaQueries = [
     '(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)',
@@ -72,30 +55,22 @@ export default function GamePage() {
 
     const gameId = useGameBoardStates(state => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
-    const [bootStage, setBootStage] = useGameBoardStates((state) => [state.bootStage, state.setBootStage]);
-    const opponentAvatar = useGameBoardStates(state => state.opponentAvatar);
-    const myAvatar = useGameBoardStates(state => state.myAvatar);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const setBootStage = useGameBoardStates((state) => state.setBootStage);
 
-    const [playAttackSfx, playEffectAttackSfx, playNextPhaseSfx] = useSound((state) => [
-        state.playAttackSfx,
-        state.playEffectAttackSfx,
-        state.playNextPhaseSfx
-    ]);
+    const playAttackSfx = useSound((state) => state.playAttackSfx);
+    const playEffectAttackSfx = useSound((state) => state.playEffectAttackSfx);
+    const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
 
-    const [setArrowFrom, setArrowTo, setIsEffectArrow, setPhase, getOpponentReady, setMessages] = useGameBoardStates((state) => [
-        state.setArrowFrom,
-        state.setArrowTo,
-        state.setIsEffectArrow,
-        state.setPhase,
-        state.getOpponentReady,
-        state.setMessages,
-    ]);
+    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
+    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
+    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
+    const setMessages = useGameBoardStates((state) => state.setMessages);
 
     const {show: showDetailsImageMenu} = useContextMenu({id: "detailsImageMenu"});
-
-    const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
-    const [surrenderModal, setSurrenderModal] = useState<boolean>(false);
-    const [isCameraTilted, setIsCameraTilted] = useState<boolean>(false);
+    // const [isCameraTilted, setIsCameraTilted] = useState<boolean>(false);
 
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null); // to clear the previous timeRef
     const [phaseLoading, setPhaseLoading] = useState(false); // helps prevent unexpected multiple phase changes
@@ -197,190 +172,87 @@ export default function GamePage() {
 
     // Layout ##########################################################################################################
     const isMobile = useMediaQuery(mediaQueries);
+
+    const iconWidth = useGeneralStates((state) => (state.cardWidth * 0.45));
+    const boardContainerRef = useRef<HTMLDivElement>(null);
+    const height = boardContainerRef.current ? window.outerHeight - 172 : undefined;
+
     const isPortrait = useMediaQuery('(orientation: portrait)');
-    const setCardWidth = useGeneralStates((state) => state.setCardWidth);
-    const boardLayoutRef = useRef<HTMLDivElement>(null);
-    const [boardMaxWidth, setBoardMaxWidth] = useState('unset');
-
-    function handleResize() {
-        const container = boardLayoutRef.current;
-        if (container) {
-            const { clientHeight: height, clientWidth: width } = container;
-            setBoardMaxWidth(width > height * (19 / 9) ? `${height * (19 / 9)}px` : 'unset');
-            setCardWidth(width / 19);
-        }
-    }
-
-    // TODO: make resizing more consistent
-    useLayoutEffect(() => {
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-    useLayoutEffect(() => {
-        handleResize();
-        boardLayoutRef.current?.scrollTo(boardLayoutRef.current?.scrollWidth / 3, 0)
-    }, [isMobile]);
     useEffect(() => window.scrollTo(0, 0), [isPortrait]);
-    // #################################################################################################################
 
     return (
-        <>
+        <Container ref={boardContainerRef}>
             <GameBackground/>
             <ContextMenus wsUtils={wsUtils}/>
             <AttackArrows/>
             <TokenModal wsUtils={wsUtils}/>
             <EndModal/>
             <RestartPromptModal wsUtils={wsUtils}/>
-            {restartRequestModal && <RestartRequestModal setRestartRequestModal={setRestartRequestModal} wsUtils={wsUtils}/>}
-            {surrenderModal && <SurrenderModal setSurrenderModal={setSurrenderModal} wsUtils={wsUtils}/>}
 
-            <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", maxHeight: "100vh"}}>
-                {!isMobile &&
-                    <DetailsContainer isMobile={isMobile}>
-                        <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
-                                 onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                                 onClick={() => selectCard(null)}
-                                 {...((!selectedCard && !hoverCard) && {
-                                     style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
-                                 })}
-                        />
-                        <CardDetails/>
-                    </DetailsContainer>
-                }
-                <Container isMobile={isMobile} style={{ maxHeight: isMobile ? "unset" : "100%" }}>
-                    <TopStack isMobile={isMobile}>
-                        <div>
-                            <img alt={"opponentAvatar"} src={profilePicture(myAvatar)} height={80} width={80}/>
-                            <UserNameSpan>{user}</UserNameSpan>
-                        </div>
-                        <div>
-                            <UserNameSpan>{opponentName}</UserNameSpan>
-                            <img alt={"opponentAvatar"} src={profilePicture(opponentAvatar)} height={80} width={80}/>
-                        </div>
-                    </TopStack>
-
-                    <BoardContainer isMobile={isMobile}>
-                        <DndContext onDragEnd={handleDragEnd} autoScroll={false} collisionDetection={pointerWithin}
-                                    sensors={[mouseSensor, touchSensor]}>
-                            <BoardLayout isMobile={isMobile} ref={boardLayoutRef} maxWidth={boardMaxWidth} isCameraTilted={isCameraTilted}>
-                                <RevealArea />
-                                <StackModal />
-                                <CardModal wsUtils={wsUtils} />
-                                <MemoryBar wsUtils={wsUtils} />
-                                <PhaseIndicator wsUtils={wsUtils} />
-                                <OpponentBoardSide wsUtils={wsUtils} />
-                                <PlayerBoardSide wsUtils={wsUtils} />
-                            </BoardLayout>
-                        </DndContext>
-                    </BoardContainer>
-
-                    <BottomStack isMobile={isMobile}>
-
-                        {isMobile &&
-                            <DetailsContainer isMobile={isMobile}>
-                                <CardDetails isMobile={isMobile}/>
-                                <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
-                                         style={{ maxWidth: "unset" }}
-                                         onContextMenu={(e) => showDetailsImageMenu({event: e})}
-                                         onClick={() => selectCard(null)}
-                                         {...((!selectedCard && !hoverCard) && {
-                                             style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
-                                         })}
-                                />
-                            </DetailsContainer>
-                        }
-
-                        <SettingsContainer isMobile={isMobile}>
-                            <SoundBar>
-                                <RadioMenuChildIconButton onClick={() => setIsCameraTilted(!isCameraTilted)}>
-                                    {isCameraTilted ? <CameraTiltedIcon fontSize={"large"}/> : <CameraIcon fontSize={"large"}/>}
-                                </RadioMenuChildIconButton>
-                            </SoundBar>
-                            <div style={{ display: "flex", gap: "9px", paddingBottom: "10px" }}>
-                                <ReportButton matchInfo={wsUtils.matchInfo}/>
-                                <StyledIconButton onClick={() => setSurrenderModal(true)} sx={{ color: "blanchedalmond" }}>
-                                    <SurrenderIcon fontSize={"large"}/>
+            <DetailsContainer isMobile={isMobile} height={height}>
+                <CardImg src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc} alt={"cardImg"}
+                         onContextMenu={(e) => showDetailsImageMenu({event: e})}
+                         onClick={() => selectCard(null)}
+                         {...((!selectedCard && !hoverCard) && {
+                             style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" }
+                         })}
+                />
+                {/*<CardDetails/>*/}
+            </DetailsContainer>
+            <DndContext onDragEnd={handleDragEnd} autoScroll={false} collisionDetection={pointerWithin} sensors={[mouseSensor, touchSensor]}>
+                <BoardLayout height={height}>
+                    <SettingsContainer>
+                        <SoundBar iconFontSize={iconWidth}>
+                            {/*<RadioMenuChildIconButton onClick={() => setIsCameraTilted(!isCameraTilted)}>*/}
+                            {/*    {isCameraTilted ? <CameraTiltedIcon /> : <CameraIcon />}*/}
+                            {/*</RadioMenuChildIconButton>*/}
+                            <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
+                               target="_blank" rel="noopener noreferrer" title={"Rulings"}>
+                                <StyledIconButton sx={{ color: "white", position: "relative" }}>
+                                    <RulingsIcon sx={{ fontSize: `${iconWidth * 0.85}px!important`, opacity: 0.8 }} />
+                                    <LinkIcon sx={{color: "dodgerblue", position: "absolute", right: 0, top: 7, fontSize: `${iconWidth * 0.4}px!important`, pointerEvents: "none"}} />
                                 </StyledIconButton>
-                                <StyledIconButton onClick={() => setRestartRequestModal(true)} sx={{ color: "mediumaquamarine" }}>
-                                    <RestartIcon fontSize={"large"}/>
-                                </StyledIconButton>
-                                <a href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
-                                   target="_blank" rel="noopener noreferrer" title={"Rulings"}>
-                                    <StyledIconButton sx={{ color: "dodgerblue", position: "relative" }}>
-                                        <RulingsIcon sx={{ fontSize: "28px", transform: "translateY(2px)"}} />
-                                        <LinkIcon sx={{position: "absolute", right: 0, top: 9, fontSize: "14px"}} />
-                                    </StyledIconButton>
-                                </a>
+                            </a>
+                        </SoundBar>
+                    </SettingsContainer>
 
-                            </div>
-                        </SettingsContainer>
+                    {/*<RevealArea />*/}
+                    {/*<StackModal />*/}
+                    {/*<CardModal wsUtils={wsUtils} />*/}
+                    <OpponentBoardSide wsUtils={wsUtils} />
+                    <PlayerBoardSide wsUtils={wsUtils} />
 
-                        <ChatLogContainer isMobile={isMobile}>
-                            <GameChat {...wsUtils} />
-                            <GameLog matchInfo={wsUtils.matchInfo} />
-                        </ChatLogContainer>
-
-                    </BottomStack>
-                </Container>
-            </div>
-        </>
+                    <MemoryBar wsUtils={wsUtils} />
+                    <GameChatLog {...wsUtils} />
+                </BoardLayout>
+            </DndContext>
+        </Container>
     );
 }
 
-const Container = styled.div<{ isMobile: boolean }>`
-  width: ${({isMobile}) => isMobile ? "100vw" : "calc(100vw - 400px)"};
-  max-width: 100vw;
-  display: flex;
-  flex-direction: column;
-  container-type: inline-size;
-  position: relative;
-`;
-
-const TopStack = styled.div<{ isMobile: boolean }>`
-  background: rgba(0,0,0,0.2);
+const Container = styled.div`
   display: flex;
   flex-direction: row;
-  width: 100%;
-  //justify-content: space-between;
-  order: ${({isMobile}) => isMobile ? 5 : "unset"};
-  flex-wrap: ${({isMobile}) => isMobile ? "wrap" : "unset"};
-
-  div {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-  }
+  justify-content: flex-start;
+  align-items: center;
   
-  div:nth-of-type(2) {
-    justify-content: flex-end;
-  }
+  position: relative;
+  width: 100%;
+  min-width: 100vw;
+  height: 100%;
+  min-height: 100vh;
 `;
 
-const BottomStack = styled.div<{ isMobile: boolean }>`
-    container-type: inline-size;
+const DetailsContainer = styled.div<{ isMobile: boolean, height?: number }>`
   background: rgba(0,0,0,0.2);
-  order: 3;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  width: 100%;
-  height: ${({isMobile}) => isMobile ? "fit-content" : "150px"};
-  @media (max-width: 1000px) {
-    justify-content: center;
-  }
-;`
-
-const DetailsContainer = styled.div<{ isMobile: boolean }>`
-  background: ${({isMobile}) => isMobile ? "unset" : "rgba(0,0,0,0.2)"};
-  display: flex;
-  max-width: 500px;
-  width: ${({isMobile}) => isMobile ? "100%" : "400px"};
-  max-height: ${({isMobile}) => isMobile ? "fit-content" : "100vh"};
+  width: 400px!important;
+  height: ${({height}) => height ? `${height}px` : "unset"};
+  min-height: 100vh;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
   gap: 5px;
-  padding-top: 5px;
   overflow-x: hidden;
   overflow-y: scroll;
   scrollbar-width: none;
@@ -388,111 +260,58 @@ const DetailsContainer = styled.div<{ isMobile: boolean }>`
     width: 0;
     display: none;
   }
-  
-  @container (min-width: 1400px) {
-      order: ${({isMobile}) => isMobile ? 2 : "unset"};
-  }
 `;
 
 const CardImg = styled.img<{isMobile?: boolean}>`
   width: ${({isMobile}) => isMobile ? "500px" : "100%"};
-  max-width: ${({isMobile}) => isMobile ? "100%" : "400px"};
-  max-height: 100%;
+  max-width: 300px;
   border-radius: 3.5%;
   aspect-ratio: 5 / 7;
   //width: 107px; // 150 * (5/7)
   z-index: 1000;
 `;
 
-const BoardContainer = styled.div<{ isMobile: boolean }>`
-  order: ${({isMobile}) => isMobile ? 1 : 2};
+const BoardLayout = styled.div<{ height?: number, isCameraTilted?: boolean}>`
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 450px;
-  width: ${({isMobile}) => isMobile ? "unset" : "calc(100vw - 400px)"}; // 400px = Details width, may change
-  height: ${({isMobile}) => isMobile ? "fit-content" : "calc(100vh - 230px)"};
-  max-height: ${({isMobile}) => isMobile ? "unset" : "calc(100vh - 230px)"};
-  
-  container-type: inline-size;
-  container-name: board-container;
-  overflow-x: scroll;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  
-  @media (max-width: 1600px) {
-    display: block;
-    border-radius: 0;
-    scrollbar-width: thin;
-  }
-  @media (max-height: 499px) {
-    min-height: 100vh;
-    max-height: 100vh;
-  }
-`;
-
-const BoardLayout = styled.div<{ isMobile: boolean, maxWidth: string, isCameraTilted: boolean }>`
-  position: relative;
-  aspect-ratio: 19 / 9;
-  width: ${({isMobile}) => isMobile ? "unset" : "100%"};
-  max-width: ${({maxWidth}) => maxWidth};
-  min-height: ${({isMobile}) => isMobile ? "450px" : "unset"};
-  max-height: 100%;
-  
-  border-radius: 15px;
+  aspect-ratio: 35 / 20;
+  height: ${({height}) => height ? `${height}px` : "auto"};
 
   display: grid;
   grid-template-columns: repeat(35, 1fr);
-  grid-template-rows: repeat(14, 1fr);
+  grid-template-rows: repeat(20, 1fr);
 
   container-type: inline-size;
   container-name: board-layout;
 
   transform: ${({isCameraTilted}) => isCameraTilted ? "perspective(2000px) rotateX(35deg) rotateZ(0deg)" : "unset"};
   padding: ${({isCameraTilted}) => isCameraTilted ? "0 3.5vw 0 5vw" : "0"};
-  
-  @container board-container (max-width: 900px) {
-    width: unset;
-    height: 100%;
-    border-radius: unset;
-  }
-  @media (max-height: 499px) {
+
+  @media (max-height: 500px) {
     min-height: 100vh;
-    max-height: 100vh;
   }
 `;
 
-const SettingsContainer = styled.div<{ isMobile: boolean }>`
-  height: 150px;
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  
-  @container (min-width: 1400px){
-      order: ${({isMobile}) => isMobile ? 1 : "unset"};
-  }
-  @media (max-width: 1400px) {
-      order: 3;
-  }
+const SettingsContainer = styled.div`
+  grid-column: 1 / 9;
+  grid-row: 1 / 3;
+  z-index: 1;
 `;
 
-const ChatLogContainer = styled.div<{ isMobile: boolean }>`
-  display: flex;
-  flex-direction: ${({isMobile}) => isMobile ? "column" : "row"};
-  width: calc(100% - 320px);
-  min-width: 400px;
-  height: ${({isMobile}) => isMobile ? "600px" : "150px"};
-  order: ${({isMobile}) => isMobile ? 2 : "unset"};
-  
-  @media (max-width: 1400px){
-      width: calc(100% - 820px);
-  }
-  @container (max-width: 900px){
-      width: 100%;
-  }
-`;
+// const ChatLogContainer = styled.div<{ isMobile: boolean }>`
+//   display: flex;
+//   flex-direction: ${({isMobile}) => isMobile ? "column" : "row"};
+//   width: calc(100% - 320px);
+//   min-width: 400px;
+//   height: ${({isMobile}) => isMobile ? "600px" : "150px"};
+//   order: ${({isMobile}) => isMobile ? 2 : "unset"};
+//
+//   @media (max-width: 1400px){
+//       width: calc(100% - 820px);
+//   }
+//   @container (max-width: 900px){
+//       width: 100%;
+//   }
+// `;
 
 const StyledIconButton = styled(IconButton)`
   width: fit-content;
@@ -500,11 +319,11 @@ const StyledIconButton = styled(IconButton)`
   display: flex;
 `;
 
-const UserNameSpan = styled.span`
-  font-family: League Spartan, sans-serif;
-  font-size: 68px;
-  line-height: 1;
-  align-self: flex-end;
-  color: ghostwhite;
-  opacity: 0.5;
-`;
+// const UserNameSpan = styled.span`
+//   font-family: League Spartan, sans-serif;
+//   font-size: 68px;
+//   line-height: 1;
+//   align-self: flex-end;
+//   color: ghostwhite;
+//   opacity: 0.5;
+// `;

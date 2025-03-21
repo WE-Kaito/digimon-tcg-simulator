@@ -8,8 +8,10 @@ import {useSound} from "../../../../hooks/useSound.ts";
  * For Player {@link AttackPhase}
  */
 export default function OpponentAttackResolve({ wsUtils, fontSize } : { wsUtils?: WSUtils, fontSize: number }) {
-    const [myAttackPhase, getMyAttackPhase, setMyAttackPhase] = useGameBoardStates((state) => [
-        state.myAttackPhase, state.getMyAttackPhase, state.setMyAttackPhase]);
+    const myAttackPhase = useGameBoardStates((state) => state.myAttackPhase);
+    const getMyAttackPhase = useGameBoardStates((state) => state.getMyAttackPhase);
+    const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
+
     const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
 
     const isDisabled = myAttackPhase === AttackPhase.COUNTER_BLOCK;

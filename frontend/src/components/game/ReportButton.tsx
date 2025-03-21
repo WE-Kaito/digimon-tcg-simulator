@@ -7,7 +7,7 @@ import MenuDialog from "../MenuDialog.tsx";
 import {useState} from "react";
 import styled from "@emotion/styled";
 
-export default function ReportButton({ matchInfo } : { matchInfo: WSUtils["matchInfo"] }) {
+export default function ReportButton({ matchInfo, iconFontSize } : { matchInfo: WSUtils["matchInfo"], iconFontSize: string }) {
     const messages = useGameBoardStates(state => state.messages);
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
     const [reportMessage, setReportMessage] = useState("");
@@ -47,9 +47,8 @@ export default function ReportButton({ matchInfo } : { matchInfo: WSUtils["match
             </MenuDialog>
 
             <IconButton disabled={isDisabled} onClick={() => setIsReportDialogOpen(true)}
-                        sx={{ color: "indianred", opacity: 0.7,
-            }}>
-                <ReportIcon fontSize={"large"} />
+                        sx={{ color: "indianred", opacity: 0.7, gridArea: "report", padding: 0, margin: 0 }}>
+                <ReportIcon sx={{ fontSize: iconFontSize }} />
             </IconButton>
         </>
     );

@@ -4,7 +4,8 @@ import {DragMode} from "../../../utils/types.ts";
 import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function DragToggleButton() {
-    const [dragMode, toggleDragMode] = useGameUIStates((state) => [state.dragMode, state.toggleDragMode]);
+    const dragMode = useGameUIStates((state) => state.dragMode);
+    const toggleDragMode = useGameUIStates((state) => state.toggleDragMode);
 
     return (
         <Container onClick={toggleDragMode}>

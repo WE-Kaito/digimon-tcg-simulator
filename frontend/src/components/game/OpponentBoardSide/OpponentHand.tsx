@@ -11,7 +11,10 @@ import {useGeneralStates} from "../../../hooks/useGeneralStates.ts";
 export default function OpponentHand() {
     const {show: showOpponentCardMenu} = useContextMenu({id: "opponentCardMenu", props: {index: -1}});
 
-    const [opponentHand, opponentSleeve, getIsCardTarget] = useGameBoardStates((state) => [state.opponentHand, state.opponentSleeve, state.getIsCardTarget]);
+    const opponentHand = useGameBoardStates((state) => state.opponentHand);
+    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
+    const getIsCardTarget = useGameBoardStates((state) => state.getIsCardTarget);
+
     const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     return (

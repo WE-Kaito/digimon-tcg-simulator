@@ -10,8 +10,10 @@ import {useDroppable} from "@dnd-kit/core";
 import {useLongPress} from "../../../hooks/useLongPress.ts";
 
 export default function PlayerDeck({ wsUtils } : { wsUtils?: WSUtils }) {
-    const [myDeckField, mySleeve, nextPhaseTrigger, moveCard] = useGameBoardStates((state) => [
-        state.myDeckField, state.mySleeve, state.nextPhaseTrigger, state.moveCard]);
+    const myDeckField = useGameBoardStates((state) => state.myDeckField);
+    const mySleeve = useGameBoardStates((state) => state.mySleeve);
+    const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -73,12 +75,11 @@ const Container = styled.div`
 const StyledSpan = styled.span`
   width: 100%;
   position: absolute;
-  top: -21px;
-  left: 52%;
-  transform: translateX(-50%);
+  bottom: -5%;
   font-family: Awsumsans, sans-serif;
   font-style: italic;
   transition: all 0.1s ease;
+  pointer-events: none;
   @media (max-height: 500px) {
     font-size: 0.8em;
     top: -18px;
@@ -91,9 +92,10 @@ const DeckImg = styled.img<{ isOver?: boolean }>`
   transition: all 0.1s ease;
   z-index: 2;
   filter: ${({isOver}) => isOver ? "drop-shadow(0px 0px 2px ghostwhite) saturate(1.1) brightness(0.95)" : "unset"};
-  border-radius: 2px;
-  border-right: 2px solid black;
-  border-bottom: 2px solid black;
+  border-radius: 3px;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  box-shadow: 1px 1px 0 0 black;
 
   &:hover {
     box-shadow: 0 0 3px 0 #1CE0BEFF;
@@ -104,7 +106,7 @@ const DeckBottomZone = styled.div<{ isOver: boolean }>`
   z-index: 1;
   height: 20%;
   transform: translate(1px,-5%);
-  width: 90%;
+  width: 75%;
   border-radius: 3px;
   background: ${({isOver}) => isOver ? "rgba(255,255,255,0.4)" : "rgba(0, 0, 0, 0.35)"};
   text-wrap: nowrap;

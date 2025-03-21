@@ -23,7 +23,12 @@ import {generalToken} from "../utils/tokens.ts";
 export const fallbackCardNumber = "1110101";
 
 type State = {
+    particlesInitialized: boolean,
+    setParticlesInitialized: (state: boolean) => void,
+
     cardWidth: number,
+    setCardWidth: (width: number) => void,
+
     fetchedCards: CardTypeWithId[],
     filteredCards: CardTypeWithId[],
     isLoading: boolean,
@@ -43,7 +48,6 @@ type State = {
     deckIdToSetSleeveOrImage: string,
     selectedSleeveOrImage: string,
 
-    setCardWidth: (width: number) => void,
     fetchCards: () => void,
     filterCards: SearchCards,
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void,
@@ -82,8 +86,6 @@ type State = {
 };
 
 export const useGeneralStates = create<State>((set, get) => ({
-
-    cardWidth: 70,
     fetchedCards: [],
     filteredCards: [],
     isLoading: false,
@@ -106,6 +108,10 @@ export const useGeneralStates = create<State>((set, get) => ({
     deckIdToSetSleeveOrImage: "",
     selectedSleeveOrImage: "",
 
+    particlesInitialized: false,
+    setParticlesInitialized: (particlesInitialized: boolean) => set({particlesInitialized}),
+
+    cardWidth: 70,
     setCardWidth: (number) => set({cardWidth: number}),
 
     fetchCards: () => {

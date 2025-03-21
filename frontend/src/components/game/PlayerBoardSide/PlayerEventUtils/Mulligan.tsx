@@ -6,9 +6,12 @@ import { ShuffleOnOutlined as ShuffleIcon } from "@mui/icons-material";
 import {WSUtils} from "../../../../pages/GamePage.tsx";
 
 export default function Mulligan({wsUtils, fontSize}: { wsUtils?: WSUtils, fontSize: number }) {
-    const [getOpponentReady, bootStage, mulligan, setBootStage] = useGameBoardStates((state) =>
-        [state.getOpponentReady, state.bootStage, state.mulligan, state.setBootStage]);
-    const [playShuffleDeckSfx] = useSound((state) => [state.playShuffleDeckSfx]);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const mulligan = useGameBoardStates((state) => state.mulligan);
+    const setBootStage = useGameBoardStates((state) => state.setBootStage);
+
+    const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
 
     function handleMulligan(mulliganWanted: boolean) {
         if (mulliganWanted) {
@@ -22,6 +25,8 @@ export default function Mulligan({wsUtils, fontSize}: { wsUtils?: WSUtils, fontS
         if (getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
         else setBootStage(BootStage.MULLIGAN_DONE);
     }
+
+    if (bootStage !== BootStage.MULLIGAN && bootStage !== BootStage.MULLIGAN_DONE) return <></>;
 
     return (
         <Container>

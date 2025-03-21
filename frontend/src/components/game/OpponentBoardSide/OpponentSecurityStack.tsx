@@ -12,7 +12,8 @@ import {useDroppable} from "@dnd-kit/core";
 import useResponsiveFontSize from "../../../hooks/useResponsiveFontSize.ts";
 
 export default function OpponentSecurityStack() {
-    const [opponentSecurity, opponentSleeve] = useGameBoardStates((state) => [state.opponentSecurity, state.opponentSleeve]);
+    const opponentSecurity = useGameBoardStates((state) => state.opponentSecurity);
+    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
 
     const {setNodeRef, isOver, active} = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
     const isOverOpponent = isOver && String(active?.id).includes("myDigi");

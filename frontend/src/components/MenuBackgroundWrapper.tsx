@@ -1,21 +1,32 @@
-import {PropsWithChildren, useMemo} from "react";
+import { PropsWithChildren, useMemo} from "react";
 import styled from "@emotion/styled";
-import {snow} from "../assets/particles.ts";
-import ParticlesBackground from "./ParticlesBackground.tsx";
-export default function MenuBackgroundWrapper({children}: PropsWithChildren) {
+import {blueTriangles} from "../assets/particles.ts";
+import Particles from "@tsparticles/react";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
+import {Container} from "@tsparticles/engine";
 
-    const options = useMemo(() => (snow),[]);
+export default function MenuBackgroundWrapper({children}: PropsWithChildren) {
+    const particlesInitialized = useGeneralStates((state) => state.particlesInitialized);
+    const particlesLoaded = (container?: Container): Promise<void> => {
+        return new Promise((resolve) => {
+            console.log(container);
+            resolve();
+        });
+    }
+
+    const particles = useMemo( () =>
+        <Particles id="tsparticles" particlesLoaded={particlesLoaded} options={blueTriangles}/>, []);
 
     return (
         <StyledDiv>
-            <ParticlesBackground options={options} />
             {children}
+            {particlesInitialized && particles}
         </StyledDiv>
     );
 }
 
 const StyledDiv = styled.div`
-  background: #070202;
+  background: transparent; // !! define bg in particles
   display: flex;
   min-height: 100vh;
   min-width: 100vw;

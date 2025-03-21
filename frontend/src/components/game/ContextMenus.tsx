@@ -33,54 +33,31 @@ export default function ContextMenus({wsUtils} : { wsUtils?: WSUtils }) {
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
 
-    const [setOpenedCardModal, setStackModal] = useGameUIStates((state) => [state.setOpenedCardModal, state.setStackModal])
+    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal)
+    const setStackModal = useGameUIStates((state) => state.setStackModal)
 
-    const [
-        cardToSend,
-        mySecurity,
-        myHand,
-        myDeckField,
-        shuffleSecurity,
-        getOpponentReady,
-        moveCard,
-        moveCardToStack,
-        setCardIdWithEffect,
-        setCardIdWithTarget,
-        setModifiers,
-    ] = useGameBoardStates((state) => [
-        state.cardToSend,
-        state.mySecurity,
-        state.myHand,
-        state.myDeckField,
-        state.shuffleSecurity,
-        state.getOpponentReady,
-        state.moveCard,
-        state.moveCardToStack,
-        state.setCardIdWithEffect,
-        state.setCardIdWithTarget,
-        state.setModifiers,
-    ]);
+    const cardToSend = useGameBoardStates((state) => state.cardToSend);
+    const mySecurity = useGameBoardStates((state) => state.mySecurity);
+    const myHand = useGameBoardStates((state) => state.myHand);
+    const myDeckField = useGameBoardStates((state) => state.myDeckField);
+    const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
+    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
+    const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
+    const setCardIdWithTarget = useGameBoardStates((state) => state.setCardIdWithTarget);
+    const setModifiers = useGameBoardStates((state) => state.setModifiers);
+
     const contextCard = useGameBoardStates((state) => (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find(card => card.id === cardToSend.id));
 
-    const [
-        playShuffleDeckSfx,
-        playDrawCardSfx,
-        playTrashCardSfx,
-        playRevealCardSfx,
-        playUnsuspendSfx,
-        playActivateEffectSfx,
-        playTargetCardSfx,
-        playModifyCardSfx
-    ] = useSound((state) => [
-        state.playRevealCardSfx,
-        state.playShuffleDeckSfx,
-        state.playDrawCardSfx,
-        state.playTrashCardSfx,
-        state.playUnsuspendSfx,
-        state.playActivateEffectSfx,
-        state.playTargetCardSfx,
-        state.playModifyCardSfx
-    ]);
+    const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+    const playActivateEffectSfx = useSound((state) => state.playActivateEffectSfx);
+    const playTargetCardSfx = useSound((state) => state.playTargetCardSfx);
+    const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
 
     const hasModifierMenu = contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
     const hideMenuItemStyle = hasModifierMenu ? {} : {visibility: "hidden", position: "absolute"};

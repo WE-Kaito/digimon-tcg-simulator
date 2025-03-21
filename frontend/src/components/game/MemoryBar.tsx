@@ -1,6 +1,5 @@
 import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import styled from "@emotion/styled";
-import gradientImage from '../../assets/gradient.png';
 import {useSound} from "../../hooks/useSound.ts";
 import {WSUtils} from "../../pages/GamePage.tsx";
 import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
@@ -36,7 +35,7 @@ export default function MemoryBar({wsUtils}: { wsUtils?: WSUtils }) {
             <MemoryButton onClick={() => handleClick(2)} value={2} myMemory={myMemory} fontSize={fontSize}><StyledSpan>2</StyledSpan></MemoryButton>
             <MemoryButton onClick={() => handleClick(1)} value={1} myMemory={myMemory} fontSize={fontSize}><StyledSpanOne>1</StyledSpanOne></MemoryButton>
 
-            <ZeroMemoryButton onClick={() => handleClick(0)} value={0}  myMemory={myMemory} fontSize={bigFontSize}><ZeroSpan>0</ZeroSpan></ZeroMemoryButton>
+            <BigMemoryButton onClick={() => handleClick(0)} value={0}  myMemory={myMemory} fontSize={bigFontSize}><ZeroSpan>0</ZeroSpan></BigMemoryButton>
 
             <MemoryButton onClick={() => handleClick(-1)} value={-1} myMemory={myMemory} fontSize={fontSize}><StyledSpanOne>1</StyledSpanOne></MemoryButton>
             <MemoryButton onClick={() => handleClick(-2)} value={-2} myMemory={myMemory} fontSize={fontSize}><StyledSpan>2</StyledSpan></MemoryButton>
@@ -60,13 +59,14 @@ const MemoryBarContainer = styled.div`
   justify-content: space-between;
   align-items: center;
   // match BoardLayout Element of GamePage.tsx:
-  grid-column: 4 / 26; // of 35
-  grid-row: 7 / 9; // of 14
+  grid-column: 5 / 25; // of 35
+  grid-row: 10 / 12; // of 14
+  transform: translate(-3px, -2px);
 `;
 
 const MemoryButton = styled.button<{myMemory: number, value: number, fontSize: number}>`
   width: 4%;
-  height: 38%;
+  height: 43%;
   padding: 0;
   transition: all 0.2s ease;
   z-index: 200;
@@ -80,112 +80,124 @@ const MemoryButton = styled.button<{myMemory: number, value: number, fontSize: n
   text-shadow: ${({value}) => value > 0 ? "0 0 1px #0c0c0c" : "none"};
   font-weight: bold;
 
-  border-radius: 50%;
   border: ${({myMemory, value}) => getBorder(value, myMemory)};
+  color: ghostwhite;
 
-  opacity: ${({myMemory, value}) => myMemory === value ? "1" : "0.8"};
+  background: rgba(0, 0, 0, ${({myMemory, value}) => value === myMemory ? 0.6 : 0.5});
+  border-radius: 50%;
 
-  background-color: ${({value}) => value > 0 ? "#ECECEC" : "#0a0a0a"};
-  color: ${({value}) => value > 0 ? "#0a0a0a" : "#ECECEC"};
-  
-  filter: drop-shadow(${({myMemory, value}) => getGlow(value, myMemory)});
-  box-shadow: inset ${({myMemory, value}) => getInnerGlow(value, myMemory)};
+  filter: drop-shadow(${({myMemory, value}) => getDropShadow(value, myMemory)});
+  box-shadow: inset ${({myMemory, value}) => getBoxShadow(value, myMemory)};
 
   &:hover {
-    filter: brightness(1.2) contrast(1.2) drop-shadow(0 0 3px #1ce0be);
+    filter: brightness(1.2) contrast(1.2) drop-shadow(${({myMemory, value}) => getDropShadow(value, myMemory)});
     opacity: 1;
-    border: ${({myMemory, value}) => getHoverBorder(value, myMemory)};
+    border: ${({myMemory, value}) => getBorder(value, myMemory)};
+    box-shadow: inset ${({myMemory, value}) => getBoxShadow(value, myMemory, true)};
   }
 `;
 
 const BigMemoryButton = styled(MemoryButton)`
   width: 5.5%;
-  height: 50.5%;
-`;
-
-const ZeroMemoryButton = styled(BigMemoryButton)`
-  background-image: url(${gradientImage});
-  background-size: cover;
-  background-repeat: no-repeat;
+  height: 60%;
 `;
 
 const ZeroSpan = styled.span`
-  background: linear-gradient(to top right, black, black, black, black, black, black, white, white, white, white, white, white);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
   font-weight: bold;
-  transform: translate(5%, 3%) skewX(8.5deg);
+  transform: translate(8%, 3%) skewX(8.5deg);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;
 
 const StyledSpanOne = styled.span`
   transform: translate(-23%, 3.75%) skewX(8.5deg);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;
 
 const StyledSpanOneBig = styled.span`
   transform: translate(-12%, 3.25%) skewX(8.5deg);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;
 
 const StyledSpan = styled.span`
   transform: translate(5%, 5%) skewX(7.8deg);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;
 
 function getBorder(value: number, myMemory:number) {
-    if(value === myMemory && value > 0) {
-        return "3px solid #1d9fdd";
+    const borderConfig = "1px solid ";
+    const borderConfigSelected = "2px solid ";
+
+    if(value > 0) {
+        if(value <= myMemory) return borderConfigSelected + "rgba(29,159,221,0.9)";
+        else return borderConfig + "rgba(29,159,221,0.4)";
     }
 
-    if(value === myMemory && value === 0) {
-        return "3px solid #ead15c";
+    if(value === 0) {
+        if(value === myMemory) return borderConfigSelected + "rgba(191,159,255,0.8)";
+        else return borderConfig + "rgba(191,159,255,0.3)"
     }
 
-    if (value === myMemory) {
-        return "3px solid crimson";
+    if (value < 0) {
+        if(value >= myMemory) return borderConfigSelected + "rgba(255,81,118,0.8)";
+        else return borderConfig + "rgba(255,81,118,0.3)"
     }
-    return "none";
 }
 
-function getHoverBorder(value: number, myMemory:number) {
-    if(value === myMemory && value > 0) {
-        return "2px solid #1d9fdd";
+function getDropShadow(value: number, myMemory:number) {
+    const shadowConfig = "0 0 2px ";
+
+    if(value > 0) {
+        if(value <= myMemory) return shadowConfig + "rgba(29,159,221,0.6)";
+        else return shadowConfig + "rgba(29,159,221,0.15)";
     }
 
-    if(value === myMemory && value === 0) {
-        return "2px solid #ead15c";
+    if(value === 0) {
+        if(value === myMemory) return shadowConfig + "rgba(95,54,138,0.6)";
+        else return shadowConfig + "rgba(95,54,138,0.6)"
     }
 
-    if (value === myMemory) {
-        return "2px solid crimson";
+    if (value < 0) {
+        if(value >= myMemory) return shadowConfig + "rgba(255,81,118,0.6)";
+        else return shadowConfig + "rgba(255,81,118,0.15)"
     }
-    return "none";
 }
 
-function getGlow(value: number, myMemory:number) {
-    if(value === myMemory && value > 0) {
-        return "0 0 3px #1d9fdd";
+function getBoxShadow(value: number, myMemory:number, hover?: boolean) {
+    const shadowConfig = hover ? "0 0 7px 3px " : "1px 2px 5px 1px ";
+
+    if(value > 0) {
+        if(value <= myMemory) {
+            if (hover) return "none";
+            else return shadowConfig + "rgba(29,159,221,0.8)"
+        }
+        else return shadowConfig + "rgba(29,159,221,0.5)";
     }
 
-    if(value === myMemory && value === 0) {
-        return "0 0 3px #ead15c";
+    if(value === 0) {
+        if(value === myMemory) {
+            if (hover) return "none";
+            else return shadowConfig + "rgba(255,255,255,0.4)";
+        }
+        else return shadowConfig + "rgba(255,255,255,0.25)"
     }
 
-    if (value === myMemory) {
-        return "0 0 3px crimson";
+    if (value < 0) {
+        if(value >= myMemory) {
+            if (hover) return "none";
+            else return shadowConfig + "rgba(255,81,118,0.7)";
+        }
+        else return shadowConfig + "rgba(255,81,118,0.4)"
     }
-    return "none";
-}
-
-function getInnerGlow(value: number, myMemory:number) {
-    if(value === myMemory && value > 0) {
-        return "0 0 2px #1d9fdd";
-    }
-
-    if(value === myMemory && value === 0) {
-        return "0 0 2px #ead15c";
-    }
-
-    if (value === myMemory) {
-        return "0 0 2px crimson";
-    }
-    return "none";
 }

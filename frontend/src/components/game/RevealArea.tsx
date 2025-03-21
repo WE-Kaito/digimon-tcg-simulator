@@ -5,7 +5,9 @@ import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
 import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
 
 export default function RevealArea() {
-    const [myReveal, opponentReveal] = useGameBoardStates((state) => [state.myReveal, state.opponentReveal]);
+    const myReveal = useGameBoardStates((state) => state.myReveal);
+    const opponentReveal = useGameBoardStates((state) => state.opponentReveal);
+
     const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     if (!myReveal.length && !opponentReveal.length) return <></>;

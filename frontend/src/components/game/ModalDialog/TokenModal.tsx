@@ -10,7 +10,8 @@ import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function TokenModal( { wsUtils }: { wsUtils?: WSUtils } ) {
     const setHoverCard = useGeneralStates((state) => state.setHoverCard);
-    const [tokenModal, setTokenModal] = useGameUIStates((state) => [state.tokenModal, state.setTokenModal]);
+    const tokenModal = useGameUIStates((state) => state.tokenModal);
+    const setTokenModal = useGameUIStates((state) => state.setTokenModal);
     const createToken = useGameBoardStates((state) => state.createToken);
 
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);

@@ -6,7 +6,6 @@ import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
-import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import cardBackSrc from "../assets/cardBack.jpg"
 import AddDeckButton from "../components/deckbuilder/AddDeckButton.tsx";
 import UpdateDeleteDeckButtons from "../components/deckbuilder/UpdateDeleteDeckButtons.tsx";
@@ -58,7 +57,7 @@ export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
 
                 <FetchedCards/>
                 <DetailsContainer>
-                    <CardDetails/>
+                    {/*<CardDetails/>*/}
                 </DetailsContainer>
 
                 <CardImageContainer >

@@ -10,25 +10,13 @@ import {Button} from "@mui/material";
 import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 
 export default function OpponentTrash() {
-    const [
-        opponentTrash,
-        getCardLocationById,
-        cardIdWithEffect,
-        cardIdWithTarget,
-    ] = useGameBoardStates((state) => [
-        state.opponentTrash,
-        state.getCardLocationById,
-        state.cardIdWithEffect,
-        state.cardIdWithTarget,
-    ]);
+    const opponentTrash = useGameBoardStates((state) => state.opponentTrash);
+    const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
+    const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
+    const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
 
-    const [
-        openedCardModal,
-        setOpenedCardModal
-    ] = useGameUIStates((state) => [
-        state.openedCardModal,
-        state.setOpenedCardModal
-    ]);
+    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
 
     const effectInTrash = getCardLocationById(cardIdWithEffect ?? "") === "opponentTrash";
     const targetInTrash = getCardLocationById(cardIdWithTarget ?? "") === "opponentTrash";

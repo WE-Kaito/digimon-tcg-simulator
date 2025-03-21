@@ -16,7 +16,9 @@ import radioAnimation from "../assets/lotties/radio-animation.json";
 import {PropsWithChildren, useState} from "react";
 import {Menu, MenuItem} from "@mui/material";
 
-export default function SoundBar({children}: PropsWithChildren) {
+type Props = PropsWithChildren<{ iconFontSize?: number }>;
+
+export default function SoundBar({children, iconFontSize}: Props) {
     const sfxEnabled = useSound((state) => state.sfxEnabled);
     const musicVolume = useSound((state) => state.musicVolume);
     const currentSong = useSound((state) => state.currentSong);
@@ -52,14 +54,14 @@ export default function SoundBar({children}: PropsWithChildren) {
                     @SadGatomon <SubtitleSpan>Lo-Fi Covers</SubtitleSpan>
                 </MenuItem>
             </StyledMenu>
-            <StyledGrid>
+            <StyledGrid iconFontSize={iconFontSize}>
                 <SetSfxIconButton onClick={() => toggleSfxEnabled()} sfxEnabled={sfxEnabled}
                                   title={"Mute / Unmute SFX"}>
                     {sfxEnabled
                         ? <MuteSfxIcon fontSize={"large"}/>
                         : <UnmuteSfxIcon fontSize={"large"}/>}
                 </SetSfxIconButton>
-                <SfxSpan sfxEnabled={sfxEnabled}>SFX</SfxSpan>
+                <SfxSpan sfxEnabled={sfxEnabled} iconFontSize={iconFontSize}>SFX</SfxSpan>
 
                 <RadioIconButtonPlaylist isRadioMenuExpanded={isRadioMenuExpanded} onClick={(e) => setAnchorEl(e.currentTarget)}>
                     <PlaylistIcon fontSize={"large"}/>
@@ -69,10 +71,13 @@ export default function SoundBar({children}: PropsWithChildren) {
                     <PrevIcon fontSize={"large"}/>
                 </RadioIconButtonPrev>
 
-                <MainRadioIconButton isRadioMenuExpanded={isRadioMenuExpanded} onClick={toggleRadioMenu}>
+                <MainRadioIconButton isRadioMenuExpanded={isRadioMenuExpanded} onClick={toggleRadioMenu} translateX={iconFontSize ? iconFontSize * 2.8 : undefined}>
                     <RadioIcon titleAccess={currentSong} fontSize={"large"}/>
-                    {isMusicPlaying && <Lottie animationData={radioAnimation}
-                                               style={{ width: 250, position: "absolute", left: -100, top: -28, pointerEvents: "none"}} />}
+                    {isMusicPlaying &&
+                        <Lottie animationData={radioAnimation} style={{ position: "absolute", pointerEvents: "none",
+                            width: iconFontSize ? iconFontSize * 6.5 : 250,
+                            left: iconFontSize ? iconFontSize * -2.475 : -100,
+                            top: iconFontSize ? iconFontSize * -0.675 : -28 }} />}
                 </MainRadioIconButton>
 
                 <RadioIconButtonStart isRadioMenuExpanded={isRadioMenuExpanded} onClick={isMusicPlaying ? stopMusic : startMusic}>
@@ -85,7 +90,8 @@ export default function SoundBar({children}: PropsWithChildren) {
                 </RadioIconButtonNext>
 
                 {children !== undefined && !isRadioMenuExpanded &&
-                    <div style={{ position: "absolute", left: 130, top: 8, zIndex: 100 }}>
+                    <div style={{ position: "absolute", zIndex: 2, display: "flex", gap: iconFontSize ? iconFontSize * 0.4 : 8,
+                        left: iconFontSize ? iconFontSize * 4 : 130, top: iconFontSize ? 0 : 8 }}>
                         {children}
                     </div>
                 }
@@ -103,17 +109,21 @@ export default function SoundBar({children}: PropsWithChildren) {
     );
 }
 
-const StyledGrid = styled.div`
+const StyledGrid = styled.div<{iconFontSize?: number }>`
   display: grid;
   position: relative; 
-  gap: 3px;
-  padding: 5px;
+  //gap: 3px;
+  //padding: 5px;
   justify-content: center;
   align-items: center;
-  grid-template-columns: repeat(6, 50px);
-  grid-template-rows: 45px 20px;
+  grid-template-columns: repeat(6, ${({iconFontSize}) => iconFontSize ? iconFontSize * 1.5 : 45}px);
+  grid-template-rows: ${({iconFontSize}) => iconFontSize ? iconFontSize * 1.5 : 45}px 20px;
   grid-template-areas: "sfx-button playlist prev-button radio-icon start-button next-button"
-                         "sfx-text slider slider slider slider slider";
+                       "sfx-text slider slider slider slider slider";
+
+  .MuiSvgIcon-root {
+    font-size: ${({iconFontSize}) => iconFontSize ? `${iconFontSize}px` : "2.1875rem"};
+  }
 `;
 
 const SetSfxIconButton = styled.button<{ sfxEnabled: boolean }>`
@@ -133,9 +143,9 @@ const SetSfxIconButton = styled.button<{ sfxEnabled: boolean }>`
   }
 `;
 
-const SfxSpan = styled.span<{ sfxEnabled: boolean }>`
+const SfxSpan = styled.span<{ sfxEnabled: boolean, iconFontSize?: number }>`
   font-family: Awsumsans, sans-serif;
-  font-size: 12px;
+  font-size: ${({iconFontSize}) => iconFontSize ? iconFontSize * 0.375 : 12}px;
   grid-area: sfx-text;
   align-self: flex-start;
   opacity: 0.45;
@@ -181,9 +191,9 @@ const RadioIconButtonStart = styled(RadioIconButton)`
   transform: ${props => props.isRadioMenuExpanded ? "unset" : "translateX(-151px)"};
 `;
 
-const MainRadioIconButton = styled(RadioIconButton)`
+const MainRadioIconButton = styled(RadioIconButton)<{translateX?: number}>`
   grid-area: radio-icon;
-  transform: ${props => props.isRadioMenuExpanded ? "unset" : "translateX(-100px)"}; 
+  transform: ${props => props.isRadioMenuExpanded ? "unset" : `translateX(-${props.translateX ?? 100}px)`}; 
   padding-bottom: 1px;
   transition: all 0.25s ease;
   opacity: 0.7;

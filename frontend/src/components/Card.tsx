@@ -2,13 +2,19 @@ import {CardTypeGame, DragMode} from "../utils/types.ts";
 import styled from '@emotion/styled';
 import {useGeneralStates} from "../hooks/useGeneralStates.ts";
 import {useGameBoardStates} from "../hooks/useGameBoardStates.ts";
-import {arraysEqualUnordered, getCardColor, getNumericModifier, numbersWithModifiers, topCardInfo} from "../utils/functions.ts";
+import {
+    arraysEqualUnordered,
+    getCardColor,
+    getNumericModifier,
+    numbersWithModifiers,
+    topCardInfo
+} from "../utils/functions.ts";
 import {CSSProperties, useEffect, useState} from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
 import suspendedAPNG from "../assets/lotties/square-sparkle-apng.png";
-import ShieldIcon from '@mui/icons-material/Shield';
+import {ContentCopyTwoTone as DragStackIcon, Shield as ShieldIcon} from '@mui/icons-material';
 import {AceSpan} from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
 import {useSound} from "../hooks/useSound.ts";
@@ -23,8 +29,9 @@ const digimonLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5",
     "myDigi9", "myDigi10", "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5",
     "opponentDigi6", "opponentDigi7", "opponentDigi8", "opponentDigi9", "opponentDigi10"];
 
-const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15",
-    "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
+const myTamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15"];
+
+const tamerLocations = [...myTamerLocations, "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentDigi14", "opponentDigi15"];
 
 const myBALocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8", "myDigi9",
     "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15", "myBreedingArea"]
@@ -53,7 +60,6 @@ type CardProps = {
 }
 
 export default function Card( props : CardProps ) {
-    "use no memo"; // opts out this component from being compiled by React Compiler
     const {card, location, index, setImageError, style, onContextMenu, wsUtils} = props;
 
     const cardWidth = useGeneralStates((state) => state.cardWidth);
@@ -73,9 +79,13 @@ export default function Card( props : CardProps ) {
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const mySleeve = useGameBoardStates((state) => state.mySleeve);
-    const [stackSliceIndex, setStackSliceIndex] = useGameBoardStates((state) => [state.stackSliceIndex, state.setStackSliceIndex]);
+    const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
+    const setStackSliceIndex = useGameBoardStates((state) => state.setStackSliceIndex);
+
     const dragMode = useGameUIStates((state) => state.dragMode);
     const stackModal = useGameUIStates((state) => state.stackModal);
+    const stackDragIcon = useGameUIStates((state) => state.stackDragIcon);
+    const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -108,7 +118,7 @@ export default function Card( props : CardProps ) {
         isDragging: isDraggingStack,
         transform: stackTransform,
     } = useDraggable({
-        id: location + "_stack" + dragMode,
+        id: location + "_stack",
         data: { type: 'card-stack', content: { location } },
     });
 
@@ -130,9 +140,9 @@ export default function Card( props : CardProps ) {
         selectCard(card);
         if (inheritAllowed) setInheritCardInfo(inheritedEffects);
     }
-
+    const isToggleMode = false;
     function handleHover() {
-        if (index !== undefined && !active && (dragMode === DragMode.STACK)) setStackSliceIndex(index);
+        if (index !== undefined && !active && (!isToggleMode || dragMode === DragMode.STACK)) setStackSliceIndex(index);
         if (isHandHidden && location === "myHand") return;
         setHoverCard(card);
         if (inheritAllowed) setInheritCardInfo(inheritedEffects);
@@ -169,13 +179,15 @@ export default function Card( props : CardProps ) {
 
     const overId = String(over?.id);
     const opacity = over ? overId.includes("mySecurity") ? 0 : (overId.includes("bottom") || overId === "opponentSecurity") ? 0.35 : 1 : 1;
-    const transformWithoutRotation = style?.transform?.split(" ").slice(0, 2).join(" ") ?? "unset";
 
-    const isSingleDrag = dragMode === DragMode.SINGLE
+    const isPartOfDraggableStack = (index !== undefined) && !!stackDragIcon && location === stackDragIcon.location && (inTamerField ? (index >= stackDragIcon.index) : (index <= stackDragIcon.index));
+
+    const isSingleDrag = !isToggleMode && !stackDragIcon &&
+        (dragMode === DragMode.SINGLE
         || ["myHand", "mySecurity", "myTrash"].includes(location)
         || (stackSliceIndex === 0 && !tamerLocations.includes(location))
         || (stackSliceIndex === locationCards.length - 1 && tamerLocations.includes(location))
-        || (stackModal === location);
+        || (stackModal === location));
 
     const dragRef = isSingleDrag ? drag : dragStack;
     const dragAttributes = isSingleDrag ? attributes : stackAttributes;
@@ -184,18 +196,44 @@ export default function Card( props : CardProps ) {
     const showCardModifiers = locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack;
     const renderModifiersOnTop = (digimonLocations.includes(location) && index === (locationCards.length - 1)) || (tamerLocations.includes(location) && index === 0);
 
+    const isDragIconHovered = (index === stackDragIcon?.index && location === stackDragIcon?.location);
+
+    function handleHoverDragIcon() {
+        if (index !== undefined) {
+            setHoverCard(card);
+            setStackSliceIndex(index);
+            setStackDragIcon({index, location});
+        }
+    }
+
     function onLongPress(e: React.TouchEvent<HTMLImageElement>) {
         if (myBALocations.includes(location)) setCardToSend(card.id, location);
         onContextMenu?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
     }
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({onLongPress});
-
+// ...((isDragging || isDraggingStack) && { zIndex: 9999 })}
     return (
         <Wrapper id={index === locationCards.length - 1 ? location : ""}
-                 style={{...style, ...(isDragging && { transform: transformWithoutRotation, zIndex: 9999 })}}
+                 style={{...style, transform: `rotate(${card.isTilted ? (isDraggingStack || isDragging) ? 0 : 25 : 0}deg)`}}
                  ref={dragRef} {...dragAttributes} {...dragListeners}
         >
+            {((index !== 0 && myBALocations.includes(location)) || (index !== locationCards.length - 1 && myTamerLocations.includes(location))) && (isHovered || isDragIconHovered) && !isDragging &&
+                <DragStackIconDiv
+                    className={isDraggingStack ? "custom-grab-cursor" : "custom-hand-cursor"}
+                    style={{ right: -(cardWidth / 3), transform: CSS.Translate.toString(isDraggingStack ? stackTransform : transform) }}
+                    onMouseEnter={handleHoverDragIcon}
+                    onMouseOver={handleHoverDragIcon}
+                    onMouseLeave={() => {
+                        if (!isDraggingStack) {
+                            setHoverCard(null);
+                            setStackDragIcon(null);
+                        }
+                    }}
+                >
+                    <DragStackIcon fontSize={"large"} />
+                </DragStackIconDiv>
+            }
             {showCardModifiers && <>
                 {renderModifiersOnTop && <>
                     {isModifiersAllowed && <PlusDpSpan isHovering={isHovered} isNegative={finalDp < card.dp!}
@@ -232,7 +270,7 @@ export default function Card( props : CardProps ) {
             {card.isTilted &&
                 <CardAnimationContainer style={{overflow: "clip", top: 5, left: 5, right: 5, bottom: "25%", opacity,
                 transform: CSS.Translate.toString(isPartOfDraggedStack ? stackTransform : transform)}}>
-                    <img alt={"suspended"} src={suspendedAPNG}/>
+                    <img alt={"suspended"} src={suspendedAPNG} />
                 </CardAnimationContainer>}
 
             {(isDragging || isPartOfDraggedStack) && !isHandHidden &&
@@ -241,11 +279,12 @@ export default function Card( props : CardProps ) {
                            width={cardWidth}
                            style={{ opacity }}
                            inModal={["myTrash", "mySecurity"].includes(location) || stackModal === location}
+                           className={"custom-grab-cursor"}
                 />}
 
             {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && <StyledImage
-                style={{ ...(isDragging && isHandHidden && {transform: CSS.Translate.toString(transform), cursor: "grabbing"})}}
-                className={"prevent-default-long-press"}
+                style={{ ...(isPartOfDraggableStack && { outline: "3px solid dodgerblue", filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)" }) }}
+                className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                 onClick={handleClick}
                 onDoubleClick={handleTiltCard}
                 onMouseEnter={handleHover}
@@ -285,9 +324,9 @@ type StyledImageProps = {
 const StyledImage = styled.img<StyledImageProps>`
   border-radius: 5px;
   transition: all 0.15s ease-out, filter 0.5s ease-in-out;
-  cursor: ${({ location }) => opponentFieldLocations?.includes(location) ? "pointer" : "grab"};
+  cursor: ${({ location }) => opponentFieldLocations?.includes(location) ? "pointer" : undefined};
   touch-action: none;
-  
+
   animation: ${({ isTilted, activeEffect, targeted, isTopCard }) =>
     targeted
         ? `target-pulsate${isTopCard ? "-first" : ""} 0.95s ease-in-out infinite`
@@ -303,6 +342,12 @@ const StyledImage = styled.img<StyledImageProps>`
   border-right: ${({ location }) => (location.includes("Digi") && Number(location.split("Digi")[1]) > 10 ? "1px solid rgba(0,0,0, 0.75)" : "none")};
   filter: ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
 
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  user-select: none;
+  
   &:hover {
     filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5))
       ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
@@ -350,17 +395,14 @@ const StyledImage = styled.img<StyledImageProps>`
   }
 `;
 
-const DragImage = styled.img<{ transform?: string, isTilted?: boolean, hasOffset?: boolean, inModal: boolean}>`
+const DragImage = styled.img<{ transform?: string, isTilted?: boolean, inModal: boolean }>`
   touch-action: none;
-  cursor: grabbing;
   position: fixed;
   outline: ${({isTilted}) => (isTilted ? "2px solid #191970" : "none")};
   outline-offset: -1px;
   border-radius: 5px;
-  transform: ${({transform}) => transform} ${({inModal}) => inModal ? "translateX(-50%)" : "translate(-50%, -100%)"} scale(1.1);
+  transform: ${({transform}) => transform} ${({inModal}) => inModal ? "translateX(-50%)" : `translate(-50%, -100%)`} scale(1.1);
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)) brightness(110%) saturate(1.05);
-  transition: ${({hasOffset}) => (hasOffset ? "transform 0.35s ease" : "unset")};
-  z-index: 10000;
 `;
 
 export const CardAnimationContainer = styled.div`
@@ -369,7 +411,7 @@ export const CardAnimationContainer = styled.div`
   justify-content: center;
   position: absolute;
   top: 20px;
-  z-index: 10;
+  z-index: 10000;
   pointer-events: none;
 `;
 
@@ -449,6 +491,10 @@ const Wrapper = styled.div`
   -moz-user-select: none;
   user-select: none;
   transition: transform 0.35s;
+  
+    &:hover {
+        z-index: 9999;
+    }
 `;
 
 const ModifierSpan = styled.div<{keyword: string}>`
@@ -489,4 +535,27 @@ const ColorStack = styled.div`
   top: -20px;
   left: 50%;
   transform: translateX(-50%);
+`;
+
+const DragStackIconDiv = styled.div`
+    position: fixed;
+    bottom: 0;
+    z-index: 9999;
+    border-radius: 3px;
+    padding: 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+  
+  :hover {
+    background: rgba(0, 0, 0, 0.75);
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.5);
+    scale: 1.1;
+    
+    svg {
+      scale: 1;
+      color: dodgerblue;
+    }
+  }
 `;

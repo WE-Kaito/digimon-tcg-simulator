@@ -4,8 +4,8 @@ import {useTutorialStates} from "../../hooks/useTutorialStates.ts";
 import {useState} from "react";
 
 export default function TermsAndConditionsDialog() {
-    const [hasAcceptedRules, setHasAcceptedRules] = useTutorialStates((state) => [
-        state.hasAcceptedRules, state.setHasAcceptedRules]);
+    const hasAcceptedRules = useTutorialStates((state) => state.hasAcceptedRules);
+    const setHasAcceptedRules = useTutorialStates((state) => state.setHasAcceptedRules);
 
     const [checked, setChecked] = useState(false);
 

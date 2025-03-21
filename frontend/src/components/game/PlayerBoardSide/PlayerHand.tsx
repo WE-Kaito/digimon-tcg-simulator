@@ -9,7 +9,8 @@ import {useGeneralStates} from "../../../hooks/useGeneralStates.ts";
 import {CardTypeGame} from "../../../utils/types.ts";
 import {useDroppable} from "@dnd-kit/core";
 export default function PlayerHand() {
-    const [isHandHidden, toggleIsHandHidden] = useGameBoardStates((state) => [state.isHandHidden, state.toggleIsHandHidden]);
+    const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
+    const toggleIsHandHidden = useGameBoardStates((state) => state.toggleIsHandHidden);
     const myHand = useGameBoardStates((state) => state.myHand);
     const cardWidth = useGeneralStates((state) => state.cardWidth);
 
@@ -50,7 +51,7 @@ function HandCard({card, index}: { card: CardTypeGame, index: number }) {
     const style : CSSProperties = {
         position: "absolute",
         left: "3%",
-        bottom: myHand.length > 15 ? "5%" : "30%",
+        bottom: myHand.length > 15 ? "5%" : "18%",
         width: cardWidth,
         transition: "all 0.2s ease",
         transform,
@@ -71,7 +72,7 @@ const Container = styled.div`
   align-items: center;
   width: 100%;
   height: 100%;
-  transform: translate(0px, 0px); // eye icon??
+  transform: translate(0px, 15%); // eye icon??
   position: relative;
 `;
 
@@ -110,7 +111,8 @@ const StyledSpan = styled.span<{ cardCount: number }>`
   opacity: 0.4;
   visibility: ${({cardCount}) => cardCount > 5 ? "visible" : "hidden"};
   position: absolute;
-  bottom: ${({cardCount}) => cardCount > 15 ? "unset" : "5%"};
-  top: ${({cardCount}) => cardCount > 15 ? "-5%" : "unset"};
+  bottom: ${({cardCount}) => cardCount > 15 ? "unset" : 0};
+  top: ${({cardCount}) => cardCount > 15 ? "-15%" : "unset"};
   left: ${({cardCount}) => cardCount > 15 ? "52%" : "50%"};
+  pointer-events: none;
 `;

@@ -6,17 +6,10 @@ import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
 export default function RestartPromptModal({ wsUtils } : { wsUtils: WSUtils }) {
     const { sendMessage, matchInfo: { gameId, opponentName, user } } = wsUtils;
 
-    const [
-        restartOrder,
-        restartPromptModal,
-        setRestartPromptModal,
-        setIsRematch
-    ] = useGameUIStates((state) => [
-        state.restartOrder,
-        state.restartPromptModal,
-        state.setRestartPromptModal,
-        state.setIsRematch
-    ]);
+    const restartOrder = useGameUIStates((state) => state.restartOrder);
+    const restartPromptModal = useGameUIStates((state) => state.restartPromptModal);
+    const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
+    const setIsRematch = useGameUIStates((state) => state.setIsRematch);
 
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
 

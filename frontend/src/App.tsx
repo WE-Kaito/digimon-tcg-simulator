@@ -11,14 +11,19 @@ import Lobby from "./pages/Lobby.tsx";
 import CustomToastContainer from "./components/CustomToastContainer.tsx";
 import GamePage from "./pages/GamePage.tsx";
 import MainMenu from "./pages/MainMenu.tsx";
+import {initParticlesEngine} from "@tsparticles/react";
+import { loadSlim } from "@tsparticles/slim";
 
 function App() {
-
     const me = useGeneralStates((state) => state.me);
     const fetchCards = useGeneralStates((state) => state.fetchCards);
-    
+    const setParticlesInitialized = useGeneralStates((state) => state.setParticlesInitialized);
+
     useEffect(() => me(), [me]);
     useEffect(() => fetchCards(), [fetchCards]);
+    useEffect(() => {
+        initParticlesEngine(async (engine) => await loadSlim(engine)).then(() => setParticlesInitialized(true));
+    }, [setParticlesInitialized]);
 
     return (
         <>
