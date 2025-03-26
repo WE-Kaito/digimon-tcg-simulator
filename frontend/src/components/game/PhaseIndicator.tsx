@@ -1,22 +1,20 @@
-import {useGame} from "../../hooks/useGame.ts";
-import {Phase} from "../../utils/types.ts";
+import {useGameBoardStates} from "../../hooks/useGameBoardStates.ts";
+import {BootStage, Phase} from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import {useEffect, useState} from "react";
 import {useSound} from "../../hooks/useSound.ts";
+import {WSUtils} from "../../pages/GamePage.tsx";
+import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
 
-type Props = {
-    sendPhaseUpdate: () => void;
-    sendSfx: (sfx: string) => void;
-    gameHasStarted: boolean;
-}
+export default function PhaseIndicator({ wsUtils } : { wsUtils?: WSUtils }) {
 
-export default function PhaseIndicator({sendPhaseUpdate, sendSfx, gameHasStarted} : Props) {
-
-    const phase = useGame(state => state.phase);
-    const setPhase = useGame(state => state.setPhase);
-    const isMyTurn = useGame(state => state.isMyTurn);
-    const setTurn = useGame(state => state.setTurn);
-    const myMemory = useGame(state => state.myMemory);
+    const phase = useGameBoardStates(state => state.phase);
+    const setPhase = useGameBoardStates(state => state.setPhase);
+    const isMyTurn = useGameBoardStates(state => state.isMyTurn);
+    const setTurn = useGameBoardStates(state => state.setTurn);
+    const myMemory = useGameBoardStates(state => state.myMemory);
+    const bootStage = useGameBoardStates(state => state.bootStage);
+    const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
 
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
     const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
@@ -31,15 +29,15 @@ export default function PhaseIndicator({sendPhaseUpdate, sendSfx, gameHasStarted
         if (isMainPhase) {
             if (!isPassTurnAllowed) return;
             playPassTurnSfx();
-            sendSfx("playPassTurnSfx");
             setTurn(false);
+            wsUtils?.sendSfx("playPassTurnSfx");
         }
         else {
             playNextPhaseSfx();
-            sendSfx("playNextPhaseSfx");
+            wsUtils?.sendSfx("playNextPhaseSfx");
         }
         setPhase();
-        sendPhaseUpdate();
+        wsUtils?.sendPhaseUpdate();
     }
 
     useEffect(() => {
@@ -48,44 +46,67 @@ export default function PhaseIndicator({sendPhaseUpdate, sendSfx, gameHasStarted
         return () => clearTimeout(timer);
     }, [phase]);
 
+    const {fontContainerRef, fontSize} = useResponsiveFontSize(8.5);
+
     return (
-        <Container onClick={handleClick} isMyTurn={isMyTurn} isMainPhase={isMainPhase} isPassTurnAllowed={isPassTurnAllowed}
+        <Container onClick={handleClick} ref={fontContainerRef} isMyTurn={isMyTurn} isMainPhase={isMainPhase}
+                   isPassTurnAllowed={isPassTurnAllowed} gameHasStarted={gameHasStarted}
                    {...(isMyTurn && isMainPhase && !isPassTurnAllowed && { title: "Please set memory before passing turn." })}>
-
-            <StyledHr isMyTurn={isMyTurn} style={{ transform: "translateY(-12px)" }} />
-            <StyledHr isMyTurn={isMyTurn} />
-            <StyledHr isMyTurn={isMyTurn} style={{ transform: "translateY(12px)" }} />
-
-            <PhaseSpan style={{opacity: renderPhase ? 1 : 0}}>{gameHasStarted ? phase : ""}</PhaseSpan>
-
+            <PhaseSpan style={{opacity: renderPhase ? 1 : 0, fontSize}}>{gameHasStarted ? phase : "BOOTING"}</PhaseSpan>
         </Container>
 );
 }
 
-const Container = styled.div<{isMyTurn: boolean, isMainPhase: boolean, isPassTurnAllowed: boolean}>`
-    position: absolute;
-    left: 40px;
-    bottom: -13px;
-    height: 61px;
-    padding-top: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2;
-    transition: all 0.1s ease-out;
-    cursor: ${({isMyTurn, isMainPhase, isPassTurnAllowed}) => isMyTurn ? (isMainPhase && !isPassTurnAllowed) ? "not-allowed" : "pointer" : "default"};
-  
-    &:hover {
-      hr {
-        background: ${({isMyTurn, isMainPhase, isPassTurnAllowed}) => isMyTurn ? (isMainPhase && isPassTurnAllowed) ? "linear-gradient(to right, transparent 1%, gold 8%, crimson 92%, transparent 99%)" : "linear-gradient(to right, transparent 1%, #1d7dfc 8%, lightskyblue 92%, transparent 99%)" : "linear-gradient(to right, transparent 1%, #a11a2a 8%, #e05f2d 25%, #d6392b 50%, #ed834e 75%, #a11a2a 92%, transparent 99%)"};
-        filter: ${({isMyTurn, isMainPhase, isPassTurnAllowed}) => isMyTurn ? (isMainPhase && isPassTurnAllowed) ? "drop-shadow(0 0 3px crimson)" : "drop-shadow(0 0 3px #1464dc)" : "drop-shadow(0 0 3px crimson)"};
+const Container = styled.div<{isMyTurn: boolean, isMainPhase: boolean, isPassTurnAllowed: boolean, gameHasStarted: boolean}>`
+  grid-area: phase;
+  position: relative;
+  margin: 2.5%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15%;
+  z-index: 2;
+  transition: all 0.15s ease-in;
+  cursor: ${({
+               isMyTurn,
+               isMainPhase,
+               isPassTurnAllowed
+             }) => isMyTurn ? (isMainPhase && !isPassTurnAllowed) ? "not-allowed" : "pointer" : "default"};
+  pointer-events: ${({gameHasStarted}) => gameHasStarted ? "unset" : "none"};
+
+  border: 2px solid ${({gameHasStarted, isMyTurn}) => getBorderColor(gameHasStarted, isMyTurn)};
+  color: ghostwhite;
+
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 9px;
+
+  filter: drop-shadow(0 0 2px ${({gameHasStarted, isMyTurn}) => getDropShadowColor(gameHasStarted, isMyTurn)});
+  box-shadow: ${({gameHasStarted, isMyTurn}) => getBoxShadow(gameHasStarted, isMyTurn)};
+
+  ${({ gameHasStarted, isMyTurn }) =>
+          gameHasStarted && isMyTurn &&
+          `
+      &:hover {
+        filter: brightness(1.2) contrast(1.2) drop-shadow(rgba(29, 159, 221, 0.6));
+        border: rgba(29, 159, 221, 0.4);
+        box-shadow: inset 0 0 12px 2px rgb(29, 159, 221);
       }
-    }
+
+      &:active {
+        filter: brightness(1.2) contrast(1.2) drop-shadow(rgba(29, 159, 221, 0.6));
+        border: rgba(29, 159, 221, 0.4);
+        box-shadow: inset 0 0 8px 3px rgb(29, 159, 221);
+        background: rgba(6, 18, 33, 0.7);
+      }
+    `}
 `;
 
 const PhaseSpan = styled.span`
-  width: 200px;
-  height: 30px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -43%);
   color: ghostwhite;
   text-shadow: 0 0 3px black;
   filter: drop-shadow(0 0 4px black);
@@ -98,14 +119,20 @@ const PhaseSpan = styled.span`
   user-select: none;
 `;
 
-const StyledHr = styled.hr<{isMyTurn: boolean}>`
-  color: transparent;
-  position: absolute;
-  width: 232px;
-  height: 3px;
-  background: ${({isMyTurn}) => isMyTurn ? "linear-gradient(to right, transparent 1%, #104893 8%, #335c91 25%, #1653a2 50%, #3263a9 75%, #1d7dfc 92%, transparent 99%)" : "linear-gradient(to right, transparent 1%, #a11a2a 8%, #e05f2d 25%, #d6392b 50%, #ed834e 75%, #a11a2a 92%, transparent 99%)"};
-  filter: ${({isMyTurn}) => isMyTurn ? "drop-shadow(0 0 3px #1464dc)" : "drop-shadow(0 0 3px crimson)"};
-  z-index: 0;
-  border: none;
-  opacity: ${({isMyTurn}) => isMyTurn ? 1 : 0.85};
-`;
+function getBoxShadow(gameHasStarted: boolean, isMyTurn: boolean){
+    if (!gameHasStarted) return "inset 0 0 12px 2px " +"rgb(252,241,49)";
+    if (isMyTurn) return "inset 1px 2px 10px 1px " + "rgb(29, 159, 221)";
+    else return "inset 0 0 12px 2px " + "rgba(243,58,96,0.7)";
+}
+
+function getDropShadowColor(gameHasStarted: boolean, isMyTurn: boolean){
+    if (!gameHasStarted) return "rgba(255, 247, 84, 0.35)";
+    if (isMyTurn) return "rgba(29, 159, 221, 0.6)";
+    else return "rgba(255,81,118,0.6)";
+}
+
+function getBorderColor(gameHasStarted: boolean, isMyTurn: boolean){
+    if (!gameHasStarted) return "rgba(241,255,41,0.63)";
+    if (isMyTurn) return "rgba(29, 159, 221, 0.4)";
+    else return "rgba(255, 114, 135, 0.6)";
+}

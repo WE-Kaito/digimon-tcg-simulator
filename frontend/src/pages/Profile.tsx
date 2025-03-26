@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
-import {useStore} from "../hooks/useStore.ts";
-import {useCallback, useEffect, useState} from "react";
+import {useGeneralStates} from "../hooks/useGeneralStates.ts";
+import {Fragment, useCallback, useEffect, useState} from "react";
 import BackButton from "../components/BackButton.tsx";
 import {Headline2} from "../components/Header.tsx";
 import ChooseAvatar from "../components/profile/ChooseAvatar.tsx";
@@ -11,24 +11,25 @@ import {closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSe
 import {arrayMove, SortableContext} from "@dnd-kit/sortable";
 import {DeckType} from "../utils/types.ts";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import {Dialog, Stack} from "@mui/material";
+import {Stack} from "@mui/material";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
 import {useNavigate} from "react-router-dom";
-import SoundBar from "../components/SoundBar.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import MenuDialog from "../components/MenuDialog.tsx";
 
 export type DeckIdOrder = string[];
 
-export default function Profile({user}: { user: string }) {
+export default function Profile() {
+    const user = useGeneralStates((state) => state.user);
+    const loadOrderedDecks = useGeneralStates((state) => state.loadOrderedDecks);
+    const deckIdOrder = useGeneralStates((state) => state.deckIdOrder);
+    const setDeckIdOrder = useGeneralStates((state) => state.setDeckIdOrder);
+    const isLoading = useGeneralStates((state) => state.isLoading);
+    const clearDeck = useGeneralStates((state) => state.clearDeck);
 
-    const loadOrderedDecks = useStore((state) => state.loadOrderedDecks);
-    const deckIdOrder = useStore((state) => state.deckIdOrder);
-    const setDeckIdOrder = useStore((state) => state.setDeckIdOrder);
-    const isLoading = useStore((state) => state.isLoading);
-    const clearDeck = useStore((state) => state.clearDeck);
-
+    const [renderAddButton, setRenderAddButton] = useState(false);
     const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);
     const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
     const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
@@ -60,10 +61,13 @@ export default function Profile({user}: { user: string }) {
     const stableLoadOrderedDecks = useCallback(() => loadOrderedDecks(setOrderedDecks), [loadOrderedDecks]);
     useEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
 
+    useEffect(() => {
+        if (!isLoading && !orderedDecks.length) setRenderAddButton(true);
+    }, [isLoading, orderedDecks.length]);
+
     return (
         <MenuBackgroundWrapper>
             <Stack minHeight={"100vh"} height={"100%"} pt={"20px"} justifyContent={"flex-start"}>
-                <SoundBar/>
                 <Header>
                     <Name>{user}</Name>
                     <BackButton/>
@@ -71,23 +75,21 @@ export default function Profile({user}: { user: string }) {
 
                 <UserSettings/>
 
-                <Dialog maxWidth={"xl"} onClose={handleOnClose} open={sleeveSelectionOpen}
-                        sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)", overflow: "hidden" }}}>
+                <MenuDialog onClose={handleOnClose} open={sleeveSelectionOpen} PaperProps={{sx: {overflow: "hidden"}}}>
                     <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"}/>
                     <ChooseCardSleeve/>
-                </Dialog>
+                </MenuDialog>
 
-                <Dialog maxWidth={"xl"} onClose={handleOnClose} open={imageSelectionOpen}
-                        sx={{ background: "rgba(18,35,66,0.6)"}} PaperProps={{sx: { background: "rgb(12,12,12)" }}}>
+                <MenuDialog onClose={handleOnClose} open={imageSelectionOpen}>
                     <CustomDialogTitle handleOnClose={handleOnClose} variant={"Image"}/>
                     <ChooseDeckImage/>
-                </Dialog>
+                </MenuDialog>
 
                 <ChooseAvatar/>
 
                 <DeckHeaderContainer>
                     <span>Decks</span>
-                    <hr style={{width: "100vw", maxWidth:1204}}/>
+                    <hr style={{width: "100vw", maxWidth: 1204}}/>
                 </DeckHeaderContainer>
 
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -96,14 +98,21 @@ export default function Profile({user}: { user: string }) {
                             ? <Loading/>
                             : <>
                                 <SortableContext items={orderedDecks}>
-                                 {orderedDecks?.map((deck) =>
-                                     <SortableProfileDeck key={deck.id} deck={deck}
-                                                          setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                                          setImageSelectionOpen={setImageSelectionOpen}
-                                     />
-                                 )}
+                                    {orderedDecks?.map((deck, index) =>
+                                        <Fragment key={deck.id}>
+                                            <SortableProfileDeck deck={deck}
+                                                                 setSleeveSelectionOpen={setSleeveSelectionOpen}
+                                                                 setImageSelectionOpen={setImageSelectionOpen}
+                                            />
+                                            {(index === orderedDecks.length - 1) && orderedDecks.length < 16 &&
+                                                <NewDeckButton onClick={toDeckBuilder}>
+                                                    <AddBoxRoundedIcon/>
+                                                </NewDeckButton>
+                                            }
+                                        </Fragment>
+                                    )}
                                 </SortableContext>
-                                {orderedDecks.length < 16 &&
+                                {renderAddButton &&
                                     <NewDeckButton onClick={toDeckBuilder}>
                                         <AddBoxRoundedIcon/>
                                     </NewDeckButton>
@@ -126,7 +135,7 @@ const Container = styled.div`
   background: rgba(0, 0, 0, 0);
   scrollbar-width: none;
   max-width: 1204px;
-  
+
   ::-webkit-scrollbar {
     visibility: hidden;
   }
@@ -154,7 +163,7 @@ const DeckHeaderContainer = styled.div`
   width: 100vw;
   max-width: 1204px;
   margin-top: 20px;
-  
+
   span {
     color: #1d7dfc;
     line-height: 1;
@@ -191,6 +200,7 @@ const NewDeckButton = styled.div`
 
   &:hover {
     background: linear-gradient(20deg, rgba(87, 171, 255, 0.12) 0%, rgba(93, 159, 236, 0.12) 70%, rgba(94, 187, 245, 0.22) 100%);
+
     .MuiSvgIcon-root {
       color: rgba(0, 191, 165, 0.9);
       font-size: 110px;
@@ -201,6 +211,7 @@ const NewDeckButton = styled.div`
     height: 170px;
     width: 270px;
     margin: 5px;
+
     .MuiSvgIcon-root {
       font-size: 100px;
     }

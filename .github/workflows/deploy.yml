@@ -2,7 +2,7 @@ name: Deploy to Server
 on:
   push:
     branches:
-    - main
+      - main
 
 jobs:
   build-frontend:
@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v3
-      - name: Download artifact 
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-build
@@ -64,7 +64,7 @@ jobs:
           REMOTE_USER: ${{ vars.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
-          
+
 
   start-server:
     name: Start Server
