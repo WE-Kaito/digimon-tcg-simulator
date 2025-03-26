@@ -1,22 +1,18 @@
-import {useGameBoardStates} from "../../../hooks/useGameBoardStates.ts";
-import {WSUtils} from "../../../pages/GamePage.tsx";
+import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
+import { WSUtils } from "../../../pages/GamePage.tsx";
 import ModalDialog from "./ModalDialog.tsx";
-import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
+import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
-export default function RestartPromptModal({ wsUtils } : { wsUtils: WSUtils }) {
-    const { sendMessage, matchInfo: { gameId, opponentName, user } } = wsUtils;
+export default function RestartPromptModal({ wsUtils }: { wsUtils: WSUtils }) {
+    const {
+        sendMessage,
+        matchInfo: { gameId, opponentName, user },
+    } = wsUtils;
 
-    const [
-        restartOrder,
-        restartPromptModal,
-        setRestartPromptModal,
-        setIsRematch
-    ] = useGameUIStates((state) => [
-        state.restartOrder,
-        state.restartPromptModal,
-        state.setRestartPromptModal,
-        state.setIsRematch
-    ]);
+    const restartOrder = useGameUIStates((state) => state.restartOrder);
+    const restartPromptModal = useGameUIStates((state) => state.restartPromptModal);
+    const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
+    const setIsRematch = useGameUIStates((state) => state.setIsRematch);
 
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
 
@@ -31,9 +27,9 @@ export default function RestartPromptModal({ wsUtils } : { wsUtils: WSUtils }) {
     const buttonProps = [
         { text: "DENY", onClick: () => setRestartPromptModal(false), color: "#C03427" },
         { text: `ACCEPT ► GOING ${restartOrder}`, onClick: handleAcceptRestart, color: "#27C06E" },
-    ]
+    ];
 
     if (!restartPromptModal) return <></>;
 
-    return <ModalDialog text={"Opponent requested a rematch!"} buttonProps={buttonProps} />
+    return <ModalDialog text={"Opponent requested a rematch!"} buttonProps={buttonProps} />;
 }

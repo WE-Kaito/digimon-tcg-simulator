@@ -7,4 +7,21 @@
 
   margin: 0 auto;
   text-align: center;
+  cursor: url("assets/cursors/Arrow_Down.cur"), auto;
+}
+
+button {
+  cursor: url("assets/cursors/Neon Normal Select Cyan.cur"), auto!important;
+}
+
+input {
+  cursor: url("assets/cursors/BlueglassTextSelect.cur"), auto!important;
+}
+
+.custom-hand-cursor {
+  cursor: url("assets/cursors/sticker-grab.cur"), auto;
+}
+
+.custom-grab-cursor {
+  cursor: url("assets/cursors/sticker-grabbing.cur"), auto;
 }

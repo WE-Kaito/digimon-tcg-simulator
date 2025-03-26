@@ -104,7 +104,7 @@ public class CardService {
                     .map(condition -> new DigivolveCondition(
                             condition.color(),
                             Integer.parseInt(condition.cost()),
-                            !condition.level().equals("Tamer") ? Integer.parseInt(condition.level()) : null
+                            condition.level().matches("\\d+") ? Integer.parseInt(condition.level()) : null
                     ))
                     .toList();
 

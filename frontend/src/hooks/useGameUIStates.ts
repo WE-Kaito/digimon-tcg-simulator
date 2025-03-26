@@ -1,42 +1,50 @@
 import { create } from "zustand";
-import {DragMode, OpenedCardModal} from "../utils/types.ts";
-import {digimonLocations} from "./useGameBoardStates.ts";
+import { OpenedCardModal } from "../utils/types.ts";
+import { digimonLocations } from "./useGameBoardStates.ts";
 
-type DigimonLocation = typeof digimonLocations[number];
+type DigimonLocation = (typeof digimonLocations)[number];
 
 type State = {
-    dragMode: DragMode,
-    toggleDragMode: () => void,
+    isMobileUI: boolean;
+    setIsMobileUI: (isMobileUI: boolean) => void;
 
-    openedCardModal: OpenedCardModal | false,
-    setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void,
+    isStackDragMode: boolean;
+    setIsStackDragMode: (isStackDragMode: boolean) => void;
 
-    stackModal: DigimonLocation | false,
-    setStackModal: (location: DigimonLocation | false) => void,
+    openedCardModal: OpenedCardModal | false;
+    setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void;
 
-    restartPromptModal: boolean,
-    setRestartPromptModal: (open: boolean) => void,
+    stackModal: DigimonLocation | false;
+    setStackModal: (location: DigimonLocation | false) => void;
 
-    restartOrder: "first" | "second",
-    setRestartOrder: (restartOrder: "second" | "first") => void,
+    restartPromptModal: boolean;
+    setRestartPromptModal: (open: boolean) => void;
 
-    isRematch: boolean,
-    setIsRematch: (isRematch: boolean) => void,
+    restartOrder: "first" | "second";
+    setRestartOrder: (restartOrder: "second" | "first") => void;
 
-    endModal: boolean, // TODO: Refactor to one modal state like openedCardModal, to avoid multiple modal dialogs
-    setEndModal: (open: boolean) => void,
+    isRematch: boolean;
+    setIsRematch: (isRematch: boolean) => void;
 
-    endModalText: string,
-    setEndModalText: (text: string) => void,
+    endModal: boolean; // TODO: Refactor to one modal state like openedCardModal, to avoid multiple modal dialogs
+    setEndModal: (open: boolean) => void;
 
-    tokenModal: boolean,
-    setTokenModal: (open: boolean) => void,
+    endModalText: string;
+    setEndModalText: (text: string) => void;
+
+    tokenModal: boolean;
+    setTokenModal: (open: boolean) => void;
+
+    stackDragIcon: null | { location: string; index: number };
+    setStackDragIcon: (stackDragIcon: { location: string; index: number } | null) => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
+    isMobileUI: false,
+    setIsMobileUI: (isMobileUI) => set({ isMobileUI }),
 
-    dragMode: DragMode.SINGLE,
-    toggleDragMode: () => set(state => ({ dragMode: state.dragMode === DragMode.SINGLE ? DragMode.STACK : DragMode.SINGLE })),
+    isStackDragMode: false,
+    setIsStackDragMode: (isStackDragMode) => set({ isStackDragMode }),
 
     openedCardModal: false,
     setOpenedCardModal: (openedCardModal) => set({ openedCardModal }),
@@ -62,4 +70,6 @@ export const useGameUIStates = create<State>((set) => ({
     tokenModal: false,
     setTokenModal: (open) => set({ tokenModal: open }),
 
+    stackDragIcon: null,
+    setStackDragIcon: (stackDragIcon) => set({ stackDragIcon }),
 }));

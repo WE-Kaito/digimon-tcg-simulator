@@ -1,17 +1,21 @@
-import {WSUtils} from "../../../pages/GamePage.tsx";
-import {Dispatch, SetStateAction} from "react";
+import { WSUtils } from "../../../pages/GamePage.tsx";
+import { Dispatch, SetStateAction } from "react";
 import ModalDialog from "./ModalDialog.tsx";
-import {useGameUIStates} from "../../../hooks/useGameUIStates.ts";
+import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 type Props = {
-    setSurrenderModal: Dispatch<SetStateAction<boolean>>,
-    wsUtils: WSUtils,
-}
+    setSurrenderModal: Dispatch<SetStateAction<boolean>>;
+    wsUtils: WSUtils;
+};
 
-export default function SurrenderModal( { setSurrenderModal, wsUtils }: Props ) {
-    const { sendMessage, matchInfo: { gameId, opponentName } } = wsUtils;
+export default function SurrenderModal({ setSurrenderModal, wsUtils }: Props) {
+    const {
+        sendMessage,
+        matchInfo: { gameId, opponentName },
+    } = wsUtils;
 
-    const [setEndModal, setEndModalText] = useGameUIStates((state) => [state.setEndModal, state.setEndModalText]);
+    const setEndModal = useGameUIStates((state) => state.setEndModal);
+    const setEndModalText = useGameUIStates((state) => state.setEndModalText);
 
     function handleSurrender() {
         setSurrenderModal(false);
@@ -27,7 +31,7 @@ export default function SurrenderModal( { setSurrenderModal, wsUtils }: Props ) 
     const buttonProps = [
         { text: "SURRENDER", onClick: handleSurrender, color: "#C03427" },
         { text: "CANCEL", onClick: () => setSurrenderModal(false), color: "#D9D9D9" },
-    ]
+    ];
 
     return <ModalDialog text={"Do you want to surrender?"} buttonProps={buttonProps} />;
 }

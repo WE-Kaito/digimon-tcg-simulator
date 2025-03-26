@@ -1,22 +1,23 @@
-import useWebSocket, {SendMessage} from "react-use-websocket";
-import {AttackPhase, BootStage, CardModifiers, Phase, Player, SIDE} from "../utils/types.ts";
-import {getOpponentSfx, isTrue} from "../utils/functions.ts";
-import {findTokenByName} from "../utils/tokens.ts";
-import {notifySecurityView} from "../utils/toasts.ts";
-import {useGameBoardStates} from "./useGameBoardStates.ts";
-import {useGeneralStates} from "./useGeneralStates.ts";
-import {useCallback, useRef, useState} from "react";
-import {useSound} from "./useSound.ts";
-import {useGameUIStates} from "./useGameUIStates.ts";
+import useWebSocket, { SendMessage } from "react-use-websocket";
+import { AttackPhase, BootStage, CardModifiers, Phase, Player, SIDE } from "../utils/types.ts";
+import { getOpponentSfx, isTrue } from "../utils/functions.ts";
+import { findTokenByName } from "../utils/tokens.ts";
+import { notifySecurityView } from "../utils/toasts.ts";
+import { useGameBoardStates } from "./useGameBoardStates.ts";
+import { useGeneralStates } from "./useGeneralStates.ts";
+import { useCallback, useRef, useState } from "react";
+import { useSound } from "./useSound.ts";
+import { useGameUIStates } from "./useGameUIStates.ts";
 
 const currentPort = window.location.port;
 // TODO: using www.project-drasil.online as the domain is not working, need a fix
-const websocketURL = currentPort === "5173" ? "ws://192.168.0.4:8080/api/ws/game" : "wss://project-drasil.online/api/ws/game";
+const websocketURL =
+    currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/game" : "wss://project-drasil.online/api/ws/game";
 
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;
     restartAttackAnimation: (effect?: boolean) => void; // prop for this and useDropZone
-}
+};
 
 type UseGameWebSocketReturn = {
     sendMessage: SendMessage;
@@ -24,7 +25,7 @@ type UseGameWebSocketReturn = {
      * Sends the whole chunked game state as JSON to your opponent.
      */
     sendUpdate: () => void;
-}
+};
 
 function chunkString(str: string, size: number): string[] {
     const chunks = [];
@@ -38,134 +39,69 @@ function chunkString(str: string, size: number): string[] {
  * Handling of all game-related incoming websocket messages.
  * Needs to be instantiated in the GamePage component. Use the returned SendMessage function to send messages to the server.
  */
-export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGameWebSocketReturn {
-    const {
-        clearAttackAnimation,
-        restartAttackAnimation,
-    } = props;
+export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameWebSocketReturn {
+    const { clearAttackAnimation, restartAttackAnimation } = props;
 
     const user = useGeneralStates((state) => state.user);
 
-    const [
-        setOpenedCardModal,
-        setRestartOrder,
-        setRestartPromptModal,
-        isRematch,
-        setIsRematch,
-        setEndModal,
-        setEndModalText,
-    ] = useGameUIStates((state) => [
-        state.setOpenedCardModal,
-        state.setRestartOrder,
-        state.setRestartPromptModal,
-        state.isRematch,
-        state.setIsRematch,
-        state.setEndModal,
-        state.setEndModalText,
-    ]);
+    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+    const setRestartOrder = useGameUIStates((state) => state.setRestartOrder);
+    const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
+    const isRematch = useGameUIStates((state) => state.isRematch);
+    const setIsRematch = useGameUIStates((state) => state.setIsRematch);
+    const setEndModal = useGameUIStates((state) => state.setEndModal);
+    const setEndModalText = useGameUIStates((state) => state.setEndModalText);
 
-    const [
-        gameId,
-        bootStage,
-        setBootStage,
-        setUpGame,
-        setMyAttackPhase,
-        setOpponentAttackPhase,
-        distributeCards,
-        updateOpponentField,
-        setMessages,
-        setTurn,
-        moveCard,
-        moveCardToStack,
-        restartObject,
-        setRestartObject,
-        getOpponentReady,
-        setOpponentReady,
-        setIsLoading,
-        tiltCard,
-        setCardIdWithEffect,
-        setCardIdWithTarget,
-        setMemory,
-        createToken,
-        setModifiers,
-        clearBoard,
-        getPhase,
-        setPhase,
-        unsuspendAll,
-        getMyFieldAsString,
-        setArrowFrom,
-        setArrowTo,
-        setIsEffectArrow,
-        setStartingPlayer,
-        setIsOpponentOnline,
-    ] = useGameBoardStates((state) => [
-        state.gameId,
-        state.bootStage,
-        state.setBootStage,
-        state.setUpGame,
-        state.setMyAttackPhase,
-        state.setOpponentAttackPhase,
-        state.distributeCards,
-        state.updateOpponentField,
-        state.setMessages,
-        state.setTurn,
-        state.moveCard,
-        state.moveCardToStack,
-        state.restartObject,
-        state.setRestartObject,
-        state.getOpponentReady,
-        state.setOpponentReady,
-        state.setIsLoading,
-        state.tiltCard,
-        state.setCardIdWithEffect,
-        state.setCardIdWithTarget,
-        state.setMemory,
-        state.createToken,
-        state.setModifiers,
-        state.clearBoard,
-        state.getPhase,
-        state.setPhase,
-        state.unsuspendAll,
-        state.getMyFieldAsString,
-        state.setArrowFrom,
-        state.setArrowTo,
-        state.setIsEffectArrow,
-        state.setStartingPlayer,
-        state.setIsOpponentOnline,
-    ]);
+    const gameId = useGameBoardStates((state) => state.gameId);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const setBootStage = useGameBoardStates((state) => state.setBootStage);
+    const setUpGame = useGameBoardStates((state) => state.setUpGame);
+    const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
+    const setOpponentAttackPhase = useGameBoardStates((state) => state.setOpponentAttackPhase);
+    const distributeCards = useGameBoardStates((state) => state.distributeCards);
+    const updateOpponentField = useGameBoardStates((state) => state.updateOpponentField);
+    const setMessages = useGameBoardStates((state) => state.setMessages);
+    const setTurn = useGameBoardStates((state) => state.setTurn);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
+    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
+    const restartObject = useGameBoardStates((state) => state.restartObject);
+    const setRestartObject = useGameBoardStates((state) => state.setRestartObject);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
+    const setOpponentReady = useGameBoardStates((state) => state.setOpponentReady);
+    const setIsLoading = useGameBoardStates((state) => state.setIsLoading);
+    const tiltCard = useGameBoardStates((state) => state.tiltCard);
+    const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
+    const setCardIdWithTarget = useGameBoardStates((state) => state.setCardIdWithTarget);
+    const setMemory = useGameBoardStates((state) => state.setMemory);
+    const createToken = useGameBoardStates((state) => state.createToken);
+    const setModifiers = useGameBoardStates((state) => state.setModifiers);
+    const clearBoard = useGameBoardStates((state) => state.clearBoard);
+    const getPhase = useGameBoardStates((state) => state.getPhase);
+    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
+    const getMyFieldAsString = useGameBoardStates((state) => state.getMyFieldAsString);
+    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
+    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
+    const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
+    const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
 
     const isPlayerOne = user === gameId.split("‗")[0];
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
-    const [
-        playCoinFlipSfx,
-        playButtonClickSfx,
-        playDrawCardSfx,
-        playNextPhaseSfx,
-        playOpponentPlaceCardSfx,
-        playPassTurnSfx,
-        playRevealCardSfx,
-        playSecurityRevealSfx,
-        playShuffleDeckSfx,
-        playSuspendSfx,
-        playTrashCardSfx,
-        playUnsuspendSfx,
-        playRematchSfx,
-    ] = useSound((state) => [
-        state.playCoinFlipSfx,
-        state.playButtonClickSfx,
-        state.playDrawCardSfx,
-        state.playNextPhaseSfx,
-        state.playOpponentPlaceCardSfx,
-        state.playPassTurnSfx,
-        state.playRevealCardSfx,
-        state.playSecurityRevealSfx,
-        state.playShuffleDeckSfx,
-        state.playSuspendSfx,
-        state.playTrashCardSfx,
-        state.playUnsuspendSfx,
-        state.playRematchSfx,
-    ]);
+    const playCoinFlipSfx = useSound((state) => state.playCoinFlipSfx);
+    const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
+    const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
+    const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
+    const playOpponentPlaceCardSfx = useSound((state) => state.playOpponentPlaceCardSfx);
+    const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
+    const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
+    const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
+    const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
+    const playSuspendSfx = useSound((state) => state.playSuspendSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+    const playRematchSfx = useSound((state) => state.playRematchSfx);
 
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
 
@@ -215,16 +151,14 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
         shouldReconnect: () => true,
 
         onOpen: () => {
-            if(bootStage > BootStage.SHOW_STARTING_PLAYER) {
+            if (bootStage > BootStage.SHOW_STARTING_PLAYER) {
                 setIsLoading(false);
                 websocket.sendMessage("/reconnect:" + gameId);
-            }
-            else websocket.sendMessage("/joinGame:" + gameId);
+            } else websocket.sendMessage("/joinGame:" + gameId);
         },
 
         onMessage: (event) => {
-
-            if((event.data === "[PLAYERS_READY]") && isPlayerOne && bootStage < BootStage.MULLIGAN) {
+            if (event.data === "[PLAYERS_READY]" && isPlayerOne && bootStage < BootStage.MULLIGAN) {
                 websocket.sendMessage("/startGame:" + gameId);
                 return;
             }
@@ -240,14 +174,14 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                 setUpGame(me, opponent);
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
-                setRestartObject({me, opponent});
-                if (isPlayerOne && !isRematch) websocket.sendMessage("/getStartingPlayers:" + gameId)
+                setRestartObject({ me, opponent });
+                if (isPlayerOne && !isRematch) websocket.sendMessage("/getStartingPlayers:" + gameId);
                 return;
             }
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx)
+                distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx);
                 setOpenedCardModal(false);
                 return;
             }
@@ -265,12 +199,15 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                 setBootStage(BootStage.SHOW_STARTING_PLAYER);
                 isRematch ? playRematchSfx() : playCoinFlipSfx();
 
-                const timeout = setTimeout(() => {
-                    setMessages("[STARTING_PLAYER]≔" + firstPlayer);
-                    if (firstPlayer === user) setTurn(true);
-                    setOpponentReady(false);
-                    if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
-                }, isRematch ? 1500 : 4800);
+                const timeout = setTimeout(
+                    () => {
+                        setMessages("[STARTING_PLAYER]≔" + firstPlayer);
+                        if (firstPlayer === user) setTurn(true);
+                        setOpponentReady(false);
+                        if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
+                    },
+                    isRematch ? 1500 : 4800
+                );
 
                 return () => clearTimeout(timeout);
             }
@@ -282,7 +219,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                 const to = parts[2];
                 moveCard(cardId, from, to);
                 if (!getOpponentReady()) setOpponentReady(true);
-                if (getOpponentReady() && (bootStage >= BootStage.MULLIGAN)) setBootStage(BootStage.GAME_IN_PROGRESS);
+                if (getOpponentReady() && bootStage >= BootStage.MULLIGAN) setBootStage(BootStage.GAME_IN_PROGRESS);
                 return;
             }
 
@@ -352,7 +289,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                 const parts = event.data.substring("[CREATE_TOKEN]:".length).split(":");
                 const id = parts[0];
                 const token = findTokenByName(parts[1]);
-                createToken(token, SIDE.OPPONENT, id)
+                createToken(token, SIDE.OPPONENT, id);
                 return;
             }
 
@@ -360,7 +297,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                 const parts = event.data.substring("[SET_MODIFIERS]:".length).split(":");
                 const id = parts[0];
                 const location = parts[1];
-                const modifiers : CardModifiers = JSON.parse(parts.slice(2).join(":"));
+                const modifiers: CardModifiers = JSON.parse(parts.slice(2).join(":"));
                 setModifiers(id, location, modifiers);
                 return;
             }
@@ -383,17 +320,17 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                     notifySecurityView();
                     break;
                 }
-                case ("[RESTART_AS_FIRST]"): {
+                case "[RESTART_AS_FIRST]": {
                     setRestartOrder("second");
                     setRestartPromptModal(true);
                     break;
                 }
-                case ("[RESTART_AS_SECOND]"): {
+                case "[RESTART_AS_SECOND]": {
                     setRestartOrder("first");
                     setRestartPromptModal(true);
                     break;
                 }
-                case ("[ACCEPT_RESTART]"): {
+                case "[ACCEPT_RESTART]": {
                     setMyAttackPhase(false);
                     setOpponentAttackPhase(false);
                     clearBoard();
@@ -402,29 +339,29 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                     setUpGame(restartObject.me, restartObject.opponent);
                     break;
                 }
-                case ("[PLAYER_READY]"): {
+                case "[PLAYER_READY]": {
                     setOpponentReady(true);
                     if (bootStage === BootStage.MULLIGAN_DONE) setBootStage(BootStage.GAME_IN_PROGRESS);
                     break;
                 }
-                case ("[UPDATE_PHASE]"): {
+                case "[UPDATE_PHASE]": {
                     if (getPhase() === Phase.MAIN) setTurn(true);
                     setPhase();
                     break;
                 }
-                case ("[RESOLVE_COUNTER_BLOCK]"): {
+                case "[RESOLVE_COUNTER_BLOCK]": {
                     setMyAttackPhase(AttackPhase.RESOLVE_ATTACK);
                     break;
                 }
-                case ("[UNSUSPEND_ALL]"): {
+                case "[UNSUSPEND_ALL]": {
                     unsuspendAll(SIDE.OPPONENT);
                     break;
                 }
-                case ("[LOADED]"): {
+                case "[LOADED]": {
                     setIsLoading(false);
                     break;
                 }
-                case ("[OPPONENT_RECONNECTED]"): {
+                case "[OPPONENT_RECONNECTED]": {
                     sendUpdate();
                     break;
                 }
@@ -440,11 +377,11 @@ export default function useGameWebSocket(props: UseGameWebSocketProps) : UseGame
                         playShuffleDeckSfx,
                         playSuspendSfx,
                         playTrashCardSfx,
-                        playUnsuspendSfx
+                        playUnsuspendSfx,
                     });
                 }
             }
-        }
+        },
     });
 
     return { sendMessage: websocket.sendMessage, sendUpdate };
