@@ -45,29 +45,38 @@ export default function CardStack(props: CardStackProps) {
     const tamerWidth = cardWidth - cardWidth / 3.5;
     const { active } = useDndContext();
 
-    const getCardContainerStyles = useCallback((cardIndex: number, cardCount: number): CSSProperties => {
-        const bottomPercentage = (cardIndex * 7.5) / (cardCount > 14 ? 3 : cardCount > 7 ? 2 : 1);
+    const isDraggingThisArea = active && active?.data?.current?.content?.location === location;
 
-        return {
-            position: "absolute",
-            bottom: `calc(${bottomPercentage}% - 7px)`,
-            rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
-            left: 0,
-        };
-    }, []);
-    const isDraggingTamers = active && tamerLocations.includes(active?.data?.current?.content?.location);
+    const getCardContainerStyles = useCallback(
+        (cardIndex: number, cardCount: number): CSSProperties => {
+            const bottomPercentage = (cardIndex * 7.5) / (cardCount > 14 ? 3 : cardCount > 7 ? 2 : 1);
+            console.log(active?.data?.current);
+            return {
+                height: isDraggingThisArea ? undefined : `${cardWidth * 1.4}px`,
+                position: "absolute",
+                bottom: `${bottomPercentage}%`,
+                rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
+                left: 0,
+            };
+        },
+        [isDraggingThisArea, cardWidth]
+    );
 
-    const getTamerCardContainerStyles = useCallback((cardIndex: number, cardCount: number): CSSProperties => {
-        const leftPercentage =
-            (cardIndex * 9.5) / (cardCount > 13 ? 2.5 : cardCount > 10 ? 2 : cardCount > 7 ? 1.5 : 1);
+    const getTamerCardContainerStyles = useCallback(
+        (cardIndex: number, cardCount: number): CSSProperties => {
+            const leftPercentage =
+                (cardIndex * 9.5) / (cardCount > 13 ? 2.5 : cardCount > 10 ? 2 : cardCount > 7 ? 1.5 : 1);
 
-        return {
-            position: "absolute",
-            left: `${leftPercentage}%`,
-            rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
-            zIndex: isDraggingTamers ? 50 + cardIndex : 50 - cardIndex,
-        };
-    }, []);
+            return {
+                height: isDraggingThisArea ? undefined : `${tamerWidth * 1.4}px`,
+                position: "absolute",
+                left: `${leftPercentage}%`,
+                rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
+                zIndex: isDraggingThisArea ? 50 + cardIndex : 50 - cardIndex,
+            };
+        },
+        [isDraggingThisArea, tamerWidth]
+    );
 
     if (tamerLocations.includes(location)) {
         return !opponentSide
@@ -75,7 +84,7 @@ export default function CardStack(props: CardStackProps) {
                   <Card
                       style={{
                           ...getTamerCardContainerStyles(index, cards.length),
-                          bottom: isSmallWindow ? "-22%" : "-7%",
+                          bottom: 0,
                           width: tamerWidth,
                       }}
                       card={card}

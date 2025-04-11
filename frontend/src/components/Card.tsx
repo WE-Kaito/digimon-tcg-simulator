@@ -349,6 +349,7 @@ export default function Card(props: CardProps) {
                     : {}),
             }}
             ref={dragRef}
+            isDragIconHovered={isDragIconHovered}
             {...dragAttributes}
             {...dragListeners}
         >
@@ -360,6 +361,7 @@ export default function Card(props: CardProps) {
                     <DragStackIconDiv
                         className={isDraggingStack ? "custom-grab-cursor" : "custom-hand-cursor"}
                         style={{
+                            opacity: isDraggingStack ? 0 : 1,
                             right: -(cardWidth / 3),
                             transform: CSS.Translate.toString(isDraggingStack ? stackTransform : transform),
                         }}
@@ -515,9 +517,7 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
     border-radius: 5px;
-    transition:
-        all 0.15s ease-out,
-        filter 0.5s ease-in-out;
+    transition: all 0.15s ease-out;
     cursor: ${({ location }) => (opponentFieldLocations?.includes(location) ? "pointer" : undefined)};
     touch-action: none;
 
@@ -692,7 +692,7 @@ const StyledAceSpan = styled(AceSpan)<{ isMega: boolean }>`
     transform: unset;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ isDragIconHovered: boolean }>`
     touch-action: none;
     position: relative;
     -moz-user-select: none;
@@ -700,7 +700,7 @@ const Wrapper = styled.div`
     transition: transform 0.35s;
 
     &:hover {
-        z-index: 99;
+        z-index: ${({ isDragIconHovered }) => (isDragIconHovered ? 99 : "unset")};
     }
 `;
 
