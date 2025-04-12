@@ -72,7 +72,7 @@ export default function CardStack(props: CardStackProps) {
                 position: "absolute",
                 left: `${leftPercentage}%`,
                 rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
-                zIndex: isDraggingThisArea ? 50 + cardIndex : 50 - cardIndex,
+                zIndex: 50 - cardIndex,
             };
         },
         [isDraggingThisArea, tamerWidth]

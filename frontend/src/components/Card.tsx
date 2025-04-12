@@ -25,7 +25,7 @@ import { WSUtils } from "../pages/GamePage.tsx";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 
-const digimonLocations = [
+const myDigimonLocations = [
     "myDigi1",
     "myDigi2",
     "myDigi3",
@@ -36,6 +36,10 @@ const digimonLocations = [
     "myDigi8",
     "myDigi9",
     "myDigi10",
+];
+
+const digimonLocations = [
+    ...myDigimonLocations,
     "opponentDigi1",
     "opponentDigi2",
     "opponentDigi3",
@@ -60,16 +64,7 @@ const tamerLocations = [
 ];
 
 const myBALocations = [
-    "myDigi1",
-    "myDigi2",
-    "myDigi3",
-    "myDigi4",
-    "myDigi5",
-    "myDigi6",
-    "myDigi7",
-    "myDigi8",
-    "myDigi9",
-    "myDigi10",
+    ...myDigimonLocations,
     "myDigi11",
     "myDigi12",
     "myDigi13",
@@ -339,7 +334,8 @@ export default function Card(props: CardProps) {
     // ...((isDragging || isDraggingStack) && { zIndex: 9999 })}
     return (
         <Wrapper
-            id={index === locationCards.length - 1 ? location : ""}
+            // What was the index used for?
+            id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
             style={{
                 ...style,
                 ...(isPartOfDraggedStack || isDragging
@@ -353,7 +349,7 @@ export default function Card(props: CardProps) {
             {...dragAttributes}
             {...dragListeners}
         >
-            {((index !== 0 && myBALocations.includes(location)) ||
+            {((index !== 0 && myDigimonLocations.includes(location)) ||
                 (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
                 (isHovered || isDragIconHovered) &&
                 !isDragging &&
