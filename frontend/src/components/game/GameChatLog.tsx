@@ -16,7 +16,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
     }
 
     return (
-        <Wrapper>
+        <>
             <History>
                 {messages.map((message) => {
                     if (message.startsWith("[STARTING_PLAYER]≔")) return <></>;
@@ -70,30 +70,9 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
                     <img alt="send" src={sendIcon} />
                 </StyledButton>
             </InputContainer>
-        </Wrapper>
+        </>
     );
 }
-
-const Wrapper = styled.div`
-    height: 95%;
-    width: 95%;
-    margin: 1.5%;
-    padding: 1%;
-    padding-top: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: center;
-    position: relative;
-    grid-column: 25 / 36;
-    grid-row: 5 / 17;
-
-    background: rgba(12, 21, 16, 0.1);
-    border: 1px solid rgba(124, 124, 118, 0.6);
-    border-radius: 1%;
-    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.09);
-    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
-`;
 
 const Message = styled.div<{ isMyMessage: boolean }>`
     max-width: 90%;
@@ -207,6 +186,7 @@ const StyledInput = styled.input`
 const InputContainer = styled.form`
     width: 98%;
     padding: 1%;
+    margin-bottom: 1%;
     height: fit-content;
     display: flex;
     align-items: flex-end;

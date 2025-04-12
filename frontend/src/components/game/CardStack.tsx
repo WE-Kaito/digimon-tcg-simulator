@@ -50,7 +50,7 @@ export default function CardStack(props: CardStackProps) {
     const getCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
             const bottomPercentage = (cardIndex * 7.5) / (cardCount > 14 ? 3 : cardCount > 7 ? 2 : 1);
-            console.log(active?.data?.current);
+
             return {
                 height: isDraggingThisArea ? undefined : `${cardWidth * 1.4}px`,
                 position: "absolute",

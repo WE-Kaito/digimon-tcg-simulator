@@ -12,7 +12,7 @@ import useGameWebSocket from "../hooks/useGameWebSocket.ts";
 import { useSound } from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
-import { DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor } from "@dnd-kit/core";
+import { DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor, DragOverlay } from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
@@ -30,6 +30,8 @@ import {
 } from "@mui/icons-material";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
+import StackModal from "../components/game/StackModal.tsx";
+import DragOverlayForScrollableDialogs from "../components/game/DragOverlayForScrollableDialogs.tsx";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -79,6 +81,7 @@ export default function GamePage() {
     const isMobileUi = useGameUIStates((state) => state.isMobileUI);
     const setIsMobileUI = useGameUIStates((state) => state.setIsMobileUI);
     const setIsStackDragMode = useGameUIStates((state) => state.setIsStackDragMode);
+    const stackModal = useGameUIStates((state) => state.stackModal);
 
     const { show: showDetailsImageMenu } = useContextMenu({ id: "detailsImageMenu" });
     // const [isCameraTilted, setIsCameraTilted] = useState<boolean>(false);
@@ -276,15 +279,21 @@ export default function GamePage() {
                         </SoundBar>
                     </SettingsContainer>
 
+                    <ChatAndCardDialogContainerDiv>
+                        {stackModal === false && <GameChatLog {...wsUtils} />}
+                        {/*<CardModal wsUtils={wsUtils} />*/}
+                        {stackModal !== false && <StackModal />}
+                    </ChatAndCardDialogContainerDiv>
+
                     <RevealArea />
-                    {/*<StackModal />*/}
-                    {/*<CardModal wsUtils={wsUtils} />*/}
-                    <OpponentBoardSide wsUtils={wsUtils} />
-                    <PlayerBoardSide wsUtils={wsUtils} />
 
                     <MemoryBar wsUtils={wsUtils} />
-                    <GameChatLog {...wsUtils} />
+
+                    <OpponentBoardSide wsUtils={wsUtils} />
+                    <PlayerBoardSide wsUtils={wsUtils} />
                 </BoardLayout>
+
+                <DragOverlayForScrollableDialogs />
             </DndContext>
         </Container>
     );
@@ -388,3 +397,25 @@ const StyledIconButton = styled(IconButton)`
 //   color: ghostwhite;
 //   opacity: 0.5;
 // `;
+
+const ChatAndCardDialogContainerDiv = styled.div`
+    height: 95%;
+    width: 95%;
+    margin: 1.5%;
+    padding: 0 1% 0 1%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    grid-column: 25 / 36;
+    grid-row: 5 / 17;
+
+    background: rgba(12, 21, 16, 0.1);
+    border: 1px solid rgba(124, 124, 118, 0.6);
+    border-radius: 1%;
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.09);
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+
+    z-index: 20;
+`;

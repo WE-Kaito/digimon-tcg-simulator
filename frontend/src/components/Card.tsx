@@ -196,6 +196,7 @@ export default function Card(props: CardProps) {
                 cardType: card.cardType,
                 name: card.name,
                 imgSrc: card.imgUrl,
+                isInScrollable: location === stackModal,
             },
         },
         disabled: opponentFieldLocations.includes(location) || !opponentReady,
@@ -331,7 +332,9 @@ export default function Card(props: CardProps) {
     }
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
-    // ...((isDragging || isDraggingStack) && { zIndex: 9999 })}
+
+    if (stackModal === location && isDragging) return <></>;
+
     return (
         <Wrapper
             // What was the index used for?
@@ -352,6 +355,7 @@ export default function Card(props: CardProps) {
             {((index !== 0 && myDigimonLocations.includes(location)) ||
                 (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
                 (isHovered || isDragIconHovered) &&
+                stackModal !== location &&
                 !isDragging &&
                 !isMobileUi && (
                     <DragStackIconDiv
@@ -451,7 +455,7 @@ export default function Card(props: CardProps) {
                 </CardAnimationContainer>
             )}
 
-            {(isDragging || isPartOfDraggedStack) && !isHandHidden && (
+            {(isDragging || isPartOfDraggedStack) && !isHandHidden && location !== stackModal && (
                 <DragImage
                     alt={card.name + " " + card.uniqueCardNumber}
                     src={cardImageUrl}

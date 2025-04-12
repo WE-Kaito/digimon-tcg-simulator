@@ -4,12 +4,14 @@ import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { CardTypeGame, SIDE } from "../../../utils/types.ts";
 import { useContextMenu } from "react-contexify";
 import EggIcon from "@mui/icons-material/Egg";
-import DetailsIcon from "@mui/icons-material/Search";
+import DetailsIcon from "@mui/icons-material/SearchRounded";
+import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { useDroppable } from "@dnd-kit/core";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import { useState } from "react";
 
 type BattleAreaProps = {
     side: SIDE;
@@ -31,6 +33,7 @@ export default function BattleArea(props: BattleAreaProps) {
     } = useDroppable({ id: location + "_bottom", data: { accept: ["card"] } });
 
     const stackModal = useGameUIStates((state) => state.stackModal);
+    const setStackModal = useGameUIStates((state) => state.setStackModal);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
     const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
@@ -47,6 +50,8 @@ export default function BattleArea(props: BattleAreaProps) {
 
     const setCardWidth = useGeneralStates((state) => state.setCardWidth);
 
+    const [isHoveringOverField, setIsHoveringOverField] = useState(false);
+
     return (
         <Container
             {...props}
@@ -54,6 +59,9 @@ export default function BattleArea(props: BattleAreaProps) {
             ref={dropToField}
             isOver={side === SIDE.MY && isOverField}
             stackOpened={stackOpened}
+            onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
+            onMouseLeave={() => stackOpened && setIsHoveringOverField(false)}
+            onClick={() => stackOpened && setStackModal(false)}
         >
             <div
                 ref={(e) => {
@@ -65,7 +73,7 @@ export default function BattleArea(props: BattleAreaProps) {
                 style={{ position: "relative", height: "100%", width: "100%" }}
             >
                 {isBreeding && <StyledEggIcon side={side} />}
-                {stackOpened && <StyledDetailsIcon />}
+                {stackOpened && (isHoveringOverField ? <StyledCloseDetailsIcon /> : <StyledDetailsIcon />)}
                 {!!locationCards.length && !stackOpened && (
                     <CardStack
                         cards={locationCards}
@@ -108,6 +116,7 @@ const Container = styled.div<BattleAreaProps & { isOver: boolean; stackOpened: b
     box-shadow: inset 0 0 20px rgba(${({ isOver }) => (isOver ? "10, 10, 10" : "113, 175, 201")}, 0.2);
     outline: ${({ side, isOver }) =>
         side === SIDE.MY ? `2px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})` : "2px solid rgba(30, 20, 20, 0.7)"};
+    cursor: ${({ stackOpened }) => (stackOpened ? "pointer" : "unset")};
 `;
 
 const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`
@@ -120,6 +129,16 @@ const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`
 `;
 
 const StyledDetailsIcon = styled(DetailsIcon)`
+    color: black;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+    font-size: 3em;
+`;
+
+const StyledCloseDetailsIcon = styled(CloseDetailsIcon)`
     color: black;
     position: absolute;
     top: 50%;
