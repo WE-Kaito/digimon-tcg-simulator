@@ -57,7 +57,10 @@ export default function BattleArea(props: BattleAreaProps) {
         >
             <div
                 ref={(e) => {
-                    if (side === SIDE.MY && num === 1 && e?.scrollWidth) setCardWidth(e.scrollWidth);
+                    if (side === SIDE.MY && num === 1 && e?.clientWidth) {
+                        const raf = requestAnimationFrame(() => setCardWidth(e.clientWidth));
+                        return () => cancelAnimationFrame(raf);
+                    }
                 }}
                 style={{ position: "relative", height: "100%", width: "100%" }}
             >

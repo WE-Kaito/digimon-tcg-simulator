@@ -29,6 +29,7 @@ import {
     SmartphoneRounded as MobileModeOffIcon,
 } from "@mui/icons-material";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
+import RevealArea from "../components/game/RevealArea.tsx";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -275,7 +276,7 @@ export default function GamePage() {
                         </SoundBar>
                     </SettingsContainer>
 
-                    {/*<RevealArea />*/}
+                    <RevealArea />
                     {/*<StackModal />*/}
                     {/*<CardModal wsUtils={wsUtils} />*/}
                     <OpponentBoardSide wsUtils={wsUtils} />
