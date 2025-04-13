@@ -141,7 +141,7 @@ export const pipefoxToken: CardType = {
     cardType: "Digimon",
     dp: 6000,
     name: "Pipe Fox",
-    mainEffect: "<Blocker>.\n" + tokenEffect("Pipe Fox"),
+    mainEffect: "＜Blocker＞.\n" + tokenEffect("Pipe Fox"),
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
@@ -154,7 +154,7 @@ export const ukanomitamaToken: CardType = {
     cardType: "Digimon",
     dp: 9000,
     name: "Uka no Mitama",
-    mainEffect: "<Rush>.\n" + tokenEffect("Uka no Mitama"),
+    mainEffect: "＜Rush＞.\n" + tokenEffect("Uka no Mitama"),
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
@@ -167,7 +167,7 @@ export const athoreneporToken: CardType = {
     cardType: "Digimon",
     dp: 6000,
     name: "Atho, Rene & Por",
-    mainEffect: "<Reboot> <Blocker> <Decoy (Red/Black)>.\n" + tokenEffect("Atho, Rene & Por"),
+    mainEffect: "＜Reboot＞ ＜Blocker＞ ＜Decoy (Red/Black)＞.\n" + tokenEffect("Atho, Rene & Por"),
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
