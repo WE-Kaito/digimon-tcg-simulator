@@ -127,11 +127,64 @@ export const familiarToken: CardType = {
     color: ["Yellow"],
     cardType: "Digimon",
     dp: 3000,
-    mainEffect: "＜On Deletion＞ 1 of your opponent's Digimon gets -3000 DP for the turn.\n" + tokenEffect("Familiar"),
+    mainEffect: "[On Deletion] 1 of your opponent's Digimon gets -3000 DP for the turn.\n" + tokenEffect("Familiar"),
     name: "Familiar",
     restrictions: emptyRestrictions,
     illustrator: "Template By SergioGranSol"
 }
+
+export const pipefoxToken: CardType = {
+    imgUrl: PipeFox,
+    uniqueCardNumber: "PipeFox-TOKEN",
+    cardNumber: "",
+    color: ["Yellow"],
+    cardType: "Digimon",
+    dp: 6000,
+    name: "Pipe Fox",
+    mainEffect: "＜Blocker＞.\n" + tokenEffect("Pipe Fox"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
+export const ukanomitamaToken: CardType = {
+    imgUrl: UkanoMitama,
+    uniqueCardNumber: "UkanoMitama-TOKEN",
+    cardNumber: "",
+    color: ["Yellow"],
+    cardType: "Digimon",
+    dp: 9000,
+    name: "Uka no Mitama",
+    mainEffect: "＜Rush＞.\n" + tokenEffect("Uka no Mitama"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
+export const athoreneporToken: CardType = {
+    imgUrl: AthoRenePor,
+    uniqueCardNumber: "AthoRenePor-TOKEN",
+    cardNumber: "",
+    color: ["White"],
+    cardType: "Digimon",
+    dp: 6000,
+    name: "Atho, Rene & Por",
+    mainEffect: "＜Reboot＞ ＜Blocker＞ ＜Decoy (Red/Black)＞.\n" + tokenEffect("Atho, Rene & Por"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
+export const petrificationToken: CardType = {
+    imgUrl: Petrification,
+    uniqueCardNumber: "AthoRenePor-TOKEN",
+    cardNumber: "",
+    color: ["White"],
+    cardType: "Digimon",
+    dp: 3000,
+    name: "Petrification",
+    mainEffect: "[On Deletion] Trash your top security card.\n[Your Turn] This Digimon can't suspend.\n" + tokenEffect("Petrification"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
 
 export const generalToken: CardType = {
     imgUrl: HackmonToken,
