@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from decouple import config
+import re
 
 DIGI_MIN_INDEX=1
 DIGI_MAX_INDEX=15
@@ -51,7 +52,10 @@ class Waiter:
                 break
         if source_card_index < 0:
             raise RuntimeError(f'Card with id {card_id} not found in {source}')
-        destination_location.append(source_location.pop(source_card_index))
+        if not (card_id.startswith('TOKEN-') and destination == "Trash"):
+            destination_location.append(source_location.pop(source_card_index))
+        else:
+            source_location.pop(source_card_index)
     
     def process_move_to_deck_action(self, message):
         record = message.split(':')
@@ -181,6 +185,10 @@ class Waiter:
         self.logger.info('Player\'s still online.')
 
     async def check_for_action(self, ws, message):
+        create_token_prefix = '[CREATE_TOKEN]:'
+        if message.startswith(create_token_prefix):
+            card_id, card_name = message.replace(create_token_prefix, '').split(':')
+            self.bot.spawn_token(card_id, card_name)
         if message.startswith(f'[OPPONENT_ONLINE]') or message.startswith('[OPPONENT_RECONNECTED]'):
             await self.reset_timestamp()
         if not await self.check_timestamp():

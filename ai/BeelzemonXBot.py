@@ -8,13 +8,11 @@ from decouple import config
 
 from Bot import Bot
 from cheat.Cheater import Cheater
-from card.CardFactory import CardFactory
 
 class BeelzemonXBot(Bot):
 
     def __init__(self, username):
         super().__init__(username)
-        self.card_factory = CardFactory(self)
         self.turn_counter = 0
         self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
         self.blockers_priority_list = ['BT10-081', 'ST14-07', 'BT2-068', 'BT12-085', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'EX2-044', 'EX2-039', 'ST14-08', 'P-077']
