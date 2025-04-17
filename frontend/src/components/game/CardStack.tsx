@@ -45,37 +45,44 @@ export default function CardStack(props: CardStackProps) {
     const tamerWidth = cardWidth - cardWidth / 3.5;
     const { active } = useDndContext();
 
-    const isDraggingThisArea = active && active?.data?.current?.content?.location === location;
+    const isCardBeingDragged = useCallback(
+        (cardIndex: number) => {
+            return active && active?.data?.current?.content?.id === cards[cardIndex]?.id;
+        },
+        [active, cards]
+    );
 
     const getCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
             const bottomPercentage = (cardIndex * 7.5) / (cardCount > 14 ? 3 : cardCount > 7 ? 2 : 1);
+            const isBeingDragged = isCardBeingDragged(cardIndex);
 
             return {
-                height: isDraggingThisArea ? undefined : `${cardWidth * 1.4}px`,
+                height: isBeingDragged ? undefined : `${cardWidth * 1.4}px`,
                 position: "absolute",
                 bottom: `${bottomPercentage}%`,
                 rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
                 left: 0,
             };
         },
-        [isDraggingThisArea, cardWidth]
+        [isCardBeingDragged, cardWidth, cards]
     );
 
     const getTamerCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
             const leftPercentage =
                 (cardIndex * 9.5) / (cardCount > 13 ? 2.5 : cardCount > 10 ? 2 : cardCount > 7 ? 1.5 : 1);
+            const isBeingDragged = isCardBeingDragged(cardIndex);
 
             return {
-                height: isDraggingThisArea ? undefined : `${tamerWidth * 1.4}px`,
+                height: isBeingDragged ? undefined : `${tamerWidth * 1.4}px`,
                 position: "absolute",
                 left: `${leftPercentage}%`,
                 rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
                 zIndex: 50 - cardIndex,
             };
         },
-        [isDraggingThisArea, tamerWidth]
+        [isCardBeingDragged, tamerWidth, cards]
     );
 
     if (tamerLocations.includes(location)) {

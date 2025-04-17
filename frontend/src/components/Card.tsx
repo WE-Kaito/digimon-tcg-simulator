@@ -196,7 +196,6 @@ export default function Card(props: CardProps) {
                 cardType: card.cardType,
                 name: card.name,
                 imgSrc: card.imgUrl,
-                isInScrollable: location === stackModal,
             },
         },
         disabled: opponentFieldLocations.includes(location) || !opponentReady,
@@ -333,7 +332,7 @@ export default function Card(props: CardProps) {
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
-    if (stackModal === location && isDragging) return <></>;
+    if (isDragging && location !== "myHand" && location !== "mySecurity") return <></>;
 
     return (
         <Wrapper

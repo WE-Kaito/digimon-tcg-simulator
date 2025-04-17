@@ -31,7 +31,7 @@ import {
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
-import DragOverlayForScrollableDialogs from "../components/game/DragOverlayForScrollableDialogs.tsx";
+import DragOverlaySingleCard from "../components/game/DragOverlaySingleCard.tsx";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -293,7 +293,7 @@ export default function GamePage() {
                     <PlayerBoardSide wsUtils={wsUtils} />
                 </BoardLayout>
 
-                <DragOverlayForScrollableDialogs />
+                <DragOverlaySingleCard />
             </DndContext>
         </Container>
     );
