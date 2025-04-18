@@ -68,195 +68,163 @@ export default function CardDetails() {
         <Wrapper inGame={inGame}>
             <DetailsHeader />
 
-            <div
-                style={{
-                    display: "flex",
-                    height: "2rem",
-                    zIndex: 2,
-                    marginBottom: 4,
-                }}
-            >
-                <StyledTabDiv
-                    className={"button"}
-                    onClick={() => setSelectedTab("effects")}
-                    isSelected={selectedTab === "effects"}
-                >
-                    Effects
-                </StyledTabDiv>
-                <StyledTabDiv
-                    className={"button"}
-                    onClick={() => setSelectedTab("details")}
-                    isSelected={selectedTab === "details"}
-                >
-                    Details
-                </StyledTabDiv>
-            </div>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <TabContainer>
+                    {dnaDigivolutionText && (
+                        <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
+                            <HighlightedKeyWords text={dnaDigivolutionText} />
+                        </EffectCard>
+                    )}
 
-            {selectedTab === "effects" && (
-                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                    <TabContainer>
-                        {dnaDigivolutionText && (
-                            <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
-                                <HighlightedKeyWords text={dnaDigivolutionText} />
-                            </EffectCard>
-                        )}
+                    {digiXrosText && (
+                        <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
+                            <HighlightedKeyWords text={digiXrosText} />
+                        </EffectCard>
+                    )}
 
-                        {digiXrosText && (
-                            <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
-                                <HighlightedKeyWords text={digiXrosText} />
-                            </EffectCard>
-                        )}
+                    {burstDigivolveText && (
+                        <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_burst`}>
+                            <HighlightedKeyWords text={burstDigivolveText} />
+                        </EffectCard>
+                    )}
 
-                        {burstDigivolveText && (
-                            <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_burst`}>
-                                <HighlightedKeyWords text={burstDigivolveText} />
-                            </EffectCard>
-                        )}
+                    {specialDigivolveText && (
+                        <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_spec`}>
+                            <HighlightedKeyWords text={specialDigivolveText} />
+                        </EffectCard>
+                    )}
 
-                        {specialDigivolveText && (
-                            <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_spec`}>
-                                <HighlightedKeyWords text={specialDigivolveText} />
-                            </EffectCard>
-                        )}
+                    {mainEffectText && (
+                        <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
+                            <HighlightedKeyWords text={mainEffectText} />
+                        </EffectCard>
+                    )}
 
-                        {mainEffectText && (
-                            <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
-                                <HighlightedKeyWords text={mainEffectText} />
-                            </EffectCard>
-                        )}
-
-                        {inheritCardInfo[0]?.length > 0 && (
-                            <EffectCard
-                                variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS}
-                                key={`${cardNumber}_inherited`}
-                            >
-                                <Stack gap={1}>
-                                    {inheritCardInfo.map(
-                                        (text, index) =>
-                                            !!text && (
-                                                <span key={`${cardNumber}_inherited_from_material_${index}`}>
-                                                    <HighlightedKeyWords text={text} />
-                                                </span>
-                                            )
-                                    )}
-                                </Stack>
-                            </EffectCard>
-                        )}
-
-                        {inheritedEffectText && (
-                            <EffectCard
-                                key={`${cardNumber}_to_inherit`}
-                                variant={
-                                    (cardType === "Option" && notXAntibody) || (cardType === "Tamer" && notHybrid)
-                                        ? EffectVariant.SECURITY
-                                        : EffectVariant.INHERITED
-                                }
-                            >
-                                <HighlightedKeyWords text={inheritedEffectText} />
-                            </EffectCard>
-                        )}
-
-                        {securityEffectText && (
-                            <EffectCard variant={EffectVariant.SECURITY} key={`${cardNumber}_security`}>
-                                <HighlightedKeyWords text={securityEffectText} />
-                            </EffectCard>
-                        )}
-                    </TabContainer>
-                </div>
-            )}
-
-            {selectedTab === "details" && (
-                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                    <TabContainer2 inGame={inGame}>
-                        <Stack spacing={2} width={"98.5%"} direction={"row"} sx={{ marginRight: 10 }}>
-                            <DetailCard>
-                                <DetailText>
-                                    <DetailMetric>{cardNumber}</DetailMetric>
-                                </DetailText>
-                            </DetailCard>
-
-                            {["Digimon", "Digi-Egg"].includes(String(cardType)) && (
-                                <DetailCard>
-                                    <DetailText>
-                                        Lv.
-                                        <DetailMetric>{level}</DetailMetric>
-                                    </DetailText>
-                                </DetailCard>
-                            )}
-
-                            {cardType !== "Digi-Egg" && (
-                                <DetailCard>
-                                    <DetailText>
-                                        {cardType === "Option" ? "Cost: " : "Play: "}
-                                        <DetailMetric>{playCost}</DetailMetric>
-                                    </DetailText>
-                                </DetailCard>
-                            )}
-                        </Stack>
-
-                        {digivolveConditions[0] && (
-                            <DetailCard>
-                                <DetailText style={{ display: "flex", width: "97%", justifyContent: "space-between" }}>
-                                    <div>
-                                        <span>{"Digivolve Cost: "}</span>
-                                        <DetailMetric>{digivolveConditions[0]?.cost}</DetailMetric>
-                                    </div>
-                                    <div>
-                                        <span style={{ fontSize: "0.7em" }}>{" from "}</span>
-                                        {digivolveConditions?.map((condition, index) => (
-                                            <span key={condition.color + index}>
-                                                {index !== 0 && " | "}
-                                                {getDnaColor(condition.color.toLowerCase())}
-                                            </span>
-                                        ))}
-                                        {" Lv."}
-                                        <DetailMetric>{digivolveConditions[0]?.level}</DetailMetric>
-                                    </div>
-                                </DetailText>
-                            </DetailCard>
-                        )}
-
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: !dp && stage ? "1fr 1fr" : "1fr 2fr",
-                                gap: 15,
-                                width: "98.5%",
-                            }}
+                    {inheritCardInfo[0]?.length > 0 && (
+                        <EffectCard
+                            variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS}
+                            key={`${cardNumber}_inherited`}
                         >
-                            {!!dp && (
-                                <DetailCard>
-                                    <DetailText>
-                                        DP: <DetailMetric>{dp}</DetailMetric>
-                                    </DetailText>
-                                </DetailCard>
-                            )}
+                            <Stack gap={1}>
+                                {inheritCardInfo.map(
+                                    (text, index) =>
+                                        !!text && (
+                                            <span key={`${cardNumber}_inherited_from_material_${index}`}>
+                                                <HighlightedKeyWords text={text} />
+                                            </span>
+                                        )
+                                )}
+                            </Stack>
+                        </EffectCard>
+                    )}
 
-                            {!!stage && (
-                                <DetailCard>
-                                    <DetailText>
-                                        {"Stage: "}
-                                        <DetailMetric>{stage}</DetailMetric>
-                                    </DetailText>
-                                </DetailCard>
-                            )}
-                        </div>
+                    {inheritedEffectText && (
+                        <EffectCard
+                            key={`${cardNumber}_to_inherit`}
+                            variant={
+                                (cardType === "Option" && notXAntibody) || (cardType === "Tamer" && notHybrid)
+                                    ? EffectVariant.SECURITY
+                                    : EffectVariant.INHERITED
+                            }
+                        >
+                            <HighlightedKeyWords text={inheritedEffectText} />
+                        </EffectCard>
+                    )}
 
+                    {securityEffectText && (
+                        <EffectCard variant={EffectVariant.SECURITY} key={`${cardNumber}_security`}>
+                            <HighlightedKeyWords text={securityEffectText} />
+                        </EffectCard>
+                    )}
+
+                    <Stack spacing={2} width={"98.5%"} direction={"row"} sx={{ marginRight: 10 }}>
                         <DetailCard>
                             <DetailText>
-                                {"Illustrator: "}
-                                <DetailMetric>{illustrator}</DetailMetric>
+                                <DetailMetric>{cardNumber}</DetailMetric>
                             </DetailText>
                         </DetailCard>
 
+                        {["Digimon", "Digi-Egg"].includes(String(cardType)) && (
+                            <DetailCard>
+                                <DetailText>
+                                    Lv.
+                                    <DetailMetric>{level}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>
+                        )}
+
+                        {cardType !== "Digi-Egg" && (
+                            <DetailCard>
+                                <DetailText>
+                                    {cardType === "Option" ? "Cost: " : "Play: "}
+                                    <DetailMetric>{playCost}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>
+                        )}
+                    </Stack>
+
+                    {digivolveConditions[0] && (
+                        <DetailCard>
+                            <DetailText style={{ display: "flex", width: "97%", justifyContent: "space-between" }}>
+                                <div>
+                                    <span>{"Digivolve Cost: "}</span>
+                                    <DetailMetric>{digivolveConditions[0]?.cost}</DetailMetric>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: "0.7em" }}>{" from "}</span>
+                                    {digivolveConditions?.map((condition, index) => (
+                                        <span key={condition.color + index}>
+                                            {index !== 0 && " | "}
+                                            {getDnaColor(condition.color.toLowerCase())}
+                                        </span>
+                                    ))}
+                                    {" Lv."}
+                                    <DetailMetric>{digivolveConditions[0]?.level}</DetailMetric>
+                                </div>
+                            </DetailText>
+                        </DetailCard>
+                    )}
+
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: !dp && stage ? "1fr 1fr" : "1fr 2fr",
+                            gap: 15,
+                            width: "98.5%",
+                        }}
+                    >
+                        {!!dp && (
+                            <DetailCard>
+                                <DetailText>
+                                    DP: <DetailMetric>{dp}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>
+                        )}
+
+                        {!!stage && (
+                            <DetailCard>
+                                <DetailText>
+                                    {"Stage: "}
+                                    <DetailMetric>{stage}</DetailMetric>
+                                </DetailText>
+                            </DetailCard>
+                        )}
+                    </div>
+
+                    <DetailCard>
                         <DetailText>
-                            <StyledLink href={rulingsUrl} target="_blank" rel="noopener noreferrer">
-                                🛈 Rulings
-                            </StyledLink>
+                            {"Illustrator: "}
+                            <DetailMetric>{illustrator}</DetailMetric>
                         </DetailText>
-                    </TabContainer2>
-                </div>
-            )}
+                    </DetailCard>
+
+                    <DetailText>
+                        <StyledLink href={rulingsUrl} target="_blank" rel="noopener noreferrer">
+                            🛈 Rulings
+                        </StyledLink>
+                    </DetailText>
+                </TabContainer>
+            </div>
         </Wrapper>
     );
 }
@@ -267,9 +235,11 @@ const Wrapper = styled.div<{ inGame: boolean }>`
     padding: 5px;
     border-radius: 5px;
     grid-area: details;
-    overflow-y: ${({ inGame }) => (inGame ? "unset" : "scroll")};
     container-type: inline-size;
     container-name: details-container;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 
     @supports (-moz-appearance: none) {
         scrollbar-width: thin;
@@ -286,28 +256,13 @@ const Wrapper = styled.div<{ inGame: boolean }>`
     }
 `;
 
-const StyledTabDiv = styled.div<{ isSelected: boolean }>`
-    flex: 1;
-    z-index: 1;
-    color: ${({ isSelected }) => (isSelected ? "black" : "whitesmoke")};
-    background-color: ${({ isSelected }) => (isSelected ? "whitesmoke" : "rgba(154,154,154,0)")};
-    transition: all 0.2s ease-in-out;
-
-    &:hover {
-        span {
-            color: #156cd0;
-        }
-    }
-`;
-
 const TabContainer = styled.div`
     width: 100%;
-    max-height: calc(100vh - 392px);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    overflow-y: auto;
+    overflow-y: visible;
     padding: 5px 1px 5px 0;
     gap: 6px;
 
@@ -337,7 +292,7 @@ const TabContainer2 = styled.div<{ inGame: boolean }>`
 `;
 
 const DetailCard = styled.div`
-    width: 98.5%;
+    flex: 1;
     background: #0c0c0c;
     filter: drop-shadow(0 0 1px ghostwhite);
 `;
