@@ -55,6 +55,7 @@ export default function BattleArea(props: BattleAreaProps) {
     return (
         <Container
             {...props}
+            // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
             id={locationCards.length ? "" : location}
             ref={dropToField}
             isOver={side === SIDE.MY && isOverField}

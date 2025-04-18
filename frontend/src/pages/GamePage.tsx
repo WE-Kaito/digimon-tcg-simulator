@@ -12,7 +12,7 @@ import useGameWebSocket from "../hooks/useGameWebSocket.ts";
 import { useSound } from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
-import { DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor, DragOverlay } from "@dnd-kit/core";
+import { DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor } from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
@@ -31,7 +31,7 @@ import {
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
-import DragOverlaySingleCard from "../components/game/DragOverlaySingleCard.tsx";
+import DragOverlayCards from "../components/game/DragOverlayCards.tsx";
 import CardModal from "../components/game/CardModal.tsx";
 
 const mediaQueries = [
@@ -295,7 +295,7 @@ export default function GamePage() {
                     <PlayerBoardSide wsUtils={wsUtils} />
                 </BoardLayout>
 
-                <DragOverlaySingleCard />
+                <DragOverlayCards />
             </DndContext>
         </Container>
     );

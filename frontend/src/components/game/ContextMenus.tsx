@@ -204,16 +204,19 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"fieldCardMenu"} theme="dark">
-                {openedCardModal !== OpenedCardModal.MY_SECURITY && (
-                    <>
-                        <Item onClick={showStack}>
-                            <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                                <span>Show Stack</span> <DetailsIcon />
-                            </div>
-                        </Item>
-                        <Separator />
-                    </>
-                )}
+                <Item onClick={openedCardModal !== OpenedCardModal.MY_SECURITY ? showStack : undefined}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: openedCardModal !== OpenedCardModal.MY_SECURITY ? undefined : "not-allowed",
+                        }}
+                    >
+                        <span>Show Stack</span> <DetailsIcon />
+                    </div>
+                </Item>
+                <Separator />
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />

@@ -332,11 +332,11 @@ export default function Card(props: CardProps) {
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
-    if (isDragging && location !== "myHand") return <></>;
+    if ((isDragging && location !== "myHand") || isPartOfDraggedStack) return <></>;
 
     return (
         <Wrapper
-            // What was the index used for?
+            // id is set for correct AttackArrow targeting
             id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
             style={{
                 ...style,
@@ -452,19 +452,6 @@ export default function Card(props: CardProps) {
                 >
                     <img alt={"suspended"} src={suspendedAPNG} />
                 </CardAnimationContainer>
-            )}
-
-            {(isDragging || isPartOfDraggedStack) && !isHandHidden && location !== stackModal && (
-                <DragImage
-                    alt={card.name + " " + card.uniqueCardNumber}
-                    src={cardImageUrl}
-                    isTilted={card.isTilted}
-                    transform={CSS.Translate.toString(isDraggingStack ? stackTransform : transform)}
-                    width={cardWidth}
-                    style={{ opacity }}
-                    inModal={["myTrash", "mySecurity"].includes(location) || stackModal === location}
-                    className={"custom-grab-cursor"}
-                />
             )}
 
             {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && (
@@ -598,17 +585,6 @@ const StyledImage = styled.img<StyledImageProps>`
             filter: drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1);
         }
     }
-`;
-
-const DragImage = styled.img<{ transform?: string; isTilted?: boolean; inModal: boolean }>`
-    touch-action: none;
-    position: fixed;
-    outline: ${({ isTilted }) => (isTilted ? "2px solid #191970" : "none")};
-    outline-offset: -1px;
-    border-radius: 5px;
-    transform: ${({ transform }) => transform}
-        ${({ inModal }) => (inModal ? "translateX(-50%)" : `translate(-50%, -100%)`)} scale(1.1);
-    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5)) brightness(110%) saturate(1.05);
 `;
 
 export const CardAnimationContainer = styled.div`
