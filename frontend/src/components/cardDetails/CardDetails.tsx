@@ -26,7 +26,7 @@ const HybridNames = [
     "Kosuke Kisakata",
 ];
 
-export default function CardDetails({ isMobile }: { isMobile?: boolean }) {
+export default function CardDetails() {
     const location = useLocation();
     const inGame = location.pathname === "/game";
 
@@ -64,44 +64,36 @@ export default function CardDetails({ isMobile }: { isMobile?: boolean }) {
 
     if (!selectedCard && !hoverCard) return <div style={{ height: 500 }} />;
 
-    if (isMobile)
-        return (
-            inheritCardInfo[0]?.length > 0 && (
-                <div style={{ maxWidth: 500 }}>
-                    <EffectCard
-                        variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS}
-                        key={`${cardNumber}_inherited`}
-                    >
-                        <Stack gap={1}>
-                            {inheritCardInfo.map(
-                                (text, index) =>
-                                    !!text && (
-                                        <span key={`${cardNumber}_inherited_from_material_${index}`}>
-                                            <HighlightedKeyWords text={text} />
-                                        </span>
-                                    )
-                            )}
-                        </Stack>
-                    </EffectCard>
-                </div>
-            )
-        );
-
     return (
         <Wrapper inGame={inGame}>
             <DetailsHeader />
 
-            <Tabs selectedItem={selectedTab} style={{ position: "relative" }} onChange={setSelectedTab}>
-                <TabList style={{ marginBottom: 0, containerType: "inline-size", containerName: "tabs" }}>
-                    <StyledTab selectedTab={selectedTab} item="effects">
-                        <TabLabel1 tab="effects">Effects</TabLabel1>
-                    </StyledTab>
-                    <StyledTab selectedTab={selectedTab} item="details">
-                        <TabLabel2 tab="details">Details</TabLabel2>
-                    </StyledTab>
-                </TabList>
+            <div
+                style={{
+                    display: "flex",
+                    height: "2rem",
+                    zIndex: 2,
+                    marginBottom: 4,
+                }}
+            >
+                <StyledTabDiv
+                    className={"button"}
+                    onClick={() => setSelectedTab("effects")}
+                    isSelected={selectedTab === "effects"}
+                >
+                    Effects
+                </StyledTabDiv>
+                <StyledTabDiv
+                    className={"button"}
+                    onClick={() => setSelectedTab("details")}
+                    isSelected={selectedTab === "details"}
+                >
+                    Details
+                </StyledTabDiv>
+            </div>
 
-                <TabPanel item="effects" style={{ height: "100%" }}>
+            {selectedTab === "effects" && (
+                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <TabContainer>
                         {dnaDigivolutionText && (
                             <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
@@ -170,9 +162,11 @@ export default function CardDetails({ isMobile }: { isMobile?: boolean }) {
                             </EffectCard>
                         )}
                     </TabContainer>
-                </TabPanel>
+                </div>
+            )}
 
-                <TabPanel item="details">
+            {selectedTab === "details" && (
+                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <TabContainer2 inGame={inGame}>
                         <Stack spacing={2} width={"98.5%"} direction={"row"} sx={{ marginRight: 10 }}>
                             <DetailCard>
@@ -261,8 +255,8 @@ export default function CardDetails({ isMobile }: { isMobile?: boolean }) {
                             </StyledLink>
                         </DetailText>
                     </TabContainer2>
-                </TabPanel>
-            </Tabs>
+                </div>
+            )}
         </Wrapper>
     );
 }
@@ -292,85 +286,18 @@ const Wrapper = styled.div<{ inGame: boolean }>`
     }
 `;
 
-const StyledTab = styled(Tab)<{ item: string; selectedTab: string }>`
-    margin: 0;
-    padding: 0;
-    width: 39%;
-    height: 0.5rem;
-    position: relative;
-    border: none !important;
-    color: ${({ item, selectedTab }) => (item === selectedTab ? "black" : "whitesmoke")} !important;
-    background-color: ${({ item, selectedTab }) => (item === selectedTab ? "whitesmoke" : "rgba(0, 0, 0, 0)")};
-    border-top-right-radius: ${({ item }) => (item === "effects" ? "25px" : "5px")};
-    border-top-left-radius: ${({ item }) => (item === "details" ? "25px" : "5px")};
-    transition: all 0.2s ease-in-out !important;
-
-    @container tabs (min-width: 521px) and (max-width: 535px) {
-        width: 39.25%;
-    }
-    @container tabs (min-width: 501px) and (max-width: 520px) {
-        width: 39%;
-    }
-    @container tabs (min-width: 486px) and (max-width: 500px) {
-        width: 38.75%;
-    }
-    @container tabs (min-width: 471px) and (max-width: 485px) {
-        width: 38%;
-    }
-    @container tabs (min-width: 451px) and (max-width: 470px) {
-        width: 37.75%;
-    }
-    @container tabs (min-width: 441px) and (max-width: 450px) {
-        width: 37.5%;
-    }
-    @container tabs (min-width: 431px) and (max-width: 441px) {
-        width: 37.25%;
-    }
-    @container tabs (min-width: 421px) and (max-width: 430px) {
-        width: 36.75%;
-    }
-    @container tabs (min-width: 411px) and (max-width: 420px) {
-        width: 36.5%;
-    }
-    @container tabs (min-width: 401px) and (max-width: 410px) {
-        width: 35%;
-    }
-    @container tabs (min-width: 381px) and (max-width: 400px) {
-        width: 34.75%;
-    }
-    @container tabs (min-width: 371px) and (max-width: 380px) {
-        width: 34.5%;
-    }
-    @container tabs (min-width: 361px) and (max-width: 370px) {
-        width: 34.25%;
-    }
-    @container tabs (min-width: 351px) and (max-width: 360px) {
-        width: 34%;
-    }
-    @container tabs (max-width: 350px) {
-        width: 32.5%;
-    }
+const StyledTabDiv = styled.div<{ isSelected: boolean }>`
+    flex: 1;
+    z-index: 1;
+    color: ${({ isSelected }) => (isSelected ? "black" : "whitesmoke")};
+    background-color: ${({ isSelected }) => (isSelected ? "whitesmoke" : "rgba(154,154,154,0)")};
+    transition: all 0.2s ease-in-out;
 
     &:hover {
         span {
             color: #156cd0;
         }
     }
-`;
-
-const TabLabel1 = styled.span<{ tab: string }>`
-    position: absolute;
-    top: 0.1rem;
-    font-size: 1rem;
-    font-family: Verdana, sans-serif;
-    font-weight: 600;
-
-    left: 5px;
-`;
-
-const TabLabel2 = styled(TabLabel1)`
-    left: unset;
-    right: 5px;
 `;
 
 const TabContainer = styled.div`

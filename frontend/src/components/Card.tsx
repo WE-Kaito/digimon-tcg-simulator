@@ -20,7 +20,6 @@ import cardBackSrc from "../assets/cardBack.jpg";
 import { useSound } from "../hooks/useSound.ts";
 import { getSleeve } from "../utils/sleeves.ts";
 import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import { WSUtils } from "../pages/GamePage.tsx";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
@@ -182,7 +181,6 @@ export default function Card(props: CardProps) {
         listeners,
         setNodeRef: drag,
         isDragging,
-        transform,
         over,
         active,
     } = useDraggable({
@@ -206,7 +204,7 @@ export default function Card(props: CardProps) {
         listeners: stackListeners,
         setNodeRef: dragStack,
         isDragging: isDraggingStack,
-        transform: stackTransform,
+        active: activeStack,
     } = useDraggable({
         id: location + "_stack",
         data: { type: "card-stack", content: { location } },
@@ -238,7 +236,7 @@ export default function Card(props: CardProps) {
     const isToggleMode = false;
     function handleHover() {
         if (index !== undefined && !active && (!isToggleMode || isStackDragMode)) setStackSliceIndex(index);
-        if (isHandHidden && location === "myHand") return;
+        if ((isHandHidden && location === "myHand") || active || activeStack) return;
         setHoverCard(card);
         if (inheritAllowed) setInheritCardInfo(inheritedEffects);
         else setInheritCardInfo([]);
@@ -344,7 +342,7 @@ export default function Card(props: CardProps) {
             {...dragAttributes}
             {...dragListeners}
         >
-            {((index !== 0 && myDigimonLocations.includes(location)) ||
+            {((index !== 0 && (myDigimonLocations.includes(location) || location === "myBreedingArea")) ||
                 (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
                 (isHovered || isDragIconHovered) &&
                 stackModal !== location &&
@@ -353,7 +351,8 @@ export default function Card(props: CardProps) {
                         className={"custom-hand-cursor"}
                         style={{
                             opacity: 1,
-                            right: -(cardWidth / 3),
+                            right: -(cardWidth / 15),
+                            bottom: -(cardWidth / 15),
                         }}
                         onMouseEnter={handleHoverDragIcon}
                         onMouseOver={handleHoverDragIcon}

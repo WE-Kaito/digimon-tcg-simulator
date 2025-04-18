@@ -33,6 +33,7 @@ import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
 import DragOverlayCards from "../components/game/DragOverlayCards.tsx";
 import CardModal from "../components/game/CardModal.tsx";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -219,7 +220,7 @@ export default function GamePage() {
                             style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" },
                         })}
                 />
-                {/*<CardDetails/>*/}
+                <CardDetails />
             </DetailsContainer>
             <DndContext
                 onDragEnd={handleDragEnd}
