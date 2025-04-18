@@ -4,13 +4,10 @@ import targetAnimation from "../../../assets/lotties/target-animation.json";
 import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
-import { OpenedCardModal } from "../../../utils/types.ts";
-import DeleteIcon from "@mui/icons-material/Delete";
+import CloseTrashIcon from "@mui/icons-material/DeleteForever";
+import TrashIcon from "@mui/icons-material/Delete";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
-import { Button } from "@mui/material";
-import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function PlayerTrash() {
     const myTrash = useGameBoardStates((state) => state.myTrash);
@@ -21,12 +18,11 @@ export default function PlayerTrash() {
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
     const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
 
-    const cardWidth = useGeneralStates((state) => state.cardWidth);
-
     const effectInTrash = getCardLocationById(cardIdWithEffect ?? "") === "myTrash";
     const targetInTrash = getCardLocationById(cardIdWithTarget ?? "") === "myTrash";
 
     const isMyTrashOpened = openedCardModal === OpenedCardModal.MY_TRASH;
+    const isMySecurityOpened = openedCardModal === OpenedCardModal.MY_SECURITY;
 
     function handleClick() {
         setOpenedCardModal(isMyTrashOpened ? false : OpenedCardModal.MY_TRASH);
@@ -41,7 +37,6 @@ export default function PlayerTrash() {
         listeners,
         setNodeRef: drag,
         isDragging,
-        transform,
     } = useDraggable({
         id: topCard?.id + "_myTrash" + String(openedCardModal), // prevent colliding with id in CardModal
         data: {
@@ -52,6 +47,7 @@ export default function PlayerTrash() {
                 cardNumber: topCard?.cardNumber,
                 cardType: topCard?.cardType,
                 name: topCard?.name,
+                imgSrc: topCard?.imgUrl,
             },
         },
     });
@@ -67,10 +63,12 @@ export default function PlayerTrash() {
                 (!isMyTrashOpened || (isDragging && myTrash.length > 1)) &&
                 !(isDragging && myTrash.length === 1) && (
                     <CardImg
+                        className={isMySecurityOpened ? undefined : "custom-hand-cursor"}
+                        style={{ cursor: isMySecurityOpened ? "not-allowed" : undefined }}
                         src={isDragging ? myTrash[myTrash.length - 2]?.imgUrl : topCard?.imgUrl}
                         alt={"myTrash"}
                         title="Open trash"
-                        onClick={handleClick}
+                        onClick={isMySecurityOpened ? undefined : handleClick}
                         onError={handleImageError}
                         isOver={isOver}
                         ref={drag}
@@ -78,23 +76,10 @@ export default function PlayerTrash() {
                         {...listeners}
                     />
                 )}
-            {isDragging && !isMyTrashOpened && (
-                <img
-                    alt={"trashDraggable"}
-                    src={topCard?.imgUrl}
-                    width={cardWidth}
-                    style={{
-                        position: "absolute",
-                        transform: CSS.Translate.toString(transform),
-                        cursor: "grabbing",
-                        filter: "drop-shadow(0px 0px 3px #0c0c0c) brightness(1.1) saturate(1.2)",
-                    }}
-                />
-            )}
             {isMyTrashOpened && (
-                <StyledButton onClick={handleClick} style={{ background: isOver ? "#6C34FAFF" : undefined }}>
-                    <DeleteIcon style={{ color: isOver ? "#E7C372FF" : "ghostwhite", fontSize: "250%" }} />
-                </StyledButton>
+                <StyledCloseButtonDiv onClick={handleClick} className={"button"}>
+                    <CloseTrashIcon style={{ color: "ghostwhite", fontSize: "250%" }} />
+                </StyledCloseButtonDiv>
             )}
             <StyledSpan>{myTrash.length}</StyledSpan>
             {effectInTrash && <StyledLottie animationData={effectAnimation} loop={true} />}
@@ -123,14 +108,12 @@ const PlaceholderDiv = styled.div<{ isOver?: boolean }>`
     color: rgba(${({ isOver }) => (isOver ? "25, 25, 25" : "220, 220, 220")}, 0.8);
     font-family: Naston, sans-serif;
     transition: all 0.1s ease-in-out;
-    cursor: ${({ isOver }) => (isOver ? "grabbing" : "default")};
 `;
 
 const CardImg = styled.img<{ isOver?: boolean }>`
     height: 100%;
     aspect-ratio: 7 / 10;
     border-radius: 5px;
-    cursor: pointer;
     transition: all 0.1s ease-in-out;
     filter: drop-shadow(${({ isOver }) => (isOver ? "0px 0px 1px whitesmoke" : "1px 1px 2px #060e18")});
 
@@ -162,25 +145,33 @@ const StyledLottie = styled(Lottie)<{ isOpponentTrash?: boolean }>`
     max-width: 100%;
 `;
 
-const StyledTrashIcon = styled(DeleteIcon)`
+const StyledTrashIcon = styled(TrashIcon)`
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     opacity: 0.5;
     font-size: 2.5em;
+    color: ghostwhite;
+
     @media (max-height: 500px) {
         font-size: 1.25em;
     }
 `;
 
-const StyledButton = styled(Button)`
-    align-self: flex-end;
-    width: 100%;
-    height: 55%;
-    background: #7522f5cc;
+const StyledCloseButtonDiv = styled.div`
+    height: 100%;
+    aspect-ratio: 7 / 10;
+    border-radius: 5px;
+    background: rgba(66, 22, 185, 0.82);
+    box-shadow: inset 0 0 5px 2px rgba(245, 245, 245, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.15s;
 
     &:hover {
-        background: #6c34faff;
+        background: rgba(73, 25, 218, 0.82);
+        box-shadow: inset 0 0 2px 2px rgba(213, 213, 213, 0.3);
     }
 `;

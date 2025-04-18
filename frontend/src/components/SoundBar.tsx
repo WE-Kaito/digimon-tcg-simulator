@@ -73,17 +73,19 @@ export default function SoundBar({ children, iconFontSize }: Props) {
                 </SfxSpan>
 
                 <RadioIconButtonPlaylist
+                    className={"button"}
                     isRadioMenuExpanded={isRadioMenuExpanded}
                     onClick={(e) => setAnchorEl(e.currentTarget)}
                 >
                     <PlaylistIcon fontSize={"large"} />
                 </RadioIconButtonPlaylist>
 
-                <RadioIconButtonPrev isRadioMenuExpanded={isRadioMenuExpanded} onClick={prevSong}>
+                <RadioIconButtonPrev className={"button"} isRadioMenuExpanded={isRadioMenuExpanded} onClick={prevSong}>
                     <PrevIcon fontSize={"large"} />
                 </RadioIconButtonPrev>
 
                 <MainRadioIconButton
+                    className={"button"}
                     isRadioMenuExpanded={isRadioMenuExpanded}
                     onClick={toggleRadioMenu}
                     translateX={iconFontSize ? iconFontSize * 2.8 : undefined}
@@ -104,12 +106,17 @@ export default function SoundBar({ children, iconFontSize }: Props) {
                 </MainRadioIconButton>
 
                 <RadioIconButtonStart
+                    className={"button"}
                     isRadioMenuExpanded={isRadioMenuExpanded}
                     onClick={isMusicPlaying ? stopMusic : startMusic}
                 >
                     {isMusicPlaying ? <StopIcon fontSize={"large"} /> : <PlayIcon fontSize={"large"} />}
                 </RadioIconButtonStart>
-                <RadioIconButtonNext isRadioMenuExpanded={isRadioMenuExpanded} onClick={() => nextSong()}>
+                <RadioIconButtonNext
+                    className={"button"}
+                    isRadioMenuExpanded={isRadioMenuExpanded}
+                    onClick={() => nextSong()}
+                >
                     <NextIcon fontSize={"large"} />
                 </RadioIconButtonNext>
 
@@ -129,6 +136,7 @@ export default function SoundBar({ children, iconFontSize }: Props) {
                 )}
 
                 <Slider
+                    className={"button"}
                     size="small"
                     defaultValue={50}
                     value={musicVolume * 100}
@@ -198,18 +206,12 @@ const RadioIconButton = styled.div<{ isRadioMenuExpanded?: boolean }>`
     padding: 0;
     border-radius: 5px;
     transition: all 0.25s ease;
-    cursor: pointer;
     pointer-events: ${(props) => (props.isRadioMenuExpanded ? "unset" : "none")};
 
     &:hover {
         opacity: 1;
         filter: drop-shadow(0 0 3px "ghostwhite");
     }
-`;
-
-export const RadioMenuChildIconButton = styled(RadioIconButton)`
-    opacity: 0.7;
-    pointer-events: unset;
 `;
 
 const RadioIconButtonPlaylist = styled(RadioIconButton)`

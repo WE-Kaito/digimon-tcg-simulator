@@ -41,7 +41,7 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
         <>
             <Container ref={setNodeRef}>
                 <StyledSpan>{myEggDeck.length}</StyledSpan>
-                <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} />
+                <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} className={"button"} />
             </Container>
             <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
                 {canDropToBottom && (
@@ -86,7 +86,6 @@ const DeckImg = styled.img<{ isOver?: boolean }>`
     border-radius: 3px;
     border-right: 1px solid black;
     border-bottom: 1px solid black;
-    cursor: pointer;
     transition: all 0.1s ease;
     z-index: 2;
     filter: ${({ isOver }) => (isOver ? "drop-shadow(0 0 1px #eceaea) saturate(1.1) brightness(0.95)" : "none")};

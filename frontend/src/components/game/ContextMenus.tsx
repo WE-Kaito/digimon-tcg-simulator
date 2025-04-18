@@ -22,17 +22,17 @@ import {
     CardTypeGame,
     FieldCardContextMenuItemProps,
     HandCardContextMenuItemProps,
-    OpenedCardModal,
 } from "../../utils/types.ts";
 import "react-contexify/dist/ReactContexify.css";
 import { WSUtils } from "../../pages/GamePage.tsx";
-import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import { OpenedCardModal, useGameUIStates } from "../../hooks/useGameUIStates.ts";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const { sendMessage, sendChatMessage, sendSfx, sendUpdate, matchInfo, sendMoveCard } = wsUtils ?? {};
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
 
+    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
     const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
     const setStackModal = useGameUIStates((state) => state.setStackModal);
 
@@ -204,12 +204,16 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"fieldCardMenu"} theme="dark">
-                <Item onClick={showStack}>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>Show Stack</span> <DetailsIcon />
-                    </div>
-                </Item>
-                <Separator />
+                {openedCardModal !== OpenedCardModal.MY_SECURITY && (
+                    <>
+                        <Item onClick={showStack}>
+                            <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                                <span>Show Stack</span> <DetailsIcon />
+                            </div>
+                        </Item>
+                        <Separator />
+                    </>
+                )}
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />

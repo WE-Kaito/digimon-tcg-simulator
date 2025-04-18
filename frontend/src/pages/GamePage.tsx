@@ -32,6 +32,7 @@ import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
 import DragOverlaySingleCard from "../components/game/DragOverlaySingleCard.tsx";
+import CardModal from "../components/game/CardModal.tsx";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -82,6 +83,7 @@ export default function GamePage() {
     const setIsMobileUI = useGameUIStates((state) => state.setIsMobileUI);
     const setIsStackDragMode = useGameUIStates((state) => state.setIsStackDragMode);
     const stackModal = useGameUIStates((state) => state.stackModal);
+    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
 
     const { show: showDetailsImageMenu } = useContextMenu({ id: "detailsImageMenu" });
     // const [isCameraTilted, setIsCameraTilted] = useState<boolean>(false);
@@ -280,9 +282,9 @@ export default function GamePage() {
                     </SettingsContainer>
 
                     <ChatAndCardDialogContainerDiv>
-                        {stackModal === false && <GameChatLog {...wsUtils} />}
-                        {/*<CardModal wsUtils={wsUtils} />*/}
-                        {stackModal !== false && <StackModal />}
+                        {!stackModal && !openedCardModal && <GameChatLog {...wsUtils} />}
+                        {!!openedCardModal && <CardModal />}
+                        {!!stackModal && <StackModal />}
                     </ChatAndCardDialogContainerDiv>
 
                     <RevealArea />
@@ -367,36 +369,11 @@ const SettingsContainer = styled.div`
     z-index: 1;
 `;
 
-// const ChatLogContainer = styled.div<{ isMobile: boolean }>`
-//   display: flex;
-//   flex-direction: ${({isMobile}) => isMobile ? "column" : "row"};
-//   width: calc(100% - 320px);
-//   min-width: 400px;
-//   height: ${({isMobile}) => isMobile ? "600px" : "150px"};
-//   order: ${({isMobile}) => isMobile ? 2 : "unset"};
-//
-//   @media (max-width: 1400px){
-//       width: calc(100% - 820px);
-//   }
-//   @container (max-width: 900px){
-//       width: 100%;
-//   }
-// `;
-
 const StyledIconButton = styled(IconButton)`
     width: fit-content;
     opacity: 0.7;
     display: flex;
 `;
-
-// const UserNameSpan = styled.span`
-//   font-family: League Spartan, sans-serif;
-//   font-size: 68px;
-//   line-height: 1;
-//   align-self: flex-end;
-//   color: ghostwhite;
-//   opacity: 0.5;
-// `;
 
 const ChatAndCardDialogContainerDiv = styled.div`
     height: 95%;

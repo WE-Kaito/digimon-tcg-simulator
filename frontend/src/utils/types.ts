@@ -277,9 +277,3 @@ export enum SIDE {
     MY = "my",
     OPPONENT = "opponent",
 }
-
-export enum OpenedCardModal {
-    MY_SECURITY = "mySecurity",
-    MY_TRASH = "myTrash",
-    OPPONENT_TRASH = "opponentTrash",
-}

@@ -4,10 +4,9 @@ import targetAnimation from "../../../assets/lotties/target-animation.json";
 import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
-import { OpenedCardModal } from "../../../utils/types.ts";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Button } from "@mui/material";
-import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function OpponentTrash() {
     const opponentTrash = useGameBoardStates((state) => state.opponentTrash);

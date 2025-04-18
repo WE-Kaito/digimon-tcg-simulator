@@ -332,7 +332,7 @@ export default function Card(props: CardProps) {
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
-    if (isDragging && location !== "myHand" && location !== "mySecurity") return <></>;
+    if (isDragging && location !== "myHand") return <></>;
 
     return (
         <Wrapper

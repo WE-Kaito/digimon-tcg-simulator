@@ -1,8 +1,13 @@
 import { create } from "zustand";
-import { OpenedCardModal } from "../utils/types.ts";
 import { digimonLocations } from "./useGameBoardStates.ts";
 
 type DigimonLocation = (typeof digimonLocations)[number];
+
+export enum OpenedCardModal {
+    MY_SECURITY = "mySecurity",
+    MY_TRASH = "myTrash",
+    OPPONENT_TRASH = "opponentTrash",
+}
 
 type State = {
     isMobileUI: boolean;
@@ -47,10 +52,10 @@ export const useGameUIStates = create<State>((set) => ({
     setIsStackDragMode: (isStackDragMode) => set({ isStackDragMode }),
 
     openedCardModal: false,
-    setOpenedCardModal: (openedCardModal) => set({ openedCardModal }),
+    setOpenedCardModal: (openedCardModal) => set({ openedCardModal, stackModal: false }),
 
     stackModal: false,
-    setStackModal: (location) => set({ stackModal: location }),
+    setStackModal: (stackModal) => set({ stackModal, openedCardModal: false }),
 
     restartOrder: "first",
     setRestartOrder: (restartOrder) => set({ restartOrder }),

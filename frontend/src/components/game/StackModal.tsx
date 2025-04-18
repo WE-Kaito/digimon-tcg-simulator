@@ -4,7 +4,7 @@ import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { CardTypeGame } from "../../utils/types.ts";
 import { useContextMenu } from "react-contexify";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 
 const tamerLocations = [
@@ -26,7 +26,6 @@ const tamerLocations = [
  * A possible future improvement would be to add Sortable of dnd-kit.
  */
 export default function StackModal() {
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
     const stackModal = useGameUIStates((state) => state.stackModal);
     const setStackModal = useGameUIStates((state) => state.setStackModal);
 
@@ -34,9 +33,10 @@ export default function StackModal() {
         stackModal ? (state[stackModal as keyof typeof state] as CardTypeGame[]) : []
     );
 
-    const containerRef = useRef<HTMLDivElement>(null);
-
     const cardWidth = useGeneralStates((state) => state.cardWidth);
+
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [width, setWidth] = useState(cardWidth);
 
     const cardsToRender =
         !!stackModal && tamerLocations.includes(stackModal) ? locationCards : locationCards.slice().reverse();
@@ -46,9 +46,13 @@ export default function StackModal() {
         props: { index: -1, location: "", id: "" },
     });
 
+    useLayoutEffect(() => {
+        if (containerRef.current) setWidth(containerRef.current.clientWidth / 5.5);
+    }, [containerRef.current?.clientWidth]);
+
     useEffect(() => {
-        if (openedCardModal) setStackModal(false);
-    }, [openedCardModal, setStackModal]);
+        if (stackModal && !locationCards.length) setStackModal(false); // correctly close the modal if there are no cards
+    }, [locationCards, stackModal, setStackModal]);
 
     if (!stackModal) return <></>;
 
@@ -58,14 +62,12 @@ export default function StackModal() {
                 <Card
                     card={card}
                     location={stackModal}
-                    style={{
-                        width: containerRef?.current?.clientWidth ? containerRef.current.clientWidth / 5.5 : cardWidth,
-                    }}
+                    style={{ width }}
                     key={card.id}
                     onContextMenu={(e) => {
                         showCardMenu?.({
                             event: e,
-                            props: { index, location: openedCardModal, id: card.id, name: card.name },
+                            props: { index, location: stackModal, id: card.id, name: card.name },
                         });
                     }}
                 />
@@ -76,7 +78,6 @@ export default function StackModal() {
 
 const Container = styled.div`
     position: relative;
-    cursor: default;
     width: 100%;
     flex: 1;
     padding: 6px 4px 6px 6px;

@@ -62,6 +62,7 @@ export default function BattleArea(props: BattleAreaProps) {
             onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
             onMouseLeave={() => stackOpened && setIsHoveringOverField(false)}
             onClick={() => stackOpened && setStackModal(false)}
+            className={stackOpened ? "button" : undefined}
         >
             <div
                 ref={(e) => {
