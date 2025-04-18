@@ -48,22 +48,17 @@ function HandCard({ card, index }: { card: CardTypeGame; index: number }) {
     const myHand = useGameBoardStates((state) => state.myHand);
     const cardWidth = useGeneralStates((state) => state.cardWidth);
 
-    const transform = useMemo(() => {
-        const transformX = calculateCardOffsetX(myHand.length, index, cardWidth);
-        const transformY = calculateCardOffsetY(myHand.length, index);
-        const rotation = calculateCardRotation(myHand.length, index);
-
-        return `translateX(${transformX}) translateY(${transformY}) rotate(${rotation})`;
-    }, [cardWidth, index, myHand.length]);
+    const transformY = calculateCardOffsetY(myHand.length, index);
+    const rotation = calculateCardRotation(myHand.length, index);
 
     const style: CSSProperties = {
         position: "absolute",
-        left: "3%",
+        left: calculateCardOffsetX(myHand.length, index, cardWidth),
         bottom: myHand.length > 15 ? "5%" : "18%",
         width: cardWidth,
         transition: "all 0.2s ease",
         transformOrigin: "center",
-        transform,
+        transform: `translateY(${transformY}) rotate(${rotation})`,
     };
 
     return (

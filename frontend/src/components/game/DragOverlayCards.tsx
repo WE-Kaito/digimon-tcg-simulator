@@ -19,10 +19,7 @@ export default function DragOverlayCards() {
 
     const width = useGeneralStates((state) => state.cardWidth);
 
-    const imgSrc =
-        active?.data?.current?.type === "card" && !["myHand"].includes(active?.data?.current?.content?.location)
-            ? active?.data?.current?.content?.imgSrc
-            : undefined;
+    const imgSrc = active?.data?.current?.type === "card" ? active?.data?.current?.content?.imgSrc : undefined;
 
     // stack ###########################################################################################################
     const locationCards = useGameBoardStates(

@@ -332,20 +332,13 @@ export default function Card(props: CardProps) {
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
-    if ((isDragging && location !== "myHand") || isPartOfDraggedStack) return <></>;
+    if (isDragging || isPartOfDraggedStack) return <></>;
 
     return (
         <Wrapper
             // id is set for correct AttackArrow targeting
             id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
-            style={{
-                ...style,
-                ...(isPartOfDraggedStack || isDragging
-                    ? location.includes("myHand")
-                        ? { transform: style?.transform?.split(" ", 2).join(" ") }
-                        : { rotate: "0deg" }
-                    : {}),
-            }}
+            style={style}
             ref={dragRef}
             isDragIconHovered={isDragIconHovered}
             {...dragAttributes}
@@ -355,22 +348,18 @@ export default function Card(props: CardProps) {
                 (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
                 (isHovered || isDragIconHovered) &&
                 stackModal !== location &&
-                !isDragging &&
                 !isMobileUi && (
                     <DragStackIconDiv
-                        className={isDraggingStack ? "custom-grab-cursor" : "custom-hand-cursor"}
+                        className={"custom-hand-cursor"}
                         style={{
-                            opacity: isDraggingStack ? 0 : 1,
+                            opacity: 1,
                             right: -(cardWidth / 3),
-                            transform: CSS.Translate.toString(isDraggingStack ? stackTransform : transform),
                         }}
                         onMouseEnter={handleHoverDragIcon}
                         onMouseOver={handleHoverDragIcon}
                         onMouseLeave={() => {
-                            if (!isDraggingStack) {
-                                setHoverCard(null);
-                                setStackDragIcon(null);
-                            }
+                            setHoverCard(null);
+                            setStackDragIcon(null);
                         }}
                     >
                         <DragStackIcon fontSize={"large"} />
@@ -447,48 +436,45 @@ export default function Card(props: CardProps) {
                         right: 5,
                         bottom: "25%",
                         opacity,
-                        transform: CSS.Translate.toString(isPartOfDraggedStack ? stackTransform : transform),
                     }}
                 >
                     <img alt={"suspended"} src={suspendedAPNG} />
                 </CardAnimationContainer>
             )}
 
-            {((!isDragging && !isPartOfDraggedStack) || isHandHidden) && (
-                <StyledImage
-                    style={{
-                        ...(isPartOfDraggableStack && {
-                            outline: "3px solid dodgerblue",
-                            filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
-                        }),
-                    }}
-                    className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
-                    onClick={handleClick}
-                    onDoubleClick={handleTiltCard}
-                    onMouseEnter={handleHover}
-                    onMouseOver={handleHover}
-                    onMouseLeave={handleStopHover}
-                    alt={card.name + " " + card.uniqueCardNumber}
-                    src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
-                    location={location}
-                    isTilted={card.isTilted}
-                    activeEffect={renderEffectAnimation}
-                    targeted={renderTargetAnimation}
-                    isTopCard={index === locationCards?.length - 1 || stackModal === location}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                    onTouchMove={handleTouchEnd}
-                    onError={() => {
-                        setImageError?.(true);
-                        setCardImageUrl(cardBackSrc);
-                    }}
-                    onContextMenu={(e) => {
-                        if (myBALocations.includes(location)) setCardToSend(card.id, location);
-                        onContextMenu?.(e);
-                    }}
-                    width={style ? style.width : 95}
-                />
-            )}
+            <StyledImage
+                style={{
+                    ...(isPartOfDraggableStack && {
+                        outline: "3px solid dodgerblue",
+                        filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
+                    }),
+                }}
+                className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
+                onClick={handleClick}
+                onDoubleClick={handleTiltCard}
+                onMouseEnter={handleHover}
+                onMouseOver={handleHover}
+                onMouseLeave={handleStopHover}
+                alt={card.name + " " + card.uniqueCardNumber}
+                src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
+                location={location}
+                isTilted={card.isTilted}
+                activeEffect={renderEffectAnimation}
+                targeted={renderTargetAnimation}
+                isTopCard={index === locationCards?.length - 1 || stackModal === location}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchEnd}
+                onError={() => {
+                    setImageError?.(true);
+                    setCardImageUrl(cardBackSrc);
+                }}
+                onContextMenu={(e) => {
+                    if (myBALocations.includes(location)) setCardToSend(card.id, location);
+                    onContextMenu?.(e);
+                }}
+                width={style ? style.width : 95}
+            />
         </Wrapper>
     );
 }
