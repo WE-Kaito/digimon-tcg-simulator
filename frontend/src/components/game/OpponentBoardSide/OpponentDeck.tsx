@@ -24,6 +24,8 @@ const Container = styled.div`
 `;
 
 const StyledSpan = styled.span`
+    position: absolute;
+    top: -30%;
     width: 100%;
     font-family: Awsumsans, sans-serif;
     font-style: italic;

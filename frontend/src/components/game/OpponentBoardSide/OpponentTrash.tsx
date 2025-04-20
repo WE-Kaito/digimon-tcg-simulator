@@ -4,8 +4,8 @@ import targetAnimation from "../../../assets/lotties/target-animation.json";
 import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { Button } from "@mui/material";
+import TrashIcon from "@mui/icons-material/Delete";
+import CloseTrashIcon from "@mui/icons-material/DeleteForever";
 import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function OpponentTrash() {
@@ -43,9 +43,9 @@ export default function OpponentTrash() {
                 />
             )}
             {isTrashOpened && (
-                <StyledButton onClick={handleClick}>
-                    <DeleteIcon style={{ color: "ghostwhite", fontSize: "250%" }} />
-                </StyledButton>
+                <StyledCloseButtonDiv onClick={handleClick} className={"button"}>
+                    <CloseTrashIcon style={{ color: "ghostwhite", fontSize: "250%" }} />
+                </StyledCloseButtonDiv>
             )}
             <StyledSpan>{opponentTrash.length}</StyledSpan>
             {effectInTrash && <StyledLottie animationData={effectAnimation} loop={true} />}
@@ -111,7 +111,7 @@ const StyledLottie = styled(Lottie)<{ isOpponentTrash?: boolean }>`
     max-width: 100%;
 `;
 
-const StyledTrashIcon = styled(DeleteIcon)`
+const StyledTrashIcon = styled(TrashIcon)`
     position: absolute;
     top: 50%;
     left: 50%;
@@ -123,13 +123,19 @@ const StyledTrashIcon = styled(DeleteIcon)`
     }
 `;
 
-const StyledButton = styled(Button)`
-    align-self: flex-start;
-    width: 100%;
-    height: 50%;
+const StyledCloseButtonDiv = styled.div`
+    height: 100%;
+    aspect-ratio: 7 / 10;
+    border-radius: 5px;
     background: #7c111e;
+    box-shadow: inset 0 0 5px 2px rgba(245, 245, 245, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.15s;
 
     &:hover {
         background: #91182b;
+        box-shadow: inset 0 0 2px 2px rgba(213, 213, 213, 0.3);
     }
 `;

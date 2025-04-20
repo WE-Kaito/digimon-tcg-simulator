@@ -24,7 +24,10 @@ export default function CardModal() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(cardWidth);
 
-    const { show: showTrashCardMenu } = useContextMenu({ id: "modalMenu", props: { index: -1, location: "", id: "" } });
+    const { show: showTrashCardMenu } = useContextMenu({
+        id: openedCardModal === OpenedCardModal.OPPONENT_TRASH ? "modalMenuOpponent" : "modalMenu",
+        props: { index: -1, location: "", id: "" },
+    });
 
     useEffect(() => {
         if (openedCardModal && !locationCards.length) setOpenedCardModal(false); // correctly close the modal if there are no cards

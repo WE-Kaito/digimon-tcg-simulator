@@ -501,14 +501,11 @@ const StyledImage = styled.img<StyledImageProps>`
                 ? "pulsate 5s ease-in-out infinite"
                 : "none"};
 
-    outline: ${({ isTilted }) => (isTilted ? "2px solid #191970" : "none")};
-    outline-offset: -1px;
     border-bottom: ${({ location }) =>
-        (location.includes("Digi") && Number(location.split("Digi")[1]) <= 10) || location.includes("Breeding")
-            ? "1px solid rgba(0,0,0, 0.75)"
-            : "none"};
-    border-right: ${({ location }) =>
-        location.includes("Digi") && Number(location.split("Digi")[1]) > 10 ? "1px solid rgba(0,0,0, 0.75)" : "none"};
+        digimonLocations.includes(location) || location.includes("Breeding") ? "1px solid rgba(0,0,0, 0.75)" : "none"};
+    border-right: ${({ location, isTilted }) =>
+        isTilted || tamerLocations.includes(location) ? "1px solid rgba(0,0,0, 0.75)" : "none"};
+
     filter: ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
 
     -webkit-touch-callout: none; /* iOS Safari */
@@ -714,15 +711,12 @@ const DragStackIconDiv = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.25);
+
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.75);
 
     :hover {
-        background: rgba(0, 0, 0, 0.75);
-        box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.5);
-        scale: 1.1;
-
         svg {
-            scale: 1;
             color: dodgerblue;
         }
     }

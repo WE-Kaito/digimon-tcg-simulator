@@ -4,7 +4,6 @@ import { Fade } from "react-awesome-reveal";
 import { CSSProperties, useCallback } from "react";
 import { ItemParams, ShowContextMenuParams } from "react-contexify";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { useMediaQuery } from "@mui/material";
 import { WSUtils } from "../../pages/GamePage.tsx";
 import { useDndContext } from "@dnd-kit/core";
 
@@ -40,7 +39,6 @@ const tamerLocations = [
 export default function CardStack(props: CardStackProps) {
     const { cards, location, wsUtils, opponentSide, showFieldCardMenu, showOpponentCardMenu } = props;
 
-    const isSmallWindow = useMediaQuery("(max-height: 500px)");
     const cardWidth = useGeneralStates((state) => state.cardWidth);
     const tamerWidth = cardWidth - cardWidth / 3.5;
     const { active } = useDndContext();
@@ -112,10 +110,7 @@ export default function CardStack(props: CardStackProps) {
                       direction={"down"}
                       duration={500}
                       key={card.id}
-                      style={{
-                          ...getTamerCardContainerStyles(index, cards.length),
-                          bottom: isSmallWindow ? "-22%" : "-7%",
-                      }}
+                      style={{ ...getTamerCardContainerStyles(index, cards.length) }}
                   >
                       <Card
                           style={{ width: tamerWidth }}
