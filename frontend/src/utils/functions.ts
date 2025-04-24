@@ -76,9 +76,12 @@ export function topCardInfo(locationCards: CardTypeGame[]) {
 }
 
 export function topCardInfoLink(locationCards: CardTypeGame[]) {
-    if (!locationCards.length) return { dp: 0, effect: "" };
-    const card = locationCards[0];
-    return { dp: card.linkDP ?? 0, effect: card.linkEffect ?? "" };
+    if (!locationCards.length) return [];
+    const linkEffectInfo: { dp: number; effect: string }[] = [];
+    locationCards.forEach((card) => {
+        linkEffectInfo.push({ dp: card.linkDP ?? 0, effect: card.linkEffect ?? "" });
+    });
+    return linkEffectInfo.reverse();
 }
 
 type SfxFunctions = {

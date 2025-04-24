@@ -316,7 +316,7 @@ const Container = styled.div`
 `;
 
 const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.35);
     display: flex;
     width: 400px !important;
     height: ${({ height }) => (height ? `${height}px` : "unset")};

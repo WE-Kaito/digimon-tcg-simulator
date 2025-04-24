@@ -144,7 +144,7 @@ export default function Card(props: CardProps) {
     const getIsCardTarget = useGameBoardStates((state) => state.getIsCardTarget);
     const setInheritCardInfo = useGameBoardStates((state) => state.setInheritCardInfo);
     const setLinkCardInfo = useGameBoardStates((state) => state.setLinkCardInfo);
-    const linkCardsForLocation = useGameBoardStates((state) => state.getLinkCardsForLocation)(location);
+    const getLinkCardsForLocation = useGameBoardStates((state) => state.getLinkCardsForLocation);
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
@@ -217,6 +217,7 @@ export default function Card(props: CardProps) {
     const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
     const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
 
+    const linkCardsForLocation = getLinkCardsForLocation(location);
     const linkCardInfo = topCardInfoLink(linkCardsForLocation);
 
     function handleClick(event: React.MouseEvent) {
@@ -238,7 +239,7 @@ export default function Card(props: CardProps) {
             setLinkCardInfo(linkCardInfo);
         } else {
             setInheritCardInfo([]);
-            setLinkCardInfo({ dp: 0, effect: "" });
+            setLinkCardInfo([]);
         }
     }
 
@@ -251,7 +252,7 @@ export default function Card(props: CardProps) {
         setHoverCard(null);
         if (!selectedCard || !selectedCardLocation) {
             setInheritCardInfo([]);
-            setLinkCardInfo({ dp: 0, effect: "" });
+            setLinkCardInfo([]);
             return;
         }
         const inhEff = topCardInfo(locationCardsOfSelected).split("\n");
@@ -260,6 +261,13 @@ export default function Card(props: CardProps) {
             locationsWithInheritedInfo.includes(selectedCardLocation);
         if (!inhEff[0].length) setInheritCardInfo([]);
         else if (inhAll) setInheritCardInfo(inhEff);
+
+        const linkInfo = topCardInfoLink(getLinkCardsForLocation(selectedCardLocation));
+        const linkAllowed =
+            selectedCard.id === locationCardsOfSelected.at(-1)?.id && digimonLocations.includes(selectedCardLocation);
+
+        if (!linkInfo.length) setLinkCardInfo([]);
+        else if (linkAllowed) setLinkCardInfo(linkInfo);
     }
 
     const isModifiersAllowed =
@@ -267,10 +275,9 @@ export default function Card(props: CardProps) {
         (card.cardType === "Digimon" || numbersWithModifiers.includes(card.cardNumber));
     const modifiers = isModifiersAllowed ? card.modifiers : undefined;
 
-    let finalDp =
-        modifiers && card.dp
-            ? (card.dp + modifiers.plusDp < 0 ? 0 : card.dp + modifiers.plusDp) + (linkCardsForLocation[0]?.linkDP ?? 0)
-            : 0;
+    const linkDP = linkCardsForLocation.reduce((sum, card) => sum + (card.linkDP ?? 0), 0);
+
+    let finalDp = modifiers && card.dp ? (card.dp + modifiers.plusDp < 0 ? 0 : card.dp + modifiers.plusDp) + linkDP : 0;
     if (numbersWithModifiers.includes(card.cardNumber) && card.cardNumber !== "EX2-007") {
         finalDp = modifiers?.plusDp ?? 0;
     }

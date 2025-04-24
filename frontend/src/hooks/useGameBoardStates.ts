@@ -95,8 +95,8 @@ export type State = BoardState & {
      */
     cardToSend: { id: string; location: string };
     inheritCardInfo: string[];
-    linkCardInfo: { dp: number; effect: string };
-    setLinkCardInfo: (linkCardInfo: { dp: number; effect: string }) => void;
+    linkCardInfo: { dp: number; effect: string }[];
+    setLinkCardInfo: (linkCardInfo: { dp: number; effect: string }[]) => void;
     getLinkCardsForLocation: (location: string) => CardTypeGame[];
 
     bootStage: BootStage;
@@ -254,7 +254,7 @@ export const useGameBoardStates = create<State>()(
                 isHandHidden: false,
                 cardToSend: { id: "", location: "" },
                 inheritCardInfo: [],
-                linkCardInfo: { dp: 0, effect: "" },
+                linkCardInfo: [],
 
                 bootStage: BootStage.CLEAR,
                 restartObject: { me: emptyPlayer, opponent: emptyPlayer },

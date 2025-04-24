@@ -71,7 +71,7 @@ export default function CardDetails() {
         <Wrapper inGame={inGame}>
             <DetailsHeader />
 
-            <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", zIndex: 1 }}>
                 <TabContainer>
                     {dnaDigivolutionText && (
                         <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_dna`}>
@@ -116,29 +116,30 @@ export default function CardDetails() {
                                     <span style={{ gridColumn: 1, overflowWrap: "anywhere" }}>
                                         <HighlightedKeyWords text={linkEffectText} />
                                     </span>
-                                    <span
-                                        style={{
-                                            gridColumn: 2,
-                                            fontWeight: "bolder",
-                                            background:
-                                                "linear-gradient(to right, rgba(21,59,60,0.5) 0%, rgba(0,105,103,0.125) 100%)",
-                                            padding: "6px 4px 2px 4px",
-                                            borderColor: "rgba(0,105,103,0.1)",
-                                            borderRadius: "50% 3px 3px 50%",
-                                            transform: "translateX(4px)",
-                                            lineHeight: 1,
-                                            height: "fit-content",
-                                        }}
-                                    >{`+ 1${linkDP} DP`}</span>
+                                    {linkDP !== 0 && (
+                                        <span
+                                            style={{
+                                                gridColumn: 2,
+                                                fontWeight: "bolder",
+                                                background:
+                                                    "linear-gradient(to right, rgba(21,59,60,0.5) 0%, rgba(0,105,103,0.25) 80%, transparent 100%)",
+                                                padding: "6px 4px 2px 4px",
+                                                borderColor: "rgba(0,105,103,0.1)",
+                                                borderRadius: "50% 3px 3px 50%",
+                                                transform: "translateX(3px)",
+                                                lineHeight: 1,
+                                                height: "fit-content",
+                                                filter: "drop-shadow(2px 0 1px black)",
+                                            }}
+                                        >{`+ ${linkDP} DP`}</span>
+                                    )}
                                 </div>
                             </>
                         </EffectCard>
                     )}
 
-                    {linkCardInfo.effect && (
-                        <LinkEffectCard linkDP={linkCardInfo.dp} key={`${cardNumber}_linkedEffect`}>
-                            <HighlightedKeyWords text={linkCardInfo.effect} />
-                        </LinkEffectCard>
+                    {linkCardInfo.length > 0 && (
+                        <LinkEffectCard linkCardInfo={linkCardInfo} key={`${cardNumber}_linkedEffect`} />
                     )}
 
                     {inheritCardInfo[0]?.length > 0 && (
