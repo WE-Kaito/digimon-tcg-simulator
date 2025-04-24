@@ -29,6 +29,8 @@ const tamerLocations = [
     "myDigi11",
     "myDigi12",
     "myDigi13",
+    "opponentDigi9",
+    "opponentDigi10",
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
