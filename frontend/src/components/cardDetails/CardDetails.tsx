@@ -3,13 +3,12 @@ import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
 import { useState } from "react";
 import DetailsHeader from "./DetailsHeader.tsx";
-import EffectCard, { EffectText } from "./EffectCard.tsx";
+import { EffectCard, LinkEffectCard, EffectText, EffectVariant } from "./EffectCard.tsx";
 import { Stack } from "@mui/material";
 import { getDnaColor } from "../../utils/functions.ts";
 import { CardTypeGame, CardTypeWithId } from "../../utils/types.ts";
 import { useLocation } from "react-router-dom";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
-import { EffectVariant } from "./constants.ts";
 
 const HybridNames = [
     "Takuya Kanbara",
@@ -33,6 +32,7 @@ export default function CardDetails() {
     const selectedCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.selectedCard);
     const hoverCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.hoverCard);
     const inheritCardInfo = useGameBoardStates((state) => state.inheritCardInfo);
+    const linkCardInfo = useGameBoardStates((state) => state.linkCardInfo);
 
     const [selectedTab, setSelectedTab] = useState("effects");
 
@@ -47,6 +47,9 @@ export default function CardDetails() {
     const burstDigivolveText = hoverCard?.burstDigivolve ?? (!hoverCard ? (selectedCard?.burstDigivolve ?? "") : "");
     const digiXrosText = hoverCard?.digiXros ?? (!hoverCard ? (selectedCard?.digiXros ?? "") : "");
     const dnaDigivolutionText = hoverCard?.dnaDigivolve ?? (!hoverCard ? (selectedCard?.dnaDigivolve ?? "") : "");
+    const linkDP = hoverCard?.linkDP ?? (!hoverCard ? (selectedCard?.linkDP ?? 0) : 0);
+    const linkEffectText = hoverCard?.linkEffect ?? (!hoverCard ? (selectedCard?.linkEffect ?? "") : "");
+    const linkRequirementText = hoverCard?.linkRequirement ?? (!hoverCard ? (selectedCard?.linkRequirement ?? "") : "");
 
     // Second Tab
     const cardNumber = hoverCard?.cardNumber ?? selectedCard?.cardNumber;
@@ -98,6 +101,44 @@ export default function CardDetails() {
                         <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
                             <HighlightedKeyWords text={mainEffectText} />
                         </EffectCard>
+                    )}
+
+                    {linkRequirementText && (
+                        <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_link`}>
+                            <>
+                                <div
+                                    style={{ borderBottom: "1px dashed lightgray", paddingBottom: 5, marginBottom: 5 }}
+                                >
+                                    <HighlightedKeyWords text={linkRequirementText} />
+                                </div>
+
+                                <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1fr" }}>
+                                    <span style={{ gridColumn: 1, overflowWrap: "anywhere" }}>
+                                        <HighlightedKeyWords text={linkEffectText} />
+                                    </span>
+                                    <span
+                                        style={{
+                                            gridColumn: 2,
+                                            fontWeight: "bolder",
+                                            background:
+                                                "linear-gradient(to right, rgba(21,59,60,0.5) 0%, rgba(0,105,103,0.125) 100%)",
+                                            padding: "6px 4px 2px 4px",
+                                            borderColor: "rgba(0,105,103,0.1)",
+                                            borderRadius: "50% 3px 3px 50%",
+                                            transform: "translateX(4px)",
+                                            lineHeight: 1,
+                                            height: "fit-content",
+                                        }}
+                                    >{`+ 1${linkDP} DP`}</span>
+                                </div>
+                            </>
+                        </EffectCard>
+                    )}
+
+                    {linkCardInfo.effect && (
+                        <LinkEffectCard linkDP={linkCardInfo.dp} key={`${cardNumber}_linkedEffect`}>
+                            <HighlightedKeyWords text={linkCardInfo.effect} />
+                        </LinkEffectCard>
                     )}
 
                     {inheritCardInfo[0]?.length > 0 && (

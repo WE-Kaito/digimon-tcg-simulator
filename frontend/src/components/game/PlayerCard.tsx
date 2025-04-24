@@ -23,7 +23,7 @@ export default function PlayerCard({ side, wsUtils }: Props) {
 
 const Container = styled.div`
     grid-area: player;
-    transform: translateX(-2%);
+    //transform: translateX(-2%);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -32,9 +32,9 @@ const Container = styled.div`
 `;
 
 const StyledImg = styled.img`
-    transform: translateZ(180);
-    height: 100%;
-    max-height: 85%;
+    //transform: translateZ(180px);
+    width: 100%;
+    aspect-ratio: 1;
     filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.1));
     -webkit-user-select: none;
     -moz-user-select: none;

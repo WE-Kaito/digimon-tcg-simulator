@@ -8,16 +8,16 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 
 const tamerLocations = [
+    "myDigi9",
+    "myDigi10",
     "myDigi11",
     "myDigi12",
     "myDigi13",
-    "myDigi14",
-    "myDigi15",
+    "opponentDigi9",
+    "opponentDigi10",
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
-    "opponentDigi14",
-    "opponentDigi15",
 ];
 
 /**
@@ -47,7 +47,7 @@ export default function StackModal() {
     });
 
     useLayoutEffect(() => {
-        if (containerRef.current) setWidth(containerRef.current.clientWidth / 5.5);
+        if (containerRef.current) setWidth(containerRef.current.clientWidth / 4.4); //3.25 = 3 cards; 4.4 = 4 cards
     }, [containerRef.current?.clientWidth]);
 
     useEffect(() => {

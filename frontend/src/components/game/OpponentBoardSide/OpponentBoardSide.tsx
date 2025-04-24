@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { SIDE } from "../../../utils/types.ts";
-import BattleArea from "../PlayerBoardSide/BattleArea.tsx";
+import BattleArea from "../BattleArea.tsx";
 import OpponentSecurityStack from "./OpponentSecurityStack.tsx";
 import OpponentEggDeck from "./OpponentEggDeck.tsx";
 import OpponentDeck from "./OpponentDeck.tsx";
@@ -16,6 +16,7 @@ import RestartRequestModal from "../ModalDialog/RestartRequestModal.tsx";
 import SurrenderModal from "../ModalDialog/SurrenderModal.tsx";
 import { useState } from "react";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import LinkArea from "../LinkArea.tsx";
 
 export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
@@ -49,8 +50,11 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
 
             <OpponentSecurityStack />
             <OpponentEggDeck />
-            {Array.from({ length: 15 }).map((_, index) => (
+            {Array.from({ length: 13 }).map((_, index) => (
                 <BattleArea key={"opponentBA" + index} num={index + 1} side={SIDE.OPPONENT} />
+            ))}
+            {Array.from({ length: 8 }).map((_, index) => (
+                <LinkArea key={"playerLA" + index} num={index + 1} side={SIDE.OPPONENT} wsUtils={wsUtils} />
             ))}
             <BattleArea isBreeding side={SIDE.OPPONENT} />
             <OpponentEventUtils wsUtils={wsUtils} />
@@ -69,15 +73,15 @@ const LayoutContainer = styled.div`
     grid-template-columns: subgrid;
     grid-template-rows: subgrid;
     grid-template-areas:
-        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils . restart . surrender . report player player player player"
-        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils . . . . . . player player player player"
-        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . . . . . trash trash . deck deck . player player player player"
-        ". . breeding breeding BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 BA14 BA14 BA14 BA14 BA15 BA15 BA15 BA15 . trash trash . deck deck . player player player player"
-        ". . breeding breeding BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 BA14 BA14 BA14 BA14 BA15 BA15 BA15 BA15 . . . . . . . . . . ."
-        "egg-deck egg-deck breeding breeding BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 . . . . . . . . . . ."
-        "egg-deck egg-deck breeding breeding BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 . . . . . . . . . . ."
-        ". SS SS . BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 . . . . . . . . . . ."
-        ". SS SS . BA1 BA1 BA2 BA2 BA3 BA3 BA4 BA4 BA5 BA5 BA6 BA6 BA7 BA7 BA8 BA8 BA9 BA9 BA10 BA10 . . . . . . . . . . .";
+        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils . restart . surrender . report . player player player"
+        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils . . . . . . . player player player"
+        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . . . . . . . . trash trash deck deck player player player"
+        ". . breeding breeding BA13 BA13 BA13 BA13 BA12 BA12 BA12 BA12 BA12 BA11 BA11 BA11 BA11 BA11 BA10 BA10 BA10 BA10 BA10 BA9 BA9 BA9 BA9 BA9 trash trash deck deck player player player"
+        ". . breeding breeding BA13 BA13 BA13 BA13 BA12 BA12 BA12 BA12 BA12 BA11 BA11 BA11 BA11 BA11 BA10 BA10 BA10 BA10 BA10 BA9 BA9 BA9 BA9 BA9 . . . . . . ."
+        "egg-deck egg-deck breeding breeding BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . ."
+        "egg-deck egg-deck breeding breeding BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . ."
+        ". SS SS .                           BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . ."
+        ". SS SS .                           BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . .";
     gap: 1px;
     position: relative;
 `;

@@ -141,6 +141,18 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         sendSfx("playNextAttackPhaseSfx");
     }
 
+    function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
+        if (!cardId || !from || !to) return;
+        moveCard(cardId, from, to);
+        sendMoveCard(cardId, from, to);
+        const hiddenCardInfo =
+            from === "myHand" && ["myTrash", "myDeckField"].includes(to) ? ` (…${cardId.slice(-5)})` : "";
+        if (from !== to)
+            sendChatMessage(
+                `[FIELD_UPDATE]≔【${cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`
+            );
+    }
+
     // return
     function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
         if (item.location === "myBreedingArea") nextPhaseTrigger(nextPhase, Phase.BREEDING);
@@ -197,18 +209,6 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         sendAttackArrows(from, to, isEffect);
         restartAttackAnimation(isEffect);
         if (!isEffect && attackAllowed) initiateAttack();
-    }
-
-    function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
-        if (!cardId || !from || !to) return;
-        moveCard(cardId, from, to);
-        sendMoveCard(cardId, from, to);
-        const hiddenCardInfo =
-            from === "myHand" && ["myTrash", "myDeckField"].includes(to) ? ` (…${cardId.slice(-5)})` : "";
-        if (from !== to)
-            sendChatMessage(
-                `[FIELD_UPDATE]≔【${cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`
-            );
     }
 
     function handleDropToHand(item: DraggedItem) {
@@ -277,7 +277,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
             handleDropToStackBottom(id, location, to, name);
             return;
         }
-        if (to.startsWith("myDigi") || ["myBreedingArea", "myTrash"].includes(to)) {
+        if (to.startsWith("myDigi") || to.startsWith("myLink") || ["myBreedingArea", "myTrash"].includes(to)) {
             dropCardOrStack(dragItem.content, to);
         }
         if (to.startsWith("opponentDigi") || ["opponentSecurity"].includes(to)) {

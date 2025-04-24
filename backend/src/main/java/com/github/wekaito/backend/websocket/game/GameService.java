@@ -183,8 +183,16 @@ public class GameService extends TextWebSocketHandler {
             case "myDigi11" -> "opponentDigi11";
             case "myDigi12" -> "opponentDigi12";
             case "myDigi13" -> "opponentDigi13";
-            case "myDigi14" -> "opponentDigi14";
-            case "myDigi15" -> "opponentDigi15";
+//            case "myDigi14" -> "opponentDigi14";
+//            case "myDigi15" -> "opponentDigi15";
+            case "myLink1" -> "opponentLink1";
+            case "myLink2" -> "opponentLink2";
+            case "myLink3" -> "opponentLink3";
+            case "myLink4" -> "opponentLink4";
+            case "myLink5" -> "opponentLink5";
+            case "myLink6" -> "opponentLink6";
+            case "myLink7" -> "opponentLink7";
+            case "myLink8" -> "opponentLink8";
             case "mySecurity" -> "opponentSecurity";
             case "myHand" -> "opponentHand";
             case "myDeckField" -> "opponentDeckField";
@@ -205,8 +213,16 @@ public class GameService extends TextWebSocketHandler {
             case "opponentDigi11" -> "myDigi11";
             case "opponentDigi12" -> "myDigi12";
             case "opponentDigi13" -> "myDigi13";
-            case "opponentDigi14" -> "myDigi14";
-            case "opponentDigi15" -> "myDigi15";
+//            case "opponentDigi14" -> "myDigi14";
+//            case "opponentDigi15" -> "myDigi15";
+            case "opponentLink1" -> "myLink1";
+            case "opponentLink2" -> "myLink2";
+            case "opponentLink3" -> "myLink3";
+            case "opponentLink4" -> "myLink4";
+            case "opponentLink5" -> "myLink5";
+            case "opponentLink6" -> "myLink6";
+            case "opponentLink7" -> "myLink7";
+            case "opponentLink8" -> "myLink8";
             case "opponentSecurity" -> "mySecurity";
             case "opponentHand" -> "myHand";
             case "opponentDeckField" -> "myDeckField";
@@ -354,6 +370,9 @@ public class GameService extends TextWebSocketHandler {
                     card.digiXros(),
                     card.dnaDigivolve(),
                     card.securityEffect(),
+                    card.linkDP(),
+                    card.linkEffect(),
+                    card.linkRequirement(),
                     card.restrictions(),
                     card.illustrator(),
                     UUID.randomUUID().toString(),

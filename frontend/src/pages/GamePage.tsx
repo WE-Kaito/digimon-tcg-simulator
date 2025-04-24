@@ -386,7 +386,7 @@ const ChatAndCardDialogContainerDiv = styled.div`
     justify-content: flex-end;
     align-items: center;
     position: relative;
-    grid-column: 25 / 36;
+    grid-column: 29 / 36;
     grid-row: 5 / 17;
 
     background: rgba(12, 21, 16, 0.1);

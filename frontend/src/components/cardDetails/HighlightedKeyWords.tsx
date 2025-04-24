@@ -1,22 +1,23 @@
 import styled from "@emotion/styled";
-import {getDnaColor} from "../../utils/functions.ts";
+import { getDnaColor } from "../../utils/functions.ts";
 import KeywordTooltip from "./KeywordTooltip.tsx";
-import {JSX} from "react";
-import {uid} from "uid";
+import { JSX } from "react";
+import { uid } from "uid";
 
-
-export default function HighlightedKeyWords({text}: { text: string }): (JSX.Element | JSX.Element[])[] {
-
-    const specialEffects = ["DigiXros -1", "DigiXros -2", "DigiXros -3", "DigiXros -4", "Digivolve", "Burst Digivolve", "DNA Digivolution"];
-    if (text.startsWith("[DNA Digivolve]")) return text?.split(" ")?.map((word, index) => {
-        if (index === 0) return <HighlightedSpecialEffect key={uid()}>DNA Digivolution</HighlightedSpecialEffect>;
-        if (index === 1) return <></>;
-        return <span key={uid()}>{getDnaColor(word)}</span>;
-    });
+export default function HighlightedKeyWords({ text }: { text: string }): (JSX.Element | JSX.Element[])[] {
+    if (text.startsWith("[DNA Digivolve]"))
+        return text?.split(" ")?.map((word, index) => {
+            if (index === 0) return <HighlightedSpecialEffect key={uid()}>DNA Digivolution</HighlightedSpecialEffect>;
+            if (index === 1) return <></>;
+            return <span key={uid()}>{getDnaColor(word)}</span>;
+        });
 
     if (text.startsWith("＜Burst Digivolve:")) {
         const burstEffect = text.substring(17, text.length - 1);
-        return [<HighlightedSpecialEffect key={uid()}>Burst Digivolve</HighlightedSpecialEffect>, <HighlightedKeyWords key={"burstEffect"} text={burstEffect}/>]
+        return [
+            <HighlightedSpecialEffect key={uid()}>Burst Digivolve</HighlightedSpecialEffect>,
+            <HighlightedKeyWords key={"burstEffect"} text={burstEffect} />,
+        ];
     }
 
     const regex = /(\[([^\]]+)\]|＜([^＞]+)＞)/g;
@@ -31,34 +32,35 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
 
         highlightedParts.push(prefix);
 
-        if (bracketedWord[0] === '[') { // [keywords]
+        if (bracketedWord[0] === "[") {
+            // [keywords]
 
             if (timings.includes(match[2])) {
                 highlightedParts.push(
-                    <HighlightedSquare word={match[2]} key={id}>{match[2]}</HighlightedSquare>
+                    <HighlightedSquare word={match[2]} key={id}>
+                        {match[2]}
+                    </HighlightedSquare>
                 );
             } else if (match[2] === "Rule") {
                 highlightedParts.push(
-                    <HighlightedRule word={match[2]} key={id}>{match[2]}</HighlightedRule>
+                    <HighlightedRule word={match[2]} key={id}>
+                        {match[2]}
+                    </HighlightedRule>
                 );
             } else if (isTrait(match[2])) {
-                highlightedParts.push(
-                    <HighlightedTrait key={id}>{match[2]}</HighlightedTrait>
-                );
+                highlightedParts.push(<HighlightedTrait key={id}>{match[2]}</HighlightedTrait>);
             } else if (specialEffects.includes(match[2])) {
-                highlightedParts.push(
-                <HighlightedSpecialEffect key={id}>{match[2]}</HighlightedSpecialEffect>
-                );
+                highlightedParts.push(<HighlightedSpecialEffect key={id}>{match[2]}</HighlightedSpecialEffect>);
+            } else if (evolutionEffects.includes(match[2])) {
+                highlightedParts.push(<HighglightedEvolutionEffect key={id}>{match[2]}</HighglightedEvolutionEffect>);
             } else {
-                highlightedParts.push(
-                    <HighlightedDigimonName key={id}>{match[2]}</HighlightedDigimonName>
-                );
+                highlightedParts.push(<HighlightedDigimonName key={id}>{match[2]}</HighlightedDigimonName>);
             }
-
-        } else { // <keywords>
+        } else {
+            // <keywords>
             highlightedParts.push(
-                <KeywordTooltip key={id} keyword={match[1]} >
-                    <HighlightedAngle >{match[3]}</HighlightedAngle>
+                <KeywordTooltip key={id} keyword={match[1]}>
+                    <HighlightedAngle>{match[3]}</HighlightedAngle>
                 </KeywordTooltip>
             );
         }
@@ -71,12 +73,12 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
     }
 
     // convert "\n" to <br />
-    return highlightedParts.map(item => {
-        if (typeof item === 'string') {
-            return item.split('\n').map((line, index) => (
+    return highlightedParts.map((item) => {
+        if (typeof item === "string") {
+            return item.split("\n").map((line, index) => (
                 <span key={uid()}>
                     {line}
-                    {index !== item.split('\n').length - 1 && <br/>}
+                    {index !== item.split("\n").length - 1 && <br />}
                 </span>
             ));
         }
@@ -85,53 +87,91 @@ export default function HighlightedKeyWords({text}: { text: string }): (JSX.Elem
 }
 
 const HighlightedSquare = styled.span<{ word: string }>`
-  color: ghostwhite;
-  background: ${({word}) => ((word === "Hand") || word.includes("Per Turn") || word === "Breeding") ? "linear-gradient(to top, #b5485d, #5e173c)" : "linear-gradient(to top, #454dd9, #292E96FF)"};
-  border-radius: 3px;
-  padding: 4px 3px 2px 3px;
-  margin-right: 2px;
+    color: ghostwhite;
+    background: ${({ word }) =>
+        word === "Hand" || word.includes("Per Turn") || word === "Breeding"
+            ? "linear-gradient(to top, #b5485d, #5e173c)"
+            : "linear-gradient(to top, #454dd9, #292E96FF)"};
+    border-radius: 3px;
+    padding: 4px 3px 2px 3px;
+    margin-right: 2px;
 `;
 
 const HighlightedAngle = styled.span`
-  color: ghostwhite;
-  background: linear-gradient(to top, #ce570d, #883b09);
-  border-radius: 25px;
-  padding: 4px 5px 2px 5px;
-  margin-right: 2px;
-  cursor: help;
+    color: ghostwhite;
+    background: linear-gradient(to top, #ce570d, #883b09);
+    border-radius: 25px;
+    padding: 4px 5px 2px 5px;
+    margin-right: 2px;
+    cursor: help;
 `;
 
 const HighlightedDigimonName = styled.span`
-  font-weight: 400;
-  background: rgba(15, 0, 30, 0.3);
-  padding: 3px 2px 0 2px;
-  border: 1px solid #e7e7e7;
+    font-weight: 400;
+    background: rgba(15, 0, 30, 0.3);
+    padding: 3px 2px 0 2px;
+    border: 1px solid #e7e7e7;
 `;
 
 const HighlightedTrait = styled(HighlightedDigimonName)`
-  border: 1px solid #8C6B23FF;
-  border-radius: 4px;
+    border: 1px solid #8c6b23ff;
+    border-radius: 4px;
 `;
 
 const HighlightedRule = styled(HighlightedSquare)`
-  color: black;
-  background: ghostwhite;
-  font-weight: 700;
+    color: black;
+    background: ghostwhite;
+    font-weight: 700;
 `;
 
 const HighlightedSpecialEffect = styled.span`
-  font-weight: 400;
-  background: linear-gradient(0deg, rgb(35, 140, 81) 0%, rgb(11, 105, 68) 100%);
-  padding: 4px 3px 2px 3px;
-  border-radius: 2px;
-  color: ghostwhite;
-  margin-right: 4px;
+    font-weight: 400;
+    background: linear-gradient(0deg, rgb(35, 140, 81) 0%, rgb(11, 105, 68) 100%);
+    padding: 4px 3px 2px 3px;
+    border-radius: 2px;
+    color: ghostwhite;
+    margin-right: 4px;
 `;
 
-const timings = ["On Play", "When Digivolving", "When Attacking", "End of Attack", "On Deletion", "Your Turn", "All Turns",
-    "Opponent's Turn", "Start of Your Turn", "End of Your Turn", "Enf of Opponent's Turn", "Security", "Main",
-    "Start of Your Main Phase", "Start of Opponent's Main Phase", "Once Per Turn", "Twice Per Turn", "Hand", "Breeding",
-    "Counter", "End of All Turns"];
+const HighglightedEvolutionEffect = styled(HighlightedSpecialEffect)`
+    background: linear-gradient(0deg, rgb(6, 164, 159) 0%, rgb(4, 76, 94) 100%);
+`;
+
+const specialEffects = [
+    "DigiXros -1",
+    "DigiXros -2",
+    "DigiXros -3",
+    "DigiXros -4",
+    "Burst Digivolve",
+    "DNA Digivolution",
+    "Link",
+];
+
+const evolutionEffects = ["Digivolve", "App Fusion"];
+
+const timings = [
+    "On Play",
+    "When Digivolving",
+    "When Attacking",
+    "End of Attack",
+    "On Deletion",
+    "Your Turn",
+    "All Turns",
+    "Opponent's Turn",
+    "Start of Your Turn",
+    "End of Your Turn",
+    "Enf of Opponent's Turn",
+    "Security",
+    "Main",
+    "Start of Your Main Phase",
+    "Start of Opponent's Main Phase",
+    "Once Per Turn",
+    "Twice Per Turn",
+    "Hand",
+    "Breeding",
+    "Counter",
+    "End of All Turns",
+];
 
 function isTrait(trait: string) {
     switch (trait) {

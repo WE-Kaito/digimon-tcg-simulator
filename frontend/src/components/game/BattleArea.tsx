@@ -1,16 +1,16 @@
-import CardStack from "../CardStack.tsx";
+import CardStack from "./CardStack.tsx";
 import styled from "@emotion/styled";
-import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
-import { CardTypeGame, SIDE } from "../../../utils/types.ts";
+import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
+import { CardTypeGame, SIDE } from "../../utils/types.ts";
 import { useContextMenu } from "react-contexify";
 import EggIcon from "@mui/icons-material/Egg";
 import DetailsIcon from "@mui/icons-material/SearchRounded";
 import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
-import { WSUtils } from "../../../pages/GamePage.tsx";
+import { WSUtils } from "../../pages/GamePage.tsx";
 import { useDroppable } from "@dnd-kit/core";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
-import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
-import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { useState } from "react";
 
 type BattleAreaProps = {
@@ -55,6 +55,7 @@ export default function BattleArea(props: BattleAreaProps) {
     return (
         <Container
             {...props}
+            style={{ zIndex: 2 }}
             // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
             id={locationCards.length ? "" : location}
             ref={dropToField}
@@ -86,7 +87,7 @@ export default function BattleArea(props: BattleAreaProps) {
                         showOpponentCardMenu={showOpponentCardMenu}
                     />
                 )}
-                {side === SIDE.MY && (isBreeding || num <= 10) && canDropToBottom && locationCards.length !== 0 && (
+                {side === SIDE.MY && (isBreeding || num <= 8) && canDropToBottom && locationCards.length !== 0 && (
                     <BottomDropZone isOver={isOverBottom} ref={dropToBottom}>
                         {canDropToBottom && (
                             <>
@@ -110,14 +111,14 @@ const Container = styled.div<BattleAreaProps & { isOver: boolean; stackOpened: b
     width: calc(100% - 6px);
     border-radius: 2px;
     display: flex;
-    flex-direction: ${({ isBreeding, num }) => (isBreeding || num <= 10 ? "column" : "row")};
+    flex-direction: ${({ isBreeding, num }) => (isBreeding || num <= 8 ? "column" : "row")};
     justify-content: center;
     align-items: center;
     cursor: ${({ isOver }) => (isOver ? "grabbing" : "unset")};
     background: ${({ stackOpened }) => (stackOpened ? "#F5BE57FF" : "rgba(20, 20, 20, 0.25)")};
     box-shadow: inset 0 0 20px rgba(${({ isOver }) => (isOver ? "10, 10, 10" : "113, 175, 201")}, 0.2);
     outline: ${({ side, isOver }) =>
-        side === SIDE.MY ? `2px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})` : "2px solid rgba(30, 20, 20, 0.7)"};
+        side === SIDE.MY ? `1px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})` : "1px solid rgba(30, 20, 20, 0.7)"};
     cursor: ${({ stackOpened }) => (stackOpened ? "pointer" : "unset")};
 `;
 
@@ -152,14 +153,14 @@ const StyledCloseDetailsIcon = styled(CloseDetailsIcon)`
 
 const BottomDropZone = styled.div<{ isOver: boolean }>`
     position: absolute;
-    bottom: -2px;
+    bottom: 0;
     left: 0;
     z-index: 100;
-    height: 10%;
+    height: 20%;
     width: 100%;
-    background-color: ${({ isOver }) => (isOver ? "ghostwhite" : "black")};
-    opacity: ${({ isOver }) => (isOver ? 0.9 : 0.75)};
-    border-radius: 3px;
+    background-color: ${({ isOver }) => (isOver ? "rgba(255,255,255,0.5)" : "black")};
+    opacity: ${({ isOver }) => (isOver ? 1 : 0.75)};
+    border-radius: 2px;
     transition: all 0.15s ease-in-out;
     text-wrap: nowrap;
     text-overflow: clip;
@@ -172,7 +173,7 @@ const BottomDropZone = styled.div<{ isOver: boolean }>`
         line-height: 1;
         font-size: 90%;
         color: ghostwhite;
-        transform: ${({ isOver }) => (isOver ? "translateY(100%)" : "translateY(0px)")};
+        transform: ${({ isOver }) => (isOver ? "translateY(80%)" : "translateY(0px)")};
         transition: all 0.5s ease-in-out;
         filter: ${({ isOver }) =>
             isOver ? "drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black)" : "unset"};

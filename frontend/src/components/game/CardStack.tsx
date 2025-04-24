@@ -24,16 +24,33 @@ type CardStackProps = {
 };
 
 const tamerLocations = [
+    "myDigi9",
+    "myDigi10",
     "myDigi11",
     "myDigi12",
     "myDigi13",
-    "myDigi14",
-    "myDigi15",
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
-    "opponentDigi14",
-    "opponentDigi15",
+];
+
+const linkLocations = [
+    "myLink1",
+    "myLink2",
+    "myLink3",
+    "myLink4",
+    "myLink5",
+    "myLink6",
+    "myLink7",
+    "myLink8",
+    "opponentLink1",
+    "opponentLink2",
+    "opponentLink3",
+    "opponentLink4",
+    "opponentLink5",
+    "opponentLink6",
+    "opponentLink7",
+    "opponentLink8",
 ];
 
 export default function CardStack(props: CardStackProps) {
@@ -41,6 +58,7 @@ export default function CardStack(props: CardStackProps) {
 
     const cardWidth = useGeneralStates((state) => state.cardWidth);
     const tamerWidth = cardWidth - cardWidth / 3.5;
+    const isLinkCard = linkLocations.includes(location);
     const { active } = useDndContext();
 
     const isCardBeingDragged = useCallback(
@@ -58,9 +76,9 @@ export default function CardStack(props: CardStackProps) {
             return {
                 height: isBeingDragged ? undefined : `${cardWidth * 1.4}px`,
                 position: "absolute",
-                bottom: `${bottomPercentage}%`,
-                rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
-                left: 0,
+                bottom: `${isLinkCard ? bottomPercentage - 7.5 : bottomPercentage}%`,
+                rotate: isLinkCard ? "-90deg" : `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
+                left: isLinkCard ? "-160%" : 0,
             };
         },
         [isCardBeingDragged, cardWidth, cards]
@@ -76,7 +94,7 @@ export default function CardStack(props: CardStackProps) {
                 height: isBeingDragged ? undefined : `${tamerWidth * 1.4}px`,
                 position: "absolute",
                 left: `${leftPercentage}%`,
-                rotate: `${cards[cardIndex]?.isTilted ? 25 : 0}deg`,
+                rotate: `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
                 zIndex: 50 - cardIndex,
             };
         },
@@ -149,7 +167,7 @@ export default function CardStack(props: CardStackProps) {
                   ))
                 : cards?.map((card, index) => (
                       <Fade
-                          direction={"down"}
+                          direction={isLinkCard ? "up" : "down"}
                           duration={500}
                           key={card.id}
                           style={getCardContainerStyles(index, cards.length)}

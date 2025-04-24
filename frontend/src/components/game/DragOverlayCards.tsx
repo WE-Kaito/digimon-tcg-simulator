@@ -12,7 +12,7 @@ const invisibleFields = [
     "mySecurity_bot_faceUp",
 ];
 
-const myTamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15"];
+const myTamerLocations = ["myDigi9", "myDigi10", "myDigi11", "myDigi12", "myDigi13"];
 
 export default function DragOverlayCards() {
     const { active, over } = useDndContext();

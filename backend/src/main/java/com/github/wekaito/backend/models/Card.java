@@ -24,6 +24,9 @@ public record Card(
         String digiXros,
         String dnaDigivolve,
         String securityEffect,
+        Integer linkDP,
+        String linkEffect,
+        String linkRequirement,
         Restrictions restrictions,
         String illustrator
 

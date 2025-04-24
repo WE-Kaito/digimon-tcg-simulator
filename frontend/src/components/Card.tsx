@@ -8,6 +8,7 @@ import {
     getNumericModifier,
     numbersWithModifiers,
     topCardInfo,
+    topCardInfoLink,
 } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useState } from "react";
 import Lottie from "lottie-react";
@@ -24,18 +25,7 @@ import { WSUtils } from "../pages/GamePage.tsx";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 
-const myDigimonLocations = [
-    "myDigi1",
-    "myDigi2",
-    "myDigi3",
-    "myDigi4",
-    "myDigi5",
-    "myDigi6",
-    "myDigi7",
-    "myDigi8",
-    "myDigi9",
-    "myDigi10",
-];
+const myDigimonLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8"];
 
 const digimonLocations = [
     ...myDigimonLocations,
@@ -47,11 +37,9 @@ const digimonLocations = [
     "opponentDigi6",
     "opponentDigi7",
     "opponentDigi8",
-    "opponentDigi9",
-    "opponentDigi10",
 ];
 
-const myTamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15"];
+const myTamerLocations = ["myDigi9", "myDigi10", "myDigi11", "myDigi12", "myDigi13"];
 
 const tamerLocations = [
     ...myTamerLocations,
@@ -64,11 +52,11 @@ const tamerLocations = [
 
 const myBALocations = [
     ...myDigimonLocations,
+    "myDigi9",
+    "myDigi10",
     "myDigi11",
     "myDigi12",
     "myDigi13",
-    "myDigi14",
-    "myDigi15",
     "myBreedingArea",
 ];
 
@@ -86,13 +74,19 @@ const opponentBALocations = [
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
-    "opponentDigi14",
-    "opponentDigi15",
     "opponentBreedingArea",
 ];
 
 const opponentFieldLocations = [
     ...opponentBALocations,
+    "opponentLink1",
+    "opponentLink2",
+    "opponentLink3",
+    "opponentLink4",
+    "opponentLink5",
+    "opponentLink6",
+    "opponentLink7",
+    "opponentLink8",
     "opponentReveal",
     "opponentDeckField",
     "opponentEggDeck",
@@ -111,8 +105,6 @@ const locationsWithInheritedInfo = [
     "myDigi6",
     "myDigi7",
     "myDigi8",
-    "myDigi9",
-    "myDigi10",
     "opponentDigi1",
     "opponentDigi2",
     "opponentDigi3",
@@ -121,8 +113,6 @@ const locationsWithInheritedInfo = [
     "opponentDigi6",
     "opponentDigi7",
     "opponentDigi8",
-    "opponentDigi9",
-    "opponentDigi10",
 ];
 
 const locationsWithAdditionalInfo = [...locationsWithInheritedInfo, ...tamerLocations];
@@ -153,6 +143,8 @@ export default function Card(props: CardProps) {
     const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
     const getIsCardTarget = useGameBoardStates((state) => state.getIsCardTarget);
     const setInheritCardInfo = useGameBoardStates((state) => state.setInheritCardInfo);
+    const setLinkCardInfo = useGameBoardStates((state) => state.setLinkCardInfo);
+    const linkCardsForLocation = useGameBoardStates((state) => state.getLinkCardsForLocation)(location);
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
@@ -223,23 +215,31 @@ export default function Card(props: CardProps) {
     }
 
     const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
-    const inheritAllowed =
-        index === locationCards?.length - 1 &&
-        locationsWithInheritedInfo.includes(location) &&
-        inheritedEffects[0].length;
+    const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
+
+    const linkCardInfo = topCardInfoLink(linkCardsForLocation);
 
     function handleClick(event: React.MouseEvent) {
         event.stopPropagation();
         selectCard(card);
-        if (inheritAllowed) setInheritCardInfo(inheritedEffects);
+        if (inheritAllowed) {
+            setInheritCardInfo(inheritedEffects);
+            setLinkCardInfo(linkCardInfo);
+        }
     }
     const isToggleMode = false;
     function handleHover() {
         if (index !== undefined && !active && (!isToggleMode || isStackDragMode)) setStackSliceIndex(index);
         if ((isHandHidden && location === "myHand") || active || activeStack) return;
         setHoverCard(card);
-        if (inheritAllowed) setInheritCardInfo(inheritedEffects);
-        else setInheritCardInfo([]);
+        // TODO: add corresponding LinkArea card effect to inheritedEffects
+        if (inheritAllowed) {
+            setInheritCardInfo(inheritedEffects);
+            setLinkCardInfo(linkCardInfo);
+        } else {
+            setInheritCardInfo([]);
+            setLinkCardInfo({ dp: 0, effect: "" });
+        }
     }
 
     const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
@@ -251,6 +251,7 @@ export default function Card(props: CardProps) {
         setHoverCard(null);
         if (!selectedCard || !selectedCardLocation) {
             setInheritCardInfo([]);
+            setLinkCardInfo({ dp: 0, effect: "" });
             return;
         }
         const inhEff = topCardInfo(locationCardsOfSelected).split("\n");
@@ -266,7 +267,10 @@ export default function Card(props: CardProps) {
         (card.cardType === "Digimon" || numbersWithModifiers.includes(card.cardNumber));
     const modifiers = isModifiersAllowed ? card.modifiers : undefined;
 
-    let finalDp = modifiers && card.dp ? (card.dp + modifiers.plusDp < 0 ? 0 : card.dp + modifiers.plusDp) : 0;
+    let finalDp =
+        modifiers && card.dp
+            ? (card.dp + modifiers.plusDp < 0 ? 0 : card.dp + modifiers.plusDp) + (linkCardsForLocation[0]?.linkDP ?? 0)
+            : 0;
     if (numbersWithModifiers.includes(card.cardNumber) && card.cardNumber !== "EX2-007") {
         finalDp = modifiers?.plusDp ?? 0;
     }
@@ -503,8 +507,8 @@ const StyledImage = styled.img<StyledImageProps>`
 
     border-bottom: ${({ location }) =>
         digimonLocations.includes(location) || location.includes("Breeding") ? "1px solid rgba(0,0,0, 0.75)" : "none"};
-    border-right: ${({ location, isTilted }) =>
-        isTilted || tamerLocations.includes(location) ? "1px solid rgba(0,0,0, 0.75)" : "none"};
+    border-right: ${({ location }) =>
+        locationsWithInheritedInfo.includes(location) ? "1px solid rgba(0,0,0, 0.75)" : "none"};
 
     filter: ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
 

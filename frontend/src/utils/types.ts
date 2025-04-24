@@ -20,6 +20,9 @@ export type CardType = {
     digiXros?: string;
     dnaDigivolve?: string;
     securityEffect?: string;
+    linkDP?: number;
+    linkEffect?: string;
+    linkRequirement?: string;
     restrictions: Restrictions;
     illustrator: string;
 };
@@ -103,9 +106,16 @@ export type GameDistribution = {
     player1Digi11?: CardTypeGame[];
     player1Digi12?: CardTypeGame[];
     player1Digi13?: CardTypeGame[];
-    player1Digi14?: CardTypeGame[];
-    player1Digi15?: CardTypeGame[];
     player1BreedingArea?: CardTypeGame[];
+
+    player1Link1?: CardTypeGame[];
+    player1Link2?: CardTypeGame[];
+    player1Link3?: CardTypeGame[];
+    player1Link4?: CardTypeGame[];
+    player1Link5?: CardTypeGame[];
+    player1Link6?: CardTypeGame[];
+    player1Link7?: CardTypeGame[];
+    player1Link8?: CardTypeGame[];
 
     player2Hand: CardTypeGame[];
     player2DeckField: CardTypeGame[];
@@ -126,9 +136,16 @@ export type GameDistribution = {
     player2Digi11?: CardTypeGame[];
     player2Digi12?: CardTypeGame[];
     player2Digi13?: CardTypeGame[];
-    player2Digi14?: CardTypeGame[];
-    player2Digi15?: CardTypeGame[];
     player2BreedingArea?: CardTypeGame[];
+
+    player2Link1?: CardTypeGame[];
+    player2Link2?: CardTypeGame[];
+    player2Link3?: CardTypeGame[];
+    player2Link4?: CardTypeGame[];
+    player2Link5?: CardTypeGame[];
+    player2Link6?: CardTypeGame[];
+    player2Link7?: CardTypeGame[];
+    player2Link8?: CardTypeGame[];
 };
 
 export type OneSideDistribution = {
@@ -153,9 +170,16 @@ export type OneSideDistribution = {
     playerDigi11?: CardTypeGame[];
     playerDigi12?: CardTypeGame[];
     playerDigi13?: CardTypeGame[];
-    playerDigi14?: CardTypeGame[];
-    playerDigi15?: CardTypeGame[];
     playerBreedingArea?: CardTypeGame[];
+
+    playerLink1?: CardTypeGame[];
+    playerLink2?: CardTypeGame[];
+    playerLink3?: CardTypeGame[];
+    playerLink4?: CardTypeGame[];
+    playerLink5?: CardTypeGame[];
+    playerLink6?: CardTypeGame[];
+    playerLink7?: CardTypeGame[];
+    playerLink8?: CardTypeGame[];
 
     playerMemory?: number;
     playerPhase?: Phase;
@@ -234,9 +258,16 @@ export type BoardState = {
     myDigi11: CardTypeGame[];
     myDigi12: CardTypeGame[];
     myDigi13: CardTypeGame[];
-    myDigi14: CardTypeGame[];
-    myDigi15: CardTypeGame[];
     myBreedingArea: CardTypeGame[];
+
+    myLink1: CardTypeGame[];
+    myLink2: CardTypeGame[];
+    myLink3: CardTypeGame[];
+    myLink4: CardTypeGame[];
+    myLink5: CardTypeGame[];
+    myLink6: CardTypeGame[];
+    myLink7: CardTypeGame[];
+    myLink8: CardTypeGame[];
 
     opponentMemory: number;
     opponentReveal: CardTypeGame[];
@@ -260,9 +291,16 @@ export type BoardState = {
     opponentDigi11: CardTypeGame[];
     opponentDigi12: CardTypeGame[];
     opponentDigi13: CardTypeGame[];
-    opponentDigi14: CardTypeGame[];
-    opponentDigi15: CardTypeGame[];
     opponentBreedingArea: CardTypeGame[];
+
+    opponentLink1: CardTypeGame[];
+    opponentLink2: CardTypeGame[];
+    opponentLink3: CardTypeGame[];
+    opponentLink4: CardTypeGame[];
+    opponentLink5: CardTypeGame[];
+    opponentLink6: CardTypeGame[];
+    opponentLink7: CardTypeGame[];
+    opponentLink8: CardTypeGame[];
 };
 
 export type SendToStackFunction = (

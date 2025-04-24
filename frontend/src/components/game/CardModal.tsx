@@ -34,7 +34,7 @@ export default function CardModal() {
     }, [locationCards, openedCardModal, setOpenedCardModal]);
 
     useLayoutEffect(() => {
-        if (containerRef.current) setWidth(containerRef.current.clientWidth / 5.5);
+        if (containerRef.current) setWidth(containerRef.current.clientWidth / 4.4); //3.25 = 3 cards; 4.4 = 4 cards
     }, [containerRef.current?.clientWidth]);
 
     if (!openedCardModal) return <></>;

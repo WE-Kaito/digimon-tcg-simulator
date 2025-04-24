@@ -59,20 +59,20 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
             >
                 <RevealIcon sx={{ fontSize: 24 }} />
             </StyledButton>
-            <StyledButton
-                title="Send top card from your deck to Trash"
-                disabled={!getOpponentReady()}
-                onClick={() => moveDeckCard("myTrash")}
-            >
-                <TrashFromDeckIcon sx={{ fontSize: 30 }} />
-            </StyledButton>
-            <StyledButton
-                title="Send top card from your deck to Security Stack"
-                disabled={!getOpponentReady()}
-                onClick={() => moveDeckCard("mySecurity")}
-            >
-                <RecoveryIcon sx={{ fontSize: 22 }} />
-            </StyledButton>
+            {/*<StyledButton*/}
+            {/*    title="Send top card from your deck to Trash"*/}
+            {/*    disabled={!getOpponentReady()}*/}
+            {/*    onClick={() => moveDeckCard("myTrash")}*/}
+            {/*>*/}
+            {/*    <TrashFromDeckIcon sx={{ fontSize: 30 }} />*/}
+            {/*</StyledButton>*/}
+            {/*<StyledButton*/}
+            {/*    title="Send top card from your deck to Security Stack"*/}
+            {/*    disabled={!getOpponentReady()}*/}
+            {/*    onClick={() => moveDeckCard("mySecurity")}*/}
+            {/*>*/}
+            {/*    <RecoveryIcon sx={{ fontSize: 22 }} />*/}
+            {/*</StyledButton>*/}
         </Container>
     );
 }
