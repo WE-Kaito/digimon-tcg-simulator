@@ -767,7 +767,7 @@ export const useGameBoardStates = create<State>()(
                         modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: tokenVariant.color },
                     };
                     set((state) => {
-                        for (let i = 1; i <= 10; i++) {
+                        for (let i = 1; i <= 8; i++) {
                             const digiKey = `${side}Digi${i}` as keyof State;
                             if (
                                 Array.isArray(state[digiKey] as CardTypeGame[]) &&

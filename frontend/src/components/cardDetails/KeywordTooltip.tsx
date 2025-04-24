@@ -1,65 +1,66 @@
-import {Tooltip, tooltipClasses, TooltipProps} from "@mui/material";
-import { styled as muiStyled } from '@mui/material/styles';
-import {deepOrange} from "@mui/material/colors";
+import { Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
+import { styled as muiStyled } from "@mui/material/styles";
+import { deepOrange } from "@mui/material/colors";
 import styled from "@emotion/styled";
-import {JSX} from "react";
+import { JSX } from "react";
 
 type Props = {
-    keyword: string
-    children: JSX.Element
-}
+    keyword: string;
+    children: JSX.Element;
+};
 
 const CustomTooltip = muiStyled(({ className, ...props }: TooltipProps) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
 ))(() => ({
     [`& .${tooltipClasses.arrow}`]: {
-        color: deepOrange[100]
+        color: deepOrange[100],
     },
     [`& .${tooltipClasses.tooltip}`]: {
         backgroundColor: deepOrange[100],
     },
 }));
 
-function TooltipContent({explanation, url} : {explanation: string, url: string}) {
+function TooltipContent({ explanation, url }: { explanation: string; url: string }) {
     return (
         <ContentContainer>
             {explanation + " "}
-            <StyledLink href={url} target="_blank" rel="noopener noreferrer" title={"Rulings 🔗"}>🛈</StyledLink>
+            <StyledLink href={url} target="_blank" rel="noopener noreferrer" title={"Rulings 🔗"}>
+                🛈
+            </StyledLink>
         </ContentContainer>
-    )
+    );
 }
 
-export default function KeywordTooltip({children, keyword}: Props) {
-
+export default function KeywordTooltip({ children, keyword }: Props) {
     const preparedKeyword = keyword.replace("＜", "").replace("＞", "").split(" ")[0];
     const rulingsUrl = `https://digimoncardgame.fandom.com/wiki/${getKeywordForLink(preparedKeyword)}#Rulings`;
 
     return (
-        <CustomTooltip title={<TooltipContent explanation={getExplanation(preparedKeyword)} url={rulingsUrl}/>}>
-                {children}
+        <CustomTooltip title={<TooltipContent explanation={getExplanation(preparedKeyword)} url={rulingsUrl} />}>
+            {children}
         </CustomTooltip>
     );
 }
 
 function getExplanation(keyword: string) {
-
-    if (keyword.startsWith("De-Digivolve")) return "Trash up to X cards from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards."
+    if (keyword.startsWith("De-Digivolve"))
+        return "Trash up to X cards from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.";
 
     switch (keyword) {
         case "Blocker":
-            return "When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.";
+            return "This Digimon can block in the blocker timing";
         case "Security":
             return "This Digimon checks X additional/fewer security card(s).";
         case "Recovery":
             return "Place the top X card(s) of your deck on top of your Security Stack.";
         case "Piercing":
-            return "When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it can proceed with its security check(s).";
+            return "When this Digimon attacks and deletes your opponent's Digimon in battle, it checks security before the attack ends.";
         case "Jamming":
             return "This Digimon can't be deleted in battles against Security Digimon.";
         case "Draw":
             return "Draw X card(s) from your deck.";
         case "Digisorption":
-            return "When one of your Digimon digivolves into this card from your hand, you may suspend of your 1 Digimon to reduce the memory cost of the digivolution by X.";
+            return "When this card in your hand would be digivolved into, by suspending 1 of your Digimon, reduce the digivolution cost by X";
         case "Reboot":
             return "Unsuspend this Digimon during your opponent's unsuspend phase.";
         case "Retaliation":
@@ -71,12 +72,12 @@ function getExplanation(keyword: string) {
         case "Blitz":
             return "This Digimon can attack when your opponent has 1 or more memory.";
         case "Delay":
-            return "Trash this card in your battle area to activate the effect below. You can't activate this effect the turn this card enters play.";
+            return "After this card is placed, by trashing it next turn or later, activate the effect below.";
         case "Decoy":
-            return "When one of your Digimon matching (X) characteristic would be deleted by an opponent’s effect, you can instead delete this Digimon to prevent that deletion.";
+            return "When your opponent's effects would delete any of your other X Digimon, by deleting this Digimon, 1 of those Digimon isn't deleted.";
         case "Armor":
             return "When this Digimon would be deleted, you may trash the top card of this Digimon to prevent that deletion.";
-        case "Save" :
+        case "Save":
             return "You may place this card under one of your tamers.";
         case "Material":
             return "When this Digimon would be deleted, you may place X digivolution cards from its DigiXros requirements under one of your Tamers.";
@@ -85,26 +86,40 @@ function getExplanation(keyword: string) {
         case "Raid":
             return "When this Digimon attacks, you may switch the target of attack to 1 of your opponent's unsuspended Digimon with the highest DP.";
         case "Alliance":
-            return "When this Digimon attacks, by suspending 1 of your other Digimon, add the suspended Digimon's DP to this Digimon and it gains ＜Security Attack +1＞ for the attack."
+            return "When this Digimon attacks, by suspending 1 of your other Digimon, add the suspended Digimon's DP to this Digimon and it gains ＜Security Attack +1＞ for the attack.";
         case "Barrier":
             return "When this Digimon would be deleted in battle, by trashing the top card of your security stack, prevent that deletion.";
         case "Blast":
-            return "Your Digimon may digivolve into a Digimon in your hand with this keyword without paying the cost.";
+            return "Your Digimon may digivolve into this card without paying the cost.";
         case "Mind":
             return "Place this Tamer under 1 of your Digimon without a Tamer in its digivolution cards.";
         case "Fortitude":
             return "When this Digimon with Digivolution cards is deleted, play this card without paying the cost.";
+        case "Scapegoat":
+            return "When this Digimon would be deleted other than by one of your effects, by deleting 1 of your other Digimon, prevent that deletion";
         case "Partition":
             return "When this Digimon that has 1 of each specified cards in its digivolution cards would leave the battle area other than by your own effects or by battle, you may play 1 of each card without paying their costs.";
         case "Overclock":
-            return "At the end of your turn, by deleting 1 of your tokens or 1 of your other [X] trait Digimon, this Digimon attacks a player without suspending."
+            return "At the end of your turn, by deleting 1 of your tokens or 1 of your other [X] trait Digimon, this Digimon attacks a player without suspending.";
         case "Vortex":
-            return "At the end of your turn, this Digimon may attack an opponent's Digimon. With this effect it can attack the turn it was played."
+            return "At the end of your turn, this Digimon may attack an opponent's Digimon. With this effect it can attack the turn it was played.";
         case "Ice":
             return "Other than against Security Digimon, compare the number of digivolution cards instead of DP in this Digimon's battles.";
         case "Collision":
-            return "During this Digimon's attack, all of your opponent's Digimon gain ＜Blocker＞, and the opponent blocks if possible.";
-            default:
+            return "During this Digimon's attack, all of your opponent's Digimon gain ＜Blocker＞, and the opponent blocks if able.";
+        case "Fragment":
+            return "When this Digimon would be deleted, by trashing any X of its digivolution cards, it isn't deleted.";
+        case "Execute":
+            return "At the end of the turn, this Digimon may attack. At the end of that attack, delete this Digimon. Your opponent's unsuspended Digimon can also be attacked with this effect.";
+        case "Decode":
+            return "When this Digimon would leave the battle area other than in battle, you may play 1 specified Digimon card from its digivolution cards without paying the cost.";
+        case "Progress":
+            return "While attacking, your opponent's effects don't affect this Digimon.";
+        case "Link":
+            return "Add X to this Digimon's maximum links.";
+        case "Training":
+            return "In the main phase, by suspending this Digimon, place your deck's top card face down as this Digimon's bottom digivolution card. This effect can also activate in the breeding area.";
+        default:
             return "";
     }
 }
@@ -143,7 +158,7 @@ function getKeywordForLink(keyword: string) {
             return "Decoy";
         case "Armor":
             return "Armor_Purge";
-        case "Save" :
+        case "Save":
             return "Save";
         case "Material":
             return "Material_Save";
@@ -164,33 +179,45 @@ function getKeywordForLink(keyword: string) {
         case "Partition":
             return "Partition";
         case "Overclock":
-            return "Overclock"
+            return "Overclock";
         case "Vortex":
-            return "Vortex"
+            return "Vortex";
         case "Ice":
-            return "Ice_Armor"
+            return "Ice_Armor";
         case "Collision":
-            return "Collision"
+            return "Collision";
+        case "Fragment":
+            return "Fragment";
+        case "Execute":
+            return "Execute";
+        case "Decode":
+            return "Decode";
+        case "Progress":
+            return "Progress";
+        case "Link":
+            return "Link";
+        case "Training":
+            return "Training";
         default:
             return "";
     }
 }
 
 const StyledLink = styled.a`
-  display: inline-block;
-  font-size: 1.5rem;
-  line-height: 1;
-  font-weight: 800;
-  text-align: right;
-  transform: translateY(3px);
-  color: #156cd0;
-  &:hover {
-    color: #14d591;
-  }
+    display: inline-block;
+    font-size: 1.5rem;
+    line-height: 1;
+    font-weight: 800;
+    text-align: right;
+    transform: translateY(3px);
+    color: #156cd0;
+    &:hover {
+        color: #14d591;
+    }
 `;
 
 const ContentContainer = styled.div`
-font-family: "League Spartan", sans-serif;
-font-size: 1.1rem;
-color: black;
+    font-family: "League Spartan", sans-serif;
+    font-size: 1.1rem;
+    color: black;
 `;
