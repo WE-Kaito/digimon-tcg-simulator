@@ -10,6 +10,7 @@ import cardBackSrc from "../assets/cardBack.jpg";
 import AddDeckButton from "../components/deckbuilder/AddDeckButton.tsx";
 import UpdateDeleteDeckButtons from "../components/deckbuilder/UpdateDeleteDeckButtons.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
 
 export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
     const selectedCard = useGeneralStates((state) => state.selectedCard);
@@ -58,7 +59,9 @@ export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
                 <SearchForm />
 
                 <FetchedCards />
-                <DetailsContainer>{/*<CardDetails/>*/}</DetailsContainer>
+                <DetailsContainer>
+                    <CardDetails />
+                </DetailsContainer>
 
                 <CardImageContainer>
                     <CardImage
@@ -147,20 +150,17 @@ export const DeckNameContainer = styled.div`
 
 export const DetailsContainer = styled.div`
     height: 100%;
-    width: 95%;
-    margin: 0 4% 0 1%;
+    padding: 0 10px 0 0;
     grid-area: details;
+    overflow-y: scroll;
+    overflow-x: hidden;
 
     @supports (-moz-appearance: none) {
         scrollbar-width: thin;
     }
 
     @container (min-width: 450px) {
-        transform: translateX(-7px);
-        padding-right: 12px;
-        overflow: hidden;
         width: 100%;
-        margin: unset;
     }
 
     &::-webkit-scrollbar {

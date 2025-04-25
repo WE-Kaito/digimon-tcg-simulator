@@ -16,7 +16,6 @@ import activateEffectAnimation from "../assets/lotties/activate-effect-animation
 import targetAnimation from "../assets/lotties/target-animation.json";
 import suspendedAPNG from "../assets/lotties/square-sparkle-apng.png";
 import { ContentCopyTwoTone as DragStackIcon, Shield as ShieldIcon } from "@mui/icons-material";
-import { AceSpan } from "./cardDetails/DetailsHeader.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
 import { useSound } from "../hooks/useSound.ts";
 import { getSleeve } from "../utils/sleeves.ts";
@@ -648,7 +647,12 @@ const StyledShieldIcon = styled(ShieldIcon)`
     filter: drop-shadow(0 0 2px #5e65ee) drop-shadow(0 0 1px #2b4fff);
 `;
 
-const StyledAceSpan = styled(AceSpan)<{ isMega: boolean }>`
+const StyledAceSpan = styled.span<{ isMega: boolean }>`
+    font-family: Sakana, sans-serif;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
     font-size: 13px;
     position: absolute;
     background-image: linear-gradient(320deg, #dedede, #8f8f8f);

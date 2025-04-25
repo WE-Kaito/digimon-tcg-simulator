@@ -307,19 +307,19 @@ export function addStarterDecks() {
 export function getCardColor(color: string): [string, string] {
     switch (color) {
         case "Red":
-            return ["#b02626", "🔴"];
+            return ["#b02626", "ghostwhite"];
         case "Yellow":
-            return ["#b0a325", "🟡"];
+            return ["#cbbc2f", "black"];
         case "Green":
-            return ["#095E1C", "🟢"];
+            return ["#0c8a3e", "ghostwhite"];
         case "Blue":
-            return ["#017fc2", "🔵"];
+            return ["#017fc2", "ghostwhite"];
         case "Purple":
-            return ["#7f2dbd", "🟣"];
+            return ["#7f2dbd", "ghostwhite"];
         case "Black":
-            return ["#484848", "⚫"];
+            return ["#1c1c1c", "ghostwhite"];
         case "White":
-            return ["#DBDBDB", "⚪"];
+            return ["#DBDBDB", "black"];
         default:
             return ["transparent", ""];
     }

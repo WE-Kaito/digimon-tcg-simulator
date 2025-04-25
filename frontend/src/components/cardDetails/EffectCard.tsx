@@ -10,6 +10,7 @@ export enum EffectVariant {
     SECURITY = "security",
     SPECIAL = "special",
     INHERITED_FROM_DIGIVOLUTION_CARDS = "digivolution cards",
+    LINK = "link",
 }
 
 type Props = {
@@ -23,8 +24,8 @@ export function EffectCard({ children, variant }: Props) {
     const isInheritCardInfo = variant === EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS;
 
     return (
-        <Wrapper inherited={isInheritCardInfo}>
-            {variant !== EffectVariant.SPECIAL ? (
+        <Wrapper inherited={isInheritCardInfo} style={variant === EffectVariant.SPECIAL ? specialStyle : undefined}>
+            {variant !== EffectVariant.SPECIAL && variant !== EffectVariant.LINK ? (
                 <EffectText inGame={inGame}>
                     <EffectHeader>
                         <span>
@@ -98,6 +99,7 @@ export function LinkEffectCard({ linkCardInfo }: { linkCardInfo: { dp: number; e
 
 const Wrapper = styled.div<{ inherited?: boolean }>`
     width: 99.25%;
+    position: relative;
     color: ghostwhite;
     background: ${({ inherited }) =>
         inherited
@@ -108,11 +110,6 @@ const Wrapper = styled.div<{ inherited?: boolean }>`
     box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
 `;
-// background: ${({ inherited }) =>
-//     inherited
-//         ? "linear-gradient(to right top, #0d0d0d, #0d0d0f, #0d0d11, #0d0e12, #0d0e14, #0e1018, #0e111d, #0d1321, #0c1529, #0b1731, #0b1939, #0c1a41)"
-//         : "#0c0c0c"};
-// border: 1px solid rgba(248, 248, 255, 0.4);
 
 export const EffectText = styled.div<{ inGame?: boolean }>`
     font-family:
@@ -136,3 +133,18 @@ const EffectHeader = styled.div`
     position: relative;
     z-index: 2;
 `;
+
+const specialStyle = {
+    backgroundImage: `
+    radial-gradient(circle at 15% 25%, rgba(0, 255, 180, 0.25) 0%, transparent 3%),
+    radial-gradient(circle at 35% 45%, rgba(0, 220, 255, 0.22) 0%, transparent 3%),
+    radial-gradient(circle at 55% 65%, rgba(100, 255, 200, 0.18) 0%, transparent 3%),
+    radial-gradient(circle at 75% 25%, rgba(0, 255, 160, 0.20) 0%, transparent 3%),
+    radial-gradient(circle at 90% 50%, rgba(0, 180, 255, 0.17) 0%, transparent 3%),
+    radial-gradient(circle at 20% 75%, rgba(50, 255, 180, 0.2) 0%, transparent 3%),
+    radial-gradient(circle at 65% 85%, rgba(0, 255, 140, 0.19) 0%, transparent 3%),
+    linear-gradient(135deg, rgba(10, 20, 25, 0.1), rgba(5, 15, 20, 0.1))
+  `,
+    border: "1px solid rgba(6, 164, 159, 0.55)",
+    boxShadow: "inset 0 0 5px rgba(0, 255, 255, 0.5)",
+};
