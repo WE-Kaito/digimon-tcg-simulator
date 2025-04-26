@@ -329,7 +329,7 @@ const Wrapper = styled.div<{ inGame: boolean }>`
     border-radius: 5px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
 
     @supports (-moz-appearance: none) {
         scrollbar-width: thin;

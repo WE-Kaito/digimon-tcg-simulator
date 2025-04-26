@@ -30,7 +30,6 @@ export default function TokenModal({ wsUtils }: { wsUtils?: WSUtils }) {
 
     if (!tokenModal) return <></>;
 
-    // return <ModalDialog text={"Choose a token to place:"} buttonProps={buttonProps} buttonContainerStyle={{ flexDirection: "column", }} />;
     return (
         <Container>
             <StyledSpan>Choose a token to place:</StyledSpan>
