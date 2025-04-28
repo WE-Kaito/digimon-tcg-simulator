@@ -107,7 +107,7 @@ export default function Lobby() {
     }
 
     const websocket = useWebSocket(websocketURL, {
-        heartbeat: { interval: 5000, message: "/heartbeat/" },
+        heartbeat: { interval: 6000, message: "/heartbeat/" },
         shouldReconnect: () => true,
 
         onMessage: (event) => {

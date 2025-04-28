@@ -26,6 +26,8 @@ public class LobbyService extends TextWebSocketHandler {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final Map<WebSocketSession, Long> lastHeartbeatTimestamps = new HashMap<>();
+
     private final QuickPlayQueue quickPlayQueue = new QuickPlayQueue();
 
     private final MongoUserDetailsService mongoUserDetailsService;
@@ -110,7 +112,10 @@ public class LobbyService extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         String payload = message.getPayload();
 
-        if (payload.equals("/heartbeat/")) return;
+        if (payload.equals("/heartbeat/")) {
+            lastHeartbeatTimestamps.put(session, System.currentTimeMillis());
+            return;
+        }
 
         if (payload.startsWith("/createRoom:")) createRoom(session, payload);
 
@@ -145,6 +150,49 @@ public class LobbyService extends TextWebSocketHandler {
 
         for (LobbyPlayer player : room.getPlayers()) {
             player.getSession().sendMessage(new TextMessage("[START_GAME]:" + gameId));
+        }
+    }
+
+    @Scheduled(fixedRate = 15000)
+    private synchronized void cleanupStaleSessions() throws IOException {
+        long currentTime = System.currentTimeMillis();
+        long timeoutThreshold = 15000; // 15 seconds timeout (user sends heartbeat every 6 seconds)
+
+        // globalActiveSessions
+        List<WebSocketSession> staleSessions = new ArrayList<>();
+        for (WebSocketSession session : globalActiveSessions) {
+            Long lastHeartbeat = lastHeartbeatTimestamps.get(session);
+            if (lastHeartbeat == null || currentTime - lastHeartbeat > timeoutThreshold) {
+                staleSessions.add(session);
+            }
+        }
+
+        for (WebSocketSession session : staleSessions) {
+            try {
+                afterConnectionClosed(session, CloseStatus.SESSION_NOT_RELIABLE);
+                session.close(CloseStatus.SESSION_NOT_RELIABLE);
+            } catch (IOException e) {
+                // Just remove from our collections
+                globalActiveSessions.remove(session);
+                lastHeartbeatTimestamps.remove(session);
+            }
+        }
+
+        // sessions in rooms
+        for (Room room : rooms) {
+            List<LobbyPlayer> stalePlayers = new ArrayList<>();
+            for (LobbyPlayer player : room.getPlayers()) {
+                WebSocketSession playerSession = player.getSession();
+                Long lastHeartbeat = lastHeartbeatTimestamps.get(playerSession);
+                if (lastHeartbeat == null || currentTime - lastHeartbeat > timeoutThreshold) {
+                    stalePlayers.add(player);
+                }
+            }
+
+            for (LobbyPlayer player : stalePlayers) {
+                 afterConnectionClosed(player.getSession(), CloseStatus.SESSION_NOT_RELIABLE);
+                 player.getSession().close(CloseStatus.SESSION_NOT_RELIABLE);
+            }
         }
     }
 
@@ -253,7 +301,7 @@ public class LobbyService extends TextWebSocketHandler {
                 room.getName(),
                 room.getHostName(),
                 room.getFormat(),
-                room.getPassword().length() > 0,
+                !room.getPassword().isEmpty(),
                 room.getPlayers().stream().map(p -> new LobbyPlayerDTO(
                         p.getName(),
                         mongoUserDetailsService.getAvatar(p.getName()),
