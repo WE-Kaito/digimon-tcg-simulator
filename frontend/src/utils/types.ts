@@ -20,6 +20,7 @@ export type CardType = {
     digiXros?: string;
     dnaDigivolve?: string;
     securityEffect?: string;
+    rule?: string;
     linkDP?: number;
     linkEffect?: string;
     linkRequirement?: string;

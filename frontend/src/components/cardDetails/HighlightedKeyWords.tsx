@@ -1,16 +1,16 @@
 import styled from "@emotion/styled";
-import { getDnaColor } from "../../utils/functions.ts";
 import KeywordTooltip from "./KeywordTooltip.tsx";
 import { JSX } from "react";
 import { uid } from "uid";
 
 export default function HighlightedKeyWords({ text }: { text: string }): (JSX.Element | JSX.Element[])[] {
+    let highlightedText = text;
+
     if (text.startsWith("[DNA Digivolve]"))
-        return text?.split(" ")?.map((word, index) => {
-            if (index === 0) return <HighlightedSpecialEffect key={uid()}>DNA Digivolution</HighlightedSpecialEffect>;
-            if (index === 1) return <></>;
-            return <span key={uid()}>{getDnaColor(word)}</span>;
-        });
+        highlightedText = text
+            ?.split(" ")
+            ?.map((word) => getDnaColor(word))
+            .join(" ");
 
     if (text.startsWith("＜Burst Digivolve:")) {
         const burstEffect = text.substring(17, text.length - 1);
@@ -25,8 +25,8 @@ export default function HighlightedKeyWords({ text }: { text: string }): (JSX.El
     let lastIndex = 0;
     const highlightedParts = [];
 
-    while ((match = regex.exec(text)) !== null) {
-        const prefix = text.slice(lastIndex, match.index);
+    while ((match = regex.exec(highlightedText)) !== null) {
+        const prefix = highlightedText.slice(lastIndex, match.index);
         const bracketedWord = match[0];
         const id = uid();
 
@@ -68,8 +68,8 @@ export default function HighlightedKeyWords({ text }: { text: string }): (JSX.El
         lastIndex = regex.lastIndex;
     }
 
-    if (lastIndex < text.length) {
-        highlightedParts.push(text.slice(lastIndex));
+    if (lastIndex < highlightedText.length) {
+        highlightedParts.push(highlightedText.slice(lastIndex));
     }
 
     // convert "\n" to <br />
@@ -90,8 +90,8 @@ const HighlightedSquare = styled.span<{ word: string }>`
     color: ghostwhite;
     background: ${({ word }) =>
         word === "Hand" || word.includes("Per Turn") || word === "Breeding"
-            ? "linear-gradient(to top, #b5485d, #5e173c)"
-            : "linear-gradient(to top, #454dd9, #292E96FF)"};
+            ? "linear-gradient(to top, #5e173c, #b5485d)"
+            : "linear-gradient(to top, #292E96FF, #454dd9)"};
     border-radius: 3px;
     padding: 4px 3px 2px 3px;
     margin-right: 2px;
@@ -99,7 +99,7 @@ const HighlightedSquare = styled.span<{ word: string }>`
 
 const HighlightedAngle = styled.span`
     color: ghostwhite;
-    background: linear-gradient(to top, #ce570d, #883b09);
+    background: linear-gradient(to top, #883b09, #ce570d);
     border-radius: 25px;
     padding: 4px 5px 2px 5px;
     margin-right: 2px;
@@ -107,8 +107,9 @@ const HighlightedAngle = styled.span`
 `;
 
 const HighlightedDigimonName = styled.span`
+    color: ghostwhite;
     font-weight: 400;
-    background: rgba(15, 0, 30, 0.3);
+    background: rgba(15, 0, 30, 0.5);
     padding: 3px 2px 0 2px;
     border: 1px solid #e7e7e7;
 `;
@@ -119,9 +120,24 @@ const HighlightedTrait = styled(HighlightedDigimonName)`
 `;
 
 const HighlightedRule = styled(HighlightedSquare)`
-    color: black;
-    background: ghostwhite;
-    font-weight: 700;
+    color: ghostwhite;
+    background: linear-gradient(to top, #0c0c0c, #2a2a2a);
+    font-weight: 500;
+    letter-spacing: 1px;
+    position: relative;
+    margin-right: 8px;
+    line-height: 0.5;
+    &:after {
+        content: " ";
+        position: absolute;
+        z-index: -1;
+        right: -3px;
+        top: 7px;
+        width: 8px;
+        height: 8px;
+        transform: rotate(45deg);
+        background: linear-gradient(320deg, #151515, #212121);
+    }
 `;
 
 const HighlightedSpecialEffect = styled.span`
@@ -134,7 +150,7 @@ const HighlightedSpecialEffect = styled.span`
 `;
 
 const HighglightedEvolutionEffect = styled(HighlightedSpecialEffect)`
-    background: linear-gradient(0deg, rgb(6, 164, 159) 0%, rgb(4, 76, 94) 100%);
+    background: linear-gradient(0deg, rgb(4, 76, 94) 0%, rgb(6, 164, 159) 100%);
 `;
 
 const specialEffects = [
@@ -143,7 +159,7 @@ const specialEffects = [
     "DigiXros -3",
     "DigiXros -4",
     "Burst Digivolve",
-    "DNA Digivolution",
+    "DNA Digivolve",
     "Link",
 ];
 
@@ -153,6 +169,7 @@ const timings = [
     "On Play",
     "When Digivolving",
     "When Attacking",
+    "When Linking",
     "End of Attack",
     "On Deletion",
     "Your Turn",
@@ -192,6 +209,7 @@ function isTrait(trait: string) {
         case "AA Defense Agent":
         case "Ability Synthesis Agent":
         case "Abnormal":
+        case "ACCEL":
         case "AE Corp.":
         case "Abadin Electronics":
         case "Alien":
@@ -205,6 +223,7 @@ function isTrait(trait: string) {
         case "Ancient Crustacean":
         case "Ancient Dragon":
         case "Ancient Dragonkin":
+        case "Ancient Fairy":
         case "Ancient Fish":
         case "Ancient Holy Warrior":
         case "Ancient Insectoid":
@@ -267,6 +286,7 @@ function isTrait(trait: string) {
         case "Flame":
         case "Food":
         case "Four Great Dragons":
+        case "Four Sovereigns":
         case "General":
         case "Ghost":
         case "Giant Bird":
@@ -339,6 +359,7 @@ function isTrait(trait: string) {
         case "Skeleton":
         case "Sky Dragon":
         case "Super Major":
+        case "Three Musketeers":
         case "Throne":
         case "Tropical Fish":
         case "Twilight":
@@ -360,5 +381,28 @@ function isTrait(trait: string) {
         default: {
             return false;
         }
+    }
+}
+
+function getDnaColor(word: string): string {
+    switch (word) {
+        case "red":
+            return "🔴";
+        case "yellow":
+            return "🟡";
+        case "green":
+            return "🟢";
+        case "blue":
+            return "🔵";
+        case "purple":
+            return "🟣";
+        case "black":
+            return "⚫";
+        case "white":
+            return "⚪";
+        case "all":
+            return "🌈";
+        default:
+            return word;
     }
 }

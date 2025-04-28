@@ -56,6 +56,7 @@ public class CardService {
             null,
             null,
             null,
+            null,
             new Restrictions("","","",""),
             null
     );
@@ -136,6 +137,7 @@ public class CardService {
                     (card.digiXros().equals("-")) ? null : card.digiXros(),
                     (card.dnaDigivolve().equals("-")) ? null : card.dnaDigivolve(),
                     (card.securityEffect().equals("-")) ? null : card.securityEffect(),
+                    (card.rule().equals("-")) ? null : card.rule(),
                     (card.linkDP().equals("-") ? null : Integer.parseInt(card.linkDP().replaceAll("[^\\d-]", ""))),
                     (card.linkEffect().equals("-")) ? null : card.linkEffect(),
                     (card.linkRequirement().equals("-")) ? null : card.linkRequirement(),

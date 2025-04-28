@@ -317,34 +317,11 @@ export function getCardColor(color: string): [string, string] {
         case "Purple":
             return ["#7f2dbd", "ghostwhite"];
         case "Black":
-            return ["#1c1c1c", "ghostwhite"];
+            return ["#212121", "ghostwhite"];
         case "White":
             return ["#DBDBDB", "black"];
         default:
             return ["transparent", ""];
-    }
-}
-
-export function getDnaColor(word: string): string {
-    switch (word) {
-        case "red":
-            return "🔴";
-        case "yellow":
-            return "🟡";
-        case "green":
-            return "🟢";
-        case "blue":
-            return "🔵";
-        case "purple":
-            return "🟣";
-        case "black":
-            return "⚫";
-        case "white":
-            return "⚪";
-        case "all":
-            return "ALL 🌈";
-        default:
-            return word + " ";
     }
 }
 

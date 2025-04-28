@@ -1,9 +1,9 @@
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-import { EffectCard, LinkEffectCard, EffectText, EffectVariant } from "./EffectCard.tsx";
+import { EffectCard, LinkEffectCard, EffectText, EffectVariant, RuleEffectCard } from "./EffectCard.tsx";
 import { Stack, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
-import { getAttributeImage, getCardTypeImage, getDnaColor } from "../../utils/functions.ts";
+import { getAttributeImage, getCardTypeImage } from "../../utils/functions.ts";
 import { CardTypeGame, CardTypeWithId } from "../../utils/types.ts";
 import { useLocation } from "react-router-dom";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
@@ -53,6 +53,7 @@ export default function CardDetails() {
     const burstDigivolveText = hoverCard?.burstDigivolve ?? (!hoverCard ? (selectedCard?.burstDigivolve ?? "") : "");
     const digiXrosText = hoverCard?.digiXros ?? (!hoverCard ? (selectedCard?.digiXros ?? "") : "");
     const dnaDigivolutionText = hoverCard?.dnaDigivolve ?? (!hoverCard ? (selectedCard?.dnaDigivolve ?? "") : "");
+    const ruleText = hoverCard?.rule ?? (!hoverCard ? (selectedCard?.rule ?? "") : "");
     const linkDP = hoverCard?.linkDP ?? (!hoverCard ? (selectedCard?.linkDP ?? 0) : 0);
     const linkEffectText = hoverCard?.linkEffect ?? (!hoverCard ? (selectedCard?.linkEffect ?? "") : "");
     const linkRequirementText = hoverCard?.linkRequirement ?? (!hoverCard ? (selectedCard?.linkRequirement ?? "") : "");
@@ -196,12 +197,6 @@ export default function CardDetails() {
                     </EffectCard>
                 )}
 
-                {digiXrosText && (
-                    <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
-                        <HighlightedKeyWords text={digiXrosText} />
-                    </EffectCard>
-                )}
-
                 {burstDigivolveText && (
                     <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_burst`}>
                         <HighlightedKeyWords text={burstDigivolveText} />
@@ -214,6 +209,12 @@ export default function CardDetails() {
                     </EffectCard>
                 )}
 
+                {digiXrosText && (
+                    <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
+                        <HighlightedKeyWords text={digiXrosText} />
+                    </EffectCard>
+                )}
+
                 {mainEffectText && (
                     <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
                         <HighlightedKeyWords text={mainEffectText} />
@@ -222,36 +223,46 @@ export default function CardDetails() {
 
                 {linkRequirementText && (
                     <EffectCard variant={EffectVariant.LINK} key={`${cardNumber}_link`}>
-                        <>
-                            <div style={{ borderBottom: "1px dashed lightgray", paddingBottom: 5, marginBottom: 5 }}>
-                                <HighlightedKeyWords text={linkRequirementText} />
-                            </div>
-
-                            <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1fr" }}>
-                                <span style={{ gridColumn: 1, overflowWrap: "anywhere" }}>
+                        <div style={{ display: "flex", alignItems: "center", marginBottom: "1px" }}>
+                            <div style={{ display: "flex", width: "100%", flexDirection: "column" }}>
+                                <EffectText
+                                    style={{
+                                        borderBottom: "1px dotted rgba(255, 255, 255, 0.35)",
+                                        paddingBottom: "0.4em",
+                                        marginBottom: "0.25em",
+                                    }}
+                                >
+                                    <HighlightedKeyWords text={linkRequirementText} />
+                                </EffectText>
+                                <EffectText>
                                     <HighlightedKeyWords text={linkEffectText} />
-                                </span>
-                                {linkDP !== 0 && (
-                                    <span
-                                        style={{
-                                            gridColumn: 2,
-                                            fontWeight: "bolder",
-                                            background:
-                                                "linear-gradient(to right, rgba(21,59,60,0.5) 0%, rgba(0,105,103,0.25) 80%, transparent 100%)",
-                                            padding: "6px 4px 2px 4px",
-                                            borderColor: "rgba(0,105,103,0.1)",
-                                            borderRadius: "50% 3px 3px 50%",
-                                            transform: "translateX(3px)",
-                                            lineHeight: 1,
-                                            height: "fit-content",
-                                            filter: "drop-shadow(2px 0 1px black)",
-                                        }}
-                                    >{`+ ${linkDP} DP`}</span>
-                                )}
+                                </EffectText>
                             </div>
-                        </>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    width: "fit-content",
+                                    flexDirection: "column",
+                                    padding: "8px 10px 4px 10px",
+                                    alignItems: "center",
+                                    border: "1px solid rgba(255, 255, 255, 0.25)",
+                                    borderRadius: "3px",
+                                    marginBottom: "0.15em",
+                                    textShadow: "0 0 2px #000000",
+                                    background:
+                                        "linear-gradient(to right top, rgba(47,225,172,0.4) 0%, rgba(67,245,192,0.4) 20%, rgba(67,245,192,0.3) 75%, rgba(77,255, 200,0.2) 100%)",
+                                }}
+                            >
+                                {linkDP !== 0 && (
+                                    <span style={{ fontWeight: 500, fontSize: "1.1em", lineHeight: 1 }}>{"+ DP"}</span>
+                                )}
+                                {linkDP !== 0 && <span style={{ fontFamily: "Awsumsans, sans-serif" }}>{linkDP}</span>}
+                            </div>
+                        </div>
                     </EffectCard>
                 )}
+
+                {ruleText && <RuleEffectCard ruleText={ruleText} key={`${cardNumber}_rule`} />}
 
                 {linkCardInfo.length > 0 && (
                     <LinkEffectCard linkCardInfo={linkCardInfo} key={`${cardNumber}_linkedEffect`} />
@@ -476,4 +487,27 @@ function getDetailsHeaderTooltipTitle(keyword: string, overflow?: string | null)
     if (keyword === "Overflow") {
         return `As this card moves from the battle area or under a card to another area, lose ${overflow} memory.`;
     } else return keyword;
+}
+
+function getDnaColor(word: string): string {
+    switch (word) {
+        case "red":
+            return "🔴";
+        case "yellow":
+            return "🟡";
+        case "green":
+            return "🟢";
+        case "blue":
+            return "🔵";
+        case "purple":
+            return "🟣";
+        case "black":
+            return "⚫";
+        case "white":
+            return "⚪";
+        case "all":
+            return "ALL 🌈";
+        default:
+            return word + " ";
+    }
 }

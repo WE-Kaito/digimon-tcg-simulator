@@ -64,6 +64,18 @@ export function EffectCard({ children, variant }: Props) {
     );
 }
 
+export function RuleEffectCard({ ruleText }: { ruleText: string }) {
+    const inGame = location.pathname === "/game";
+
+    return (
+        <Wrapper style={{ background: "rgba(255, 255, 255, 0.675)" }}>
+            <EffectText inGame={inGame} style={{ color: "black", fontWeight: 500 }}>
+                <HighlightedKeyWords text={ruleText} />
+            </EffectText>
+        </Wrapper>
+    );
+}
+
 export function LinkEffectCard({ linkCardInfo }: { linkCardInfo: { dp: number; effect: string }[] }) {
     const totalDp = linkCardInfo.reduce((sum, card) => sum + card.dp, 0);
     const effects = linkCardInfo.map((card) => card.effect).join("\n");
@@ -118,7 +130,7 @@ export const EffectText = styled.div<{ inGame?: boolean }>`
     font-weight: 300;
     font-size: ${({ inGame }) => (inGame ? "1.25em" : "1rem")};
     text-align: left;
-    padding: 5px;
+    padding: 5px 5px 2px 5px;
 
     @media (max-width: 767px) {
         font-size: ${({ inGame }) => (inGame ? "1.5rem" : "1rem")};
@@ -134,7 +146,7 @@ const EffectHeader = styled.div`
     z-index: 2;
 `;
 
-const specialStyle = {
+export const specialStyle = {
     backgroundImage: `
     radial-gradient(circle at 0%   0%, rgba(0, 255, 180, 0.125) 0%, transparent 3%),
     radial-gradient(circle at 5%   0%, rgba(0, 255, 180, 0.125) 0%, transparent 3%),
