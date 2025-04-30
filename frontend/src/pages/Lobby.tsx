@@ -107,7 +107,6 @@ export default function Lobby() {
     }
 
     const websocket = useWebSocket(websocketURL, {
-        heartbeat: { interval: 6000, message: "/heartbeat/" },
         shouldReconnect: () => true,
 
         onMessage: (event) => {
@@ -292,6 +291,13 @@ export default function Lobby() {
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }, [activeDeckId]);
 
+    useEffect(() => {
+        if (websocket.readyState !== 1) return;
+        // manual heartbeat because the built in heartbeat is not working; activity check in backend every 15 seconds
+        const heartbeatInterval = setInterval(() => websocket.sendMessage("/heartbeat/"), 5000);
+        return () => clearInterval(heartbeatInterval);
+    }, [websocket.readyState, websocket.sendMessage]);
+
     const meInRoom = joinedRoom?.players.find((p) => p.name === user);
     const startGameDisabled =
         !!joinedRoom && (isLoading || !!joinedRoom.players.find((p) => !p.ready) || joinedRoom.players.length < 2);
@@ -472,7 +478,7 @@ export default function Lobby() {
                                 ))}
                             </Select>
                             <DeckCard>
-                                {deckObject && (
+                                {!!deckObject?.decklist?.length && (
                                     <ProfileDeck
                                         deck={deckObject}
                                         lobbyView

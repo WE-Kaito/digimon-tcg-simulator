@@ -156,13 +156,15 @@ public class LobbyService extends TextWebSocketHandler {
     @Scheduled(fixedRate = 15000)
     private synchronized void cleanupStaleSessions() throws IOException {
         long currentTime = System.currentTimeMillis();
-        long timeoutThreshold = 15000; // 15 seconds timeout (user sends heartbeat every 6 seconds)
+        long timeoutThreshold = 15000; // 15 seconds timeout (user sends heartbeat every 5 seconds)
 
         // globalActiveSessions
         List<WebSocketSession> staleSessions = new ArrayList<>();
         for (WebSocketSession session : globalActiveSessions) {
             Long lastHeartbeat = lastHeartbeatTimestamps.get(session);
-            if (lastHeartbeat == null || currentTime - lastHeartbeat > timeoutThreshold) {
+            if (lastHeartbeat != null && (currentTime - lastHeartbeat > timeoutThreshold)) {
+                 System.out.println("Session considered stale - User: " + Objects.requireNonNull(session.getPrincipal()).getName() +
+                     " Last heartbeat: " + (currentTime - lastHeartbeat) + "ms ago");
                 staleSessions.add(session);
             }
         }
@@ -172,7 +174,6 @@ public class LobbyService extends TextWebSocketHandler {
                 afterConnectionClosed(session, CloseStatus.SESSION_NOT_RELIABLE);
                 session.close(CloseStatus.SESSION_NOT_RELIABLE);
             } catch (IOException e) {
-                // Just remove from our collections
                 globalActiveSessions.remove(session);
                 lastHeartbeatTimestamps.remove(session);
             }
@@ -184,7 +185,7 @@ public class LobbyService extends TextWebSocketHandler {
             for (LobbyPlayer player : room.getPlayers()) {
                 WebSocketSession playerSession = player.getSession();
                 Long lastHeartbeat = lastHeartbeatTimestamps.get(playerSession);
-                if (lastHeartbeat == null || currentTime - lastHeartbeat > timeoutThreshold) {
+                if (lastHeartbeat != null && (currentTime - lastHeartbeat > timeoutThreshold)) {
                     stalePlayers.add(player);
                 }
             }
