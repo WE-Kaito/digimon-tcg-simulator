@@ -84,7 +84,7 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
             </History>
             <InputContainer onSubmit={handleSubmit}>
                 <StyledInput value={message} placeholder={"..."} onChange={(e) => setMessage(e.target.value)} />
-                <SubmitButton>SEND</SubmitButton>
+                <SubmitButton className={"button"}>SEND</SubmitButton>
             </InputContainer>
         </Wrapper>
     );
@@ -206,19 +206,24 @@ const History = styled.div`
 `;
 
 const SubmitButton = styled.button`
-    background: var(--blue-button-bg);
-    color: ghostwhite;
-    border: none;
-    border-radius: 6px;
     padding: 0.5rem 1rem;
     font-family: "Frutiger", sans-serif;
     letter-spacing: 1px;
 
-    text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.25);
+    border-radius: 0;
+    outline: 1px solid #242424;
+    border: 2px solid transparent;
 
+    border-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.7) 0%, rgba(157, 157, 157, 0.7) 100%) 1;
+
+    background: var(--blue-button-bg);
+    color: ghostwhite;
+
+    text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.25);
+    //
     box-shadow:
-        inset 0 3px 3px rgba(255, 255, 255, 0.6),
-        inset 0 -3px 5px rgba(0, 0, 0, 0.9);
+        inset 0 3px 10px rgba(255, 255, 255, 0.2),
+        inset 0 -3px 10px rgba(0, 0, 0, 0.3);
 
     &:hover {
         color: ghostwhite;
@@ -231,8 +236,8 @@ const SubmitButton = styled.button`
     &:active {
         background: var(--blue-button-bg-active);
         box-shadow:
-            inset 0 2px 3px rgba(255, 255, 255, 0.6),
-            inset 0 -2px 3px rgba(0, 0, 0, 0.8);
+            inset -1 -1px 1px rgba(255, 255, 255, 0.6),
+            inset 1 1px 1px rgba(0, 0, 0, 0.8);
     }
 `;
 

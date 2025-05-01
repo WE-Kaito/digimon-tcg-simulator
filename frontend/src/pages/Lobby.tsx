@@ -671,21 +671,25 @@ const RoomItemLobby = styled(RoomItem)`
 `;
 
 const Button = styled.button`
+    border-radius: 0;
+    outline: 1px solid #242424;
+    border: 2px solid transparent;
+
+    border-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.7) 0%, rgba(157, 157, 157, 0.7) 100%) 1;
+
     width: 250px;
     height: 36px;
     background: var(--blue-button-bg);
     color: ghostwhite;
-    border: none;
-    border-radius: 6px;
     padding: 0.5rem 1rem;
     font-family: "Frutiger", sans-serif;
     letter-spacing: 1px;
 
     text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.25);
-
+    //
     box-shadow:
-        inset 0 3px 3px rgba(255, 255, 255, 0.6),
-        inset 0 -3px 5px rgba(0, 0, 0, 0.9);
+        inset 0 3px 10px rgba(255, 255, 255, 0.2),
+        inset 0 -3px 10px rgba(0, 0, 0, 0.3);
 
     &:hover {
         color: ghostwhite;
@@ -698,8 +702,8 @@ const Button = styled.button`
     &:active {
         background: var(--blue-button-bg-active);
         box-shadow:
-            inset 0 2px 3px rgba(255, 255, 255, 0.6),
-            inset 0 -2px 3px rgba(0, 0, 0, 0.8);
+            inset -1 -1px 1px rgba(255, 255, 255, 0.6),
+            inset 1 1px 1px rgba(0, 0, 0, 0.8);
     }
 
     &:disabled {
@@ -711,7 +715,7 @@ const Button = styled.button`
 const Input = styled.input<{ error?: boolean }>`
     flex-grow: 1;
     padding: 0.5rem;
-    border: 1px solid ${({ error }) => (error ? "crimson" : "var(--lobby-accent)")};
+    border: 1px solid ${({ error }) => (error ? "crimson" : "rgba(48, 95, 217, 0.7)")};
     border-radius: 3px;
     background-color: #0c0c0c;
     color: ghostwhite;
@@ -719,14 +723,14 @@ const Input = styled.input<{ error?: boolean }>`
 
     &:focus {
         outline: none;
-        box-shadow: 0 0 5px var(--lobby-accent);
+        box-shadow: 0 0 5px rgba(48, 95, 217, 0.7);
     }
 `;
 
 const Select = styled.select`
     width: 100%;
     padding: 0.5rem;
-    border: 1px solid var(--lobby-accent);
+    border: 1px solid rgba(48, 95, 217, 0.7);
     border-radius: 3px;
     background-color: #0c0c0c;
     color: ghostwhite;
@@ -736,7 +740,7 @@ const Select = styled.select`
 
     &:focus {
         outline: none;
-        box-shadow: 0 0 5px var(--lobby-accent);
+        box-shadow: 0 0 5px rgba(48, 95, 217, 0.7);
     }
 `;
 
