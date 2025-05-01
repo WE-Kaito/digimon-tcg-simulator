@@ -1,17 +1,17 @@
 import discordIcon from "../../assets/discordLogo.png";
 import styled from "@emotion/styled";
-import {FormEvent, useEffect, useRef, useState} from "react";
-import {SendMessage} from "react-use-websocket";
-import {useGeneralStates} from "../../hooks/useGeneralStates.ts";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { SendMessage } from "react-use-websocket";
+import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 
 type Props = {
     sendMessage: SendMessage;
     messages: string[];
     roomId?: string;
-}
+};
 
 export default function Chat({ sendMessage, messages, roomId }: Props) {
-    const user = useGeneralStates((state) => state.user)
+    const user = useGeneralStates((state) => state.user);
 
     const [message, setMessage] = useState<string>("");
 
@@ -32,6 +32,7 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
 
     return (
         <Wrapper>
+            {!!roomId && <StyledPrivateSpan>PRIVATE ROOM CHAT</StyledPrivateSpan>}
             <History ref={historyRef}>
                 {messages.map((message, index) => {
                     const colonIndex = message.indexOf(":");
@@ -39,33 +40,50 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
                         const name = message.substring(0, colonIndex);
                         const content = message.substring(colonIndex + 1);
 
-                        if (name === "【SERVER】"){
+                        if (name === "【SERVER】") {
                             return (
-                                <div style={{display: "flex"}} key={index}>
-                                    {content === " Join our Discord!"
-                                        ? <StyledSpan>
-                                            <span style={{color:"#31da75"}}>Server</span>:
-                                            <a href="https://discord.gg/sBdByGAh2y" target="_blank" rel="noopener noreferrer">{content}</a>
-                                            <img alt="logo" src={discordIcon} height={14} style={{transform:"translate(3px, 2px)"}}/>
-                                        </StyledSpan>
-                                        : <StyledSpan>
-                                            <span style={{color:"#31da75"}}>Server</span>:{content}
-                                        </StyledSpan>}
+                                <div style={{ display: "flex" }} key={index}>
+                                    {content === " Join our Discord!" ? (
+                                        <StyledServerSpan>
+                                            <span>Server </span>
+                                            <a
+                                                href="https://discord.gg/sBdByGAh2y"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                {content}
+                                            </a>
+                                            <img
+                                                alt="logo"
+                                                src={discordIcon}
+                                                height={14}
+                                                style={{ transform: "translate(3px, 2px)" }}
+                                            />
+                                        </StyledServerSpan>
+                                    ) : (
+                                        <StyledServerSpan>
+                                            <span>Server </span>
+                                            {content}
+                                        </StyledServerSpan>
+                                    )}
                                 </div>
                             );
                         }
 
                         return (
-                            <div style={{display: "flex"}} key={index}>
-                                <StyledSpan isMe={user === name}><span>{name}</span>:{content}</StyledSpan>
-                            </div>
+                            <MessageContainer key={index}>
+                                <StyledSpan isMe={user === name}>
+                                    <span>{name + " "}</span>
+                                    {content}
+                                </StyledSpan>
+                            </MessageContainer>
                         );
                     }
                     return <div key={index}>{message}</div>;
                 })}
             </History>
             <InputContainer onSubmit={handleSubmit}>
-                <StyledInput value={message} placeholder={"..."} onChange={(e) => setMessage(e.target.value)}/>
+                <StyledInput value={message} placeholder={"..."} onChange={(e) => setMessage(e.target.value)} />
                 <SubmitButton>SEND</SubmitButton>
             </InputContainer>
         </Wrapper>
@@ -73,114 +91,179 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
 }
 
 const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  background: black;
-  border: 2px solid var(--christmas-green);
-  border-radius: 4px;
-  filter: drop-shadow(0 0 5px var(--christmas-green-shadow));
-  padding: 0.25% 1% 1% 1%;
-  width: 97.45%;
-  height: 400px;
-  
-  @media (min-width: 1024px) {
-    margin-left: 2px;
-    margin-bottom: 3%;
-    height: 30.33%;
-  }
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    background: rgba(12, 21, 16, 0.25);
+    border: 1px solid rgba(124, 124, 118, 0.4);
+    border-radius: 3px;
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+    max-width: 40%;
+    flex: 1;
+    max-height: 100%;
+    min-width: 400px;
+
+    backdrop-filter: hue-rotate(100deg);
+
+    @media (max-width: 600px), (max-height: 600px) {
+        max-height: 500px;
+    }
 `;
 
-const StyledSpan = styled.span<{isMe?: boolean}>`
-  font-family: Cousine, sans-serif;
-  text-align: left;
-  color: papayawhip;
+const StyledSpan = styled.span<{ isMe?: boolean }>`
+    font-family: "League Spartan", sans-serif;
+    letter-spacing: 1px;
+    font-weight: 300;
+    font-size: 18px;
+    text-align: left;
+    color: papayawhip;
+    word-break: break-all;
+    span {
+        border: 1px solid transparent;
+        border-image: ${({ isMe }) =>
+            isMe
+                ? "linear-gradient(to bottom right, transparent 0%, transparent 50%, #d5661f 100%)"
+                : "linear-gradient(to bottom right, transparent 0%, transparent 50%, #e1b70f 100%)"};
+        border-image-slice: 1;
+        color: ${({ isMe }) => (isMe ? "#d5661f" : "#e1b70f")};
+        border-bottom-right-radius: 4px;
+    }
+`;
 
-  span {
-    color: ${({isMe}) => isMe ? '#f55f02' : '#e1b70f'};
-    text-shadow: 0 0 1px #ffd11e;
-    font-weight: bold;
-  }
+const StyledServerSpan = styled.span`
+    font-family: Cousine, sans-serif;
+    text-align: left;
+    color: papayawhip;
+    word-break: break-all;
+
+    span {
+        border: 1px solid transparent;
+        border-image: linear-gradient(to bottom right, transparent 0%, transparent 50%, #31da75 100%);
+        border-image-slice: 1;
+        color: #31da75;
+        border-bottom-right-radius: 4px;
+    }
 `;
 
 const StyledInput = styled.input`
-  width: 90%;
-  padding-left: 10px;
-  overflow-y: clip;
-  height: 30px;
-  font-family: Cousine, sans-serif;
-  border: none;
-  font-size: 1.05em;
-  background: papayawhip;
-  color: #1a1a1a;
+    width: 90%;
+    padding-left: 10px;
+    overflow-y: clip;
+    height: 30px;
+    font-family: Cousine, sans-serif;
+    border: none;
+    font-size: 1.05em;
+    background: papayawhip;
+    color: #1a1a1a;
 
-  :focus {
-    outline: none;
-    filter: drop-shadow(0 0 2px white);
-    background: ghostwhite;
-    border-radius: 2px;
-  }
+    border-radius: 6px;
+
+    :focus {
+        outline: none;
+        filter: drop-shadow(0 0 2px white);
+        background: ghostwhite;
+        border-radius: 2px;
+    }
 `;
 
 const InputContainer = styled.form`
-  width: 100%;
-  margin-top: 12px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+    width: calc(100% - 12px);
+    margin-top: 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 6px 6px 6px;
 `;
 
 const History = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 100%;
-  overflow-y: scroll;
-  margin-top: 8px;
-  
-  ::-webkit-scrollbar {
-    width: 14px;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: papayawhip;
-  }
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: calc(100% - 12px);
+    overflow-y: scroll;
+    padding: 8px 6px 0 6px;
+    font-size: 16px;
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(
+            to bottom right,
+            rgba(63, 109, 207, 0.75) 0%,
+            rgba(48, 95, 217, 0.75) 50%,
+            rgba(84, 126, 215, 0.75) 100%
+        );
+        border-radius: 5px;
+        box-shadow:
+            inset 0 1px 2px rgba(255, 255, 255, 0.6),
+            inset 0 -1px 3px rgba(0, 0, 0, 0.9);
+    }
 `;
 
 const SubmitButton = styled.button`
-  padding: 0;
-  cursor: pointer;
-  width: 100px;
-  margin-left: 12px;
-  height: 32px;
-  border-radius: 0;
-  background: var(--christmas-green);
-  font-family: Pixel Digivolve, sans-serif;
-  font-size: 24px;
-  color: #0e0e0e;
-  box-shadow: 2px 2px 2px 0 #262626;
-  transition: all 0.15s ease;
+    background: var(--blue-button-bg);
+    color: ghostwhite;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-family: "Frutiger", sans-serif;
+    letter-spacing: 1px;
 
-  &:hover {
-    background-color: var(--blue);
-    box-shadow: 2px 2px 2px 0 rgba(15, 66, 131, 0.51);
-    color: black;
-    transform: translateY(1px);
-  }
+    text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.25);
 
-  &:focus {
-    outline: none;
-  }
+    box-shadow:
+        inset 0 3px 3px rgba(255, 255, 255, 0.6),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.9);
 
-  &:active {
-    background: rgb(67, 123, 253);
-    transform: translateY(2px);
-  }
+    &:hover {
+        color: ghostwhite;
+        background: var(--blue-button-bg-hover);
+        //background-color: #1d7dfc;
+        //color: ghostwhite;
+        //box-shadow: 0 0 10px rgba(29, 125, 252, 0.5);
+    }
 
-  @media (max-width: 500px) {
-    font-size: 18px;
-    width: 70px;
-  }
+    &:active {
+        background: var(--blue-button-bg-active);
+        box-shadow:
+            inset 0 2px 3px rgba(255, 255, 255, 0.6),
+            inset 0 -2px 3px rgba(0, 0, 0, 0.8);
+    }
+`;
+
+const StyledPrivateSpan = styled.span`
+    font-family: "League Spartan", sans-serif;
+    color: var(--lobby-accent);
+    width: 100%;
+    padding-top: 12px;
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 300;
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(
+        to right,
+        transparent 0%,
+        transparent 20%,
+        var(--lobby-accent) 50%,
+        transparent 80%,
+        transparent 100%
+    );
+    border-image-slice: 1;
+    align-self: flex-start;
+    margin-bottom: auto;
+`;
+
+const MessageContainer = styled.div`
+    display: flex;
+    width: 100%;
+
+    &:hover {
+        background: rgba(218, 51, 187, 0.1);
+        border-radius: 4px;
+    }
 `;

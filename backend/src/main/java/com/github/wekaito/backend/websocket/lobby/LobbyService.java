@@ -345,7 +345,7 @@ public class LobbyService extends TextWebSocketHandler {
 
         String roomJson = objectMapper.writeValueAsString(getRoomDTO(room));
         session.sendMessage(new TextMessage("[JOIN_ROOM]:" + roomJson));
-        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have joined the room."));
+        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + "."));
 
         broadcastRooms();
     }
@@ -393,7 +393,7 @@ public class LobbyService extends TextWebSocketHandler {
         else sendRoomUpdate(room);
 
         session.sendMessage(new TextMessage("[LEAVE_ROOM]"));
-        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have left the room."));
+        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have left the room" + room.getName() + "."));
 
         globalActiveSessions.add(session);
         broadcastRooms();
@@ -427,10 +427,10 @@ public class LobbyService extends TextWebSocketHandler {
         sendRoomUpdate(room);
 
         player.getSession().sendMessage(new TextMessage("[KICKED]"));
-        player.getSession().sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have been kicked from the room."));
+        player.getSession().sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have been kicked from the room " + room.getName() + "."));
 
         session.sendMessage(new TextMessage("[SUCCESS]"));
-        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have kicked " + userName + " from the room."));
+        session.sendMessage(new TextMessage("[CHAT_MESSAGE]:【SERVER】: You have kicked " + userName + "."));
 
         globalActiveSessions.add(player.getSession());
         broadcastRooms();

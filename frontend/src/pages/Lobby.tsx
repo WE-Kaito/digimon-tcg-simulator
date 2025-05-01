@@ -19,8 +19,7 @@ import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import Chat from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
-import { Chip, Dialog, DialogContent } from "@mui/material";
-import { grey, teal } from "@mui/material/colors";
+import { Dialog, DialogContent } from "@mui/material";
 import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import Lottie from "lottie-react";
@@ -321,7 +320,7 @@ export default function Lobby() {
             {showCountdown && (
                 <Dialog
                     open={true}
-                    sx={{ background: "rgba(8,8,8,0.5)" }}
+                    sx={{ background: "rgba(8,8,8,0.5)", pointerEvents: "none" }}
                     PaperProps={{ sx: { background: "none", overflow: "hidden", boxShadow: "none" } }}
                 >
                     <Lottie animationData={countdownAnimation} />
@@ -364,112 +363,142 @@ export default function Lobby() {
                 </DialogContent>
             </MenuDialog>
 
-            <Layout>
-                <Header>
-                    <SoundBar>
-                        <div style={{ display: "flex", alignItems: "center", gap: 40, marginLeft: 20 }}>
-                            {isAlreadyOpenedInOtherTab ? (
-                                <ConnectionSpanYellow>⦾</ConnectionSpanYellow>
-                            ) : (
-                                <>
-                                    {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
-                                    {[0, 3].includes(websocket.readyState) && <ConnectionSpanRed>○</ConnectionSpanRed>}
-                                </>
-                            )}
-                            <OnlineUsers>
-                                <PopulationIcon fontSize={"large"} />
-                                <span>{userCount} online</span>
-                            </OnlineUsers>
-                        </div>
-                    </SoundBar>
-                    {/*TODO: Add own name plate here*/}
-                    {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
-                    <BackButton />
-                </Header>
-
-                <Content>
-                    <LeftColumn>
-                        <Card style={{ height: "calc(66.666% - 0.5rem)", maxHeight: 800 }}>
+            <Header>
+                <SoundBar>
+                    <div style={{ display: "flex", alignItems: "center", gap: 40, marginLeft: 20 }}>
+                        {isAlreadyOpenedInOtherTab ? (
+                            <ConnectionSpanYellow>⦾</ConnectionSpanYellow>
+                        ) : (
+                            <>
+                                {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
+                                {[0, 3].includes(websocket.readyState) && <ConnectionSpanRed>○</ConnectionSpanRed>}
+                            </>
+                        )}
+                        <OnlineUsers>
+                            <PopulationIcon fontSize={"large"} />
+                            <span>{userCount} online</span>
+                        </OnlineUsers>
+                    </div>
+                </SoundBar>
+                {/*TODO: Add own name plate here*/}
+                {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
+                <BackButton />
+            </Header>
+            <div
+                style={{
+                    width: "calc(100% - 32px)",
+                    height: "calc(100vh - 128px)",
+                    maxHeight: "calc(100vh - 128px)",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "32px",
+                }}
+            >
+                <LeftColumn>
+                    <ListCard>
+                        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
                             <CardTitle>{joinedRoom?.name ?? "Available Rooms"}</CardTitle>
-                            <ScrollArea>
-                                {joinedRoom ? (
-                                    <RoomList>
-                                        {joinedRoom.players.map((player) => {
-                                            const me = player.name === user;
-                                            const host = player.name === joinedRoom.hostName;
-                                            const amIHost = user === joinedRoom.hostName;
-
-                                            return (
-                                                <RoomItem key={player.name}>
-                                                    <StyledSpan>{player.name}</StyledSpan>
-
-                                                    {me && (
-                                                        <Button disabled={isLoading} onClick={handleLeaveRoom}>
-                                                            LEAVE
-                                                        </Button>
-                                                    )}
-                                                    {!me && amIHost && (
-                                                        <Button
-                                                            disabled={isLoading}
-                                                            onClick={() => handleKickPlayer(player.name)}
-                                                        >
-                                                            KICK
-                                                        </Button>
-                                                    )}
-                                                    {!me && !amIHost && <div />}
-
-                                                    {host ? (
-                                                        <img
-                                                            alt={"HOST"}
-                                                            width={48}
-                                                            src={crownSrc}
-                                                            style={{ justifySelf: "center" }}
-                                                        />
-                                                    ) : (
-                                                        <StyledChip
-                                                            label={"READY"}
-                                                            sx={{
-                                                                backgroundColor: player.ready
-                                                                    ? teal["A700"]
-                                                                    : grey[800],
-                                                            }}
-                                                        />
-                                                    )}
-
-                                                    {/*TODO: Replace name and avatar by name plates later*/}
-                                                    <img
-                                                        alt={player.name + "img"}
-                                                        width={96}
-                                                        height={96}
-                                                        style={{ justifySelf: "flex-end" }}
-                                                        src={profilePicture(player.avatarName)}
-                                                    />
-                                                </RoomItem>
-                                            );
-                                        })}
-                                    </RoomList>
+                            {joinedRoom ? (
+                                user === joinedRoom.hostName ? (
+                                    <Button disabled={startGameDisabled} onClick={handleStartGame}>
+                                        START GAME
+                                    </Button>
                                 ) : (
-                                    <RoomList>
-                                        {rooms.map((room) => (
-                                            <RoomItemLobby key={room.id}>
-                                                <StyledSpan>{room.name}</StyledSpan>
-                                                {room.hasPassword && <PrivateIcon />}
-                                                <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
-                                                    Join
-                                                </Button>
+                                    <QuickPlayButton isSearchingGame={!!meInRoom?.ready} onClick={handleToggleReady}>
+                                        READY
+                                    </QuickPlayButton>
+                                )
+                            ) : (
+                                <QuickPlayButton
+                                    disabled={isLoading}
+                                    onClick={handleQuickPlay}
+                                    isSearchingGame={isSearchingGame}
+                                >
+                                    {isSearchingGame ? "Finding Opponent..." : "Quick Play"}
+                                </QuickPlayButton>
+                            )}
+                        </div>
+                        <ScrollArea>
+                            {joinedRoom ? (
+                                <RoomList>
+                                    {joinedRoom.players.map((player) => {
+                                        const me = player.name === user;
+                                        const host = player.name === joinedRoom.hostName;
+                                        const amIHost = user === joinedRoom.hostName;
+
+                                        return (
+                                            <RoomItemLobby key={player.name}>
+                                                <StyledSpan>{player.name}</StyledSpan>
+
+                                                {me && (
+                                                    <Button disabled={isLoading} onClick={handleLeaveRoom}>
+                                                        LEAVE
+                                                    </Button>
+                                                )}
+                                                {!me && amIHost && (
+                                                    <Button
+                                                        disabled={isLoading}
+                                                        onClick={() => handleKickPlayer(player.name)}
+                                                    >
+                                                        KICK
+                                                    </Button>
+                                                )}
+                                                {!me && !amIHost && (
+                                                    <div style={{ width: 250, height: 1, opacity: 0 }} />
+                                                )}
+
+                                                {host ? (
+                                                    <img
+                                                        alt={"HOST"}
+                                                        width={48}
+                                                        src={crownSrc}
+                                                        style={{ justifySelf: "center" }}
+                                                    />
+                                                ) : (
+                                                    <StyledChip ready={player.ready}>
+                                                        {player.ready ? "READY" : "NOT READY"}
+                                                    </StyledChip>
+                                                )}
+
+                                                {/*TODO: Replace name and avatar by name plates later*/}
+                                                <img
+                                                    alt={player.name + "img"}
+                                                    width={96}
+                                                    height={96}
+                                                    style={{ justifySelf: "flex-end" }}
+                                                    src={profilePicture(player.avatarName)}
+                                                />
                                             </RoomItemLobby>
-                                        ))}
-                                    </RoomList>
-                                )}
-                            </ScrollArea>
-                        </Card>
+                                        );
+                                    })}
+                                </RoomList>
+                            ) : (
+                                <RoomList>
+                                    {rooms.map((room) => (
+                                        <RoomItemLobby key={room.id}>
+                                            <StyledSpan>{room.name}</StyledSpan>
+                                            {room.hasPassword && <PrivateIcon />}
+                                            <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
+                                                Join
+                                            </Button>
+                                        </RoomItemLobby>
+                                    ))}
+                                </RoomList>
+                            )}
+                        </ScrollArea>
+                    </ListCard>
 
-                        <Chat sendMessage={websocket.sendMessage} messages={messages} roomId={joinedRoom?.id} />
-                    </LeftColumn>
-
-                    <RightColumn>
+                    <div
+                        style={{
+                            display: "flex",
+                            maxHeight: "100%",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: "32px",
+                        }}
+                    >
                         <Card>
-                            <CardTitle>Deck Selection</CardTitle>
+                            {/*<CardTitle>Deck Selection</CardTitle>*/}
                             <Select value={activeDeckId} onChange={handleDeckChange}>
                                 {decks.map((deck) => (
                                     <option value={deck.id} key={deck.id}>
@@ -477,21 +506,19 @@ export default function Lobby() {
                                     </option>
                                 ))}
                             </Select>
-                            <DeckCard>
-                                {!!deckObject?.decklist?.length && (
-                                    <ProfileDeck
-                                        deck={deckObject}
-                                        lobbyView
-                                        setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                        setImageSelectionOpen={setImageSelectionOpen}
-                                    />
-                                )}
-                            </DeckCard>
+                            {!!deckObject?.decklist?.length && (
+                                <ProfileDeck
+                                    deck={deckObject}
+                                    lobbyView
+                                    setSleeveSelectionOpen={setSleeveSelectionOpen}
+                                    setImageSelectionOpen={setImageSelectionOpen}
+                                />
+                            )}
                         </Card>
 
                         {!joinedRoom && (
-                            <Card>
-                                <CardTitle>Room Setup</CardTitle>
+                            <Card style={{ minWidth: 300, flex: 1, maxWidth: 600 }}>
+                                {/*<CardTitle>Room Setup</CardTitle>*/}
                                 <Input
                                     value={newRoomName}
                                     onChange={(e) => setNewRoomName(e.target.value)}
@@ -512,63 +539,30 @@ export default function Lobby() {
                                 <Button
                                     disabled={!newRoomName || isLoading}
                                     onClick={handleCreateRoom}
-                                    style={{ width: "100%" }}
+                                    style={{ width: "250px", height: "36px" }}
                                 >
                                     Create Room
                                 </Button>
                             </Card>
                         )}
-                        <Card>
-                            {joinedRoom ? (
-                                user === joinedRoom.hostName ? (
-                                    <StartButton disabled={startGameDisabled} onClick={handleStartGame}>
-                                        START GAME
-                                    </StartButton>
-                                ) : (
-                                    <ReadyButton
-                                        disabled={isLoading}
-                                        isReady={meInRoom?.ready}
-                                        onClick={handleToggleReady}
-                                    >
-                                        READY
-                                    </ReadyButton>
-                                )
-                            ) : (
-                                <QuickPlayButton disabled={isLoading} onClick={handleQuickPlay}>
-                                    {isSearchingGame ? "LOOKING FOR GAME..." : "Quick Play"}
-                                </QuickPlayButton>
-                            )}
-                        </Card>
-                    </RightColumn>
-                </Content>
-            </Layout>
+                    </div>
+                </LeftColumn>
+
+                <Chat sendMessage={websocket.sendMessage} messages={messages} roomId={joinedRoom?.id} />
+            </div>
         </MenuBackgroundWrapper>
     );
 }
 
-const Layout = styled.div`
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 40px);
-    width: calc(100% - 20px);
-    padding: 20px;
-
-    @media (max-width: 1024px) {
-        max-width: 750px;
-        max-height: unset;
-    }
-`;
-
 const Header = styled.header`
+    width: 100%;
+    height: 64px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background-color: #771417;
-    border-radius: 2px;
-    box-shadow: 0 0 8px rgba(173, 62, 71, 0.8);
+    padding: 16px;
+    //background-color: #771417;
 `;
 
 const OnlineUsers = styled.div`
@@ -578,68 +572,69 @@ const OnlineUsers = styled.div`
     color: ghostwhite;
 `;
 
-const Content = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-
-    @media (min-width: 1024px) {
-        flex-direction: row;
-        height: calc(100vh - 120px); // Adjust based on your header height
-    }
-`;
-
 const LeftColumn = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-
-    @media (min-width: 1024px) {
-        width: 66.666%;
-        height: 100%;
-        max-height: calc(100vh - 150px);
-    }
-`;
-
-const RightColumn = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-
-    @media (min-width: 1024px) {
-        width: 33.333%;
-    }
+    gap: 32px;
+    flex: 1;
 `;
 
 const Card = styled.div`
-    border-radius: 4px;
-    box-shadow: 0 0 8px var(--christmas-green-shadow);
     padding: 1rem;
-    border: 2px solid var(--christmas-green);
+
+    position: relative;
+    color: ghostwhite;
+    background: rgba(12, 21, 16, 0.25);
+    border: 1px solid rgba(124, 124, 118, 0.4);
+    border-radius: 3px;
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+    backdrop-filter: hue-rotate(100deg);
 `;
 
-const CardTitle = styled.h2`
-    font-family: "Pixel Digivolve", sans-serif;
-    font-size: 1.5rem;
-    color: var(--yellow);
-    margin: 0 0 12px 0;
-    text-transform: uppercase;
-    text-shadow: 0 0 5px rgba(148, 105, 28, 0.32);
+const CardTitle = styled.span`
+    font-family: "League Spartan", sans-serif;
+    width: fit-content;
+    text-align: start;
+
+    color: var(--lobby-accent);
+    padding-top: 12px;
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 300;
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(
+            to right,
+            transparent 0%,
+            transparent 10%,
+            var(--lobby-accent) 50%,
+            transparent 90%,
+            transparent 100%
+        )
+        1;
+    align-self: flex-start;
+    margin-bottom: auto;
 `;
 
 const ScrollArea = styled.div`
     height: 100%;
     overflow-y: auto;
-    &::-webkit-scrollbar {
+
+    ::-webkit-scrollbar {
         width: 8px;
     }
-    &::-webkit-scrollbar-track {
-        background: #0c0c0c;
-    }
-    &::-webkit-scrollbar-thumb {
-        background: var(--christmas-green);
-        border-radius: 2px;
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(
+            to bottom right,
+            rgba(63, 109, 207, 0.75) 0%,
+            rgba(48, 95, 217, 0.75) 50%,
+            rgba(84, 126, 215, 0.75) 100%
+        );
+        border-radius: 5px;
+        box-shadow:
+            inset 0 1px 2px rgba(255, 255, 255, 0.6),
+            inset 0 -1px 3px rgba(0, 0, 0, 0.9);
     }
 `;
 
@@ -651,11 +646,11 @@ const RoomList = styled.ul`
 const RoomItem = styled.li`
     width: calc(100% - 1rem);
     display: grid;
-    grid-template-columns: repeat(4, 1fr) 100px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     justify-content: center;
     align-items: center;
     padding: 0.5rem;
-    border-bottom: 1px solid var(--christmas-green);
+    border-bottom: 1px solid var(--lobby-accent);
     transition: background-color 0.3s ease;
 
     &:last-child {
@@ -663,7 +658,7 @@ const RoomItem = styled.li`
     }
 
     &:hover {
-        background-color: rgba(29, 125, 252, 0.1);
+        background-color: rgba(218, 51, 187, 0.1);
     }
 `;
 
@@ -672,100 +667,94 @@ const RoomItemLobby = styled(RoomItem)`
     display: flex;
     grid-template-columns: unset;
     justify-content: space-between;
+    flex-wrap: wrap;
 `;
 
 const Button = styled.button`
-    background-color: var(--christmas-green);
-    color: #0c0c0c;
+    width: 250px;
+    height: 36px;
+    background: var(--blue-button-bg);
+    color: ghostwhite;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-family: "Amiga Forever Pro2", sans-serif;
-    text-transform: uppercase;
-    transition: all 0.3s ease;
+    font-family: "Frutiger", sans-serif;
+    letter-spacing: 1px;
+
+    text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.25);
+
+    box-shadow:
+        inset 0 3px 3px rgba(255, 255, 255, 0.6),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.9);
 
     &:hover {
-        background-color: #1d7dfc;
         color: ghostwhite;
-        box-shadow: 0 0 10px rgba(29, 125, 252, 0.5);
+        background: var(--blue-button-bg-hover);
+        //background-color: #1d7dfc;
+        //color: ghostwhite;
+        //box-shadow: 0 0 10px rgba(29, 125, 252, 0.5);
+    }
+
+    &:active {
+        background: var(--blue-button-bg-active);
+        box-shadow:
+            inset 0 2px 3px rgba(255, 255, 255, 0.6),
+            inset 0 -2px 3px rgba(0, 0, 0, 0.8);
+    }
+
+    &:disabled {
+        background: #27292d;
+        pointer-events: none;
     }
 `;
 
 const Input = styled.input<{ error?: boolean }>`
     flex-grow: 1;
     padding: 0.5rem;
-    border: 1px solid ${({ error }) => (error ? "crimson" : "var(--christmas-green)")};
-    border-radius: 2px;
+    border: 1px solid ${({ error }) => (error ? "crimson" : "var(--lobby-accent)")};
+    border-radius: 3px;
     background-color: #0c0c0c;
     color: ghostwhite;
     font-family: "Cousine", monospace;
 
     &:focus {
         outline: none;
-        box-shadow: 0 0 5px var(--christmas-green-shadow);
+        box-shadow: 0 0 5px var(--lobby-accent);
     }
 `;
 
 const Select = styled.select`
     width: 100%;
     padding: 0.5rem;
-    border: 1px solid var(--christmas-green);
-    border-radius: 2px;
+    border: 1px solid var(--lobby-accent);
+    border-radius: 3px;
     background-color: #0c0c0c;
     color: ghostwhite;
     font-family: "League Spartan", sans-serif;
+    font-size: 16px;
     margin-bottom: 1rem;
 
     &:focus {
         outline: none;
-        box-shadow: 0 0 5px var(--christmas-green-shadow);
+        box-shadow: 0 0 5px var(--lobby-accent);
     }
 `;
 
-const DeckCard = styled(Card)`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: fit-content;
-`;
-
-const QuickPlayButton = styled(Button)`
-    width: 100%;
-    background-color: var(--christmas-green);
-    color: #0c0c0c;
-    font-size: 1.2rem;
-    padding: 1rem;
+const QuickPlayButton = styled(Button)<{ isSearchingGame: boolean }>`
+    width: 250px;
+    height: 36px;
+    background: var(${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg" : "--blue-button-bg")});
 
     &:hover {
-        background-color: #1d7dfc;
-        color: ghostwhite;
+        background: var(
+            ${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg-hover" : "--blue-button-bg-hover")}
+        );
     }
-`;
 
-const ReadyButton = styled(QuickPlayButton)<{ isReady?: boolean }>`
-    width: 100%;
-    background-color: ${(props) => (props.isReady ? "var(--christmas-green)" : "var(--yellow)")};
-    color: #0c0c0c;
-    font-size: 1.2rem;
-    padding: 1rem;
-
-    &:hover {
-        background-color: ${(props) => (props.isReady ? "#38423f" : "#1d7dfc")};
-        color: ${(props) => (props.isReady ? "#0c0c0c" : "ghostwhite")};
-    }
-`;
-const StartButton = styled(Button)<{ disabled: boolean }>`
-    width: 100%;
-    background-color: ${(props) => (props.disabled ? "#38423f" : "#218f3c")};
-    color: #0c0c0c;
-    font-size: 1.2rem;
-    padding: 1rem;
-
-    &:hover {
-        background-color: ${(props) => (props.disabled ? "#38423f" : "#1d7dfc")};
-        color: ${(props) => (props.disabled ? "#0c0c0c" : "ghostwhite")};
+    &:active {
+        background: var(
+            ${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg-active" : "--blue-button-bg-active")}
+        );
     }
 `;
 
@@ -786,14 +775,23 @@ const ConnectionSpanRed = styled(ConnectionSpanGreen)`
     filter: drop-shadow(0 0 2px #090101);
 `;
 
-const StyledChip = styled(Chip)`
-    width: 40%;
-    justify-self: center;
+const StyledChip = styled.div<{ ready: boolean }>`
+    width: 100px;
     border-radius: 5px;
-    height: 40px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.5rem 0 0.5rem;
     letter-spacing: 1px;
-    font-size: 1.05rem;
-    box-shadow: inset 0 0 5px 0 rgba(0, 0, 0, 0.8);
+    color: ghostwhite;
+    text-shadow: 0 0 3px black;
+
+    background: ${({ ready }) => (ready ? "rgb(53,197,147)" : "rgb(192,42,42)")};
+    filter: drop-shadow(
+        ${({ ready }) => (ready ? "0 0 5px " + "rgba(61,227,169,0.6)" : "0 0 5px " + "rgba(236,54,54,0.6)")}
+    );
 `;
 
 const StyledSpan = styled.span`
@@ -802,4 +800,12 @@ const StyledSpan = styled.span`
     color: ghostwhite;
     text-shadow: 0 0 5px var(--christmas-green-shadow);
     justify-self: flex-start;
+`;
+
+const ListCard = styled(Card)`
+    flex: 1;
+    min-width: 500px;
+    @media (max-width: 600px), (max-height: 600px) {
+        max-height: 600px;
+    }
 `;

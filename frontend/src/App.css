@@ -4,6 +4,17 @@
   --blue: #386ff0;
   --christmas-green: #1c7540;
   --christmas-green-shadow: rgba(28, 117, 21, 0.25);
+  --lobby-accent: #ce345d;
+
+  --blue-button-bg: linear-gradient(to bottom, #3f6dcf 0%, #305fd9 50%, #547ed7 100%);
+  --blue-button-bg-hover: linear-gradient(to bottom, #4d78e1 0%, #3e6edb 50%, #5e87e5 100%);
+  --blue-button-bg-active: linear-gradient(to bottom, #3867cf 0%, #2455c6 40%, #2455c6 60%, #476fd0 100%);
+
+  --orange-button-bg: linear-gradient(to bottom, #cc6f30 0%, #c16022 50%, #d07f45 100%);
+  --orange-button-bg-hover: linear-gradient(to bottom, #cc763d 0%, #c46730 50%, #d28550 100%);
+  --orange-button-bg-active: linear-gradient(to bottom, #b8622c 0%, #aa5019 40%, #aa5019 60%, #bf6b3f 100%);
+
+
 
   margin: 0 auto;
   text-align: center;
