@@ -1,6 +1,11 @@
 import styled from "@emotion/styled";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { PeopleAlt as PopulationIcon, HttpsOutlined as PrivateIcon } from "@mui/icons-material";
+import {
+    PeopleAlt as PopulationIcon,
+    HttpsOutlined as PrivateIcon,
+    WifiOffRounded as OfflineIcon,
+    ErrorRounded as WarningIcon,
+} from "@mui/icons-material";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import useWebSocket from "react-use-websocket";
@@ -364,40 +369,34 @@ export default function Lobby() {
             </MenuDialog>
 
             <Header>
-                <SoundBar>
-                    <div style={{ display: "flex", alignItems: "center", gap: 40, marginLeft: 20 }}>
-                        {isAlreadyOpenedInOtherTab ? (
-                            <ConnectionSpanYellow>⦾</ConnectionSpanYellow>
-                        ) : (
-                            <>
-                                {websocket.readyState === 1 && <ConnectionSpanGreen>⦿</ConnectionSpanGreen>}
-                                {[0, 3].includes(websocket.readyState) && <ConnectionSpanRed>○</ConnectionSpanRed>}
-                            </>
-                        )}
-                        <OnlineUsers>
-                            <PopulationIcon fontSize={"large"} />
-                            <span>{userCount} online</span>
-                        </OnlineUsers>
-                    </div>
-                </SoundBar>
+                <SoundBar opened />
+
                 {/*TODO: Add own name plate here*/}
+
                 {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
+
+                <OnlineUsers>
+                    {isAlreadyOpenedInOtherTab && <WarningIcon fontSize={"large"} color={"warning"} />}
+                    {[0, 3].includes(websocket.readyState) && <OfflineIcon fontSize={"large"} color={"error"} />}
+                    <PopulationIcon sx={{ color: "whitesmoke", opacity: 0.8 }} fontSize={"large"} />
+                    <span style={{ color: "whitesmoke", opacity: 0.8, lineHeight: 1 }}>{userCount}</span>
+                </OnlineUsers>
+
                 <BackButton />
             </Header>
-            <div
-                style={{
-                    width: "calc(100% - 32px)",
-                    height: "calc(100vh - 128px)",
-                    maxHeight: "calc(100vh - 128px)",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "32px",
-                }}
-            >
+
+            <ContentDiv>
                 <LeftColumn>
                     <ListCard>
-                        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                            <CardTitle>{joinedRoom?.name ?? "Available Rooms"}</CardTitle>
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "flex-end",
+                                justifyContent: "space-between",
+                                flexWrap: "wrap",
+                            }}
+                        >
+                            <CardTitle style={{ marginBottom: 0 }}>{joinedRoom?.name ?? "Rooms"}</CardTitle>
                             {joinedRoom ? (
                                 user === joinedRoom.hostName ? (
                                     <Button disabled={startGameDisabled} onClick={handleStartGame}>
@@ -474,15 +473,17 @@ export default function Lobby() {
                                 </RoomList>
                             ) : (
                                 <RoomList>
-                                    {rooms.map((room) => (
-                                        <RoomItemLobby key={room.id}>
-                                            <StyledSpan>{room.name}</StyledSpan>
-                                            {room.hasPassword && <PrivateIcon />}
-                                            <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
-                                                Join
-                                            </Button>
-                                        </RoomItemLobby>
-                                    ))}
+                                    {rooms
+                                        .sort((a, b) => a.name.localeCompare(b.name))
+                                        .map((room) => (
+                                            <RoomItemLobby key={room.id}>
+                                                <StyledSpan>{room.name}</StyledSpan>
+                                                {room.hasPassword && <PrivateIcon />}
+                                                <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
+                                                    Join
+                                                </Button>
+                                            </RoomItemLobby>
+                                        ))}
                                 </RoomList>
                             )}
                         </ScrollArea>
@@ -517,7 +518,7 @@ export default function Lobby() {
                         </Card>
 
                         {!joinedRoom && (
-                            <Card style={{ minWidth: 300, flex: 1, maxWidth: 600 }}>
+                            <Card style={{ minWidth: 350, flex: 1, maxWidth: 600 }}>
                                 {/*<CardTitle>Room Setup</CardTitle>*/}
                                 <Input
                                     value={newRoomName}
@@ -549,13 +550,13 @@ export default function Lobby() {
                 </LeftColumn>
 
                 <Chat sendMessage={websocket.sendMessage} messages={messages} roomId={joinedRoom?.id} />
-            </div>
+            </ContentDiv>
         </MenuBackgroundWrapper>
     );
 }
 
 const Header = styled.header`
-    width: 100%;
+    width: calc(100% - 32px);
     height: 64px;
     display: flex;
     justify-content: space-between;
@@ -565,11 +566,34 @@ const Header = styled.header`
     //background-color: #771417;
 `;
 
+const ContentDiv = styled.div`
+    width: calc(100% - 32px);,
+    max-width: calc(100vw - 32px);
+    height: calc(100vh - 128px);
+    max-height: calc(100vh - 128px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    
+    @media (max-width: 600px) and (orientation: portrait) {
+        max-height: unset;
+        height: fit-content;
+    }
+    @media (max-width: 800px) and (orientation: landscape) {
+        max-height: unset;
+        height: fit-content;
+    }
+`;
+
 const OnlineUsers = styled.div`
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 0.5rem;
     color: ghostwhite;
+    font-size: 28px;
+    font-family:
+        League Spartan,
+        sans-serif;
 `;
 
 const LeftColumn = styled.div`
@@ -595,10 +619,8 @@ const Card = styled.div`
 const CardTitle = styled.span`
     font-family: "League Spartan", sans-serif;
     width: fit-content;
-    text-align: start;
 
     color: var(--lobby-accent);
-    padding-top: 12px;
     font-size: 32px;
     line-height: 1;
     font-weight: 300;
@@ -612,7 +634,6 @@ const CardTitle = styled.span`
             transparent 100%
         )
         1;
-    align-self: flex-start;
     margin-bottom: auto;
 `;
 
@@ -710,6 +731,13 @@ const Button = styled.button`
         background: #27292d;
         pointer-events: none;
     }
+
+    @media (max-width: 600px) and (orientation: portrait) {
+        width: 200px;
+    }
+    @media (max-width: 800px) and (orientation: landscape) {
+        width: 200px;
+    }
 `;
 
 const Input = styled.input<{ error?: boolean }>`
@@ -745,7 +773,6 @@ const Select = styled.select`
 `;
 
 const QuickPlayButton = styled(Button)<{ isSearchingGame: boolean }>`
-    width: 250px;
     height: 36px;
     background: var(${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg" : "--blue-button-bg")});
 
@@ -760,23 +787,6 @@ const QuickPlayButton = styled(Button)<{ isSearchingGame: boolean }>`
             ${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg-active" : "--blue-button-bg-active")}
         );
     }
-`;
-
-const ConnectionSpanGreen = styled.span`
-    color: #0b790b;
-    filter: drop-shadow(0 0 3px #19cb19);
-    font-size: 1.2em;
-    opacity: 0.8;
-`;
-
-const ConnectionSpanYellow = styled(ConnectionSpanGreen)`
-    color: #9f811f;
-    filter: drop-shadow(0 0 3px #e1bd29);
-`;
-
-const ConnectionSpanRed = styled(ConnectionSpanGreen)`
-    color: #ce1515;
-    filter: drop-shadow(0 0 2px #090101);
 `;
 
 const StyledChip = styled.div<{ ready: boolean }>`
@@ -808,8 +818,16 @@ const StyledSpan = styled.span`
 
 const ListCard = styled(Card)`
     flex: 1;
-    min-width: 500px;
-    @media (max-width: 600px), (max-height: 600px) {
+    min-width: 350px;
+
+    @media (max-width: 600px) and (orientation: portrait) {
         max-height: 600px;
+        max-width: calc(100vw - 32px);
+        min-width: unset;
+    }
+    @media (max-width: 800px) and (orientation: landscape) {
+        max-height: 500px;
+        max-width: calc(100vw - 32px);
+        min-width: unset;
     }
 `;

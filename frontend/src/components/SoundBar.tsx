@@ -16,14 +16,14 @@ import radioAnimation from "../assets/lotties/radio-animation.json";
 import { PropsWithChildren, useState } from "react";
 import { Menu, MenuItem } from "@mui/material";
 
-type Props = PropsWithChildren<{ iconFontSize?: number }>;
+type Props = PropsWithChildren<{ iconFontSize?: number; opened?: true }>;
 
-export default function SoundBar({ children, iconFontSize }: Props) {
+export default function SoundBar({ children, iconFontSize, opened }: Props) {
     const sfxEnabled = useSound((state) => state.sfxEnabled);
     const musicVolume = useSound((state) => state.musicVolume);
     const currentSong = useSound((state) => state.currentSong);
     const isMusicPlaying = useSound((state) => state.isMusicPlaying);
-    const isRadioMenuExpanded = useSound((state) => state.isRadioMenuExpanded);
+    const isRadioMenuExpanded = useSound((state) => (opened === undefined ? state.isRadioMenuExpanded : true));
     const toggleRadioMenu = useSound((state) => state.toggleRadioMenu);
     const toggleSfxEnabled = useSound((state) => state.toggleSfxEnabled);
     const setMusicVolume = useSound((state) => state.setMusicVolume);

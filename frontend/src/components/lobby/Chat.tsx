@@ -107,8 +107,13 @@ const Wrapper = styled.div`
 
     backdrop-filter: hue-rotate(100deg);
 
-    @media (max-width: 600px), (max-height: 600px) {
-        max-height: 500px;
+    @media (max-width: 600px) and (orientation: portrait) {
+        max-height: 320px;
+        max-width: 100%;
+    }
+    @media (max-width: 800px) and (orientation: landscape) {
+        max-height: 320px;
+        max-width: 100%;
     }
 `;
 
@@ -206,6 +211,7 @@ const History = styled.div`
 `;
 
 const SubmitButton = styled.button`
+    height: 40px;
     padding: 0.5rem 1rem;
     font-family: "Frutiger", sans-serif;
     letter-spacing: 1px;
@@ -236,8 +242,8 @@ const SubmitButton = styled.button`
     &:active {
         background: var(--blue-button-bg-active);
         box-shadow:
-            inset -1 -1px 1px rgba(255, 255, 255, 0.6),
-            inset 1 1px 1px rgba(0, 0, 0, 0.8);
+            inset -1px -1px 1px rgba(255, 255, 255, 0.6),
+            inset 1px 1px 1px rgba(0, 0, 0, 0.8);
     }
 `;
 
