@@ -32,7 +32,7 @@ class BeelzemonXBot(Bot):
                     self.logger.info('No Beelzemon on fields, happy to discard Beelzemon X Antibody.')
                     card_indexes.add(beelzemon_x_antibody_in_hand_index)
         if len(card_indexes) < n_cards:
-            missing_card_indexes = random.sample(list(range(0, len(self.game['player2Hand']) - 1)), k=n_cards-len(card_indexes))
+            missing_card_indexes = random.sample(list(range(0, len(self.game['player2Hand']))), k=n_cards-len(card_indexes))
         await self.discard_hand(ws, card_indexes.union(missing_card_indexes))
 
     async def play_card(self, ws, card_location, card_index, cost, back=False):

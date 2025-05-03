@@ -659,11 +659,6 @@ class Bot(ABC):
             self.game['player2Trash'].insert(0, dict(card))
             await self.send_message(ws, f"Discarding {card['uniqueCardNumber']}-{card['name']} from hand.")
         self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
-        self.logger.debug('----------------')
-        self.logger.debug([c['name'] for c in self.game['player2Hand']])
-        self.logger.debug([c['name'] for c in self.game['player2Trash']])
-        self.logger.debug('----------------')
-        self.logger.debug('----------------')
 
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
