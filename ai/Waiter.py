@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from decouple import config
+import random
 import re
 
 DIGI_MIN_INDEX=1
@@ -92,6 +93,27 @@ class Waiter:
             card_index = int(message[1])
             if card_index >= DIGI_MIN_INDEX and card_index <= DIGI_MAX_INDEX and len(self.bot.game['player2Digi'][card_index-1]) > 0:
                 return self.bot.game['player2Digi'][card_index-1][-1]['id']
+        await self.send_invalid_command_message(ws)
+        return False
+    
+    async def filter_discard_hand_random(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 4 and message[3].isdigit():
+            n_cards = int(message[3])
+            if(n_cards) <= 0:
+                return False
+            if len(self.bot.game['player2Hand']) >= n_cards:
+                return random.sample(list(range(0, len(self.bot.game['player2Hand']))), k=n_cards)
+        await self.send_invalid_command_message(ws)
+        return False
+
+    async def filter_discard_hand_choose(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 4 and message[3].isdigit():
+            n_cards = int(message[3])
+            if(n_cards) <= 0:
+                return False
+            return n_cards
         await self.send_invalid_command_message(ws)
         return False
 
@@ -215,6 +237,16 @@ class Waiter:
             await self.bot.update_opponent_game(ws, json.loads(updated_game))
         chat_message_prefix = f'[CHAT_MESSAGE]:{self.bot.opponent}﹕'
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
+        prefix = 'discard hand random'
+        if message.startswith(prefix):
+            card_indexes = await self.filter_discard_hand_random(ws, message)
+            if(card_indexes):
+                await self.bot.discard_hand(ws, card_indexes)
+        prefix = 'discard hand choose'
+        if message.startswith(prefix):
+            n_cards = await self.filter_discard_hand_choose(ws, message)
+            if(n_cards):
+                await self.bot.discard_hand_choose(ws, n_cards)
         prefix = 'suspend'
         if message.startswith(prefix):
             card_id = await self.filter_target_digimon_action(ws, message)

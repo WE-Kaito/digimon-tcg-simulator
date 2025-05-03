@@ -268,6 +268,15 @@ class Bot(ABC):
                         return i, j
         raise RuntimeError(f'Card with id {id} not found in battle area.')
     
+    def find_card_index_by_id_in_hand(self, id):
+        for i in range(len(self.game[f'player2Hand'])):
+            if len(self.game[f'player2Hand'][i]) > 0:
+                for j in range(len(self.game[f'player2Hand'][i])):
+                    card = self.game[f'player2Hand'][i][j]
+                    if card['id'] == id:
+                        return i, j
+        raise RuntimeError(f'Card with id {id} not found in hand.')
+    
     def find_card_index_by_id_in_trash(self, id):
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
@@ -639,6 +648,22 @@ class Bot(ABC):
         await self.send_message(ws, f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
         await self.suspend_card(ws, card_index)
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
+    
+    async def discard_hand(self, ws, card_indexes):
+        new_hand_cards = []
+        sorted_card_indexes = sorted(card_indexes)
+        
+        for card_index in sorted_card_indexes:
+            await self.move_card(ws, f'myHand{card_index}', 'myTrash')
+            card = self.game['player2Hand'][card_index]
+            self.game['player2Trash'].insert(0, dict(card))
+            await self.send_message(ws, f"Discarding {card['uniqueCardNumber']}-{card['name']} from hand.")
+        self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
+        self.logger.debug('----------------')
+        self.logger.debug([c['name'] for c in self.game['player2Hand']])
+        self.logger.debug([c['name'] for c in self.game['player2Trash']])
+        self.logger.debug('----------------')
+        self.logger.debug('----------------')
 
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
@@ -1215,9 +1240,13 @@ class Bot(ABC):
             except RuntimeError as e:
                 await self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.')
                 raise e
+    
+    @abstractmethod
+    def discard_hand_choose(self):
+        pass
 
     @abstractmethod
-    def mulligan_strategy(self):
+    async def mulligan_strategy(self, ws, n_cards):
         pass
 
     @abstractmethod
