@@ -37,6 +37,8 @@ jobs:
           path: backend/src/main/resources/static
       - name: Build Backend
         run: mvn -B package --file backend/pom.xml
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       - uses: actions/upload-artifact@v4
         with:
           name: backend-build

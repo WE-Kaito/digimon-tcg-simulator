@@ -1,6 +1,6 @@
 package com.github.wekaito.backend;
 
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -10,9 +10,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/report")
 public class ReportController {
-    private static final String channelId = "1317425552826699806";
-    private final String token = System.getenv("DISCORD_REPORT_WEBHOOK");
-    private final String discordWebhookUrl = "https://discord.com/api/webhooks/" + channelId + "/" + token;
+    @Value("${discord.webhook.url}")
+    private String discordWebhookUrl;
 
     @PostMapping
     public ResponseEntity<String> sendReport(@RequestBody Map<String, Object> payload) {
