@@ -96,18 +96,28 @@ class Waiter:
         await self.send_invalid_command_message(ws)
         return False
     
-    async def filter_discard_hand_random(self, ws, message):
+    async def filter_discard_hand_random_action(self, ws, message):
         message = message.split(' ')
         if len(message) == 4 and message[3].isdigit():
             n_cards = int(message[3])
-            if(n_cards) <= 0:
+            if(n_cards) <= 0 or n_cards > len(self.bot.game['player2Hand']):
                 return False
             if len(self.bot.game['player2Hand']) >= n_cards:
                 return random.sample(list(range(0, len(self.bot.game['player2Hand']))), k=n_cards)
         await self.send_invalid_command_message(ws)
         return False
 
-    async def filter_discard_hand_choose(self, ws, message):
+    async def filter_hand_security_hand_action(self, ws, message):
+        message = message.split(' ')
+        if len(message) == 5 and message[4].isdigit():
+            n_cards = int(message[4])
+            if(n_cards) <= 0 or n_cards > len(self.bot.game['player2Hand']):
+                return False
+            return n_cards
+        await self.send_invalid_command_message(ws)
+        return False
+
+    async def filter_discard_hand_choose_action(self, ws, message):
         message = message.split(' ')
         if len(message) == 4 and message[3].isdigit():
             n_cards = int(message[3])
@@ -239,12 +249,12 @@ class Waiter:
         message = message.replace(chat_message_prefix, '', 1).strip().lower()
         prefix = 'discard hand random'
         if message.startswith(prefix):
-            card_indexes = await self.filter_discard_hand_random(ws, message)
+            card_indexes = await self.filter_discard_hand_random_action(ws, message)
             if(card_indexes):
                 await self.bot.discard_hand(ws, card_indexes)
         prefix = 'discard hand choose'
         if message.startswith(prefix):
-            n_cards = await self.filter_discard_hand_choose(ws, message)
+            n_cards = await self.filter_discard_hand_choose_action(ws, message)
             if(n_cards):
                 await self.bot.discard_hand_choose(ws, n_cards)
         prefix = 'suspend'
@@ -300,6 +310,18 @@ class Waiter:
         prefix = 'trash bottom security'
         if message.startswith(prefix):
             await self.bot.trash_bottom_card_of_security(ws)
+        prefix = 'place hand top security'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            n_cards = await self.filter_hand_security_hand_action(ws, message)
+            if(n_cards):
+                await self.bot.put_cards_from_hand_on_top_security_choose(ws, n_cards)
+        prefix = 'place hand bottom security'
+        prefix_with_delimiter = prefix.replace(' ', '_')
+        if message.startswith(prefix):
+            n_cards = await self.filter_hand_security_hand_action(ws, message)
+            if(n_cards):
+                await self.bot.put_cards_from_hand_to_bottom_security_choose(ws, n_cards)
         prefix = 'place top security'
         prefix_with_delimiter = prefix.replace(' ', '_')
         if message.startswith(prefix):

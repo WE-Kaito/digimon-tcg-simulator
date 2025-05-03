@@ -75,4 +75,8 @@ The position X is identified in the following way on the field:
 
 - **discard hand random X**: Make the bot discard X cards at random
 
-- **discard hand choose X**: Make the bot discard X cards to its own choice
+- **discard hand choose X**: Make the bot discard X cards of its own choice
+
+- **place hand top security X**: Make the bot put X cards of its own choice from hand on top of security stack
+
+- **place hand bottom security X**: Make the bot put X cards of its own choice from hand to bottom of security stack

@@ -660,6 +660,26 @@ class Bot(ABC):
             await self.send_message(ws, f"Discarding {card['uniqueCardNumber']}-{card['name']} from hand.")
         self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
 
+    async def put_cards_from_hand_to_bottom_security(self, ws, card_indexes):
+        new_hand_cards = []
+        sorted_card_indexes = sorted(card_indexes)
+        for card_index in sorted_card_indexes:
+            await self.move_card(ws, f'myHand{card_index}', f'mySecurityBottom{len(self.game["player2Security"]) - 1}', field_update=False)
+            card = self.game['player2Hand'][card_index]
+            self.game['player2Security'].insert(len(self.game['player2Security']), dict(card))
+            await self.send_message(ws, f"Placing ?? from hand to bottom of security stack.")
+        self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
+
+    async def put_cards_from_hand_on_top_security(self, ws, card_indexes):
+        new_hand_cards = []
+        sorted_card_indexes = sorted(card_indexes)
+        for card_index in sorted_card_indexes:
+            await self.move_card(ws, f'myHand{card_index}', f'mySecurityTop0', field_update=False)
+            card = self.game['player2Hand'][card_index]
+            self.game['player2Security'].insert(0, dict(card))
+            await self.send_message(ws, f"Placing ?? from hand on top of security stack")
+        self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
+
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
         for i in range(len(self.game['player2Digi'])):
@@ -1235,6 +1255,14 @@ class Bot(ABC):
             except RuntimeError as e:
                 await self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.')
                 raise e
+    
+    @abstractmethod
+    def put_cards_from_hand_on_top_security_choose(self):
+        pass
+
+    @abstractmethod
+    def put_cards_from_hand_to_bottom_security_choose(self):
+        pass
     
     @abstractmethod
     def discard_hand_choose(self):
