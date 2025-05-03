@@ -79,8 +79,12 @@ export default function CardStack(props: CardStackProps) {
                 height: isBeingDragged ? undefined : `${cardWidth * 1.4}px`,
                 position: "absolute",
                 bottom: `${isLinkCard ? bottomPercentage - 7.5 : bottomPercentage}%`,
-                rotate: isLinkCard ? "-90deg" : `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
-                left: isLinkCard ? "-160%" : 0,
+                rotate: isLinkCard
+                    ? opponentSide
+                        ? "-270deg"
+                        : "-90deg"
+                    : `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
+                [opponentSide ? "right" : "left"]: isLinkCard ? "-160%" : 0,
             };
         },
         [isCardBeingDragged, cardWidth, cards]
