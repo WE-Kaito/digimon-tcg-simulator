@@ -72,3 +72,7 @@ The position X is identified in the following way on the field:
 - **collision X**: Force the bot to block the digimon X on your side (starting from left) with at least one digimon on its side.
 
 - **start mp attack X**: Make the digimon at the X position gain "Start of main phase" digimon attacks".
+
+- **discard hand random X**: Make the bot discard X cards at random
+
+- **discard hand choose X**: Make the bot discard X cards to its own choice
