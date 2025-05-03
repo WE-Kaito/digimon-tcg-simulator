@@ -86,8 +86,8 @@ const Container = styled.div<LinkAreaProps & { isOver: boolean; stackOpened: boo
     align-items: center;
     background: ${({ isOver }) =>
         isOver ? "linear-gradient(to top, rgba(222, 222, 222, 0.35) 0%, transparent 95%)" : "rgba(20, 20, 20, 0.25)"};
-    box-shadow: inset 10px 0 20px rgba(113, 175, 201, 0.1);
-    transform: translateX(-6px);
+    box-shadow: inset ${({ side }) => (side === SIDE.MY ? "10px" : "-10px")} 0 20px rgba(113, 175, 201, 0.1);
+    transform: translateX(${({ side }) => (side === SIDE.MY ? "-6px" : "6px")});
 `;
 
 const StyledLinkIcon = styled(AddLinkIcon)`

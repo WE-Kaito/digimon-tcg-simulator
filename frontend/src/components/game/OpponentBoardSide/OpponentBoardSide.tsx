@@ -78,10 +78,10 @@ const LayoutContainer = styled.div`
         ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . . . . . . . . trash trash deck deck player player player"
         ". . breeding breeding BA13 BA13 BA13 BA13 BA12 BA12 BA12 BA12 BA12 BA11 BA11 BA11 BA11 BA11 BA10 BA10 BA10 BA10 BA10 BA9 BA9 BA9 BA9 BA9 trash trash deck deck player player player"
         ". . breeding breeding BA13 BA13 BA13 BA13 BA12 BA12 BA12 BA12 BA12 BA11 BA11 BA11 BA11 BA11 BA10 BA10 BA10 BA10 BA10 BA9 BA9 BA9 BA9 BA9 . . . . . . ."
-        "egg-deck egg-deck breeding breeding BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . ."
-        "egg-deck egg-deck breeding breeding BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . ."
-        ". SS SS .                           BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . ."
-        ". SS SS .                           BA8 BA8 LA8 BA7 BA7 LA7 BA6 BA6 LA6 BA5 BA5 LA5 BA4 BA4 LA4 BA3 BA3 LA3 BA2 BA2 LA2 BA1 BA1 LA1 . . . . . . .";
+        "egg-deck egg-deck breeding breeding LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1 . . . . . . ."
+        "egg-deck egg-deck breeding breeding LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1 . . . . . . ."
+        ". SS SS .                           LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1 . . . . . . ."
+        ". SS SS .                           LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1 . . . . . . .";
     gap: 1px;
     position: relative;
 `;
