@@ -134,7 +134,7 @@ export const familiarToken: CardType = {
 }
 
 export const pipefoxToken: CardType = {
-    imgUrl: PipeFox,
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
     uniqueCardNumber: "PipeFox-TOKEN",
     cardNumber: "",
     color: ["Yellow"],
@@ -147,7 +147,7 @@ export const pipefoxToken: CardType = {
 }
 
 export const ukanomitamaToken: CardType = {
-    imgUrl: UkanoMitama,
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
     uniqueCardNumber: "UkanoMitama-TOKEN",
     cardNumber: "",
     color: ["Yellow"],
@@ -160,7 +160,7 @@ export const ukanomitamaToken: CardType = {
 }
 
 export const athoreneporToken: CardType = {
-    imgUrl: AthoRenePor,
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
     uniqueCardNumber: "AthoRenePor-TOKEN",
     cardNumber: "",
     color: ["White"],
@@ -173,7 +173,7 @@ export const athoreneporToken: CardType = {
 }
 
 export const petrificationToken: CardType = {
-    imgUrl: Petrification,
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
     uniqueCardNumber: "AthoRenePor-TOKEN",
     cardNumber: "",
     color: ["White"],

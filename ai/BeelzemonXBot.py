@@ -1,5 +1,6 @@
 import asyncio
 import math
+import random
 import time
 from pprint import pprint
 
@@ -17,6 +18,55 @@ class BeelzemonXBot(Bot):
         self.preferred_trigger_order = ['P-077', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'ST14-07', 'EX2-044', 'EX2-039', 'BT2-068', 'BT10-081', 'BT12-085', 'EX2-044', 'ST14-08']
         self.blockers_priority_list = ['BT10-081', 'ST14-07', 'BT2-068', 'BT12-085', 'ST14-01', 'BT12-073', 'ST14-02', 'ST14-06', 'EX2-044', 'EX2-039', 'ST14-08', 'P-077']
         self.gained_baalmon_effect = set()
+    
+
+    async def put_cards_from_hand_on_top_security_choose(self, ws, n_cards):
+        card_indexes = set()
+        missing_card_indexes = set()
+        for i in range(n_cards):
+            self.logger.info('Check if I have Beelzemon (X Antibody) in my hand.')
+            beelzemon_x_antibody_in_hand_index = self.card_in_hand('BT12-085', 'Beelzemon (X Antibody)')
+            if beelzemon_x_antibody_in_hand_index >= 0 and beelzemon_x_antibody_in_hand_index not in card_indexes:
+                self.logger.info('Have Beelzemon (X Antibody) in my hand. Checking for Beelzemon on the field.')
+                beelzemon_on_field_index = self.card_in_battle_area_with_name('Beelzemon')
+                if not(beelzemon_on_field_index >= 0 and len(self.game['player2Trash']) >=10):
+                    self.logger.info('No Beelzemon on fields, happy to discard Beelzemon X Antibody.')
+                    card_indexes.add(beelzemon_x_antibody_in_hand_index)
+        if len(card_indexes) < n_cards:
+            missing_card_indexes = random.sample(list(range(0, len(self.game['player2Hand']))), k=n_cards-len(card_indexes))
+        await self.put_cards_from_hand_on_top_security(ws, card_indexes.union(missing_card_indexes))
+
+    async def put_cards_from_hand_to_bottom_security_choose(self, ws, n_cards):
+        card_indexes = set()
+        missing_card_indexes = set()
+        for i in range(n_cards):
+            self.logger.info('Check if I have Beelzemon (X Antibody) in my hand.')
+            beelzemon_x_antibody_in_hand_index = self.card_in_hand('BT12-085', 'Beelzemon (X Antibody)')
+            if beelzemon_x_antibody_in_hand_index >= 0 and beelzemon_x_antibody_in_hand_index not in card_indexes:
+                self.logger.info('Have Beelzemon (X Antibody) in my hand. Checking for Beelzemon on the field.')
+                beelzemon_on_field_index = self.card_in_battle_area_with_name('Beelzemon')
+                if not(beelzemon_on_field_index >= 0 and len(self.game['player2Trash']) >=10):
+                    self.logger.info('No Beelzemon on fields, happy to discard Beelzemon X Antibody.')
+                    card_indexes.add(beelzemon_x_antibody_in_hand_index)
+        if len(card_indexes) < n_cards:
+            missing_card_indexes = random.sample(list(range(0, len(self.game['player2Hand']))), k=n_cards-len(card_indexes))
+        await self.put_cards_from_hand_to_bottom_security(ws, card_indexes.union(missing_card_indexes))
+
+    async def discard_hand_choose(self, ws, n_cards):
+        card_indexes = set()
+        missing_card_indexes = set()
+        for i in range(n_cards):
+            self.logger.info('Check if I have Beelzemon (X Antibody) in my hand.')
+            beelzemon_x_antibody_in_hand_index = self.card_in_hand('BT12-085', 'Beelzemon (X Antibody)')
+            if beelzemon_x_antibody_in_hand_index >= 0 and beelzemon_x_antibody_in_hand_index not in card_indexes:
+                self.logger.info('Have Beelzemon (X Antibody) in my hand. Checking for Beelzemon on the field.')
+                beelzemon_on_field_index = self.card_in_battle_area_with_name('Beelzemon')
+                if not(beelzemon_on_field_index >= 0 and len(self.game['player2Trash']) >=10):
+                    self.logger.info('No Beelzemon on fields, happy to discard Beelzemon X Antibody.')
+                    card_indexes.add(beelzemon_x_antibody_in_hand_index)
+        if len(card_indexes) < n_cards:
+            missing_card_indexes = random.sample(list(range(0, len(self.game['player2Hand']))), k=n_cards-len(card_indexes))
+        await self.discard_hand(ws, card_indexes.union(missing_card_indexes))
 
     async def play_card(self, ws, card_location, card_index, cost, back=False):
         card = await super().play_card(ws, card_location, card_index, cost, back)
@@ -263,7 +313,6 @@ class BeelzemonXBot(Bot):
                 await self.use_seventh_full_cluster_trash_if_possible(ws)
                 return True
             self.logger.info('No Beelzemon on fields, won\'t digivolve to Beelzemon (X Antibody).')
-
         self.logger.info('Check if I can digivolve Impmon in Impmon (X Antibody).')
         for digimon_index in range(len(self.game['player2Digi'])):
             if len(self.game['player2Digi'][digimon_index]) > 0:

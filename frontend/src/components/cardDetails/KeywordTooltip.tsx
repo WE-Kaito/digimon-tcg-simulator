@@ -95,7 +95,7 @@ function getExplanation(keyword: string) {
         case "Fortitude":
             return "When this Digimon with Digivolution cards is deleted, play this card without paying the cost.";
         case "Scapegoat":
-            return: "When this Digimon would be deleted other than by one of your effects, by deleting 1 of your other Digimon, prevent that deletion";
+            return "When this Digimon would be deleted other than by one of your effects, by deleting 1 of your other Digimon, prevent that deletion";
         case "Partition":
             return "When this Digimon that has 1 of each specified cards in its digivolution cards would leave the battle area other than by your own effects or by battle, you may play 1 of each card without paying their costs.";
         case "Overclock":
@@ -109,14 +109,14 @@ function getExplanation(keyword: string) {
         case "Fragment":
             return "When this Digimon would be deleted, by trashing any X of its digivolution cards, it isn't deleted.";
         case "Execute":
-            return: "At the end of the turn, this Digimon may attack. At the end of that attack, delete this Digimon. Your opponent's unsuspended Digimon can also be attacked with this effect.";
+            return "At the end of the turn, this Digimon may attack. At the end of that attack, delete this Digimon. Your opponent's unsuspended Digimon can also be attacked with this effect.";
         case "Decode":
-            return: "When this Digimon would leave the battle area other than in battle, you may play 1 specified Digimon card from its digivolution cards without paying the cost.";
+            return "When this Digimon would leave the battle area other than in battle, you may play 1 specified Digimon card from its digivolution cards without paying the cost.";
         case "Progress":
             return "While attacking, your opponent's effects don't affect this Digimon.";
-        case "Link"
+        case "Link":
             return "Add X to this Digimon's maximum links.";
-        case "Training"
+        case "Training":
             return "In the main phase, by suspending this Digimon, place your deck's top card face down as this Digimon's bottom digivolution card. This effect can also activate in the breeding area.";
         default:
             return "";
@@ -188,14 +188,14 @@ function getKeywordForLink(keyword: string) {
         case "Fragment":
             return "Fragment";
         case "Execute":
-            return: "Execute";
+            return "Execute";
         case "Decode":
-            return: "Decode";
+            return "Decode";
         case "Progress":
             return "Progress";
-        case "Link"
+        case "Link":
             return "Link";
-        case "Training"
+        case "Training":
             return "Training";
         default:
             return "";
