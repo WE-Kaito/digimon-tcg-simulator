@@ -192,7 +192,6 @@ const StyledTextField = styled(TextField)`
 `;
 
 const StyledButton = styled.button<{ disabled: boolean }>`
-    cursor: pointer;
     width: fit-content;
     height: 2.5em;
     flex-shrink: 0;
@@ -227,7 +226,6 @@ const StyledButton = styled.button<{ disabled: boolean }>`
 `;
 
 const CancelButton = styled.button`
-    cursor: pointer;
     width: fit-content;
     height: 2.5em;
     flex-shrink: 0;

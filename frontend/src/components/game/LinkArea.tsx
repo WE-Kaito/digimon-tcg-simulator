@@ -80,12 +80,16 @@ const Container = styled.div<LinkAreaProps & { isOver: boolean; stackOpened: boo
     grid-area: ${(props) => `LA${props.num}`};
     height: calc(100% - 6px);
     width: calc(100% - 6px);
-    border-radius: 0 5px 5px 0;
+    border-radius: ${({ side }) => (side === SIDE.MY ? "0 5px 5px 0" : "5px 0 0 5px")};
     display: flex;
     justify-content: center;
     align-items: center;
-    background: ${({ isOver }) =>
-        isOver ? "linear-gradient(to top, rgba(222, 222, 222, 0.35) 0%, transparent 95%)" : "rgba(20, 20, 20, 0.25)"};
+    background: ${({ isOver, stackOpened }) =>
+        isOver
+            ? "linear-gradient(to top, rgba(222, 222, 222, 0.35) 0%, transparent 95%)"
+            : stackOpened
+              ? "rgba(239,176,68,0.75)"
+              : "rgba(20, 20, 20, 0.25)"};
     box-shadow: inset ${({ side }) => (side === SIDE.MY ? "10px" : "-10px")} 0 20px rgba(113, 175, 201, 0.1);
     transform: translateX(${({ side }) => (side === SIDE.MY ? "-6px" : "6px")});
 `;

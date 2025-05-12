@@ -31,6 +31,7 @@ const Container = styled.div`
     flex-direction: column;
     box-shadow: inset 0 0 3px rgba(248, 248, 255, 0.2);
     cursor: pointer;
+    transform: translate(30%, 20%);
 `;
 
 const Button = styled.div<{ active: boolean }>`

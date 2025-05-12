@@ -54,7 +54,7 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
                 <BattleArea key={"opponentBA" + index} num={index + 1} side={SIDE.OPPONENT} />
             ))}
             {Array.from({ length: 8 }).map((_, index) => (
-                <LinkArea key={"playerLA" + index} num={index + 1} side={SIDE.OPPONENT} wsUtils={wsUtils} />
+                <LinkArea key={"opponentLA" + index} num={index + 1} side={SIDE.OPPONENT} wsUtils={wsUtils} />
             ))}
             <BattleArea isBreeding side={SIDE.OPPONENT} />
             <OpponentEventUtils wsUtils={wsUtils} />
@@ -73,10 +73,10 @@ const LayoutContainer = styled.div`
     grid-template-columns: subgrid;
     grid-template-rows: subgrid;
     grid-template-areas:
-        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils . restart . surrender . report . player player player"
-        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils . . . . . . . player player player"
-        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . . . . . . . . trash trash deck deck player player player"
-        ". . breeding breeding BA13 BA13 BA13 BA13 BA12 BA12 BA12 BA12 BA12 BA11 BA11 BA11 BA11 BA11 BA10 BA10 BA10 BA10 BA10 BA9 BA9 BA9 BA9 BA9 trash trash deck deck player player player"
+        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . .               . . . . . . event-utils event-utils event-utils event-utils event-utils . report"
+        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . trash trash deck deck . . . event-utils event-utils event-utils event-utils event-utils . surrender"
+        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . trash trash deck deck . . . . . . . . . restart"
+        ". . breeding breeding BA13 BA13 BA13 BA13 BA12 BA12 BA12 BA12 BA12 BA11 BA11 BA11 BA11 BA11 BA10 BA10 BA10 BA10 BA10 BA9 BA9 BA9 BA9 BA9 player player player player player player player"
         ". . breeding breeding BA13 BA13 BA13 BA13 BA12 BA12 BA12 BA12 BA12 BA11 BA11 BA11 BA11 BA11 BA10 BA10 BA10 BA10 BA10 BA9 BA9 BA9 BA9 BA9 . . . . . . ."
         "egg-deck egg-deck breeding breeding LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1 . . . . . . ."
         "egg-deck egg-deck breeding breeding LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1 . . . . . . ."

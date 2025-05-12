@@ -49,15 +49,15 @@ const LayoutContainer = styled.div`
     grid-template-columns: subgrid;
     grid-template-rows: subgrid;
     grid-template-areas:
-        "SS-TFU SS SS SS-TFD                 BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
-        "SS-BFU SS SS SS-BFD                 BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
-        ". . breeding breeding               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
-        "egg-deck egg-deck breeding breeding BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
-        "egg-deck egg-deck breeding breeding               BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 . . . . . . ."
-        "egg-deck-bottom egg-deck-bottom breeding breeding BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 trash trash deck deck player player player"
-        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand . . . . . . . . trash trash deck deck player player player"
-        ". phase phase phase phase phase phase . . hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils drag-toggle . . . . deck deck player player player"
-        ". phase phase phase phase phase phase . eye hand hand hand hand hand hand hand hand hand hand hand event-utils event-utils event-utils event-utils event-utils drag-toggle deck-utils tokens . . . . player player player";
+        "SS-TFU SS SS SS-TFD                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
+        "SS-BFU SS SS SS-BFD                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
+        ". . breeding breeding                             BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
+        "egg-deck egg-deck breeding breeding               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . ."
+        "egg-deck egg-deck breeding breeding               BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13   . . . .  . . ."
+        "egg-deck-bottom egg-deck-bottom breeding breeding BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13   player player player player player player player"
+        ". . . . . . . . . hand hand hand hand hand hand hand hand hand hand hand                           . trash trash  deck deck deck-utils drag-toggle      .                   . . . .  . . ."
+        ". phase phase phase phase phase phase . . hand hand hand hand hand hand hand hand hand hand hand   . trash trash  deck deck deck-utils drag-toggle .                   event-utils event-utils event-utils event-utils event-utils . ."
+        ". phase phase phase phase phase phase . eye hand hand hand hand hand hand hand hand hand hand hand . . .          deck deck deck-utils . .                   event-utils event-utils event-utils event-utils event-utils . tokens";
 
     gap: 1px;
     position: relative;

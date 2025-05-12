@@ -45,10 +45,8 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
 
 const Container = styled.div<{ hasChildren: boolean }>`
     grid-area: event-utils;
-    height: 95%;
+    height: 100%;
     width: 95%;
-    margin: 1%;
-    padding: 1.5%;
     display: flex;
     position: relative;
     justify-content: center;

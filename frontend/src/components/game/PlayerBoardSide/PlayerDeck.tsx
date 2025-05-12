@@ -47,7 +47,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
     return (
-        <Container>
+        <Container className={"button"}>
             <StyledSpan>{myDeckField.length}</StyledSpan>
 
             <DeckImg
@@ -83,6 +83,7 @@ const Container = styled.div`
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
+    transform: translateY(5%);
 `;
 
 const StyledSpan = styled.span`
@@ -101,7 +102,6 @@ const StyledSpan = styled.span`
 
 const DeckImg = styled.img<{ isOver?: boolean }>`
     height: 66.67%;
-    cursor: pointer;
     transition: all 0.1s ease;
     z-index: 2;
     filter: ${({ isOver }) =>

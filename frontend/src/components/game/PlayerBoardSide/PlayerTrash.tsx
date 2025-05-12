@@ -94,7 +94,7 @@ const Container = styled.div`
     position: relative;
     justify-content: center;
     align-items: center;
-    transform: translateY(5px);
+    transform: translateY(10%);
 `;
 
 const PlaceholderDiv = styled.div<{ isOver?: boolean }>`

@@ -15,6 +15,7 @@ import { useDndContext } from "@dnd-kit/core";
 import { useLongPress } from "../../../hooks/useLongPress.ts";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) {
     const mySleeve = useGameBoardStates((state) => state.mySleeve);
@@ -52,7 +53,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
         wsUtils?.sendSfx?.("playShuffleDeckSfx");
     }
 
-    const { fontContainerRef, fontSize } = useResponsiveFontSize(2, 55);
+    const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
 
     const [isOpen, setIsOpen] = useState(false);
 
@@ -80,7 +81,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     }
 
     return (
-        <Container ref={fontContainerRef}>
+        <Container>
             <Tooltip
                 TransitionComponent={MuiZoom}
                 sx={{ width: "100%" }}

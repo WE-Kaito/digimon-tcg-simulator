@@ -313,6 +313,7 @@ const Container = styled.div`
     min-width: 100vw;
     height: 100%;
     min-height: 100vh;
+    overflow-y: hidden;
 `;
 
 const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`

@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { useSound } from "../../hooks/useSound.ts";
 import { WSUtils } from "../../pages/GamePage.tsx";
 import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
+import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 
 export default function MemoryBar({ wsUtils }: { wsUtils?: WSUtils }) {
     const myMemory = useGameBoardStates((state) => state.myMemory);
@@ -18,11 +19,11 @@ export default function MemoryBar({ wsUtils }: { wsUtils?: WSUtils }) {
         wsUtils?.sendSfx("playButtonClickSfx");
     }
 
-    const { fontContainerRef, fontSize } = useResponsiveFontSize(33);
+    const fontSize = useGeneralStates((state) => state.cardWidth / 2.675);
     const bigFontSize = fontSize * 1.3;
 
     return (
-        <MemoryBarContainer ref={fontContainerRef}>
+        <MemoryBarContainer>
             <BigMemoryButton onClick={() => handleClick(10)} value={10} myMemory={myMemory} fontSize={bigFontSize}>
                 <StyledSpanOneBig>10</StyledSpanOneBig>
             </BigMemoryButton>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSound } from "../../hooks/useSound.ts";
 import { WSUtils } from "../../pages/GamePage.tsx";
 import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
+import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 
 export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
     const phase = useGameBoardStates((state) => state.phase);
@@ -44,12 +45,11 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
         return () => clearTimeout(timer);
     }, [phase]);
 
-    const { fontContainerRef, fontSize } = useResponsiveFontSize(8.5);
+    const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
 
     return (
         <Container
             onClick={handleClick}
-            ref={fontContainerRef}
             isMyTurn={isMyTurn}
             isMainPhase={isMainPhase}
             isPassTurnAllowed={isPassTurnAllowed}

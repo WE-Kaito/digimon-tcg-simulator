@@ -21,12 +21,14 @@ const Container = styled.div`
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
+    transform: translateY(-10%);
 `;
 
 const StyledSpan = styled.span`
     position: absolute;
-    top: -30%;
+    top: 0;
     width: 100%;
+    transform: translateY(-105%);
     font-family: Awsumsans, sans-serif;
     font-style: italic;
     @media (max-height: 500px) {

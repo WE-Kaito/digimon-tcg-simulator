@@ -10,6 +10,7 @@ import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import { useDroppable } from "@dnd-kit/core";
 import useResponsiveFontSize from "../../../hooks/useResponsiveFontSize.ts";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function OpponentSecurityStack() {
     const opponentSecurity = useGameBoardStates((state) => state.opponentSecurity);
@@ -20,10 +21,10 @@ export default function OpponentSecurityStack() {
 
     const [isOpen, setIsOpen] = useState(false);
 
-    const { fontContainerRef, fontSize } = useResponsiveFontSize(2, 55);
+    const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
 
     return (
-        <Container ref={fontContainerRef}>
+        <Container>
             <InnerContainer ref={setNodeRef}>
                 {isOverOpponent ? (
                     <Lottie animationData={swordAnimation} loop style={{ zIndex: 100000 }} />
