@@ -48,8 +48,6 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
 
     return (
         <Container className={"button"}>
-            <StyledSpan>{myDeckField.length}</StyledSpan>
-
             <DeckImg
                 ref={deckTopRef}
                 alt="deck"
@@ -71,6 +69,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
                         <TriangleIcon />
                     </>
                 )}
+                <StyledSpan>{myDeckField.length}</StyledSpan>
             </DeckBottomZone>
         </Container>
     );
@@ -83,7 +82,7 @@ const Container = styled.div`
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    transform: translateY(5%);
+    transform: translateY(10%) scale(1.1);
 `;
 
 const StyledSpan = styled.span`
@@ -94,6 +93,7 @@ const StyledSpan = styled.span`
     font-style: italic;
     transition: all 0.1s ease;
     pointer-events: none;
+    opacity: 0.7;
     @media (max-height: 500px) {
         font-size: 0.8em;
         top: -18px;

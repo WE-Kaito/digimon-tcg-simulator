@@ -4,7 +4,6 @@ import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
 import { CSSProperties } from "react";
-import { calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { CardTypeGame } from "../../../utils/types.ts";
 import { useDroppable } from "@dnd-kit/core";
@@ -39,7 +38,7 @@ export default function PlayerHand() {
                 {myHand.map((card, index) => (
                     <HandCard key={card.id} card={card} index={index} />
                 ))}
-                <StyledSpan cardCount={myHand.length}>{myHand.length}</StyledSpan>
+                {myHand.length > 7 && <StyledSpan>{myHand.length}</StyledSpan>}
             </Container>
         </>
     );
@@ -49,20 +48,24 @@ function HandCard({ card, index }: { card: CardTypeGame; index: number }) {
     const { show: showHandCardMenu } = useContextMenu({ id: "handCardMenu", props: { index } });
 
     const myHand = useGameBoardStates((state) => state.myHand);
-    const cardWidth = useGeneralStates((state) => state.cardWidth);
-    const isMobileUi = useSettingStates((state) => state.isMobileUI);
+    const cardWidth = useGeneralStates((state) => state.cardWidth * 1.25); // scale up the card width for hand
 
-    const transformY = isMobileUi ? 0 : calculateCardOffsetY(myHand.length, index);
-    const rotation = isMobileUi ? 0 : calculateCardRotation(myHand.length, index);
+    const gap = 5; // gap between cards
+    const maxCardSpace = cardWidth + gap;
+    const maxHandWidth = maxCardSpace * 7 - gap;
+
+    const effectiveSpacing = myHand.length <= 7 ? maxCardSpace : (maxHandWidth - cardWidth) / (myHand.length - 1);
+
+    const currentHandWidth = cardWidth + effectiveSpacing * (myHand.length - 1);
+
+    const offset = (maxHandWidth - currentHandWidth) / 2;
 
     const style: CSSProperties = {
         position: "absolute",
-        left: isMobileUi ? index * 30 : calculateCardOffsetX(myHand.length, index, cardWidth),
-        bottom: isMobileUi ? "-20%" : myHand.length > 15 ? "5%" : "18%",
+        left: offset + index * effectiveSpacing,
+        bottom: "-15%",
         width: cardWidth,
         transition: "all 0.2s ease",
-        transformOrigin: "center",
-        transform: `translateY(${transformY}) rotate(${rotation}) ${isMobileUi ? "scale(1.5)" : ""}`,
     };
 
     return (
@@ -84,7 +87,6 @@ const Container = styled.div<{ cardCount: number; isMobileUi?: boolean }>`
     width: 100%;
     height: 100%;
     position: relative;
-    transform: translate(5%, ${({ cardCount, isMobileUi }) => (cardCount > 15 || isMobileUi ? 0 : 50)}%);
 `;
 
 const EyeButtonContainer = styled.div`
@@ -92,13 +94,13 @@ const EyeButtonContainer = styled.div`
     width: 100%;
     height: 100%;
     position: relative;
-    z-index: 3;
+    z-index: 20;
 `;
 
 const HideHandIconButton = styled.button<{ isActive: boolean; cardCount: number }>`
     position: absolute;
-    left: -5%;
-    bottom: ${({ cardCount }) => (cardCount > 15 ? "-45%" : "-25%")};
+    right: 17%;
+    bottom: ${({ cardCount }) => (cardCount > 7 ? "60%" : "15%")};
     display: flex;
     opacity: ${({ isActive }) => (isActive ? 0.85 : 0.25)};
     color: ${({ isActive }) => (isActive ? "rgba(190,39,85,1)" : "unset")};
@@ -115,15 +117,13 @@ const HideHandIconButton = styled.button<{ isActive: boolean; cardCount: number 
     }
 `;
 
-const StyledSpan = styled.span<{ cardCount: number }>`
+const StyledSpan = styled.span`
     font-family: Awsumsans, sans-serif;
     font-style: italic;
     font-size: 20px;
     opacity: 0.4;
-    visibility: ${({ cardCount }) => (cardCount > 5 ? "visible" : "hidden")};
     position: absolute;
-    bottom: ${({ cardCount }) => (cardCount > 15 ? "unset" : 0)};
-    top: ${({ cardCount }) => (cardCount > 15 ? "-15%" : "unset")};
-    left: ${({ cardCount }) => (cardCount > 15 ? "52%" : "50%")};
+    bottom: -2%;
+    left: -4.5%;
     pointer-events: none;
 `;

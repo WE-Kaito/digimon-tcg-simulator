@@ -40,7 +40,6 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     return (
         <>
             <Container ref={setNodeRef}>
-                <StyledSpan>{myEggDeck.length}</StyledSpan>
                 <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} className={"button"} />
             </Container>
             <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
@@ -51,6 +50,7 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
                         <TriangleIcon />
                     </>
                 )}
+                <StyledSpan>{myEggDeck.length}</StyledSpan>
             </DeckBottomZone>
         </>
     );
@@ -69,12 +69,13 @@ const Container = styled.div`
 const StyledSpan = styled.span`
     width: 100%;
     position: absolute;
-    top: -25px;
-    left: 52%;
-    transform: translateX(-50%);
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     font-family: Awsumsans, sans-serif;
     font-style: italic;
     transition: all 0.1s ease;
+    opacity: 0.7;
     @media (max-height: 600px) {
         bottom: -20px;
         font-size: 0.8em;

@@ -11,15 +11,10 @@ import DeckUtilButtons from "./DeckUtilButtons.tsx";
 import PlayerEventUtils from "./PlayerEventUtils/PlayerEventUtils.tsx";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import DragToggleButton from "./DragToggleButton.tsx";
-import SecurityDropSections from "./SecurityDropSections.tsx";
-import PhaseIndicator from "../PhaseIndicator.tsx";
 import PlayerCard from "../PlayerCard.tsx";
 import LinkArea from "../LinkArea.tsx";
-import { useSettingStates } from "../../../hooks/useSettingStates.ts";
 
 export default function PlayerBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
-    const isMobileUi = useSettingStates((state) => state.isMobileUI);
-
     return (
         <LayoutContainer>
             <PlayerEggDeck wsUtils={wsUtils} />
@@ -59,9 +54,9 @@ const LayoutContainer = styled.div`
         " breeding breeding                   BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . . . ."
         " breeding breeding BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 drag-toggle . . .  . . . . ."
         " breeding breeding BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 drag-toggle . player player player player player player player"
-        " egg-deck egg-deck               . SS SS SS .   hand hand hand hand hand hand hand hand hand hand hand hand hand . . . . deck deck deck-utils .              event-utils event-utils event-utils event-utils event-utils event-utils ."
-        " egg-deck egg-deck               . SS SS SS .   hand hand hand hand hand hand hand hand hand hand hand hand hand . . . . deck deck deck-utils .                   event-utils event-utils event-utils event-utils event-utils event-utils ."
-        " egg-deck-bottom egg-deck-bottom . SS SS SS eye hand hand hand hand hand hand hand hand hand hand hand hand hand . . . . deck deck deck-utils .             event-utils event-utils event-utils event-utils event-utils event-utils .";
+        " egg-deck egg-deck               . SS SS SS .   hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand . deck deck deck-utils .              event-utils event-utils event-utils event-utils event-utils event-utils ."
+        " egg-deck egg-deck               . SS SS SS .   hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand . deck deck deck-utils .                   event-utils event-utils event-utils event-utils event-utils event-utils ."
+        " egg-deck-bottom egg-deck-bottom . SS SS SS eye hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand . deck deck deck-utils .             event-utils event-utils event-utils event-utils event-utils event-utils .";
 
     gap: 1px;
     position: relative;

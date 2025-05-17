@@ -3,7 +3,6 @@ import Lottie from "lottie-react";
 import targetAnimation from "../../../assets/lotties/target-animation.json";
 import { getSleeve } from "../../../utils/sleeves.ts";
 import styled from "@emotion/styled";
-import { calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation } from "../../../utils/functions.ts";
 import { useContextMenu } from "react-contexify";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
@@ -15,16 +14,25 @@ export default function OpponentHand() {
     const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
     const getIsCardTarget = useGameBoardStates((state) => state.getIsCardTarget);
 
-    const cardWidth = useGeneralStates((state) => state.cardWidth);
+    const cardWidth = useGeneralStates((state) => state.cardWidth * 1.1); // scale up the card width for hand
+
+    const gap = 5; // gap between cards
+    const maxCardSpace = cardWidth + gap;
+    const maxHandWidth = maxCardSpace * 6.675 - gap;
+
+    const effectiveSpacing =
+        opponentHand.length <= 6 ? maxCardSpace : (maxHandWidth - cardWidth) / (opponentHand.length - 1);
+
+    const currentHandWidth = cardWidth + effectiveSpacing * (opponentHand.length - 1);
+
+    const offset = (maxHandWidth - currentHandWidth) / 2;
 
     return (
         <Container>
-            <StyledList cardCount={opponentHand.length}>
+            <StyledList>
                 {opponentHand.map((card, index) => (
                     <ListItem
-                        cardCount={opponentHand.length}
-                        cardIndex={index}
-                        cardWidth={cardWidth}
+                        style={{ left: offset + index * effectiveSpacing }}
                         key={card.id}
                         onContextMenu={(e) =>
                             showOpponentCardMenu({
@@ -56,7 +64,7 @@ export default function OpponentHand() {
                     </ListItem>
                 ))}
             </StyledList>
-            <StyledSpan cardCount={opponentHand.length}>{opponentHand.length}</StyledSpan>
+            {opponentHand.length > 6 && <StyledSpan>{opponentHand.length}</StyledSpan>}
         </Container>
     );
 }
@@ -69,12 +77,10 @@ const Container = styled.div`
     width: 100%;
     height: 100%;
     position: relative;
-    transform: rotate(180deg);
 `;
 
-const StyledList = styled.ul<{ cardCount: number }>`
-    position: absolute;
-    left: 0;
+const StyledList = styled.ul`
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -82,36 +88,28 @@ const StyledList = styled.ul<{ cardCount: number }>`
     max-width: 100%;
     height: 100%;
     list-style-type: none;
-    transform: translateX(${({ cardCount }) => (cardCount > 15 ? "2%" : "10%")});
+    transform: translateX(-2.5%);
 `;
 
-const ListItem = styled.li<{ cardCount: number; cardIndex: number; cardWidth: number }>`
+const ListItem = styled.li`
     position: absolute;
     margin: 0;
     padding: 0;
     list-style-type: none;
-    left: 0;
-    top: 0;
+    bottom: 0;
     transition: all 0.2s ease;
-    transform: translateX(
-            ${({ cardCount, cardIndex, cardWidth }) => calculateCardOffsetX(cardCount, cardIndex, cardWidth)}
-        )
-        translateY(${({ cardCount, cardIndex }) => calculateCardOffsetY(cardCount, cardIndex)})
-        rotate(${({ cardCount, cardIndex }) => calculateCardRotation(cardCount, cardIndex)});
 
     &:hover {
         z-index: 100;
     }
 `;
 
-const StyledSpan = styled.span<{ cardCount: number }>`
+const StyledSpan = styled.span`
     font-family: Awsumsans, sans-serif;
     font-style: italic;
     font-size: 20px;
     opacity: 0.4;
-    visibility: ${({ cardCount }) => (cardCount > 5 ? "visible" : "hidden")};
     position: absolute;
     bottom: 5%;
-    left: 45%;
-    transform: rotate(180deg);
+    left: -7%;
 `;
