@@ -78,7 +78,7 @@ public class CardService {
             .exchangeStrategies(ExchangeStrategies.builder()
                     .codecs(configurer -> configurer
                             .defaultCodecs()
-                            .maxInMemorySize(1024 * 1024 * 10))
+                            .maxInMemorySize(1024 * 1024 * 100)) // 100MB
                     .build())
             .build();
 
