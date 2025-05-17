@@ -9,7 +9,6 @@ import { useContextMenu } from "react-contexify";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import { BootStage } from "../../../utils/types.ts";
 import { useSound } from "../../../hooks/useSound.ts";
-import useResponsiveFontSize from "../../../hooks/useResponsiveFontSize.ts";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { useDndContext } from "@dnd-kit/core";
 import { useLongPress } from "../../../hooks/useLongPress.ts";
@@ -174,7 +173,7 @@ const SecuritySpan = styled.span`
 `;
 
 const SecurityAnimationImg = styled.img`
-    width: 200%;
+    width: 130%;
     position: absolute;
     left: 50%;
     top: 47%;

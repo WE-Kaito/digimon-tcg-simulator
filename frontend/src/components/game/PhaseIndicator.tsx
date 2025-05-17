@@ -4,8 +4,8 @@ import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { useSound } from "../../hooks/useSound.ts";
 import { WSUtils } from "../../pages/GamePage.tsx";
-import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
+import { useSettingStates } from "../../hooks/useSettingStates.ts";
 
 export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
     const phase = useGameBoardStates((state) => state.phase);
@@ -18,6 +18,8 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
     const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
+
+    const isMobileUi = useSettingStates((state) => state.isMobileUI);
 
     const [renderPhase, setRenderPhase] = useState(true);
 
@@ -45,7 +47,7 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
         return () => clearTimeout(timer);
     }, [phase]);
 
-    const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
+    const fontSize = useGeneralStates((state) => state.cardWidth / 4);
 
     return (
         <Container
@@ -54,6 +56,7 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
             isMainPhase={isMainPhase}
             isPassTurnAllowed={isPassTurnAllowed}
             gameHasStarted={gameHasStarted}
+            isMobileUi={isMobileUi}
             {...(isMyTurn && isMainPhase && !isPassTurnAllowed && { title: "Please set memory before passing turn." })}
         >
             <PhaseSpan style={{ opacity: renderPhase ? 1 : 0, fontSize }}>
@@ -68,16 +71,19 @@ const Container = styled.div<{
     isMainPhase: boolean;
     isPassTurnAllowed: boolean;
     gameHasStarted: boolean;
+    isMobileUi: boolean;
 }>`
     grid-area: phase;
+    grid-column: 1 / 5;
+    grid-row: 10 / 12;
     position: relative;
-    margin: 2.5%;
+    margin: 10% 5% 10% 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 15%;
-    z-index: 2;
+    z-index: 20;
     transition: all 0.15s ease-in;
     cursor: ${({ isMyTurn, isMainPhase, isPassTurnAllowed }) =>
         isMyTurn ? (isMainPhase && !isPassTurnAllowed ? "not-allowed" : "pointer") : undefined};
@@ -120,7 +126,6 @@ const PhaseSpan = styled.span`
     text-shadow: 0 0 3px black;
     filter: drop-shadow(0 0 4px black);
     font-family: "Awsumsans", sans-serif;
-    font-size: 30px;
     display: inline-block;
     line-height: 1;
     z-index: 2;

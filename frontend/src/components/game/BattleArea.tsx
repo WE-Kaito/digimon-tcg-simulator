@@ -48,6 +48,7 @@ export default function BattleArea(props: BattleAreaProps) {
         props: { index: -1, location: "", id: "" },
     });
 
+    const iconSize = useGeneralStates((state) => state.cardWidth / 1.5);
     const setCardWidth = useGeneralStates((state) => state.setCardWidth);
 
     const [isHoveringOverField, setIsHoveringOverField] = useState(false);
@@ -75,7 +76,7 @@ export default function BattleArea(props: BattleAreaProps) {
                 }}
                 style={{ position: "relative", height: "100%", width: "100%" }}
             >
-                {isBreeding && <StyledEggIcon side={side} />}
+                {isBreeding && <StyledEggIcon side={side} sx={{ fontSize: iconSize }} />}
                 {stackOpened && (isHoveringOverField ? <StyledCloseDetailsIcon /> : <StyledDetailsIcon />)}
                 {!!locationCards.length && !stackOpened && (
                     <CardStack
@@ -128,7 +129,6 @@ const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`
     left: 50%;
     transform: translate(-50%, -50%) rotate(${({ side }) => (side === SIDE.MY ? "0" : "180deg")});
     opacity: 0.5;
-    font-size: 4em;
 `;
 
 const StyledDetailsIcon = styled(DetailsIcon)`

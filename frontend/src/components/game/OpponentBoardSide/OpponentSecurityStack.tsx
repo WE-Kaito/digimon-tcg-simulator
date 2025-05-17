@@ -114,7 +114,7 @@ const OpponentSecuritySpan = styled.span`
 `;
 
 const SecurityAnimationImg = styled.img`
-    width: 200%;
+    width: 130%;
     position: absolute;
     left: 50%;
     top: 47%;

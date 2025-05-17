@@ -1,13 +1,14 @@
 import styled from "@emotion/styled";
 import { CropPortrait as SingleIcon, ContentCopy as StackIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { useSettingStates } from "../../../hooks/useSettingStates.ts";
 
 export default function DragToggleButton() {
     const isStackDragMode = useGameUIStates((state) => state.isStackDragMode);
     const setIsStackDragMode = useGameUIStates((state) => state.setIsStackDragMode);
-    const isMobileUI = useGameUIStates((state) => state.isMobileUI);
+    const isMobileUi = useSettingStates((state) => state.isMobileUI);
 
-    if (!isMobileUI) return <></>;
+    if (!isMobileUi) return <></>;
 
     return (
         <Container onClick={() => setIsStackDragMode(!isStackDragMode)}>
@@ -31,7 +32,7 @@ const Container = styled.div`
     flex-direction: column;
     box-shadow: inset 0 0 3px rgba(248, 248, 255, 0.2);
     cursor: pointer;
-    transform: translate(30%, 20%);
+    transform: translateX(50%);
 `;
 
 const Button = styled.div<{ active: boolean }>`

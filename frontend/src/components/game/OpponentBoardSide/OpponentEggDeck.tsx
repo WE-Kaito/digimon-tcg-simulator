@@ -17,20 +17,19 @@ const Container = styled.div`
     position: relative;
     display: flex;
     flex-direction: column;
-    transform: translateY(-50%);
+    transform: translateY(-10%);
 `;
 
 const StyledSpan = styled.span`
     width: 100%;
     position: absolute;
-    bottom: -25px;
+    top: -25px;
     left: 52%;
     transform: translateX(-50%);
     font-family: Awsumsans, sans-serif;
     font-style: italic;
     transition: all 0.1s ease;
     @media (max-height: 600px) {
-        bottom: -20px;
         font-size: 0.8em;
     }
 `;
@@ -41,5 +40,5 @@ const DeckImg = styled.img`
     border-radius: 3px;
     border-left: 1px solid black;
     border-top: 1px solid black;
-    transform: rotate(180deg);
+    //transform: rotate(180deg);
 `;

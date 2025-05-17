@@ -104,7 +104,7 @@ const MemoryBarContainer = styled.div`
     // match BoardLayout Element of GamePage.tsx:
     grid-column: 5 / 29; // of 35
     grid-row: 10 / 12; // of 14
-    transform: translate(-3px, -2px);
+    margin-left: 2.25%;
 `;
 
 const MemoryButton = styled.button<{ myMemory: number; value: number; fontSize: number }>`

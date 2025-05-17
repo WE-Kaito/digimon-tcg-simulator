@@ -22,6 +22,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { WSUtils } from "../pages/GamePage.tsx";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
+import { useSettingStates } from "../hooks/useSettingStates.ts";
 
 const myDigimonLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8"];
 
@@ -150,7 +151,7 @@ export default function Card(props: CardProps) {
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
     const setStackSliceIndex = useGameBoardStates((state) => state.setStackSliceIndex);
 
-    const isMobileUi = useGameUIStates((state) => state.isMobileUI);
+    const isMobileUi = useSettingStates((state) => state.isMobileUI);
     const isStackDragMode = useGameUIStates((state) => state.isStackDragMode);
     const stackModal = useGameUIStates((state) => state.stackModal);
     const stackDragIcon = useGameUIStates((state) => state.stackDragIcon);

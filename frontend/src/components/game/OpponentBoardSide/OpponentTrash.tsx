@@ -60,7 +60,7 @@ const Container = styled.div`
     position: relative;
     justify-content: center;
     align-items: center;
-    transform: translateY(-10%);
+    transform: translateY(-10%) scale(1.1);
 `;
 
 const PlaceholderDiv = styled.div`

@@ -1,11 +1,11 @@
 import { Button, Checkbox, DialogContent, DialogTitle } from "@mui/material";
 import MenuDialog from "../MenuDialog.tsx";
-import { useTutorialStates } from "../../hooks/useTutorialStates.ts";
+import { useSettingStates } from "../../hooks/useSettingStates.ts";
 import { useState } from "react";
 
 export default function TermsAndConditionsDialog() {
-    const hasAcceptedRules = useTutorialStates((state) => state.hasAcceptedRules);
-    const setHasAcceptedRules = useTutorialStates((state) => state.setHasAcceptedRules);
+    const hasAcceptedRules = useSettingStates((state) => state.hasAcceptedRules);
+    const setHasAcceptedRules = useSettingStates((state) => state.setHasAcceptedRules);
 
     const [checked, setChecked] = useState(false);
 

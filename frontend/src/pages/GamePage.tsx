@@ -2,7 +2,7 @@ import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
 import { IconButton, useMediaQuery } from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { useContextMenu } from "react-contexify";
@@ -34,6 +34,8 @@ import StackModal from "../components/game/StackModal.tsx";
 import DragOverlayCards from "../components/game/DragOverlayCards.tsx";
 import CardModal from "../components/game/CardModal.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import { useSettingStates } from "../hooks/useSettingStates.ts";
+import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -80,8 +82,8 @@ export default function GamePage() {
     const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
-    const isMobileUi = useGameUIStates((state) => state.isMobileUI);
-    const setIsMobileUI = useGameUIStates((state) => state.setIsMobileUI);
+    const isMobileUi = useSettingStates((state) => state.isMobileUI);
+    const setIsMobileUI = useSettingStates((state) => state.setIsMobileUI);
     const setIsStackDragMode = useGameUIStates((state) => state.setIsStackDragMode);
     const stackModal = useGameUIStates((state) => state.stackModal);
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
@@ -197,8 +199,7 @@ export default function GamePage() {
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? window.outerHeight - 172 : undefined;
 
-    const isPortrait = useMediaQuery("(orientation: portrait)");
-    useEffect(() => window.scrollTo(0, 0), [isPortrait]);
+    useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
 
     return (
         <Container ref={boardContainerRef}>
@@ -291,6 +292,7 @@ export default function GamePage() {
                     <RevealArea />
 
                     <MemoryBar wsUtils={wsUtils} />
+                    <PhaseIndicator wsUtils={wsUtils} />
 
                     <OpponentBoardSide wsUtils={wsUtils} />
                     <PlayerBoardSide wsUtils={wsUtils} />
@@ -333,6 +335,10 @@ const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
         width: 0;
         display: none;
     }
+    @media (max-height: 500px) {
+        min-height: unset;
+        height: 100vh;
+    }
 `;
 
 const CardImg = styled.img<{ isMobile?: boolean }>`
@@ -361,7 +367,8 @@ const BoardLayout = styled.div<{ height?: number; isCameraTilted?: boolean }>`
     padding: ${({ isCameraTilted }) => (isCameraTilted ? "0 3.5vw 0 5vw" : "0")};
 
     @media (max-height: 500px) {
-        min-height: 100vh;
+        min-height: unset;
+        height: 100vh;
     }
 `;
 

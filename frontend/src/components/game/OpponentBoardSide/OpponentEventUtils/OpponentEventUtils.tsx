@@ -44,9 +44,9 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
 
 const Container = styled.div<{ hasChildren: boolean }>`
     grid-area: event-utils;
-    height: 95%;
+    height: 84%;
     width: 95%;
-    margin: 1%;
+    margin: 1% 1% 12% 1%;
     padding: 1.5%;
     display: flex;
     position: relative;

@@ -10,9 +10,6 @@ export enum OpenedCardModal {
 }
 
 type State = {
-    isMobileUI: boolean;
-    setIsMobileUI: (isMobileUI: boolean) => void;
-
     isStackDragMode: boolean;
     setIsStackDragMode: (isStackDragMode: boolean) => void;
 
@@ -45,9 +42,6 @@ type State = {
 };
 
 export const useGameUIStates = create<State>((set) => ({
-    isMobileUI: false,
-    setIsMobileUI: (isMobileUI) => set({ isMobileUI }),
-
     isStackDragMode: false,
     setIsStackDragMode: (isStackDragMode) => set({ isStackDragMode }),
 

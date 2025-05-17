@@ -3,16 +3,19 @@ import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from
 import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
-import { CSSProperties, useMemo } from "react";
+import { CSSProperties } from "react";
 import { calculateCardOffsetX, calculateCardOffsetY, calculateCardRotation } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { CardTypeGame } from "../../../utils/types.ts";
 import { useDroppable } from "@dnd-kit/core";
+import { useSettingStates } from "../../../hooks/useSettingStates.ts";
 export default function PlayerHand() {
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const toggleIsHandHidden = useGameBoardStates((state) => state.toggleIsHandHidden);
     const myHand = useGameBoardStates((state) => state.myHand);
     const cardWidth = useGeneralStates((state) => state.cardWidth);
+
+    const isMobileUi = useSettingStates((state) => state.isMobileUI);
 
     const { setNodeRef } = useDroppable({ id: "myHand", data: { accept: ["card"] } });
 
@@ -32,7 +35,7 @@ export default function PlayerHand() {
                     )}
                 </HideHandIconButton>
             </EyeButtonContainer>
-            <Container ref={setNodeRef}>
+            <Container ref={setNodeRef} cardCount={myHand.length} isMobileUi={isMobileUi}>
                 {myHand.map((card, index) => (
                     <HandCard key={card.id} card={card} index={index} />
                 ))}
@@ -47,18 +50,19 @@ function HandCard({ card, index }: { card: CardTypeGame; index: number }) {
 
     const myHand = useGameBoardStates((state) => state.myHand);
     const cardWidth = useGeneralStates((state) => state.cardWidth);
+    const isMobileUi = useSettingStates((state) => state.isMobileUI);
 
-    const transformY = calculateCardOffsetY(myHand.length, index);
-    const rotation = calculateCardRotation(myHand.length, index);
+    const transformY = isMobileUi ? 0 : calculateCardOffsetY(myHand.length, index);
+    const rotation = isMobileUi ? 0 : calculateCardRotation(myHand.length, index);
 
     const style: CSSProperties = {
         position: "absolute",
-        left: calculateCardOffsetX(myHand.length, index, cardWidth),
-        bottom: myHand.length > 15 ? "5%" : "18%",
+        left: isMobileUi ? index * 30 : calculateCardOffsetX(myHand.length, index, cardWidth),
+        bottom: isMobileUi ? "-20%" : myHand.length > 15 ? "5%" : "18%",
         width: cardWidth,
         transition: "all 0.2s ease",
         transformOrigin: "center",
-        transform: `translateY(${transformY}) rotate(${rotation})`,
+        transform: `translateY(${transformY}) rotate(${rotation}) ${isMobileUi ? "scale(1.5)" : ""}`,
     };
 
     return (
@@ -71,7 +75,7 @@ function HandCard({ card, index }: { card: CardTypeGame; index: number }) {
     );
 }
 
-const Container = styled.div`
+const Container = styled.div<{ cardCount: number; isMobileUi?: boolean }>`
     touch-action: none;
     grid-area: hand;
     display: flex;
@@ -79,8 +83,8 @@ const Container = styled.div`
     align-items: center;
     width: 100%;
     height: 100%;
-    transform: translate(0px, 15%); // eye icon??
     position: relative;
+    transform: translate(5%, ${({ cardCount, isMobileUi }) => (cardCount > 15 || isMobileUi ? 0 : 50)}%);
 `;
 
 const EyeButtonContainer = styled.div`

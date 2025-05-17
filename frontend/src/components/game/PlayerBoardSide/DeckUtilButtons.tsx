@@ -87,7 +87,7 @@ const Container = styled.div`
     grid-area: deck-utils;
     width: 100%;
     height: 100%;
-    transform: translate(10%, 5%);
+    transform: translateX(50%);
     position: relative;
     display: flex;
     flex-direction: column;
