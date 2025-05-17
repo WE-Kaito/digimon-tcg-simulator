@@ -334,7 +334,7 @@ export default function CardDetails() {
 
 const Wrapper = styled.div<{ inGame: boolean }>`
     grid-area: details;
-    width: ${({ inGame }) => (inGame ? "392px" : "100%")};
+    width: ${({ inGame }) => (inGame ? "342px" : "100%")};
     height: fit-content;
     padding: 5px;
     border-radius: 5px;

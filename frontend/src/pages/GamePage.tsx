@@ -197,7 +197,7 @@ export default function GamePage() {
 
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const boardContainerRef = useRef<HTMLDivElement>(null);
-    const height = boardContainerRef.current ? window.outerHeight - 172 : undefined;
+    const height = boardContainerRef.current ? window.outerHeight - 148 : undefined;
 
     useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
 
@@ -232,9 +232,6 @@ export default function GamePage() {
                 <BoardLayout height={height}>
                     <SettingsContainer>
                         <SoundBar iconFontSize={iconWidth}>
-                            {/*<RadioMenuChildIconButton onClick={() => setIsCameraTilted(!isCameraTilted)}>*/}
-                            {/*    {isCameraTilted ? <CameraTiltedIcon /> : <CameraIcon />}*/}
-                            {/*</RadioMenuChildIconButton>*/}
                             <a
                                 href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
                                 target="_blank"
@@ -316,12 +313,13 @@ const Container = styled.div`
     height: 100%;
     min-height: 100vh;
     overflow-y: hidden;
+    gap: 5px;
 `;
 
 const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
     background: rgba(0, 0, 0, 0.35);
     display: flex;
-    width: 400px !important;
+    width: 350px !important;
     height: ${({ height }) => (height ? `${height}px` : "unset")};
     min-height: 100vh;
     flex-direction: column;
@@ -343,7 +341,7 @@ const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
 
 const CardImg = styled.img<{ isMobile?: boolean }>`
     width: ${({ isMobile }) => (isMobile ? "500px" : "100%")};
-    max-width: 300px;
+    max-width: 328px;
     border-radius: 3.5%;
     aspect-ratio: 5 / 7;
     //width: 107px; // 150 * (5/7)
