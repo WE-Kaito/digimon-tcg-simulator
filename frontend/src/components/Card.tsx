@@ -4,7 +4,6 @@ import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import {
     arraysEqualUnordered,
-    getCardColor,
     getNumericModifier,
     numbersWithModifiers,
     topCardInfo,
@@ -399,7 +398,7 @@ export default function Card(props: CardProps) {
                                     {showColors && (
                                         <ColorStack>
                                             {modifiers?.colors.map((c) => (
-                                                <span key={`${c}_${card.id}_view`}>{getCardColor(c)[1]}</span>
+                                                <span key={`${c}_${card.id}_view`}>{getColor(c)}</span>
                                             ))}
                                         </ColorStack>
                                     )}
@@ -736,3 +735,24 @@ const DragStackIconDiv = styled.div`
         }
     }
 `;
+
+export function getColor(color: string): string {
+    switch (color) {
+        case "Red":
+            return "🔴";
+        case "Yellow":
+            return "🟡";
+        case "Green":
+            return "🟢";
+        case "Blue":
+            return "🔵";
+        case "Purple":
+            return "🟣";
+        case "Black":
+            return "⚫";
+        case "White":
+            return "⚪";
+        default:
+            return "";
+    }
+}
