@@ -5,8 +5,12 @@ type State = {
     hasAcceptedRules: boolean;
     setHasAcceptedRules: (hasAcceptedRules: boolean) => void;
 
-    isMobileUI: boolean;
-    setIsMobileUI: (isMobileUI: boolean) => void;
+    useToggleForStacks: boolean;
+    setUseToggleForStacks: (useToggleForStacks: boolean) => void;
+
+    backgroundColors: { color1: string; color2: string; color3: string };
+    setBackgroundColors: (colors: { color1: string; color2: string; color3: string }) => void;
+    resetBackgroundColors: () => void;
 };
 
 export const useSettingStates = create<State>()(
@@ -16,8 +20,13 @@ export const useSettingStates = create<State>()(
                 hasAcceptedRules: false,
                 setHasAcceptedRules: (hasAcceptedRules) => set({ hasAcceptedRules }),
 
-                isMobileUI: false,
-                setIsMobileUI: (isMobileUI) => set({ isMobileUI }),
+                useToggleForStacks: false,
+                setUseToggleForStacks: (useToggleForStacks) => set({ useToggleForStacks }),
+
+                backgroundColors: { color1: "#214d44", color2: "#0b3d65", color3: "#522170" },
+                setBackgroundColors: (colors) => set({ backgroundColors: colors }),
+                resetBackgroundColors: () =>
+                    set({ backgroundColors: { color1: "#214d44", color2: "#0b3d65", color3: "#522170" } }),
             }),
             { name: "projectDrasilTutorialStates" }
         )

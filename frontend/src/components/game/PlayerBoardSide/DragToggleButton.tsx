@@ -6,9 +6,9 @@ import { useSettingStates } from "../../../hooks/useSettingStates.ts";
 export default function DragToggleButton() {
     const isStackDragMode = useGameUIStates((state) => state.isStackDragMode);
     const setIsStackDragMode = useGameUIStates((state) => state.setIsStackDragMode);
-    const isMobileUi = useSettingStates((state) => state.isMobileUI);
+    const useToggleForStacks = useSettingStates((state) => state.useToggleForStacks);
 
-    if (!isMobileUi) return <></>;
+    if (!useToggleForStacks) return <></>;
 
     return (
         <Container onClick={() => setIsStackDragMode(!isStackDragMode)}>

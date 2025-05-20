@@ -17,7 +17,7 @@ const Container = styled.div`
     position: relative;
     display: flex;
     flex-direction: column;
-    transform: translateY(-10%);
+    transform: translate(-3%, -14%);
 `;
 
 const StyledSpan = styled.span`

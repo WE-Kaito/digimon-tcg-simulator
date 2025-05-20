@@ -36,6 +36,7 @@ import CardModal from "../components/game/CardModal.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
+import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -252,31 +253,32 @@ export default function GamePage() {
                                     />
                                 </StyledIconButton>
                             </a>
-                            <StyledIconButton
-                                sx={{ color: isMobileUi ? "aquamarine" : "white", position: "relative" }}
-                                onClick={() => {
-                                    setIsMobileUI(!isMobileUi);
-                                    setIsStackDragMode(false);
-                                }}
-                            >
-                                {isMobileUi ? (
-                                    <MobileModeOnIcon
-                                        sx={{
-                                            fontSize: `${iconWidth}px!important`,
-                                            opacity: 0.8,
-                                            transform: `translate(-${iconWidth / 10}px, -2px)`,
-                                        }}
-                                    />
-                                ) : (
-                                    <MobileModeOffIcon
-                                        sx={{
-                                            fontSize: `${iconWidth}px!important`,
-                                            opacity: 0.8,
-                                            transform: "translateY(-2px)",
-                                        }}
-                                    />
-                                )}
-                            </StyledIconButton>
+                            <SettingsMenuButton iconFontSize={`${iconWidth}px!important`} />
+                            {/*<StyledIconButton*/}
+                            {/*    sx={{ color: isMobileUi ? "aquamarine" : "white", position: "relative" }}*/}
+                            {/*    onClick={() => {*/}
+                            {/*        setIsMobileUI(!isMobileUi);*/}
+                            {/*        setIsStackDragMode(false);*/}
+                            {/*    }}*/}
+                            {/*>*/}
+                            {/*    {isMobileUi ? (*/}
+                            {/*        <MobileModeOnIcon*/}
+                            {/*            sx={{*/}
+                            {/*                fontSize: `${iconWidth}px!important`,*/}
+                            {/*                opacity: 0.8,*/}
+                            {/*                transform: `translate(-${iconWidth / 10}px, -2px)`,*/}
+                            {/*            }}*/}
+                            {/*        />*/}
+                            {/*    ) : (*/}
+                            {/*        <MobileModeOffIcon*/}
+                            {/*            sx={{*/}
+                            {/*                fontSize: `${iconWidth}px!important`,*/}
+                            {/*                opacity: 0.8,*/}
+                            {/*                transform: "translateY(-2px)",*/}
+                            {/*            }}*/}
+                            {/*        />*/}
+                            {/*    )}*/}
+                            {/*</StyledIconButton>*/}
                         </SoundBar>
                     </SettingsContainer>
 

@@ -3,11 +3,10 @@ import noiseBG from "../../assets/noiseBG.png";
 import { getAttributeImage, getCardTypeImage } from "../../utils/functions.ts";
 import cardBackSrc from "../../assets/cardBack.jpg";
 import suspendedAnimation from "../../assets/lotties/square-sparkle-apng.png";
+import { useSettingStates } from "../../hooks/useSettingStates.ts";
 
 export default function GameBackground() {
-    const color1 = localStorage.getItem("color1") ?? "#214d44";
-    const color2 = localStorage.getItem("color2") ?? "#0b3d65";
-    const color3 = localStorage.getItem("color3") ?? "#522170";
+    const colors = useSettingStates((state) => state.backgroundColors);
 
     return (
         <>
@@ -29,7 +28,7 @@ export default function GameBackground() {
             </div>
 
             <BackGroundPattern />
-            <BackGround color1={color1} color2={color2} color3={color3} />
+            <BackGround color1={colors.color1} color2={colors.color2} color3={colors.color3} />
         </>
     );
 }

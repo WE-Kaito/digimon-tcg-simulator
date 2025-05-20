@@ -18,7 +18,7 @@ export default function OpponentHand() {
 
     const gap = 5; // gap between cards
     const maxCardSpace = cardWidth + gap;
-    const maxHandWidth = maxCardSpace * 6.675 - gap;
+    const maxHandWidth = maxCardSpace * 6.25 - gap;
 
     const effectiveSpacing =
         opponentHand.length <= 6 ? maxCardSpace : (maxHandWidth - cardWidth) / (opponentHand.length - 1);

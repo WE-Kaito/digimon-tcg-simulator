@@ -87,7 +87,6 @@ const Container = styled.div`
     height: 100%;
     width: 100%;
     z-index: 10;
-    transform: translateY(10%);
 `;
 
 const InnerContainer = styled.div`
