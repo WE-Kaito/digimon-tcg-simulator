@@ -25,6 +25,7 @@ export default function PlayerHand() {
         <Container ref={setNodeRef} cardCount={myHand.length}>
             {myHand.map((card, index) => (
                 <Card
+                    key={card.id}
                     card={card}
                     location={"myHand"}
                     style={{
