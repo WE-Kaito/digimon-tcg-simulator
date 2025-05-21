@@ -48,8 +48,8 @@ const LayoutContainer = styled.div`
     grid-template-columns: subgrid;
     grid-template-rows: subgrid;
     grid-template-areas:
-        " . .                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . . . ."
-        " tokens .                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 trash trash . . . . . . ."
+        " tokens tokens                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . . . ."
+        " tokens tokens                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 trash trash . . . . . . ."
         " breeding breeding                   BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 trash trash . . . . . . ."
         " breeding breeding                   BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . . . ."
         " breeding breeding BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 drag-toggle . . .  . . . . ."

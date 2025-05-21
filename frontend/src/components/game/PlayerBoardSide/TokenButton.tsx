@@ -1,19 +1,25 @@
 import styled from "@emotion/styled";
-import hackmonButton from "../../../assets/hackmon-chip.png";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { IconButton } from "@mui/material";
+import TokenIcon from "@mui/icons-material/GeneratingTokens";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function TokenButton() {
     const setTokenModal = useGameUIStates((state) => state.setTokenModal);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     return (
-        <StyledImg alt="create token" src={hackmonButton} onClick={() => setTokenModal(true)} className={"button"} />
+        <StyledIconButton onClick={() => setTokenModal(true)}>
+            <TokenIcon style={{ fontSize: cardWidth / 2 }} />
+        </StyledIconButton>
     );
 }
 
-const StyledImg = styled.img`
+const StyledIconButton = styled(IconButton)`
     grid-area: tokens;
-    max-width: 100%;
-    max-height: 100%;
+    width: 50%;
+    height: 50%;
+    margin: 25%;
     transition: all 0.1s ease;
     opacity: 0.7;
     cursor: pointer;
