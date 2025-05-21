@@ -2,7 +2,6 @@ import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import styled from "@emotion/styled";
 import { useSound } from "../../hooks/useSound.ts";
 import { WSUtils } from "../../pages/GamePage.tsx";
-import useResponsiveFontSize from "../../hooks/useResponsiveFontSize.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 
 export default function MemoryBar({ wsUtils }: { wsUtils?: WSUtils }) {
@@ -126,7 +125,7 @@ const MemoryButton = styled.button<{ myMemory: number; value: number; fontSize: 
     font-weight: bold;
 
     border: ${({ myMemory, value }) => getBorder(value, myMemory)};
-    color: ghostwhite;
+    color: ${({ myMemory, value }) => getColor(value, myMemory)};
 
     background: rgba(0, 0, 0, ${({ myMemory, value }) => (value === myMemory ? 0.6 : 0.5)});
     border-radius: 50%;
@@ -140,6 +139,8 @@ const MemoryButton = styled.button<{ myMemory: number; value: number; fontSize: 
         border: ${({ myMemory, value }) => getBorder(value, myMemory, true)};
         box-shadow: inset ${({ myMemory, value }) => getBoxShadow(value, myMemory, true)};
     }
+
+    backdrop-filter: brightness(0.5);
 `;
 
 const BigMemoryButton = styled(MemoryButton)`
@@ -179,6 +180,23 @@ const StyledSpan = styled.span`
     -ms-user-select: none;
     user-select: none;
 `;
+
+function getColor(value: number, myMemory: number) {
+    if (value > 0) {
+        if (value <= myMemory) return "rgb(0,160,255)";
+        else return "rgb(189,189,189)";
+    }
+
+    if (value === 0) {
+        if (value === myMemory) return "rgb(161,74,255)";
+        else return "rgb(189,189,189)";
+    }
+
+    if (value < 0) {
+        if (value >= myMemory) return "rgb(255,94,112)";
+        else return "rgb(189,189,189)";
+    }
+}
 
 function getBorder(value: number, myMemory: number, hover?: boolean) {
     const borderConfig = "1px solid ";
@@ -223,17 +241,17 @@ function getBoxShadow(value: number, myMemory: number, hover?: boolean) {
     const shadowConfig = hover ? "0 0 7px 3px " : "1px 2px 5px 1px ";
 
     if (value > 0) {
-        if (value <= myMemory) return shadowConfig + "rgba(29,159,221,0.8)";
+        if (value <= myMemory) return shadowConfig + "rgba(29,159,221,1)";
         else return shadowConfig + "rgba(29,159,221,0.5)";
     }
 
     if (value === 0) {
-        if (value === myMemory) return shadowConfig + "rgba(255,255,255,0.4)";
+        if (value === myMemory) return shadowConfig + "rgba(255,255,255,0.6)";
         else return shadowConfig + "rgba(255,255,255,0.25)";
     }
 
     if (value < 0) {
-        if (value >= myMemory) return shadowConfig + "rgba(255,81,118,0.7)";
+        if (value >= myMemory) return shadowConfig + "rgba(255,81,118,0.8)";
         else return shadowConfig + "rgba(255,81,118,0.4)";
     }
 }
