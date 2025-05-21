@@ -10,22 +10,20 @@ import {
     Pageview as OpenSecurityIcon,
     ShuffleOnOutlined as ShuffleIcon,
     Search as DetailsIcon,
+    VisibilityOutlined as HandVisibleIcon,
+    VisibilityOffOutlined as HandVisibleOffIcon,
 } from "@mui/icons-material";
 import { CSSProperties } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
-import { convertForLog, numbersWithModifiers } from "../../utils/functions.ts";
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
-import { useSound } from "../../hooks/useSound.ts";
-import {
-    CardModifiers,
-    CardTypeGame,
-    FieldCardContextMenuItemProps,
-    HandCardContextMenuItemProps,
-} from "../../utils/types.ts";
+import { convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
+import { useSound } from "../../../hooks/useSound.ts";
+import { CardModifiers, CardTypeGame, FieldCardContextMenuItemProps } from "../../../utils/types.ts";
 import "react-contexify/dist/ReactContexify.css";
-import { WSUtils } from "../../pages/GamePage.tsx";
-import { OpenedCardModal, useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import { WSUtils } from "../../../pages/GamePage.tsx";
+import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import SendToSecurityMenu from "./SendToSecurityMenu.tsx";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const { sendMessage, sendChatMessage, sendSfx, sendUpdate, matchInfo, sendMoveCard } = wsUtils ?? {};
@@ -47,6 +45,9 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
     const setCardIdWithTarget = useGameBoardStates((state) => state.setCardIdWithTarget);
     const setModifiers = useGameBoardStates((state) => state.setModifiers);
+
+    const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
+    const toggleIsHandHidden = useGameBoardStates((state) => state.toggleIsHandHidden);
 
     const contextCard = useGameBoardStates((state) =>
         (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find((card) => card.id === cardToSend.id)
@@ -91,7 +92,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         sendSfx?.(to === "myHand" ? "playDrawCardSfx" : "playTrashCardSfx");
     }
 
-    function revealHandCard({ props }: ItemParams<HandCardContextMenuItemProps>) {
+    function revealHandCard({ props }: ItemParams<FieldCardContextMenuItemProps>) {
         if (!getOpponentReady() || props === undefined) return;
         moveCard(myHand[props.index].id, "myHand", "myReveal");
         playRevealCardSfx();
@@ -196,11 +197,18 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"handCardMenu"} theme="dark">
+                <Item onClick={toggleIsHandHidden}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>{isHandHidden ? "Disable Hide Cards" : "Hide Cards"}</span>
+                        {isHandHidden ? <HandVisibleOffIcon /> : <HandVisibleIcon />}
+                    </div>
+                </Item>
                 <Item onClick={revealHandCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Reveal Card</span> <RevealIcon />
                     </div>
                 </Item>
+                <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
             </StyledMenu>
 
             <StyledMenu id={"fieldCardMenu"} theme="dark">
@@ -234,6 +242,8 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                     </div>
                 </Item>
                 <ModifierMenu sendSetModifiers={sendSetModifiers} />
+                <Separator />
+                <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
             </StyledMenu>
 
             <StyledMenu id={"modalMenuOpponent"} theme="dark">
@@ -255,6 +265,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Target Card</span> <TargetIcon />
                     </div>
                 </Item>
+                <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
             </StyledMenu>
 
             <StyledMenu id={"opponentCardMenu"} theme="dark">
@@ -326,6 +337,7 @@ export const StyledMenu = styled(Menu)`
         background-color: transparent;
         transform: translateX(-6px);
         box-shadow: none;
+        pointer-events: auto !important;
     }
 
     .contexify_submenu-arrow {

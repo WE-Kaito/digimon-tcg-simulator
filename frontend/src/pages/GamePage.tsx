@@ -2,7 +2,7 @@ import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
 import { IconButton, useMediaQuery } from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { useContextMenu } from "react-contexify";
@@ -10,7 +10,7 @@ import SoundBar from "../components/SoundBar.tsx";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import useGameWebSocket from "../hooks/useGameWebSocket.ts";
 import { useSound } from "../hooks/useSound.ts";
-import ContextMenus from "../components/game/ContextMenus.tsx";
+import ContextMenus from "../components/game/ContextMenus/ContextMenus.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
 import { DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor } from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
@@ -22,19 +22,13 @@ import RestartPromptModal from "../components/game/ModalDialog/RestartPromptModa
 import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
 import GameChatLog from "../components/game/GameChatLog.tsx";
-import {
-    Gavel as RulingsIcon,
-    OpenInNew as LinkIcon,
-    MobileFriendlyRounded as MobileModeOnIcon,
-    SmartphoneRounded as MobileModeOffIcon,
-} from "@mui/icons-material";
+import { Gavel as RulingsIcon, OpenInNew as LinkIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
 import DragOverlayCards from "../components/game/DragOverlayCards.tsx";
 import CardModal from "../components/game/CardModal.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
-import { useSettingStates } from "../hooks/useSettingStates.ts";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 
@@ -83,9 +77,6 @@ export default function GamePage() {
     const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
-    const isMobileUi = useSettingStates((state) => state.isMobileUI);
-    const setIsMobileUI = useSettingStates((state) => state.setIsMobileUI);
-    const setIsStackDragMode = useGameUIStates((state) => state.setIsStackDragMode);
     const stackModal = useGameUIStates((state) => state.stackModal);
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
 
@@ -254,31 +245,6 @@ export default function GamePage() {
                                 </StyledIconButton>
                             </a>
                             <SettingsMenuButton iconFontSize={`${iconWidth}px!important`} />
-                            {/*<StyledIconButton*/}
-                            {/*    sx={{ color: isMobileUi ? "aquamarine" : "white", position: "relative" }}*/}
-                            {/*    onClick={() => {*/}
-                            {/*        setIsMobileUI(!isMobileUi);*/}
-                            {/*        setIsStackDragMode(false);*/}
-                            {/*    }}*/}
-                            {/*>*/}
-                            {/*    {isMobileUi ? (*/}
-                            {/*        <MobileModeOnIcon*/}
-                            {/*            sx={{*/}
-                            {/*                fontSize: `${iconWidth}px!important`,*/}
-                            {/*                opacity: 0.8,*/}
-                            {/*                transform: `translate(-${iconWidth / 10}px, -2px)`,*/}
-                            {/*            }}*/}
-                            {/*        />*/}
-                            {/*    ) : (*/}
-                            {/*        <MobileModeOffIcon*/}
-                            {/*            sx={{*/}
-                            {/*                fontSize: `${iconWidth}px!important`,*/}
-                            {/*                opacity: 0.8,*/}
-                            {/*                transform: "translateY(-2px)",*/}
-                            {/*            }}*/}
-                            {/*        />*/}
-                            {/*    )}*/}
-                            {/*</StyledIconButton>*/}
                         </SoundBar>
                     </SettingsContainer>
 

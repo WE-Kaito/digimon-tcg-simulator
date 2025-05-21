@@ -151,7 +151,7 @@ export default function Card(props: CardProps) {
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
     const setStackSliceIndex = useGameBoardStates((state) => state.setStackSliceIndex);
 
-    const isMobileUi = useSettingStates((state) => state.isMobileUI);
+    const useToggleForStacks = useSettingStates((state) => state.useToggleForStacks);
     const isStackDragMode = useGameUIStates((state) => state.isStackDragMode);
     const stackModal = useGameUIStates((state) => state.stackModal);
     const stackDragIcon = useGameUIStates((state) => state.stackDragIcon);
@@ -356,7 +356,7 @@ export default function Card(props: CardProps) {
                 (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
                 (isHovered || isDragIconHovered) &&
                 stackModal !== location &&
-                !isMobileUi && (
+                !useToggleForStacks && (
                     <DragStackIconDiv
                         className={"custom-hand-cursor"}
                         style={{
@@ -479,7 +479,7 @@ export default function Card(props: CardProps) {
                     setCardImageUrl(cardBackSrc);
                 }}
                 onContextMenu={(e) => {
-                    if (myBALocations.includes(location)) setCardToSend(card.id, location);
+                    if (myBALocations.includes(location) || location === "myHand") setCardToSend(card.id, location);
                     onContextMenu?.(e);
                 }}
                 width={style ? style.width : 95}

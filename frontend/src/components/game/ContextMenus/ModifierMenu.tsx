@@ -1,14 +1,14 @@
-import arrowsAnimation from "../../assets/lotties/arrows.json";
+import arrowsAnimation from "../../../assets/lotties/arrows.json";
 import { Item, Submenu } from "react-contexify";
 import { IconButton, Stack } from "@mui/material";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import { useEffect, useState } from "react";
 import { AddCircleOutlined, RemoveCircleOutlined } from "@mui/icons-material";
-import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
-import { CardModifiers, CardTypeGame } from "../../utils/types.ts";
-import { getNumericModifier, numbersWithModifiers } from "../../utils/functions.ts";
-import { useSound } from "../../hooks/useSound.ts";
+import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
+import { CardModifiers, CardTypeGame } from "../../../utils/types.ts";
+import { getNumericModifier, numbersWithModifiers } from "../../../utils/functions.ts";
+import { useSound } from "../../../hooks/useSound.ts";
 
 type ModifierMenuProps = {
     sendSetModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;

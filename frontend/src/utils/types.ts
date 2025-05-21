@@ -199,11 +199,8 @@ export type DraggedStack = {
     location: string;
 };
 
-export type HandCardContextMenuItemProps = {
+export type FieldCardContextMenuItemProps = {
     index: number;
-};
-
-export type FieldCardContextMenuItemProps = HandCardContextMenuItemProps & {
     location: string;
     id: string;
     name: string;
