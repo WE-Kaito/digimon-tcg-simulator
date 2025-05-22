@@ -29,6 +29,7 @@ export default function SettingsMenuButton({ iconFontSize }: { iconFontSize: str
                     >
                         <BackgroundColorSettings />
                         <ControlSettings />
+                        <DetailsSettings />
                         <CloseButton onClick={() => setIsSettingsDialogOpen(false)}>CLOSE</CloseButton>
                     </div>
                 </DialogContent>
@@ -38,6 +39,45 @@ export default function SettingsMenuButton({ iconFontSize }: { iconFontSize: str
                 <SettingsIcon sx={{ fontSize: iconFontSize }} />
             </IconButton>
         </>
+    );
+}
+
+function DetailsSettings() {
+    const showDetailsCardImage = useSettingStates((state) => state.showDetailsCardImage);
+    const setShowDetailsCardImage = useSettingStates((state) => state.setShowDetailsCardImage);
+
+    return (
+        <Stack gap={1} flexWrap={"wrap"} justifyContent={"center"} width={"100%"}>
+            <SectionSpan>Details:</SectionSpan>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <div>
+                    <input
+                        type="radio"
+                        name="detailsImage"
+                        id="showImage"
+                        className="button"
+                        checked={showDetailsCardImage}
+                        onChange={() => setShowDetailsCardImage(true)}
+                    />
+                    <StyledLabel htmlFor="showImage" className="button" checked={showDetailsCardImage}>
+                        Show Card Image (default)
+                    </StyledLabel>
+                </div>
+                <div>
+                    <input
+                        type="radio"
+                        name="detailsImage"
+                        id="noImage"
+                        className="button"
+                        checked={!showDetailsCardImage}
+                        onChange={() => setShowDetailsCardImage(false)}
+                    />
+                    <StyledLabel htmlFor="noImage" className="button" checked={!showDetailsCardImage}>
+                        Don't Show Card Image
+                    </StyledLabel>
+                </div>
+            </div>
+        </Stack>
     );
 }
 
@@ -54,7 +94,6 @@ function ControlSettings() {
                     <input
                         type="radio"
                         name="stackDrag"
-                        value="Default"
                         id="default"
                         className="button"
                         checked={!useToggleForStacks}
@@ -71,7 +110,6 @@ function ControlSettings() {
                     <input
                         type="radio"
                         name="stackDrag"
-                        value="Toggle"
                         id="toggle"
                         className="button"
                         checked={useToggleForStacks}

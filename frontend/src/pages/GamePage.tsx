@@ -31,6 +31,7 @@ import CardModal from "../components/game/CardModal.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
+import { useSettingStates } from "../hooks/useSettingStates.ts";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -79,6 +80,8 @@ export default function GamePage() {
 
     const stackModal = useGameUIStates((state) => state.stackModal);
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+
+    const showDetailsCardImage = useSettingStates((state) => state.showDetailsCardImage);
 
     const { show: showDetailsImageMenu } = useContextMenu({ id: "detailsImageMenu" });
     // const [isCameraTilted, setIsCameraTilted] = useState<boolean>(false);
@@ -203,16 +206,19 @@ export default function GamePage() {
             <RestartPromptModal wsUtils={wsUtils} />
 
             <DetailsContainer isMobile={isMobile} height={height}>
-                <CardImg
-                    src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc}
-                    alt={"cardImg"}
-                    onContextMenu={(e) => showDetailsImageMenu({ event: e })}
-                    onClick={() => selectCard(null)}
-                    {...(!selectedCard &&
-                        !hoverCard && {
-                            style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" },
-                        })}
-                />
+                {showDetailsCardImage && (
+                    <CardImg
+                        src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc}
+                        alt={"cardImg"}
+                        onContextMenu={(e) => showDetailsImageMenu({ event: e })}
+                        onClick={() => selectCard(null)}
+                        {...(!selectedCard &&
+                            !hoverCard && {
+                                style: { pointerEvents: "none", opacity: 0.25, filter: "saturate(0.5)" },
+                            })}
+                    />
+                )}
+                {!showDetailsCardImage && <div style={{ height: "10px" }} />}
                 <CardDetails />
             </DetailsContainer>
             <DndContext

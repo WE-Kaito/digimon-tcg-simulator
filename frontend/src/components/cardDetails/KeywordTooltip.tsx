@@ -24,8 +24,8 @@ function TooltipContent({ explanation, url }: { explanation: string; url: string
     return (
         <ContentContainer>
             {explanation + " "}
-            <StyledLink href={url} target="_blank" rel="noopener noreferrer" title={"Rulings 🔗"}>
-                🛈
+            <StyledLink href={url} target="_blank" rel="noopener noreferrer">
+                ℹ️ Rulings
             </StyledLink>
         </ContentContainer>
     );
@@ -204,15 +204,26 @@ function getKeywordForLink(keyword: string) {
 }
 
 const StyledLink = styled.a`
-    display: inline-block;
-    font-size: 1.5rem;
-    line-height: 1;
-    font-weight: 800;
-    text-align: right;
-    transform: translateY(3px);
-    color: #156cd0;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    height: 20px;
+    font-weight: 500;
+    color: ghostwhite;
+    border: 1px solid rgb(22, 171, 255);
+    background: rgb(56, 111, 240);
+    box-shadow: inset 5px 5px 5px 5px rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    padding: 3px 3px 1px 0;
+
+    span {
+        pointer-events: none;
+    }
+
     &:hover {
-        color: #14d591;
+        color: ghostwhite;
+        background: rgb(56, 111, 240);
+        border: 1px solid rgb(22, 171, 255);
     }
 `;
 
