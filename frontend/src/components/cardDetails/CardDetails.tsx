@@ -169,7 +169,7 @@ export default function CardDetails() {
                         </DetailText>
                     )}
                     {digivolveConditions[0] && (
-                        <div style={{ display: "flex", gap: 7 }}>
+                        <div style={{ display: "flex", gap: 7, transform: "translateY(2px)" }}>
                             <div>
                                 <span>{"Digivolve: "}</span>
                                 <DetailMetric>{digivolveConditions[0]?.cost}</DetailMetric>

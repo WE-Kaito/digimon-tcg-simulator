@@ -116,6 +116,7 @@ const CardImg = styled.img<{ isOver?: boolean }>`
     border-radius: 5px;
     transition: all 0.1s ease-in-out;
     filter: drop-shadow(${({ isOver }) => (isOver ? "0px 0px 1px whitesmoke" : "1px 1px 2px #060e18")});
+    scale: 1.1;
 
     &:hover {
         filter: drop-shadow(0px 0px 3px #af0c3d) brightness(1.1) saturate(1.2);
@@ -124,7 +125,7 @@ const CardImg = styled.img<{ isOver?: boolean }>`
 
 const StyledSpan = styled.span`
     position: absolute;
-    bottom: -26px;
+    bottom: -30px;
     left: 46%;
     font-family: Awsumsans, sans-serif;
     font-style: italic;
