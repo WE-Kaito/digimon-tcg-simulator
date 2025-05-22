@@ -15,7 +15,7 @@ export default function PlayerCard({ side, wsUtils }: Props) {
         <Container>
             <StyledImg src={profilePicture(avatar)} alt={"ava"} width={avatarWidth} side={side} />
             <StyledSpan side={side} avatarWidth={avatarWidth}>
-                {wsUtils?.matchInfo.opponentName}
+                {side === SIDE.MY ? wsUtils?.matchInfo.user : wsUtils?.matchInfo.opponentName}
             </StyledSpan>
         </Container>
     );
@@ -57,6 +57,6 @@ const StyledSpan = styled.span<{ side: SIDE; avatarWidth: number }>`
     letter-spacing: 1px;
     line-height: 1;
     filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
-    align-self: ${({ side }) => (side === SIDE.MY ? "flex-start" : "flex-end")};
-    transform: ${({ side }) => (side === SIDE.MY ? "translateY(-25%)" : "unset")};
+    align-self: center;
+    transform: ${({ side }) => (side === SIDE.MY ? "translateY(-30%)" : "unset")};
 `;
