@@ -1,6 +1,5 @@
 import { Tooltip, Zoom as MuiZoom } from "@mui/material";
 import Card from "../../Card.tsx";
-import { getSleeve } from "../../../utils/sleeves.ts";
 import mySecurityAnimation from "../../../assets/lotties/my-security-apng.png";
 import { Fragment, useEffect, useState } from "react";
 import styled from "@emotion/styled";
@@ -17,7 +16,6 @@ import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) {
-    const mySleeve = useGameBoardStates((state) => state.mySleeve);
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
     const opponentReveal = useGameBoardStates((state) => state.opponentReveal);
     const moveCard = useGameBoardStates((state) => state.moveCard);
@@ -108,11 +106,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
                                         }}
                                     />
                                 )}
-                                {card.inSecurityFaceUp ? (
-                                    <Card key={card.id} card={card} location={"mySecurity"} style={{ width: "50px" }} />
-                                ) : (
-                                    <FaceDownCard key={card.id} alt="card" src={getSleeve(mySleeve)} />
-                                )}
+                                <Card key={card.id} card={card} location={"mySecurity"} style={{ width: "50px" }} />
                             </Fragment>
                         ))}
                     </div>
@@ -208,20 +202,6 @@ const StyledCloseDetailsIcon = styled(CloseDetailsIcon)`
     font-size: 3em;
 `;
 
-export const FaceDownCard = styled.img`
-    width: 50px;
-    max-width: 50px;
-    max-height: 70px;
-    border-radius: 2px;
-
-    @media (max-width: 767px) {
-        max-height: 115px;
-    }
-    @media (min-width: 768px) {
-        width: 95px;
-    }
-`;
-
 function getTooltipStyles(stackLength: number) {
     return {
         tooltip: {
@@ -238,10 +218,5 @@ function getTooltipStyles(stackLength: number) {
         arrow: {
             style: { color: "#2e74f6" },
         },
-        // popper: {
-        //     style: {
-        //
-        //     },
-        // },
     };
 }

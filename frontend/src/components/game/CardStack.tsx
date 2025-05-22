@@ -5,7 +5,6 @@ import { CSSProperties, useCallback } from "react";
 import { ItemParams, ShowContextMenuParams } from "react-contexify";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { WSUtils } from "../../pages/GamePage.tsx";
-import { useDndContext } from "@dnd-kit/core";
 
 type MakeOptional<Type, Key extends keyof Type> = Omit<Type, Key> & Partial<Pick<Type, Key>>;
 
@@ -61,22 +60,13 @@ export default function CardStack(props: CardStackProps) {
     const cardWidth = useGeneralStates((state) => state.cardWidth);
     const tamerWidth = cardWidth - cardWidth / 3.5;
     const isLinkCard = linkLocations.includes(location);
-    const { active } = useDndContext();
-
-    const isCardBeingDragged = useCallback(
-        (cardIndex: number) => {
-            return active && active?.data?.current?.content?.id === cards[cardIndex]?.id;
-        },
-        [active, cards]
-    );
 
     const getCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
             const bottomPercentage = (cardIndex * 7.5) / (cardCount > 14 ? 3 : cardCount > 7 ? 2 : 1);
-            const isBeingDragged = isCardBeingDragged(cardIndex);
 
             return {
-                height: isBeingDragged ? undefined : `${cardWidth * 1.4}px`,
+                aspectRatio: "7 / 10",
                 position: "absolute",
                 bottom: `${isLinkCard ? bottomPercentage - 7.5 : bottomPercentage}%`,
                 rotate: isLinkCard
@@ -87,24 +77,22 @@ export default function CardStack(props: CardStackProps) {
                 [opponentSide ? "right" : "left"]: isLinkCard ? "-160%" : 0,
             };
         },
-        [isCardBeingDragged, cardWidth, cards]
+        [cardWidth, cards]
     );
 
     const getTamerCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
             const leftPercentage =
                 (cardIndex * 9.5) / (cardCount > 13 ? 2.5 : cardCount > 10 ? 2 : cardCount > 7 ? 1.5 : 1);
-            const isBeingDragged = isCardBeingDragged(cardIndex);
 
             return {
-                height: isBeingDragged ? undefined : `${tamerWidth * 1.4}px`,
                 position: "absolute",
                 left: `${leftPercentage}%`,
                 rotate: `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
                 zIndex: 50 - cardIndex,
             };
         },
-        [isCardBeingDragged, tamerWidth, cards]
+        [tamerWidth, cards]
     );
 
     if (tamerLocations.includes(location)) {
@@ -179,7 +167,7 @@ export default function CardStack(props: CardStackProps) {
                           style={getCardContainerStyles(index, cards.length)}
                       >
                           <Card
-                              style={{ width: cardWidth }}
+                              style={{ width: cardWidth, height: cardWidth * 1.4 }}
                               card={card}
                               location={location}
                               index={index}

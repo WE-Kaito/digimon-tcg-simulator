@@ -61,6 +61,7 @@ const StyledArrow = styled(Arrow)<{ isFromOpponent: boolean; isEffect: boolean }
     stroke-linecap: round;
     transform: scale(0.95);
     animation: arrow-pulsate 0.8s ease infinite;
+    z-index: 1000;
 
     path {
         fill: transparent;

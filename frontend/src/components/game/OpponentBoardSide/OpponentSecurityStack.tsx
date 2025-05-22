@@ -1,6 +1,5 @@
 import { Tooltip, Zoom as MuiZoom } from "@mui/material";
 import Card from "../../Card.tsx";
-import { getSleeve } from "../../../utils/sleeves.ts";
 import opponentSecurityAnimation from "../../../assets/lotties/opponent-security-apng.png";
 import swordAnimation from "../../../assets/lotties/sword.json";
 import { Fragment, useState } from "react";
@@ -9,12 +8,10 @@ import Lottie from "lottie-react";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import { useDroppable } from "@dnd-kit/core";
-import useResponsiveFontSize from "../../../hooks/useResponsiveFontSize.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function OpponentSecurityStack() {
     const opponentSecurity = useGameBoardStates((state) => state.opponentSecurity);
-    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
 
     const { setNodeRef, isOver, active } = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
     const isOverOpponent = isOver && String(active?.id).includes("myDigi");
@@ -56,16 +53,12 @@ export default function OpponentSecurityStack() {
                                                 }}
                                             />
                                         )}
-                                        {card.inSecurityFaceUp ? (
-                                            <Card
-                                                key={card.id}
-                                                card={card}
-                                                location={"opponentSecurity"}
-                                                style={{ width: "50px" }}
-                                            />
-                                        ) : (
-                                            <FaceDownCard key={card.id} alt="card" src={getSleeve(opponentSleeve)} />
-                                        )}
+                                        <Card
+                                            key={card.id}
+                                            card={card}
+                                            location={"opponentSecurity"}
+                                            style={{ width: "50px" }}
+                                        />
                                     </Fragment>
                                 ))}
                             </div>
@@ -118,20 +111,6 @@ const SecurityAnimationImg = styled.img`
     left: 50%;
     top: 47%;
     transform: translate(-50%, -50%);
-`;
-
-export const FaceDownCard = styled.img`
-    width: 69.5px;
-    max-width: 50px;
-    max-height: 70px;
-    border-radius: 2px;
-
-    @media (max-width: 767px) {
-        max-height: 115px;
-    }
-    @media (min-width: 768px) {
-        width: 95px;
-    }
 `;
 
 function getTooltipStyles(stackLength: number) {

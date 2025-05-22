@@ -91,6 +91,7 @@ const opponentFieldLocations = [
     "opponentEggDeck",
     "opponentTrash",
     "opponentSecurity",
+    "opponentHand",
 ];
 
 const locationsWithInheritedInfo = [
@@ -148,6 +149,7 @@ export default function Card(props: CardProps) {
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const mySleeve = useGameBoardStates((state) => state.mySleeve);
+    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
     const setStackSliceIndex = useGameBoardStates((state) => state.setStackSliceIndex);
 
@@ -167,6 +169,8 @@ export default function Card(props: CardProps) {
 
     const inTamerField = tamerLocations.includes(location);
 
+    const isCardFaceDown = (isHandHidden && location === "myHand") || (!card.isFaceUp && location !== "myHand");
+
     const {
         attributes,
         listeners,
@@ -185,6 +189,7 @@ export default function Card(props: CardProps) {
                 cardType: card.cardType,
                 name: card.name,
                 imgSrc: card.imgUrl,
+                isFaceUp: card.isFaceUp,
             },
         },
         disabled: opponentFieldLocations.includes(location) || !opponentReady,
@@ -212,6 +217,7 @@ export default function Card(props: CardProps) {
             `${wsUtils.matchInfo.gameId}:/tiltCard:${wsUtils.matchInfo.opponentName}:${card.id}:${location}`
         );
     }
+    const [hoveredId, setHoveredId] = useState<string>("");
 
     const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
     const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
@@ -220,6 +226,7 @@ export default function Card(props: CardProps) {
     const linkCardInfo = topCardInfoLink(linkCardsForLocation);
 
     function handleClick(event: React.MouseEvent) {
+        if (isCardFaceDown) return;
         event.stopPropagation();
         selectCard(card);
         if (inheritAllowed) {
@@ -230,9 +237,9 @@ export default function Card(props: CardProps) {
     const isToggleMode = false;
     function handleHover() {
         if (index !== undefined && !active && (!isToggleMode || isStackDragMode)) setStackSliceIndex(index);
-        if ((isHandHidden && location === "myHand") || active || activeStack) return;
+        if (isCardFaceDown) setHoveredId(card.id);
+        if (isCardFaceDown || active || activeStack) return;
         setHoverCard(card);
-        // TODO: add corresponding LinkArea card effect to inheritedEffects
         if (inheritAllowed) {
             setInheritCardInfo(inheritedEffects);
             setLinkCardInfo(linkCardInfo);
@@ -249,6 +256,7 @@ export default function Card(props: CardProps) {
     function handleStopHover() {
         if (isDragging) return;
         setHoverCard(null);
+        setHoveredId("");
         if (!selectedCard || !selectedCardLocation) {
             setInheritCardInfo([]);
             setLinkCardInfo([]);
@@ -318,7 +326,11 @@ export default function Card(props: CardProps) {
     const dragListeners = isSingleDrag ? listeners : stackListeners;
 
     const showCardModifiers =
-        locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isDraggingStack;
+        locationsWithAdditionalInfo.includes(location) &&
+        cardWidth > 60 &&
+        !isDragging &&
+        !isDraggingStack &&
+        !isCardFaceDown;
     const renderModifiersOnTop =
         (digimonLocations.includes(location) && index === locationCards.length - 1) ||
         (tamerLocations.includes(location) && index === 0);
@@ -327,7 +339,7 @@ export default function Card(props: CardProps) {
 
     function handleHoverDragIcon() {
         if (index !== undefined) {
-            setHoverCard(card);
+            if (!isCardFaceDown) setHoverCard(card);
             setStackSliceIndex(index);
             setStackDragIcon({ index, location });
         }
@@ -354,7 +366,7 @@ export default function Card(props: CardProps) {
         >
             {((index !== 0 && (myDigimonLocations.includes(location) || location === "myBreedingArea")) ||
                 (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
-                (isHovered || isDragIconHovered) &&
+                (isHovered || isDragIconHovered || hoveredId === card.id) &&
                 stackModal !== location &&
                 !useToggleForStacks && (
                     <DragStackIconDiv
@@ -465,7 +477,7 @@ export default function Card(props: CardProps) {
                 onMouseOver={handleHover}
                 onMouseLeave={handleStopHover}
                 alt={card.name + " " + card.uniqueCardNumber}
-                src={isHandHidden && location === "myHand" ? getSleeve(mySleeve) : cardImageUrl}
+                src={isCardFaceDown ? getSleeve(location.includes("my") ? mySleeve : opponentSleeve) : cardImageUrl}
                 location={location}
                 isTilted={card.isTilted}
                 activeEffect={renderEffectAnimation}
@@ -501,6 +513,9 @@ const StyledImage = styled.img<StyledImageProps>`
     transition: all 0.15s ease-out;
     cursor: ${({ location }) => (opponentFieldLocations?.includes(location) ? "pointer" : undefined)};
     touch-action: none;
+    display: block;
+    object-fit: fill;
+    aspect-ratio: 7 / 10;
 
     animation: ${({ isTilted, activeEffect, targeted, isTopCard }) =>
         targeted
@@ -670,7 +685,7 @@ const Wrapper = styled.div<{ isDragIconHovered: boolean }>`
     -moz-user-select: none;
     user-select: none;
     transition: transform 0.35s;
-
+    display: block;
     &:hover {
         z-index: ${({ isDragIconHovered }) => (isDragIconHovered ? 99 : "unset")};
     }

@@ -3,7 +3,7 @@ import { Item, Separator, Submenu } from "react-contexify";
 import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import {
-    VerticalAlignTopOutlined as Topicon,
+    VerticalAlignTopOutlined as TopIcon,
     VerticalAlignBottomOutlined as BottomIcon,
     VisibilityOffOutlined as FaceDownIcon,
     VisibilityOutlined as FaceUpIcon,
@@ -25,16 +25,15 @@ export default function SendToSecurityMenu({ wsUtils, card, location }: SendToSe
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 
-    function sendCardToSecurityStack(topOrBottom: "Top" | "Bottom", sendFaceUp?: boolean) {
-        console.log(getOpponentReady(), !!card, !card?.id.startsWith("TOKEN"));
+    function sendCardToSecurityStack(topOrBottom: "Top" | "Bottom", facing: "up" | "down") {
         if (!getOpponentReady() || !card || card.id.startsWith("TOKEN")) return;
 
-        moveCardToStack(topOrBottom, card.id, location, "mySecurity", sendFaceUp);
+        moveCardToStack(topOrBottom, card.id, location, "mySecurity", facing);
         wsUtils?.sendChatMessage(
-            `[FIELD_UPDATE]≔【${location === "myHand" && !sendFaceUp ? `???…${card.id.slice(-5)}` : card.name}】﹕${convertForLog(location)} ➟ SS﹕${topOrBottom}${sendFaceUp ? " (face up)" : ""}`
+            `[FIELD_UPDATE]≔【${location === "myHand" && facing === "down" ? `???…${card.id.slice(-5)}` : card.name}】﹕${convertForLog(location)} ➟ SS﹕${topOrBottom}${facing === "up" ? " (face up)" : ""}`
         );
         wsUtils?.sendMessage(
-            `${wsUtils.matchInfo.gameId}:/moveCardToStack:${wsUtils.matchInfo.opponentName}:${topOrBottom}:${card.id}:${location}:mySecurity:${sendFaceUp}`
+            `${wsUtils.matchInfo.gameId}:/moveCardToStack:${wsUtils.matchInfo.opponentName}:${topOrBottom}:${card.id}:${location}:mySecurity:${facing}`
         );
         playPlaceCardSfx();
     }
@@ -46,19 +45,19 @@ export default function SendToSecurityMenu({ wsUtils, card, location }: SendToSe
             arrow={<StyledLottie animationData={arrowsAnimation} />}
         >
             <Item
-                onClick={() => sendCardToSecurityStack("Top", true)}
+                onClick={() => sendCardToSecurityStack("Top", "up")}
                 style={{ background: "#42001b", borderRadius: 5 }}
             >
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                     <span>Top (face-up)</span>{" "}
                     <span>
                         <FaceUpIcon />
-                        <Topicon />
+                        <TopIcon />
                     </span>
                 </div>
             </Item>
             <Item
-                onClick={() => sendCardToSecurityStack("Bottom", true)}
+                onClick={() => sendCardToSecurityStack("Bottom", "up")}
                 style={{ background: "#42001b", borderRadius: 5 }}
             >
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
@@ -70,16 +69,16 @@ export default function SendToSecurityMenu({ wsUtils, card, location }: SendToSe
                 </div>
             </Item>
             <Separator />
-            <Item onClick={() => sendCardToSecurityStack("Top")}>
+            <Item onClick={() => sendCardToSecurityStack("Top", "down")}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                     <span>Top (face-down)</span>{" "}
                     <span>
                         <FaceDownIcon />
-                        <Topicon />
+                        <TopIcon />
                     </span>
                 </div>
             </Item>
-            <Item onClick={() => sendCardToSecurityStack("Bottom")}>
+            <Item onClick={() => sendCardToSecurityStack("Bottom", "down")}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                     <span>Bottom (face-down)</span>{" "}
                     <span>

@@ -4,14 +4,14 @@ import {
     AdsClick as TargetIcon,
     BackHand as HandIcon,
     Backspace as ClearIcon,
-    Curtains as RevealIcon,
     DeleteForever as TrashIcon,
     LocalFireDepartment as EffectIcon,
     Pageview as OpenSecurityIcon,
     ShuffleOnOutlined as ShuffleIcon,
     Search as DetailsIcon,
-    VisibilityOutlined as HandVisibleIcon,
-    VisibilityOffOutlined as HandVisibleOffIcon,
+    VisibilityOutlined as VisibleIcon,
+    VisibilityOffOutlined as VisibleOffIcon,
+    PreviewRounded as StreamerModeIcon,
 } from "@mui/icons-material";
 import { CSSProperties } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
@@ -36,7 +36,6 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const cardToSend = useGameBoardStates((state) => state.cardToSend);
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
-    const myHand = useGameBoardStates((state) => state.myHand);
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
     const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
@@ -45,6 +44,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
     const setCardIdWithTarget = useGameBoardStates((state) => state.setCardIdWithTarget);
     const setModifiers = useGameBoardStates((state) => state.setModifiers);
+    const flipCard = useGameBoardStates((state) => state.flipCard);
 
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const toggleIsHandHidden = useGameBoardStates((state) => state.toggleIsHandHidden);
@@ -90,17 +90,6 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             `[FIELD_UPDATE]≔【${to === "myHand" ? "Card" : card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`
         );
         sendSfx?.(to === "myHand" ? "playDrawCardSfx" : "playTrashCardSfx");
-    }
-
-    function revealHandCard({ props }: ItemParams<FieldCardContextMenuItemProps>) {
-        if (!getOpponentReady() || props === undefined) return;
-        moveCard(myHand[props.index].id, "myHand", "myReveal");
-        playRevealCardSfx();
-        sendMoveCard?.(myHand[props.index].id, "myHand", "myReveal");
-        sendChatMessage?.(
-            `[FIELD_UPDATE]≔【${myHand[props.index].name}】﹕…${myHand[props.index].id.slice(-5)}(ID) at Hand ➟ Reveal`
-        );
-        sendSfx?.("playRevealSfx");
     }
 
     function moveDeckCard(to: string, bottomCard?: boolean) {
@@ -190,6 +179,27 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         sendSetModifiers(props?.id, props?.location, modifiers);
     }
 
+    function handleFlipCard({ props }: ItemParams<FieldCardContextMenuItemProps>) {
+        if (props === undefined) return;
+        flipCard(props?.id, props?.location);
+        sendMessage?.(`${matchInfo?.gameId}:/flipCard:${matchInfo?.opponentName}:${props?.id}:${props?.location}`);
+        // sendSfx?.("playFlipCardSfx");
+        sendChatMessage?.(
+            `[FIELD_UPDATE]≔【${contextCard?.name} at ${convertForLog(props?.location ?? "")}】﹕➟ ${contextCard?.isFaceUp ? "Face Up" : "Face Down"}`
+        );
+    }
+
+    function handleTraining({ props }: ItemParams<FieldCardContextMenuItemProps>) {
+        if (props === undefined) return;
+        moveCardToStack("Top", myDeckField[0].id, "myDeckField", props?.location, "down");
+        sendMessage?.(
+            `${matchInfo?.gameId}:/moveCardToStack:${matchInfo?.opponentName}:Top:${myDeckField[0].id}:myDeckField:${props?.location}:down`
+        );
+        sendChatMessage?.(
+            `[FIELD_UPDATE]≔【${contextCard?.name} at ${convertForLog(props?.location ?? "")}】﹕➟ Training`
+        );
+    }
+
     return (
         <>
             <StyledMenu id={"deckMenu"} theme="dark">
@@ -197,18 +207,20 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"handCardMenu"} theme="dark">
-                <Item onClick={toggleIsHandHidden}>
+                <Item onClick={handleFlipCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>{isHandHidden ? "Disable Hide Cards" : "Hide Cards"}</span>
-                        {isHandHidden ? <HandVisibleOffIcon /> : <HandVisibleIcon />}
-                    </div>
-                </Item>
-                <Item onClick={revealHandCard}>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>Reveal Card</span> <RevealIcon />
+                        <span>{contextCard?.isFaceUp ? "Stop Showing Card" : "Show Card"}</span>{" "}
+                        {contextCard?.isFaceUp ? <VisibleOffIcon /> : <VisibleIcon />}
                     </div>
                 </Item>
                 <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
+                <Separator />
+                <Item onClick={toggleIsHandHidden}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>{isHandHidden ? "Disable Stream Mode" : "Activate Stream Mode"}</span>
+                        <StreamerModeIcon />
+                    </div>
+                </Item>
             </StyledMenu>
 
             <StyledMenu id={"fieldCardMenu"} theme="dark">
@@ -224,7 +236,17 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Show Stack</span> <DetailsIcon />
                     </div>
                 </Item>
+                <Item onClick={handleFlipCard}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Flip Card</span> <VisibleIcon />
+                    </div>
+                </Item>
                 <Separator />
+                <Item onClick={handleTraining}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Training</span> <EffectIcon />
+                    </div>
+                </Item>
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />
@@ -275,6 +297,14 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                     </div>
                 </Item>
                 <Separator />
+                <Item onClick={activateTargetAnimation}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Target Card</span> <TargetIcon />
+                    </div>
+                </Item>
+            </StyledMenu>
+
+            <StyledMenu id={"opponentHandCardMenu"} theme="dark">
                 <Item onClick={activateTargetAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Target Card</span> <TargetIcon />

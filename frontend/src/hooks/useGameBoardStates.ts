@@ -144,7 +144,7 @@ export type State = BoardState & {
         sendLoaded: () => void,
         playDrawCardSfx: () => void
     ) => void;
-    moveCard: (cardId: string, from: string, to: string) => void;
+    moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
     getMyFieldAsString: () => string;
     updateOpponentField: (chunk: string, sendLoaded: () => void) => void;
 
@@ -159,7 +159,7 @@ export type State = BoardState & {
         index: number,
         from: string,
         to: string,
-        handleDropToField: (id: string, from: string, to: string, name: string) => void
+        handleDropToField: (id: string, from: string, to: string, name: string, isFaceUp: boolean) => void
     ) => void;
     areCardsSuspended: (from?: string) => boolean;
     nextPhaseTrigger: (nextPhaseFunction: () => void, currentPhase?: string) => void;
@@ -192,6 +192,8 @@ export type State = BoardState & {
     setStackSliceIndex: (index: number) => void;
     setIsOpponentOnline: (isOpponentOnline: boolean) => void;
     setStartingPlayer: (side: SIDE | "") => void;
+
+    flipCard: (cardId: string, location: string) => void;
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -567,7 +569,7 @@ export const useGameBoardStates = create<State>()(
                     sendLoaded();
                 },
 
-                moveCard: (cardId, from, to) => {
+                moveCard: (cardId, from, to, facing?: "down" | "up") => {
                     if (!cardId || !from || !to) return;
 
                     const fromState = get()[from as keyof State] as CardTypeGame[];
@@ -576,7 +578,16 @@ export const useGameBoardStates = create<State>()(
                     if (!card) return;
                     if (resetModifierLocations.includes(to))
                         card.modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color };
-                    if (card.inSecurityFaceUp) card.inSecurityFaceUp = false;
+
+                    if (!!facing) {
+                        facing === "up" ? card.isFaceUp === true : card.isFaceUp === false;
+                    } else if (["myReveal", "opponentReveal"].includes(to)) {
+                        card.isFaceUp = true;
+                    } else if (
+                        ["myHand", "opponentHand", "myDeck", "opponentDeck", "myReveal", "opponentReveal"].includes(to)
+                    ) {
+                        card.isFaceUp = false;
+                    } else if (["myHand", "opponentHand"].includes(from)) card.isFaceUp = true;
 
                     const updatedFromState = fromState.filter((card) => card.id !== cardId);
 
@@ -631,7 +642,7 @@ export const useGameBoardStates = create<State>()(
                     });
                 },
 
-                moveCardToStack: (topOrBottom, cardId, cardLocation, to, sendFaceUp) => {
+                moveCardToStack: (topOrBottom, cardId, cardLocation, to, facing) => {
                     if (!get().opponentReady) return;
 
                     const locationCards = get()[cardLocation as keyof State] as CardTypeGame[];
@@ -641,10 +652,8 @@ export const useGameBoardStates = create<State>()(
 
                     const updatedLocationCards = locationCards.filter((card: CardTypeGame) => card.id !== cardId);
 
-                    if (!["mySecurity", "opponentSecurity"].includes(to) && card.inSecurityFaceUp)
-                        card.inSecurityFaceUp = false;
-
                     if (topOrBottom === "Top") card.isTilted = false;
+
                     if (resetModifierLocations.includes(to) && card)
                         card.modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color };
 
@@ -659,7 +668,7 @@ export const useGameBoardStates = create<State>()(
                     } else
                         set((state) => {
                             const toStack = state[to as keyof State] as CardTypeGame[];
-                            const newCard = sendFaceUp ? { ...card, inSecurityFaceUp: true } : card;
+                            const newCard = facing ? { ...card, isFaceUp: facing === "up" } : card;
                             const updatedDeck = topOrBottom === "Top" ? [newCard, ...toStack] : [...toStack, newCard];
                             return {
                                 [cardLocation]: updatedLocationCards,
@@ -698,7 +707,7 @@ export const useGameBoardStates = create<State>()(
                         crypto.getRandomValues(cryptoArray);
 
                         for (const card of security) {
-                            if (card.inSecurityFaceUp) card.inSecurityFaceUp = false;
+                            if (card.isFaceUp) card.isFaceUp = false;
                         }
                         for (let i = security.length - 1; i > 0; i--) {
                             const j = cryptoArray[i] % (i + 1);
@@ -764,6 +773,7 @@ export const useGameBoardStates = create<State>()(
                         ...tokenVariant,
                         id: id,
                         isTilted: false,
+                        isFaceUp: true,
                         modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: tokenVariant.color },
                     };
                     set((state) => {
@@ -794,7 +804,7 @@ export const useGameBoardStates = create<State>()(
                     ) {
                         cards.reverse();
                     }
-                    cards.forEach((card) => handleDropToField(card.id, from, to, card.name));
+                    cards.forEach((card) => handleDropToField(card.id, from, to, card.name, card.isFaceUp));
                 },
 
                 areCardsSuspended: (from) => {
@@ -935,6 +945,17 @@ export const useGameBoardStates = create<State>()(
                 getLinkCardsForLocation: (location) => {
                     if (!battleAreaLocations.includes(location)) return [] as CardTypeGame[];
                     return get()[location.replace("Digi", "Link") as keyof State] as CardTypeGame[];
+                },
+
+                flipCard: (cardId, location) => {
+                    set((state) => {
+                        return {
+                            [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
+                                if (card.id === cardId) card.isFaceUp = !card.isFaceUp;
+                                return card;
+                            }),
+                        };
+                    });
                 },
             }),
             { name: "bearStore" }

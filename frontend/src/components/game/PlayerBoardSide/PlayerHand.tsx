@@ -4,6 +4,8 @@ import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { useDroppable } from "@dnd-kit/core";
+import EyeIcon from "@mui/icons-material/RemoveRedEyeTwoTone";
+
 export default function PlayerHand() {
     const { setNodeRef } = useDroppable({ id: "myHand", data: { accept: ["card"] } });
     const { show: showHandCardMenu } = useContextMenu({ id: "handCardMenu" });
@@ -24,25 +26,40 @@ export default function PlayerHand() {
     return (
         <Container ref={setNodeRef} cardCount={myHand.length}>
             {myHand.map((card, index) => (
-                <Card
-                    key={card.id}
-                    card={card}
-                    location={"myHand"}
-                    style={{
-                        position: "absolute",
-                        left: offset + index * effectiveSpacing,
-                        bottom: "-15%",
-                        width: cardWidth,
-                        transition: "all 0.2s ease",
-                        filter: "drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.8))",
-                    }}
-                    onContextMenu={(e) =>
-                        showHandCardMenu({
-                            event: e,
-                            props: { index, location: "myHand", id: card.id, name: card.name },
-                        })
-                    }
-                />
+                <div style={{ position: "absolute", left: offset + index * effectiveSpacing, bottom: "-15%" }}>
+                    {card.isFaceUp && (
+                        <EyeIcon
+                            sx={{
+                                position: "absolute",
+                                left: "50%",
+                                top: -cardWidth / 5.25,
+                                transform: "translateX(-50%)",
+                                fontSize: cardWidth / 2,
+                                filter: "drop-shadow(0 0 4px #DCB415) drop-shadow(0 0 4px #DCB415) drop-shadow(0 0 6px black)",
+                                color: "ghostwhite",
+                                zIndex: 11 + index,
+                                pointerEvents: "none",
+                            }}
+                        />
+                    )}
+                    <Card
+                        key={card.id}
+                        card={card}
+                        location={"myHand"}
+                        style={{
+                            zIndex: 10 + index,
+                            width: cardWidth,
+                            transition: "all 0.2s ease",
+                            filter: "drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.8))",
+                        }}
+                        onContextMenu={(e) =>
+                            showHandCardMenu({
+                                event: e,
+                                props: { index, location: "myHand", id: card.id, name: card.name },
+                            })
+                        }
+                    />
+                </div>
             ))}
             {myHand.length > 7 && <StyledSpan>{myHand.length}</StyledSpan>}
         </Container>

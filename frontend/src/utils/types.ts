@@ -36,7 +36,7 @@ type DigivolveCondition = {
 
 export type CardTypeWithId = CardType & { id: string };
 
-export type CardTypeGame = CardTypeWithId & { modifiers: CardModifiers; isTilted: boolean; inSecurityFaceUp?: boolean };
+export type CardTypeGame = CardTypeWithId & { modifiers: CardModifiers; isTilted: boolean; isFaceUp: boolean };
 
 export type CardModifiers = {
     plusDp: number;
@@ -306,7 +306,7 @@ export type SendToStackFunction = (
     cardId: string,
     cardLocation: string,
     to: string,
-    sendFaceUp?: boolean
+    facing?: "up" | "down"
 ) => void;
 
 export enum SIDE {

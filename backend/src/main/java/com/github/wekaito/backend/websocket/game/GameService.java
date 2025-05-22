@@ -112,6 +112,8 @@ public class GameService extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/tiltCard:")) handleTiltCard(gameRoom, roomMessage);
 
+        if (roomMessage.startsWith("/flipCard:")) handleFlipCard(gameRoom, roomMessage);
+
         if (roomMessage.startsWith("/updateMemory:")) handleMemoryUpdate(gameRoom, roomMessage);
 
         if (roomMessage.startsWith("/chatMessage:")) sendChatMessage(gameRoom, userName, roomMessage);
@@ -431,8 +433,8 @@ public class GameService extends TextWebSocketHandler {
         String cardId = parts[3];
         String from = parts[4];
         String to = parts[5];
-        String sendFaceUp = parts[6];
-        sendMessageToOpponent(gameRoom, opponentName, "[MOVE_CARD_TO_STACK]:" + topOrBottom + ":" + cardId + ":" + getPosition(from) + ":" + getPosition(to) + ":" + sendFaceUp);
+        String facing = parts[6];
+        sendMessageToOpponent(gameRoom, opponentName, "[MOVE_CARD_TO_STACK]:" + topOrBottom + ":" + cardId + ":" + getPosition(from) + ":" + getPosition(to) + ":" + facing);
     }
 
     private void handleTiltCard(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
@@ -442,6 +444,15 @@ public class GameService extends TextWebSocketHandler {
         String cardId = parts[2];
         String location = parts[3];
         sendMessageToOpponent(gameRoom, opponentName, "[TILT_CARD]:" + cardId + ":" + getPosition(location));
+    }
+
+    private void handleFlipCard(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {
+        if (roomMessage.split(":").length < 4) return;
+        String[] parts = roomMessage.split(":", 4);
+        String opponentName = parts[1];
+        String cardId = parts[2];
+        String location = parts[3];
+        sendMessageToOpponent(gameRoom, opponentName, "[FLIP_CARD]:" + cardId + ":" + getPosition(location));
     }
 
     private void handleCreateToken(Set<WebSocketSession> gameRoom, String roomMessage) throws IOException {

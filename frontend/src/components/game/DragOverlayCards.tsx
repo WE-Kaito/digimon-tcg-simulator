@@ -4,6 +4,7 @@ import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { CardTypeGame } from "../../utils/types.ts";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 import { useEffect } from "react";
+import { getSleeve } from "../../utils/sleeves.ts";
 
 const invisibleFields = [
     "mySecurity_top_faceDown",
@@ -18,8 +19,17 @@ export default function DragOverlayCards() {
     const { active, over } = useDndContext();
 
     const width = useGeneralStates((state) => state.cardWidth);
+    const mySleeve = useGameBoardStates((state) => state.mySleeve);
+    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
+    const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
 
-    const imgSrc = active?.data?.current?.type === "card" ? active?.data?.current?.content?.imgSrc : undefined;
+    const imgSrc =
+        active?.data?.current?.type === "card"
+            ? active?.data?.current?.content?.isFaceUp ||
+              (!isHandHidden && active?.data?.current?.content?.location === "myHand")
+                ? active?.data?.current?.content?.imgSrc
+                : getSleeve(active?.data?.current?.content?.location?.includes("my") ? mySleeve : opponentSleeve)
+            : undefined;
 
     // stack ###########################################################################################################
     const locationCards = useGameBoardStates(
@@ -58,7 +68,15 @@ export default function DragOverlayCards() {
                             key={card.id}
                             className={"custom-grab-cursor"}
                             alt={card.name}
-                            src={card.imgUrl}
+                            src={
+                                card.isFaceUp
+                                    ? card.imgUrl
+                                    : getSleeve(
+                                          active?.data?.current?.content?.location?.includes("my")
+                                              ? mySleeve
+                                              : opponentSleeve
+                                      )
+                            }
                             style={{
                                 width,
                                 borderRadius: 5,

@@ -1,6 +1,6 @@
 import useWebSocket, { SendMessage } from "react-use-websocket";
 import { AttackPhase, BootStage, CardModifiers, Phase, Player, SIDE } from "../utils/types.ts";
-import { getOpponentSfx, isTrue } from "../utils/functions.ts";
+import { getOpponentSfx } from "../utils/functions.ts";
 import { findTokenByName } from "../utils/tokens.ts";
 import { notifySecurityView } from "../utils/toasts.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
@@ -85,6 +85,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
     const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
+    const flipCard = useGameBoardStates((state) => state.flipCard);
 
     const isPlayerOne = user === gameId.split("‗")[0];
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
@@ -229,8 +230,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const cardId = parts[1];
                 const from = parts[2];
                 const to = parts[3];
-                const sendFaceUp = isTrue(parts[4]);
-                moveCardToStack(topOrBottom, cardId, from, to, sendFaceUp);
+                moveCardToStack(topOrBottom, cardId, from, to, parts[4]);
                 return;
             }
 
@@ -240,6 +240,15 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const cardId = parts[0];
                 const location = parts[1];
                 tiltCard(cardId, location, playSuspendSfx, playUnsuspendSfx);
+                return;
+            }
+
+            if (event.data.startsWith("[FLIP_CARD]:")) {
+                const parts = event.data.substring("[FLIP_CARD]:".length).split(":");
+
+                const cardId = parts[0];
+                const location = parts[1];
+                flipCard(cardId, location);
                 return;
             }
 
@@ -286,6 +295,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
 
             if (event.data.startsWith("[CREATE_TOKEN]:")) {
+                console.log("create token", event.data);
                 const parts = event.data.substring("[CREATE_TOKEN]:".length).split(":");
                 const id = parts[0];
                 const token = findTokenByName(parts[1]);

@@ -141,15 +141,17 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         sendSfx("playNextAttackPhaseSfx");
     }
 
-    function handleDropToField(cardId: string, from: string, to: string, cardName: string) {
+    function handleDropToField(cardId: string, from: string, to: string, cardName: string, isFaceUp: boolean) {
         if (!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendMoveCard(cardId, from, to);
+        const isFaceDown = !isFaceUp && (from.includes("Digi") || from.includes("Link") || from.includes("Breeding"));
         const hiddenCardInfo =
             from === "myHand" && ["myTrash", "myDeckField"].includes(to) ? ` (…${cardId.slice(-5)})` : "";
+
         if (from !== to)
             sendChatMessage(
-                `[FIELD_UPDATE]≔【${cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`
+                `[FIELD_UPDATE]≔【${isFaceDown ? "❔" : cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`
             );
     }
 
@@ -161,8 +163,8 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
             moveCardStack(stackSliceIndex, location, targetField, handleDropToField);
             setStackDragIcon(null);
         } else {
-            const { id, location, name } = item;
-            handleDropToField(id, location, targetField, name);
+            const { id, location, name, isFaceUp } = item;
+            handleDropToField(id, location, targetField, name, isFaceUp);
         }
 
         targetField === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();
@@ -177,17 +179,6 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         );
         moveCardToStack(topOrBottom, id, location, "myDeckField");
         sendCardToStack(topOrBottom, id, location, "myDeckField");
-        playPlaceCardSfx();
-    }
-
-    function dropCardToSecurityStack(item: DraggedItem, topOrBottom: "Top" | "Bottom", sendFaceUp?: boolean) {
-        const { id, location, name } = item;
-        if (id.startsWith("TOKEN")) return;
-        sendChatMessage(
-            `[FIELD_UPDATE]≔【${location === "myHand" && !sendFaceUp ? `???…${id.slice(-5)}` : name}】﹕${convertForLog(location)} ➟ SS﹕${topOrBottom}${sendFaceUp ? " (face up)" : ""}`
-        );
-        moveCardToStack(topOrBottom, id, location, "mySecurity", sendFaceUp);
-        sendCardToStack(topOrBottom, id, location, "mySecurity", sendFaceUp);
         playPlaceCardSfx();
     }
 
@@ -232,14 +223,10 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         playPlaceCardSfx();
     }
 
-    function handleDropToSecurity(item: DraggedItem, to: string) {
+    function handleDropToSecurity(item: DraggedItem) {
         const { id, location } = item;
         if (id.startsWith("TOKEN")) return;
         setCardToSend(id, location);
-        if (to === "mySecurity_top_faceUp") dropCardToSecurityStack(item, "Top", true);
-        if (to === "mySecurity_top_faceDown") dropCardToSecurityStack(item, "Top");
-        if (to === "mySecurity_bot_faceDown") dropCardToSecurityStack(item, "Bottom");
-        if (to === "mySecurity_bot_faceUp") dropCardToSecurityStack(item, "Bottom", true);
     }
 
     function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
@@ -283,7 +270,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         if (to.startsWith("opponentDigi") || ["opponentSecurity"].includes(to)) {
             handleDropToOpponent(draggedItem.location, to);
         }
-        if (to.includes("mySecurity")) handleDropToSecurity(draggedItem, String(over?.id));
+        if (to.includes("mySecurity")) handleDropToSecurity(draggedItem);
         if (to === "myHand") handleDropToHand(draggedItem);
         if (to === "myDeckField") dropCardToDeck(draggedItem, "Top");
         if (to === "myEggDeck") handleDropToEggDeck(draggedItem, "Top");

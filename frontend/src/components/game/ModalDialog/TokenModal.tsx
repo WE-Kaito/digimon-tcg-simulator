@@ -20,10 +20,12 @@ export default function TokenModal({ wsUtils }: { wsUtils?: WSUtils }) {
         const id = "TOKEN-" + uid();
         createToken(token, SIDE.MY, id);
         playPlaceCardSfx();
-        setTokenModal(false);
-        wsUtils?.sendMessage(`${id}:/createToken:${wsUtils.matchInfo.opponentName}:${id}:${token.name}`);
+        wsUtils?.sendMessage(
+            `${wsUtils.matchInfo.gameId}:/createToken:${wsUtils.matchInfo.opponentName}:${id}:${token.name}`
+        );
         wsUtils?.sendSfx("playPlaceCardSfx");
         wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【Spawn ${token.name}-Token】`);
+        setTokenModal(false);
     }
 
     const onHover = (token: CardType) => setHoverCard({ ...token, id: uid() });

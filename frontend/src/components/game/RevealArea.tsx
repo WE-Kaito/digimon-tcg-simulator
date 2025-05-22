@@ -41,7 +41,7 @@ export default function RevealArea() {
                         }),
                     }}
                 >
-                    <Card card={card} location={"myReveal"} style={{ width: cardWidth * 2 }} />
+                    <Card card={card} location={"opponentReveal"} style={{ width: cardWidth * 2 }} />
                 </Flip>
             ))}
         </Container>
