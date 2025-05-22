@@ -36,7 +36,6 @@ const battleKeywords = [
     "Retaliation",
     "Retal. ×2",
     "Vortex",
-    "SICK",
 ];
 
 export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
@@ -77,6 +76,11 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
         setModifiers(cardToSend.id, cardToSend.location, modifiers);
         sendSetModifiers(cardToSend.id, cardToSend.location, modifiers);
         playModifyCardSfx();
+    }
+
+    function handleSetSick() {
+        if (keywords.includes("SICK")) setKeywords((prev) => prev.filter((kw) => kw !== "SICK"));
+        else setKeywords([...keywords, "SICK"]);
     }
 
     // eslint-disable-next-line
@@ -135,16 +139,33 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                         </NumericStack>
 
                         <Stack direction={"row"} gap={0.5} maxWidth={"100%"} flexWrap={"wrap"}>
-                            {keywords.map((keyword) => (
-                                <ModifierSpan
-                                    onClick={() => setKeywords((prev) => prev.filter((kw) => kw !== keyword))}
-                                    specialKeyword={keyword === "SICK"}
-                                    key={`${keyword}_active`}
-                                >
-                                    {keyword}
-                                </ModifierSpan>
-                            ))}
+                            {keywords
+                                .filter((w) => w !== "SICK")
+                                .map((keyword) => (
+                                    <ModifierSpan
+                                        onClick={() => setKeywords((prev) => prev.filter((kw) => kw !== keyword))}
+                                        specialKeyword={keyword === "SICK"}
+                                        key={`${keyword}_active`}
+                                    >
+                                        {keyword}
+                                    </ModifierSpan>
+                                ))}
                         </Stack>
+
+                        <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
+                            <input
+                                type="checkbox"
+                                name="stackDrag"
+                                value="Toggle"
+                                id="toggle"
+                                className="button"
+                                checked={keywords.includes("SICK")}
+                                onChange={handleSetSick}
+                            />
+                            <label htmlFor="toggle" className="button">
+                                (Un)Mark as sick / stunned 💫
+                            </label>
+                        </div>
 
                         <Submenu
                             label={"Add Keyword Tag"}
@@ -237,8 +258,7 @@ const SubmitItem = styled(Item)`
 
 const ModifierSpan = styled.div<{ specialKeyword?: boolean }>`
     color: ghostwhite;
-    background: ${({ specialKeyword }) =>
-        specialKeyword ? "rgba(1,78,114,0.9)" : "linear-gradient(to top, #ce570d, #883b09)"};
+    background: linear-gradient(to top, #ce570d, #883b09);
     border-radius: 25px;
     height: 30px;
     text-align: center;

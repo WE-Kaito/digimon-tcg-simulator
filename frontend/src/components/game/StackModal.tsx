@@ -38,8 +38,7 @@ export default function StackModal() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(cardWidth);
 
-    const cardsToRender =
-        !!stackModal && tamerLocations.includes(stackModal) ? locationCards : locationCards.slice().reverse();
+    const reverse = !(!!stackModal && tamerLocations.includes(stackModal));
 
     const { show: showCardMenu } = useContextMenu({
         id: stackModal !== false && stackModal.includes("opponent") ? "modalMenuOpponent" : "modalMenu",
@@ -57,13 +56,19 @@ export default function StackModal() {
     if (!stackModal) return <></>;
 
     return (
-        <Container ref={containerRef} id={stackModal + "_stackModal"} onMouseOver={(e) => e.stopPropagation()}>
-            {cardsToRender.map((card, index) => (
+        <Container
+            reverse={reverse}
+            ref={containerRef}
+            id={stackModal + "_stackModal"}
+            onMouseOver={(e) => e.stopPropagation()}
+        >
+            {locationCards.map((card, index) => (
                 <Card
                     card={card}
                     location={stackModal}
                     style={{ width }}
                     key={card.id}
+                    index={index}
                     onContextMenu={(e) => {
                         showCardMenu?.({
                             event: e,
@@ -76,14 +81,14 @@ export default function StackModal() {
     );
 }
 
-const Container = styled.div`
+const Container = styled.div<{ reverse: boolean }>`
     position: relative;
     width: 100%;
     flex: 1;
     padding: 6px 4px 6px 6px;
     display: flex;
-    flex-flow: row wrap;
-    place-content: flex-start;
+    flex-flow: ${({ reverse }) => (reverse ? "row-reverse wrap-reverse" : "row wrap")};
+    place-content: ${({ reverse }) => (reverse ? "flex-start" : "flex-end")};
     gap: 1.5%;
     overflow-y: scroll;
     overflow-x: hidden;

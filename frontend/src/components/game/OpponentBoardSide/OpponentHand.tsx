@@ -74,7 +74,7 @@ const StyledSpan = styled.span`
     font-size: 20px;
     opacity: 0.4;
     position: absolute;
-    bottom: -2%;
+    bottom: 1%;
     left: -4.5%;
     pointer-events: none;
 `;

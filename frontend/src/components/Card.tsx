@@ -367,7 +367,6 @@ export default function Card(props: CardProps) {
             {((index !== 0 && (myDigimonLocations.includes(location) || location === "myBreedingArea")) ||
                 (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
                 (isHovered || isDragIconHovered || hoveredId === card.id) &&
-                stackModal !== location &&
                 !useToggleForStacks && (
                     <DragStackIconDiv
                         className={"custom-hand-cursor"}
@@ -375,6 +374,7 @@ export default function Card(props: CardProps) {
                             opacity: 1,
                             right: -(cardWidth / 15),
                             bottom: -(cardWidth / 15),
+                            position: stackModal === location ? "absolute" : "fixed",
                         }}
                         onMouseEnter={handleHoverDragIcon}
                         onMouseOver={handleHoverDragIcon}
@@ -416,11 +416,13 @@ export default function Card(props: CardProps) {
                                         </ColorStack>
                                     )}
                                     <KeywordWrapper>
-                                        {modifiers?.keywords.map((keyword) => (
-                                            <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
-                                                <span>{keyword}</span>
-                                            </ModifierSpan>
-                                        ))}
+                                        {modifiers?.keywords
+                                            .filter((w) => w !== "SICK")
+                                            .map((keyword) => (
+                                                <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
+                                                    <span>{keyword}</span>
+                                                </ModifierSpan>
+                                            ))}
                                     </KeywordWrapper>
                                     {card.level && (
                                         <LevelSpan isMega={card.level >= 6}>
@@ -448,7 +450,7 @@ export default function Card(props: CardProps) {
                     )}
                 </>
             )}
-            {card.isTilted && (
+            {card.modifiers.keywords.includes("SICK") && (
                 <CardAnimationContainer
                     style={{
                         overflow: "clip",
@@ -459,7 +461,13 @@ export default function Card(props: CardProps) {
                         opacity,
                     }}
                 >
-                    <img alt={"suspended"} src={suspendedAPNG} />
+                    <img
+                        style={{
+                            filter: "drop-shadow(0 0 5px black) drop-shadow(0 0 2px goldenrod) drop-shadow(0 0 4px black)",
+                        }}
+                        alt={"suspended"}
+                        src={suspendedAPNG}
+                    />
                 </CardAnimationContainer>
             )}
 
@@ -515,7 +523,7 @@ const StyledImage = styled.img<StyledImageProps>`
     touch-action: none;
     display: block;
     object-fit: fill;
-    aspect-ratio: 7 / 10;
+    aspect-ratio: 7 / 9.75;
 
     animation: ${({ isTilted, activeEffect, targeted, isTopCard }) =>
         targeted
@@ -606,7 +614,7 @@ export const CardAnimationContainer = styled.div`
 
 const PlusDpSpan = styled.span<{ isHovering?: boolean; isNegative?: boolean }>`
     position: absolute;
-    z-index: 11;
+    z-index: 15000;
     top: ${({ isHovering }) => (isHovering ? "-8px" : "-1px")};
     right: ${({ isHovering }) => (isHovering ? "-6px" : 0)};
     font-size: ${({ isHovering }) => (isHovering ? "1.1em" : "1em")};

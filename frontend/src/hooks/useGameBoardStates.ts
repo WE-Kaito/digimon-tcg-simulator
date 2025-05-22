@@ -615,6 +615,8 @@ export const useGameBoardStates = create<State>()(
                             card.modifiers.keywords = prevTopCard.modifiers.keywords;
                             prevTopCard.modifiers.keywords = [];
                         } else prevTopCard.modifiers.keywords = [];
+
+                        prevTopCard.modifiers.colors = prevTopCard.color;
                     }
 
                     if (from === to) {

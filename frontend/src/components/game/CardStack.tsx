@@ -63,10 +63,9 @@ export default function CardStack(props: CardStackProps) {
 
     const getCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
-            const bottomPercentage = (cardIndex * 7.5) / (cardCount > 14 ? 3 : cardCount > 7 ? 2 : 1);
-
+            const bottomPercentage = cardIndex * getMultiplier(cardCount);
             return {
-                aspectRatio: "7 / 10",
+                aspectRatio: "7 / 9.75",
                 position: "absolute",
                 bottom: `${isLinkCard ? bottomPercentage - 7.5 : bottomPercentage}%`,
                 rotate: isLinkCard
@@ -82,12 +81,9 @@ export default function CardStack(props: CardStackProps) {
 
     const getTamerCardContainerStyles = useCallback(
         (cardIndex: number, cardCount: number): CSSProperties => {
-            const leftPercentage =
-                (cardIndex * 9.5) / (cardCount > 13 ? 2.5 : cardCount > 10 ? 2 : cardCount > 7 ? 1.5 : 1);
-
             return {
                 position: "absolute",
-                left: `${leftPercentage}%`,
+                left: `${cardIndex * getMultiplierTamer(cardCount)}%`,
                 rotate: `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
                 zIndex: 50 - cardIndex,
             };
@@ -182,4 +178,41 @@ export default function CardStack(props: CardStackProps) {
                   ))}
         </>
     );
+}
+
+function getMultiplier(cardCount: number): number {
+    if (cardCount >= 30) return 2.3 - (cardCount - 17) * 0.0625;
+    if (cardCount >= 27) return 2.3 - (cardCount - 17) * 0.07;
+    if (cardCount >= 22) return 2.3 - (cardCount - 17) * 0.075;
+    if (cardCount >= 17) return 2.3 - (cardCount - 17) * 0.1;
+    if (cardCount === 16) return 2.3;
+    if (cardCount === 15) return 2.5;
+    if (cardCount === 14) return 2.75;
+    if (cardCount === 13) return 3;
+    if (cardCount === 12) return 3.25;
+    if (cardCount === 11) return 3.5;
+    if (cardCount === 10) return 3.95;
+    if (cardCount === 9) return 4.4;
+    if (cardCount === 8) return 5;
+    if (cardCount === 7) return 5.8;
+    if (cardCount === 6) return 7;
+    return 8.5;
+}
+
+function getMultiplierTamer(cardCount: number): number {
+    if (cardCount >= 21) return 3.85 - (cardCount - 20) * (0.175 - 0.003 * (cardCount - 20));
+    if (cardCount === 20) return 3.85;
+    if (cardCount === 19) return 4.05;
+    if (cardCount === 18) return 4.3;
+    if (cardCount === 17) return 4.575;
+    if (cardCount === 16) return 4.875;
+    if (cardCount === 15) return 5.25;
+    if (cardCount === 14) return 5.625;
+    if (cardCount === 13) return 6.1;
+    if (cardCount === 12) return 6.62;
+    if (cardCount === 11) return 7.3;
+    if (cardCount === 10) return 8.125;
+    if (cardCount === 9) return 9.125;
+    if (cardCount === 8) return 10.5;
+    return 12.25;
 }

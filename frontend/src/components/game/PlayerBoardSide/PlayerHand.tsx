@@ -24,9 +24,9 @@ export default function PlayerHand() {
     const offset = (maxHandWidth - currentHandWidth) / 2;
 
     return (
-        <Container ref={setNodeRef} cardCount={myHand.length}>
+        <Container ref={setNodeRef}>
             {myHand.map((card, index) => (
-                <div style={{ position: "absolute", left: offset + index * effectiveSpacing, bottom: "-15%" }}>
+                <div style={{ position: "absolute", left: offset + index * effectiveSpacing, top: "3%" }}>
                     {card.isFaceUp && (
                         <EyeIcon
                             sx={{
@@ -66,7 +66,7 @@ export default function PlayerHand() {
     );
 }
 
-const Container = styled.div<{ cardCount: number; isMobileUi?: boolean }>`
+const Container = styled.div`
     touch-action: none;
     grid-area: hand;
     display: flex;

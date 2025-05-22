@@ -37,7 +37,7 @@ export default function LinkArea(props: LinkAreaProps) {
     const stackOpened = stackModal === location;
 
     const { show: showLinkFieldCardMenu } = useContextMenu({
-        id: "modalMenu",
+        id: "fieldCardMenu",
         props: { index: -1, location: "", id: "" },
     });
     const { show: showOpponentCardMenu } = useContextMenu({

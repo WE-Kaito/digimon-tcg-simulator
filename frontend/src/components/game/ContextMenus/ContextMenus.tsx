@@ -277,6 +277,11 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"modalMenu"} theme="dark">
+                <Item onClick={handleFlipCard}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Flip Card</span> <VisibleIcon />
+                    </div>
+                </Item>
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />
