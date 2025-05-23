@@ -312,9 +312,11 @@ export default function CardDetails() {
                         width: "100%",
                     }}
                 >
-                    {cardNumber && <DetailText>{cardNumber}</DetailText>}
+                    {cardNumber && (
+                        <DetailText style={{ width: "fit-content", textWrap: "nowrap" }}>{cardNumber}</DetailText>
+                    )}
 
-                    <DetailText>
+                    <DetailText style={{ width: "fit-content", textWrap: "nowrap" }}>
                         {"✒️ "}
                         {illustrator}
                     </DetailText>
@@ -400,7 +402,7 @@ const StyledLink = styled.a`
     box-shadow: inset 5px 5px 5px 5px rgba(255, 255, 255, 0.05);
     border-radius: 5px;
     padding: 3px 3px 1px 0;
-
+    text-wrap: nowrap;
     span {
         pointer-events: none;
     }

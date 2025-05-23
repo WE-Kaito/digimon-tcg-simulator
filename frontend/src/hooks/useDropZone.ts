@@ -231,12 +231,12 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
 
     function handleDropToStackBottom(cardId: string, from: string, to: string, cardName: string) {
         if (!cardId || !from || !to) return;
-        moveCardToStack("Top", cardId, from, to);
+        moveCardToStack("Top", cardId, from, to, from === "myHand" ? "up" : undefined);
         playPlaceCardSfx();
         sendSfx("playPlaceCardSfx");
         sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
         if (from === to) {
-            const timer = setTimeout(() => sendCardToStack("Top", cardId, from, to), 30);
+            const timer = setTimeout(() => sendCardToStack("Top", cardId, from, to, from === "myHand"), 30);
             return () => clearTimeout(timer);
         } else sendCardToStack("Top", cardId, from, to);
     }

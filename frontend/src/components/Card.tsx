@@ -226,7 +226,7 @@ export default function Card(props: CardProps) {
     const linkCardInfo = topCardInfoLink(linkCardsForLocation);
 
     function handleClick(event: React.MouseEvent) {
-        if (isCardFaceDown) return;
+        if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;
         event.stopPropagation();
         selectCard(card);
         if (inheritAllowed) {
@@ -238,7 +238,13 @@ export default function Card(props: CardProps) {
     function handleHover() {
         if (index !== undefined && !active && (!isToggleMode || isStackDragMode)) setStackSliceIndex(index);
         if (isCardFaceDown) setHoveredId(card.id);
-        if (isCardFaceDown || active || activeStack) return;
+        if (
+            (isCardFaceDown && location === "mySecurity") ||
+            (isCardFaceDown && !location.includes("my")) ||
+            active ||
+            activeStack
+        )
+            return;
         setHoverCard(card);
         if (inheritAllowed) {
             setInheritCardInfo(inheritedEffects);

@@ -79,7 +79,7 @@ export function topCardInfo(locationCards: CardTypeGame[]) {
     if (locationCards.length <= 1) return "";
     const effectInfo = [""];
     locationCards.forEach((card, index) => {
-        if (index === locationCards.length - 1 || !card.inheritedEffect) return;
+        if (index === locationCards.length - 1 || !card.inheritedEffect || !card.isFaceUp) return;
         effectInfo.push(card.inheritedEffect);
     });
     effectInfo.reverse();
