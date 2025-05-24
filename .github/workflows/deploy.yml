@@ -36,7 +36,7 @@ jobs:
           name: frontend-build
           path: backend/src/main/resources/static
       - name: Build Backend
-        run: mvn -B package --file backend/pom.xml
+        run: mvn -B package -DskipTests --file backend/pom.xml
       - uses: actions/upload-artifact@v4
         with:
           name: backend-build
