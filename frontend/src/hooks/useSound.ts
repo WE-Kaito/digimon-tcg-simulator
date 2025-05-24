@@ -230,16 +230,16 @@ export const useSound = create<State>((set, get) => {
         });
     }
 
-    const playDrawCardSfx = (): void => playSound(drawCardSfx, 0.5);
+    const playDrawCardSfx = (): void => playSound(drawCardSfx, 0.25);
     const playButtonClickSfx = (): void => playSound(buttonClickSfx, 0.35);
     const playRevealCardSfx = (): void => playSound(revealCardSfx, 0.25);
-    const playCardToHandSfx = (): void => playSound(cardToHandSfx, 0.25);
-    const playPlaceCardSfx = (): void => playSound(placeCardSfx, 0.8);
-    const playTrashCardSfx = (): void => playSound(trashCardSfx, 1);
+    const playCardToHandSfx = (): void => playSound(cardToHandSfx, 0.125);
+    const playPlaceCardSfx = (): void => playSound(placeCardSfx, 1);
+    const playTrashCardSfx = (): void => playSound(trashCardSfx, 0.9);
     const playAttackSfx = (): void => playSound(attackSfx, 0.25, 0, true);
     const playCoinFlipSfx = (): void => playSound(coinFlipSfx, 0.1);
     const playSecurityRevealSfx = (): void => playSound(securityRevealSfx, 0.5, 0, true);
-    const playShuffleDeckSfx = (): void => playSound(shuffleDeckSfx, 0.8, 0, true);
+    const playShuffleDeckSfx = (): void => playSound(shuffleDeckSfx, 0.6, 0, true);
     const playSuspendSfx = (): void => playSound(suspendSfx, 1);
     const playUnsuspendSfx = (): void => playSound(unsuspendSfx, 0.15);
     const playOpponentPlaceCardSfx = (): void => playSound(opponentPlaceCardSfx, 0.7, 100);

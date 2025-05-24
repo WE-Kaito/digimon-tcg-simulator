@@ -20,7 +20,7 @@ import { useSound } from "../hooks/useSound.ts";
 import { getSleeve } from "../utils/sleeves.ts";
 import { useDraggable } from "@dnd-kit/core";
 import { WSUtils } from "../pages/GamePage.tsx";
-import { useGameUIStates } from "../hooks/useGameUIStates.ts";
+import { OpenedCardModal, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 
@@ -169,7 +169,10 @@ export default function Card(props: CardProps) {
 
     const inTamerField = tamerLocations.includes(location);
 
-    const isCardFaceDown = (isHandHidden && location === "myHand") || (!card.isFaceUp && location !== "myHand");
+    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+    const isCardFaceDown =
+        !(openedCardModal === OpenedCardModal.MY_SECURITY && location === "mySecurity") &&
+        ((isHandHidden && location === "myHand") || (!card.isFaceUp && location !== "myHand"));
 
     const {
         attributes,

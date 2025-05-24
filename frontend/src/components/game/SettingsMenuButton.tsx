@@ -5,7 +5,7 @@ import SettingsIcon from "@mui/icons-material/SettingsSharp";
 import MenuDialog from "../MenuDialog.tsx";
 import ResetIcon from "@mui/icons-material/SettingsBackupRestore";
 import { MuiColorInput } from "mui-color-input";
-import { useSettingStates } from "../../hooks/useSettingStates.ts";
+import { DetailsView, useSettingStates } from "../../hooks/useSettingStates.ts";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 
 export default function SettingsMenuButton({ iconFontSize }: { iconFontSize: string }) {
@@ -43,8 +43,8 @@ export default function SettingsMenuButton({ iconFontSize }: { iconFontSize: str
 }
 
 function DetailsSettings() {
-    const showDetailsCardImage = useSettingStates((state) => state.showDetailsCardImage);
-    const setShowDetailsCardImage = useSettingStates((state) => state.setShowDetailsCardImage);
+    const details = useSettingStates((state) => state.details);
+    const setDetails = useSettingStates((state) => state.setDetails);
 
     return (
         <Stack gap={1} flexWrap={"wrap"} justifyContent={"center"} width={"100%"}>
@@ -53,26 +53,43 @@ function DetailsSettings() {
                 <div>
                     <input
                         type="radio"
-                        name="detailsImage"
-                        id="showImage"
+                        name="details"
+                        id="showAll"
                         className="button"
-                        checked={showDetailsCardImage}
-                        onChange={() => setShowDetailsCardImage(true)}
+                        checked={details === DetailsView.DEFAULT}
+                        onChange={() => setDetails(DetailsView.DEFAULT)}
                     />
-                    <StyledLabel htmlFor="showImage" className="button" checked={showDetailsCardImage}>
-                        Show Card Image (default)
+                    <StyledLabel htmlFor="showAll" className="button" checked={details === DetailsView.DEFAULT}>
+                        Show All (default)
                     </StyledLabel>
                 </div>
                 <div>
                     <input
                         type="radio"
-                        name="detailsImage"
+                        name="details"
+                        id="inheritedOnly"
+                        className="button"
+                        checked={details === DetailsView.INHERIT_OR_LINK}
+                        onChange={() => setDetails(DetailsView.INHERIT_OR_LINK)}
+                    />
+                    <StyledLabel
+                        htmlFor="inheritedOnly"
+                        className="button"
+                        checked={details === DetailsView.INHERIT_OR_LINK}
+                    >
+                        Only Show Inherited / Linked
+                    </StyledLabel>
+                </div>
+                <div>
+                    <input
+                        type="radio"
+                        name="details"
                         id="noImage"
                         className="button"
-                        checked={!showDetailsCardImage}
-                        onChange={() => setShowDetailsCardImage(false)}
+                        checked={details === DetailsView.NO_IMAGE}
+                        onChange={() => setDetails(DetailsView.NO_IMAGE)}
                     />
-                    <StyledLabel htmlFor="noImage" className="button" checked={!showDetailsCardImage}>
+                    <StyledLabel htmlFor="noImage" className="button" checked={details === DetailsView.NO_IMAGE}>
                         Don't Show Card Image
                     </StyledLabel>
                 </div>
@@ -88,7 +105,7 @@ function ControlSettings() {
 
     return (
         <Stack gap={1} flexWrap={"wrap"} justifyContent={"center"} width={"100%"}>
-            <SectionSpan>How to drag card stacks:</SectionSpan>
+            <SectionSpan>Dragging card stacks:</SectionSpan>
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 <div>
                     <input
@@ -199,59 +216,6 @@ const CloseButton = styled.button`
         transform: translateY(2px);
         filter: contrast(1.3) saturate(1.25);
         box-shadow: 2px 4px 1px 0 rgba(0, 0, 0, 0.8);
-    }
-`;
-
-const PreviewHr = styled.hr<{ color1: string; color2: string; color3: string }>`
-    background: linear-gradient(
-        253deg,
-        ${({ color3 }) => color3} 0%,
-        ${({ color2 }) => color2} 33%,
-        ${({ color2 }) => color2} 67%,
-        ${({ color1 }) => color1} 100%
-    );
-    height: 24px;
-    width: 200px;
-    margin: 0;
-    border-radius: 5px;
-    -webkit-animation: Background 5s ease infinite;
-    -moz-animation: Background 5s ease infinite;
-    animation: Background 5s ease infinite;
-    background-size: 200% 200%;
-    @-webkit-keyframes Background {
-        0% {
-            background-position: 0 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0 50%;
-        }
-    }
-
-    @-moz-keyframes Background {
-        0% {
-            background-position: 0 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0 50%;
-        }
-    }
-
-    @keyframes Background {
-        0% {
-            background-position: 0 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0 50%;
-        }
     }
 `;
 

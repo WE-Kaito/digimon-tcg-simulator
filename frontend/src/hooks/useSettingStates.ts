@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
+export enum DetailsView {
+    DEFAULT = "default",
+    INHERIT_OR_LINK = "inherit_or_link",
+    NO_IMAGE = "no_image",
+}
+
 type State = {
     hasAcceptedRules: boolean;
     setHasAcceptedRules: (hasAcceptedRules: boolean) => void;
@@ -8,8 +14,8 @@ type State = {
     useToggleForStacks: boolean;
     setUseToggleForStacks: (useToggleForStacks: boolean) => void;
 
-    showDetailsCardImage: boolean;
-    setShowDetailsCardImage: (showDetailsCardImage: boolean) => void;
+    details: DetailsView;
+    setDetails: (details: DetailsView) => void;
 
     backgroundColors: { color1: string; color2: string; color3: string };
     setBackgroundColors: (colors: { color1: string; color2: string; color3: string }) => void;
@@ -26,8 +32,8 @@ export const useSettingStates = create<State>()(
                 useToggleForStacks: false,
                 setUseToggleForStacks: (useToggleForStacks) => set({ useToggleForStacks }),
 
-                showDetailsCardImage: true,
-                setShowDetailsCardImage: (showDetailsCardImage) => set({ showDetailsCardImage }),
+                details: DetailsView.DEFAULT,
+                setDetails: (details) => set({ details }),
 
                 backgroundColors: { color1: "#214d44", color2: "#0b3d65", color3: "#522170" },
                 setBackgroundColors: (colors) => set({ backgroundColors: colors }),

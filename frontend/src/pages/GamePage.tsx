@@ -12,7 +12,7 @@ import useGameWebSocket from "../hooks/useGameWebSocket.ts";
 import { useSound } from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus/ContextMenus.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
-import { DndContext, MouseSensor, TouchSensor, pointerWithin, useSensor } from "@dnd-kit/core";
+import { DndContext, MouseSensor, pointerWithin, TouchSensor, useSensor } from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
@@ -31,7 +31,7 @@ import CardModal from "../components/game/CardModal.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
-import { useSettingStates } from "../hooks/useSettingStates.ts";
+import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
 
 const mediaQueries = [
     "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
@@ -81,7 +81,7 @@ export default function GamePage() {
     const stackModal = useGameUIStates((state) => state.stackModal);
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
 
-    const showDetailsCardImage = useSettingStates((state) => state.showDetailsCardImage);
+    const details = useSettingStates((state) => state.details);
 
     const { show: showDetailsImageMenu } = useContextMenu({ id: "detailsImageMenu" });
     // const [isCameraTilted, setIsCameraTilted] = useState<boolean>(false);
@@ -206,7 +206,7 @@ export default function GamePage() {
             <RestartPromptModal wsUtils={wsUtils} />
 
             <DetailsContainer isMobile={isMobile} height={height}>
-                {showDetailsCardImage && (
+                {details !== DetailsView.NO_IMAGE && (
                     <CardImg
                         src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc}
                         alt={"cardImg"}
@@ -218,7 +218,7 @@ export default function GamePage() {
                             })}
                     />
                 )}
-                {!showDetailsCardImage && <div style={{ height: "10px" }} />}
+                {details === DetailsView.NO_IMAGE && <div style={{ height: "10px" }} />}
                 <CardDetails />
             </DetailsContainer>
             <DndContext
@@ -314,11 +314,9 @@ const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
 `;
 
 const CardImg = styled.img<{ isMobile?: boolean }>`
-    width: ${({ isMobile }) => (isMobile ? "500px" : "100%")};
-    max-width: 328px;
+    width: calc(100% - 10px);
     border-radius: 3.5%;
     aspect-ratio: 5 / 7;
-    //width: 107px; // 150 * (5/7)
     z-index: 1000;
 `;
 

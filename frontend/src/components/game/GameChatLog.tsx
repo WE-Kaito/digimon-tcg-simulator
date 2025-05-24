@@ -75,16 +75,16 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
 }
 
 const Message = styled.div<{ isMyMessage: boolean }>`
-    max-width: 90%;
+    max-width: 85%;
     width: fit-content;
     height: fit-content;
     align-self: ${({ isMyMessage }) => (isMyMessage ? "flex-end" : "flex-start")};
-    background: ${({ isMyMessage }) => (isMyMessage ? "rgba(94,93,93,0.35)" : "rgba(40,73,103,0.65)")};
+    background: rgba(12, 12, 12, 0.4);
     border-radius: 5px;
     padding: 1px 4px 1px 4px;
     display: flex;
-    border: 1px solid ${({ isMyMessage }) => (isMyMessage ? "rgba(124,124,118,0.6)" : "rgba(48,90,128,0.8)")};
-
+    border: 1px solid ${({ isMyMessage }) => (isMyMessage ? "rgba(29,159,221,0.6)" : "rgba(255,81,118,0.4)")};
+    margin-right: 4px;
     p {
         margin: 0;
         font-family: Cousine, sans-serif;
@@ -106,6 +106,7 @@ const History = styled.div`
     overflow-x: hidden;
     gap: 3px;
     z-index: 100;
+    padding-bottom: 2px;
 
     border-bottom: 1px solid rgba(42, 246, 246, 0.175);
 
@@ -195,10 +196,10 @@ const InputContainer = styled.form`
 
 const UpdateMessage = styled.div<{ isMyMessage: boolean }>`
     display: flex;
-    width: 80%;
+    width: 96%;
     height: fit-content;
-    align-self: ${({ isMyMessage }) => (isMyMessage ? "flex-end" : "flex-start")};
-    background: ${({ isMyMessage }) => (isMyMessage ? "rgba(84, 84, 84, 0.15)" : "rgba(37,66,93,0.35)")};
+    align-self: flex-start;
+    background: ${({ isMyMessage }) => (isMyMessage ? "rgba(29,159,221,0.25)" : "rgba(255,81,118,0.2)")};
     padding: 1px 4px 0 4px;
 
     p {
@@ -208,6 +209,7 @@ const UpdateMessage = styled.div<{ isMyMessage: boolean }>`
         width: 100%;
         max-width: 100%;
         text-align: left;
-        opacity: ${({ isMyMessage }) => (isMyMessage ? "0.6" : "0.8")};
+        opacity: 0.8;
+        font-size: 0.8em;
     }
 `;

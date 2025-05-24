@@ -12,7 +12,7 @@ export default function ColorSpan() {
             {currentColors?.map((color: string, index) => {
                 return (
                     <div
-                        key={color + index}
+                        key={"details_header_" + color + index}
                         style={{
                             width: "100%",
                             height: "100%",
