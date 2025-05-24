@@ -226,7 +226,7 @@ export const useGeneralStates = create<State>((set, get) => ({
 
         if (filteredLength >= 50) return;
 
-        const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
+        const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079"];
         if (cardsWithoutLimit.includes(cardNumber)) {
             // unique effect
             set({ deckCards: [cardToAdd, ...get().deckCards] });

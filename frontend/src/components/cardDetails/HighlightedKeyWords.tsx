@@ -37,7 +37,17 @@ export default function HighlightedKeyWords({ text }: { text: string }): (JSX.El
 
             if (timings.includes(match[2])) {
                 highlightedParts.push(
-                    <HighlightedSquare word={match[2]} key={id}>
+                    <HighlightedSquare
+                        // workaround for BT19-100
+                        word={
+                            text.includes(
+                                "When an opponent's Digimon attacks, if all of your Digimon and Tamers have the"
+                            ) && highlightedParts.length === 1
+                                ? "Per Turn"
+                                : match[2]
+                        }
+                        key={id}
+                    >
                         {match[2]}
                     </HighlightedSquare>
                 );
@@ -89,7 +99,7 @@ export default function HighlightedKeyWords({ text }: { text: string }): (JSX.El
 const HighlightedSquare = styled.span<{ word: string }>`
     color: ghostwhite;
     background: ${({ word }) =>
-        word === "Hand" || word.includes("Per Turn") || word === "Breeding"
+        word === "Hand" || word.includes("Per Turn") || word === "Breeding" || word === "Trash"
             ? "linear-gradient(to top, #5e173c, #b5485d)"
             : "linear-gradient(to top, #292E96FF, #454dd9)"};
     border-radius: 3px;
@@ -175,6 +185,7 @@ const timings = [
     "Your Turn",
     "All Turns",
     "Opponent's Turn",
+    "End of Opponent's Turn",
     "Start of Your Turn",
     "End of Your Turn",
     "Enf of Opponent's Turn",
@@ -184,6 +195,7 @@ const timings = [
     "Start of Opponent's Main Phase",
     "Once Per Turn",
     "Twice Per Turn",
+    "Trash",
     "Hand",
     "Breeding",
     "Counter",
@@ -212,6 +224,7 @@ function isTrait(trait: string) {
         case "ACCEL":
         case "AE Corp.":
         case "Abadin Electronics":
+        case "ADVENTURE":
         case "Alien":
         case "Alien Humanoid":
         case "Amphibian":
@@ -235,6 +248,9 @@ function isTrait(trait: string) {
         case "Angel":
         case "Animal":
         case "Ankylosaur":
+        case "App Driver":
+        case "Appmon":
+        case "Aqua":
         case "Aquabeast":
         case "Aquatic":
         case "Archangel":
@@ -255,25 +271,31 @@ function isTrait(trait: string) {
         case "Carnivorous Plant":
         case "Ceratopsian":
         case "Cherub":
+        case "Chronicle":
         case "Commander Agent":
         case "Composite":
         case "Composition":
         case "CRT":
         case "Crustacean":
+        case "CS":
         case "Cyborg":
         case "D-Brigade":
         case "Dark Animal":
         case "Dark Dragon":
         case "Dark Knight":
+        case "Dark Masters":
         case "Data":
         case "Demon":
         case "Demon Lord":
         case "Deva":
+        case "Device":
         case "DigiPolice":
         case "Dinosaur":
         case "Dragon":
         case "Dragon Warrior":
         case "Dragonkin":
+        case "DM":
+        case "DS":
         case "Earth Dragon":
         case "Enhancement":
         case "Espionage Agent":
@@ -293,6 +315,7 @@ function isTrait(trait: string) {
         case "God Beast":
         case "Grappling Agent":
         case "Ground Combat Agent":
+        case "Hero":
         case "Holy Beast":
         case "Holy Bird":
         case "Holy Dragon":
@@ -336,6 +359,8 @@ function isTrait(trait: string) {
         case "Mythical Beast":
         case "Mythical Dragon":
         case "Night Claw":
+        case "NSo":
+        case "NSp":
         case "NO DATA":
         case "Parasite":
         case "Perfect":
@@ -349,16 +374,21 @@ function isTrait(trait: string) {
         case "Reptile Man":
         case "Rock":
         case "Rock Dragon":
+        case "Royal Base":
         case "Royal Knight":
         case "Sea Animal":
         case "Sea Beast":
+        case "SEEKERS":
         case "Seraph":
         case "Seven Great Demon Lords":
         case "Shaman":
         case "SoC":
+        case "Sovereign":
         case "Skeleton":
         case "Sky Dragon":
         case "Super Major":
+        case "Ten Warriors":
+        case "Three Great Angels":
         case "Three Musketeers":
         case "Throne":
         case "Tropical Fish":
@@ -369,10 +399,18 @@ function isTrait(trait: string) {
         case "Unique":
         case "Unknown":
         case "Vegetation":
+        case "Ver.1":
+        case "Ver.2":
+        case "Ver.3":
+        case "Ver.4":
+        case "Ver.5":
         case "Virtue":
         case "Vortex Warriors":
         case "Warrior":
         case "Weapon":
+        case "Wicked God":
+        case "Witchelny":
+        case "WG":
         case "Wizard":
         case "X Antibody":
         case "Xros Heart": {
