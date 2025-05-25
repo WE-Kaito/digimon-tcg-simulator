@@ -32,7 +32,7 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const setDeckById = useGeneralStates((state) => state.setDeckById);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
-    console.log("deck", deck, "fetchedCards", fetchedCards);
+
     const navigate = useNavigate();
     const navigateToDeck = () => {
         playDrawCardSfx();

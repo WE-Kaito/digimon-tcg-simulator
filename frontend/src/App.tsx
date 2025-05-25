@@ -13,6 +13,7 @@ import GamePage from "./pages/GamePage.tsx";
 import MainMenu from "./pages/MainMenu.tsx";
 import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
+import Decks from "./pages/Decks.tsx";
 
 function App() {
     const me = useGeneralStates((state) => state.me);
@@ -32,6 +33,7 @@ function App() {
                 <Route element={<ProtectedRoutes />}>
                     <Route path="/" element={<MainMenu />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/decks" element={<Decks />} />
                     <Route path="/deckbuilder" element={<Deckbuilder />} />
                     <Route path="/update-deck" element={<Deckbuilder isEditMode />} />
                     <Route path="/lobby" element={<Lobby />} />

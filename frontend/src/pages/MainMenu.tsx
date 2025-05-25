@@ -14,7 +14,7 @@ export default function MainMenu() {
             <Stack gap={5}>
                 <Header />
                 <MainMenuButton name={"Find game"} path={"/lobby"} />
-                <MainMenuButton name={"Deckbuilder"} path={"/deckbuilder"} />
+                <MainMenuButton name={"Decks"} path={"/decks"} />
                 <MainMenuButton name={"Profile"} path={"/profile"} />
                 <MainMenuButton name={"LOGOUT"} path={"/login"} />
             </Stack>

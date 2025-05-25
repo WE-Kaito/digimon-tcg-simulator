@@ -2,13 +2,13 @@ import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { useSound } from "../hooks/useSound.ts";
 
-export default function BackButton({ isOnEditPage }: { isOnEditPage?: boolean }) {
+export default function BackButton({ isInDeckbuilder }: { isInDeckbuilder?: boolean }) {
     const navigate = useNavigate();
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     function handleClick() {
-        navigate(isOnEditPage ? "/profile" : "/");
+        navigate(isInDeckbuilder ? "/decks" : "/");
         playButtonClickSfx();
     }
 

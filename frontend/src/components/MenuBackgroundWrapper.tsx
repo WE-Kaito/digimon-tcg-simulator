@@ -1,11 +1,11 @@
-import { PropsWithChildren, useMemo } from "react";
+import { PropsWithChildren, CSSProperties, useMemo } from "react";
 import styled from "@emotion/styled";
 import { blueTriangles } from "../assets/particles.ts";
 import Particles from "@tsparticles/react";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { Container } from "@tsparticles/engine";
 
-export default function MenuBackgroundWrapper({ children }: PropsWithChildren) {
+export default function MenuBackgroundWrapper({ children, style }: PropsWithChildren<{ style?: CSSProperties }>) {
     const particlesInitialized = useGeneralStates((state) => state.particlesInitialized);
     const particlesLoaded = (container?: Container): Promise<void> => {
         return new Promise((resolve) => {
@@ -20,7 +20,7 @@ export default function MenuBackgroundWrapper({ children }: PropsWithChildren) {
     );
 
     return (
-        <StyledDiv>
+        <StyledDiv style={style}>
             {children}
             {particlesInitialized && particles}
         </StyledDiv>

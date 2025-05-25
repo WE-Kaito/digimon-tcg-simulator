@@ -7,13 +7,13 @@ export default function ChooseDeckImage() {
 
     const selectedSleeveOrImage = useGeneralStates((state) => state.selectedSleeveOrImage);
     const setCardImage = useGeneralStates((state) => state.setCardImage);
-    const getCardImagesInDeck = useGeneralStates((state) => state.getCardImagesInDeck);
+    const deckCards = useGeneralStates((state) => state.deckCards);
     const rows = Math.ceil(imgUrls.length / 10);
     const mobileRows = Math.ceil(imgUrls.length / 5);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
-    useLayoutEffect(() => setImgUrls(getCardImagesInDeck()), [getCardImagesInDeck]);
+    useLayoutEffect(() => setImgUrls(Array.from(new Set(deckCards.map((card) => card.imgUrl)))), [deckCards]);
 
     return (
         <GridContainer rows={rows} mobileRows={mobileRows}>

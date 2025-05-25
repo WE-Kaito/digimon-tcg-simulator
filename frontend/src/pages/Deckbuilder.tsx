@@ -45,7 +45,7 @@ export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
                             setCurrentDeckLength={setCurrentDeckLength}
                         />
                     )}
-                    <BackButton isOnEditPage={isEditMode} />
+                    <BackButton isInDeckbuilder />
                 </ButtonContainer>
 
                 <DeckImport deckName={deckName} />

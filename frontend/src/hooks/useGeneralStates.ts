@@ -100,7 +100,6 @@ type State = {
     setDeckIdToSetSleeveOrImage: (deckId: string) => void;
     setSleeve: (sleeveName: string) => void;
     setSelectedSleeveOrImage: (sleeveName: string) => void;
-    getCardImagesInDeck: () => string[];
     setCardImage: (imgUrl: string) => void;
 };
 
@@ -652,8 +651,6 @@ export const useGeneralStates = create<State>((set, get) => ({
     },
 
     setSelectedSleeveOrImage: (sleeveName) => set({ selectedSleeveOrImage: sleeveName }),
-
-    getCardImagesInDeck: () => Array.from(new Set(get().deckCards.map((card) => card.imgUrl))),
 
     setCardImage: (imgUrl) => {
         axios

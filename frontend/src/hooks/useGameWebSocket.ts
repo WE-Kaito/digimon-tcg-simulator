@@ -295,7 +295,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
 
             if (event.data.startsWith("[CREATE_TOKEN]:")) {
-                console.log("create token", event.data);
                 const parts = event.data.substring("[CREATE_TOKEN]:".length).split(":");
                 const id = parts[0];
                 const token = findTokenByName(parts[1]);
