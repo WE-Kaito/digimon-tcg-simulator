@@ -17,8 +17,6 @@ import digimonImage from "../assets/cardtype_icons/gammamon.png";
 import optionImage from "../assets/cardtype_icons/option.png";
 import tamerImage from "../assets/cardtype_icons/tamer.png";
 import eggImage from "../assets/cardtype_icons/egg.png";
-import axios from "axios";
-import { starterBeelzemon, starterDragonOfCourage, starterGallantmon, starterVortexWarriors } from "./starterDecks.ts";
 
 /**
  * Calculate card rotation based on position in hand
@@ -272,47 +270,6 @@ export function convertForLog(location: string) {
         opponentReveal: "Reveal",
     };
     return locationMappings[location] || location;
-}
-
-function saveStarterDeck(name: string, decklist: string[], imgUrl: string, sleeveName: string) {
-    const deckToSave = {
-        name: name,
-        decklist: decklist,
-        deckImageCardUrl: imgUrl,
-        sleeveName: sleeveName,
-        isAllowed_en: sleeveName !== "Pteromon", // change after en release; restriction model on decks should be changed.
-        isAllowed_jp: true,
-    };
-
-    axios
-        .post("/api/profile/decks", deckToSave)
-        .then((res) => res.data)
-        .catch((error) => {
-            console.error(error);
-            throw error;
-        });
-}
-
-const deckImgDragonOfCourage =
-    "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST15-12.webp";
-const deckImgGallantmon =
-    "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST7-09.webp";
-const deckImgBeelzemon =
-    "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST14-10.webp";
-const deckImgVortexWarriors =
-    "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/P-038_P4-J.webp";
-
-export function addStarterDecks() {
-    setTimeout(
-        () => saveStarterDeck("[STARTER] Dragon Of Courage", starterDragonOfCourage, deckImgDragonOfCourage, "Agumon"),
-        10
-    );
-    setTimeout(() => saveStarterDeck("[STARTER] Gallantmon", starterGallantmon, deckImgGallantmon, "Guilmon"), 20);
-    setTimeout(() => saveStarterDeck("[ADV. STARTER] Beelzemon", starterBeelzemon, deckImgBeelzemon, "Impmon"), 30);
-    setTimeout(
-        () => saveStarterDeck("[STARTER] Vortex Warriors", starterVortexWarriors, deckImgVortexWarriors, "Pteromon"),
-        40
-    );
 }
 
 export function getCardColor(color: string): [string, string] {

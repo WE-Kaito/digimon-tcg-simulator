@@ -1,5 +1,6 @@
 package com.github.wekaito.backend.security;
 
+import com.github.wekaito.backend.StarterDeckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -18,6 +19,8 @@ import java.util.UUID;
 public class MongoUserDetailsService implements UserDetailsService {
 
     private final MongoUserRepository mongoUserRepository;
+
+    private final StarterDeckService starterDeckService;
 
     private static final String[] badWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "fuck", "fuuck", "rape", "whore", "nigger", "nazi", "jews"};
 
@@ -66,9 +69,12 @@ public class MongoUserDetailsService implements UserDetailsService {
                 getEncodedPassword(registrationUser.password()),
                 registrationUser.question(),
                 registrationUser.answer(),
-                "",
+                UUID.randomUUID().toString(),
                 "AncientIrismon"
         );
+
+        starterDeckService.createStarterDecksForUser(newUser.id(), newUser.activeDeckId());
+
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";

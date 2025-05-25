@@ -21,13 +21,7 @@ import {
     notifyWrongAnswer,
 } from "../utils/toasts.ts";
 import { NavigateFunction } from "react-router-dom";
-import {
-    addStarterDecks,
-    compareEffectText,
-    filterDoubleCardNumbers,
-    getIsDeckAllowed,
-    sortCards,
-} from "../utils/functions.ts";
+import { compareEffectText, filterDoubleCardNumbers, getIsDeckAllowed, sortCards } from "../utils/functions.ts";
 import { avatars } from "../utils/avatars.ts";
 import { DeckIdOrder } from "../pages/Profile.tsx";
 import { Dispatch, SetStateAction } from "react";
@@ -84,7 +78,7 @@ type State = {
         navigate: NavigateFunction
     ) => void;
     setActiveDeck: (deckId: string) => void;
-    getActiveDeck: () => void;
+    getActiveDeck: () => string;
     setAvatar: (avatarName: string) => void;
     getAvatar: () => string;
     importDeck: (decklist: string | string[], format: string) => void;
@@ -436,9 +430,6 @@ export const useGeneralStates = create<State>((set, get) => ({
             if (response.data === "Successfully registered!") {
                 notifyRegistered();
                 get().login(userName, password, navigate);
-                setTimeout(function () {
-                    addStarterDecks();
-                }, 3000);
             }
         });
     },
@@ -453,10 +444,15 @@ export const useGeneralStates = create<State>((set, get) => ({
     },
 
     getActiveDeck: () => {
+        let activeDeck = "";
         axios
             .get("/api/user/active-deck")
-            .then((response) => set({ activeDeckId: response.data }))
+            .then((response) => {
+                set({ activeDeckId: response.data });
+                activeDeck = response.data;
+            })
             .catch(console.error);
+        return activeDeck;
     },
 
     setAvatar: (avatarName) => {

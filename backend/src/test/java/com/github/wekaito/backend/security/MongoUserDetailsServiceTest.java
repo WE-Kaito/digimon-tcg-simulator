@@ -1,5 +1,7 @@
 package com.github.wekaito.backend.security;
 
+import com.github.wekaito.backend.DeckService;
+import com.github.wekaito.backend.StarterDeckService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,12 +23,16 @@ class MongoUserDetailsServiceTest {
     @Mock
     private MongoUserRepository mongoUserRepository;
 
+    @Mock
+    private StarterDeckService starterDeckService;
+
+
     @InjectMocks
     private MongoUserDetailsService mongoUserDetailsService;
 
     @BeforeEach
     void setUp() {
-        mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository);
+        mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository, starterDeckService);
         when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon")));
     }
 
