@@ -90,7 +90,6 @@ public class DeckService {
     }
 
     public List<Deck> getDecksByAuthorId(String authorId) {
-        System.out.println("Fetching decks for author ID: " + authorId);
         return deckRepo.findByAuthorId(authorId);
     }
 
