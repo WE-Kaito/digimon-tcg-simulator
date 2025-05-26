@@ -18,61 +18,6 @@ import optionImage from "../assets/cardtype_icons/option.png";
 import tamerImage from "../assets/cardtype_icons/tamer.png";
 import eggImage from "../assets/cardtype_icons/egg.png";
 
-/**
- * Calculate card rotation based on position in hand
- */
-export function calculateCardRotation(handCardLength: number, index: number): string {
-    // No rotation for large hands
-    if (handCardLength > 15) return "0deg";
-
-    // Normalize position (-1 to 1 range, middle is 0)
-    const middleIndex = (handCardLength - 1) / 2;
-    const normalizedPosition = (index - middleIndex) / Math.max(middleIndex, 1);
-
-    // Calculate rotation - more cards = more pronounced curve
-    const maxRotation = handCardLength <= 6 ? 15 : 25;
-    const rotation = normalizedPosition * maxRotation;
-
-    return `${rotation}deg`;
-}
-
-/**
- * Calculate vertical offset to create an arch effect
- */
-export function calculateCardOffsetY(handCardLength: number, index: number): string {
-    // Handle special cases
-    if (handCardLength === 3 && index === 1) return "-12px";
-    if (handCardLength <= 3) return "0px";
-    if (handCardLength > 15) return "5%";
-
-    // Normalize position (-1 to 1 range, middle is 0)
-    const middleIndex = (handCardLength - 1) / 2;
-    const normalizedPosition = (index - middleIndex) / Math.max(middleIndex, 1);
-
-    // Parabolic function: y = a * (1 - x²)
-    const archHeight = Math.min(handCardLength * 4, 50);
-    const offset = -archHeight * (1 - Math.pow(normalizedPosition, 2));
-
-    return `${offset}px`;
-}
-
-/**
- * Calculate horizontal position for cards in hand
- */
-export function calculateCardOffsetX(handCardLength: number, index: number, cardWidth: number): string {
-    // Scale factor based on card count
-    const scale = cardWidth / (70 - (handCardLength > 30 ? (handCardLength - 30) / 3 : 0));
-
-    // Handle special cases with specific pixel values
-    if (handCardLength === 1) return `${150 * scale}px`;
-    if (handCardLength === 2) return `${(index * 150 * scale) / handCardLength + 80 * scale}px`;
-    if (handCardLength === 3) return `${(index * 250 * scale) / handCardLength + 50 * scale}px`;
-
-    // Distribute cards evenly with adjusted spacing for larger hands
-    const baseSpacing = handCardLength > 30 ? 350 : 350;
-    return `${(index * baseSpacing * scale) / handCardLength}px`;
-}
-
 export function topCardInfo(locationCards: CardTypeGame[]) {
     if (locationCards.length <= 1) return "";
     const effectInfo = [""];

@@ -7,10 +7,10 @@ import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
 import cardBackSrc from "../assets/cardBack.jpg";
-import AddDeckButton from "../components/deckbuilder/AddDeckButton.tsx";
-import UpdateDeleteDeckButtons from "../components/deckbuilder/UpdateDeleteDeckButtons.tsx";
+import AddDeckButton, { StyledSpanSaveDeck } from "../components/deckbuilder/AddDeckButton.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import { useNavigate } from "react-router-dom";
 
 export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
     const selectedCard = useGeneralStates((state) => state.selectedCard);
@@ -32,12 +32,41 @@ export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
 
     useEffect(() => initialFetch(), [initialFetch]);
 
+    // Edit
+    const deleteDeck = useGeneralStates((state) => state.deleteDeck);
+    const idOfDeckToEdit = useGeneralStates((state) => state.idOfDeckToEdit);
+    const updateDeck = useGeneralStates((state) => state.updateDeck);
+    const navigate = useNavigate();
+
+    const [isDeleting, setIsDeleting] = useState<boolean>(false);
+    // ---
+
     return (
         <MenuBackgroundWrapper>
             <OuterContainer>
                 <ButtonContainer>
                     {isEditMode ? (
-                        <UpdateDeleteDeckButtons deckName={deckName} />
+                        <>
+                            <UpdateDeckButton
+                                isDeleting={isDeleting}
+                                onClick={() => idOfDeckToEdit && updateDeck(idOfDeckToEdit, deckName)}
+                            >
+                                <StyledSpanSaveDeck>
+                                    SAVE {`${window.innerWidth > 500 ? "CHANGES" : ""}`}
+                                </StyledSpanSaveDeck>
+                            </UpdateDeckButton>
+                            {decks.length > 1 && (
+                                <DeleteDeckButton
+                                    isDeleting={isDeleting}
+                                    onClick={() => {
+                                        if (isDeleting && idOfDeckToEdit) deleteDeck(idOfDeckToEdit, navigate);
+                                        setIsDeleting(!isDeleting);
+                                    }}
+                                >
+                                    {isDeleting ? (window.innerWidth <= 500 ? "🗑️?" : "DELETE PERMANENTLY") : "🗑️"}
+                                </DeleteDeckButton>
+                            )}
+                        </>
                     ) : (
                         <AddDeckButton
                             deckName={deckName}
@@ -197,5 +226,66 @@ export const CardNumberSpan = styled.span`
 
     @media (max-width: 450px) {
         visibility: hidden;
+    }
+`;
+
+const UpdateDeckButton = styled.button<{ isDeleting: boolean }>`
+    height: 40px;
+    width: ${(props) => (props.isDeleting ? "200px" : "300px")};
+    padding: 0;
+    padding-top: 5px;
+    background: mediumaquamarine;
+    color: black;
+    font-size: ${(props) => (props.isDeleting ? "15px" : "23px")};
+    font-weight: bold;
+    text-align: center;
+    font-family: "Sansation", sans-serif;
+    filter: drop-shadow(1px 2px 3px #060e18);
+    transition: all 0.3s ease;
+
+    :hover {
+        background: aquamarine;
+    }
+
+    &:active {
+        background-color: aqua;
+        border: none;
+        filter: none;
+        transform: translateY(1px);
+        box-shadow: inset 0 0 3px #000000;
+    }
+
+    &:focus {
+        outline: none;
+    }
+`;
+
+const DeleteDeckButton = styled.button<{ isDeleting: boolean }>`
+    font-weight: bold;
+    max-height: 40px;
+    min-width: 50px;
+    font-size: 16px;
+    background: ${(props) => (props.isDeleting ? "ghostwhite" : "crimson")};
+    color: crimson;
+    padding: 0;
+    width: ${(props) => (props.isDeleting ? "40%" : "20%")};
+    font-family: "Sansation", sans-serif;
+    transition: all 0.3s ease;
+
+    &:active {
+        border: none;
+        filter: none;
+        transform: translateY(1px);
+        box-shadow: inset 0 0 3px #000000;
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    @media (max-width: 768px) and (max-height: 850px) {
+        font-family: "Pixel Digivolve", sans-serif;
+        font-size: ${(props) => (props.isDeleting ? "1.15em" : "1em")};
+        width: ${(props) => (props.isDeleting ? "30%" : "20%")};
     }
 `;

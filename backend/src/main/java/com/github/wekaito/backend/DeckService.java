@@ -36,59 +36,6 @@ public class DeckService {
         this.deckRepo.save(deckToSave);
     }
 
-    public void addStarterDecksForNewUser(String newUserId, String firstDeckId) {
-        Deck gallantmonDeck = new Deck(
-                firstDeckId,
-                "[STARTER] Gallantmon",
-                StarterDeckService.GALLANTMON,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST7-09.webp",
-                "Guilmon",
-                true,
-                true,
-                newUserId
-        );
-
-        Deck beelzemonDeck = new Deck(
-                UUID.randomUUID().toString(),
-                "[STARTER] Beelzemon",
-                StarterDeckService.BEELZEMON,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST14-10.webp",
-                "Impmon",
-                true,
-                true,
-                newUserId
-        );
-
-        Deck dragonOfCourageDeck = new Deck(
-                UUID.randomUUID().toString(),
-                "[STARTER] Dragon Of Courage",
-                StarterDeckService.DRAGON_OF_COURAGE,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST15-12.webp",
-                "Agumon",
-                true,
-                true,
-                newUserId
-        );
-
-        Deck vortexWarriorsDeck = new Deck(
-                UUID.randomUUID().toString(),
-                "[STARTER] Vortex Warriors",
-                StarterDeckService.DRAGON_OF_COURAGE,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/P-038_P4-J.webp",
-                "Pteromon",
-                true,
-                true,
-                newUserId
-        );
-
-        this.deckRepo.saveAll(List.of(
-                gallantmonDeck,
-                beelzemonDeck,
-                dragonOfCourageDeck,
-                vortexWarriorsDeck
-        ));
-    }
-
     public List<Deck> getDecksByAuthorId(String authorId) {
         return deckRepo.findByAuthorId(authorId);
     }
@@ -141,7 +88,9 @@ public class DeckService {
 
     public void deleteDeck(String id) {
         if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
-        this.deckRepo.deleteById(id);
+        Deck deck = getDeckById(id);
+        List<Deck> decksByAuthor = deckRepo.findByAuthorId(deck.authorId());
+        if (decksByAuthor.size() > 1) this.deckRepo.deleteById(id);
     }
 
     public void updateDeckImage(String id, String imageUrl) {

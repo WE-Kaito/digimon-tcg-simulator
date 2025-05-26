@@ -10,7 +10,6 @@ import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
 import Lobby from "./pages/Lobby.tsx";
 import CustomToastContainer from "./components/CustomToastContainer.tsx";
 import GamePage from "./pages/GamePage.tsx";
-import MainMenu from "./pages/MainMenu.tsx";
 import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import Decks from "./pages/Decks.tsx";
@@ -31,12 +30,11 @@ function App() {
             <CustomToastContainer />
             <Routes>
                 <Route element={<ProtectedRoutes />}>
-                    <Route path="/" element={<MainMenu />} />
+                    <Route path="/" element={<Lobby />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/decks" element={<Decks />} />
                     <Route path="/deckbuilder" element={<Deckbuilder />} />
                     <Route path="/update-deck" element={<Deckbuilder isEditMode />} />
-                    <Route path="/lobby" element={<Lobby />} />
                     <Route path="/game" element={<GamePage />} />
                     <Route path="/*" element={<Navigate to="/" />} />
                 </Route>

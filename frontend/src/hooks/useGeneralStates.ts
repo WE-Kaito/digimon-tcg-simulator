@@ -377,7 +377,7 @@ export const useGeneralStates = create<State>((set, get) => ({
                 throw error;
             })
             .then(() => {
-                navigate("/profile");
+                navigate("/decks");
                 set({ deckCards: [] });
                 notifyDelete();
             });

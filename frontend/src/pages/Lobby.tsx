@@ -14,7 +14,6 @@ import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { useSound } from "../hooks/useSound.ts";
 import { useNavigate } from "react-router-dom";
 import SoundBar from "../components/SoundBar.tsx";
-import BackButton from "../components/BackButton.tsx";
 import { DeckType } from "../utils/types.ts";
 import ProfileDeck from "../components/profile/ProfileDeck.tsx";
 import axios from "axios";
@@ -27,7 +26,11 @@ import { profilePicture } from "../utils/avatars.ts";
 import { Dialog, DialogContent } from "@mui/material";
 import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
+import DeckIcon from "@mui/icons-material/StyleTwoTone";
+import ProfileIcon from "@mui/icons-material/ManageAccountsTwoTone";
+
 import Lottie from "lottie-react";
+import LogoutButton from "../components/lobby/LogoutButton.tsx";
 
 enum Format {
     CUSTOM = "CUSTOM",
@@ -102,12 +105,11 @@ export default function Lobby() {
     const [showCountdown, setShowCountdown] = useState<boolean>(false);
 
     const navigate = useNavigate();
-    const navigateToGame = () => navigate("/game");
 
     function handleReconnect() {
         setIsOpponentOnline(true);
         setIsLoading(false);
-        navigateToGame();
+        navigate("/game");
     }
 
     const websocket = useWebSocket(websocketURL, {
@@ -266,7 +268,7 @@ export default function Lobby() {
             setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
             clearBoard();
             setIsLoading(false);
-            navigateToGame();
+            navigate("/game");
         }, 3150);
         return () => clearTimeout(timer);
     }
@@ -382,7 +384,7 @@ export default function Lobby() {
                     <span style={{ color: "whitesmoke", opacity: 0.8, lineHeight: 1 }}>{userCount}</span>
                 </OnlineUsers>
 
-                <BackButton />
+                <LogoutButton />
             </Header>
 
             <ContentDiv>
@@ -498,6 +500,19 @@ export default function Lobby() {
                             gap: "32px",
                         }}
                     >
+                        {!joinedRoom && (
+                            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                                <ButtonCard className={"button"} onClick={() => navigate("/decks")}>
+                                    <DeckIcon style={{ fontSize: 50 }} />
+                                    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Decks</span>
+                                </ButtonCard>
+                                <ButtonCard className={"button"} onClick={() => navigate("/profile")}>
+                                    <ProfileIcon style={{ fontSize: 50 }} />
+                                    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Profile</span>
+                                </ButtonCard>
+                            </div>
+                        )}
+
                         <Card>
                             {/*<CardTitle>Deck Selection</CardTitle>*/}
                             <Select value={activeDeckId} onChange={handleDeckChange}>
@@ -518,7 +533,7 @@ export default function Lobby() {
                         </Card>
 
                         {!joinedRoom && (
-                            <Card style={{ minWidth: 350, flex: 1, maxWidth: 600 }}>
+                            <Card style={{ minWidth: 300, flex: 1 }}>
                                 {/*<CardTitle>Room Setup</CardTitle>*/}
                                 <Input
                                     value={newRoomName}
@@ -614,6 +629,33 @@ const Card = styled.div`
     box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
     backdrop-filter: hue-rotate(100deg);
+`;
+
+const ButtonCard = styled(Card)`
+    height: 72px;
+    width: 275px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    & > * {
+        opacity: 0.75;
+        color: ghostwhite;
+    }
+
+    &:hover {
+        & > * {
+            opacity: 0.9;
+            color: var(--blue);
+        }
+    }
+
+    &:active {
+        & > * {
+            opacity: 1;
+            color: var(--lobby-accent);
+        }
+    }
 `;
 
 const CardTitle = styled.span`
