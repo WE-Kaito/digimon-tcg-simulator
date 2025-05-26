@@ -98,7 +98,7 @@ export default function SoundBar({ children, iconFontSize, opened }: Props) {
                                 position: "absolute",
                                 pointerEvents: "none",
                                 width: iconFontSize ? iconFontSize * 6.5 : 250,
-                                left: iconFontSize ? iconFontSize * -2.475 : -100,
+                                left: iconFontSize ? iconFontSize * -2.475 : -102,
                                 top: iconFontSize ? iconFontSize * -0.675 : -28,
                             }}
                         />

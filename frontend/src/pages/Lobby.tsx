@@ -28,6 +28,7 @@ import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
 import ProfileIcon from "@mui/icons-material/ManageAccountsTwoTone";
+import AiIcon from "@mui/icons-material/SmartToyTwoTone";
 
 import Lottie from "lottie-react";
 import LogoutButton from "../components/lobby/LogoutButton.tsx";
@@ -510,6 +511,10 @@ export default function Lobby() {
                                     <ProfileIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Profile</span>
                                 </ButtonCard>
+                                <DisabledButtonCard title={"currently not available 🔜"}>
+                                    <AiIcon style={{ fontSize: 50 }} />
+                                    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>vs. Ai</span>
+                                </DisabledButtonCard>
                             </div>
                         )}
 
@@ -631,13 +636,21 @@ const Card = styled.div`
     backdrop-filter: hue-rotate(100deg);
 `;
 
-const ButtonCard = styled(Card)`
-    height: 72px;
+const ButtonCard = styled.div`
+    background: rgba(12, 21, 16, 0.25);
+    border: 1px solid rgba(124, 124, 118, 0.4);
+    border-radius: 3px;
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+    backdrop-filter: hue-rotate(100deg);
+
+    height: 65px;
     width: 275px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 24px;
+
     & > * {
         opacity: 0.75;
         color: ghostwhite;
@@ -654,6 +667,27 @@ const ButtonCard = styled(Card)`
         & > * {
             opacity: 1;
             color: var(--lobby-accent);
+        }
+    }
+`;
+
+const DisabledButtonCard = styled(ButtonCard)`
+    & > * {
+        opacity: 0.35;
+        color: #646262;
+    }
+
+    &:hover {
+        & > * {
+            opacity: 0.35;
+            color: darkgrey;
+        }
+    }
+
+    &:active {
+        & > * {
+            opacity: 0.35;
+            color: darkgrey;
         }
     }
 `;
