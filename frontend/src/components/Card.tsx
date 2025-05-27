@@ -534,9 +534,9 @@ const StyledImage = styled.img<StyledImageProps>`
     object-fit: fill;
     aspect-ratio: 7 / 9.75;
 
-    animation: ${({ isTilted, activeEffect, targeted, isTopCard }) =>
+    animation: ${({ isTilted, activeEffect, targeted, isTopCard, location }) =>
         targeted
-            ? `target-pulsate${isTopCard ? "-first" : ""} 0.95s ease-in-out infinite`
+            ? `target-pulsate${isTopCard || location.includes("Hand") ? "-first" : ""} 0.95s ease-in-out infinite`
             : activeEffect
               ? `effect${isTopCard ? "-first" : ""} 0.85s ease-in-out infinite`
               : isTilted
