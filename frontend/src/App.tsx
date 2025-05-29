@@ -1,5 +1,4 @@
 import "./App.css";
-import Deckbuilder from "./pages/Deckbuilder.tsx";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Profile from "./pages/Profile.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
@@ -13,6 +12,7 @@ import GamePage from "./pages/GamePage.tsx";
 import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import Decks from "./pages/Decks.tsx";
+import Deckbuilder from "./pages/Deckbuilder.tsx";
 
 function App() {
     const me = useGeneralStates((state) => state.me);

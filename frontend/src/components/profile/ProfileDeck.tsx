@@ -236,7 +236,6 @@ const SleeveImage = styled.img`
     transform: translate(-2px, -1px);
 
     :hover {
-        cursor: pointer;
         filter: drop-shadow(0 0 2px rgba(87, 160, 255, 0.5)) contrast(1.1);
     }
 `;

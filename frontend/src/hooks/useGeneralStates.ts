@@ -105,7 +105,7 @@ export const useGeneralStates = create<State>((set, get) => ({
     hoverCard: null,
     deckCards: JSON.parse(localStorage.getItem("deckCards") ?? "[]"),
     decks: [],
-    nameOfDeckToEdit: "",
+    nameOfDeckToEdit: JSON.parse(localStorage.getItem("nameOfDeckToEdit") ?? "New Deck"),
     idOfDeckToEdit: "",
     user: "",
     activeDeckId: "",
@@ -352,6 +352,7 @@ export const useGeneralStates = create<State>((set, get) => ({
                         };
                     return { ...card, id: uid() };
                 });
+                localStorage.setItem("nameOfDeckToEdit", JSON.stringify(data.name));
                 localStorage.setItem("deckCards", JSON.stringify(cardsWithId));
                 set({
                     deckCards: cardsWithId,
@@ -384,8 +385,9 @@ export const useGeneralStates = create<State>((set, get) => ({
     },
 
     clearDeck: () => {
-        set({ deckCards: [] });
+        set({ deckCards: [], nameOfDeckToEdit: "New Deck" });
         localStorage.removeItem("deckCards");
+        localStorage.removeItem("nameOfDeckToEdit");
     },
 
     login: (userName: string, password: string, navigate: NavigateFunction) => {

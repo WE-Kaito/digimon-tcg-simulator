@@ -1,7 +1,7 @@
 #root {
   --black: #0C0C0C;
   --yellow: #DCB415;
-  --blue: #386ff0;
+  --blue: rgba(56, 111, 240, 0.5);
   --christmas-green: #1c7540;
   --christmas-green-shadow: rgba(28, 117, 21, 0.25);
   --lobby-accent: #ce345d;
@@ -50,10 +50,6 @@
           rgba(180, 60, 5, 1) 100%
   );
 
-
-
-
-
   margin: 0 auto;
   text-align: center;
   cursor: url("assets/cursors/Arrow_Down.cur"), auto;
@@ -65,6 +61,10 @@ button {
 
 input {
   cursor: url("assets/cursors/BlueglassTextSelect.cur"), auto!important;
+}
+
+textarea {
+    cursor: url("assets/cursors/BlueglassTextSelect.cur"), auto!important;
 }
 
 .MuiPopper-root {
