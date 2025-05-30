@@ -34,7 +34,7 @@ export default function DeckSelection() {
     });
 
     const filteredDeckLength = deckCards.length - eggLength;
-    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", fallbackCardNumber];
+    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", "EX9-048", fallbackCardNumber];
     function getAddAllowed(card: CardTypeWithId) {
         return (
             (filteredDeckLength < 50 || (card.cardType === "Digi-Egg" && eggLength < 5)) &&
