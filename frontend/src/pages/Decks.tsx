@@ -104,7 +104,7 @@ export default function Decks() {
                                 ))}
                             </SortableContext>
                             {renderAddButton && (
-                                <NewDeckButton onClick={toDeckBuilder}>
+                                <NewDeckButton className={"button"} onClick={toDeckBuilder}>
                                     <AddBoxRoundedIcon />
                                 </NewDeckButton>
                             )}
