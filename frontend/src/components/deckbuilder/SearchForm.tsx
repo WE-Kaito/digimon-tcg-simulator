@@ -143,12 +143,19 @@ export default function SearchForm() {
 
                 <AttributeSelect value={attribute ?? "Attr."} onChange={(e) => setAttribute(e.target.value ?? "")}>
                     <option value={""}>Attr.</option>
-                    <option>Free</option>
-                    <option>Variable</option>
-                    <option>Unknown</option>
                     <option>Data</option>
-                    <option>Virus</option>
+                    <option>Free</option>
+                    <option>Unknown</option>
+                    <option>Variable</option>
                     <option>Vaccine</option>
+                    <option>Virus</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Game</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>God</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Life</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Navi</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Social</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>System</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Tool</option>
                 </AttributeSelect>
 
                 <PlayCostSelect
@@ -221,7 +228,13 @@ export default function SearchForm() {
                     <option>Mega</option>
                     <option>Armor Form</option>
                     <option>Hybrid</option>
-                    <option>D-Reaper</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Appmon</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Stnd./Appmon</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Sup./Appmon</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>Ult./Appmon</option>
+                    <option style={{ background: "rgb(4,24,35)" }}>God/Appmon</option>
+                    <option style={{ background: "rgb(54,54,54)" }}>D-Reaper</option>
+                    <option style={{ background: "rgb(54,54,54)" }}>Eater</option>
                 </StageSelect>
 
                 <DigitypeInput
