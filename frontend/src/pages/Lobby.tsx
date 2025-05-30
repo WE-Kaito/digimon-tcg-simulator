@@ -23,7 +23,7 @@ import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import Chat from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
-import { Dialog, DialogContent } from "@mui/material";
+import { Dialog, DialogContent, useMediaQuery } from "@mui/material";
 import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
@@ -309,6 +309,8 @@ export default function Lobby() {
     const startGameDisabled =
         !!joinedRoom && (isLoading || !!joinedRoom.players.find((p) => !p.ready) || joinedRoom.players.length < 2);
 
+    const isMobile = useMediaQuery("(max-width:499px)");
+
     return (
         <MenuBackgroundWrapper>
             <MenuDialog
@@ -502,7 +504,7 @@ export default function Lobby() {
                         }}
                     >
                         {!joinedRoom && (
-                            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                            <MenuButtonContainerDiv>
                                 <ButtonCard className={"button"} onClick={() => navigate("/decks")}>
                                     <DeckIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Decks</span>
@@ -511,14 +513,14 @@ export default function Lobby() {
                                     <ProfileIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Profile</span>
                                 </ButtonCard>
-                                <DisabledButtonCard title={"currently not available 🔜"}>
-                                    <AiIcon style={{ fontSize: 50 }} />
-                                    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>vs. Ai</span>
-                                </DisabledButtonCard>
-                            </div>
+                                {/*<DisabledButtonCard title={"currently not available 🔜"}>*/}
+                                {/*    <AiIcon style={{ fontSize: 50 }} />*/}
+                                {/*    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>vs. Ai</span>*/}
+                                {/*</DisabledButtonCard>*/}
+                            </MenuButtonContainerDiv>
                         )}
 
-                        <Card>
+                        <Card style={isMobile ? { order: 99, width: "100%" } : {}}>
                             {/*<CardTitle>Deck Selection</CardTitle>*/}
                             <Select value={activeDeckId} onChange={handleDeckChange}>
                                 {decks.map((deck) => (
@@ -577,13 +579,11 @@ export default function Lobby() {
 
 const Header = styled.header`
     width: calc(100% - 32px);
-    height: 64px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     padding: 16px;
-    //background-color: #771417;
 `;
 
 const ContentDiv = styled.div`
@@ -897,7 +897,8 @@ const ListCard = styled(Card)`
     min-width: 350px;
 
     @media (max-width: 600px) and (orientation: portrait) {
-        max-height: 600px;
+        max-height: 400px;
+        min-height: 200px;
         max-width: calc(100vw - 32px);
         min-width: unset;
     }
@@ -905,5 +906,21 @@ const ListCard = styled(Card)`
         max-height: 500px;
         max-width: calc(100vw - 32px);
         min-width: unset;
+    }
+`;
+
+const MenuButtonContainerDiv = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+
+    @media (max-width: 499px) {
+        gap: 16px;
+        order: 100;
+        width: 100%;
+        align-items: center;
+        div {
+            margin-top: 1px;
+        }
     }
 `;

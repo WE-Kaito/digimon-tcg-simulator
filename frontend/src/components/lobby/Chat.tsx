@@ -102,18 +102,18 @@ const Wrapper = styled.div`
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
     max-width: 40%;
     flex: 1;
-    max-height: 100%;
     min-width: 400px;
 
     backdrop-filter: hue-rotate(100deg);
 
-    @media (max-width: 600px) and (orientation: portrait) {
-        max-height: 320px;
-        max-width: 100%;
-    }
-    @media (max-width: 800px) and (orientation: landscape) {
-        max-height: 320px;
-        max-width: 100%;
+    @media (max-width: 499px) {
+        order: -1;
+        margin-top: 1px;
+        min-height: 350px;
+        max-height: 350px;
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
     }
 `;
 
@@ -181,6 +181,10 @@ const InputContainer = styled.form`
     justify-content: space-between;
     gap: 12px;
     padding: 0 6px 6px 6px;
+
+    @media (max-width: 499px) {
+        width: calc(100vw - 48px);
+    }
 `;
 
 const History = styled.div`
@@ -226,7 +230,7 @@ const SubmitButton = styled.button`
     color: ghostwhite;
 
     text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.25);
-    //
+
     box-shadow:
         inset 0 3px 10px rgba(255, 255, 255, 0.2),
         inset 0 -3px 10px rgba(0, 0, 0, 0.3);
@@ -234,9 +238,6 @@ const SubmitButton = styled.button`
     &:hover {
         color: ghostwhite;
         background: var(--blue-button-bg-hover);
-        //background-color: #1d7dfc;
-        //color: ghostwhite;
-        //box-shadow: 0 0 10px rgba(29, 125, 252, 0.5);
     }
 
     &:active {
