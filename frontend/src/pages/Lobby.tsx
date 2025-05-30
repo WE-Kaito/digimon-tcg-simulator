@@ -896,7 +896,7 @@ const ListCard = styled(Card)`
     flex: 1;
     min-width: 350px;
 
-    @media (max-width: 600px) and (orientation: portrait) {
+    @media (max-width: 600px) and (orientation: portrait), (max-height: 499px) {
         max-height: 400px;
         min-height: 200px;
         max-width: calc(100vw - 32px);

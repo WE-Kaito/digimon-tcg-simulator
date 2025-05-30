@@ -105,7 +105,7 @@ export default function BattleArea(props: BattleAreaProps) {
 }
 
 const Container = styled.div<BattleAreaProps & { isOver: boolean; stackOpened: boolean }>`
-    touch-action: none;
+    //touch-action: none;
     grid-area: ${({ num }) => (num ? `BA${num}` : "breeding")};
     position: relative;
     height: calc(100% - 6px);

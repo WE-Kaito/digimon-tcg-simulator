@@ -55,6 +55,10 @@ const BackGround = styled.div<{ color1: string; color2: string; color3: string }
     -moz-animation: Background 25s ease infinite;
     animation: Background 25s ease infinite;
 
+    @media (max-height: 499px) {
+        transform: scaleX(1.5);
+    }
+
     @-webkit-keyframes Background {
         0% {
             background-position: 0 50%;

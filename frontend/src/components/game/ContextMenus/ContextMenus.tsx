@@ -386,6 +386,13 @@ export const StyledMenu = styled(Menu)`
     .contexify_item:hover {
         font-weight: 600;
     }
+
+    @media (max-width: 499px), (max-height: 550px) {
+        scale: 0.75;
+        .contexify_submenu {
+            transform: unset;
+        }
+    }
 `;
 
 const MiniArrowSpan = styled.span`

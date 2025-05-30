@@ -115,6 +115,13 @@ const Wrapper = styled.div`
         max-width: unset;
         width: 100%;
     }
+
+    @media (max-height: 499px) {
+        min-height: 350px;
+        max-height: 350px;
+        max-width: unset;
+        width: 100%;
+    }
 `;
 
 const StyledSpan = styled.span<{ isMe?: boolean }>`

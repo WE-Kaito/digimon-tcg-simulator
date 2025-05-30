@@ -192,7 +192,7 @@ export default function GamePage() {
 
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const boardContainerRef = useRef<HTMLDivElement>(null);
-    const height = boardContainerRef.current ? window.outerHeight - 148 : undefined;
+    const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
     useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
 
@@ -205,7 +205,7 @@ export default function GamePage() {
             <EndModal />
             <RestartPromptModal wsUtils={wsUtils} />
 
-            <DetailsContainer isMobile={isMobile} height={height}>
+            <DetailsContainer isMobile={isMobile} height={height} style={{ minHeight: window.innerHeight }}>
                 {details !== DetailsView.NO_IMAGE && (
                     <CardImg
                         src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc}
@@ -294,8 +294,9 @@ const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
     background: rgba(0, 0, 0, 0.35);
     display: flex;
     width: 350px !important;
+    max-width: 350px;
     height: ${({ height }) => (height ? `${height}px` : "unset")};
-    min-height: 100vh;
+    max-height: ${({ height }) => (height ? `${height}px` : "unset")};
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
@@ -306,10 +307,6 @@ const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
     &::-webkit-scrollbar {
         width: 0;
         display: none;
-    }
-    @media (max-height: 500px) {
-        min-height: unset;
-        height: 100vh;
     }
 `;
 
@@ -336,9 +333,8 @@ const BoardLayout = styled.div<{ height?: number; isCameraTilted?: boolean }>`
         isCameraTilted ? "perspective(2000px) rotateX(35deg) rotateZ(0deg)" : "unset"};
     padding: ${({ isCameraTilted }) => (isCameraTilted ? "0 3.5vw 0 5vw" : "0")};
 
-    @media (max-height: 500px) {
-        min-height: unset;
-        height: 100vh;
+    @supports (-moz-appearance: none) {
+        height: ${({ height }) => (height ? `${height - 8}px` : "auto")};
     }
 `;
 

@@ -75,7 +75,7 @@ export default function LinkArea(props: LinkAreaProps) {
 }
 
 const Container = styled.div<LinkAreaProps & { isOver: boolean; stackOpened: boolean }>`
-    touch-action: none;
+    //touch-action: none;
     cursor: ${({ stackOpened }) => (stackOpened ? "pointer" : "unset")};
     grid-area: ${(props) => `LA${props.num}`};
     height: calc(100% - 6px);

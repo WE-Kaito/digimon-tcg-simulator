@@ -237,9 +237,9 @@ export default function Card(props: CardProps) {
             setLinkCardInfo(linkCardInfo);
         }
     }
-    const isToggleMode = false;
+
     function handleHover() {
-        if (index !== undefined && !active && (!isToggleMode || isStackDragMode)) setStackSliceIndex(index);
+        if (index !== undefined && !active && isStackDragMode) setStackSliceIndex(index);
         if (isCardFaceDown) setHoveredId(card.id);
         if (
             (isCardFaceDown && location === "mySecurity") ||
@@ -322,13 +322,11 @@ export default function Card(props: CardProps) {
         (inTamerField ? index >= stackDragIcon.index : index <= stackDragIcon.index);
 
     const isSingleDrag =
-        !isToggleMode &&
         !stackDragIcon &&
         (!isStackDragMode ||
             ["myHand", "mySecurity", "myTrash"].includes(location) ||
             (stackSliceIndex === 0 && !tamerLocations.includes(location)) ||
-            (stackSliceIndex === locationCards.length - 1 && tamerLocations.includes(location)) ||
-            stackModal === location);
+            (stackSliceIndex === locationCards.length - 1 && tamerLocations.includes(location)));
 
     const dragRef = isSingleDrag ? drag : dragStack;
     const dragAttributes = isSingleDrag ? attributes : stackAttributes;
@@ -489,6 +487,7 @@ export default function Card(props: CardProps) {
                 }}
                 className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                 onClick={handleClick}
+                onTouchStartCapture={() => index && isStackDragMode && setStackSliceIndex(index)}
                 onDoubleClick={handleTiltCard}
                 onMouseEnter={handleHover}
                 onMouseOver={handleHover}

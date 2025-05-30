@@ -58,7 +58,7 @@ export default function OpponentHand() {
 }
 
 const Container = styled.div<{ cardCount: number; isMobileUi?: boolean }>`
-    touch-action: none;
+    //touch-action: none;
     grid-area: hand;
     display: flex;
     justify-content: center;
