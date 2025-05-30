@@ -213,15 +213,16 @@ const TextArea = styled.textarea`
 `;
 
 const ImportButton = styled.div`
-    height: 31px;
-    padding-bottom: 1px;
+    height: 30px;
     width: 100%;
     max-width: 180px;
     min-width: 130px;
     border-radius: 5px;
     border: none;
-    background: #c74117;
-
+    background: rgba(199, 65, 23, 0.8);
+    box-shadow:
+        inset -2px 2px 5px rgba(255, 255, 255, 0.3125),
+        /* light top-right */ inset 2px -2px 5px rgba(0, 0, 0, 0.55); /* dark bottom-left */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -239,6 +240,9 @@ const ImportButton = styled.div`
 
     &:active {
         background-color: #1ae1e8 !important;
+        box-shadow:
+            inset 1px -1px 5px rgba(255, 255, 255, 0.3125),
+            /* light top-right */ inset -1px 1px 5px rgba(0, 0, 0, 0.55); /* dark bottom-left */
     }
 
     @media (max-width: 499px) {
@@ -247,7 +251,8 @@ const ImportButton = styled.div`
 `;
 
 const ExportButton = styled(ImportButton)`
-    background: #2e92f5;
+    background: rgba(46, 146, 245, 0.8);
+
     &:hover {
         background: #2fb1ea;
     }

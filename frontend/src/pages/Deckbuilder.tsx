@@ -33,7 +33,7 @@ export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
     useLayoutEffect(() => initialFetch(), [initialFetch]);
 
     const handleBeforeUnload = useCallback(() => {
-        localStorage.setItem("nameOfDeckToEdit", JSON.stringify(deckName || nameOfDeckToEdit));
+        localStorage.setItem("nameOfDeckToEdit", deckName || nameOfDeckToEdit);
         localStorage.setItem("deckCards", JSON.stringify(deckCards));
     }, [deckName, nameOfDeckToEdit, deckCards]);
 
@@ -120,9 +120,21 @@ const DetailsContainerDiv = styled.div`
     justify-self: flex-start;
     min-width: 380px;
     max-width: 380px;
-    margin: 8px 5px 0 0;
+    padding-right: 5px;
+    margin: 8px 0 0 0;
+    max-height: calc(100vh - 8px);
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        width: 0;
+        display: none;
+    }
 
     @media (max-width: 500px) {
+        max-height: unset;
         min-width: 98%;
         max-width: 98%;
         margin-right: 8px;
