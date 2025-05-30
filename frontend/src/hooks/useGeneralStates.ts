@@ -105,7 +105,7 @@ export const useGeneralStates = create<State>((set, get) => ({
     hoverCard: null,
     deckCards: JSON.parse(localStorage.getItem("deckCards") ?? "[]"),
     decks: [],
-    nameOfDeckToEdit: JSON.parse(localStorage.getItem("nameOfDeckToEdit") ?? "New Deck"),
+    nameOfDeckToEdit: localStorage.getItem("nameOfDeckToEdit") ?? "New Deck",
     idOfDeckToEdit: "",
     user: "",
     activeDeckId: "",
