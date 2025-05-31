@@ -112,7 +112,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         cardId: string,
         location: string,
         to: string,
-        sendFaceUp = false
+        sendFaceUp = "undefined"
     ) {
         sendMessage(
             `${gameId}:/moveCardToStack:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}:${sendFaceUp}`
@@ -236,9 +236,12 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         sendSfx("playPlaceCardSfx");
         sendChatMessage(`[FIELD_UPDATE]≔【${cardName}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
         if (from === to) {
-            const timer = setTimeout(() => sendCardToStack("Top", cardId, from, to, from === "myHand"), 30);
+            const timer = setTimeout(
+                () => sendCardToStack("Top", cardId, from, to, from === "myHand" ? "down" : "up"),
+                30
+            );
             return () => clearTimeout(timer);
-        } else sendCardToStack("Top", cardId, from, to);
+        } else sendCardToStack("Top", cardId, from, to, from === "myHand" ? "up" : undefined);
     }
 
     function handleDragEnd(event: DragEndEvent) {

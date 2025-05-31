@@ -48,6 +48,7 @@ export default function PlayerTrash() {
                 cardType: topCard?.cardType,
                 name: topCard?.name,
                 imgSrc: topCard?.imgUrl,
+                isFaceUp: true,
             },
         },
     });

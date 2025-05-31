@@ -296,6 +296,9 @@ export function compareEffectText(searchText: string, card: CardTypeWithId): boo
     const dnaEffectMatch = card.dnaDigivolve?.toUpperCase().includes(text) ?? false;
     const burstEffectMatch = card.burstDigivolve?.toUpperCase().includes(text) ?? false;
     const xrosEffectMatch = card.digiXros?.toUpperCase().includes(text) ?? false;
+    const linkEffectMatch = card.linkEffect?.toUpperCase().includes(text) ?? false;
+    const aceEffectMatch = card.aceEffect?.toUpperCase().includes(text) ?? false;
+    const ruleEffectMatch = card.rule?.toUpperCase().includes(text) ?? false;
 
     return (
         mainEffectMatch ||
@@ -304,7 +307,10 @@ export function compareEffectText(searchText: string, card: CardTypeWithId): boo
         digivolveEffectMatch ||
         dnaEffectMatch ||
         burstEffectMatch ||
-        xrosEffectMatch
+        xrosEffectMatch ||
+        linkEffectMatch ||
+        aceEffectMatch ||
+        ruleEffectMatch
     );
 }
 

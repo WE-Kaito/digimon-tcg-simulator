@@ -6,6 +6,7 @@ import {
     Backspace as ClearIcon,
     DeleteForever as TrashIcon,
     LocalFireDepartment as EffectIcon,
+    FitnessCenterRounded as TrainingIcon,
     Pageview as OpenSecurityIcon,
     ShuffleOnOutlined as ShuffleIcon,
     Search as DetailsIcon,
@@ -236,17 +237,13 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Show Stack</span> <DetailsIcon />
                     </div>
                 </Item>
+                <Separator />
                 <Item onClick={handleFlipCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Flip Card</span> <VisibleIcon />
                     </div>
                 </Item>
                 <Separator />
-                <Item onClick={handleTraining}>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>Training</span> <EffectIcon />
-                    </div>
-                </Item>
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />
@@ -265,6 +262,11 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                 </Item>
                 <ModifierMenu sendSetModifiers={sendSetModifiers} />
                 <Separator />
+                <Item onClick={handleTraining}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Training</span> <TrainingIcon />
+                    </div>
+                </Item>
                 <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
             </StyledMenu>
 

@@ -199,7 +199,11 @@ export default function Lobby() {
                 setIsAlreadyOpenedInOtherTab(true);
             }
 
-            if (event.data.startsWith("[CHAT_MESSAGE]:")) {
+            if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
+                setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+            }
+
+            if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
                 setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
             }
         },

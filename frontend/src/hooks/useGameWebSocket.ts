@@ -231,7 +231,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const cardId = parts[1];
                 const from = parts[2];
                 const to = parts[3];
-                moveCardToStack(topOrBottom, cardId, from, to, parts[4]);
+                const facing = parts[4] === "undefined" ? undefined : parts[4];
+                moveCardToStack(topOrBottom, cardId, from, to, facing);
                 return;
             }
 

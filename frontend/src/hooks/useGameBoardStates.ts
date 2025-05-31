@@ -580,14 +580,12 @@ export const useGameBoardStates = create<State>()(
                         card.modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color };
 
                     if (!!facing) {
-                        facing === "up" ? card.isFaceUp === true : card.isFaceUp === false;
-                    } else if (["myReveal", "opponentReveal"].includes(to)) {
+                        facing === "up" ? (card.isFaceUp = true) : (card.isFaceUp = false);
+                    } else if (from.includes("EggDeck") || to.includes("Reveal") || to.includes("Trash")) {
                         card.isFaceUp = true;
-                    } else if (
-                        ["myHand", "opponentHand", "myDeck", "opponentDeck", "myReveal", "opponentReveal"].includes(to)
-                    ) {
+                    } else if (["myHand", "opponentHand", "myDeck", "opponentDeck"].includes(to)) {
                         card.isFaceUp = false;
-                    } else if (["myHand", "opponentHand"].includes(from)) card.isFaceUp = true;
+                    } else if (["myHand", "opponentHand"].includes(from)) card.isFaceUp = true; // hand to hand should be face down
 
                     const updatedFromState = fromState.filter((card) => card.id !== cardId);
 
