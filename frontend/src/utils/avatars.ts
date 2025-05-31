@@ -1,4 +1,4 @@
-import {Picture} from "./types.ts";
+import { Picture } from "./types.ts";
 import ancientIrismon from "../assets/profile_pictures/AncientIrismon.png";
 import bearmon from "../assets/profile_pictures/Bearmon.png";
 import belphemon from "../assets/profile_pictures/Belphemon.png";
@@ -58,6 +58,14 @@ import vademon from "../assets/profile_pictures/Vademon.png";
 import blossomon from "../assets/profile_pictures/Blossomon.png";
 import delumon from "../assets/profile_pictures/Delumon.png";
 import andiramonData from "../assets/profile_pictures/Andiramon_Data.png";
+import angoramonSrc from "../assets/profile_pictures/angoramon.png";
+import elizamonSrc from "../assets/profile_pictures/ELIZAMON.png";
+import gemmonSrc from "../assets/profile_pictures/GEMMON.png";
+import ghostmonSrc from "../assets/profile_pictures/GHOSTMON.png";
+import namakemonSrc from "../assets/profile_pictures/Namakemon.png";
+import pteromonSrc from "../assets/profile_pictures/PTEROMON.png";
+import punkmonSrc from "../assets/profile_pictures/punk.png";
+import shoemonSrc from "../assets/profile_pictures/SHOEMON.png";
 
 export const avatars: Picture[] = [
     { name: "AncientIrismon", imagePath: ancientIrismon, artist: "Tortoiseshel" },
@@ -118,8 +126,16 @@ export const avatars: Picture[] = [
     { name: "Blossomon", imagePath: blossomon, artist: "Tortoiseshel" },
     { name: "Delumon", imagePath: delumon, artist: "Tortoiseshel" },
     { name: "Andiramon Data", imagePath: andiramonData, artist: "Tortoiseshel" },
+    { name: "Angoramon", imagePath: angoramonSrc, artist: "Drak" },
+    { name: "Elizamon", imagePath: elizamonSrc, artist: "Drak" },
+    { name: "Gemmon", imagePath: gemmonSrc, artist: "Drak" },
+    { name: "Ghostmon", imagePath: ghostmonSrc, artist: "Drak" },
+    { name: "Punkmon", imagePath: punkmonSrc, artist: "Drak" },
+    { name: "Shoemon", imagePath: shoemonSrc, artist: "Drak" },
+    { name: "Namakemon", imagePath: namakemonSrc, artist: "Drak" },
+    { name: "Pteromon", imagePath: pteromonSrc, artist: "Drak" },
 ];
 
-export function profilePicture(avatarName: string) : string {
+export function profilePicture(avatarName: string): string {
     return avatars.find((avatar) => avatar.name === avatarName)?.imagePath ?? placeholder;
 }

@@ -1,4 +1,84 @@
 #root {
+  --black: #0C0C0C;
+  --yellow: #DCB415;
+  --blue: rgba(56, 111, 240, 0.5);
+  --christmas-green: #1c7540;
+  --christmas-green-shadow: rgba(28, 117, 21, 0.25);
+  --lobby-accent: #ce345d;
+
+  --blue-button-bg: linear-gradient(
+          to bottom,
+          rgba(63, 109, 207, 0.5) 0%,
+          rgba(48, 95, 217, 0.7) 50%,
+          rgba(20, 40, 100, 0.9) 100%
+  );
+
+  --blue-button-bg-hover: linear-gradient(
+          to bottom,
+          rgba(77, 120, 225, 0.5) 0%,
+          rgba(62, 110, 219, 0.75) 50%,
+          rgba(15, 35, 90, 0.95) 100%
+  );
+
+  --blue-button-bg-active: linear-gradient(
+          to bottom,
+          rgba(70, 130, 250, 0.85) 0%,
+          rgba(45, 95, 240, 0.9) 40%,
+          rgba(45, 95, 240, 0.9) 60%,
+          rgba(25, 65, 200, 1) 100%
+  );
+
+  --orange-button-bg: linear-gradient(
+          to bottom,
+          rgba(204, 111, 48, 0.5) 0%,
+          rgba(193, 96, 34, 0.7) 50%,
+          rgba(110, 40, 10, 0.9) 100%
+  );
+
+  --orange-button-bg-hover: linear-gradient(
+          to bottom,
+          rgba(204, 118, 61, 0.5) 0%,
+          rgba(196, 103, 48, 0.75) 50%,
+          rgba(100, 35, 5, 0.95) 100%
+  );
+
+  --orange-button-bg-active: linear-gradient(
+          to bottom,
+          rgba(255, 120, 40, 0.9) 0%,
+          rgba(235, 90, 10, 0.95) 40%,
+          rgba(235, 90, 10, 0.95) 60%,
+          rgba(180, 60, 5, 1) 100%
+  );
+
   margin: 0 auto;
   text-align: center;
+  cursor: url("assets/cursors/Arrow_Down.cur"), auto;
+}
+
+button {
+  cursor: url("assets/cursors/Neon Normal Select Cyan.cur"), auto!important;
+}
+
+input {
+  cursor: url("assets/cursors/BlueglassTextSelect.cur"), auto!important;
+}
+
+textarea {
+    cursor: url("assets/cursors/BlueglassTextSelect.cur"), auto!important;
+}
+
+.MuiPopper-root {
+  cursor: url("assets/cursors/Arrow_Down.cur"), auto!important;
+}
+
+.button {
+  cursor: url("assets/cursors/Neon Normal Select Cyan.cur"), auto!important;
+}
+
+.custom-hand-cursor {
+  cursor: url("assets/cursors/sticker-grab.cur"), auto;
+}
+
+.custom-grab-cursor {
+  cursor: url("assets/cursors/sticker-grabbing.cur"), auto;
 }

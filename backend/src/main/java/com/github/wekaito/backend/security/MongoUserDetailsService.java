@@ -1,6 +1,6 @@
 package com.github.wekaito.backend.security;
 
-import com.github.wekaito.backend.IdService;
+import com.github.wekaito.backend.StarterDeckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,9 +20,9 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     private final MongoUserRepository mongoUserRepository;
 
-    private final String[] BadWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "boob", "fuck", "fuuck", "rape", "whore"};
+    private final StarterDeckService starterDeckService;
 
-    private final IdService idService = new IdService();
+    private static final String[] badWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "fuck", "fuuck", "rape", "whore", "nigger", "nazi", "jews"};
 
     String exceptionMessage = " not found";
 
@@ -56,21 +57,24 @@ public class MongoUserDetailsService implements UserDetailsService {
             return "Username already exists!";
         }
 
-        for (String badWord : BadWords) {
+        for (String badWord : badWords) {
             if (registrationUser.username().toLowerCase().contains(badWord)) {
                 return "Invalid username!";
             }
         }
 
         MongoUser newUser = new MongoUser(
-                idService.createId(),
+                UUID.randomUUID().toString(),
                 registrationUser.username(),
                 getEncodedPassword(registrationUser.password()),
                 registrationUser.question(),
                 registrationUser.answer(),
-                "",
+                UUID.randomUUID().toString(),
                 "AncientIrismon"
         );
+
+        starterDeckService.createStarterDecksForUser(newUser.id(), newUser.activeDeckId());
+
         mongoUserRepository.save(newUser);
 
         return "Successfully registered!";

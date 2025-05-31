@@ -1,25 +1,24 @@
-import styled from '@emotion/styled';
-import {useCallback, useEffect, useState} from "react";
-import {useStore} from "../hooks/useStore.ts";
+import styled from "@emotion/styled";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
 import DeckSelection from "../components/deckbuilder/DeckSelection.tsx";
 import BackButton from "../components/BackButton.tsx";
 import DeckImport from "../components/deckbuilder/DeckImport.tsx";
-import CardDetails from "../components/cardDetails/CardDetails.tsx";
-import cardBackSrc from "../assets/cardBack.jpg"
-import AddDeckButton from "../components/deckbuilder/AddDeckButton.tsx";
-import UpdateDeleteDeckButtons from "../components/deckbuilder/UpdateDeleteDeckButtons.tsx";
+import cardBackSrc from "../assets/cardBack.jpg";
+import UpdateDeckButtons from "../components/deckbuilder/UpdateDeckButtons.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
+import CardDetails from "../components/cardDetails/CardDetails.tsx";
 
-export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
-
-    const selectedCard = useStore((state) => state.selectedCard);
-    const hoverCard = useStore((state) => state.hoverCard);
-    const decks = useStore((state) => state.decks);
-    const fetchDecks = useStore((state) => state.fetchDecks);
-    const fetchCards = useStore((state) => state.fetchCards);
-    const nameOfDeckToEdit = useStore(state => state.nameOfDeckToEdit);
+export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
+    const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const hoverCard = useGeneralStates((state) => state.hoverCard);
+    const decks = useGeneralStates((state) => state.decks);
+    const fetchDecks = useGeneralStates((state) => state.fetchDecks);
+    const fetchCards = useGeneralStates((state) => state.fetchCards);
+    const nameOfDeckToEdit = useGeneralStates((state) => state.nameOfDeckToEdit);
+    const deckCards = useGeneralStates((state) => state.deckCards);
 
     const [deckName, setDeckName] = useState<string>("New Deck");
     const [currentDeckLength, setCurrentDeckLength] = useState<number>(0);
@@ -28,171 +27,186 @@ export default function Deckbuilder({isEditMode}: { isEditMode?: boolean }) {
         fetchCards();
         fetchDecks();
         setCurrentDeckLength(decks.length);
-        if (isEditMode) setDeckName(nameOfDeckToEdit);
+        if (nameOfDeckToEdit !== "New Deck") setDeckName(nameOfDeckToEdit);
     }, [decks.length, fetchCards, fetchDecks, isEditMode, nameOfDeckToEdit]);
-    useEffect(() => initialFetch(), [initialFetch]);
+
+    useLayoutEffect(() => initialFetch(), [initialFetch]);
+
+    const handleBeforeUnload = useCallback(() => {
+        localStorage.setItem("nameOfDeckToEdit", deckName || nameOfDeckToEdit);
+        localStorage.setItem("deckCards", JSON.stringify(deckCards));
+    }, [deckName, nameOfDeckToEdit, deckCards]);
+
+    useEffect(() => {
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [handleBeforeUnload]);
+
+    // function onSleeveClick() {
+    //     setSelectedSleeveOrImage(deck.sleeveName);
+    //     setDeckIdToSetSleeveOrImage(deck.id);
+    //     setSleeveSelectionOpen(true);
+    // }
 
     return (
         <MenuBackgroundWrapper>
-            <OuterContainer>
+            <OuterContainerDiv>
+                <DetailsContainerDiv>
+                    <CardImage
+                        src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackSrc}
+                        alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}
+                    />
+                    <CardDetails />
+                </DetailsContainerDiv>
 
-                <ButtonContainer>
-                    {isEditMode
-                        ? <UpdateDeleteDeckButtons deckName={deckName}/>
-                        : <AddDeckButton deckName={deckName} currentDeckLength={currentDeckLength}
-                                         setCurrentDeckLength={setCurrentDeckLength}/>
-                    }
-                    <BackButton isOnEditPage={isEditMode}/>
-                </ButtonContainer>
+                <DeckContainerDiv>
+                    <div style={{ display: "flex", height: 50, justifyContent: "center", alignItems: "center" }}>
+                        <NameInput
+                            type={"text"}
+                            value={deckName}
+                            maxLength={35}
+                            onChange={(e) => setDeckName(e.target.value)}
+                        />
+                    </div>
 
-                <DeckImport deckName={deckName}/>
+                    {/*<SleeveImage*/}
+                    {/*    className={"button"}*/}
+                    {/*    src={getSleeve(deck.sleeveName)}*/}
+                    {/*    onError={handleImageError}*/}
+                    {/*    onClick={onSleeveClick}*/}
+                    {/*/>*/}
 
-                <DeckNameContainer>
-                    <DeckNameInput maxLength={35} value={deckName} onChange={(e) => setDeckName(e.target.value)}/>
-                </DeckNameContainer>
+                    <DeckSelection />
+                    <DeckImport deckName={deckName} />
+                </DeckContainerDiv>
 
-                <DeckSelection/>
+                <SearchAndButtonsContainerDiv>
+                    <div
+                        style={{
+                            width: "100%",
+                            minHeight: 50,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <UpdateDeckButtons
+                            deckName={deckName}
+                            currentDeckLength={currentDeckLength}
+                            setCurrentDeckLength={setCurrentDeckLength}
+                            isEditMode={isEditMode}
+                        />
+                        <BackButton isInDeckbuilder />
+                    </div>
+                    <SearchForm />
 
-                <SearchForm/>
-
-                <FetchedCards/>
-                <DetailsContainer>
-                    <CardDetails/>
-                </DetailsContainer>
-
-                <CardImageContainer >
-                <CardImage src={(hoverCard ?? selectedCard)?.imgUrl ?? cardBackSrc}
-                           alt={hoverCard?.name ?? (!hoverCard ? (selectedCard?.name ?? "Card") : "Card")}/>
-                    <CardNumberSpan>{(hoverCard ?? selectedCard)?.cardNumber}</CardNumberSpan>
-                </CardImageContainer>
-
-            </OuterContainer>
+                    <FetchedCards />
+                </SearchAndButtonsContainerDiv>
+            </OuterContainerDiv>
         </MenuBackgroundWrapper>
     );
 }
 
-export const OuterContainer = styled.div`
-  position: absolute;
-  display: flex;
-  gap: 10px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  max-width: 1900px;
-  max-height: 1040px;
-  width: 99vw;
-  height: 98vh;
-  container-type: inline-size;
+const OuterContainerDiv = styled.div`
+    display: flex;
+    gap: 16px;
+    flex: 1;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap-reverse;
+`;
 
-  @media (max-width: 460px) {
-    overflow-y: scroll;
+const DetailsContainerDiv = styled.div`
+    justify-self: flex-start;
+    min-width: 380px;
+    max-width: 380px;
+    padding-right: 5px;
+    margin: 8px 0 0 0;
+    max-height: calc(100vh - 8px);
+
+    overflow-y: auto;
     overflow-x: hidden;
-  }
 
-@container(min-width: 450px) {
-  display: grid;
-  gap: unset;
-  grid-template-rows: 0.1fr 1fr 1fr 1fr 2fr;
-  grid-template-columns: 2.75fr 1fr 1.5fr;
-  grid-template-areas: " deckname buttons buttons"
-                        "import-export-area cardimage details"
-                        "deckselection cardimage details"
-                        "deckselection searchform searchform"
-                        "deckselection fetchedcards fetchedcards";
-}
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        width: 0;
+        display: none;
+    }
+
+    @media (max-width: 500px) {
+        max-height: unset;
+        min-width: 98%;
+        max-width: 98%;
+        margin-right: 8px;
+    }
 `;
 
-export const CardImage = styled.img`
-  grid-area: cardimage;
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 10px;
-  filter: drop-shadow(0 0 3px #060e18);
+const DeckContainerDiv = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 500px;
 
-@container(max-width: 449px) {
-  max-width: 95%;
-}
+    @media (max-width: 499px) {
+        min-width: unset;
+        max-width: 100vw;
+    }
 `;
 
-export const DeckNameInput = styled.input`
-  height: 40px;
-  width: 95%;
-  text-align: center;
-  font-size: 34px;
-  padding-top: 3px;
-  font-family: League Spartan, sans-serif;
-  border-radius: 5px;
-  border: 2px solid #D32765;
-  background: #1a1a1a;
+const SearchAndButtonsContainerDiv = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 400px;
+    max-width: 550px;
+    padding-right: 6px;
+
+    @media (max-width: 499px) {
+        min-width: unset;
+        max-width: 100%;
+        padding: 0;
+    }
 `;
 
-export const ButtonContainer = styled.div`
-  grid-area: buttons;
-  width: 95%;
-  display: flex;
-  gap: 2%;
-  justify-content: space-between;
+const CardImage = styled.img`
+    grid-area: cardimage;
+    aspect-ratio: 7 / 10;
+    max-width: 100%;
+    max-height: 380px;
+    border-radius: 10px;
+    filter: drop-shadow(0 0 3px #060e18);
+
+    @media (max-width: 500px) {
+        max-height: unset;
+    }
 `;
 
-export const DeckNameContainer = styled.div`
-  grid-area: deckname;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+const NameInput = styled.input`
+    height: 35px;
+    width: 35ch;
+    font-family: "League Spartan", sans-serif;
+    letter-spacing: 1px;
+    text-align: center;
+    font-size: 30px;
+    padding: 3px 5px 0 5px;
+    border: none;
+
+    background: rgba(15, 50, 145, 0.3);
+    backdrop-filter: hue-rotate(100deg);
+
+    &:focus {
+        outline: 3px solid var(--blue);
+    }
 `;
 
-export const DetailsContainer = styled.div`
-  height: 100%;
-  width: 95%;
-  margin: 0 4% 0 1%;
-  grid-area: details;
-
-  @supports (-moz-appearance:none) {
-    scrollbar-width: thin;
-  }
-
-@container(min-width: 450px) {
-  transform: translateX(-7px);
-  padding-right: 12px;
-  overflow: hidden;
-  width: 100%;
-  margin: unset;
-}
-
-  &::-webkit-scrollbar {
-    background-color: rgba(9, 8, 8, 0.98);
-    border-radius: 2px;
-    width: 3px;
-  }
-
-
-  &::-webkit-scrollbar-thumb {
-    background-color: rgba(220, 220, 220, 0.25);
-    border-radius: 2px;
-  }
-`;
-
-export const CardImageContainer = styled.div`
-  grid-area: cardimage;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: 5px;
-  position: relative;
-`;
-
-export const CardNumberSpan = styled.span`
-  position: absolute;
-  font-weight: 400;
-  background: #0c0c0c;
-  padding: 0px 3px 0px 3px;
-  bottom: 0;
-  right: 7%;
-  border-radius: 5px;
-  
-  @media (max-width: 450px) {
-    visibility: hidden;
-  }
-`;
+// const SleeveImage = styled.img`
+//     max-height: 100%;
+//     border-radius: 2px;
+//     grid-area: sleeve;
+//     transform: translate(-2px, -1px);
+//
+//     :hover {
+//         cursor: pointer;
+//         filter: drop-shadow(0 0 2px rgba(87, 160, 255, 0.5)) contrast(1.1);
+//     }
+// `;

@@ -169,7 +169,7 @@
 @font-face {
     font-family: League Spartan;
     font-style: normal;
-    font-weight: 800;
+    font-weight: 900;
     src: url("./assets/fonts/LeagueSpartan/LeagueSpartan-Black.ttf") format("truetype");
 }
 
@@ -180,6 +180,20 @@
     src: url("./assets/fonts/Sakana_Regular.ttf") format("truetype");
 }
 
+@font-face {
+    font-family: Frutiger;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./assets/fonts/Frutiger.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Frutiger;
+    font-style: normal;
+    font-weight: bold;
+    src: url("./assets/fonts/Frutiger_bold.ttf") format("truetype");
+}
+
 :root {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -188,7 +202,7 @@
 
     color-scheme: light dark;
     color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    background-color: #0c0c0c;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -270,4 +284,12 @@ button:hover {
     option {
         color: floralwhite;
     }
+}
+
+.prevent-default-long-press {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* Internet Explorer/Edge */
+    user-select: none;
 }

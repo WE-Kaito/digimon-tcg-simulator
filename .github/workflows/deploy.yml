@@ -2,7 +2,7 @@ name: Deploy to Server
 on:
   push:
     branches:
-    - main
+      - main
 
 jobs:
   build-frontend:
@@ -15,7 +15,7 @@ jobs:
       - name: Build Frontend
         run: |
           cd frontend
-          npm install
+          npm install --legacy-peer-deps
           npm run build
       - uses: actions/upload-artifact@v4
         with:
@@ -36,7 +36,9 @@ jobs:
           name: frontend-build
           path: backend/src/main/resources/static
       - name: Build Backend
-        run: mvn -B package -Dmaven.test.skip=true --file backend/pom.xml
+        run: mvn -B package --file backend/pom.xml
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       - uses: actions/upload-artifact@v4
         with:
           name: backend-build
@@ -50,7 +52,7 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v3
-      - name: Download artifact 
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-build
@@ -64,7 +66,7 @@ jobs:
           REMOTE_USER: ${{ vars.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
-          
+
 
   start-server:
     name: Start Server

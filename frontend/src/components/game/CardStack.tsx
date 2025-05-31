@@ -1,116 +1,218 @@
-import {CardTypeGame, FieldCardContextMenuItemProps} from "../../utils/types.ts";
-import styled from "@emotion/styled";
+import { CardTypeGame, FieldCardContextMenuItemProps } from "../../utils/types.ts";
 import Card from "../Card.tsx";
-import {Fade} from "react-awesome-reveal";
-import {useState} from "react";
-import {ItemParams, ShowContextMenuParams} from "react-contexify";
+import { Fade } from "react-awesome-reveal";
+import { CSSProperties, useCallback } from "react";
+import { ItemParams, ShowContextMenuParams } from "react-contexify";
+import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
+import { WSUtils } from "../../pages/GamePage.tsx";
 
-type MakeOptional<Type, Key extends keyof Type> = Omit<Type, Key> &
-    Partial<Pick<Type, Key>>;
+type MakeOptional<Type, Key extends keyof Type> = Omit<Type, Key> & Partial<Pick<Type, Key>>;
 
 type CardStackProps = {
-    cards: CardTypeGame[],
-    location: string,
-    sendTiltCard?: (cardId: string, location: string) => void,
-    sendSfx?: (sfx: string) => void
-    opponentSide?: boolean
-    handleDropToStackBottom?: (cardId: string, from: string, to: string, name: string) => void,
-    activateEffectAnimation?: ({props}: ItemParams<FieldCardContextMenuItemProps>) => void,
-    showFieldCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void
-    showOpponentCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void
-}
+    cards: CardTypeGame[];
+    location: string;
+    opponentSide?: boolean;
+    wsUtils?: WSUtils;
+    // only if opponentSide is false:
+    sendTiltCard?: (cardId: string, location: string) => void;
+    sendSfx?: (sfx: string) => void;
+    activateEffectAnimation?: ({ props }: ItemParams<FieldCardContextMenuItemProps>) => void;
+    showFieldCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void;
+    // only if opponentSide is true:
+    showOpponentCardMenu?: (params: MakeOptional<ShowContextMenuParams, "id">) => void;
+};
 
-export default function CardStack({
-                                      cards,
-                                      location,
-                                      sendTiltCard,
-                                      sendSfx,
-                                      opponentSide,
-                                      handleDropToStackBottom,
-                                      showFieldCardMenu,
-                                      showOpponentCardMenu
-                                  }: CardStackProps) {
+const tamerLocations = [
+    "myDigi9",
+    "myDigi10",
+    "myDigi11",
+    "myDigi12",
+    "myDigi13",
+    "opponentDigi9",
+    "opponentDigi10",
+    "opponentDigi11",
+    "opponentDigi12",
+    "opponentDigi13",
+];
 
-    const [draggedCards, setDraggedCards] = useState<CardTypeGame[]>([]);
+const linkLocations = [
+    "myLink1",
+    "myLink2",
+    "myLink3",
+    "myLink4",
+    "myLink5",
+    "myLink6",
+    "myLink7",
+    "myLink8",
+    "opponentLink1",
+    "opponentLink2",
+    "opponentLink3",
+    "opponentLink4",
+    "opponentLink5",
+    "opponentLink6",
+    "opponentLink7",
+    "opponentLink8",
+];
 
-    const tamerLocations = ["myDigi11", "myDigi12", "myDigi13", "myDigi14", "myDigi15"];
+export default function CardStack(props: CardStackProps) {
+    const { cards, location, wsUtils, opponentSide, showFieldCardMenu, showOpponentCardMenu } = props;
+
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
+    const tamerWidth = cardWidth - cardWidth / 3.5;
+    const isLinkCard = linkLocations.includes(location);
+
+    const getCardContainerStyles = useCallback(
+        (cardIndex: number, cardCount: number): CSSProperties => {
+            const bottomPercentage = cardIndex * getMultiplier(cardCount);
+            return {
+                aspectRatio: "7 / 9.75",
+                position: "absolute",
+                bottom: `${isLinkCard ? bottomPercentage - 7.5 : bottomPercentage}%`,
+                rotate: isLinkCard
+                    ? opponentSide
+                        ? "-270deg"
+                        : "-90deg"
+                    : `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
+                [opponentSide ? "right" : "left"]: isLinkCard ? "-160%" : 0,
+            };
+        },
+        [cardWidth, cards]
+    );
+
+    const getTamerCardContainerStyles = useCallback(
+        (cardIndex: number, cardCount: number): CSSProperties => {
+            return {
+                position: "absolute",
+                left: `${cardIndex * getMultiplierTamer(cardCount)}%`,
+                rotate: `${cards[cardIndex]?.isTilted ? 30 : 0}deg`,
+                zIndex: 50 - cardIndex,
+            };
+        },
+        [tamerWidth, cards]
+    );
 
     if (tamerLocations.includes(location)) {
-        return <CorrectionWrapper cardCount={cards.length}>
-            {!opponentSide
-
-                ? cards?.map((card, index) =>
-                    <TamerCardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                                        id={index === cards.length - 1 ? location : ""}
-                                        onContextMenu={(e) => showFieldCardMenu?.({
-                                            event: e,
-                                            props: {index, location, id: card.id, name: card.name}
-                                        })}>
-                        <Card card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
-                              index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
-                              handleDropToStackBottom={handleDropToStackBottom}/>
-                    </TamerCardContainer>)
-
-                : cards?.map((card, index) =>
-                    <TamerCardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                                        id={index === cards.length - 1 ? location : ""}
-                                        onContextMenu={(e) => showOpponentCardMenu?.({
-                                            event: e,
-                                            props: {index, location, id: card.id, name: card.name}
-                                        })}>
-                        <Fade direction={"down"} duration={500}>
-                            <Card card={card} location={location} index={index}/>
-                        </Fade></TamerCardContainer>)
-            }
-        </CorrectionWrapper>
+        return !opponentSide
+            ? cards?.map((card, index) => (
+                  <Card
+                      style={{
+                          ...getTamerCardContainerStyles(index, cards.length),
+                          bottom: 0,
+                          width: tamerWidth,
+                      }}
+                      card={card}
+                      location={location}
+                      wsUtils={wsUtils}
+                      index={index}
+                      key={card.id}
+                      onContextMenu={(e) =>
+                          showFieldCardMenu?.({
+                              event: e,
+                              props: { index, location, id: card.id, name: card.name },
+                          })
+                      }
+                  />
+              ))
+            : cards?.map((card, index) => (
+                  <Fade
+                      direction={"down"}
+                      duration={500}
+                      key={card.id}
+                      style={{ ...getTamerCardContainerStyles(index, cards.length) }}
+                  >
+                      <Card
+                          style={{ width: tamerWidth }}
+                          card={card}
+                          location={location}
+                          index={index}
+                          onContextMenu={(e) =>
+                              showOpponentCardMenu?.({
+                                  event: e,
+                                  props: { index, location, id: card.id, name: card.name },
+                              })
+                          }
+                      />
+                  </Fade>
+              ));
     }
 
-    return <>
-        {!opponentSide
-
-            ? cards?.map((card, index) =>
-                <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                               id={index === cards.length - 1 ? location : ""}
-                               onContextMenu={(e) => showFieldCardMenu?.({
-                                   event: e,
-                                   props: {index, location, id: card.id, name: card.name}
-                               })}>
-                    <Card card={card} location={location} sendSfx={sendSfx} sendTiltCard={sendTiltCard}
-                          index={index} draggedCards={draggedCards} setDraggedCards={setDraggedCards}
-                          handleDropToStackBottom={handleDropToStackBottom}/>
-                </CardContainer>)
-
-            : cards?.map((card, index) =>
-                <CardContainer cardCount={cards.length} key={card.id} cardIndex={index}
-                               id={index === cards.length - 1 ? location : ""}
-                               onContextMenu={(e) => showOpponentCardMenu?.({
-                                   event: e,
-                                   props: {index, location, id: card.id, name: card.name}
-                               })}>
-                    <Fade direction={"down"} duration={500}>
-                        <Card card={card} location={location} index={index}/>
-                    </Fade></CardContainer>)
-        }
-    </>
+    return (
+        <>
+            {!opponentSide
+                ? cards?.map((card, index) => (
+                      <Card
+                          style={{ ...getCardContainerStyles(index, cards.length), width: cardWidth }}
+                          card={card}
+                          location={location}
+                          wsUtils={wsUtils}
+                          index={index}
+                          key={card.id}
+                          onContextMenu={(e) =>
+                              showFieldCardMenu?.({
+                                  event: e,
+                                  props: { index, location, id: card.id, name: card.name },
+                              })
+                          }
+                      />
+                  ))
+                : cards?.map((card, index) => (
+                      <Fade
+                          direction={isLinkCard ? "up" : "down"}
+                          duration={500}
+                          key={card.id}
+                          style={getCardContainerStyles(index, cards.length)}
+                      >
+                          <Card
+                              style={{ width: cardWidth, height: cardWidth * 1.4 }}
+                              card={card}
+                              location={location}
+                              index={index}
+                              onContextMenu={(e) =>
+                                  showOpponentCardMenu?.({
+                                      event: e,
+                                      props: { index, location, id: card.id, name: card.name },
+                                  })
+                              }
+                          />
+                      </Fade>
+                  ))}
+        </>
+    );
 }
 
-const CardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
-  position: absolute;
-  bottom: ${({cardIndex}) => cardIndex > 5 ? ((cardIndex - 6) * 20) + 5 : (cardIndex * 20) + 5}px;
-  left: ${({cardIndex, cardCount}) => cardCount > 6 ? `${cardIndex > 5 ? 50 : 5}px` : "50%"};
-  transform: ${({cardCount}) => cardCount > 6 ? "translateX(-3%)" : "translate(-50%, 0)"};
-`;
+function getMultiplier(cardCount: number): number {
+    if (cardCount >= 30) return 2.3 - (cardCount - 17) * 0.0625;
+    if (cardCount >= 27) return 2.3 - (cardCount - 17) * 0.07;
+    if (cardCount >= 22) return 2.3 - (cardCount - 17) * 0.075;
+    if (cardCount >= 17) return 2.3 - (cardCount - 17) * 0.1;
+    if (cardCount === 16) return 2.3;
+    if (cardCount === 15) return 2.5;
+    if (cardCount === 14) return 2.75;
+    if (cardCount === 13) return 3;
+    if (cardCount === 12) return 3.25;
+    if (cardCount === 11) return 3.5;
+    if (cardCount === 10) return 3.95;
+    if (cardCount === 9) return 4.4;
+    if (cardCount === 8) return 5;
+    if (cardCount === 7) return 5.8;
+    if (cardCount === 6) return 7;
+    return 8.5;
+}
 
-const TamerCardContainer = styled.div<{ cardIndex: number, cardCount: number }>`
-  position: absolute;
-  bottom: ${({cardIndex, cardCount}) => (cardIndex * (cardCount > 4 ? 10 : 20)) + 5}px;
-  left: 50%;
-  transform: translateX(-50%);
-`;
-
-const CorrectionWrapper = styled.div<{ cardCount: number }>`
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: ${({cardCount}) => cardCount > 4 ? 140 + (cardCount * 10) : 130 + (cardCount * 20)}px;
-`;
+function getMultiplierTamer(cardCount: number): number {
+    if (cardCount >= 21) return 3.85 - (cardCount - 20) * (0.175 - 0.003 * (cardCount - 20));
+    if (cardCount === 20) return 3.85;
+    if (cardCount === 19) return 4.05;
+    if (cardCount === 18) return 4.3;
+    if (cardCount === 17) return 4.575;
+    if (cardCount === 16) return 4.875;
+    if (cardCount === 15) return 5.25;
+    if (cardCount === 14) return 5.625;
+    if (cardCount === 13) return 6.1;
+    if (cardCount === 12) return 6.62;
+    if (cardCount === 11) return 7.3;
+    if (cardCount === 10) return 8.125;
+    if (cardCount === 9) return 9.125;
+    if (cardCount === 8) return 10.5;
+    return 12.25;
+}

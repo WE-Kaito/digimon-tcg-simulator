@@ -14,7 +14,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-@SpringBootTest
+@SpringBootTest(properties = "discord.webhook.url=http://test-webhook-url.com")
 @AutoConfigureMockMvc
 class MongoUserControllerTest {
 
