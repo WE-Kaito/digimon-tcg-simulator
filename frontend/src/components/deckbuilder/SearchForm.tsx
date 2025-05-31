@@ -536,8 +536,8 @@ const Button = styled.button`
     &:active {
         background: var(--blue-button-bg-active);
         box-shadow:
-            inset -1 -1px 1px rgba(255, 255, 255, 0.6),
-            inset 1 1px 1px rgba(0, 0, 0, 0.8);
+            inset -1px -1px 1px rgba(255, 255, 255, 0.6),
+            inset 1px 1px 1px rgba(0, 0, 0, 0.8);
     }
 
     &:disabled {
