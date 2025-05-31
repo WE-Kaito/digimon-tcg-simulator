@@ -47,8 +47,17 @@ public class LobbyService extends TextWebSocketHandler {
         session.sendMessage(new TextMessage(message));
     }
 
+    private synchronized void cleanupUserSession(String username) {
+        globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
+        // Also check in rooms
+        for (Room room : rooms) {
+            room.getPlayers().removeIf(player -> player.getName().equals(username));
+        }
+        rooms.removeIf(room -> room.getPlayers().isEmpty());
+    }
+
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
+    public synchronized void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
         if (activeDeck.isEmpty() || deckService.getDeckById(activeDeck) == null) {
@@ -62,6 +71,8 @@ public class LobbyService extends TextWebSocketHandler {
             return;
         }
 
+        cleanupUserSession(username);
+
         if (globalActiveSessions.stream().anyMatch(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username))) {
             sendTextMessage(session, warning);
             System.out.println("already connected in global: " + username);
@@ -69,12 +80,12 @@ public class LobbyService extends TextWebSocketHandler {
             return;
         }
 
-        if (rooms.stream().anyMatch(room -> room.getPlayers().stream().anyMatch(player -> player.getName().equals(username)))) {
-            sendTextMessage(session, warning);
-            System.out.println("already connected in room: " + username);
-            sendTextMessage(session, "[SESSION_ALREADY_CONNECTED]");
-            return;
-        }
+//        if (rooms.stream().anyMatch(room -> room.getPlayers().stream().anyMatch(player -> player.getName().equals(username)))) {
+//            sendTextMessage(session, warning);
+//            System.out.println("already connected in room: " + username);
+//            sendTextMessage(session, "[SESSION_ALREADY_CONNECTED]");
+//            return;
+//        }
 
         globalActiveSessions.add(session);
 
@@ -87,7 +98,7 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
+    public synchronized void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
         synchronized (rooms) {
@@ -238,7 +249,7 @@ public class LobbyService extends TextWebSocketHandler {
         broadcastRooms();
     }
 
-    private void broadcastRooms() throws IOException {
+    private synchronized void broadcastRooms() throws IOException {
         // Broadcast to sessions in lobby
         for (WebSocketSession session : globalActiveSessions) {
             // change this when rooms allow more users:
@@ -251,7 +262,7 @@ public class LobbyService extends TextWebSocketHandler {
         }
     }
 
-    private void broadcastUserCount() throws IOException {
+    private synchronized void broadcastUserCount() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
             sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
         }
@@ -317,7 +328,7 @@ public class LobbyService extends TextWebSocketHandler {
         sendRoomUpdate(room, false);
     }
 
-    private void joinRoom(WebSocketSession session, String roomId, boolean host) throws IOException {
+    private synchronized void joinRoom(WebSocketSession session, String roomId, boolean host) throws IOException {
         Room room = getRoomById(roomId);
 
         if (room == null) {
@@ -345,8 +356,7 @@ public class LobbyService extends TextWebSocketHandler {
 
     private void handleJoinRoomAttempt(WebSocketSession session, String roomId) throws IOException {
         String password = getRoomById(roomId).getPassword();
-        assert password != null;
-        if (!password.isEmpty()) sendTextMessage(session, "[PROMPT_PASSWORD]");
+        if (password != null && !password.isEmpty()) sendTextMessage(session, "[PROMPT_PASSWORD]");
         else joinRoom(session, roomId, false);
     }
 
@@ -362,7 +372,7 @@ public class LobbyService extends TextWebSocketHandler {
         else sendTextMessage(session, "[WRONG_PASSWORD]");
     }
 
-    private void leaveRoom(WebSocketSession session, String payload) throws IOException {
+    private synchronized void leaveRoom(WebSocketSession session, String payload) throws IOException {
         String[] parts = payload.split(":");
         String roomId = parts[1];
         String userName = parts[2];
@@ -403,10 +413,13 @@ public class LobbyService extends TextWebSocketHandler {
         String userName = parts[2];
 
         Room room = getRoomById(roomId);
-        assert room != null;
 
         LobbyPlayer player = room.getPlayers().stream().filter(p -> p.getName().equals(userName)).findFirst().orElse(null);
-        assert player != null;
+
+        if (player == null) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Player not found in the room.");
+            return;
+        }
 
         room.getPlayers().remove(player);
 
