@@ -25,7 +25,12 @@ export default function PlayerAttackResolve({ wsUtils, fontSize }: { wsUtils?: W
     if (!opponentAttackPhase) return <></>;
 
     return (
-        <StyledButton style={{ fontSize }} onClick={resolveCounterBlockTiming} disabled={isDisabled}>
+        <StyledButton
+            className={isDisabled ? undefined : "button"}
+            style={{ fontSize }}
+            onClick={resolveCounterBlockTiming}
+            disabled={isDisabled}
+        >
             <span style={{ transform: "translateY(5px)" }}>{opponentAttackPhase}</span>
         </StyledButton>
     );
@@ -56,7 +61,7 @@ const StyledButton = styled.div<{ disabled: boolean }>`
     box-shadow:
         inset 0 0 10px ${({ disabled }) => (disabled ? "rgba(234,10,124,0.4)" : "rgba(27, 140, 253, 0.4)")},
         0 0 9px 3px ${({ disabled }) => (disabled ? "rgba(122,11,46,0.27)" : "rgba(27, 140, 253, 0.1)")};
-    cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
+
     pointer-events: ${({ disabled }) => (disabled ? "none" : "unset")};
 
     &:hover {

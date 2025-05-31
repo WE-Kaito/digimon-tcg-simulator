@@ -39,7 +39,12 @@ export default function OpponentAttackResolve({ wsUtils, fontSize }: { wsUtils?:
     if (!myAttackPhase) return <></>;
 
     return (
-        <StyledButton style={{ fontSize }} onClick={resolveMyAttack} disabled={isDisabled}>
+        <StyledButton
+            className={isDisabled ? undefined : "button"}
+            style={{ fontSize }}
+            onClick={resolveMyAttack}
+            disabled={isDisabled}
+        >
             <span style={{ transform: "translateY(3px)" }}>{myAttackPhase}</span>
         </StyledButton>
     );
