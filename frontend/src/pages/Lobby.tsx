@@ -112,6 +112,13 @@ export default function Lobby() {
         navigate("/game");
     }
 
+    function setIsLoadingWithDebounce() {
+        setIsLoading(true);
+
+        const timer = setTimeout(() => setIsLoading(false), 5000); // reset loading state after 5 seconds
+        return () => clearTimeout(timer);
+    }
+
     const websocket = useWebSocket(websocketURL, {
         shouldReconnect: () => true,
 
@@ -123,13 +130,13 @@ export default function Lobby() {
             if (event.data === "[NO_ACTIVE_DECK]") {
                 notifyNoActiveDeck();
                 setNoActiveDeck(true);
-                setIsLoading(true);
+                setIsLoadingWithDebounce();
             }
 
             if (event.data === "[BROKEN_DECK]") {
                 notifyBrokenDeck();
                 setNoActiveDeck(true);
-                setIsLoading(true);
+                setIsLoadingWithDebounce();
             }
 
             if (event.data.startsWith("[USER_COUNT]:")) {
@@ -224,13 +231,13 @@ export default function Lobby() {
     }
 
     function handleCreateRoom() {
-        setIsLoading(true);
+        setIsLoadingWithDebounce();
         cancelQuickPlayQueue();
         websocket.sendMessage("/createRoom:" + newRoomName + ":" + newRoomPassword + ":" + newRoomFormat);
     }
 
     function handleJoinRoom(roomId: string) {
-        setIsLoading(true);
+        setIsLoadingWithDebounce();
         cancelQuickPlayQueue();
         setPassword("");
         setRoomToJoinId(roomId);
@@ -238,28 +245,28 @@ export default function Lobby() {
     }
 
     function handleJoinRoomWithPassword() {
-        setIsLoading(true);
+        setIsLoadingWithDebounce();
         websocket.sendMessage("/password:" + roomToJoinId + ":" + password);
     }
 
     function handleToggleReady() {
-        setIsLoading(true);
+        setIsLoadingWithDebounce();
         websocket.sendMessage("/toggleReady:" + joinedRoom?.id);
     }
 
     function handleLeaveRoom() {
-        setIsLoading(true);
-        websocket.sendMessage("/leave:" + joinedRoom?.id + ":" + user);
+        setIsLoadingWithDebounce();
+        websocket.sendMessage("/leave:" + joinedRoom?.id + ":" + user + ":true");
     }
 
     function handleKickPlayer(userName: string) {
-        setIsLoading(true);
+        setIsLoadingWithDebounce();
         websocket.sendMessage("/kick:" + joinedRoom?.id + ":" + userName);
         playKickSfx();
     }
 
     function handleStartGame() {
-        setIsLoading(true);
+        setIsLoadingWithDebounce();
         cancelQuickPlayQueue();
         const newGameID = user + "‗" + joinedRoom?.players.find((p) => p.name !== user)?.name;
         websocket.sendMessage("/startGame:" + joinedRoom?.id + ":" + newGameID);
@@ -307,6 +314,15 @@ export default function Lobby() {
         const heartbeatInterval = setInterval(() => websocket.sendMessage("/heartbeat/"), 5000);
         return () => clearInterval(heartbeatInterval);
     }, [websocket.readyState, websocket.sendMessage]);
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (joinedRoom) websocket.sendMessage("/leave:" + joinedRoom.id + ":" + user + ":false");
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [joinedRoom, user, websocket]);
 
     const meInRoom = joinedRoom?.players.find((p) => p.name === user);
     const startGameDisabled =
@@ -485,7 +501,25 @@ export default function Lobby() {
                                         .sort((a, b) => a.name.localeCompare(b.name))
                                         .map((room) => (
                                             <RoomItemLobby key={room.id}>
-                                                <StyledSpan>{room.name}</StyledSpan>
+                                                <StyledSpan>{+room.name}</StyledSpan>
+                                                <StyledSpan style={{ display: "flex", alignItems: "center" }}>
+                                                    <img
+                                                        alt={"Host: "}
+                                                        width={16}
+                                                        src={crownSrc}
+                                                        style={{ marginRight: "4px", transform: "translateY(-1px)" }}
+                                                    />
+                                                    <span>{room.hostName}</span>
+                                                    <img
+                                                        alt={"Host: "}
+                                                        width={24}
+                                                        src={profilePicture(
+                                                            room.players.find((p) => p.name === room.hostName)
+                                                                ?.avatarName || ""
+                                                        )}
+                                                        style={{ marginLeft: "4px", transform: "translateY(-3px)" }}
+                                                    />
+                                                </StyledSpan>
                                                 {room.hasPassword && <PrivateIcon />}
                                                 <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
                                                     Join
@@ -853,6 +887,7 @@ const Select = styled.select`
 
 const QuickPlayButton = styled(Button)<{ isSearchingGame: boolean }>`
     height: 36px;
+    margin-right: 8px;
     background: var(${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg" : "--blue-button-bg")});
 
     &:hover {
@@ -865,6 +900,10 @@ const QuickPlayButton = styled(Button)<{ isSearchingGame: boolean }>`
         background: var(
             ${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg-active" : "--blue-button-bg-active")}
         );
+    }
+
+    @media (max-width: 499px) {
+        margin-right: unset;
     }
 `;
 
@@ -888,7 +927,7 @@ const StyledChip = styled.div<{ ready: boolean }>`
 `;
 
 const StyledSpan = styled.span`
-    font-size: 1.2rem;
+    font-size: 24px;
     font-family: "League Spartan", sans-serif;
     color: ghostwhite;
     text-shadow: 0 0 5px var(--christmas-green-shadow);

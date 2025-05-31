@@ -103,6 +103,7 @@ const Wrapper = styled.div`
     max-width: 40%;
     flex: 1;
     min-width: 400px;
+    max-height: 100%;
 
     backdrop-filter: hue-rotate(100deg);
 
