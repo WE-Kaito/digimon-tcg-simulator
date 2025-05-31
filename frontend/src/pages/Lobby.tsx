@@ -501,7 +501,7 @@ export default function Lobby() {
                                         .sort((a, b) => a.name.localeCompare(b.name))
                                         .map((room) => (
                                             <RoomItemLobby key={room.id}>
-                                                <StyledSpan>{+room.name}</StyledSpan>
+                                                <StyledSpan>{room.name}</StyledSpan>
                                                 <StyledSpan style={{ display: "flex", alignItems: "center" }}>
                                                     <img
                                                         alt={"Host: "}
