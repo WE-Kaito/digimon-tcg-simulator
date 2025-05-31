@@ -1,11 +1,9 @@
 Project Drasil
 ---
 
-Free fan-made manual/tabletop simulation of the [Digimon Card Game](https://world.digimoncard.com/).
+Free fan-made manual/tabletop simulation of the [Digimon Card Game](https://world.digimoncard.com/) by [@WE-Kaito](https://github.com/WE-Kaito).
 
-It is still in development but has every feature needed to play smoothly.
-Keep in mind the game page is not optimized for mobile devices yet.
-Thx to [@alessandrostagni](https://github.com/alessandrostagni) we also provide a mostly automated bot to play against.
+Thx to [@alessandrostagni](https://github.com/alessandrostagni) for maintaining our deployment and providing bots to the game.
 
 Check the [Featues & Controls](https://github.com/WE-Kaito/digimon-tcg-simulator/wiki) page for futher information.
 
@@ -15,23 +13,14 @@ Feel free to use the code to improve upon. Reviews, bug-reports and feature-requ
 
 Join our discord community! https://discord.gg/sBdByGAh2y
 
-  ---
-
 
   ---
 
 **Upcoming Features**:
+- Reimplement bots.
 - Tutorial modals for the UI.
-- Proper Lobby screen with enforced format settings, quickplay, ...
-- Practice mode to test the decks without the need of an opponent. Later on, it may be possible to play against different bot characters.
+- Looking into adding value to accounts.
 - Spectator mode.
-- Chinese Language support.
-- Mobile optimization.
-- Adding value to accounts introducing some point system and name-plates + distinct user- and display-names.
-- -> Report system to report users.
-- Other small updates and further polishing of existing features ✨
-
-🔜 No estimated time. But with the help of other contributors and the community we'll get there! 🚀
 
   ---
 
