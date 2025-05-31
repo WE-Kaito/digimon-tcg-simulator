@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useSound } from "../../hooks/useSound.ts";
 import { WSUtils } from "../../pages/GamePage.tsx";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { useSettingStates } from "../../hooks/useSettingStates.ts";
 
 export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
     const phase = useGameBoardStates((state) => state.phase);
@@ -18,8 +17,6 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
     const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
-
-    const isMobileUi = useSettingStates((state) => state.isMobileUI);
 
     const [renderPhase, setRenderPhase] = useState(true);
 
@@ -56,7 +53,6 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
             isMainPhase={isMainPhase}
             isPassTurnAllowed={isPassTurnAllowed}
             gameHasStarted={gameHasStarted}
-            isMobileUi={isMobileUi}
             {...(isMyTurn && isMainPhase && !isPassTurnAllowed && { title: "Please set memory before passing turn." })}
         >
             <PhaseSpan style={{ opacity: renderPhase ? 1 : 0, fontSize }}>
@@ -71,7 +67,6 @@ const Container = styled.div<{
     isMainPhase: boolean;
     isPassTurnAllowed: boolean;
     gameHasStarted: boolean;
-    isMobileUi: boolean;
 }>`
     grid-area: phase;
     grid-column: 1 / 5;

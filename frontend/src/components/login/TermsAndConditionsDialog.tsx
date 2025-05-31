@@ -47,7 +47,7 @@ export default function TermsAndConditionsDialog() {
                 <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
                         <Checkbox
-                            sx={!checked && { svg: { color: "ghostwhite" } }}
+                            sx={!checked ? { svg: { color: "ghostwhite" } } : undefined}
                             checked={checked}
                             onChange={() => setChecked(!checked)}
                         />

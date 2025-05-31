@@ -28,7 +28,6 @@ import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
 import ProfileIcon from "@mui/icons-material/ManageAccountsTwoTone";
-import AiIcon from "@mui/icons-material/SmartToyTwoTone";
 
 import Lottie from "lottie-react";
 import LogoutButton from "../components/lobby/LogoutButton.tsx";
@@ -671,26 +670,26 @@ const ButtonCard = styled.div`
     }
 `;
 
-const DisabledButtonCard = styled(ButtonCard)`
-    & > * {
-        opacity: 0.35;
-        color: #646262;
-    }
-
-    &:hover {
-        & > * {
-            opacity: 0.35;
-            color: darkgrey;
-        }
-    }
-
-    &:active {
-        & > * {
-            opacity: 0.35;
-            color: darkgrey;
-        }
-    }
-`;
+// const DisabledButtonCard = styled(ButtonCard)`
+//     & > * {
+//         opacity: 0.35;
+//         color: #646262;
+//     }
+//
+//     &:hover {
+//         & > * {
+//             opacity: 0.35;
+//             color: darkgrey;
+//         }
+//     }
+//
+//     &:active {
+//         & > * {
+//             opacity: 0.35;
+//             color: darkgrey;
+//         }
+//     }
+// `;
 
 const CardTitle = styled.span`
     font-family: "League Spartan", sans-serif;
