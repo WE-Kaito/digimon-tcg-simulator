@@ -15,7 +15,7 @@ jobs:
       - name: Build Frontend
         run: |
           cd frontend
-          npm install
+          npm install --legacy-peer-deps
           npm run build
       - uses: actions/upload-artifact@v4
         with:
