@@ -26,7 +26,6 @@ export default function PlayerBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
             ))}
             <BattleArea isBreeding side={SIDE.MY} wsUtils={wsUtils} />
 
-            {/*<SecurityDropSections />*/}
             <PlayerSecurityStack wsUtils={wsUtils} />
 
             <PlayerEventUtils wsUtils={wsUtils} />
@@ -55,7 +54,7 @@ const LayoutContainer = styled.div`
         " breeding breeding BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 drag-toggle . . .  . . . . ."
         " breeding breeding BA9 BA9 BA9 BA9 BA9 BA10 BA10 BA10 BA10 BA10 BA11 BA11 BA11 BA11 BA11 BA12 BA12 BA12 BA12 BA12 BA13 BA13 BA13 BA13 drag-toggle . player player player player player player player"
         " egg-deck egg-deck               . SS SS SS .   hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand . deck deck deck-utils .              event-utils event-utils event-utils event-utils event-utils event-utils ."
-        " egg-deck egg-deck               . SS SS SS .   hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand . deck deck deck-utils .                   event-utils event-utils event-utils event-utils event-utils event-utils ."
+        " egg-deck egg-deck               . SS SS SS .   hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand . deck deck deck-utils .                   event-utils event-utils event-utils event-utils event-utils event-utils emote"
         " egg-deck-bottom egg-deck-bottom . SS SS SS eye hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand hand . deck deck deck-utils .             event-utils event-utils event-utils event-utils event-utils event-utils .";
 
     gap: 1px;

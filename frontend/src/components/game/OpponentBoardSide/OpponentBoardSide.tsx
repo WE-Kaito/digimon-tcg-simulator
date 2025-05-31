@@ -11,7 +11,6 @@ import { WSUtils } from "../../../pages/GamePage.tsx";
 import PlayerCard from "../PlayerCard.tsx";
 import ReportButton from "../ReportButton.tsx";
 import { Flag as SurrenderIcon, RestartAlt as RestartIcon } from "@mui/icons-material";
-import { IconButton } from "@mui/material";
 import RestartRequestModal from "../ModalDialog/RestartRequestModal.tsx";
 import SurrenderModal from "../ModalDialog/SurrenderModal.tsx";
 import { useState } from "react";
@@ -32,19 +31,22 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
                         <RestartRequestModal setRestartRequestModal={setRestartRequestModal} wsUtils={wsUtils} />
                     )}
                     {surrenderModal && <SurrenderModal setSurrenderModal={setSurrenderModal} wsUtils={wsUtils} />}
-                    <ReportButton matchInfo={wsUtils.matchInfo} iconFontSize={`${iconWidth}px`} />
-                    <StyledIconButton
+                    <ReportButton matchInfo={wsUtils.matchInfo} iconFontSize={`${iconWidth - 5}px`} />
+
+                    <PanelButton
+                        className={"button"}
                         onClick={() => setSurrenderModal(true)}
-                        sx={{ color: "blanchedalmond", gridArea: "surrender" }}
+                        style={{ gridArea: "surrender", transform: `translate(-4px, -1px)` }}
                     >
-                        <SurrenderIcon sx={{ fontSize: iconWidth }} />
-                    </StyledIconButton>
-                    <StyledIconButton
+                        <SurrenderIcon className={"button"} sx={{ fontSize: iconWidth - 5, color: "blanchedalmond" }} />
+                    </PanelButton>
+                    <PanelButton
+                        className={"button"}
                         onClick={() => setRestartRequestModal(true)}
-                        sx={{ color: "mediumaquamarine", gridArea: "restart" }}
+                        style={{ gridArea: "restart", transform: `translate(-4px, -${iconWidth / 5}px)` }}
                     >
-                        <RestartIcon sx={{ fontSize: iconWidth }} />
-                    </StyledIconButton>
+                        <RestartIcon className={"button"} sx={{ fontSize: iconWidth - 5, color: "mediumaquamarine" }} />
+                    </PanelButton>
                 </>
             )}
 
@@ -86,10 +88,21 @@ const LayoutContainer = styled.div`
     position: relative;
 `;
 
-const StyledIconButton = styled(IconButton)`
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-    opacity: 0.7;
+const PanelButton = styled.div`
+    width: 100%;
+    height: 80%;
+    background: rgba(12, 21, 16, 0.25);
+    border: 1px solid rgba(124, 124, 118, 0.4);
+    border-left: none;
+    border-radius: 0 3px 3px 0;
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
     display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+
+    &:hover {
+        background: rgba(26, 179, 201, 0.35);
+    }
 `;

@@ -8,7 +8,7 @@ export default function ColorSpan() {
     const currentColors = hoverCard?.color ?? selectedCard?.color;
 
     return (
-        <div style={{ display: "flex", background: "goldenrod", width: "100%" }}>
+        <div style={{ display: "flex", width: "100%" }}>
             {currentColors?.map((color: string, index) => {
                 return (
                     <div

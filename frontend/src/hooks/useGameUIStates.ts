@@ -9,6 +9,13 @@ export enum OpenedCardModal {
     OPPONENT_TRASH = "opponentTrash",
 }
 
+export enum Emote {
+    HELLO = "hello",
+    WAIT = "wait",
+    GOOD = "good",
+    BAFFLED = "baffled",
+}
+
 type State = {
     isStackDragMode: boolean;
     setIsStackDragMode: (isStackDragMode: boolean) => void;
@@ -39,6 +46,12 @@ type State = {
 
     stackDragIcon: null | { location: string; index: number };
     setStackDragIcon: (stackDragIcon: { location: string; index: number } | null) => void;
+
+    myEmote: Emote | null;
+    setMyEmote: (emote: Emote | null) => void;
+
+    opponentEmote: Emote | null;
+    setOpponentEmote: (emote: Emote | null) => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
@@ -71,4 +84,16 @@ export const useGameUIStates = create<State>((set) => ({
 
     stackDragIcon: null,
     setStackDragIcon: (stackDragIcon) => set({ stackDragIcon }),
+
+    myEmote: null,
+    setMyEmote: (emote) => {
+        set({ myEmote: emote });
+        setTimeout(() => set({ myEmote: null }), 5000);
+    },
+
+    opponentEmote: null,
+    setOpponentEmote: (emote) => {
+        set({ opponentEmote: emote });
+        setTimeout(() => set({ opponentEmote: null }), 5000);
+    },
 }));

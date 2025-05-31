@@ -5,37 +5,53 @@ import { WSUtils } from "../../../../pages/GamePage.tsx";
 import OpponentAttackResolve from "./OpponentAttackResolve.tsx";
 import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import Lottie from "lottie-react";
-import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
 import { WifiOffRounded as OfflineIcon } from "@mui/icons-material";
+import { useGameUIStates } from "../../../../hooks/useGameUIStates.ts";
+import { useGeneralStates } from "../../../../hooks/useGeneralStates.ts";
+import { useState } from "react";
+import EmoteRender from "../../EmoteRender.tsx";
 
 export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const isOpponentOnline = useGameBoardStates((state) => state.isOpponentOnline);
     const startingPlayer = useGameBoardStates((state) => state.startingPlayer);
 
+    const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
+
+    const opponentEmote = useGameUIStates((state) => state.opponentEmote);
+
     const isFirst = startingPlayer === wsUtils?.matchInfo.opponentName;
 
-    const { fontContainerRef, fontSize } = useResponsiveFontSize(7.25);
-
-    const childrenLength = fontContainerRef?.current?.children?.length;
-    const hasChildren = childrenLength ? childrenLength > 0 : false;
+    const [hasChildren, setHasChildren] = useState(false);
 
     return (
-        <Container ref={fontContainerRef} hasChildren={hasChildren}>
-            {!isOpponentOnline ? (
-                <OfflineIcon fontSize={"large"} color={"error"} />
+        <Container
+            ref={(e) => {
+                const raf = requestAnimationFrame(() => setHasChildren((e?.children?.length ?? 0) > 0));
+                return () => cancelAnimationFrame(raf);
+            }}
+            hasChildren={hasChildren}
+        >
+            {opponentEmote ? (
+                <EmoteRender emote={opponentEmote} />
             ) : (
                 <>
-                    {bootStage === BootStage.SHOW_STARTING_PLAYER && (
-                        <Lottie
-                            animationData={firstAnimation}
-                            autoplay={isFirst}
-                            loop={false}
-                            initialSegment={[0, 70]}
-                            style={{ transform: "translateY(20%) scaleY(-1)" }}
-                        />
+                    {!isOpponentOnline ? (
+                        <OfflineIcon fontSize={"large"} color={"error"} />
+                    ) : (
+                        <>
+                            {bootStage === BootStage.SHOW_STARTING_PLAYER && (
+                                <Lottie
+                                    animationData={firstAnimation}
+                                    autoplay={isFirst}
+                                    loop={false}
+                                    initialSegment={[0, 70]}
+                                    style={{ transform: "translateY(20%) scaleY(-1)" }}
+                                />
+                            )}
+                            <OpponentAttackResolve wsUtils={wsUtils} fontSize={iconWidth} />
+                        </>
                     )}
-                    <OpponentAttackResolve wsUtils={wsUtils} fontSize={fontSize} />
                 </>
             )}
         </Container>

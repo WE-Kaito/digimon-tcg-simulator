@@ -51,6 +51,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setIsRematch = useGameUIStates((state) => state.setIsRematch);
     const setEndModal = useGameUIStates((state) => state.setEndModal);
     const setEndModalText = useGameUIStates((state) => state.setEndModalText);
+    const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const bootStage = useGameBoardStates((state) => state.bootStage);
@@ -275,6 +276,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[CHAT_MESSAGE]:")) {
                 const chatMessage = event.data.substring("[CHAT_MESSAGE]:".length);
                 setMessages(chatMessage);
+                return;
+            }
+
+            if (event.data.startsWith("[EMOTE]:")) {
+                const emote = event.data.substring("[EMOTE]:".length);
+                setOpponentEmote(emote);
                 return;
             }
 

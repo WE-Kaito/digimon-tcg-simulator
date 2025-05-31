@@ -7,46 +7,106 @@ import { WSUtils } from "../../../../pages/GamePage.tsx";
 import PlayerAttackResolve from "./PlayerAttackResolve.tsx";
 import Lottie from "lottie-react";
 import firstAnimation from "../../../../assets/lotties/net-ball.json";
-import useResponsiveFontSize from "../../../../hooks/useResponsiveFontSize.ts";
+import EmoteIcon from "@mui/icons-material/TagFacesRounded";
+import SadFaceIcon from "@mui/icons-material/SentimentVeryDissatisfiedTwoTone";
+import WaveIcon from "@mui/icons-material/WavingHandTwoTone";
+import WaitIcon from "@mui/icons-material/PanToolTwoTone";
+import ThumbUpIcon from "@mui/icons-material/ThumbUpAltTwoTone";
+import { useGeneralStates } from "../../../../hooks/useGeneralStates.ts";
+import { useState } from "react";
+import { Emote, useGameUIStates } from "../../../../hooks/useGameUIStates.ts";
+import EmoteRender from "../../EmoteRender.tsx";
 
 export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const startingPlayer = useGameBoardStates((state) => state.startingPlayer);
     const isOpponentOnline = useGameBoardStates((state) => state.isOpponentOnline);
+    const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
+    const myEmote = useGameUIStates((state) => state.myEmote);
+    const setMyEmote = useGameUIStates((state) => state.setMyEmote);
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.user;
 
-    const { fontContainerRef, fontSize } = useResponsiveFontSize(7.25);
+    const [hasChildren, setHasChildren] = useState(false);
 
-    const childrenLength = fontContainerRef?.current?.children?.length;
-    const hasChildren = childrenLength ? childrenLength > 0 : false;
+    const [emotesOpen, setEmotesOpen] = useState(false);
+
+    function handleSendemote(emote: Emote) {
+        setMyEmote(emote);
+        setEmotesOpen(false);
+        wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/emote:${wsUtils?.matchInfo.opponentName}:${emote}`);
+    }
 
     return (
-        <Container ref={fontContainerRef} hasChildren={hasChildren}>
-            {isOpponentOnline && (
-                <>
-                    {bootStage === BootStage.SHOW_STARTING_PLAYER && (
-                        <Lottie
-                            animationData={firstAnimation}
-                            style={{ transform: "translateY(-20%)" }}
-                            autoplay={isFirst}
-                            initialSegment={[0, 70]}
-                            loop={false}
-                        />
-                    )}
-                    <Mulligan wsUtils={wsUtils} fontSize={fontSize} />
-                    <PlayerAttackResolve wsUtils={wsUtils} fontSize={fontSize} />
-                    <UnsuspendAllButton wsUtils={wsUtils} fontSize={fontSize} />
-                </>
-            )}
-        </Container>
+        <>
+            <Container
+                ref={(e) => {
+                    const raf = requestAnimationFrame(() => setHasChildren((e?.children?.length ?? 0) > 0));
+                    return () => cancelAnimationFrame(raf);
+                }}
+                hasChildren={hasChildren}
+            >
+                {isOpponentOnline && !myEmote && (
+                    <>
+                        {emotesOpen ? (
+                            <EmoteButtonContainer>
+                                <WaveIcon
+                                    className={"button"}
+                                    sx={{ fontSize: iconWidth }}
+                                    onClick={() => handleSendemote(Emote.HELLO)}
+                                />
+                                <ThumbUpIcon
+                                    className={"button"}
+                                    sx={{ fontSize: iconWidth }}
+                                    onClick={() => handleSendemote(Emote.GOOD)}
+                                />
+                                <WaitIcon
+                                    className={"button"}
+                                    sx={{ fontSize: iconWidth }}
+                                    onClick={() => handleSendemote(Emote.WAIT)}
+                                />
+                                <SadFaceIcon
+                                    className={"button"}
+                                    sx={{ fontSize: iconWidth }}
+                                    onClick={() => handleSendemote(Emote.BAFFLED)}
+                                />
+                            </EmoteButtonContainer>
+                        ) : (
+                            <>
+                                {bootStage === BootStage.SHOW_STARTING_PLAYER && (
+                                    <Lottie
+                                        animationData={firstAnimation}
+                                        style={{ transform: "translateY(-20%)" }}
+                                        autoplay={isFirst}
+                                        initialSegment={[0, 70]}
+                                        loop={false}
+                                    />
+                                )}
+                                <Mulligan wsUtils={wsUtils} fontSize={iconWidth} />
+                                <PlayerAttackResolve wsUtils={wsUtils} fontSize={iconWidth} />
+                                <UnsuspendAllButton wsUtils={wsUtils} fontSize={iconWidth} />
+                            </>
+                        )}
+                    </>
+                )}
+                {myEmote && <EmoteRender emote={myEmote} />}
+            </Container>
+            <PanelButton
+                disabled={!!myEmote}
+                className={"button"}
+                onClick={() => setEmotesOpen(!emotesOpen)}
+                style={{ gridArea: "emote", transform: `translate(-4px, 5px)` }}
+            >
+                <EmoteIcon className={"button"} sx={{ fontSize: iconWidth * 0.8, color: "lightcyan", opacity: 0.75 }} />
+            </PanelButton>
+        </>
     );
 }
 
 const Container = styled.div<{ hasChildren: boolean }>`
     grid-area: event-utils;
     height: 95%;
-    width: 95%;
+    width: 99%;
     margin: 2.5% 0 2.5% 0;
     display: flex;
     position: relative;
@@ -96,6 +156,38 @@ const Container = styled.div<{ hasChildren: boolean }>`
         100% {
             filter: drop-shadow(0 0 1px rgba(5, 5, 5, 0.5));
             box-shadow: inset 0 0 3px 1px rgba(146, 255, 245, 0.15);
+        }
+    }
+`;
+
+const PanelButton = styled.div<{ disabled?: boolean }>`
+    width: 100%;
+    height: 80%;
+    background: rgba(12, 21, 16, 0.25);
+    border: 1px solid rgba(124, 124, 118, 0.4);
+    border-left: none;
+    border-radius: 0 3px 3px 0;
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5)) ${({ disabled }) => (disabled ? "grayscale(1)" : "none")};
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    pointer-events: ${({ disabled }) => (disabled ? "none" : "unset")};
+
+    &:hover {
+        background: rgba(26, 179, 201, 0.35);
+    }
+`;
+
+const EmoteButtonContainer = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    svg {
+        &:hover {
+            filter: drop-shadow(0 0 2px rgba(15, 130, 201, 0.5));
         }
     }
 `;

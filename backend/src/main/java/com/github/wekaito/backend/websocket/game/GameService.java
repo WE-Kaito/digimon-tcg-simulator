@@ -36,6 +36,8 @@ public class GameService extends TextWebSocketHandler {
 
     private static final List<String> setupCommands = Arrays.asList("/joinGame", "/startGame", "/getStartingPlayers", "/distributeCards", "/reconnect");
 
+    private static final String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget", "/emote"};
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         // do nothing
@@ -120,7 +122,6 @@ public class GameService extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/createToken:")) handleCreateToken(gameRoom, roomMessage);
 
-        String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget"};
         if(Arrays.stream(simpleIdCommands).anyMatch(roomMessage::startsWith)) handleCommandWithId(gameRoom, roomMessage);
 
         else {
@@ -166,6 +167,7 @@ public class GameService extends TextWebSocketHandler {
             case "/activateTarget" -> "[ACTIVATE_TARGET]";
             case "/activateEffect" -> "[ACTIVATE_EFFECT]";
             case "/updateAttackPhase" -> "[OPPONENT_ATTACK_PHASE]";
+            case "/emote" -> "[EMOTE]";
             default -> "";
         };
     }

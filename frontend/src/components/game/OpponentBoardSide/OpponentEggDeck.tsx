@@ -38,7 +38,6 @@ const DeckImg = styled.img`
     height: 100%;
     margin: 0 12.5% 0 12.5%;
     border-radius: 3px;
-    border-left: 1px solid black;
-    border-top: 1px solid black;
-    //transform: rotate(180deg);
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
 `;
