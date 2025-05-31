@@ -18,6 +18,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Service
@@ -26,7 +27,7 @@ public class LobbyService extends TextWebSocketHandler {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final Map<WebSocketSession, Long> lastHeartbeatTimestamps = new HashMap<>();
+    private final ConcurrentHashMap<WebSocketSession, Long> lastHeartbeatTimestamps = new ConcurrentHashMap<>();
 
     private final QuickPlayQueue quickPlayQueue = new QuickPlayQueue();
 
@@ -34,24 +35,24 @@ public class LobbyService extends TextWebSocketHandler {
     private final DeckService deckService;
     private final CardService cardService;
 
-    private final Set<WebSocketSession> globalActiveSessions = new HashSet<>();
-    private final Set<Room> rooms = new HashSet<>();
+    private final Set<WebSocketSession> globalActiveSessions = ConcurrentHashMap.newKeySet();
+    private final Set<Room> rooms = ConcurrentHashMap.newKeySet();
 
-    private final Map<String, Long> emptyRoomTimestamps = new HashMap<>();
-    private final Map<String, String> lastPlayerRooms = new HashMap<>(); // username -> roomId
+    private final Map<String, Long> emptyRoomTimestamps = new ConcurrentHashMap<>();
+    private final Map<String, String> lastPlayerRooms = new ConcurrentHashMap<>(); // username -> roomId
 
     private final String warning = "[CHAT_MESSAGE]:【SERVER】: ⚠ The server detected multiple connections for the same user. Make sure to only use one tab per account. ⚠";
 
     @Autowired
     private GameService gameService;
 
-    private synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
+    private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
         session.sendMessage(new TextMessage(message));
     }
 
     @Override
-    public synchronized void afterConnectionEstablished(WebSocketSession session) throws IOException {
+    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
@@ -145,7 +146,7 @@ public class LobbyService extends TextWebSocketHandler {
         if (payload.startsWith("/roomChatMessage:")) handleRoomChatMessage(session, payload);
     }
 
-    private synchronized boolean tryReconnectToRoom(WebSocketSession session) throws IOException {
+    private boolean tryReconnectToRoom(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
         // Check if player was previously in a room using lastPlayerRooms map
@@ -240,25 +241,37 @@ public class LobbyService extends TextWebSocketHandler {
         long currentTime = System.currentTimeMillis();
         List<String> roomsToRemove = new ArrayList<>();
 
-        for (Map.Entry<String, Long> entry : emptyRoomTimestamps.entrySet()) {
+        // Create a snapshot of the empty room timestamps
+        Map<String, Long> timestampsSnapshot;
+        synchronized (emptyRoomTimestamps) {
+            timestampsSnapshot = new HashMap<>(emptyRoomTimestamps);
+        }
+
+        // Identify rooms to remove
+        for (Map.Entry<String, Long> entry : timestampsSnapshot.entrySet()) {
             if (currentTime - entry.getValue() > 5000) { // 5 seconds
                 roomsToRemove.add(entry.getKey());
             }
         }
 
+        // Process removals with proper synchronization
         if (!roomsToRemove.isEmpty()) {
             for (String roomId : roomsToRemove) {
-                Room room = getRoomById(roomId);
-                if (room != null && room.getPlayers().isEmpty()) {
-                    rooms.remove(room);
+                synchronized (rooms) {
+                    Room room = getRoomById(roomId);
+                    if (room != null && room.getPlayers().isEmpty()) {
+                        rooms.remove(room);
+                    }
                 }
-                emptyRoomTimestamps.remove(roomId);
+                synchronized (emptyRoomTimestamps) {
+                    emptyRoomTimestamps.remove(roomId);
+                }
             }
         }
     }
 
     @Scheduled(fixedRate = 3000) // 5 seconds
-    private synchronized void heartbeat() throws IOException {
+    private void heartbeat() throws IOException {
         broadcastUserCount();
         checkForRejoinableGameRoom();
         cleanupEmptyRooms();
@@ -270,7 +283,7 @@ public class LobbyService extends TextWebSocketHandler {
         startGameQuickPlay();
     }
 
-    private synchronized void createRoom(WebSocketSession session, String payload) throws IOException {
+    private void createRoom(WebSocketSession session, String payload) throws IOException {
         String[] parts = payload.split(":", 4);
 
         String roomName = parts[1];
@@ -290,7 +303,7 @@ public class LobbyService extends TextWebSocketHandler {
         broadcastRooms();
     }
 
-    private synchronized void broadcastRooms() throws IOException {
+    private void broadcastRooms() throws IOException {
         // Broadcast to sessions in lobby
         for (WebSocketSession session : globalActiveSessions) {
             // change this when rooms allow more users:
@@ -303,7 +316,7 @@ public class LobbyService extends TextWebSocketHandler {
         }
     }
 
-    private synchronized void broadcastUserCount() throws IOException {
+    private void broadcastUserCount() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
             sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
         }
@@ -328,7 +341,7 @@ public class LobbyService extends TextWebSocketHandler {
         startGameQuickPlay();
     }
 
-    private synchronized void checkForRejoinableGameRoom() throws IOException {
+    private void checkForRejoinableGameRoom() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
             String matchingRoomId = gameService.gameRooms.keySet().stream()
                     .filter(roomId -> roomId.contains(Objects.requireNonNull(session.getPrincipal()).getName()))
@@ -357,7 +370,7 @@ public class LobbyService extends TextWebSocketHandler {
                         .toList());
     }
 
-    private synchronized void sendRoomUpdate(Room room, boolean playerJoined) throws IOException {
+    private void sendRoomUpdate(Room room, boolean playerJoined) throws IOException {
         String roomJson = objectMapper.writeValueAsString(getRoomDTO(room));
         for (LobbyPlayer p : room.getPlayers()) {
             sendTextMessage(p.getSession(), "[ROOM_UPDATE]:" + roomJson);
@@ -420,7 +433,7 @@ public class LobbyService extends TextWebSocketHandler {
         else sendTextMessage(session, "[WRONG_PASSWORD]");
     }
 
-    private synchronized void leaveRoom(WebSocketSession session, String payload) throws IOException {
+    private void leaveRoom(WebSocketSession session, String payload) throws IOException {
         String[] parts = payload.split(":");
         String roomId = parts[1];
         String userName = parts[2];
@@ -436,11 +449,24 @@ public class LobbyService extends TextWebSocketHandler {
             return;
         }
 
-        room.getPlayers().removeIf(p -> p.getName().equals(userName));
-        if(room.getHostName().equals(userName) && !room.getPlayers().isEmpty()) {
-            LobbyPlayer remainingPlayer = room.getPlayers().get(0);
-            room.setHostName(remainingPlayer.getName());
-            remainingPlayer.setReady(true);
+        synchronized (room) {
+            room.getPlayers().removeIf(p -> p.getName().equals(userName));
+            if(room.getHostName().equals(userName) && !room.getPlayers().isEmpty()) {
+                LobbyPlayer remainingPlayer = room.getPlayers().get(0);
+                room.setHostName(remainingPlayer.getName());
+                remainingPlayer.setReady(true);
+            }
+
+            // Only clean up if explicitly requested
+            if (shouldCleanLastRoom.equals("true")) {
+                lastPlayerRooms.remove(userName);
+            }
+
+            if (room.getPlayers().isEmpty()) {
+                emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
+            } else {
+                sendRoomUpdate(room);
+            }
         }
 
         if (room.getPlayers().isEmpty()) rooms.remove(room);
@@ -455,14 +481,20 @@ public class LobbyService extends TextWebSocketHandler {
     private void toggleReady(WebSocketSession session, String roomId) throws IOException {
         Room room = getRoomById(roomId);
 
-        LobbyPlayer player = room.getPlayers().stream().filter(p -> p.getSession().equals(session)).findFirst().orElse(null);
-        if( player == null) {
-            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You are not in this room.");
-            sendTextMessage(session, "[SUCCESS]");
-            return;
+        synchronized (room) {
+            LobbyPlayer player = room.getPlayers().stream()
+                    .filter(p -> p.getSession().equals(session))
+                    .findFirst().orElse(null);
+
+            if(player == null) {
+                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You are not in this room.");
+                sendTextMessage(session, "[SUCCESS]");
+                return;
+            }
+
+            player.ready = !player.isReady();
         }
 
-        player.ready = !player.isReady();
         sendRoomUpdate(room);
         sendTextMessage(session, "[SUCCESS]");
     }
@@ -522,6 +554,8 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     private Room getRoomById(String roomId) {
-        return rooms.stream().filter(r -> r.getId().equals(roomId)).findFirst().orElse(null);
+        synchronized (rooms) {
+            return rooms.stream().filter(r -> r.getId().equals(roomId)).findFirst().orElse(null);
+        }
     }
 }
