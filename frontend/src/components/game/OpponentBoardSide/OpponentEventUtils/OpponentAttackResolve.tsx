@@ -40,32 +40,33 @@ export default function OpponentAttackResolve({ wsUtils, fontSize }: { wsUtils?:
 
     return (
         <StyledButton style={{ fontSize }} onClick={resolveMyAttack} disabled={isDisabled}>
-            {myAttackPhase}
+            <span style={{ transform: "translateY(3px)" }}>{myAttackPhase}</span>
         </StyledButton>
     );
 }
 
 const StyledButton = styled.div<{ disabled: boolean }>`
     z-index: 5;
-    width: 100%;
+    width: 98%;
+    height: 98%;
 
     --color: ${({ disabled }) => (disabled ? "#ea6c1f" : "#11eaf1")};
-    margin: 2.5% 1% 2.5% 5%;
-    padding: 5px;
     letter-spacing: 0.06em;
     position: relative;
-    font-family: Sansation, sans-serif;
+    font-family: "Sakana", sans-serif;
+    line-height: 1.25;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
     border-radius: 4px;
     overflow: hidden;
     transition: all 0.3s;
-    line-height: 1.4em;
-    border: 1px solid var(--color);
     background: linear-gradient(
         to bottom,
         ${({ disabled }) => (disabled ? "rgba(166,7,90,0.5)" : "rgba(27, 125, 253, 0.3)")} 1%,
         ${({ disabled }) => (disabled ? "rgba(70,6,114,0.3)" : "rgba(57, 27, 253, 0.3)")} 100%
     );
-    color: var(--color);
     box-shadow:
         inset 0 0 10px ${({ disabled }) => (disabled ? "rgba(234,10,124,0.4)" : "rgba(27, 140, 253, 0.4)")},
         0 0 9px 3px ${({ disabled }) => (disabled ? "rgba(122,11,46,0.27)" : "rgba(27, 140, 253, 0.1)")};

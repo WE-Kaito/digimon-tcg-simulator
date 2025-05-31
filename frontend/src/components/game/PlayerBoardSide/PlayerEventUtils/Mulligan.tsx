@@ -35,15 +35,15 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
             )}
             {bootStage === BootStage.MULLIGAN && (
                 <>
-                    <MulliganSpan style={{ fontSize: fontSize - 4 }}>KEEP CARDS?</MulliganSpan>
+                    <MulliganSpan style={{ fontSize: fontSize }}>MULLIGAN?</MulliganSpan>
                     <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                        <MulliganButton2 onClick={() => handleMulligan(false)} style={{ fontSize }}>
-                            YES
-                        </MulliganButton2>
                         <MulliganButton onClick={() => handleMulligan(true)} style={{ fontSize }}>
-                            NO
+                            YES
                             <ShuffleIcon sx={{ ml: 1 }} />
                         </MulliganButton>
+                        <MulliganButton2 onClick={() => handleMulligan(false)} style={{ fontSize }}>
+                            NO
+                        </MulliganButton2>
                     </div>
                 </>
             )}
@@ -53,17 +53,17 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
 
 const Container = styled.div`
     display: flex;
+    width: 80%;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    gap: 5px;
 `;
 
 const MulliganButton = styled.div`
     border-radius: 3px;
-    border: 2px solid rgba(250, 219, 77, 0.85);
-    background: rgba(0, 0, 0, 0.15);
-    color: rgb(250, 219, 77);
+    border: 1px solid rgba(75, 75, 75, 0.6);
+    background: rgb(10, 129, 81);
+    color: ghostwhite;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -80,20 +80,19 @@ const MulliganButton = styled.div`
     &:hover {
         cursor: pointer;
         filter: drop-shadow(2px 2px 1px #131313);
-        background-color: rgba(248, 104, 26, 0.8);
+        background-color: rgb(8, 147, 105);
         transform: translateY(1px);
-        color: black;
 
         svg {
-            color: #3842ff;
+            color: #7767e7;
+            filter: drop-shadow(0 0 3px #131313);
         }
     }
 
     &:active {
         filter: none;
-        background-color: rgba(253, 66, 9, 0.8);
+        background-color: rgb(1, 180, 85);
         transform: translate(1px, 2px);
-        color: black;
 
         svg {
             color: #3842ff;
@@ -102,17 +101,19 @@ const MulliganButton = styled.div`
 `;
 
 const MulliganButton2 = styled(MulliganButton)`
+    background-color: #9f2747;
+
     &:hover {
-        background-color: rgba(81, 182, 10, 0.8);
+        background-color: #ce345d;
     }
 
     &:active {
-        background-color: rgba(26, 224, 4, 0.8);
+        background-color: #d71649;
     }
 `;
 
 const MulliganSpan = styled.span`
-    font-family: Cuisine, sans-serif;
+    font-family: "League Spartan", sans-serif;
     line-height: 1.2;
     color: rgb(250, 219, 77);
     filter: drop-shadow(2px 2px 1px #131313);
