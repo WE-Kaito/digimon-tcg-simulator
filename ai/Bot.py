@@ -10,6 +10,7 @@ import requests
 import websockets
 from decouple import config
 
+from card.CardFactory import CardFactory
 from Waiter import Waiter
 
 FIELD_UPDATE_MAP = {
@@ -63,6 +64,7 @@ class Bot(ABC):
             'X-Xsrf-Token': cookies['XSRF-TOKEN']
         }
         self.loop = asyncio.get_event_loop()
+        self.card_factory = CardFactory(self)
         self.deck = json.load(open(self.deck_path))
         self.username = username
         self.game_ws = f'{self.ws_prefix}://{self.host}/api/ws/game'
@@ -266,6 +268,15 @@ class Bot(ABC):
                         return i, j
         raise RuntimeError(f'Card with id {id} not found in battle area.')
     
+    def find_card_index_by_id_in_hand(self, id):
+        for i in range(len(self.game[f'player2Hand'])):
+            if len(self.game[f'player2Hand'][i]) > 0:
+                for j in range(len(self.game[f'player2Hand'][i])):
+                    card = self.game[f'player2Hand'][i][j]
+                    if card['id'] == id:
+                        return i, j
+        raise RuntimeError(f'Card with id {id} not found in hand.')
+    
     def find_card_index_by_id_in_trash(self, id):
         for i in range(len(self.game['player2Trash'])):
             card = self.game['player2Trash'][i]
@@ -279,6 +290,15 @@ class Bot(ABC):
             if card['id'] == id:
                 return i
         raise RuntimeError(f'Card with id {id} not found in trash.')
+    
+    def spawn_token(self, card_id, card_name):
+        empty_slot = self.get_empty_slot_in_battle_area(back=False, token=True, location='player1Digi')
+        if empty_slot is None:
+            return
+        token = self.card_factory.get_token_by_name(card_name, card_id)
+        self.game['player1Digi'][empty_slot] = [token]
+        self.logger.debug(self.game['player1Digi'])
+        
 
     def get_first_digit_index(self, s):
         for i in range(len(s)):
@@ -302,19 +322,21 @@ class Bot(ABC):
             self.logger.debug(f'STACK:{stack}')
         return stack
 
-    def get_empty_slot_in_battle_area(self, back):
+    def get_empty_slot_in_battle_area(self, back, token=False, location='player2Digi'):
         self.logger.debug('Searching for empty slot in my battle area.')
         if back:
             min_index=10
             max_index=15
         else:
             min_index=0
-            max_index=5
+            max_index=10
         found = False
         for i in range(min_index, max_index):
-            if len(self.game['player2Digi'][i]) == 0:
+            if len(self.game[location][i]) == 0:
                 return i
         if not found:
+            if token:
+                return None
             if back:
                 return 10
             else:
@@ -339,6 +361,7 @@ class Bot(ABC):
         await ws.send(f'{self.game_name}:/moveCardToStack:{self.opponent}:{to}:{card_id}:myDigi{card_index + 1}:myDeckField:false')
 
     async def move_card(self, ws, fr, to, target_card_id=None, field_update=True):
+        self.logger.debug(self.game['player1Digi'])
         self.logger.debug(f'Moving card from {fr} to {to}.')
         stack = self.get_stack(fr)
         if type(stack) == dict:
@@ -625,6 +648,37 @@ class Bot(ABC):
         await self.send_message(ws, f"Blocking with {card['uniqueCardNumber']}-{card['name']}")
         await self.suspend_card(ws, card_index)
         await ws.send(f'{self.game_name}:/playSuspendCardSfx:{self.opponent}')
+    
+    async def discard_hand(self, ws, card_indexes):
+        new_hand_cards = []
+        sorted_card_indexes = sorted(card_indexes)
+        
+        for card_index in sorted_card_indexes:
+            await self.move_card(ws, f'myHand{card_index}', 'myTrash')
+            card = self.game['player2Hand'][card_index]
+            self.game['player2Trash'].insert(0, dict(card))
+            await self.send_message(ws, f"Discarding {card['uniqueCardNumber']}-{card['name']} from hand.")
+        self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
+
+    async def put_cards_from_hand_to_bottom_security(self, ws, card_indexes):
+        new_hand_cards = []
+        sorted_card_indexes = sorted(card_indexes)
+        for card_index in sorted_card_indexes:
+            await self.move_card(ws, f'myHand{card_index}', f'mySecurityBottom{len(self.game["player2Security"]) - 1}', field_update=False)
+            card = self.game['player2Hand'][card_index]
+            self.game['player2Security'].insert(len(self.game['player2Security']), dict(card))
+            await self.send_message(ws, f"Placing ?? from hand to bottom of security stack.")
+        self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
+
+    async def put_cards_from_hand_on_top_security(self, ws, card_indexes):
+        new_hand_cards = []
+        sorted_card_indexes = sorted(card_indexes)
+        for card_index in sorted_card_indexes:
+            await self.move_card(ws, f'myHand{card_index}', f'mySecurityTop0', field_update=False)
+            card = self.game['player2Hand'][card_index]
+            self.game['player2Security'].insert(0, dict(card))
+            await self.send_message(ws, f"Placing ?? from hand on top of security stack")
+        self.game['player2Hand'] = [self.game['player2Hand'][card_index] for card_index in range(len(self.game['player2Hand'])) if card_index not in card_indexes]
 
     def find_can_attack_digimon_of_level(self, level):
         self.logger.info(f'Searching for a digimon in my battle area of {level} that cab attack.')
@@ -744,6 +798,8 @@ class Bot(ABC):
             self.cant_block_until_end_of_opponent_turn.add(digivolution_card['id'])
         if digimon['id'] in self.start_mp_attack:
             self.start_mp_attack.add(digivolution_card['id'])
+        if digimon['id'] in self.placed_this_turn:
+            self.placed_this_turn.add(digivolution_card['id'])
         if cost > 0:
             await self.decrease_memory_by(ws, cost)
         await self.draw(ws, 1)
@@ -1199,9 +1255,21 @@ class Bot(ABC):
             except RuntimeError as e:
                 await self.send_game_chat_message(ws, 'An error occurred, I am leaving the game and returning to Lobby. Please contact Project Drasil support team and report the issue.')
                 raise e
+    
+    @abstractmethod
+    def put_cards_from_hand_on_top_security_choose(self):
+        pass
 
     @abstractmethod
-    def mulligan_strategy(self):
+    def put_cards_from_hand_to_bottom_security_choose(self):
+        pass
+    
+    @abstractmethod
+    def discard_hand_choose(self):
+        pass
+
+    @abstractmethod
+    async def mulligan_strategy(self, ws, n_cards):
         pass
 
     @abstractmethod

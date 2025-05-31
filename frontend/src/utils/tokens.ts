@@ -234,6 +234,59 @@ export const taomonToken: CardType = {
     illustrator: "Template By SergioGranSol",
 };
 
+export const pipefoxToken: CardType = {
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
+    uniqueCardNumber: "PipeFox-TOKEN",
+    cardNumber: "",
+    color: ["Yellow"],
+    cardType: "Digimon",
+    dp: 6000,
+    name: "Pipe Fox",
+    mainEffect: "＜Blocker＞.\n" + tokenEffect("Pipe Fox"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
+export const ukanomitamaToken: CardType = {
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
+    uniqueCardNumber: "UkanoMitama-TOKEN",
+    cardNumber: "",
+    color: ["Yellow"],
+    cardType: "Digimon",
+    dp: 9000,
+    name: "Uka no Mitama",
+    mainEffect: "＜Rush＞.\n" + tokenEffect("Uka no Mitama"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
+export const athoreneporToken: CardType = {
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
+    uniqueCardNumber: "AthoRenePor-TOKEN",
+    cardNumber: "",
+    color: ["White"],
+    cardType: "Digimon",
+    dp: 6000,
+    name: "Atho, Rene & Por",
+    mainEffect: "＜Reboot＞ ＜Blocker＞ ＜Decoy (Red/Black)＞.\n" + tokenEffect("Atho, Rene & Por"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
+export const petrificationToken: CardType = {
+    imgUrl: "https://digimoncardgame.fandom.com/wiki/Pipe_Fox_Token?file=Placeholder-token-image-EN.png",
+    uniqueCardNumber: "AthoRenePor-TOKEN",
+    cardNumber: "",
+    color: ["White"],
+    cardType: "Digimon",
+    dp: 3000,
+    name: "Petrification",
+    mainEffect: "[On Deletion] Trash your top security card.\n[Your Turn] This Digimon can't suspend.\n" + tokenEffect("Petrification"),
+    restrictions: emptyRestrictions,
+    illustrator: "Template By SergioGranSol"
+}
+
+
 export const generalToken: CardType = {
     imgUrl: HackmonToken,
     uniqueCardNumber: "Token",
