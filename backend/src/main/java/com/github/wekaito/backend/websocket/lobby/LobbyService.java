@@ -81,7 +81,7 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     @Override
-    public synchronized void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
         synchronized (rooms) {
@@ -194,79 +194,28 @@ public class LobbyService extends TextWebSocketHandler {
         }
     }
 
-//    @Scheduled(fixedRate = 15000)
-//    private synchronized void cleanupStaleSessions() throws IOException {
-//        long currentTime = System.currentTimeMillis();
-//        long timeoutThreshold = 15000; // 15 seconds timeout (user sends heartbeat every 5 seconds)
-//
-//        // globalActiveSessions
-//        List<WebSocketSession> staleSessions = new ArrayList<>();
-//        for (WebSocketSession session : globalActiveSessions) {
-//            Long lastHeartbeat = lastHeartbeatTimestamps.get(session);
-//            if (lastHeartbeat != null && (currentTime - lastHeartbeat > timeoutThreshold)) {
-//                 System.out.println("Session considered stale - User: " + Objects.requireNonNull(session.getPrincipal()).getName() +
-//                     " Last heartbeat: " + (currentTime - lastHeartbeat) + "ms ago");
-//                staleSessions.add(session);
-//            }
-//        }
-//
-//        for (WebSocketSession session : staleSessions) {
-//            try {
-//                session.close(CloseStatus.SESSION_NOT_RELIABLE);
-//            } catch (IOException e) {
-//                globalActiveSessions.remove(session);
-//                lastHeartbeatTimestamps.remove(session);
-//            }
-//        }
-//
-//        // sessions in rooms
-//        for (Room room : rooms) {
-//            List<LobbyPlayer> stalePlayers = new ArrayList<>();
-//            for (LobbyPlayer player : room.getPlayers()) {
-//                WebSocketSession playerSession = player.getSession();
-//                Long lastHeartbeat = lastHeartbeatTimestamps.get(playerSession);
-//                if (lastHeartbeat != null && (currentTime - lastHeartbeat > timeoutThreshold)) {
-//                    stalePlayers.add(player);
-//                }
-//            }
-//
-//            for (LobbyPlayer player : stalePlayers) {
-//                 afterConnectionClosed(player.getSession(), CloseStatus.SESSION_NOT_RELIABLE);
-//                 player.getSession().close(CloseStatus.SESSION_NOT_RELIABLE);
-//            }
-//        }
-//    }
-
-    private synchronized void cleanupEmptyRooms() {
+    private void cleanupEmptyRooms() {
         long currentTime = System.currentTimeMillis();
         List<String> roomsToRemove = new ArrayList<>();
 
-        // Create a snapshot of the empty room timestamps
-        Map<String, Long> timestampsSnapshot;
-        synchronized (emptyRoomTimestamps) {
-            timestampsSnapshot = new HashMap<>(emptyRoomTimestamps);
-        }
-
-        // Identify rooms to remove
-        for (Map.Entry<String, Long> entry : timestampsSnapshot.entrySet()) {
+        for (Map.Entry<String, Long> entry : emptyRoomTimestamps.entrySet()) {
             if (currentTime - entry.getValue() > 5000) { // 5 seconds
                 roomsToRemove.add(entry.getKey());
             }
         }
 
-        // Process removals with proper synchronization
-        if (!roomsToRemove.isEmpty()) {
-            for (String roomId : roomsToRemove) {
-                synchronized (rooms) {
-                    Room room = getRoomById(roomId);
-                    if (room != null && room.getPlayers().isEmpty()) {
-                        rooms.remove(room);
+        for (String roomId : roomsToRemove) {
+            Room room = getRoomById(roomId);
+            if (room != null) {
+                synchronized (room) {
+                    if (room.getPlayers().isEmpty()) {
+                        synchronized (rooms) {
+                            rooms.remove(room);
+                        }
                     }
                 }
-                synchronized (emptyRoomTimestamps) {
-                    emptyRoomTimestamps.remove(roomId);
-                }
             }
+            emptyRoomTimestamps.remove(roomId);
         }
     }
 
@@ -274,16 +223,25 @@ public class LobbyService extends TextWebSocketHandler {
     private void heartbeat() throws IOException {
         broadcastUserCount();
         checkForRejoinableGameRoom();
-        cleanupEmptyRooms();
         broadcastRooms();
     }
 
+    @Scheduled(fixedRate = 5500) // 5.5 seconds
+    private void cleanUp() {
+        cleanupEmptyRooms();
+    }
+
     @Scheduled(fixedRate = 5000) // 5 seconds
-    private synchronized void assignQuickPlay() throws IOException {
+    private void assignQuickPlay() throws IOException {
         startGameQuickPlay();
     }
 
     private void createRoom(WebSocketSession session, String payload) throws IOException {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+
+        // Zuerst alle Räume verlassen, in denen der Benutzer bereits ist
+        leaveAllRoomsQuietly(username);
+
         String[] parts = payload.split(":", 4);
 
         String roomName = parts[1];
@@ -293,14 +251,60 @@ public class LobbyService extends TextWebSocketHandler {
         Room room = new Room(
                 UUID.randomUUID().toString(),
                 roomName,
-                Objects.requireNonNull(session.getPrincipal()).getName(),
+                username,
                 roomFormat, roomPassword,
                 new ArrayList<>());
 
-        rooms.add(room);
+        synchronized (rooms) {
+            rooms.add(room);
+        }
 
         joinRoom(session, room.getId(), true);
         broadcastRooms();
+    }
+
+    /**
+     * Entfernt einen Spieler aus allen Räumen, ohne UI-Benachrichtigungen zu senden
+     */
+    private void leaveAllRoomsQuietly(String username) throws IOException {
+        List<Room> roomsWithPlayer = new ArrayList<>();
+
+        synchronized (rooms) {
+            for (Room r : rooms) {
+                if (r.getPlayers().stream().anyMatch(p -> p.getName().equals(username))) {
+                    roomsWithPlayer.add(r);
+                }
+            }
+        }
+
+        for (Room room : roomsWithPlayer) {
+            synchronized (room) {
+                room.getPlayers().removeIf(p -> p.getName().equals(username));
+
+                // Host-Wechsel falls nötig
+                if (room.getHostName().equals(username) && !room.getPlayers().isEmpty()) {
+                    LobbyPlayer remainingPlayer = room.getPlayers().get(0);
+                    room.setHostName(remainingPlayer.getName());
+                    remainingPlayer.setReady(true);
+                }
+
+                if (room.getPlayers().isEmpty()) {
+                    emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
+                } else {
+                    sendRoomUpdate(room);
+                }
+            }
+
+            // Prüfen, ob der Raum jetzt leer ist
+            synchronized (rooms) {
+                if (room.getPlayers().isEmpty()) {
+                    rooms.remove(room);
+                }
+            }
+        }
+
+        // Aufräumen der lastPlayerRooms-Map
+        lastPlayerRooms.remove(username);
     }
 
     private void broadcastRooms() throws IOException {
@@ -322,7 +326,7 @@ public class LobbyService extends TextWebSocketHandler {
         }
     }
 
-    private synchronized void startGameQuickPlay() throws IOException {
+    private void startGameQuickPlay() throws IOException {
         if (quickPlayQueue.size() < 2) return;
 
         WebSocketSession player1 = quickPlayQueue.drawRandomSession();
@@ -382,37 +386,34 @@ public class LobbyService extends TextWebSocketHandler {
         sendRoomUpdate(room, false);
     }
 
-    private synchronized void joinRoom(WebSocketSession session, String roomId, boolean host) throws IOException {
+    private void joinRoom(WebSocketSession session, String roomId, boolean host) throws IOException {
         Room room = getRoomById(roomId);
+        synchronized (room) {
+            if (room.getPlayers().size() >= 3) {
+                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room is full.");
+                return;
+            }
+            if (room.getPlayers().isEmpty() && !host) {
+                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room no longer exists.");
+                return;
+            }
 
-        if (room == null) {
-            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
-            return;
+            String username = Objects.requireNonNull(session.getPrincipal()).getName();
+            LobbyPlayer player = new LobbyPlayer(session, username, host);
+
+            room.getPlayers().add(player);
         }
-        if (room.getPlayers().size() >= 3) {
-            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room is full.");
-            return;
-        }
-        if (room.getPlayers().isEmpty() && !host) {
-            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room no longer exists.");
-            return;
-        }
 
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        LobbyPlayer player = new LobbyPlayer(session, username, host);
+            sendRoomUpdate(room, true);
 
-        room.getPlayers().add(player);
+            String roomJson = objectMapper.writeValueAsString(getRoomDTO(room));
+            sendTextMessage(session, "[JOIN_ROOM]:" + roomJson);
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + ".");
 
-        sendRoomUpdate(room, true);
-
-        String roomJson = objectMapper.writeValueAsString(getRoomDTO(room));
-        sendTextMessage(session, "[JOIN_ROOM]:" + roomJson);
-        sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + ".");
-
-        broadcastRooms();
+            broadcastRooms();
     }
 
-    private synchronized void handleJoinRoomAttempt(WebSocketSession session, String roomId) throws IOException {
+    private void handleJoinRoomAttempt(WebSocketSession session, String roomId) throws IOException {
         String password = getRoomById(roomId).getPassword();
         if (password != null && !password.isEmpty()) sendTextMessage(session, "[PROMPT_PASSWORD]");
         else joinRoom(session, roomId, false);
@@ -499,7 +500,7 @@ public class LobbyService extends TextWebSocketHandler {
         sendTextMessage(session, "[SUCCESS]");
     }
 
-    private synchronized void kickPlayer(WebSocketSession session, String payload) throws IOException {
+    private void kickPlayer(WebSocketSession session, String payload) throws IOException {
         String[] parts = payload.split(":");
         String roomId = parts[1];
         String userName = parts[2];

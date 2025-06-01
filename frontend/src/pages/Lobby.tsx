@@ -526,6 +526,69 @@ export default function Lobby() {
                                                 </Button>
                                             </RoomItemLobby>
                                         ))}
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
+                                    <RoomItemLobby>
+                                        <StyledSpan>{"test"}</StyledSpan>
+                                    </RoomItemLobby>
                                 </RoomList>
                             )}
                         </ScrollArea>
@@ -658,6 +721,7 @@ const LeftColumn = styled.div`
     flex-direction: column;
     gap: 32px;
     flex: 1;
+    height: 100%;
 `;
 
 const Card = styled.div`
@@ -751,7 +815,7 @@ const CardTitle = styled.span`
 `;
 
 const ScrollArea = styled.div`
-    height: 100%;
+    max-height: 95.75%;
     overflow-y: auto;
 
     ::-webkit-scrollbar {
@@ -769,6 +833,10 @@ const ScrollArea = styled.div`
         box-shadow:
             inset 0 1px 2px rgba(255, 255, 255, 0.6),
             inset 0 -1px 3px rgba(0, 0, 0, 0.9);
+    }
+
+    @media (max-width: 600px) {
+        max-height: 350px;
     }
 `;
 
@@ -937,6 +1005,7 @@ const StyledSpan = styled.span`
 const ListCard = styled(Card)`
     flex: 1;
     min-width: 350px;
+    max-height: calc(100% - 316px);
 
     @media (max-width: 600px) and (orientation: portrait), (max-height: 499px) {
         max-height: 400px;
