@@ -526,69 +526,6 @@ export default function Lobby() {
                                                 </Button>
                                             </RoomItemLobby>
                                         ))}
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
-                                    <RoomItemLobby>
-                                        <StyledSpan>{"test"}</StyledSpan>
-                                    </RoomItemLobby>
                                 </RoomList>
                             )}
                         </ScrollArea>
