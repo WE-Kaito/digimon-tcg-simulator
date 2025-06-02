@@ -143,7 +143,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
         onlineCheckTimeoutRef.current = setTimeout(() => {
             setIsOpponentOnline(false);
-        }, 8000);
+        }, 30000);
 
         setResetOnlineCheck(() => cancelSetOffline);
     }, [setIsOpponentOnline]);

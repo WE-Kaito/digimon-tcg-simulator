@@ -51,10 +51,28 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Scheduled(fixedRate = 5000)
-    private synchronized void sendHeartbeat() throws IOException {
-        for (Set<WebSocketSession> gameRoom : gameRooms.values()) {
-            for (WebSocketSession webSocketSession : gameRoom) {
-                webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+    private void sendHeartbeat() {
+        // Copy references to avoid locking while sending
+        Collection<Set<WebSocketSession>> snapshot;
+        synchronized (gameRooms) {
+            snapshot = new ArrayList<>(gameRooms.values());
+        }
+
+        TextMessage heartbeatMessage = new TextMessage("[HEARTBEAT]");
+
+        for (Set<WebSocketSession> gameRoom : snapshot) {
+            for (WebSocketSession session : gameRoom) {
+                if (session != null && session.isOpen()) {
+                    try {
+                        // Synchronize per session to avoid concurrent sends
+                        synchronized (session) {
+                            session.sendMessage(heartbeatMessage);
+                        }
+                    } catch (IOException e) {
+                        // Log and optionally handle broken sessions
+                        System.err.println("Failed to send heartbeat to session: " + e.getMessage());
+                    }
+                }
             }
         }
     }
@@ -245,9 +263,11 @@ public class GameService extends TextWebSocketHandler {
         sendTextMessage(opponentSession, message);
     }
 
-    private synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
+    private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
-        session.sendMessage(new TextMessage(message));
+        synchronized (session) {
+            session.sendMessage(new TextMessage(message));
+        }
     }
 
     private String getPlayersJson(String username1, String username2) throws JsonProcessingException {
@@ -267,10 +287,11 @@ public class GameService extends TextWebSocketHandler {
     private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
-
-        if (gameRoom.size() == 2) {
-            for (WebSocketSession s : gameRoom) {
-                sendTextMessage(s, "[PLAYERS_READY]");
+        synchronized (gameRoom) {
+            if (gameRoom.size() == 2) {
+                for (WebSocketSession s : gameRoom) {
+                    sendTextMessage(s, "[PLAYERS_READY]");
+                }
             }
         }
     }
