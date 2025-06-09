@@ -3,10 +3,10 @@ import Lottie from "lottie-react";
 import loadingAnimation from "../../assets/lotties/loading.json";
 import noCardsFoundAnimation from "../../assets/lotties/noCardsFound.json";
 import gatchmon from "../../assets/gatchmon.png";
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { CardTypeWithId } from "../../utils/types.ts";
 import { Suspense, useEffect, useMemo } from "react";
 import FetchCard from "./FetchCard.tsx";
+import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
 export const Loading = () => (
     <LoadingContainer>
@@ -16,9 +16,9 @@ export const Loading = () => (
 );
 
 export default function FetchedCards() {
-    const isLoading = useGeneralStates((state) => state.isLoading);
-    const fetchedCards = useGeneralStates((state) => state.fetchedCards);
-    const filteredCards = useGeneralStates((state) => state.filteredCards);
+    const isLoading = useDeckStates((state) => state.isLoading);
+    const fetchedCards = useDeckStates((state) => state.fetchedCards);
+    const filteredCards = useDeckStates((state) => state.filteredCards);
 
     const memoizedFilteredCards = useMemo(() => filteredCards, [filteredCards]);
 

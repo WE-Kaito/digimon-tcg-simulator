@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { Checkbox, FormControlLabel } from "@mui/material";
+import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
 function ColorOptions() {
     return (
@@ -19,7 +19,7 @@ function ColorOptions() {
 }
 
 export default function SearchForm() {
-    const filterCards = useGeneralStates((state) => state.filterCards);
+    const filterCards = useDeckStates((state) => state.filterCards);
 
     const [name, setName] = useState<string>("");
     const [color, setColor] = useState<string>("");

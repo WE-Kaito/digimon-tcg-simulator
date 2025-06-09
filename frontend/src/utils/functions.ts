@@ -1,4 +1,4 @@
-import { CardType, CardTypeGame, CardTypeWithId } from "./types.ts";
+import { CardType, CardTypeGame } from "./types.ts";
 import cardBack from "../assets/cardBack.jpg";
 import dataImage from "../assets/attribute_icons/data.png";
 import virusImage from "../assets/attribute_icons/virus.png";
@@ -113,45 +113,6 @@ export function getOpponentSfx(command: string, functions: SfxFunctions) {
             break;
         }
     }
-}
-
-export function sortCards(deck: CardTypeWithId[]) {
-    const newDeck = [...deck];
-    newDeck.sort(compareCardNumbers);
-    newDeck.sort(compareCardLevels);
-    newDeck.sort(compareCardTypes);
-    return newDeck;
-}
-
-function compareCardNumbers(a: CardTypeWithId, b: CardTypeWithId) {
-    if (a.cardNumber < b.cardNumber) return -1;
-    if (a.cardNumber > b.cardNumber) return 1;
-    return 0;
-}
-
-function compareCardLevels(a: CardTypeWithId, b: CardTypeWithId) {
-    if (a.level === null && b.level === null) return 0;
-    if (a.level === null) return -1;
-    if (b.level === null) return 1;
-    if (a.level && b.level && a.level < b.level) return -1;
-    if (a.level && b.level && a.level > b.level) return 1;
-    return 0;
-}
-
-function compareCardTypes(a: CardTypeWithId, b: CardTypeWithId) {
-    const typeOrder: { [key: string]: number } = {
-        "Digi-Egg": 0,
-        Option: 1,
-        Tamer: 2,
-        Digimon: 3,
-    };
-    const aTypeOrder = typeOrder[a.cardType];
-    const bTypeOrder = typeOrder[b.cardType];
-
-    if (aTypeOrder < bTypeOrder) return -1;
-    if (aTypeOrder > bTypeOrder) return 1;
-
-    return 0;
 }
 
 export function convertForLog(location: string) {
@@ -286,49 +247,8 @@ export function getCardTypeImage(cardType: string | undefined) {
     }
 }
 
-export function compareEffectText(searchText: string, card: CardTypeWithId): boolean {
-    const text = searchText.toUpperCase();
-
-    const mainEffectMatch = card.mainEffect?.toUpperCase().includes(text) ?? false;
-    const inheritedEffectMatch = card.inheritedEffect?.toUpperCase().includes(text) ?? false;
-    const securityEffectMatch = card.securityEffect?.toUpperCase().includes(text) ?? false;
-    const digivolveEffectMatch = card.specialDigivolve?.toUpperCase().includes(text) ?? false;
-    const dnaEffectMatch = card.dnaDigivolve?.toUpperCase().includes(text) ?? false;
-    const burstEffectMatch = card.burstDigivolve?.toUpperCase().includes(text) ?? false;
-    const xrosEffectMatch = card.digiXros?.toUpperCase().includes(text) ?? false;
-    const linkEffectMatch = card.linkEffect?.toUpperCase().includes(text) ?? false;
-    const aceEffectMatch = card.aceEffect?.toUpperCase().includes(text) ?? false;
-    const ruleEffectMatch = card.rule?.toUpperCase().includes(text) ?? false;
-
-    return (
-        mainEffectMatch ||
-        inheritedEffectMatch ||
-        securityEffectMatch ||
-        digivolveEffectMatch ||
-        dnaEffectMatch ||
-        burstEffectMatch ||
-        xrosEffectMatch ||
-        linkEffectMatch ||
-        aceEffectMatch ||
-        ruleEffectMatch
-    );
-}
-
 export const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) =>
     ((event.target as HTMLImageElement).src = cardBack);
-
-//workaround for double cards in fetchCardList
-export function filterDoubleCardNumbers(cards: CardTypeWithId[]): CardTypeWithId[] {
-    const uniqueCards = [];
-    let prevCardNumber = null;
-    for (const card of cards) {
-        if (card.uniqueCardNumber !== prevCardNumber) {
-            uniqueCards.push(card);
-            prevCardNumber = card.uniqueCardNumber;
-        }
-    }
-    return uniqueCards;
-}
 
 export function generateGradient(deckCards: CardType[]) {
     const colorMap = {
@@ -395,20 +315,6 @@ export function generateGradient(deckCards: CardType[]) {
         });
 
     return `linear-gradient(90deg, ${gradientParts.join(", ")})`;
-}
-
-export function getIsDeckAllowed(deck: CardTypeWithId[], format: "english" | "japanese"): boolean {
-    if (deck.find((card) => ["Banned", "Not released"].includes(card.restrictions[format]))) return false;
-
-    const restrictedCards = deck.filter((card) => card.restrictions[format] === "Restricted to 1");
-    let lastCard: CardTypeWithId;
-
-    restrictedCards.forEach((card) => {
-        if (lastCard === card) return false;
-        lastCard = card;
-    });
-
-    return true;
 }
 
 export function getNumericModifier(value: number, isSetting?: boolean) {

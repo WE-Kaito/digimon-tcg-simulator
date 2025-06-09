@@ -4,6 +4,7 @@ import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { MouseEvent, useState } from "react";
 import cardBackSrc from "../../assets/cardBack.jpg";
 import { useSound } from "../../hooks/useSound.ts";
+import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
 type CardProps = {
     card: CardTypeWithId;
@@ -16,7 +17,7 @@ export default function DeckbuilderCard(props: CardProps) {
 
     const selectCard = useGeneralStates((state) => state.selectCard);
     const setHoverCard = useGeneralStates((state) => state.setHoverCard);
-    const addCardToDeck = useGeneralStates((state) => state.addCardToDeck);
+    const addCardToDeck = useDeckStates((state) => state.addCardToDeck);
 
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect } from "react";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import FetchedCards from "../components/deckbuilder/FetchedCards.tsx";
 import SearchForm from "../components/deckbuilder/SearchForm.tsx";
@@ -10,43 +10,37 @@ import cardBackSrc from "../assets/cardBack.jpg";
 import UpdateDeckButtons from "../components/deckbuilder/UpdateDeckButtons.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import { useDeckStates } from "../hooks/useDeckStates.ts";
+import { useParams } from "react-router-dom";
 
-export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
+export default function Deckbuilder() {
+    const { id } = useParams(); // isEditMode is determined by the presence of an id in the URL
+
     const selectedCard = useGeneralStates((state) => state.selectedCard);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
-    const decks = useGeneralStates((state) => state.decks);
-    const fetchDecks = useGeneralStates((state) => state.fetchDecks);
-    const fetchCards = useGeneralStates((state) => state.fetchCards);
-    const nameOfDeckToEdit = useGeneralStates((state) => state.nameOfDeckToEdit);
-    const deckCards = useGeneralStates((state) => state.deckCards);
 
-    const [deckName, setDeckName] = useState<string>("New Deck");
-    const [currentDeckLength, setCurrentDeckLength] = useState<number>(0);
+    const deckName = useDeckStates((state) => state.deckName);
+    const setDeckName = useDeckStates((state) => state.setDeckName);
+    const deckCards = useDeckStates((state) => state.deckCards);
+    const setDeckById = useDeckStates((state) => state.setDeckById);
 
-    const initialFetch = useCallback(() => {
-        fetchCards();
-        fetchDecks();
-        setCurrentDeckLength(decks.length);
-        if (nameOfDeckToEdit !== "New Deck") setDeckName(nameOfDeckToEdit);
-    }, [decks.length, fetchCards, fetchDecks, isEditMode, nameOfDeckToEdit]);
-
-    useLayoutEffect(() => initialFetch(), [initialFetch]);
+    const decks = useDeckStates((state) => state.decks);
+    const fetchedCards = useDeckStates((state) => state.fetchedCards);
 
     const handleBeforeUnload = useCallback(() => {
-        localStorage.setItem("nameOfDeckToEdit", deckName || nameOfDeckToEdit);
+        if (id) return;
+        localStorage.setItem("deckName", deckName);
         localStorage.setItem("deckCards", JSON.stringify(deckCards));
-    }, [deckName, nameOfDeckToEdit, deckCards]);
+    }, [deckName, deckName, deckCards, id]);
 
     useEffect(() => {
         window.addEventListener("beforeunload", handleBeforeUnload);
         return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }, [handleBeforeUnload]);
 
-    // function onSleeveClick() {
-    //     setSelectedSleeveOrImage(deck.sleeveName);
-    //     setDeckIdToSetSleeveOrImage(deck.id);
-    //     setSleeveSelectionOpen(true);
-    // }
+    useLayoutEffect(() => {
+        if (id && decks && fetchedCards) setDeckById(id);
+    }, [id, decks, fetchedCards]);
 
     return (
         <MenuBackgroundWrapper>
@@ -69,13 +63,6 @@ export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
                         />
                     </div>
 
-                    {/*<SleeveImage*/}
-                    {/*    className={"button"}*/}
-                    {/*    src={getSleeve(deck.sleeveName)}*/}
-                    {/*    onError={handleImageError}*/}
-                    {/*    onClick={onSleeveClick}*/}
-                    {/*/>*/}
-
                     <DeckSelection />
                     <DeckImport deckName={deckName} />
                 </DeckContainerDiv>
@@ -90,12 +77,7 @@ export default function Deckbuilder({ isEditMode }: { isEditMode?: boolean }) {
                             alignItems: "center",
                         }}
                     >
-                        <UpdateDeckButtons
-                            deckName={deckName}
-                            currentDeckLength={currentDeckLength}
-                            setCurrentDeckLength={setCurrentDeckLength}
-                            isEditMode={isEditMode}
-                        />
+                        <UpdateDeckButtons deckName={deckName} />
                         <BackButton isInDeckbuilder />
                     </div>
                     <SearchForm />

@@ -198,6 +198,9 @@ export default function Card(props: CardProps) {
         disabled: opponentFieldLocations.includes(location) || !opponentReady,
     });
 
+    // create new references every change to prevent stack getting "stuck", needs to be tested
+    const helperId = locationCards.map((c) => c.id.substring(1, 3)).join();
+
     const {
         attributes: stackAttributes,
         listeners: stackListeners,
@@ -205,7 +208,7 @@ export default function Card(props: CardProps) {
         isDragging: isDraggingStack,
         active: activeStack,
     } = useDraggable({
-        id: location + "_stack",
+        id: location + "_" + helperId + "_stack",
         data: { type: "card-stack", content: { location } },
     });
 

@@ -1,42 +1,42 @@
 import styled from "@emotion/styled";
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { Dispatch, SetStateAction, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
 type AddDeckButtonProps = {
     deckName: string;
-    currentDeckLength: number;
-    setCurrentDeckLength: Dispatch<SetStateAction<number>>;
-    isEditMode?: boolean;
+    // currentDeckLength: number;
+    // setCurrentDeckLength: Dispatch<SetStateAction<number>>;
+    // isEditMode?: boolean;
 };
 
 export default function UpdateDeckButtons(props: AddDeckButtonProps) {
-    const { deckName, currentDeckLength, setCurrentDeckLength, isEditMode } = props;
+    const { deckName } = props;
 
-    const decks = useGeneralStates((state) => state.decks);
-    const saveDeck = useGeneralStates((state) => state.saveDeck);
-    const isSaving = useGeneralStates((state) => state.isSaving);
+    const decks = useDeckStates((state) => state.decks);
+    const saveDeck = useDeckStates((state) => state.saveDeck);
+    const isSaving = useDeckStates((state) => state.isSaving);
 
-    const handleSaveDeck = () => saveDeck(deckName, setCurrentDeckLength);
+    const handleSaveDeck = () => saveDeck(deckName);
 
     // Edit Mode
-    const deleteDeck = useGeneralStates((state) => state.deleteDeck);
-    const idOfDeckToEdit = useGeneralStates((state) => state.idOfDeckToEdit);
-    const updateDeck = useGeneralStates((state) => state.updateDeck);
+    const { id } = useParams();
+    const deleteDeck = useDeckStates((state) => state.deleteDeck);
+    const updateDeck = useDeckStates((state) => state.updateDeck);
     const navigate = useNavigate();
 
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-    return isEditMode ? (
+    return id ? (
         <>
-            <Button onClick={() => idOfDeckToEdit && updateDeck(idOfDeckToEdit, deckName)}>
+            <Button onClick={() => id && updateDeck(id, deckName)}>
                 <StyledSpanSaveDeck>SAVE CHANGES</StyledSpanSaveDeck>
             </Button>
             {decks.length > 1 && (
                 <DeleteButton
                     isDeleting={isDeleting}
                     onClick={() => {
-                        if (isDeleting && idOfDeckToEdit) deleteDeck(idOfDeckToEdit, navigate);
+                        if (isDeleting && id) deleteDeck(id, navigate);
                         setIsDeleting(!isDeleting);
                     }}
                 >
@@ -54,9 +54,7 @@ export default function UpdateDeckButtons(props: AddDeckButtonProps) {
         </>
     ) : (
         <Button disabled={isSaving || decks.length >= 16} onClick={handleSaveDeck}>
-            <StyledSpanSaveDeck>
-                {decks.length >= 16 ? "16/16 Decks" : `SAVE (${currentDeckLength}/16)`}
-            </StyledSpanSaveDeck>
+            <StyledSpanSaveDeck>{decks.length >= 16 ? "16/16 Decks" : `SAVE (${decks.length}/16)`}</StyledSpanSaveDeck>
         </Button>
     );
 }

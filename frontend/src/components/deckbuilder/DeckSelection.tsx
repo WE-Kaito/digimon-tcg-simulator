@@ -1,19 +1,21 @@
 import styled from "@emotion/styled";
 import loadingAnimation from "../../assets/lotties/loading.json";
 import Lottie from "lottie-react";
-import { fallbackCardNumber, useGeneralStates } from "../../hooks/useGeneralStates.ts";
+import { fallbackCardNumber } from "../../hooks/useGeneralStates.ts";
 import { CardTypeWithId } from "../../utils/types.ts";
 import DeckbuilderCard from "./DeckbuilderCard.tsx";
-import { getCardTypeImage, sortCards } from "../../utils/functions.ts";
+import { getCardTypeImage } from "../../utils/functions.ts";
 import { useSound } from "../../hooks/useSound.ts";
 import LevelDistribution from "../profile/LevelDistribution.tsx";
 import { useMediaQuery } from "@mui/material";
+import { sortCards, useDeckStates } from "../../hooks/useDeckStates.ts";
 
 export default function DeckSelection() {
-    const deckCards = useGeneralStates((state) => state.deckCards);
-    const loadingDeck = useGeneralStates((state) => state.loadingDeck);
-    const addCardToDeck = useGeneralStates((state) => state.addCardToDeck);
-    const deleteFromDeck = useGeneralStates((state) => state.deleteFromDeck);
+    const deckCards = useDeckStates((state) => state.deckCards);
+    const isLoading = useDeckStates((state) => state.isLoading);
+    const isSettingDeck = useDeckStates((state) => state.isSettingDeck);
+    const addCardToDeck = useDeckStates((state) => state.addCardToDeck);
+    const deleteFromDeck = useDeckStates((state) => state.deleteFromDeck);
 
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
@@ -84,7 +86,7 @@ export default function DeckSelection() {
             </Stats>
 
             <DeckContainer>
-                {!loadingDeck ? (
+                {!isLoading && !isSettingDeck ? (
                     Object.values(cardGroups).map((group, groupIndex) => {
                         return (
                             <GroupContainer key={groupIndex}>
@@ -140,11 +142,9 @@ export default function DeckSelection() {
                         );
                     })
                 ) : (
-                    <Lottie
-                        animationData={loadingAnimation}
-                        loop={true}
-                        style={{ width: "130px", marginLeft: "50%", transform: "translateX(-50%)" }}
-                    />
+                    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                        <Lottie animationData={loadingAnimation} loop={true} style={{ width: "50%" }} />
+                    </div>
                 )}
             </DeckContainer>
         </>

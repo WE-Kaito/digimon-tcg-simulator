@@ -13,13 +13,37 @@ import { WSUtils } from "../../../pages/GamePage.tsx";
 import DragToggleButton from "./DragToggleButton.tsx";
 import PlayerCard from "../PlayerCard.tsx";
 import LinkArea from "../LinkArea.tsx";
+import { useEffect, useRef } from "react";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function PlayerBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
+    const setCardWidth = useGeneralStates((state) => state.setCardWidth);
+    const ref = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!ref.current) return;
+
+        const updateWidth = () => setCardWidth(ref.current!.clientWidth);
+
+        updateWidth(); // initial setzen
+
+        const observer = new ResizeObserver(updateWidth);
+        observer.observe(ref.current);
+
+        return () => observer.disconnect();
+    }, [ref, setCardWidth]);
+
     return (
         <LayoutContainer>
             <PlayerEggDeck wsUtils={wsUtils} />
             {Array.from({ length: 13 }).map((_, index) => (
-                <BattleArea key={"playerBA" + index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils} />
+                <BattleArea
+                    ref={index === 0 ? ref : undefined}
+                    key={"playerBA" + index}
+                    num={index + 1}
+                    side={SIDE.MY}
+                    wsUtils={wsUtils}
+                />
             ))}
             {Array.from({ length: 8 }).map((_, index) => (
                 <LinkArea key={"playerLA" + index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils} />

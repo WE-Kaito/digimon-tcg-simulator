@@ -11,6 +11,7 @@ import { grey, teal } from "@mui/material/colors";
 import { generalToken } from "../../utils/tokens.ts";
 import hackmonImg from "../../assets/Hackmon.webp";
 import { useSound } from "../../hooks/useSound.ts";
+import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
 const tokenImageUrl =
     "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/tokenCard.jpg";
@@ -26,18 +27,22 @@ export type ProfileDeckProps = {
 export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const { deck, isDragging, setSleeveSelectionOpen, setImageSelectionOpen, lobbyView } = props;
 
-    const fetchedCards = useGeneralStates((state) => state.fetchedCards);
     const setSelectedSleeveOrImage = useGeneralStates((state) => state.setSelectedSleeveOrImage);
     const setDeckIdToSetSleeveOrImage = useGeneralStates((state) => state.setDeckIdToSetSleeveOrImage);
-    const setDeckById = useGeneralStates((state) => state.setDeckById);
+
+    const fetchedCards = useDeckStates((state) => state.fetchedCards);
+    const decks = useDeckStates((state) => state.decks);
+    const setImageSelectionUrls = useDeckStates((state) => state.setImageSelectionUrls);
+
+    const cardMap = new Map(fetchedCards.map((card) => [card.uniqueCardNumber, card]));
+    const uniqueCardNumbers = Array.from(new Set(deck.decklist));
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
     const navigate = useNavigate();
     const navigateToDeck = () => {
         playDrawCardSfx();
-        navigate(`/update-deck`);
-        setDeckById(deck.id);
+        navigate(`/deckbuilder/${deck.id}`);
     };
 
     function onSleeveClick() {
@@ -47,7 +52,10 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     }
 
     function onImageClick() {
-        setDeckById(deck.id);
+        const imgUrls = uniqueCardNumbers
+            .map((cardNumber) => cardMap.get(cardNumber)?.imgUrl)
+            .filter((url) => url !== undefined);
+        setImageSelectionUrls(imgUrls);
         setSelectedSleeveOrImage(deck.deckImageCardUrl);
         setDeckIdToSetSleeveOrImage(deck.id);
         setImageSelectionOpen(true);
@@ -71,7 +79,9 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
 
     return (
         <WrapperDiv style={{ pointerEvents: isDragging ? "none" : "unset" }} lobbyView={lobbyView}>
-            {!!errorCount && <ErrorSpan>{`${errorCount} missing cards`}</ErrorSpan>}
+            {!!errorCount && fetchedCards.length > 0 && decks.length > 0 && (
+                <ErrorSpan>{`${errorCount} missing cards`}</ErrorSpan>
+            )}
             {!lobbyView && <DeckName>{deck.name}</DeckName>}
             <ContainerDiv style={{ transform: isDragging ? "scale(0.95)" : "unset" }} lobbyView={lobbyView}>
                 <LevelDistribution deckCards={deckCards} />
@@ -109,13 +119,15 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
                     onClick={onSleeveClick}
                 />
 
-                <CardImage
-                    className={"button"}
-                    hasError={!!errorCount}
-                    src={errorCount ? hackmonImg : (deck.deckImageCardUrl ?? tokenImageUrl)}
-                    onError={handleImageError}
-                    onClick={onImageClick}
-                />
+                {fetchedCards.length > 0 && deckCards.length > 0 && (
+                    <CardImage
+                        className={"button"}
+                        hasError={!!errorCount}
+                        src={errorCount ? hackmonImg : (deck.deckImageCardUrl ?? tokenImageUrl)}
+                        onError={handleImageError}
+                        onClick={onImageClick}
+                    />
+                )}
 
                 <ColorLineDiv style={{ background: generateGradient(deckCards) }} />
             </ContainerDiv>

@@ -6,7 +6,6 @@ import { Fragment, useCallback, useLayoutEffect, useState } from "react";
 import SortableProfileDeck from "../components/profile/SortableProfileDeck.tsx";
 import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import styled from "@emotion/styled";
-import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { DeckType } from "../utils/types.ts";
 import { useNavigate } from "react-router-dom";
 import MenuDialog from "../components/MenuDialog.tsx";
@@ -14,13 +13,14 @@ import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import BackButton from "../components/BackButton.tsx";
+import { useDeckStates } from "../hooks/useDeckStates.ts";
 
 export default function Decks() {
-    const loadOrderedDecks = useGeneralStates((state) => state.loadOrderedDecks);
-    const deckIdOrder = useGeneralStates((state) => state.deckIdOrder);
-    const setDeckIdOrder = useGeneralStates((state) => state.setDeckIdOrder);
-    const isLoading = useGeneralStates((state) => state.isLoading);
-    const clearDeck = useGeneralStates((state) => state.clearDeck);
+    const loadOrderedDecks = useDeckStates((state) => state.loadOrderedDecks);
+    const deckIdOrder = useDeckStates((state) => state.deckIdOrder);
+    const setDeckIdOrder = useDeckStates((state) => state.setDeckIdOrder);
+    const isLoading = useDeckStates((state) => state.isLoading);
+    const clearDeck = useDeckStates((state) => state.clearDeck);
 
     const [renderAddButton, setRenderAddButton] = useState(false);
     const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);

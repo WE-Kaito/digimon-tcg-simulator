@@ -1,17 +1,17 @@
 import styled from "@emotion/styled";
 import { ChangeEvent, useState } from "react";
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import UpIcon from "@mui/icons-material/KeyboardDoubleArrowUpSharp";
 import DownIcon from "@mui/icons-material/KeyboardDoubleArrowDownSharp";
 import { useMediaQuery } from "@mui/material";
+import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
 export default function DeckImport({ deckName }: { deckName: string }) {
     const [deckString, setDeckString] = useState<string>("");
-    const importDeck = useGeneralStates((state) => state.importDeck);
-    const exportDeck = useGeneralStates((state) => state.exportDeck);
+    const importDeck = useDeckStates((state) => state.importDeck);
+    const exportDeck = useDeckStates((state) => state.exportDeck);
     const [copyButton, setCopyButton] = useState<boolean>(false);
     const [invalidButton, setInvalidButton] = useState<boolean>(false);
-    const fetchedCards = useGeneralStates((state) => state.fetchedCards);
+    const fetchedCards = useDeckStates((state) => state.fetchedCards);
     const [exportFormat, setExportFormat] = useState("pd");
 
     function handleImport() {

@@ -13,14 +13,23 @@ import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import Decks from "./pages/Decks.tsx";
 import Deckbuilder from "./pages/Deckbuilder.tsx";
+import { useDeckStates } from "./hooks/useDeckStates.ts";
 
 function App() {
     const me = useGeneralStates((state) => state.me);
-    const fetchCards = useGeneralStates((state) => state.fetchCards);
+    const user = useGeneralStates((state) => state.user);
+    const fetchCards = useDeckStates((state) => state.fetchCards);
+    const fetchDecks = useDeckStates((state) => state.fetchDecks);
     const setParticlesInitialized = useGeneralStates((state) => state.setParticlesInitialized);
 
     useEffect(() => me(), [me]);
+
     useEffect(() => fetchCards(), [fetchCards]);
+
+    useEffect(() => {
+        if (user.length && user !== "anonymousUser") fetchDecks();
+    }, [fetchDecks, user]);
+
     useEffect(() => {
         initParticlesEngine(async (engine) => await loadSlim(engine)).then(() => setParticlesInitialized(true));
     }, [setParticlesInitialized]);
@@ -34,7 +43,7 @@ function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/decks" element={<Decks />} />
                     <Route path="/deckbuilder" element={<Deckbuilder />} />
-                    <Route path="/update-deck" element={<Deckbuilder isEditMode />} />
+                    <Route path="/deckbuilder/:id" element={<Deckbuilder />} />
                     <Route path="/game" element={<GamePage />} />
                     <Route path="/*" element={<Navigate to="/" />} />
                 </Route>

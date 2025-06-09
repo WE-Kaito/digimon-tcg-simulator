@@ -1,6 +1,6 @@
 import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
-import { IconButton, useMediaQuery } from "@mui/material";
+import { IconButton } from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
@@ -32,14 +32,6 @@ import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
-
-const mediaQueries = [
-    "(orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) and (pointer: coarse)",
-    "(orientation: landscape) and (min-resolution: 192dpi) and (pointer: coarse)",
-    "(orientation: landscape) and (min-resolution: 2dppx) and (pointer: coarse)",
-    "(max-height: 820px)",
-    "(max-width: 1400px)",
-].join(",");
 
 /**
  * To be used in Game components to send messages to multiplayer opponent through WebSocket
@@ -188,8 +180,6 @@ export default function GamePage() {
     });
 
     // Layout ##########################################################################################################
-    const isMobile = useMediaQuery(mediaQueries);
-
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
@@ -205,7 +195,7 @@ export default function GamePage() {
             <EndModal />
             <RestartPromptModal wsUtils={wsUtils} />
 
-            <DetailsContainer isMobile={isMobile} height={height} style={{ minHeight: window.innerHeight }}>
+            <DetailsContainer height={height} style={{ minHeight: window.innerHeight }}>
                 {details !== DetailsView.NO_IMAGE && (
                     <CardImg
                         src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc}
@@ -290,7 +280,7 @@ const Container = styled.div`
     gap: 5px;
 `;
 
-const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
+const DetailsContainer = styled.div<{ height?: number }>`
     background: rgba(0, 0, 0, 0.35);
     display: flex;
     width: 350px !important;
@@ -310,7 +300,7 @@ const DetailsContainer = styled.div<{ isMobile: boolean; height?: number }>`
     }
 `;
 
-const CardImg = styled.img<{ isMobile?: boolean }>`
+const CardImg = styled.img`
     width: calc(100% - 10px);
     border-radius: 3.5%;
     aspect-ratio: 5 / 7;

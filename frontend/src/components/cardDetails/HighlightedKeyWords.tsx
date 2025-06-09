@@ -3,7 +3,7 @@ import KeywordTooltip from "./KeywordTooltip.tsx";
 import { JSX } from "react";
 import { uid } from "uid";
 
-export default function HighlightedKeyWords({ text }: { text: string }): (JSX.Element | JSX.Element[])[] {
+export default function HighlightedKeyWords({ text }: { text: string }): JSX.Element | JSX.Element[] {
     let highlightedText = text;
 
     if (text.startsWith("[DNA Digivolve]"))
@@ -15,7 +15,7 @@ export default function HighlightedKeyWords({ text }: { text: string }): (JSX.El
     if (text.startsWith("＜Burst Digivolve:")) {
         const burstEffect = text.substring(17, text.length - 1);
         return [
-            <HighlightedSpecialEffect key={uid()}>Burst Digivolve</HighlightedSpecialEffect>,
+            <HighlightedSpecialEffect key={"burstEffectKey"}>Burst Digivolve</HighlightedSpecialEffect>,
             <HighlightedKeyWords key={"burstEffect"} text={burstEffect} />,
         ];
     }
@@ -83,16 +83,15 @@ export default function HighlightedKeyWords({ text }: { text: string }): (JSX.El
     }
 
     // convert "\n" to <br />
-    return highlightedParts.map((item) => {
+    return highlightedParts.flatMap((item) => {
         if (typeof item === "string") {
-            return item.split("\n").map((line, index) => (
-                <span key={uid()}>
-                    {line}
-                    {index !== item.split("\n").length - 1 && <br />}
-                </span>
-            ));
+            const lines = item.split("\n");
+            return lines.flatMap((line, index) => [
+                <span key={uid()}>{line}</span>,
+                index !== lines.length - 1 ? <br key={uid()} /> : <></>,
+            ]);
         }
-        return item;
+        return [item];
     });
 }
 

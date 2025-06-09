@@ -7,8 +7,6 @@ import UserSettings from "../components/profile/UserSettings.tsx";
 import { Stack } from "@mui/material";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 
-export type DeckIdOrder = string[];
-
 export default function Profile() {
     const user = useGeneralStates((state) => state.user);
 

@@ -31,6 +31,7 @@ import ProfileIcon from "@mui/icons-material/ManageAccountsTwoTone";
 
 import Lottie from "lottie-react";
 import LogoutButton from "../components/lobby/LogoutButton.tsx";
+import { useDeckStates } from "../hooks/useDeckStates.ts";
 
 enum Format {
     CUSTOM = "CUSTOM",
@@ -63,8 +64,8 @@ export default function Lobby() {
     const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
     const activeDeckId = useGeneralStates((state) => state.activeDeckId);
     const getActiveDeck = useGeneralStates((state) => state.getActiveDeck);
-    const fetchDecks = useGeneralStates((state) => state.fetchDecks);
-    const decks = useGeneralStates((state) => state.decks);
+
+    const decks = useDeckStates((state) => state.decks);
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
@@ -300,8 +301,7 @@ export default function Lobby() {
 
     const initialFetch = useCallback(() => {
         getActiveDeck();
-        fetchDecks();
-    }, [getActiveDeck, fetchDecks]);
+    }, [getActiveDeck]);
     useEffect(() => initialFetch(), [initialFetch]);
 
     useEffect(() => {

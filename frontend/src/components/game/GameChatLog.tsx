@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import styled from "@emotion/styled";
 import sendIcon from "../../assets/sendIcon.svg";
-import { uid } from "uid";
 import { WSUtils } from "../../pages/GamePage.tsx";
 
 export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
@@ -18,7 +17,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
     return (
         <>
             <History>
-                {messages.map((message) => {
+                {messages.map((message, index) => {
                     if (message.startsWith("[STARTING_PLAYER]≔")) return <></>;
 
                     const userName = message.split("﹕", 2)[0];
@@ -34,7 +33,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
                             const oldMemory = parseInt(cardLocation.split("±")[0]);
                             const newMemory = parseInt(cardLocation.split("±")[1]);
                             return (
-                                <UpdateMessage isMyMessage={isMyMessage} key={uid()}>
+                                <UpdateMessage isMyMessage={isMyMessage} key={"msx_" + index}>
                                     <p>
                                         {cardName}{" "}
                                         {isMyMessage
@@ -45,7 +44,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
                             );
                         }
                         return (
-                            <UpdateMessage isMyMessage={isMyMessage} key={uid()}>
+                            <UpdateMessage isMyMessage={isMyMessage} key={"msx_" + index}>
                                 <p>
                                     {cardName} {cardLocation}
                                 </p>
@@ -54,7 +53,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
                     }
 
                     return (
-                        <Message isMyMessage={isMyMessage} key={uid()}>
+                        <Message isMyMessage={isMyMessage} key={"msx_" + index}>
                             <p>{chatMessage}</p>
                         </Message>
                     );

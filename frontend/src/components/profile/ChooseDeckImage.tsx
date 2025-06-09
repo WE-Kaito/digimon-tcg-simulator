@@ -1,23 +1,21 @@
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import styled from "@emotion/styled";
 import { useSound } from "../../hooks/useSound.ts";
-import { useLayoutEffect, useState } from "react";
-export default function ChooseDeckImage() {
-    const [imgUrls, setImgUrls] = useState<string[]>([]);
+import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
+export default function ChooseDeckImage() {
     const selectedSleeveOrImage = useGeneralStates((state) => state.selectedSleeveOrImage);
     const setCardImage = useGeneralStates((state) => state.setCardImage);
-    const deckCards = useGeneralStates((state) => state.deckCards);
-    const rows = Math.ceil(imgUrls.length / 10);
-    const mobileRows = Math.ceil(imgUrls.length / 5);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
-    useLayoutEffect(() => setImgUrls(Array.from(new Set(deckCards.map((card) => card.imgUrl)))), [deckCards]);
+    const imageSelectionUrls = useDeckStates((state) => state.imageSelectionUrls);
+    const rows = Math.ceil(imageSelectionUrls.length / 10);
+    const mobileRows = Math.ceil(imageSelectionUrls.length / 5);
 
     return (
         <GridContainer rows={rows} mobileRows={mobileRows}>
-            {imgUrls?.map((url, index) => {
+            {imageSelectionUrls.map((url, index) => {
                 return (
                     <SleeveButton
                         key={url}

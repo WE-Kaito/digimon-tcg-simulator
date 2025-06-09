@@ -11,15 +11,16 @@ import { useDroppable } from "@dnd-kit/core";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { useState } from "react";
+import { RefObject, useMemo, useState } from "react";
 
 type BattleAreaProps = {
     side: SIDE;
     wsUtils?: WSUtils;
+    ref?: RefObject<HTMLDivElement | null>;
 } & ({ isBreeding: true; num?: never } | { isBreeding?: never; num: number });
 
 export default function BattleArea(props: BattleAreaProps) {
-    const { num, side, isBreeding, wsUtils } = props;
+    const { num, side, isBreeding, wsUtils, ref } = props;
     const location = isBreeding ? `${side}BreedingArea` : `${side}Digi${num}`;
 
     const { setNodeRef: dropToField, isOver: isOverField } = useDroppable({
@@ -49,33 +50,12 @@ export default function BattleArea(props: BattleAreaProps) {
     });
 
     const iconSize = useGeneralStates((state) => state.cardWidth / 1.5);
-    const setCardWidth = useGeneralStates((state) => state.setCardWidth);
 
     const [isHoveringOverField, setIsHoveringOverField] = useState(false);
 
-    return (
-        <Container
-            {...props}
-            style={{ zIndex: 2 }}
-            // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
-            id={locationCards.length ? "" : location}
-            ref={dropToField}
-            isOver={side === SIDE.MY && isOverField}
-            stackOpened={stackOpened}
-            onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
-            onMouseLeave={() => stackOpened && setIsHoveringOverField(false)}
-            onClick={() => stackOpened && setStackModal(false)}
-            className={stackOpened ? "button" : undefined}
-        >
-            <div
-                ref={(e) => {
-                    if (side === SIDE.MY && num === 1 && e?.clientWidth) {
-                        const raf = requestAnimationFrame(() => setCardWidth(e.clientWidth));
-                        return () => cancelAnimationFrame(raf);
-                    }
-                }}
-                style={{ position: "relative", height: "100%", width: "100%" }}
-            >
+    const memoizedField = useMemo(
+        () => (
+            <div ref={ref} style={{ position: "relative", height: "100%", width: "100%" }}>
                 {isBreeding && <StyledEggIcon side={side} sx={{ fontSize: iconSize }} />}
                 {stackOpened && (isHoveringOverField ? <StyledCloseDetailsIcon /> : <StyledDetailsIcon />)}
                 {!!locationCards.length && !stackOpened && (
@@ -100,6 +80,41 @@ export default function BattleArea(props: BattleAreaProps) {
                     </BottomDropZone>
                 )}
             </div>
+        ),
+        [
+            ref,
+            isBreeding,
+            side,
+            iconSize,
+            stackOpened,
+            isHoveringOverField,
+            locationCards,
+            location,
+            wsUtils,
+            showFieldCardMenu,
+            showOpponentCardMenu,
+            num,
+            canDropToBottom,
+            isOverBottom,
+            dropToBottom,
+        ]
+    );
+
+    return (
+        <Container
+            {...props}
+            style={{ zIndex: 2 }}
+            // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
+            id={locationCards.length ? "" : location}
+            ref={dropToField}
+            isOver={side === SIDE.MY && isOverField}
+            stackOpened={stackOpened}
+            onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
+            onMouseLeave={() => stackOpened && setIsHoveringOverField(false)}
+            onClick={() => stackOpened && setStackModal(false)}
+            className={stackOpened ? "button" : undefined}
+        >
+            {memoizedField}
         </Container>
     );
 }
