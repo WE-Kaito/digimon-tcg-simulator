@@ -102,7 +102,8 @@ export default function BattleArea(props: BattleAreaProps) {
 
     return (
         <Container
-            {...props}
+            isBreeding={isBreeding}
+            num={num}
             style={{ zIndex: 2 }}
             // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
             id={locationCards.length ? "" : location}
@@ -119,7 +120,7 @@ export default function BattleArea(props: BattleAreaProps) {
     );
 }
 
-const Container = styled.div<BattleAreaProps & { isOver: boolean; stackOpened: boolean }>`
+const Container = styled.div<{ isBreeding?: boolean; num?: number; isOver: boolean; stackOpened: boolean }>`
     //touch-action: none;
     grid-area: ${({ num }) => (num ? `BA${num}` : "breeding")};
     position: relative;
@@ -127,7 +128,7 @@ const Container = styled.div<BattleAreaProps & { isOver: boolean; stackOpened: b
     width: calc(100% - 6px);
     border-radius: 2px;
     display: flex;
-    flex-direction: ${({ isBreeding, num }) => (isBreeding || num <= 8 ? "column" : "row")};
+    flex-direction: ${({ isBreeding, num }) => (isBreeding || (num && num <= 8) ? "column" : "row")};
     justify-content: center;
     align-items: center;
     cursor: ${({ isOver }) => (isOver ? "grabbing" : "unset")};

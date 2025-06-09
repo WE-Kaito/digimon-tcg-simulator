@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { useSound } from "../hooks/useSound.ts";
+import { useDeckStates } from "../hooks/useDeckStates.ts";
 
 export default function MainMenuButton({ name, path }: { name: string; path: string }) {
     const navigate = useNavigate();
     const me = useGeneralStates((state) => state.me);
-    const clearDeck = useGeneralStates((state) => state.clearDeck);
+    const clearDeck = useDeckStates((state) => state.clearDeck);
 
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
