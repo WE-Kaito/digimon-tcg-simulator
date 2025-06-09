@@ -2,10 +2,11 @@ package com.github.wekaito.backend.websocket.lobby;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.web.socket.WebSocketSession;
 
-class QuickPlayQueue {
+import java.util.*;
+
+public class QuickPlayQueue {
     private final List<WebSocketSession> queue = new ArrayList<>();
 
     public synchronized void add(WebSocketSession session) {
@@ -16,14 +17,6 @@ class QuickPlayQueue {
         queue.remove(session);
     }
 
-    public synchronized WebSocketSession drawRandomSession() {
-        if (queue.isEmpty()) return null;
-
-        int randomIndex = ThreadLocalRandom.current().nextInt(queue.size());
-
-        return queue.remove(randomIndex);
-    }
-
     public synchronized boolean isEmpty() {
         return queue.isEmpty();
     }
@@ -31,4 +24,20 @@ class QuickPlayQueue {
     public synchronized int size() {
         return queue.size();
     }
+
+    /**
+     * Returns a pair of randomly selected sessions (and removes them from the queue), or null if fewer than 2 players exist.
+     */
+    public synchronized List<WebSocketSession> drawRandomPair() {
+        if (queue.size() < 2) return null;
+
+        // Shuffle the queue to ensure randomness
+        Collections.shuffle(queue);
+
+        WebSocketSession player1 = queue.remove(0);
+        WebSocketSession player2 = queue.remove(0);
+
+        return Arrays.asList(player1, player2);
+    }
 }
+

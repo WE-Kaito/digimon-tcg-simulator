@@ -196,14 +196,14 @@ public class LobbyService extends TextWebSocketHandler {
         }
     }
 
-    @Scheduled(fixedRate = 3000) // 5 seconds
+    @Scheduled(fixedRate = 3000) // 3 seconds
     private void heartbeat() throws IOException {
         broadcastUserCount();
         checkForRejoinableGameRoom();
         broadcastRooms();
     }
 
-    @Scheduled(fixedRate = 5000) // 5 seconds
+    @Scheduled(fixedRate = 7000) // 7 seconds
     private void assignQuickPlay() throws IOException {
         startGameQuickPlay();
     }
@@ -331,17 +331,16 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     private void startGameQuickPlay() throws IOException {
-        WebSocketSession player1;
-        WebSocketSession player2;
+        List<WebSocketSession> players;
 
         synchronized (quickPlayLock) {
-            if (quickPlayQueue.size() < 2) return;
-
-            player1 = quickPlayQueue.drawRandomSession();
-            player2 = quickPlayQueue.drawRandomSession();
+            players = quickPlayQueue.drawRandomPair();
         }
 
-        if (player1 == null || player2 == null) return;
+        if (players == null || players.size() < 2) return;
+
+        WebSocketSession player1 = players.get(0);
+        WebSocketSession player2 = players.get(1);
 
         String newGameId = Objects.requireNonNull(player1.getPrincipal()).getName()
                 + "‗"
