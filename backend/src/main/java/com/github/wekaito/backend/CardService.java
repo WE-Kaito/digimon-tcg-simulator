@@ -87,7 +87,7 @@ public class CardService {
         fetchCards();
     }
 
-    @Scheduled(fixedRate = 10800000) // 3 hours
+    @Scheduled(fixedRate = 3600000) // 1hour
     void fetchCards() {
         
         String responseBody = webClient.get()
@@ -155,9 +155,7 @@ public class CardService {
         this.cardRepo.deleteAll();
         this.cardRepo.saveAll(cards);
 
-        if (cardCollection != cards) {
-            cardCollection.clear();
-            cardCollection.addAll(cards);
-        }
+        cardCollection.clear();
+        cardCollection.addAll(cards);
     }
 }
