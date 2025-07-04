@@ -35,11 +35,10 @@ jobs:
         with:
           name: frontend-build
           path: backend/src/main/resources/static
-      - name: Inject Discord Webhook URL into Java source
-        run: |
-          sed -i "s|__DISCORD_WEBHOOK__|${{ secrets.DISCORD_WEBHOOK_URL }}|" backend/src/main/java/com/github/wekaito/backend/ReportController.java
       - name: Build Backend
         run: mvn -B package --file backend/pom.xml
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       - uses: actions/upload-artifact@v4
         with:
           name: backend-build
