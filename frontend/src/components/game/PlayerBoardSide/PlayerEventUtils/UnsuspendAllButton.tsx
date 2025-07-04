@@ -17,64 +17,71 @@ export default function UnsuspendAllButton({ wsUtils, fontSize }: { wsUtils?: WS
     if (!isMyTurn || !isUnsuspendPhase || !areCardsSuspended) return <></>;
 
     return (
-        <Container>
-            <MulliganButton
-                style={{ fontSize: fontSize, paddingTop: fontSize / 6 }}
-                onClick={() => {
-                    unsuspendAll(SIDE.MY);
-                    playUnsuspendSfx();
-                    wsUtils?.sendMessage(
-                        `${wsUtils?.matchInfo.gameId}:/unsuspendAll:${wsUtils?.matchInfo.opponentName}`
-                    );
-                    wsUtils?.sendSfx?.("playUnsuspendSfx");
-                    wsUtils?.nextPhase();
-                }}
-            >
-                UN-
-                <br />
-                SUSPEND
-                <br />
-                ALL
-            </MulliganButton>
-        </Container>
+        <StyledButton
+            className={"button"}
+            style={{ fontSize: fontSize - 3, paddingTop: fontSize / 6 }}
+            onClick={() => {
+                unsuspendAll(SIDE.MY);
+                playUnsuspendSfx();
+                wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/unsuspendAll:${wsUtils?.matchInfo.opponentName}`);
+                wsUtils?.sendSfx?.("playUnsuspendSfx");
+                wsUtils?.nextPhase();
+            }}
+        >
+            UNSUSPEND
+            <br />
+            ALL
+        </StyledButton>
     );
 }
 
-const Container = styled.div`
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-`;
+const StyledButton = styled.div`
+    z-index: 5;
+    width: 95%;
+    height: 85%;
 
-const MulliganButton = styled.div`
-    border-radius: 3px;
-    border: 2px solid rgba(77, 250, 146, 0.85);
-    background: rgba(0, 0, 0, 0.15);
-    color: rgb(77, 250, 146);
+    color: ghostwhite;
+
+    position: relative;
+    font-family: "Sakana", sans-serif;
+    line-height: 1.25;
+
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-family: "League Spartan", sans-serif;
-    padding: 0 5px 0 5px;
-    line-height: 1.2;
-    filter: drop-shadow(3px 3px 1px #131313);
-    transition: all 0.05s ease;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: all 0.3s;
+    background: linear-gradient(to bottom, rgba(127, 255, 212, 0.45) 1%, rgba(64, 224, 208, 0.5) 100%);
+    box-shadow:
+        inset 0 0 10px rgba(127, 255, 212, 0.4),
+        0 0 9px 3px rgba(127, 255, 212, 0.1);
 
     &:hover {
-        cursor: pointer;
-        filter: drop-shadow(2px 2px 1px #131313);
-        background-color: rgba(77, 250, 210, 0.8);
-        transform: translateY(1px);
-        color: black;
+        color: #40e0d0; /* Turquoise */
+        box-shadow:
+            inset 0 0 10px rgba(64, 224, 208, 0.8),
+            0 0 9px 3px rgba(72, 209, 204, 0.5);
     }
 
-    &:active {
-        filter: none;
-        background-color: rgba(77, 250, 210, 0.8);
-        transform: translate(1px, 2px);
-        color: black;
+    &:before {
+        content: "";
+        position: absolute;
+        left: -4em;
+        width: 4em;
+        height: 100%;
+        top: 0;
+        transition: transform 0.4s ease-in-out;
+        background: linear-gradient(
+            to right,
+            transparent 1%,
+            rgba(152, 255, 168, 0.1) 40%,
+            rgba(127, 255, 212, 0.1) 60%,
+            transparent 100%
+        );
+    }
+
+    &:hover:before {
+        transform: translateX(15em);
     }
 `;

@@ -12,6 +12,7 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
     const isMyTurn = useGameBoardStates((state) => state.isMyTurn);
     const setTurn = useGameBoardStates((state) => state.setTurn);
     const myMemory = useGameBoardStates((state) => state.myMemory);
+    const areCardsSuspended = useGameBoardStates((state) => state.areCardsSuspended);
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
 
@@ -37,6 +38,10 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
         setPhase();
         wsUtils?.sendPhaseUpdate();
     }
+
+    useEffect(() => {
+        if (isMyTurn && phase === Phase.UNSUSPEND && !areCardsSuspended()) wsUtils?.nextPhase();
+    }, [phase]);
 
     useEffect(() => {
         setRenderPhase(false);

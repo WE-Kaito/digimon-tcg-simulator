@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CardService {
 
-    private static final String BASE_URL = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/";
+    private static final String BASE_URL = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Cards/refs/heads/main/src/";
 
     private final CardRepo cardRepo;
 

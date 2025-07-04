@@ -10,11 +10,17 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/report")
 public class ReportController {
-    private final String discordWebhookUrl = System.getenv("DISCORD_WEBHOOK_URL");
+    private static final String discordWebhookUrl;
+
+    static {
+        // Bake value into class at compile-time
+        String envWebhook = System.getenv("DISCORD_WEBHOOK_URL");
+        discordWebhookUrl = (envWebhook != null) ? envWebhook : "";
+    }
 
     @PostMapping
     public ResponseEntity<String> sendReport(@RequestBody Map<String, Object> payload) {
-        if (discordWebhookUrl == null || discordWebhookUrl.isBlank()) {
+        if (discordWebhookUrl.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Webhook URL not configured.");
         }
 
