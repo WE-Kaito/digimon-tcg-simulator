@@ -225,25 +225,6 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"fieldCardMenu"} theme="dark">
-                <Item onClick={openedCardModal !== OpenedCardModal.MY_SECURITY ? showStack : undefined}>
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            width: "100%",
-                            cursor: openedCardModal !== OpenedCardModal.MY_SECURITY ? undefined : "not-allowed",
-                        }}
-                    >
-                        <span>Show Stack</span> <DetailsIcon />
-                    </div>
-                </Item>
-                <Separator />
-                <Item onClick={handleFlipCard}>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>Flip Card</span> <VisibleIcon />
-                    </div>
-                </Item>
-                <Separator />
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />
@@ -268,6 +249,25 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                     </div>
                 </Item>
                 <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
+                <Separator />
+                <Item onClick={handleFlipCard}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Flip Card</span> <VisibleIcon />
+                    </div>
+                </Item>
+                <Separator />
+                <Item onClick={openedCardModal !== OpenedCardModal.MY_SECURITY ? showStack : undefined}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: openedCardModal !== OpenedCardModal.MY_SECURITY ? undefined : "not-allowed",
+                        }}
+                    >
+                        <span>Show Stack</span> <DetailsIcon />
+                    </div>
+                </Item>
             </StyledMenu>
 
             <StyledMenu id={"modalMenuOpponent"} theme="dark">
@@ -298,15 +298,15 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"opponentCardMenu"} theme="dark">
-                <Item onClick={showStack}>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>View Stack</span> <DetailsIcon />
-                    </div>
-                </Item>
-                <Separator />
                 <Item onClick={activateTargetAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Target Card</span> <TargetIcon />
+                    </div>
+                </Item>
+                <Separator />
+                <Item onClick={showStack}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>View Stack</span> <DetailsIcon />
                     </div>
                 </Item>
             </StyledMenu>
