@@ -140,9 +140,11 @@ function formatTextMessagesForReport(messages: string[], matchInfo: WSUtils["mat
             const isMyMessage = userName === matchInfo.user;
             const chatMessage = message.split("﹕", 2)[1];
 
-            if (chatMessage.startsWith("[FIELD_UPDATE]≔")) return "";
-
             const from = isMyMessage ? matchInfo.user : matchInfo.opponentName;
+
+            if (chatMessage.startsWith("[FIELD_UPDATE]≔")) {
+                return "*" + from + " plays " + chatMessage.split("≔")[1] + "*";
+            }
 
             return "**" + from + ":** " + chatMessage;
         })
