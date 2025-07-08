@@ -7,7 +7,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +17,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class DeckService {
+
+    private static final SecureRandom secureRand = new SecureRandom();
 
     private final DeckRepo deckRepo;
 
@@ -82,6 +86,9 @@ public class DeckService {
             }
         }
         else throw new IllegalArgumentException();
+
+        // Preliminary shuffle to break up deck order patterns before game shuffling
+        Collections.shuffle(cards, secureRand);
 
         return cards;
     }

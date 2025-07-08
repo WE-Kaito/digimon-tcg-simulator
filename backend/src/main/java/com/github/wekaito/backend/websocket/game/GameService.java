@@ -350,6 +350,9 @@ public class GameService extends TextWebSocketHandler {
     private List<GameCard> createGameDeck(List<Card> deck) {
         List<GameCard> gameDeck = new ArrayList<>();
 
+        // Multiple shuffle passes to break up card clusters more effectively
+        Collections.shuffle(deck, secureRand);
+        Collections.shuffle(deck, secureRand);
         Collections.shuffle(deck, secureRand);
 
         for (Card card : deck) {
@@ -385,6 +388,10 @@ public class GameService extends TextWebSocketHandler {
                     false);
             gameDeck.add(newCard);
         }
+        
+        // Final shuffle of the converted GameCard objects
+        Collections.shuffle(gameDeck, secureRand);
+        
         return gameDeck;
     }
 
