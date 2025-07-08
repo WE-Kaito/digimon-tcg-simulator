@@ -14,6 +14,7 @@ import {
     SendToStackFunction,
     SIDE,
 } from "../utils/types.ts";
+import { notifyCardDistributionError } from "../utils/toasts.ts";
 
 const emptyPlayer: Player = {
     username: "",
@@ -441,35 +442,73 @@ export const useGameBoardStates = create<State>()(
 
                     if (chunk.length < 1000 || chunk.endsWith("false}]}")) {
                         const player1 = gameId.split("‗")[0];
-                        const game: GameDistribution = JSON.parse(get().initialDistributionState);
+                        const distributionState = get().initialDistributionState;
+                        
+                        // Validate chunk assembly
+                        try {
+                            if (!distributionState || distributionState.length < 100) {
+                                console.error("Invalid distribution state - too short:", distributionState.length);
+                                notifyCardDistributionError();
+                                return;
+                            }
+                            
+                            const game: GameDistribution = JSON.parse(distributionState);
+                            
+                            // Validate game data structure
+                            if (!game.player1Hand || !game.player2Hand || 
+                                !game.player1DeckField || !game.player2DeckField ||
+                                !game.player1Security || !game.player2Security) {
+                                console.error("Invalid game distribution structure:", game);
+                                notifyCardDistributionError();
+                                return;
+                            }
+                            
+                            // Validate deck sizes
+                            const p1DeckSize = game.player1DeckField.length;
+                            const p2DeckSize = game.player2DeckField.length;
+                            if (p1DeckSize < 40 || p2DeckSize < 40) {
+                                console.warn("Unexpected deck sizes:", p1DeckSize, p2DeckSize);
+                            }
 
-                        set({ initialDistributionState: "", bootStage: BootStage.MULLIGAN });
+                            set({ initialDistributionState: "", bootStage: BootStage.MULLIGAN });
 
-                        if (user === player1) {
-                            set({
-                                myHand: game.player1Hand,
-                                myDeckField: game.player1DeckField,
-                                myEggDeck: game.player1EggDeck,
-                                mySecurity: game.player1Security,
-                                opponentHand: game.player2Hand,
-                                opponentDeckField: game.player2DeckField,
-                                opponentEggDeck: game.player2EggDeck,
-                                opponentSecurity: game.player2Security,
+                            if (user === player1) {
+                                set({
+                                    myHand: game.player1Hand,
+                                    myDeckField: game.player1DeckField,
+                                    myEggDeck: game.player1EggDeck,
+                                    mySecurity: game.player1Security,
+                                    opponentHand: game.player2Hand,
+                                    opponentDeckField: game.player2DeckField,
+                                    opponentEggDeck: game.player2EggDeck,
+                                    opponentSecurity: game.player2Security,
+                                });
+                            } else {
+                                set({
+                                    myHand: game.player2Hand,
+                                    myDeckField: game.player2DeckField,
+                                    myEggDeck: game.player2EggDeck,
+                                    mySecurity: game.player2Security,
+                                    opponentHand: game.player1Hand,
+                                    opponentDeckField: game.player1DeckField,
+                                    opponentEggDeck: game.player1EggDeck,
+                                    opponentSecurity: game.player1Security,
+                                });
+                            }
+                            sendLoaded();
+                            playDrawCardSfx();
+                            
+                        } catch (error) {
+                            console.error("Card distribution failed:", error);
+                            // Reset distribution state and set error stage
+                            set({ 
+                                initialDistributionState: "",
+                                bootStage: BootStage.CLEAR 
                             });
-                        } else {
-                            set({
-                                myHand: game.player2Hand,
-                                myDeckField: game.player2DeckField,
-                                myEggDeck: game.player2EggDeck,
-                                mySecurity: game.player2Security,
-                                opponentHand: game.player1Hand,
-                                opponentDeckField: game.player1DeckField,
-                                opponentEggDeck: game.player1EggDeck,
-                                opponentSecurity: game.player1Security,
-                            });
+                            // Show user-friendly error toast
+                            notifyCardDistributionError();
+                            // This will trigger the timeout system to retry or show error
                         }
-                        sendLoaded();
-                        playDrawCardSfx();
                     }
                 },
 

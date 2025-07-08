@@ -157,3 +157,10 @@ export const notifyQuestionChanged = () => toast.success('Safety Question update
     hideProgressBar: false,
     pauseOnHover: false,
 });
+
+export const notifyCardDistributionError = () => toast.error('Card distribution failed. Retrying...', {
+    position: "top-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    pauseOnHover: false,
+});
