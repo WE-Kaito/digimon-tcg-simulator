@@ -13,7 +13,7 @@ import ContextMenus from "../components/game/ContextMenus/ContextMenus.tsx";
 import { DndContext, MouseSensor, pointerWithin, TouchSensor, useSensor } from "@dnd-kit/core";
 import useDropZone from "../hooks/useDropZone.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
-import { BootStage, CardTypeGame, CardTypeWithId, Phase } from "../utils/types.ts";
+import { BootStage, CardTypeGame, CardTypeWithId, Phase, DeckType } from "../utils/types.ts";
 import { SendMessage } from "react-use-websocket";
 import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
@@ -29,6 +29,12 @@ import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useNavigate } from "react-router-dom";
+import ProfileDeck from "../components/profile/SortableProfileDeck.tsx";
+import MenuDialog from "../components/MenuDialog.tsx";
+import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
+import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
+import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
+import axios from "axios";
 
 export default function DeckTest() {
     const selectCard = useGeneralStates((state) => state.selectCard);
@@ -38,6 +44,8 @@ export default function DeckTest() {
     const activeDeckId = useGeneralStates((state) => state.activeDeckId);
     const avatarName = useGeneralStates((state) => state.avatarName);
     const getAvatar = useGeneralStates((state) => state.getAvatar);
+    const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
+    const getActiveDeck = useGeneralStates((state) => state.getActiveDeck);
 
     const navigate = useNavigate();
 
@@ -67,6 +75,9 @@ export default function DeckTest() {
 
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
     const [phaseLoading, setPhaseLoading] = useState(false);
+    const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
+    const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
+    const [deckObject, setDeckObject] = useState<DeckType | null>(null);
 
     const timeoutRef = useRef<number | null>(null);
 
@@ -304,121 +315,145 @@ export default function DeckTest() {
         return shuffled;
     }, []);
 
+    // Initialize test game with specific deck ID (used for deck switching)
+    const initializeTestGameWithDeck = useCallback(
+        (deckId: string) => {
+            const deckData = decks.find((deck) => deck.id === deckId);
+
+            if (!deckData || !deckData.decklist.length) {
+                setMessages("No deck found or deck is empty. Please select a different deck.");
+                return;
+            }
+
+            // Get user's actual avatar and deck sleeve
+            const userAvatar = avatarName || "AncientIrismon"; // fallback to default
+            const userSleeve = deckData.sleeveName || "Default"; // fallback to default
+
+            // Clear any existing board state and chat messages
+            clearBoard();
+
+            // Clear chat messages for clean test mode experience
+            useGameBoardStates.setState({ messages: [] });
+
+            // Convert deck card IDs to actual cards, preserving duplicates
+            const deckCards: CardTypeWithId[] = [];
+            let missingCards = 0;
+
+            for (const cardId of deckData.decklist) {
+                const foundCard = fetchedCards.find((card) => card.uniqueCardNumber === cardId);
+                if (foundCard) {
+                    // Create a new instance for each card to ensure unique IDs
+                    deckCards.push({
+                        ...foundCard,
+                        id: foundCard.id + "_" + deckCards.length, // Ensure unique ID for each copy
+                    });
+                } else {
+                    missingCards++;
+                    console.warn(`Card not found in fetchedCards: ${cardId}`);
+                }
+            }
+
+            // Log warnings to console instead of chat
+            if (missingCards > 0) {
+                console.warn(`${missingCards} cards from deck not found in card database`);
+            }
+
+            let gameCards = deckCards.map((card) => convertToGameCard(card));
+
+            // Multi-stage shuffle the full deck (mirrors backend GameService.createGameDeck)
+            gameCards = shuffleCards(gameCards);
+
+            // Additional shuffle immediately before distribution to further break up any patterns
+            gameCards = fisherYatesShuffle(gameCards);
+
+            // Separate egg cards by cardType "Digi-Egg" (mirrors backend getEggDeck)
+            const eggCards = gameCards.filter((card) => card.cardType === "Digi-Egg");
+            const mainDeckCards = gameCards.filter((card) => card.cardType !== "Digi-Egg");
+
+            // Sequential drawing from top of shuffled deck (mirrors backend drawCards)
+            // 1. Draw 5 cards for security from top of main deck
+            const security = mainDeckCards.splice(0, 5).map((card) => ({ ...card, isFaceUp: false }));
+
+            // 2. Draw 5 cards for hand from top of remaining main deck
+            const hand = mainDeckCards.splice(0, 5).map((card) => ({ ...card, isFaceUp: false }));
+
+            // 3. Remaining cards stay as deck field
+            const deckField = mainDeckCards.map((card) => ({ ...card, isFaceUp: false }));
+
+            // 4. Egg deck (no additional shuffling needed - already part of main shuffle)
+            const eggDeck = eggCards.map((card) => ({ ...card, isFaceUp: false }));
+
+            // Set up game state using the store's setState pattern
+            useGameBoardStates.setState({
+                myHand: hand,
+                mySecurity: security,
+                myDeckField: deckField,
+                myEggDeck: eggDeck,
+                myMemory: 0,
+                opponentMemory: 0,
+                phase: Phase.BREEDING,
+                isMyTurn: true,
+                bootStage: BootStage.GAME_IN_PROGRESS, // Start directly in game
+                myAvatar: userAvatar,
+                mySleeve: userSleeve,
+                // Simulate opponent being ready for test mode
+                opponentReady: true,
+            });
+
+            // Set up game info
+            setUpGame(
+                { username: user, avatarName: userAvatar, sleeveName: userSleeve },
+                { username: "Test Dummy", avatarName: "AncientIrismon", sleeveName: "Default" }
+            );
+
+            // Log initialization to console instead of chat for cleaner experience
+            console.log(`Test Mode: Initialized deck "${deckData.name}"`);
+            console.log(
+                `Decklist entries: ${deckData.decklist.length}, Found cards: ${deckCards.length}, Game cards: ${gameCards.length}`
+            );
+            console.log(
+                `Hand: ${hand.length}, Security: ${security.length}, Deck: ${deckField.length}, Eggs: ${eggDeck.length}`
+            );
+        },
+        [
+            decks,
+            fetchedCards,
+            convertToGameCard,
+            shuffleCards,
+            clearBoard,
+            setUpGame,
+            setMessages,
+            user,
+            avatarName,
+            fisherYatesShuffle,
+        ]
+    );
+
     // Initialize test game
     const initializeTestGame = useCallback(() => {
-        const deckData = decks.find((deck) => deck.id === activeDeckId);
+        initializeTestGameWithDeck(activeDeckId);
+    }, [activeDeckId, initializeTestGameWithDeck]);
 
-        if (!deckData || !deckData.decklist.length) {
-            setMessages("No active deck found or deck is empty. Please select a deck in the lobby.");
-            return;
-        }
-
-        // Get user's actual avatar and deck sleeve
-        const userAvatar = avatarName || "AncientIrismon"; // fallback to default
-        const userSleeve = deckData.sleeveName || "Default"; // fallback to default
-
-        // Clear any existing board state and chat messages
-        clearBoard();
-
-        // Clear chat messages for clean test mode experience
-        useGameBoardStates.setState({ messages: [] });
-
-        // Convert deck card IDs to actual cards, preserving duplicates
-        const deckCards: CardTypeWithId[] = [];
-        let missingCards = 0;
-
-        for (const cardId of deckData.decklist) {
-            const foundCard = fetchedCards.find((card) => card.uniqueCardNumber === cardId);
-            if (foundCard) {
-                // Create a new instance for each card to ensure unique IDs
-                deckCards.push({
-                    ...foundCard,
-                    id: foundCard.id + "_" + deckCards.length, // Ensure unique ID for each copy
-                });
-            } else {
-                missingCards++;
-                console.warn(`Card not found in fetchedCards: ${cardId}`);
-            }
-        }
-
-        // Log warnings to console instead of chat
-        if (missingCards > 0) {
-            console.warn(`${missingCards} cards from deck not found in card database`);
-        }
-
-        let gameCards = deckCards.map((card) => convertToGameCard(card));
-
-        // Multi-stage shuffle the full deck (mirrors backend GameService.createGameDeck)
-        gameCards = shuffleCards(gameCards);
-
-        // Additional shuffle immediately before distribution to further break up any patterns
-        gameCards = fisherYatesShuffle(gameCards);
-
-        // Separate egg cards by cardType "Digi-Egg" (mirrors backend getEggDeck)
-        const eggCards = gameCards.filter((card) => card.cardType === "Digi-Egg");
-        const mainDeckCards = gameCards.filter((card) => card.cardType !== "Digi-Egg");
-
-        // Sequential drawing from top of shuffled deck (mirrors backend drawCards)
-        // 1. Draw 5 cards for security from top of main deck
-        const security = mainDeckCards.splice(0, 5).map((card) => ({ ...card, isFaceUp: false }));
-
-        // 2. Draw 5 cards for hand from top of remaining main deck
-        const hand = mainDeckCards.splice(0, 5).map((card) => ({ ...card, isFaceUp: false }));
-
-        // 3. Remaining cards stay as deck field
-        const deckField = mainDeckCards.map((card) => ({ ...card, isFaceUp: false }));
-
-        // 4. Egg deck (no additional shuffling needed - already part of main shuffle)
-        const eggDeck = eggCards.map((card) => ({ ...card, isFaceUp: false }));
-
-        // Set up game state using the store's setState pattern
-        useGameBoardStates.setState({
-            myHand: hand,
-            mySecurity: security,
-            myDeckField: deckField,
-            myEggDeck: eggDeck,
-            myMemory: 0,
-            opponentMemory: 0,
-            phase: Phase.BREEDING,
-            isMyTurn: true,
-            bootStage: BootStage.GAME_IN_PROGRESS, // Start directly in game
-            myAvatar: userAvatar,
-            mySleeve: userSleeve,
-            // Simulate opponent being ready for test mode
-            opponentReady: true,
-        });
-
-        // Set up game info
-        setUpGame(
-            { username: user, avatarName: userAvatar, sleeveName: userSleeve },
-            { username: "Test Dummy", avatarName: "AncientIrismon", sleeveName: "Default" }
-        );
-
-        // Log initialization to console instead of chat for cleaner experience
-        console.log(`Test Mode: Initialized deck "${deckData.name}"`);
-        console.log(
-            `Decklist entries: ${deckData.decklist.length}, Found cards: ${deckCards.length}, Game cards: ${gameCards.length}`
-        );
-        console.log(
-            `Hand: ${hand.length}, Security: ${security.length}, Deck: ${deckField.length}, Eggs: ${eggDeck.length}`
-        );
-    }, [
-        activeDeckId,
-        decks,
-        fetchedCards,
-        convertToGameCard,
-        shuffleCards,
-        clearBoard,
-        setUpGame,
-        setMessages,
-        user,
-        avatarName,
-    ]);
-
-    // Fetch user's avatar on component mount
+    // Fetch user's avatar and active deck on component mount
     useEffect(() => {
         getAvatar();
-    }, [getAvatar]);
+        getActiveDeck();
+    }, [getAvatar, getActiveDeck]);
+
+    // Load active deck initially and when activeDeckId changes
+    useEffect(() => {
+        if (activeDeckId) {
+            axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
+        }
+    }, [activeDeckId]);
+
+    // Update deckObject when decks change (e.g., sleeve updated)
+    useEffect(() => {
+        const currentDeck = decks.find((deck) => deck.id === activeDeckId);
+        if (currentDeck) {
+            setDeckObject(currentDeck);
+        }
+    }, [decks, activeDeckId]);
 
     // Initialize game on component mount
     useEffect(() => {
@@ -506,6 +541,39 @@ export default function DeckTest() {
         console.log("Exiting test mode");
         clearBoard();
         navigate("/");
+    }
+
+    // Handle deck change in test mode
+    function handleDeckChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        const newDeckId = String(event.target.value);
+        setActiveDeck(newDeckId);
+        console.log(`Test mode: Switching to deck ${newDeckId}`);
+        // Automatically reinitialize with new deck using the specific deck ID
+        setTimeout(() => {
+            initializeTestGameWithDeck(newDeckId);
+        }, 100);
+    }
+
+    // Handle modal close and reload deck (mirrors lobby implementation)
+    function handleOnCloseSetImageDialog() {
+        setSleeveSelectionOpen(false);
+        setImageSelectionOpen(false);
+        // Reload deck data after modal closes to reflect changes
+        if (activeDeckId) {
+            axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => {
+                const updatedDeck = res.data as DeckType;
+                setDeckObject(updatedDeck);
+
+                // Update the game field sleeve to match the updated deck sleeve
+                const currentGameState = useGameBoardStates.getState();
+                if (currentGameState.myAvatar && updatedDeck.sleeveName !== currentGameState.mySleeve) {
+                    useGameBoardStates.setState({
+                        mySleeve: updatedDeck.sleeveName || "Default",
+                    });
+                    console.log(`Test mode: Updated game field sleeve to "${updatedDeck.sleeveName}"`);
+                }
+            });
+        }
     }
 
     // Mock WSUtils for components that need it (simplified for direct gameplay)
@@ -614,25 +682,64 @@ export default function DeckTest() {
                     {/* PhaseIndicator intentionally excluded per requirements */}
 
                     {/* OpponentBoardSide intentionally excluded per requirements */}
-                    {/* RESET and EXIT buttons in center where opponent board would be */}
-                    <ResetButtonContainer>
-                        <ResetButton
-                            className="button"
-                            title="Reset the deck and restart test"
-                            onClick={initializeTestGame}
-                        >
-                            ↺ RESET
-                        </ResetButton>
-                        <ExitButton className="button" title="Exit test mode and return to lobby" onClick={handleExit}>
-                            <ExitIcon sx={{ fontSize: "1.2em", mr: 0.5 }} />
-                            EXIT
-                        </ExitButton>
-                    </ResetButtonContainer>
+                    {/* Deck selection and control buttons in center where opponent board would be */}
+                    <TestControlsContainer>
+                        <DeckSelectionCard>
+                            <DeckSelect value={activeDeckId} onChange={handleDeckChange}>
+                                {decks.map((deck) => (
+                                    <option value={deck.id} key={deck.id}>
+                                        {deck.name}
+                                    </option>
+                                ))}
+                            </DeckSelect>
+                            {!!deckObject?.decklist?.length && (
+                                <ProfileDeck
+                                    deck={deckObject}
+                                    lobbyView
+                                    setSleeveSelectionOpen={setSleeveSelectionOpen}
+                                    setImageSelectionOpen={setImageSelectionOpen}
+                                />
+                            )}
+                        </DeckSelectionCard>
+                        <ButtonsContainer>
+                            <ResetButton
+                                className="button"
+                                title="Reset the deck and restart test"
+                                onClick={initializeTestGame}
+                            >
+                                RESET
+                            </ResetButton>
+                            <ExitButton
+                                className="button"
+                                title="Exit test mode and return to lobby"
+                                onClick={handleExit}
+                            >
+                                <ExitIcon sx={{ fontSize: "1.2em", mr: 0.5 }} />
+                                EXIT
+                            </ExitButton>
+                        </ButtonsContainer>
+                    </TestControlsContainer>
                     <PlayerBoardSide wsUtils={mockWSUtils} />
                 </BoardLayout>
 
                 <DragOverlayCards />
             </DndContext>
+
+            {/* Deck sleeve selection modal */}
+            <MenuDialog
+                onClose={handleOnCloseSetImageDialog}
+                open={sleeveSelectionOpen}
+                PaperProps={{ sx: { overflow: "hidden" } }}
+            >
+                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Sleeve"} />
+                <ChooseCardSleeve />
+            </MenuDialog>
+
+            {/* Deck image selection modal */}
+            <MenuDialog onClose={handleOnCloseSetImageDialog} open={imageSelectionOpen}>
+                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Image"} />
+                <ChooseDeckImage />
+            </MenuDialog>
         </Container>
     );
 }
@@ -735,8 +842,8 @@ const ChatAndCardDialogContainerDiv = styled.div`
     z-index: 20;
 `;
 
-const ResetButtonContainer = styled.div`
-    grid-column: 9 / 25;
+const TestControlsContainer = styled.div`
+    grid-column: 4 / 32;
     grid-row: 4 / 10;
     display: flex;
     align-items: center;
@@ -824,4 +931,48 @@ const ExitButton = styled.div`
             inset -1px -1px 1px rgba(255, 255, 255, 0.4),
             inset 1px 1px 1px rgba(0, 0, 0, 0.8);
     }
+`;
+
+const DeckSelect = styled.select`
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid rgba(48, 95, 217, 0.7);
+    border-radius: 3px;
+    background-color: #0c0c0c;
+    color: ghostwhite;
+    font-family: "League Spartan", sans-serif;
+    font-size: 14px;
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(48, 95, 217, 0.7);
+    }
+
+    option {
+        background-color: #0c0c0c;
+        color: ghostwhite;
+    }
+`;
+
+const DeckSelectionCard = styled.div`
+    width: fit-content;
+    height: fit-content;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* 6px gap between selection and ProfileDeck */
+
+    position: relative;
+    color: ghostwhite;
+    background: rgba(12, 21, 16, 0.1); /* Matches chat/card modal background */
+    border: 1px solid rgba(124, 124, 118, 0.6); /* Matches chat/card modal border */
+    border-radius: 1%; /* Matches chat/card modal border radius */
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.09); /* Matches chat/card modal shadow */
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5)); /* Matches chat/card modal filter */
+`;
+
+const ButtonsContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 20px;
 `;
