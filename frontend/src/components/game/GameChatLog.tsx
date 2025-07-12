@@ -4,14 +4,16 @@ import styled from "@emotion/styled";
 import sendIcon from "../../assets/sendIcon.svg";
 import { WSUtils } from "../../pages/GamePage.tsx";
 
-export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
+export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUtils>) {
     const messages = useGameBoardStates((state) => state.messages);
     const [myMessage, setMyMessage] = useState<string>("");
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        sendChatMessage(myMessage);
-        setMyMessage("");
+        if (sendChatMessage) {
+            sendChatMessage(myMessage);
+            setMyMessage("");
+        }
     }
 
     return (
@@ -21,10 +23,10 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
                     if (message.startsWith("[STARTING_PLAYER]≔")) return <></>;
 
                     const userName = message.split("﹕", 2)[0];
-                    const isMyMessage = userName === matchInfo.user;
+                    const isMyMessage = userName === matchInfo?.user;
                     const chatMessage = message.split("﹕", 2)[1];
 
-                    if (chatMessage.startsWith("[FIELD_UPDATE]≔")) {
+                    if (chatMessage?.startsWith("[FIELD_UPDATE]≔")) {
                         const startIndex = message.indexOf("【");
                         const filteredMessage = message.substring(startIndex);
                         const cardName = filteredMessage.split("﹕")[0];
@@ -59,16 +61,31 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: WSUtils) {
                     );
                 })}
             </History>
-            <InputContainer onSubmit={handleSubmit}>
-                <StyledInput
-                    value={myMessage}
-                    placeholder="..."
-                    onChange={(e) => setMyMessage(e.target.value)}
-                ></StyledInput>
-                <StyledButton>
-                    <img alt="send" src={sendIcon} />
-                </StyledButton>
-            </InputContainer>
+            {sendChatMessage && (
+                <InputContainer onSubmit={handleSubmit}>
+                    <StyledInput
+                        value={myMessage}
+                        placeholder="..."
+                        onChange={(e) => setMyMessage(e.target.value)}
+                    ></StyledInput>
+                    <StyledButton>
+                        <img alt="send" src={sendIcon} />
+                    </StyledButton>
+                </InputContainer>
+            )}
+            {!sendChatMessage && (
+                <div
+                    style={{
+                        padding: "8px",
+                        textAlign: "center",
+                        color: "rgba(255,255,255,0.6)",
+                        fontSize: "12px",
+                        borderTop: "1px solid rgba(42, 246, 246, 0.175)",
+                    }}
+                >
+                    Test Mode - Read Only History
+                </div>
+            )}
         </>
     );
 }

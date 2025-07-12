@@ -28,6 +28,7 @@ import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
 import ProfileIcon from "@mui/icons-material/ManageAccountsTwoTone";
+import TestIcon from "@mui/icons-material/FitnessCenterRounded";
 
 import Lottie from "lottie-react";
 import LogoutButton from "../components/lobby/LogoutButton.tsx";
@@ -549,6 +550,10 @@ export default function Lobby() {
                                 <ButtonCard className={"button"} onClick={() => navigate("/profile")}>
                                     <ProfileIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Profile</span>
+                                </ButtonCard>
+                                <ButtonCard className={"button"} onClick={() => navigate("/test")}>
+                                    <TestIcon style={{ fontSize: 50 }} />
+                                    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Test</span>
                                 </ButtonCard>
                                 {/*<DisabledButtonCard title={"currently not available 🔜"}>*/}
                                 {/*    <AiIcon style={{ fontSize: 50 }} />*/}

@@ -13,6 +13,7 @@ import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import Decks from "./pages/Decks.tsx";
 import Deckbuilder from "./pages/Deckbuilder.tsx";
+import DeckTest from "./pages/DeckTest.tsx";
 import { useDeckStates } from "./hooks/useDeckStates.ts";
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
                     <Route path="/deckbuilder" element={<Deckbuilder />} />
                     <Route path="/deckbuilder/:id" element={<Deckbuilder />} />
                     <Route path="/game" element={<GamePage />} />
+                    <Route path="/test" element={<DeckTest />} />
                     <Route path="/*" element={<Navigate to="/" />} />
                 </Route>
 
