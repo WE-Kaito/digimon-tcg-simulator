@@ -444,68 +444,180 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const loadingStateTimeoutRef = useRef<number | null>(null);
     const bootStageTimeoutRef = useRef<number | null>(null);
 
+    // State validation functions
+    const validateGameState = useCallback(() => {
+        const state = useGameBoardStates.getState();
+        const hasCards = state.myHand.length > 0 && state.myDeckField.length > 0 && state.mySecurity.length > 0;
+        const hasOpponentCards =
+            state.opponentHand.length > 0 && state.opponentDeckField.length > 0 && state.opponentSecurity.length > 0;
+        const hasAvatars = state.myAvatar && state.opponentAvatar;
+        const hasGameId = gameId && gameId.includes("‗");
+
+        return {
+            hasCards,
+            hasOpponentCards,
+            hasAvatars,
+            hasGameId,
+            isFullyDistributed: hasCards && hasOpponentCards,
+            isGameSetup: hasAvatars && hasGameId,
+        };
+    }, [gameId]);
+
     // Boot stage timeout functions
     const startDistributionTimeout = useCallback(() => {
         if (distributionTimeoutRef.current) clearTimeout(distributionTimeoutRef.current);
 
         distributionTimeoutRef.current = setTimeout(() => {
-            console.warn("Card distribution timeout - attempting fallback...");
+            const validation = validateGameState();
+            console.warn("Card distribution timeout - attempting smart recovery...", validation);
 
-            // Primary: Original player one retries
-            if (isPlayerOne) {
-                websocket.sendMessage("/distributeCards:" + gameId);
-                console.log("Player one retrying distribution");
+            if (!validation.isFullyDistributed) {
+                // Try redistribution based on current player role and state
+                if (isPlayerOne) {
+                    console.log("Recovery: Player 1 retrying distribution");
+                    websocket.sendMessage("/distributeCards:" + gameId);
+                } else {
+                    console.log("Recovery: Player 2 taking over distribution");
+                    websocket.sendMessage("/distributeCards:" + gameId);
+                }
+
+                // Start one more timeout for final attempt
+                distributionTimeoutRef.current = setTimeout(() => {
+                    const finalValidation = validateGameState();
+                    if (!finalValidation.isFullyDistributed) {
+                        console.error("Final distribution timeout - showing error");
+                        setEndModal(true);
+                        setEndModalText("Failed to distribute cards. Please try restarting the match.");
+                    }
+                }, 15000); // 15 second final timeout
             } else {
-                // Fallback: Player two takes over if player one failed
-                console.warn("Player two taking over distribution due to player one timeout");
-                websocket.sendMessage("/distributeCards:" + gameId);
+                // Cards are actually distributed, just fix the stage
+                console.log("Recovery: Cards distributed, correcting stage");
+                setBootStage(BootStage.MULLIGAN);
             }
-
-            // Start one more timeout for final attempt
-            distributionTimeoutRef.current = setTimeout(() => {
-                console.error("Final distribution timeout - showing error");
-                setEndModal(true);
-                setEndModalText("Failed to start game. Please try restarting the match.");
-            }, 10000); // 10 second final timeout
         }, 20000); // 20 second initial timeout
-    }, [gameId, isPlayerOne, websocket, setEndModal, setEndModalText]);
+    }, [gameId, isPlayerOne, websocket, setEndModal, setEndModalText, validateGameState, setBootStage]);
 
     const startLoadedTimeout = useCallback(() => {
         if (loadedTimeoutRef.current) clearTimeout(loadedTimeoutRef.current);
 
         loadedTimeoutRef.current = setTimeout(() => {
-            console.warn("Loaded message timeout - assuming opponent ready");
+            const validation = validateGameState();
+            console.warn("Loaded message timeout - attempting recovery", validation);
+
+            // Clear loading state regardless
             setIsLoading(false);
-            if (bootStage === BootStage.MULLIGAN_DONE) setBootStage(BootStage.GAME_IN_PROGRESS);
+
+            // Progress stage if cards are properly distributed
+            if (validation.isFullyDistributed) {
+                if (bootStage < BootStage.MULLIGAN) {
+                    console.log("Recovery: Progressing to MULLIGAN stage");
+                    setBootStage(BootStage.MULLIGAN);
+                } else if (bootStage === BootStage.MULLIGAN_DONE) {
+                    console.log("Recovery: Progressing to GAME_IN_PROGRESS");
+                    setBootStage(BootStage.GAME_IN_PROGRESS);
+                }
+            }
         }, 15000); // 15 second timeout
-    }, [bootStage, setBootStage, setIsLoading]);
+    }, [bootStage, setBootStage, setIsLoading, validateGameState]);
 
     const startLoadingStateTimeout = useCallback(() => {
         if (loadingStateTimeoutRef.current) clearTimeout(loadingStateTimeoutRef.current);
 
         loadingStateTimeoutRef.current = setTimeout(() => {
-            console.warn("Loading state timeout - attempting recovery");
+            const validation = validateGameState();
+            console.warn("Loading state timeout - attempting recovery", validation);
+
+            // Always clear loading state
             setIsLoading(false);
 
-            // Show user-friendly recovery message
-            setEndModal(true);
-            setEndModalText("Game loading timed out. Please try restarting the match.");
+            // Try to recover based on current state
+            if (!validation.isGameSetup) {
+                console.log("Recovery: Rejoining game due to missing setup");
+                websocket.sendMessage("/joinGame:" + gameId);
+            } else if (!validation.isFullyDistributed) {
+                console.log("Recovery: Retrying card distribution");
+                if (isPlayerOne) {
+                    websocket.sendMessage("/distributeCards:" + gameId);
+                } else {
+                    // Give player 2 a chance to take over
+                    setTimeout(() => websocket.sendMessage("/distributeCards:" + gameId), 2000);
+                }
+            } else {
+                // Everything looks good, just progress the stage
+                console.log("Recovery: State is valid, progressing stage");
+                if (bootStage < BootStage.MULLIGAN) {
+                    setBootStage(BootStage.MULLIGAN);
+                }
+            }
         }, 30000); // 30 second loading timeout
-    }, [setIsLoading, setEndModal, setEndModalText]);
+    }, [setIsLoading, validateGameState, websocket, gameId, isPlayerOne, bootStage, setBootStage]);
+
+    const attemptRecovery = useCallback(() => {
+        const validation = validateGameState();
+        console.log("Attempting recovery for stage:", bootStage, "Validation:", validation);
+
+        switch (bootStage) {
+            case BootStage.CLEAR:
+                // Stuck at game start - rejoin
+                console.log("Recovery: Rejoining game");
+                websocket.sendMessage("/joinGame:" + gameId);
+                break;
+
+            case BootStage.SHOW_STARTING_PLAYER:
+                if (!validation.isGameSetup) {
+                    // Missing game setup, restart
+                    console.log("Recovery: Restarting game setup");
+                    websocket.sendMessage("/joinGame:" + gameId);
+                } else if (isPlayerOne) {
+                    // Player 1 should request starting player
+                    console.log("Recovery: Player 1 requesting starting players");
+                    websocket.sendMessage("/getStartingPlayers:" + gameId);
+                } else {
+                    // Player 2 waits, but can take over if needed
+                    console.log("Recovery: Player 2 waiting for starting player");
+                    setTimeout(() => {
+                        if (bootStage === BootStage.SHOW_STARTING_PLAYER) {
+                            console.log("Recovery: Player 2 taking over starting player request");
+                            websocket.sendMessage("/getStartingPlayers:" + gameId);
+                        }
+                    }, 5000);
+                }
+                break;
+
+            default:
+                // For other stages, try to progress from current state
+                if (!validation.isFullyDistributed && isPlayerOne) {
+                    console.log("Recovery: Player 1 redistributing cards");
+                    websocket.sendMessage("/distributeCards:" + gameId);
+                } else if (!validation.isFullyDistributed && !isPlayerOne) {
+                    // Player 2 can take over distribution if needed
+                    console.log("Recovery: Player 2 taking over card distribution");
+                    websocket.sendMessage("/distributeCards:" + gameId);
+                } else if (validation.isFullyDistributed && bootStage < BootStage.MULLIGAN) {
+                    // Cards are distributed but stage is wrong, fix it
+                    console.log("Recovery: Correcting boot stage to MULLIGAN");
+                    setBootStage(BootStage.MULLIGAN);
+                }
+                break;
+        }
+    }, [bootStage, gameId, isPlayerOne, websocket, validateGameState, setBootStage]);
 
     const startBootStageTimeout = useCallback(() => {
         if (bootStageTimeoutRef.current) clearTimeout(bootStageTimeoutRef.current);
 
         bootStageTimeoutRef.current = setTimeout(() => {
-            console.warn("Boot stage timeout - stuck in stage:", bootStage);
+            console.warn("Boot stage timeout - attempting recovery for stage:", bootStage);
+            attemptRecovery();
 
-            // Provide stage-specific recovery
-            if (bootStage < BootStage.GAME_IN_PROGRESS) {
+            // Set a final timeout for complete failure
+            bootStageTimeoutRef.current = setTimeout(() => {
+                console.error("Recovery failed - showing error");
                 setEndModal(true);
-                setEndModalText("Game startup is taking longer than expected. Please try restarting the match.");
-            }
-        }, 45000); // 45 second overall boot timeout
-    }, [bootStage, setEndModal, setEndModalText]);
+                setEndModalText("Unable to start game after multiple attempts. Please restart the match.");
+            }, 20000); // 20 second final timeout after recovery attempt
+        }, 30000); // 30 second initial timeout before recovery
+    }, [bootStage, attemptRecovery, setEndModal, setEndModalText]);
 
     const clearBootTimeouts = useCallback(() => {
         if (distributionTimeoutRef.current) {
@@ -526,18 +638,36 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         }
     }, []);
 
-    // Monitor boot stage progression
+    // Monitor boot stage progression and auto-correct inconsistencies
     useEffect(() => {
-        if (bootStage < BootStage.GAME_IN_PROGRESS) {
+        if (bootStage < BootStage.MULLIGAN) {
             startBootStageTimeout();
         } else {
-            // Clear boot stage timeout when game is in progress
+            // Clear boot stage timeout when game is in progress or during mulligan
             if (bootStageTimeoutRef.current) {
                 clearTimeout(bootStageTimeoutRef.current);
                 bootStageTimeoutRef.current = null;
             }
         }
-    }, [bootStage, startBootStageTimeout]);
+
+        // Periodic health check to auto-correct stage mismatches
+        const healthCheckInterval = setInterval(() => {
+            const validation = validateGameState();
+
+            // Auto-correct stage if cards are distributed but stage is wrong
+            if (validation.isFullyDistributed && bootStage < BootStage.MULLIGAN) {
+                console.log("Health check: Auto-correcting boot stage to MULLIGAN");
+                setBootStage(BootStage.MULLIGAN);
+            }
+
+            // Stop health checks once game is in progress
+            if (bootStage >= BootStage.GAME_IN_PROGRESS) {
+                clearInterval(healthCheckInterval);
+            }
+        }, 5000); // Check every 5 seconds
+
+        return () => clearInterval(healthCheckInterval);
+    }, [bootStage, startBootStageTimeout, validateGameState, setBootStage]);
 
     // Cleanup timeouts on unmount
     useEffect(() => () => clearBootTimeouts(), [clearBootTimeouts]);
