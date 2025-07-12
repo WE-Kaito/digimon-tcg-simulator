@@ -29,7 +29,7 @@ import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useNavigate } from "react-router-dom";
-import ProfileDeck from "../components/profile/SortableProfileDeck.tsx";
+import ProfileDeck from "../components/profile/ProfileDeck.tsx";
 import MenuDialog from "../components/MenuDialog.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
