@@ -18,7 +18,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Getter
@@ -29,7 +28,7 @@ public class GameService extends TextWebSocketHandler {
 
     private final DeckService deckService;
 
-    public final Map<String, Set<WebSocketSession>> gameRooms = new ConcurrentHashMap<>();
+    public final Map<String, Set<WebSocketSession>> gameRooms = new HashMap<>();
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
