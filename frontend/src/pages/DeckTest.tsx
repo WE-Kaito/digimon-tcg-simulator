@@ -18,7 +18,7 @@ import { SendMessage } from "react-use-websocket";
 import EndModal from "../components/game/ModalDialog/EndModal.tsx";
 import TokenModal from "../components/game/ModalDialog/TokenModal.tsx";
 import GameChatLog from "../components/game/GameChatLog.tsx";
-import { Gavel as RulingsIcon, OpenInNew as LinkIcon, ExitToApp as ExitIcon } from "@mui/icons-material";
+import { Gavel as RulingsIcon, OpenInNew as LinkIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
@@ -714,7 +714,6 @@ export default function DeckTest() {
                                 title="Exit test mode and return to lobby"
                                 onClick={handleExit}
                             >
-                                <ExitIcon sx={{ fontSize: "1.2em", mr: 0.5 }} />
                                 EXIT
                             </ExitButton>
                         </ButtonsContainer>

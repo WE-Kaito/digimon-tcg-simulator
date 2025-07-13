@@ -547,18 +547,14 @@ export default function Lobby() {
                                     <DeckIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Decks</span>
                                 </ButtonCard>
+                                <ButtonCard className={"button"} onClick={() => navigate("/test")}>
+                                    <TestIcon style={{ fontSize: 50 }} />
+                                    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Test </span>
+                                </ButtonCard>
                                 <ButtonCard className={"button"} onClick={() => navigate("/profile")}>
                                     <ProfileIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Profile</span>
                                 </ButtonCard>
-                                <ButtonCard className={"button"} onClick={() => navigate("/test")}>
-                                    <TestIcon style={{ fontSize: 50 }} />
-                                    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Test</span>
-                                </ButtonCard>
-                                {/*<DisabledButtonCard title={"currently not available 🔜"}>*/}
-                                {/*    <AiIcon style={{ fontSize: 50 }} />*/}
-                                {/*    <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>vs. Ai</span>*/}
-                                {/*</DisabledButtonCard>*/}
                             </MenuButtonContainerDiv>
                         )}
 
