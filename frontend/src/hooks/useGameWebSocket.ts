@@ -474,10 +474,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (!validation.isFullyDistributed) {
                 // Try redistribution based on current player role and state
                 if (isPlayerOne) {
-                    console.log("Recovery: Player 1 retrying distribution");
                     websocket.sendMessage("/distributeCards:" + gameId);
                 } else {
-                    console.log("Recovery: Player 2 taking over distribution");
                     websocket.sendMessage("/distributeCards:" + gameId);
                 }
 
@@ -492,7 +490,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 }, 15000); // 15 second final timeout
             } else {
                 // Cards are actually distributed, just fix the stage
-                console.log("Recovery: Cards distributed, correcting stage");
                 setBootStage(BootStage.MULLIGAN);
             }
         }, 20000); // 20 second initial timeout
@@ -511,10 +508,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             // Progress stage if cards are properly distributed
             if (validation.isFullyDistributed) {
                 if (bootStage < BootStage.MULLIGAN) {
-                    console.log("Recovery: Progressing to MULLIGAN stage");
                     setBootStage(BootStage.MULLIGAN);
                 } else if (bootStage === BootStage.MULLIGAN_DONE) {
-                    console.log("Recovery: Progressing to GAME_IN_PROGRESS");
                     setBootStage(BootStage.GAME_IN_PROGRESS);
                 }
             }
@@ -533,10 +528,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             // Try to recover based on current state
             if (!validation.isGameSetup) {
-                console.log("Recovery: Rejoining game due to missing setup");
                 websocket.sendMessage("/joinGame:" + gameId);
             } else if (!validation.isFullyDistributed) {
-                console.log("Recovery: Retrying card distribution");
                 if (isPlayerOne) {
                     websocket.sendMessage("/distributeCards:" + gameId);
                 } else {
@@ -545,7 +538,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 }
             } else {
                 // Everything looks good, just progress the stage
-                console.log("Recovery: State is valid, progressing stage");
                 if (bootStage < BootStage.MULLIGAN) {
                     setBootStage(BootStage.MULLIGAN);
                 }
@@ -560,25 +552,20 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         switch (bootStage) {
             case BootStage.CLEAR:
                 // Stuck at game start - rejoin
-                console.log("Recovery: Rejoining game");
                 websocket.sendMessage("/joinGame:" + gameId);
                 break;
 
             case BootStage.SHOW_STARTING_PLAYER:
                 if (!validation.isGameSetup) {
                     // Missing game setup, restart
-                    console.log("Recovery: Restarting game setup");
                     websocket.sendMessage("/joinGame:" + gameId);
                 } else if (isPlayerOne) {
                     // Player 1 should request starting player
-                    console.log("Recovery: Player 1 requesting starting players");
                     websocket.sendMessage("/getStartingPlayers:" + gameId);
                 } else {
                     // Player 2 waits, but can take over if needed
-                    console.log("Recovery: Player 2 waiting for starting player");
                     setTimeout(() => {
                         if (bootStage === BootStage.SHOW_STARTING_PLAYER) {
-                            console.log("Recovery: Player 2 taking over starting player request");
                             websocket.sendMessage("/getStartingPlayers:" + gameId);
                         }
                     }, 5000);
@@ -588,15 +575,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             default:
                 // For other stages, try to progress from current state
                 if (!validation.isFullyDistributed && isPlayerOne) {
-                    console.log("Recovery: Player 1 redistributing cards");
                     websocket.sendMessage("/distributeCards:" + gameId);
                 } else if (!validation.isFullyDistributed && !isPlayerOne) {
                     // Player 2 can take over distribution if needed
-                    console.log("Recovery: Player 2 taking over card distribution");
                     websocket.sendMessage("/distributeCards:" + gameId);
                 } else if (validation.isFullyDistributed && bootStage < BootStage.MULLIGAN) {
                     // Cards are distributed but stage is wrong, fix it
-                    console.log("Recovery: Correcting boot stage to MULLIGAN");
                     setBootStage(BootStage.MULLIGAN);
                 }
                 break;
@@ -656,7 +640,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             // Auto-correct stage if cards are distributed but stage is wrong
             if (validation.isFullyDistributed && bootStage < BootStage.MULLIGAN) {
-                console.log("Health check: Auto-correcting boot stage to MULLIGAN");
                 setBootStage(BootStage.MULLIGAN);
             }
 

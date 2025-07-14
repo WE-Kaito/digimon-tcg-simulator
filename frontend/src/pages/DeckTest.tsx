@@ -10,8 +10,11 @@ import SoundBar from "../components/SoundBar.tsx";
 import MemoryBar from "../components/game/MemoryBar.tsx";
 import { useSound } from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus/ContextMenus.tsx";
-import { DndContext, MouseSensor, pointerWithin, TouchSensor, useSensor } from "@dnd-kit/core";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
 import useDropZone from "../hooks/useDropZone.ts";
+import useDropZoneReactDnd from "../hooks/useDropZoneReactDnd.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { BootStage, CardTypeGame, CardTypeWithId, Phase, DeckType } from "../utils/types.ts";
 import { SendMessage } from "react-use-websocket";
@@ -22,7 +25,7 @@ import { Gavel as RulingsIcon, OpenInNew as LinkIcon } from "@mui/icons-material
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
-import DragOverlayCards from "../components/game/DragOverlayCards.tsx";
+import DragLayerCustom from "../components/game/DragLayerCustom.tsx";
 import CardModal from "../components/game/CardModal.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
@@ -405,15 +408,6 @@ export default function DeckTest() {
                 { username: user, avatarName: userAvatar, sleeveName: userSleeve },
                 { username: "Test Dummy", avatarName: "AncientIrismon", sleeveName: "Default" }
             );
-
-            // Log initialization to console instead of chat for cleaner experience
-            console.log(`Test Mode: Initialized deck "${deckData.name}"`);
-            console.log(
-                `Decklist entries: ${deckData.decklist.length}, Found cards: ${deckCards.length}, Game cards: ${gameCards.length}`
-            );
-            console.log(
-                `Hand: ${hand.length}, Security: ${security.length}, Deck: ${deckField.length}, Eggs: ${eggDeck.length}`
-            );
         },
         [
             decks,
@@ -465,14 +459,12 @@ export default function DeckTest() {
     // Mock sendMessage function for local testing
     const mockSendMessage: SendMessage = useCallback((message) => {
         const msgString = typeof message === "string" ? message : String(message);
-        console.log("Test mode - would send:", msgString);
         // Log move actions to console instead of chat
         if (msgString.includes("/moveCard:")) {
             const parts = msgString.split(":");
             if (parts.length >= 5) {
                 const from = parts[3];
                 const to = parts[4];
-                console.log(`Card moved: ${from} → ${to}`);
             }
         }
     }, []);
@@ -512,6 +504,29 @@ export default function DeckTest() {
         clearAttackAnimation,
     });
 
+    const { createDropHandler } = useDropZoneReactDnd({
+        sendMessage: mockSendMessage,
+        restartAttackAnimation,
+        clearAttackAnimation,
+    });
+
+    // Handle react-dnd drop events
+    useLayoutEffect(() => {
+        const handleReactDndDrop = (event: CustomEvent) => {
+            const { item, targetId } = event.detail;
+            const isBottom = targetId.includes("_bottom");
+            const actualTargetId = isBottom ? targetId.replace("_bottom", "") : targetId;
+
+            const dropHandler = createDropHandler(actualTargetId, { bottom: isBottom });
+            if (dropHandler?.drop) {
+                dropHandler.drop(item);
+            }
+        };
+
+        window.addEventListener("reactDndDrop", handleReactDndDrop as EventListener);
+        return () => window.removeEventListener("reactDndDrop", handleReactDndDrop as EventListener);
+    }, [createDropHandler]);
+
     // Local phase change
     function nextPhase() {
         if (phaseLoading) return;
@@ -520,7 +535,6 @@ export default function DeckTest() {
             setPhase();
             playNextPhaseSfx();
             setPhaseLoading(false);
-            console.log("Phase changed locally");
         }, 920);
         return () => clearTimeout(timer);
     }
@@ -538,7 +552,6 @@ export default function DeckTest() {
 
     // Exit test mode and return to lobby
     function handleExit() {
-        console.log("Exiting test mode");
         clearBoard();
         navigate("/");
     }
@@ -547,7 +560,6 @@ export default function DeckTest() {
     function handleDeckChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const newDeckId = String(event.target.value);
         setActiveDeck(newDeckId);
-        console.log(`Test mode: Switching to deck ${newDeckId}`);
         // Automatically reinitialize with new deck using the specific deck ID
         setTimeout(() => {
             initializeTestGameWithDeck(newDeckId);
@@ -570,7 +582,6 @@ export default function DeckTest() {
                     useGameBoardStates.setState({
                         mySleeve: updatedDeck.sleeveName || "Default",
                     });
-                    console.log(`Test mode: Updated game field sleeve to "${updatedDeck.sleeveName}"`);
                 }
             });
         }
@@ -583,7 +594,6 @@ export default function DeckTest() {
         sendMoveCard,
         sendChatMessage,
         sendSfx: (sfx: string) => {
-            console.log("Test mode SFX:", sfx);
             if (sfx === "playShuffleDeckSfx") playShuffleDeckSfx();
         },
         sendPhaseUpdate: () => console.log("Test mode: phase update"),
@@ -592,17 +602,6 @@ export default function DeckTest() {
     };
 
     // Mouse and touch sensors for drag and drop
-    const mouseSensor = useSensor(MouseSensor, {
-        activationConstraint: {
-            distance: 3,
-        },
-    });
-    const touchSensor = useSensor(TouchSensor, {
-        activationConstraint: {
-            delay: 1500,
-            distance: 5,
-        },
-    });
 
     // Layout
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
@@ -610,6 +609,87 @@ export default function DeckTest() {
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
     useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
+
+    // Determine backend based on touch capability
+    const backend = "ontouchstart" in window ? TouchBackend : HTML5Backend;
+
+    const gameContent = (
+        <BoardLayout height={height}>
+            <SettingsContainer>
+                <SoundBar iconFontSize={iconWidth}>
+                    <a
+                        href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={"Rulings"}
+                    >
+                        <StyledIconButton sx={{ color: "white", position: "relative" }}>
+                            <RulingsIcon sx={{ fontSize: `${iconWidth * 0.85}px!important`, opacity: 0.8 }} />
+                            <LinkIcon
+                                sx={{
+                                    color: "dodgerblue",
+                                    position: "absolute",
+                                    right: 0,
+                                    top: 7,
+                                    fontSize: `${iconWidth * 0.4}px!important`,
+                                    pointerEvents: "none",
+                                }}
+                            />
+                        </StyledIconButton>
+                    </a>
+                    <SettingsMenuButton iconFontSize={`${iconWidth}px!important`} />
+                </SoundBar>
+            </SettingsContainer>
+
+            <ChatAndCardDialogContainerDiv>
+                {!stackModal && !openedCardModal && (
+                    <GameChatLog matchInfo={mockWSUtils.matchInfo} sendChatMessage={sendChatMessage} />
+                )}
+                {!!openedCardModal && <CardModal />}
+                {!!stackModal && <StackModal />}
+            </ChatAndCardDialogContainerDiv>
+
+            <RevealArea />
+
+            <MemoryBar wsUtils={mockWSUtils} />
+            {/* PhaseIndicator intentionally excluded per requirements */}
+
+            {/* OpponentBoardSide intentionally excluded per requirements */}
+            {/* Deck selection and control buttons in center where opponent board would be */}
+            <TestControlsContainer>
+                <DeckSelectionCard>
+                    <DeckSelect value={activeDeckId} onChange={handleDeckChange}>
+                        {decks.map((deck) => (
+                            <option value={deck.id} key={deck.id}>
+                                {deck.name}
+                            </option>
+                        ))}
+                    </DeckSelect>
+                    {!!deckObject?.decklist?.length && (
+                        <ProfileDeck
+                            deck={deckObject}
+                            lobbyView
+                            setSleeveSelectionOpen={setSleeveSelectionOpen}
+                            setImageSelectionOpen={setImageSelectionOpen}
+                        />
+                    )}
+                </DeckSelectionCard>
+                <ButtonsContainer>
+                    <ResetButton
+                        className="button"
+                        title="Reset the deck and restart test"
+                        onClick={initializeTestGame}
+                    >
+                        RESET
+                    </ResetButton>
+                    <ExitButton className="button" title="Exit test mode and return to lobby" onClick={handleExit}>
+                        EXIT
+                    </ExitButton>
+                </ButtonsContainer>
+            </TestControlsContainer>
+            <PlayerBoardSide wsUtils={mockWSUtils} />
+        </BoardLayout>
+    );
 
     return (
         <Container ref={boardContainerRef}>
@@ -635,94 +715,10 @@ export default function DeckTest() {
                 <CardDetails />
             </DetailsContainer>
 
-            <DndContext
-                onDragEnd={handleDragEnd}
-                autoScroll={false}
-                collisionDetection={pointerWithin}
-                sensors={[mouseSensor, touchSensor]}
-            >
-                <BoardLayout height={height}>
-                    <SettingsContainer>
-                        <SoundBar iconFontSize={iconWidth}>
-                            <a
-                                href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={"Rulings"}
-                            >
-                                <StyledIconButton sx={{ color: "white", position: "relative" }}>
-                                    <RulingsIcon sx={{ fontSize: `${iconWidth * 0.85}px!important`, opacity: 0.8 }} />
-                                    <LinkIcon
-                                        sx={{
-                                            color: "dodgerblue",
-                                            position: "absolute",
-                                            right: 0,
-                                            top: 7,
-                                            fontSize: `${iconWidth * 0.4}px!important`,
-                                            pointerEvents: "none",
-                                        }}
-                                    />
-                                </StyledIconButton>
-                            </a>
-                            <SettingsMenuButton iconFontSize={`${iconWidth}px!important`} />
-                        </SoundBar>
-                    </SettingsContainer>
-
-                    <ChatAndCardDialogContainerDiv>
-                        {!stackModal && !openedCardModal && (
-                            <GameChatLog matchInfo={mockWSUtils.matchInfo} sendChatMessage={sendChatMessage} />
-                        )}
-                        {!!openedCardModal && <CardModal />}
-                        {!!stackModal && <StackModal />}
-                    </ChatAndCardDialogContainerDiv>
-
-                    <RevealArea />
-
-                    <MemoryBar wsUtils={mockWSUtils} />
-                    {/* PhaseIndicator intentionally excluded per requirements */}
-
-                    {/* OpponentBoardSide intentionally excluded per requirements */}
-                    {/* Deck selection and control buttons in center where opponent board would be */}
-                    <TestControlsContainer>
-                        <DeckSelectionCard>
-                            <DeckSelect value={activeDeckId} onChange={handleDeckChange}>
-                                {decks.map((deck) => (
-                                    <option value={deck.id} key={deck.id}>
-                                        {deck.name}
-                                    </option>
-                                ))}
-                            </DeckSelect>
-                            {!!deckObject?.decklist?.length && (
-                                <ProfileDeck
-                                    deck={deckObject}
-                                    lobbyView
-                                    setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                    setImageSelectionOpen={setImageSelectionOpen}
-                                />
-                            )}
-                        </DeckSelectionCard>
-                        <ButtonsContainer>
-                            <ResetButton
-                                className="button"
-                                title="Reset the deck and restart test"
-                                onClick={initializeTestGame}
-                            >
-                                RESET
-                            </ResetButton>
-                            <ExitButton
-                                className="button"
-                                title="Exit test mode and return to lobby"
-                                onClick={handleExit}
-                            >
-                                EXIT
-                            </ExitButton>
-                        </ButtonsContainer>
-                    </TestControlsContainer>
-                    <PlayerBoardSide wsUtils={mockWSUtils} />
-                </BoardLayout>
-
-                <DragOverlayCards />
-            </DndContext>
+            <DndProvider backend={backend}>
+                {gameContent}
+                <DragLayerCustom />
+            </DndProvider>
 
             {/* Deck sleeve selection modal */}
             <MenuDialog

@@ -160,6 +160,6 @@ export const sleeves: Picture[] = [
     { name: "Dobermon", imagePath: dobemonSrc, artist: "Drak" },
 ];
 
-export function getSleeve(sleeveName: string): string {
+export function getSleeve(sleeveName?: string): string {
     return sleeves.find((s) => s.name === sleeveName)?.imagePath ?? cardBack;
 }

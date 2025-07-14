@@ -6,8 +6,9 @@ import { useContextMenu } from "react-contexify";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { useSound } from "../../../hooks/useSound.ts";
-import { useDroppable } from "@dnd-kit/core";
+// import { useDroppable } from "@dnd-kit/core";
 import { useLongPress } from "../../../hooks/useLongPress.ts";
+import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 
 export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
@@ -17,7 +18,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
-    const { setNodeRef: deckTopRef, isOver: isOverTop } = useDroppable({
+    const { setNodeRef: deckTopRef, isOver: isOverTop } = useDroppableReactDnd({
         id: "myDeckField",
         data: { accept: ["card"] },
     });
@@ -25,7 +26,10 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
         setNodeRef: deckBottomRef,
         isOver: isOverBottom,
         active,
-    } = useDroppable({ id: "myDeckField_bottom", data: { accept: ["card"] } });
+    } = useDroppableReactDnd({ 
+        id: "myDeckField_bottom", 
+        data: { accept: ["card"] },
+    });
 
     const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 
@@ -49,7 +53,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     return (
         <Container className={"button"}>
             <DeckImg
-                ref={deckTopRef}
+                ref={deckTopRef as any}
                 alt="deck"
                 src={getSleeve(mySleeve)}
                 isOver={isOverTop}
@@ -61,7 +65,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
                 onTouchEnd={handleTouchEnd}
             />
 
-            <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
+            <DeckBottomZone ref={deckBottomRef as any} isOver={isOverBottom}>
                 {canDropToBottom && (
                     <>
                         <TriangleIcon />

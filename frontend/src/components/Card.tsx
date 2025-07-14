@@ -18,7 +18,7 @@ import { ContentCopyTwoTone as DragStackIcon, Shield as ShieldIcon } from "@mui/
 import cardBackSrc from "../assets/cardBack.jpg";
 import { useSound } from "../hooks/useSound.ts";
 import { getSleeve } from "../utils/sleeves.ts";
-import { useDraggable } from "@dnd-kit/core";
+import { DragPreviewImage, useDrag } from "react-dnd";
 import { WSUtils } from "../pages/GamePage.tsx";
 import { OpenedCardModal, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
@@ -158,6 +158,8 @@ export default function Card(props: CardProps) {
     const stackModal = useGameUIStates((state) => state.stackModal);
     const stackDragIcon = useGameUIStates((state) => state.stackDragIcon);
     const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
+    const stackDraggedLocation = useGameUIStates((state) => state.stackDraggedLocation);
+    const setStackDraggedLocation = useGameUIStates((state) => state.setStackDraggedLocation);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -174,43 +176,87 @@ export default function Card(props: CardProps) {
         !(openedCardModal === OpenedCardModal.MY_SECURITY && location === "mySecurity") &&
         ((isHandHidden && location === "myHand") || (!card.isFaceUp && location !== "myHand"));
 
-    const {
-        attributes,
-        listeners,
-        setNodeRef: drag,
-        isDragging,
-        over,
-        active,
-    } = useDraggable({
-        id: card.id + "_" + location,
-        data: {
-            type: "card",
-            content: {
-                id: card.id,
-                location,
-                cardNumber: card.cardNumber,
-                cardType: card.cardType,
-                name: card.name,
-                imgSrc: card.imgUrl,
-                isFaceUp: card.isFaceUp,
+    // Determine drag mode logic
+    const isSingleDrag =
+        !isStackDragMode ||
+        ["myHand", "mySecurity", "myTrash"].includes(location) ||
+        (stackSliceIndex === 0 && !tamerLocations.includes(location)) ||
+        (stackSliceIndex === locationCards.length - 1 && tamerLocations.includes(location));
+
+    // React-DND drag logic
+    const [{ isDragging }, dragRef, preview] = useDrag(
+        () => ({
+            type: isSingleDrag ? "card" : "card-stack",
+            item: isSingleDrag
+                ? {
+                      type: "card",
+                      content: {
+                          id: card.id,
+                          location,
+                          cardnumber: card.cardNumber,
+                          type: card.cardType,
+                          name: card.name,
+                          imgSrc: card.imgUrl,
+                          isFaceUp: card.isFaceUp,
+                      },
+                  }
+                : {
+                      type: "card-stack",
+                      content: {
+                          location,
+                          cards: inTamerField
+                              ? locationCards.slice(index ?? 0) // For tamers, drag from current index to end
+                              : locationCards.slice(0, (index ?? 0) + 1), // For digimon, drag from start to current index
+                      },
+                  },
+            canDrag: !opponentFieldLocations.includes(location) && opponentReady,
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
+        }),
+        [
+            isSingleDrag,
+            card.id,
+            location,
+            card.cardNumber,
+            card.cardType,
+            card.name,
+            card.imgUrl,
+            card.isFaceUp,
+            locationCards,
+            opponentFieldLocations,
+            opponentReady,
+        ]
+    );
+
+    // Separate drag logic for stack icon - always drags as card-stack
+    const [{ isDragging: isStackDragging }, stackDragRef, previewStackIcon] = useDrag(() => {
+        const stackCards = inTamerField
+            ? locationCards.slice(index ?? 0) // For tamers, drag from current index to end
+            : locationCards.slice(0, (index ?? 0) + 1); // For digimon, drag from start to current index
+
+        return {
+            type: "card-stack",
+            item: {
+                type: "card-stack",
+                content: {
+                    location,
+                    cards: stackCards,
+                },
             },
-        },
-        disabled: opponentFieldLocations.includes(location) || !opponentReady,
-    });
+            canDrag: !opponentFieldLocations.includes(location) && opponentReady && stackDraggedLocation === null,
+            end: () => {
+                setStackSliceIndex(0);
+                setStackDragIcon(null);
+                setStackDraggedLocation(null);
+            },
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
+        };
+    }, [location, locationCards, index, inTamerField, opponentFieldLocations, opponentReady]);
 
-    // create new references every change to prevent stack getting "stuck", needs to be tested
-    const helperId = locationCards.map((c) => c.id.substring(1, 3)).join();
-
-    const {
-        attributes: stackAttributes,
-        listeners: stackListeners,
-        setNodeRef: dragStack,
-        isDragging: isDraggingStack,
-        active: activeStack,
-    } = useDraggable({
-        id: location + "_" + helperId + "_stack",
-        data: { type: "card-stack", content: { location } },
-    });
+    useEffect(() => setStackDraggedLocation(isStackDragging ? location : null), [isStackDragging]);
 
     useEffect(() => setRenderEffectAnimation(getIsCardEffect(card.id)), [cardIdWithEffect]);
     useEffect(() => setRenderTargetAnimation(getIsCardTarget(card.id)), [cardIdWithTarget]);
@@ -242,15 +288,9 @@ export default function Card(props: CardProps) {
     }
 
     function handleHover() {
-        if (index !== undefined && !active && isStackDragMode) setStackSliceIndex(index);
+        if (index !== undefined && isStackDragMode) setStackSliceIndex(index);
         if (isCardFaceDown) setHoveredId(card.id);
-        if (
-            (isCardFaceDown && location === "mySecurity") ||
-            (isCardFaceDown && !location.includes("my")) ||
-            active ||
-            activeStack
-        )
-            return;
+        if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;
         setHoverCard(card);
         if (inheritAllowed) {
             setInheritCardInfo(inheritedEffects);
@@ -307,16 +347,11 @@ export default function Card(props: CardProps) {
 
     const isHovered = hoverCard === card;
     const isPartOfDraggedStack =
-        isDraggingStack && index !== undefined && (inTamerField ? index >= stackSliceIndex : index <= stackSliceIndex);
+        stackDraggedLocation === location &&
+        index !== undefined &&
+        (inTamerField ? index >= stackSliceIndex : index <= stackSliceIndex); // Simplified for react-dnd
 
-    const overId = String(over?.id);
-    const opacity = over
-        ? overId.includes("mySecurity")
-            ? 0
-            : overId.includes("bottom") || overId === "opponentSecurity"
-              ? 0.35
-              : 1
-        : 1;
+    const opacity = 1; // Simplified for react-dnd
 
     const isPartOfDraggableStack =
         index !== undefined &&
@@ -324,23 +359,8 @@ export default function Card(props: CardProps) {
         location === stackDragIcon.location &&
         (inTamerField ? index >= stackDragIcon.index : index <= stackDragIcon.index);
 
-    const isSingleDrag =
-        !stackDragIcon &&
-        (!isStackDragMode ||
-            ["myHand", "mySecurity", "myTrash"].includes(location) ||
-            (stackSliceIndex === 0 && !tamerLocations.includes(location)) ||
-            (stackSliceIndex === locationCards.length - 1 && tamerLocations.includes(location)));
-
-    const dragRef = isSingleDrag ? drag : dragStack;
-    const dragAttributes = isSingleDrag ? attributes : stackAttributes;
-    const dragListeners = isSingleDrag ? listeners : stackListeners;
-
     const showCardModifiers =
-        locationsWithAdditionalInfo.includes(location) &&
-        cardWidth > 60 &&
-        !isDragging &&
-        !isDraggingStack &&
-        !isCardFaceDown;
+        locationsWithAdditionalInfo.includes(location) && cardWidth > 60 && !isDragging && !isCardFaceDown;
     const renderModifiersOnTop =
         (digimonLocations.includes(location) && index === locationCards.length - 1) ||
         (tamerLocations.includes(location) && index === 0);
@@ -349,9 +369,10 @@ export default function Card(props: CardProps) {
 
     function handleHoverDragIcon() {
         if (index !== undefined) {
-            if (!isCardFaceDown) setHoverCard(card);
-            setStackSliceIndex(index);
-            setStackDragIcon({ index, location });
+            if (!isCardFaceDown && hoverCard !== card) setHoverCard(card);
+            if (stackSliceIndex !== index) setStackSliceIndex(index);
+            if (stackDragIcon?.index !== index || stackDragIcon?.location !== location)
+                setStackDragIcon({ index, location });
         }
     }
 
@@ -362,160 +383,171 @@ export default function Card(props: CardProps) {
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
-    if (isDragging || isPartOfDraggedStack) return <></>;
+    if (isDragging || isPartOfDraggedStack) {
+        if (stackModal === location) return <div style={{ width: style?.width ?? cardWidth }} />;
+        else return <></>;
+    }
 
     return (
-        <Wrapper
-            // id is set for correct AttackArrow targeting
-            id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
-            style={style}
-            ref={dragRef}
-            isDragIconHovered={isDragIconHovered}
-            {...dragAttributes}
-            {...dragListeners}
-        >
-            {((index !== 0 && (myDigimonLocations.includes(location) || location === "myBreedingArea")) ||
-                (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
-                (isHovered || isDragIconHovered || hoveredId === card.id) &&
-                !useToggleForStacks && (
-                    <DragStackIconDiv
-                        className={"custom-hand-cursor"}
+        <>
+            <DragPreviewImage
+                connect={preview}
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" // Transparent 1x1 GIF
+            />
+            <DragPreviewImage
+                connect={previewStackIcon}
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" // Transparent 1x1 GIF
+            />
+            <Wrapper
+                // id is set for correct AttackArrow targeting
+                id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
+                style={style}
+                ref={dragRef as any}
+                isDragIconHovered={isDragIconHovered}
+            >
+                {((index !== 0 && (myDigimonLocations.includes(location) || location === "myBreedingArea")) ||
+                    (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
+                    (isHovered || isDragIconHovered || hoveredId === card.id) &&
+                    !useToggleForStacks && (
+                        <DragStackIconDiv
+                            ref={stackDragRef as any}
+                            className={"custom-hand-cursor"}
+                            style={{
+                                right: -(cardWidth / 15),
+                                bottom: -(cardWidth / 15),
+                                position: stackModal === location ? "absolute" : "fixed",
+                            }}
+                            onMouseEnter={handleHoverDragIcon}
+                            onMouseOver={handleHoverDragIcon}
+                            onMouseLeave={() => {
+                                setHoverCard(null);
+                                setStackDragIcon(null);
+                            }}
+                        >
+                            <DragStackIcon fontSize={"large"} />
+                        </DragStackIconDiv>
+                    )}
+                {showCardModifiers && (
+                    <>
+                        {renderModifiersOnTop && (
+                            <>
+                                {isModifiersAllowed && (
+                                    <PlusDpSpan
+                                        isHovering={isHovered}
+                                        isNegative={finalDp < card.dp!}
+                                        {...(finalDp === card.dp && { style: { color: "ghostwhite" } })}
+                                    >
+                                        {finalDp.toString()}
+                                    </PlusDpSpan>
+                                )}
+                                {secAtkString && (
+                                    <PlusSecAtkSpan isHovering={isHovered} isNegative={secAtkString.startsWith("-")}>
+                                        {secAtkString}
+                                        <StyledShieldIcon />
+                                    </PlusSecAtkSpan>
+                                )}
+
+                                {hoverCard !== card && (
+                                    <>
+                                        {showColors && (
+                                            <ColorStack>
+                                                {modifiers?.colors.map((c) => (
+                                                    <span key={`${c}_${card.id}_view`}>{getColor(c)}</span>
+                                                ))}
+                                            </ColorStack>
+                                        )}
+                                        <KeywordWrapper>
+                                            {modifiers?.keywords
+                                                .filter((w) => w !== "SICK")
+                                                .map((keyword) => (
+                                                    <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
+                                                        <span>{keyword}</span>
+                                                    </ModifierSpan>
+                                                ))}
+                                        </KeywordWrapper>
+                                        {card.level && (
+                                            <LevelSpan isMega={card.level >= 6}>
+                                                <span>Lv.</span>
+                                                {card.level}
+                                            </LevelSpan>
+                                        )}
+                                        {card.aceEffect && (
+                                            <StyledAceSpan isMega={card.level! >= 6}>ACE-{aceOverflow}</StyledAceSpan>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+
+                        {renderEffectAnimation && (
+                            <CardAnimationContainer style={{ overflow: "hidden" }}>
+                                <Lottie animationData={activateEffectAnimation} loop={true} />
+                            </CardAnimationContainer>
+                        )}
+                        {renderTargetAnimation && (
+                            <CardAnimationContainer>
+                                <Lottie animationData={targetAnimation} loop={true} />
+                            </CardAnimationContainer>
+                        )}
+                    </>
+                )}
+                {card.modifiers.keywords.includes("SICK") && (
+                    <CardAnimationContainer
                         style={{
-                            opacity: 1,
-                            right: -(cardWidth / 15),
-                            bottom: -(cardWidth / 15),
-                            position: stackModal === location ? "absolute" : "fixed",
-                        }}
-                        onMouseEnter={handleHoverDragIcon}
-                        onMouseOver={handleHoverDragIcon}
-                        onMouseLeave={() => {
-                            setHoverCard(null);
-                            setStackDragIcon(null);
+                            overflow: "clip",
+                            top: 5,
+                            left: 5,
+                            right: 5,
+                            bottom: "25%",
+                            opacity,
                         }}
                     >
-                        <DragStackIcon fontSize={"large"} />
-                    </DragStackIconDiv>
+                        <img
+                            style={{
+                                filter: "drop-shadow(0 0 5px black) drop-shadow(0 0 2px goldenrod) drop-shadow(0 0 4px black)",
+                            }}
+                            alt={"suspended"}
+                            src={suspendedAPNG}
+                        />
+                    </CardAnimationContainer>
                 )}
-            {showCardModifiers && (
-                <>
-                    {renderModifiersOnTop && (
-                        <>
-                            {isModifiersAllowed && (
-                                <PlusDpSpan
-                                    isHovering={isHovered}
-                                    isNegative={finalDp < card.dp!}
-                                    {...(finalDp === card.dp && { style: { color: "ghostwhite" } })}
-                                >
-                                    {finalDp.toString()}
-                                </PlusDpSpan>
-                            )}
-                            {secAtkString && (
-                                <PlusSecAtkSpan isHovering={isHovered} isNegative={secAtkString.startsWith("-")}>
-                                    {secAtkString}
-                                    <StyledShieldIcon />
-                                </PlusSecAtkSpan>
-                            )}
 
-                            {hoverCard !== card && (
-                                <>
-                                    {showColors && (
-                                        <ColorStack>
-                                            {modifiers?.colors.map((c) => (
-                                                <span key={`${c}_${card.id}_view`}>{getColor(c)}</span>
-                                            ))}
-                                        </ColorStack>
-                                    )}
-                                    <KeywordWrapper>
-                                        {modifiers?.keywords
-                                            .filter((w) => w !== "SICK")
-                                            .map((keyword) => (
-                                                <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
-                                                    <span>{keyword}</span>
-                                                </ModifierSpan>
-                                            ))}
-                                    </KeywordWrapper>
-                                    {card.level && (
-                                        <LevelSpan isMega={card.level >= 6}>
-                                            <span>Lv.</span>
-                                            {card.level}
-                                        </LevelSpan>
-                                    )}
-                                    {card.aceEffect && (
-                                        <StyledAceSpan isMega={card.level! >= 6}>ACE-{aceOverflow}</StyledAceSpan>
-                                    )}
-                                </>
-                            )}
-                        </>
-                    )}
-
-                    {renderEffectAnimation && (
-                        <CardAnimationContainer style={{ overflow: "hidden" }}>
-                            <Lottie animationData={activateEffectAnimation} loop={true} />
-                        </CardAnimationContainer>
-                    )}
-                    {renderTargetAnimation && (
-                        <CardAnimationContainer>
-                            <Lottie animationData={targetAnimation} loop={true} />
-                        </CardAnimationContainer>
-                    )}
-                </>
-            )}
-            {card.modifiers.keywords.includes("SICK") && (
-                <CardAnimationContainer
+                <StyledImage
                     style={{
-                        overflow: "clip",
-                        top: 5,
-                        left: 5,
-                        right: 5,
-                        bottom: "25%",
-                        opacity,
+                        ...(isPartOfDraggableStack && {
+                            outline: "3px solid dodgerblue",
+                            filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
+                        }),
                     }}
-                >
-                    <img
-                        style={{
-                            filter: "drop-shadow(0 0 5px black) drop-shadow(0 0 2px goldenrod) drop-shadow(0 0 4px black)",
-                        }}
-                        alt={"suspended"}
-                        src={suspendedAPNG}
-                    />
-                </CardAnimationContainer>
-            )}
-
-            <StyledImage
-                style={{
-                    ...(isPartOfDraggableStack && {
-                        outline: "3px solid dodgerblue",
-                        filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
-                    }),
-                }}
-                className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
-                onClick={handleClick}
-                onTouchStartCapture={() => index && isStackDragMode && setStackSliceIndex(index)}
-                onDoubleClick={handleTiltCard}
-                onMouseEnter={handleHover}
-                onMouseOver={handleHover}
-                onMouseLeave={handleStopHover}
-                alt={card.name + " " + card.uniqueCardNumber}
-                src={isCardFaceDown ? getSleeve(location.includes("my") ? mySleeve : opponentSleeve) : cardImageUrl}
-                location={location}
-                isTilted={card.isTilted}
-                activeEffect={renderEffectAnimation}
-                targeted={renderTargetAnimation}
-                isTopCard={index === locationCards?.length - 1 || stackModal === location}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                onTouchMove={handleTouchEnd}
-                onError={() => {
-                    setImageError?.(true);
-                    setCardImageUrl(cardBackSrc);
-                }}
-                onContextMenu={(e) => {
-                    if (myBALocations.includes(location) || location === "myHand") setCardToSend(card.id, location);
-                    onContextMenu?.(e);
-                }}
-                width={style ? style.width : 95}
-            />
-        </Wrapper>
+                    className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
+                    onClick={handleClick}
+                    onTouchStartCapture={() => index && isStackDragMode && setStackSliceIndex(index)}
+                    onDoubleClick={handleTiltCard}
+                    onMouseEnter={handleHover}
+                    onMouseOver={handleHover}
+                    onMouseLeave={handleStopHover}
+                    alt={card.name + " " + card.uniqueCardNumber}
+                    src={isCardFaceDown ? getSleeve(location.includes("my") ? mySleeve : opponentSleeve) : cardImageUrl}
+                    location={location}
+                    isTilted={card.isTilted}
+                    activeEffect={renderEffectAnimation}
+                    targeted={renderTargetAnimation}
+                    isTopCard={index === locationCards?.length - 1 || stackModal === location}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchEnd}
+                    onError={() => {
+                        setImageError?.(true);
+                        setCardImageUrl(cardBackSrc);
+                    }}
+                    onContextMenu={(e) => {
+                        if (myBALocations.includes(location) || location === "myHand") setCardToSend(card.id, location);
+                        onContextMenu?.(e);
+                    }}
+                    width={style ? style.width : 95}
+                />
+            </Wrapper>
+        </>
     );
 }
 

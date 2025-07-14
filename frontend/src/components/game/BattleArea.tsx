@@ -7,7 +7,7 @@ import EggIcon from "@mui/icons-material/Egg";
 import DetailsIcon from "@mui/icons-material/SearchRounded";
 import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
 import { WSUtils } from "../../pages/GamePage.tsx";
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppableReactDnd } from "../../hooks/useDroppableReactDnd.ts";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
@@ -23,21 +23,20 @@ export default function BattleArea(props: BattleAreaProps) {
     const { num, side, isBreeding, wsUtils, ref } = props;
     const location = isBreeding ? `${side}BreedingArea` : `${side}Digi${num}`;
 
-    const { setNodeRef: dropToField, isOver: isOverField } = useDroppable({
+    const { setNodeRef: dropToField, isOver: isOverField } = useDroppableReactDnd({
         id: location,
         data: { accept: side === SIDE.MY ? ["card", "card-stack"] : ["card"] },
     });
-    const {
-        setNodeRef: dropToBottom,
-        isOver: isOverBottom,
-        active,
-    } = useDroppable({ id: location + "_bottom", data: { accept: ["card"] } });
+
+    const { setNodeRef: dropToBottom, isOver: isOverBottom } = useDroppableReactDnd({
+        id: location + "_bottom",
+        data: { accept: ["card"] },
+    });
 
     const stackModal = useGameUIStates((state) => state.stackModal);
     const setStackModal = useGameUIStates((state) => state.setStackModal);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
-    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
     const stackOpened = stackModal === location;
 
     const { show: showFieldCardMenu } = useContextMenu({
@@ -68,15 +67,16 @@ export default function BattleArea(props: BattleAreaProps) {
                         showOpponentCardMenu={showOpponentCardMenu}
                     />
                 )}
-                {side === SIDE.MY && (isBreeding || num <= 8) && canDropToBottom && locationCards.length !== 0 && (
-                    <BottomDropZone isOver={isOverBottom} ref={dropToBottom}>
-                        {canDropToBottom && (
-                            <>
-                                <TriangleIcon sx={{ opacity: 0.75 }} />
-                                <TriangleIcon sx={{ opacity: 0.75 }} />
-                                <TriangleIcon sx={{ opacity: 0.75 }} />
-                            </>
-                        )}
+                {side === SIDE.MY && (isBreeding || num <= 8) && locationCards.length !== 0 && (
+                    <BottomDropZone
+                        style={{ pointerEvents: isOverField ? "auto" : "none" }}
+                        isOver={isOverBottom}
+                        ref={dropToBottom as any}
+                        onMouseOver={(e) => e.stopPropagation()}
+                    >
+                        <TriangleIcon sx={{ opacity: 0.75 }} />
+                        <TriangleIcon sx={{ opacity: 0.75 }} />
+                        <TriangleIcon sx={{ opacity: 0.75 }} />
                     </BottomDropZone>
                 )}
             </div>
@@ -94,7 +94,6 @@ export default function BattleArea(props: BattleAreaProps) {
             showFieldCardMenu,
             showOpponentCardMenu,
             num,
-            canDropToBottom,
             isOverBottom,
             dropToBottom,
         ]
@@ -107,7 +106,7 @@ export default function BattleArea(props: BattleAreaProps) {
             style={{ zIndex: 2 }}
             // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
             id={locationCards.length ? "" : location}
-            ref={dropToField}
+            ref={dropToField as any}
             isOver={side === SIDE.MY && isOverField}
             stackOpened={stackOpened}
             onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
@@ -175,8 +174,8 @@ const BottomDropZone = styled.div<{ isOver: boolean }>`
     z-index: 100;
     height: 20%;
     width: 100%;
-    background-color: ${({ isOver }) => (isOver ? "rgba(255,255,255,0.5)" : "black")};
-    opacity: ${({ isOver }) => (isOver ? 1 : 0.75)};
+    background-color: rgba(255, 255, 255, 0.5);
+    opacity: ${({ isOver }) => (isOver ? 1 : 0)};
     border-radius: 2px;
     transition: all 0.15s ease-in-out;
     text-wrap: nowrap;
@@ -185,15 +184,12 @@ const BottomDropZone = styled.div<{ isOver: boolean }>`
     justify-content: center;
     align-items: center;
     gap: 5px;
-    cursor: grabbing;
     svg {
         line-height: 1;
         font-size: 90%;
         color: ghostwhite;
-        transform: ${({ isOver }) => (isOver ? "translateY(80%)" : "translateY(0px)")};
         transition: all 0.5s ease-in-out;
-        filter: ${({ isOver }) =>
-            isOver ? "drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black)" : "unset"};
+        filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black);
     }
     @container board-layout (max-width: 1000px) {
         gap: 2px;

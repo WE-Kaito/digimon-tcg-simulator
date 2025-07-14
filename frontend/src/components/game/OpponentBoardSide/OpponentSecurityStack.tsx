@@ -7,13 +7,17 @@ import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
-import { useDroppable } from "@dnd-kit/core";
+// import { useDroppable } from "@dnd-kit/core";
+import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function OpponentSecurityStack() {
     const opponentSecurity = useGameBoardStates((state) => state.opponentSecurity);
 
-    const { setNodeRef, isOver, active } = useDroppable({ id: "opponentSecurity", data: { accept: ["card"] } });
+    const { setNodeRef, isOver, active } = useDroppableReactDnd({ 
+        id: "opponentSecurity", 
+        data: { accept: ["card"] },
+    });
     const isOverOpponent = isOver && String(active?.id).includes("myDigi");
 
     const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +26,7 @@ export default function OpponentSecurityStack() {
 
     return (
         <Container>
-            <InnerContainer ref={setNodeRef}>
+            <InnerContainer ref={setNodeRef as any}>
                 {isOverOpponent ? (
                     <Lottie animationData={swordAnimation} loop style={{ zIndex: 100000 }} />
                 ) : (

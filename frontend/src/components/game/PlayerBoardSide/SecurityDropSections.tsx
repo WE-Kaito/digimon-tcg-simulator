@@ -1,24 +1,25 @@
-import { useDroppable } from "@dnd-kit/core";
+// import { useDroppable } from "@dnd-kit/core";
+import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { getSleeve } from "../../../utils/sleeves.ts";
+import { generalToken } from "../../../utils/tokens.ts";
 
 export default function SecurityDropSections() {
-    const {
-        setNodeRef: dropTopFaceUpRef,
-        isOver: isOverTopFaceUp,
-        active,
-    } = useDroppable({ id: "mySecurity_top_faceUp", data: { accept: ["card"] } });
-    const { setNodeRef: dropTopFaceDownRef, isOver: isOverTopFaceDown } = useDroppable({
+    const { setNodeRef: dropTopFaceUpRef, isOver: isOverTopFaceUp } = useDroppableReactDnd({
+        id: "mySecurity_top_faceUp",
+        data: { accept: ["card"] },
+    });
+    const { setNodeRef: dropTopFaceDownRef, isOver: isOverTopFaceDown } = useDroppableReactDnd({
         id: "mySecurity_top_faceDown",
         data: { accept: ["card"] },
     });
-    const { setNodeRef: dropBottomFaceDownRef, isOver: isOverBottomFaceDown } = useDroppable({
+    const { setNodeRef: dropBottomFaceDownRef, isOver: isOverBottomFaceDown } = useDroppableReactDnd({
         id: "mySecurity_bot_faceDown",
         data: { accept: ["card"] },
     });
-    const { setNodeRef: dropBottomFaceUpRef, isOver: isOverBottomFaceUp } = useDroppable({
+    const { setNodeRef: dropBottomFaceUpRef, isOver: isOverBottomFaceUp } = useDroppableReactDnd({
         id: "mySecurity_bot_faceUp",
         data: { accept: ["card"] },
     });
@@ -27,23 +28,20 @@ export default function SecurityDropSections() {
     const height = width * (7 / 5); // prevents breaking layout
 
     const mySleeve = useGameBoardStates((state) => state.mySleeve);
-    const draggedCardImg = active?.data?.current?.content.imgSrc;
-
-    if (!active || String(active.id).includes("stack")) return <></>;
 
     return (
         <>
-            <DropSectionTopFaceUp ref={dropTopFaceUpRef} isOver={isOverTopFaceUp}>
-                <img alt="top face up" src={draggedCardImg} width={width} height={height} />
+            <DropSectionTopFaceUp ref={dropTopFaceUpRef as any} isOver={isOverTopFaceUp}>
+                <img alt="top face up" src={generalToken.imgUrl} width={width} height={height} />
             </DropSectionTopFaceUp>
-            <DropSectionTopFaceDown ref={dropTopFaceDownRef} isOver={isOverTopFaceDown}>
+            <DropSectionTopFaceDown ref={dropTopFaceDownRef as any} isOver={isOverTopFaceDown}>
                 <img alt="top face down" src={getSleeve(mySleeve)} width={width} height={height} />
             </DropSectionTopFaceDown>
-            <DropSectionBottomFaceDown ref={dropBottomFaceDownRef} isOver={isOverBottomFaceDown}>
+            <DropSectionBottomFaceDown ref={dropBottomFaceDownRef as any} isOver={isOverBottomFaceDown}>
                 <img alt="bottom face down" src={getSleeve(mySleeve)} width={width} height={height} />
             </DropSectionBottomFaceDown>
-            <DropSectionBottomFaceUp ref={dropBottomFaceUpRef} isOver={isOverBottomFaceUp}>
-                <img alt="bottom face up" src={draggedCardImg} width={width} height={height} />
+            <DropSectionBottomFaceUp ref={dropBottomFaceUpRef as any} isOver={isOverBottomFaceUp}>
+                <img alt="bottom face up" src={generalToken.imgUrl} width={width} height={height} />
             </DropSectionBottomFaceUp>
         </>
     );

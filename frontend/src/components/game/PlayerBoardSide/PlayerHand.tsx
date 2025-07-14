@@ -3,11 +3,15 @@ import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
-import { useDroppable } from "@dnd-kit/core";
+// import { useDroppable } from "@dnd-kit/core";
+import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import EyeIcon from "@mui/icons-material/RemoveRedEyeTwoTone";
 
 export default function PlayerHand() {
-    const { setNodeRef } = useDroppable({ id: "myHand", data: { accept: ["card"] } });
+    const { setNodeRef } = useDroppableReactDnd({ 
+        id: "myHand", 
+        data: { accept: ["card"] },
+    });
     const { show: showHandCardMenu } = useContextMenu({ id: "handCardMenu" });
 
     const myHand = useGameBoardStates((state) => state.myHand);
@@ -24,7 +28,7 @@ export default function PlayerHand() {
     const offset = (maxHandWidth - currentHandWidth) / 2;
 
     return (
-        <Container ref={setNodeRef}>
+        <Container ref={setNodeRef as any}>
             {myHand.map((card, index) => (
                 <div style={{ position: "absolute", left: offset + index * effectiveSpacing, top: "3%" }}>
                     {card.isFaceUp && (

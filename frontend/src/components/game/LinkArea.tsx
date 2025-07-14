@@ -1,6 +1,7 @@
 import { CardTypeGame, SIDE } from "../../utils/types.ts";
 import { WSUtils } from "../../pages/GamePage.tsx";
-import { useDroppable } from "@dnd-kit/core";
+// import { useDroppable } from "@dnd-kit/core";
+import { useDroppableReactDnd } from "../../hooks/useDroppableReactDnd.ts";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
@@ -23,7 +24,7 @@ export default function LinkArea(props: LinkAreaProps) {
         setNodeRef: dropToField,
         isOver: isOverField,
         active,
-    } = useDroppable({
+    } = useDroppableReactDnd({
         id: location,
         data: { accept: side === SIDE.MY ? ["card"] : [] },
     });
@@ -50,7 +51,7 @@ export default function LinkArea(props: LinkAreaProps) {
             {...props}
             // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
             id={locationCards.length ? "" : location}
-            ref={dropToField}
+            ref={dropToField as any}
             isOver={side === SIDE.MY && isOverField && isSingleCard}
             stackOpened={stackOpened}
             onClick={() => stackOpened && setStackModal(false)}

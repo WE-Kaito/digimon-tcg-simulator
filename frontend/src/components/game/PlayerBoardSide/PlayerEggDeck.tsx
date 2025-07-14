@@ -4,7 +4,8 @@ import { useSound } from "../../../hooks/useSound.ts";
 import eggBackSrc from "../../../assets/eggBack.jpg";
 import { Phase } from "../../../utils/types.ts";
 import { WSUtils } from "../../../pages/GamePage.tsx";
-import { useDroppable } from "@dnd-kit/core";
+// import { useDroppable } from "@dnd-kit/core";
+import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 
 export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
@@ -15,12 +16,18 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
-    const { setNodeRef } = useDroppable({ id: "myEggDeck", data: { accept: ["card"] } });
+    const { setNodeRef } = useDroppableReactDnd({ 
+        id: "myEggDeck", 
+        data: { accept: ["card"] },
+    });
     const {
         setNodeRef: deckBottomRef,
         isOver: isOverBottom,
         active,
-    } = useDroppable({ id: "myEggDeck_bottom", data: { accept: ["card"] } });
+    } = useDroppableReactDnd({ 
+        id: "myEggDeck_bottom", 
+        data: { accept: ["card"] },
+    });
 
     const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 
@@ -39,10 +46,10 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
 
     return (
         <>
-            <Container ref={setNodeRef}>
+            <Container ref={setNodeRef as any}>
                 <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} className={"button"} />
             </Container>
-            <DeckBottomZone ref={deckBottomRef} isOver={isOverBottom}>
+            <DeckBottomZone ref={deckBottomRef as any} isOver={isOverBottom}>
                 {canDropToBottom && (
                     <>
                         <TriangleIcon />

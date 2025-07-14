@@ -47,6 +47,9 @@ type State = {
     stackDragIcon: null | { location: string; index: number };
     setStackDragIcon: (stackDragIcon: { location: string; index: number } | null) => void;
 
+    stackDraggedLocation: string | null;
+    setStackDraggedLocation: (location: string | null) => void;
+
     myEmote: Emote | null;
     setMyEmote: (emote: Emote | null) => void;
 
@@ -84,6 +87,9 @@ export const useGameUIStates = create<State>((set) => ({
 
     stackDragIcon: null,
     setStackDragIcon: (stackDragIcon) => set({ stackDragIcon }),
+
+    stackDraggedLocation: null,
+    setStackDraggedLocation: (location) => set({ stackDraggedLocation: location }),
 
     myEmote: null,
     setMyEmote: (emote) => {

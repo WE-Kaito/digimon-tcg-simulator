@@ -6,7 +6,9 @@ import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
 import CloseTrashIcon from "@mui/icons-material/DeleteForever";
 import TrashIcon from "@mui/icons-material/Delete";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { useDraggable } from "@dnd-kit/core";
+// import { useDroppable } from "@dnd-kit/core";
+import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function PlayerTrash() {
@@ -28,7 +30,10 @@ export default function PlayerTrash() {
         setOpenedCardModal(isMyTrashOpened ? false : OpenedCardModal.MY_TRASH);
     }
 
-    const { setNodeRef, isOver } = useDroppable({ id: "myTrash", data: { accept: ["card", "card-stack"] } });
+    const { setNodeRef, isOver } = useDroppableReactDnd({ 
+        id: "myTrash", 
+        data: { accept: ["card", "card-stack"] },
+    });
 
     const topCard = myTrash[myTrash.length - 1];
 
@@ -54,7 +59,7 @@ export default function PlayerTrash() {
     });
 
     return (
-        <Container ref={setNodeRef}>
+        <Container ref={setNodeRef as any}>
             {(myTrash.length === 0 || (isDragging && myTrash.length === 1)) && !isMyTrashOpened && (
                 <PlaceholderDiv isOver={isOver}>
                     <StyledTrashIcon />

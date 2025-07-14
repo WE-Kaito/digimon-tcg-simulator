@@ -12,8 +12,10 @@ import useGameWebSocket from "../hooks/useGameWebSocket.ts";
 import { useSound } from "../hooks/useSound.ts";
 import ContextMenus from "../components/game/ContextMenus/ContextMenus.tsx";
 import OpponentBoardSide from "../components/game/OpponentBoardSide/OpponentBoardSide.tsx";
-import { DndContext, MouseSensor, pointerWithin, TouchSensor, useSensor } from "@dnd-kit/core";
-import useDropZone from "../hooks/useDropZone.ts";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
+import useDropZoneReactDnd from "../hooks/useDropZoneReactDnd.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { BootStage } from "../utils/types.ts";
@@ -26,7 +28,7 @@ import { Gavel as RulingsIcon, OpenInNew as LinkIcon } from "@mui/icons-material
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
 import StackModal from "../components/game/StackModal.tsx";
-import DragOverlayCards from "../components/game/DragOverlayCards.tsx";
+import DragLayerCustom from "../components/game/DragLayerCustom.tsx";
 import CardModal from "../components/game/CardModal.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
@@ -116,11 +118,28 @@ export default function GamePage() {
         restartAttackAnimation,
     });
 
-    const handleDragEnd = useDropZone({
+    const { createDropHandler } = useDropZoneReactDnd({
         sendMessage,
         restartAttackAnimation,
         clearAttackAnimation,
     });
+
+    // Handle react-dnd drop events
+    useLayoutEffect(() => {
+        const handleReactDndDrop = (event: CustomEvent) => {
+            const { item, targetId } = event.detail;
+            const isBottom = targetId.includes("_bottom");
+            const actualTargetId = isBottom ? targetId.replace("_bottom", "") : targetId;
+
+            const dropHandler = createDropHandler(actualTargetId, { bottom: isBottom });
+            if (dropHandler?.drop) {
+                dropHandler.drop(item);
+            }
+        };
+
+        window.addEventListener("reactDndDrop", handleReactDndDrop as EventListener);
+        return () => window.removeEventListener("reactDndDrop", handleReactDndDrop as EventListener);
+    }, [createDropHandler]);
 
     function sendPhaseUpdate() {
         sendMessage(`${gameId}:/updatePhase:${opponentName}`);
@@ -166,25 +185,59 @@ export default function GamePage() {
         sendUpdate,
     };
 
-    // Require the mouse to move by 3 pixels before activate dragging, ensures click events are still possible
-    const mouseSensor = useSensor(MouseSensor, {
-        activationConstraint: {
-            distance: 3,
-        },
-    });
-    const touchSensor = useSensor(TouchSensor, {
-        activationConstraint: {
-            delay: 1500,
-            distance: 5,
-        },
-    });
-
     // Layout ##########################################################################################################
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
     useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
+
+    // Determine backend based on touch capability
+    const backend = "ontouchstart" in window ? TouchBackend : HTML5Backend;
+
+    const gameContent = (
+        <BoardLayout height={height}>
+            <SettingsContainer>
+                <SoundBar iconFontSize={iconWidth}>
+                    <a
+                        href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={"Rulings"}
+                    >
+                        <StyledIconButton sx={{ color: "white", position: "relative" }}>
+                            <RulingsIcon sx={{ fontSize: `${iconWidth * 0.85}px!important`, opacity: 0.8 }} />
+                            <LinkIcon
+                                sx={{
+                                    color: "dodgerblue",
+                                    position: "absolute",
+                                    right: 0,
+                                    top: 7,
+                                    fontSize: `${iconWidth * 0.4}px!important`,
+                                    pointerEvents: "none",
+                                }}
+                            />
+                        </StyledIconButton>
+                    </a>
+                    <SettingsMenuButton iconFontSize={`${iconWidth}px!important`} />
+                </SoundBar>
+            </SettingsContainer>
+
+            <ChatAndCardDialogContainerDiv>
+                {!stackModal && !openedCardModal && <GameChatLog {...wsUtils} />}
+                {!!openedCardModal && <CardModal />}
+                {!!stackModal && <StackModal />}
+            </ChatAndCardDialogContainerDiv>
+
+            <RevealArea />
+
+            <MemoryBar wsUtils={wsUtils} />
+            <PhaseIndicator wsUtils={wsUtils} />
+
+            <OpponentBoardSide wsUtils={wsUtils} />
+            <PlayerBoardSide wsUtils={wsUtils} />
+        </BoardLayout>
+    );
 
     return (
         <Container ref={boardContainerRef}>
@@ -211,56 +264,11 @@ export default function GamePage() {
                 {details === DetailsView.NO_IMAGE && <div style={{ height: "10px" }} />}
                 <CardDetails />
             </DetailsContainer>
-            <DndContext
-                onDragEnd={handleDragEnd}
-                autoScroll={false}
-                collisionDetection={pointerWithin}
-                sensors={[mouseSensor, touchSensor]}
-            >
-                <BoardLayout height={height}>
-                    <SettingsContainer>
-                        <SoundBar iconFontSize={iconWidth}>
-                            <a
-                                href="https://world.digimoncard.com/rule/pdf/general_rules.pdf"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={"Rulings"}
-                            >
-                                <StyledIconButton sx={{ color: "white", position: "relative" }}>
-                                    <RulingsIcon sx={{ fontSize: `${iconWidth * 0.85}px!important`, opacity: 0.8 }} />
-                                    <LinkIcon
-                                        sx={{
-                                            color: "dodgerblue",
-                                            position: "absolute",
-                                            right: 0,
-                                            top: 7,
-                                            fontSize: `${iconWidth * 0.4}px!important`,
-                                            pointerEvents: "none",
-                                        }}
-                                    />
-                                </StyledIconButton>
-                            </a>
-                            <SettingsMenuButton iconFontSize={`${iconWidth}px!important`} />
-                        </SoundBar>
-                    </SettingsContainer>
 
-                    <ChatAndCardDialogContainerDiv>
-                        {!stackModal && !openedCardModal && <GameChatLog {...wsUtils} />}
-                        {!!openedCardModal && <CardModal />}
-                        {!!stackModal && <StackModal />}
-                    </ChatAndCardDialogContainerDiv>
-
-                    <RevealArea />
-
-                    <MemoryBar wsUtils={wsUtils} />
-                    <PhaseIndicator wsUtils={wsUtils} />
-
-                    <OpponentBoardSide wsUtils={wsUtils} />
-                    <PlayerBoardSide wsUtils={wsUtils} />
-                </BoardLayout>
-
-                <DragOverlayCards />
-            </DndContext>
+            <DndProvider backend={backend}>
+                {gameContent}
+                <DragLayerCustom />
+            </DndProvider>
         </Container>
     );
 }
