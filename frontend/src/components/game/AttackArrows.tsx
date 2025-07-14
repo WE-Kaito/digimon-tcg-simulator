@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 // @ts-expect-error cannot find module 'react-arrows', installing dev dependencies didn't help
 import Arrow, { DIRECTION, HEAD } from "react-arrows";
-import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
+import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 
 const opponentBALocations = [
     "opponentDigi1",
@@ -23,9 +23,9 @@ const opponentBALocations = [
 ];
 
 export default function AttackArrows() {
-    const arrowFrom = useGameBoardStates((state) => state.arrowFrom);
-    const arrowTo = useGameBoardStates((state) => state.arrowTo);
-    const isEffectArrow = useGameBoardStates((state) => state.isEffectArrow);
+    const arrowFrom = useGameUIStates((state) => state.arrowFrom);
+    const arrowTo = useGameUIStates((state) => state.arrowTo);
+    const isEffectArrow = useGameUIStates((state) => state.isEffectArrow);
 
     const isFromOpponent = opponentBALocations.includes(arrowFrom);
 

@@ -81,12 +81,13 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
     const getMyFieldAsString = useGameBoardStates((state) => state.getMyFieldAsString);
-    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
-    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
-    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
     const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
     const flipCard = useGameBoardStates((state) => state.flipCard);
+
+    const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameUIStates((state) => state.setArrowTo);
+    const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
 
     // Improved player one detection with validation
     const gameIdParts = gameId.split("‗");

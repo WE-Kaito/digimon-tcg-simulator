@@ -65,13 +65,13 @@ export default function GamePage() {
     const playEffectAttackSfx = useSound((state) => state.playEffectAttackSfx);
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
 
-    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
-    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
-    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
+    const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameUIStates((state) => state.setArrowTo);
+    const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
     const stackModal = useGameUIStates((state) => state.stackModal);
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
 

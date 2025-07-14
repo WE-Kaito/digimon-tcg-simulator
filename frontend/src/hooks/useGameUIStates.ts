@@ -50,6 +50,21 @@ type State = {
     stackDraggedLocation: string | null;
     setStackDraggedLocation: (location: string | null) => void;
 
+    /**
+     * AttackArrow's target id.
+     */
+    arrowFrom: string;
+    setArrowFrom: (locationAsId: string) => void;
+
+    /**
+     * AttackArrow's origin id.
+     */
+    arrowTo: string;
+    setArrowTo: (locationAsId: string) => void;
+
+    isEffectArrow: boolean;
+    setIsEffectArrow: (isEffectArrow: boolean) => void;
+
     myEmote: Emote | null;
     setMyEmote: (emote: Emote | null) => void;
 
@@ -90,6 +105,15 @@ export const useGameUIStates = create<State>((set) => ({
 
     stackDraggedLocation: null,
     setStackDraggedLocation: (location) => set({ stackDraggedLocation: location }),
+
+    arrowFrom: "",
+    setArrowFrom: (arrowFrom) => set({ arrowFrom }),
+
+    arrowTo: "",
+    setArrowTo: (arrowTo) => set({ arrowTo }),
+
+    isEffectArrow: false,
+    setIsEffectArrow: (isEffectArrow) => set({ isEffectArrow }),
 
     myEmote: null,
     setMyEmote: (emote) => {

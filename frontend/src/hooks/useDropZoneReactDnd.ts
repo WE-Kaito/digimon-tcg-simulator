@@ -48,13 +48,13 @@ export default function useDropZoneReactDnd(props: Props) {
 
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
-    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
-    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
-    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
     const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
 
+    const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameUIStates((state) => state.setArrowTo);
+    const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
     const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
 
     const [phaseLoading, setPhaseLoading] = useState(false);

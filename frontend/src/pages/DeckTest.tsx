@@ -65,9 +65,9 @@ export default function DeckTest() {
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
     const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
 
-    const setArrowFrom = useGameBoardStates((state) => state.setArrowFrom);
-    const setArrowTo = useGameBoardStates((state) => state.setArrowTo);
-    const setIsEffectArrow = useGameBoardStates((state) => state.setIsEffectArrow);
+    const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
+    const setArrowTo = useGameUIStates((state) => state.setArrowTo);
+    const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
 
     const stackModal = useGameUIStates((state) => state.stackModal);
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
@@ -268,7 +268,7 @@ export default function DeckTest() {
         }
 
         // Shuffle within each block
-        for (let block of blocks) {
+        for (const block of blocks) {
             for (let i = block.length - 1; i > 0; i--) {
                 const randomArray = new Uint32Array(1);
                 crypto.getRandomValues(randomArray);

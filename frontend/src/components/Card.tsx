@@ -384,8 +384,20 @@ export default function Card(props: CardProps) {
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
     if (isDragging || isPartOfDraggedStack) {
-        if (stackModal === location) return <div style={{ width: style?.width ?? cardWidth }} />;
-        else return <></>;
+        if (stackModal === location)
+            return (
+                <div
+                    style={{ width: style?.width ?? cardWidth }}
+                    id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
+                />
+            );
+        else
+            return (
+                <div
+                    style={{ width: 1 }}
+                    id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
+                />
+            );
     }
 
     return (

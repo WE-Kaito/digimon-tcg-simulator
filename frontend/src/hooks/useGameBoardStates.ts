@@ -117,15 +117,6 @@ export type State = BoardState & {
 
     messages: string[];
     setMessages: (message: string) => void;
-    /**
-     * AttackArrow's target id.
-     */
-    arrowFrom: string;
-    /**
-     * AttackArrow's origin id.
-     */
-    arrowTo: string;
-    isEffectArrow: boolean;
     stackSliceIndex: number;
     isOpponentOnline: boolean;
     startingPlayer: string;
@@ -187,9 +178,6 @@ export type State = BoardState & {
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;
     getCardLocationById: (id: string) => string;
     toggleIsHandHidden: () => void;
-    setArrowFrom: (locationAsId: string) => void;
-    setArrowTo: (locationAsId: string) => void;
-    setIsEffectArrow: (isEffectArrow: boolean) => void;
     setStackSliceIndex: (index: number) => void;
     setIsOpponentOnline: (isOpponentOnline: boolean) => void;
     setStartingPlayer: (side: SIDE | "") => void;
@@ -342,9 +330,6 @@ export const useGameBoardStates = create<State>()(
 
                 messages: [],
                 opponentReady: false,
-                arrowFrom: "",
-                arrowTo: "",
-                isEffectArrow: false,
                 stackSliceIndex: 0,
                 isOpponentOnline: true,
                 startingPlayer: "",
@@ -443,7 +428,7 @@ export const useGameBoardStates = create<State>()(
                     if (chunk.length < 1000 || chunk.endsWith("false}]}")) {
                         const player1 = gameId.split("‗")[0];
                         const distributionState = get().initialDistributionState;
-                        
+
                         // Validate chunk assembly
                         try {
                             if (!distributionState || distributionState.length < 100) {
@@ -451,18 +436,23 @@ export const useGameBoardStates = create<State>()(
                                 notifyCardDistributionError();
                                 return;
                             }
-                            
+
                             const game: GameDistribution = JSON.parse(distributionState);
-                            
+
                             // Validate game data structure
-                            if (!game.player1Hand || !game.player2Hand || 
-                                !game.player1DeckField || !game.player2DeckField ||
-                                !game.player1Security || !game.player2Security) {
+                            if (
+                                !game.player1Hand ||
+                                !game.player2Hand ||
+                                !game.player1DeckField ||
+                                !game.player2DeckField ||
+                                !game.player1Security ||
+                                !game.player2Security
+                            ) {
                                 console.error("Invalid game distribution structure:", game);
                                 notifyCardDistributionError();
                                 return;
                             }
-                            
+
                             // Validate deck sizes
                             const p1DeckSize = game.player1DeckField.length;
                             const p2DeckSize = game.player2DeckField.length;
@@ -497,13 +487,12 @@ export const useGameBoardStates = create<State>()(
                             }
                             sendLoaded();
                             playDrawCardSfx();
-                            
                         } catch (error) {
                             console.error("Card distribution failed:", error);
                             // Reset distribution state and set error stage
-                            set({ 
+                            set({
                                 initialDistributionState: "",
-                                bootStage: BootStage.CLEAR 
+                                bootStage: BootStage.CLEAR,
                             });
                             // Show user-friendly error toast
                             notifyCardDistributionError();
@@ -618,7 +607,7 @@ export const useGameBoardStates = create<State>()(
                     if (resetModifierLocations.includes(to))
                         card.modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color };
 
-                    if (!!facing) {
+                    if (facing) {
                         facing === "up" ? (card.isFaceUp = true) : (card.isFaceUp = false);
                     } else if (from.includes("EggDeck") || to.includes("Reveal") || to.includes("Trash")) {
                         card.isFaceUp = true;
@@ -968,12 +957,6 @@ export const useGameBoardStates = create<State>()(
                 },
 
                 toggleIsHandHidden: () => set((state) => ({ isHandHidden: !state.isHandHidden })),
-
-                setArrowFrom: (arrowFrom) => set({ arrowFrom }),
-
-                setArrowTo: (arrowTo) => set({ arrowTo }),
-
-                setIsEffectArrow: (isEffectArrow) => set({ isEffectArrow }),
 
                 setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
 
