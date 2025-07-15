@@ -56,60 +56,24 @@ const DropSection = styled.div<{ isOver: boolean }>`
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(250, 250, 250, 0.2);
-    opacity: ${({ isOver }) => (isOver ? 1 : 0)};
+    background: ${({ isOver }) => (isOver ? "rgba(124,239,255,0.25)" : "rgba(250, 250, 250, 0.075)")};
+    img {
+        opacity: ${({ isOver }) => (isOver ? 1 : 0)};
+    }
 `;
 
 const DropSectionTopFaceUp = styled(DropSection)`
     grid-area: SS-TFU;
-
-    &:after {
-        content: "➧";
-        color: #e7e7e7;
-        position: absolute;
-        right: -5px;
-        top: 0;
-        font-size: 1.25em;
-    }
 `;
 
 const DropSectionTopFaceDown = styled(DropSection)`
     grid-area: SS-TFD;
-
-    &:after {
-        content: "➧";
-        color: #e7e7e7;
-        position: absolute;
-        left: -5px;
-        top: 0;
-        transform: scaleX(-1);
-        font-size: 1.25em;
-    }
 `;
 
 const DropSectionBottomFaceDown = styled(DropSection)`
     grid-area: SS-BFD;
-
-    &:after {
-        content: "➧";
-        color: #e7e7e7;
-        position: absolute;
-        left: -5px;
-        bottom: 0;
-        transform: scaleX(-1);
-        font-size: 1.25em;
-    }
 `;
 
 const DropSectionBottomFaceUp = styled(DropSection)`
     grid-area: SS-BFU;
-
-    &:after {
-        content: "➧";
-        color: #e7e7e7;
-        position: absolute;
-        right: -5px;
-        bottom: 0;
-        font-size: 1.25em;
-    }
 `;

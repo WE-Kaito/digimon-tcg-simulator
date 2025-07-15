@@ -171,6 +171,7 @@ const SecurityAnimationImg = styled.img`
     left: 50%;
     top: 47%;
     transform: translate(-50%, -50%);
+    pointer-events: none;
 `;
 
 const StyledButtonDiv = styled.div`

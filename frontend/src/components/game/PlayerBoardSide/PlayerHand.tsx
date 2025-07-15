@@ -8,8 +8,8 @@ import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import EyeIcon from "@mui/icons-material/RemoveRedEyeTwoTone";
 
 export default function PlayerHand() {
-    const { setNodeRef } = useDroppableReactDnd({ 
-        id: "myHand", 
+    const { setNodeRef } = useDroppableReactDnd({
+        id: "myHand",
         data: { accept: ["card"] },
     });
     const { show: showHandCardMenu } = useContextMenu({ id: "handCardMenu" });
@@ -87,7 +87,7 @@ const StyledSpan = styled.span`
     font-size: 20px;
     opacity: 0.4;
     position: absolute;
-    bottom: -2%;
-    left: -4.5%;
+    bottom: -20%;
+    left: -3.5%;
     pointer-events: none;
 `;
