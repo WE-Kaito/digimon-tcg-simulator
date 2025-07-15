@@ -89,15 +89,15 @@ const Container = styled.div<LinkAreaProps & { isOver: boolean; stackOpened: boo
     box-shadow: inset ${({ side }) => (side === SIDE.MY ? "10px" : "-10px")} 0 20px rgba(113, 175, 201, 0.1);
     transform: translateX(${({ side }) => (side === SIDE.MY ? "-6px" : "6px")});
 `;
-
-const StyledLinkIcon = styled(AddLinkIcon)`
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0.75;
-    font-size: 1em;
-`;
+//
+// const StyledLinkIcon = styled(AddLinkIcon)`
+//     position: absolute;
+//     top: 50%;
+//     left: 50%;
+//     transform: translate(-50%, -50%);
+//     opacity: 0.75;
+//     font-size: 1em;
+// `;
 
 const StyledCloseDetailsIcon = styled(CloseDetailsIcon)`
     color: black;

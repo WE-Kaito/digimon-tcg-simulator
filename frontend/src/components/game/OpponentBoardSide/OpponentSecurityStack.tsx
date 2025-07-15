@@ -14,11 +14,11 @@ import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 export default function OpponentSecurityStack() {
     const opponentSecurity = useGameBoardStates((state) => state.opponentSecurity);
 
-    const { setNodeRef, isOver, active } = useDroppableReactDnd({ 
-        id: "opponentSecurity", 
+    const { setNodeRef, isOver } = useDroppableReactDnd({
+        id: "opponentSecurity",
         data: { accept: ["card"] },
     });
-    const isOverOpponent = isOver && String(active?.id).includes("myDigi");
+    // const isOverOpponent = isOver && String(active?.id).includes("myDigi");
 
     const [isOpen, setIsOpen] = useState(false);
 
@@ -27,7 +27,7 @@ export default function OpponentSecurityStack() {
     return (
         <Container>
             <InnerContainer ref={setNodeRef as any}>
-                {isOverOpponent ? (
+                {isOver ? (
                     <Lottie animationData={swordAnimation} loop style={{ zIndex: 100000 }} />
                 ) : (
                     <Tooltip

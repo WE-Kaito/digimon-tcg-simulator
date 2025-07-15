@@ -13,7 +13,6 @@ import ContextMenus from "../components/game/ContextMenus/ContextMenus.tsx";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
-import useDropZone from "../hooks/useDropZone.ts";
 import useDropZoneReactDnd from "../hooks/useDropZoneReactDnd.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { BootStage, CardTypeGame, CardTypeWithId, Phase, DeckType } from "../utils/types.ts";
