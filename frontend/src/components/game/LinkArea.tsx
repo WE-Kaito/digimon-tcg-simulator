@@ -7,7 +7,6 @@ import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
 import CardStack from "./CardStack.tsx";
 import styled from "@emotion/styled";
-import AddLinkIcon from "@mui/icons-material/AddLinkRounded";
 import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
 
 type LinkAreaProps = {
