@@ -193,7 +193,7 @@ const TextArea = styled.textarea`
     font-size: 0.95em;
     width: calc(100% - 20px);
     height: calc(100% - 55px);
-    background: transparent;
+    background: rgba(9, 9, 9, 0.5);
 
     &:focus {
         outline: 1px solid #646cffa3;
