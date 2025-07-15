@@ -160,8 +160,9 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         setResetOnlineCheck(() => cancelSetOffline);
     }, [setIsOpponentOnline]);
 
+    let interval: ReturnType<typeof setInterval>;
+
     const websocket = useWebSocket(websocketURL, {
-        heartbeat: { interval: 5000, message: `${gameId}:/online:${opponentName}` },
         shouldReconnect: () => true,
 
         onOpen: () => {
@@ -438,6 +439,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
         },
     });
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        interval = setInterval(() => websocket.sendMessage(`${gameId}:/online:${opponentName}`), 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Boot stage timeout management
     const distributionTimeoutRef = useRef<number | null>(null);
