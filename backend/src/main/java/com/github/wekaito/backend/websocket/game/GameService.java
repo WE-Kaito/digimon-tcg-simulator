@@ -380,6 +380,7 @@ public class GameService extends TextWebSocketHandler {
                     card.linkDP(),
                     card.linkEffect(),
                     card.linkRequirement(),
+                    card.assemblyEffect(),
                     card.restrictions(),
                     card.illustrator(),
                     UUID.randomUUID().toString(),

@@ -56,7 +56,7 @@ export default function SearchForm() {
         setIllustrator("");
         setEffect("");
         setHasAce(false);
-        filterCards("", "", "", "", "", "", "", "", "", null, null, null, "", "", false, true);
+        filterCards("", "", "", "", "", "", "", "", "", null, null, null, null, "", "", false, true);
     }
 
     useEffect(() => {
@@ -73,6 +73,7 @@ export default function SearchForm() {
                 digitype,
                 dp,
                 playcost,
+                digivolutioncost,
                 level,
                 illustrator,
                 effect,
@@ -97,6 +98,7 @@ export default function SearchForm() {
             digitype,
             dp,
             playcost,
+            digivolutioncost,
             level,
             illustrator,
             effect,
@@ -104,7 +106,20 @@ export default function SearchForm() {
             altArtsEnabled
         );
         // eslint-disable-next-line
-    }, [type, color, color2, color3, attribute, stage, digitype, playcost, level, hasAce, altArtsEnabled]);
+    }, [
+        type,
+        color,
+        color2,
+        color3,
+        attribute,
+        stage,
+        digitype,
+        playcost,
+        level,
+        digivolutioncost,
+        hasAce,
+        altArtsEnabled,
+    ]);
 
     return (
         <Stack>
@@ -200,6 +215,8 @@ export default function SearchForm() {
                     <option value={5}>5</option>
                     <option value={6}>6</option>
                     <option value={7}>7</option>
+                    <option value={8}>8</option>
+                    <option value={9}>9</option>
                 </DigivolutionCostSelect>
 
                 <LevelSelect

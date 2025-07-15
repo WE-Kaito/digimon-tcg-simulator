@@ -146,6 +146,7 @@ function compareEffectText(searchText: string, card: CardTypeWithId): boolean {
     const linkEffectMatch = card.linkEffect?.toUpperCase().includes(text) ?? false;
     const aceEffectMatch = card.aceEffect?.toUpperCase().includes(text) ?? false;
     const ruleEffectMatch = card.rule?.toUpperCase().includes(text) ?? false;
+    const assemblyEffectMatch = card.assemblyEffect?.toUpperCase().includes(text) ?? false;
 
     return (
         mainEffectMatch ||
@@ -157,7 +158,8 @@ function compareEffectText(searchText: string, card: CardTypeWithId): boolean {
         xrosEffectMatch ||
         linkEffectMatch ||
         aceEffectMatch ||
-        ruleEffectMatch
+        ruleEffectMatch ||
+        assemblyEffectMatch
     );
 }
 
@@ -271,6 +273,7 @@ export const useDeckStates = create<State>((set, get) => ({
         digiType,
         dp,
         playCost,
+        digivolutionCost,
         level,
         illustrator,
         effect,
@@ -294,6 +297,10 @@ export const useDeckStates = create<State>((set, get) => ({
             );
         if (dp) filteredData = filteredData.filter((card) => card.dp === dp);
         if (playCost) filteredData = filteredData.filter((card) => card.playCost === playCost);
+        if (digivolutionCost)
+            filteredData = filteredData.filter((card) =>
+                card.digivolveConditions?.some((c) => c.cost === digivolutionCost)
+            );
         if (level) filteredData = filteredData.filter((card) => card.level === level);
         if (cardNumber)
             filteredData = filteredData.filter((card) =>

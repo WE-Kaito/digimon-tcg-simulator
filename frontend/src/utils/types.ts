@@ -24,6 +24,7 @@ export type CardType = {
     linkDP?: number;
     linkEffect?: string;
     linkRequirement?: string;
+    assemblyEffect?: string;
     restrictions: Restrictions;
     illustrator: string;
 };
@@ -64,6 +65,7 @@ export type SearchCards = (
     digiType: string | null,
     dp: number | null,
     playCost: number | null,
+    digivolutionCost: number | null,
     level: number | null,
     illustrator: string | null,
     effect: string | null,
@@ -318,8 +320,32 @@ export enum SIDE {
 }
 
 export const tamerLocations = [
-    "myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8",
-    "myDigi9", "myDigi10", "myDigi11", "myDigi12", "myDigi13", "myBreedingArea",
-    "opponentDigi1", "opponentDigi2", "opponentDigi3", "opponentDigi4", "opponentDigi5", "opponentDigi6", "opponentDigi7", "opponentDigi8",
-    "opponentDigi9", "opponentDigi10", "opponentDigi11", "opponentDigi12", "opponentDigi13", "opponentBreedingArea"
+    "myDigi1",
+    "myDigi2",
+    "myDigi3",
+    "myDigi4",
+    "myDigi5",
+    "myDigi6",
+    "myDigi7",
+    "myDigi8",
+    "myDigi9",
+    "myDigi10",
+    "myDigi11",
+    "myDigi12",
+    "myDigi13",
+    "myBreedingArea",
+    "opponentDigi1",
+    "opponentDigi2",
+    "opponentDigi3",
+    "opponentDigi4",
+    "opponentDigi5",
+    "opponentDigi6",
+    "opponentDigi7",
+    "opponentDigi8",
+    "opponentDigi9",
+    "opponentDigi10",
+    "opponentDigi11",
+    "opponentDigi12",
+    "opponentDigi13",
+    "opponentBreedingArea",
 ] as const;

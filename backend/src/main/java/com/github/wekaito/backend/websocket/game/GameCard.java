@@ -30,6 +30,7 @@ public record GameCard (
         Integer linkDP,
         String linkEffect,
         String linkRequirement,
+        String assemblyEffect,
         Restrictions restrictions,
         String illustrator,
         String id,

@@ -57,6 +57,7 @@ public class CardService {
             null,
             null,
             null,
+            null,
             new Restrictions("","","",""),
             null
     );
@@ -141,6 +142,7 @@ public class CardService {
                     (card.linkDP().equals("-") ? null : Integer.parseInt(card.linkDP().replaceAll("[^\\d-]", ""))),
                     (card.linkEffect().equals("-")) ? null : card.linkEffect(),
                     (card.linkRequirement().equals("-")) ? null : card.linkRequirement(),
+                    (card.assembly().equals("-")) ? null : card.assembly(),
                     card.restrictions(),
                     card.illustrator()));
         });

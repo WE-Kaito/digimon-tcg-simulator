@@ -28,6 +28,7 @@ public record Card(
         Integer linkDP,
         String linkEffect,
         String linkRequirement,
+        String assemblyEffect,
         Restrictions restrictions,
         String illustrator
 

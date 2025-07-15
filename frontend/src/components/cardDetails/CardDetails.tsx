@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-import { EffectCard, LinkEffectCard, EffectText, EffectVariant, RuleEffectCard } from "./EffectCard.tsx";
+import { EffectCard, LinkEffectCard, EffectText, RuleEffectCard } from "./EffectCard.tsx";
 import { Stack, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
 import { getAttributeImage, getCardTypeImage } from "../../utils/functions.ts";
 import { CardTypeGame, CardTypeWithId } from "../../utils/types.ts";
@@ -11,6 +11,7 @@ import ColorSpan from "./ColorSpan.tsx";
 import { styled as muiStyled } from "@mui/material/styles";
 import { indigo } from "@mui/material/colors";
 import { DetailsView, useSettingStates } from "../../hooks/useSettingStates.ts";
+import { EffectVariant } from "./EffectVariant.ts";
 
 const HybridNames = [
     "Takuya Kanbara",
@@ -59,6 +60,7 @@ export default function CardDetails() {
     const linkDP = hoverCard?.linkDP ?? (!hoverCard ? (selectedCard?.linkDP ?? 0) : 0);
     const linkEffectText = hoverCard?.linkEffect ?? (!hoverCard ? (selectedCard?.linkEffect ?? "") : "");
     const linkRequirementText = hoverCard?.linkRequirement ?? (!hoverCard ? (selectedCard?.linkRequirement ?? "") : "");
+    const assemblyEffectText = hoverCard?.assemblyEffect ?? (!hoverCard ? (selectedCard?.assemblyEffect ?? "") : "");
 
     // details
     const aceEffect = hoverCard?.aceEffect ?? (!hoverCard ? selectedCard?.aceEffect : null);
@@ -243,6 +245,12 @@ export default function CardDetails() {
                         {digiXrosText && (
                             <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_xros`}>
                                 <HighlightedKeyWords text={digiXrosText} />
+                            </EffectCard>
+                        )}
+
+                        {assemblyEffectText && (
+                            <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_assembly`}>
+                                <HighlightedKeyWords text={assemblyEffectText} />
                             </EffectCard>
                         )}
 

@@ -28,6 +28,7 @@ public record FetchCard(
         String linkDP,
         String linkEffect,
         String linkRequirement,
+        String assembly,
         Restrictions restrictions,
         String illustrator) {
 }

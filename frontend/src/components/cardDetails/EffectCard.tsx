@@ -1,17 +1,9 @@
 import styled from "@emotion/styled";
-import { CallMade as InheritedIcon, Lock as SecurityIcon, InsertLinkRounded as LinkIcon } from "@mui/icons-material";
+import { CallMade as InheritedIcon, InsertLinkRounded as LinkIcon, Lock as SecurityIcon } from "@mui/icons-material";
 import { useLocation } from "react-router-dom";
 import { JSX } from "react";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
-
-export enum EffectVariant {
-    MAIN = "main",
-    INHERITED = "inherited",
-    SECURITY = "security",
-    SPECIAL = "special",
-    INHERITED_FROM_DIGIVOLUTION_CARDS = "digivolution cards",
-    LINK = "link",
-}
+import { EffectVariant } from "./EffectVariant.ts";
 
 type Props = {
     variant: EffectVariant;
@@ -146,7 +138,7 @@ const EffectHeader = styled.div`
     z-index: 2;
 `;
 
-export const specialStyle = {
+const specialStyle = {
     backgroundImage: `
     radial-gradient(circle at 0%   0%, rgba(0, 255, 180, 0.125) 0%, transparent 3%),
     radial-gradient(circle at 5%   0%, rgba(0, 255, 180, 0.125) 0%, transparent 3%),

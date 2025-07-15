@@ -61,7 +61,7 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
                 highlightedParts.push(<HighlightedTrait key={id}>{match[2]}</HighlightedTrait>);
             } else if (specialEffects.includes(match[2])) {
                 highlightedParts.push(<HighlightedSpecialEffect key={id}>{match[2]}</HighlightedSpecialEffect>);
-            } else if (evolutionEffects.includes(match[2])) {
+            } else if (evolutionEffects.includes(match[2]) || match[2].includes("Assembly")) {
                 highlightedParts.push(<HighglightedEvolutionEffect key={id}>{match[2]}</HighglightedEvolutionEffect>);
             } else {
                 highlightedParts.push(<HighlightedDigimonName key={id}>{match[2]}</HighlightedDigimonName>);
