@@ -16,20 +16,14 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
-    const { setNodeRef } = useDroppableReactDnd({ 
-        id: "myEggDeck", 
+    const { setNodeRef } = useDroppableReactDnd({
+        id: "myEggDeck",
         data: { accept: ["card"] },
     });
-    const {
-        setNodeRef: deckBottomRef,
-        isOver: isOverBottom,
-        active,
-    } = useDroppableReactDnd({ 
-        id: "myEggDeck_bottom", 
+    const { setNodeRef: deckBottomRef, isOver: isOverBottom } = useDroppableReactDnd({
+        id: "myEggDeck_bottom",
         data: { accept: ["card"] },
     });
-
-    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 
     function handleClick(e: React.MouseEvent<HTMLImageElement>) {
         e.stopPropagation();
@@ -50,13 +44,9 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
                 <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} className={"button"} />
             </Container>
             <DeckBottomZone ref={deckBottomRef as any} isOver={isOverBottom}>
-                {canDropToBottom && (
-                    <>
-                        <TriangleIcon />
-                        <TriangleIcon />
-                        <TriangleIcon />
-                    </>
-                )}
+                <TriangleIcon />
+                <TriangleIcon sx={{ visibility: "hidden" }} />
+                <TriangleIcon />
                 <StyledSpan>{myEggDeck.length}</StyledSpan>
             </DeckBottomZone>
         </>

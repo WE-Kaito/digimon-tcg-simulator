@@ -461,11 +461,12 @@ export default function DeckTest() {
         const msgString = typeof message === "string" ? message : String(message);
         // Log move actions to console instead of chat
         if (msgString.includes("/moveCard:")) {
-            const parts = msgString.split(":");
-            if (parts.length >= 5) {
-                const from = parts[3];
-                const to = parts[4];
-            }
+            // const parts = msgString.split(":");
+            // if (parts.length >= 5) {
+            //     const from = parts[3];
+            //     const to = parts[4];
+            // }
+            console.log(`Mock move action: ${msgString}`);
         }
     }, []);
 
@@ -498,11 +499,11 @@ export default function DeckTest() {
     );
 
     // Local drop zone handler (no WebSocket)
-    const handleDragEnd = useDropZone({
-        sendMessage: mockSendMessage,
-        restartAttackAnimation,
-        clearAttackAnimation,
-    });
+    // const handleDragEnd = useDropZone({
+    //     sendMessage: mockSendMessage,
+    //     restartAttackAnimation,
+    //     clearAttackAnimation,
+    // });
 
     const { createDropHandler } = useDropZoneReactDnd({
         sendMessage: mockSendMessage,

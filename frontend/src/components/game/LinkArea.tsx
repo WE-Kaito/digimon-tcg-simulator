@@ -20,11 +20,7 @@ export default function LinkArea(props: LinkAreaProps) {
     const { num, side, wsUtils } = props;
     const location = `${side}Link${num}`;
 
-    const {
-        setNodeRef: dropToField,
-        isOver: isOverField,
-        active,
-    } = useDroppableReactDnd({
+    const { setNodeRef: dropToField, isOver: isOverField } = useDroppableReactDnd({
         id: location,
         data: { accept: side === SIDE.MY ? ["card"] : [] },
     });
@@ -33,8 +29,7 @@ export default function LinkArea(props: LinkAreaProps) {
     const setStackModal = useGameUIStates((state) => state.setStackModal);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
-    const isSingleCard = active?.data?.current?.type === "card";
-    const showLinkIcon = side === SIDE.MY && !locationCards.length && isSingleCard;
+    // const showLinkIcon = side === SIDE.MY && !locationCards.length && isSingleCard;
     const stackOpened = stackModal === location;
 
     const { show: showLinkFieldCardMenu } = useContextMenu({
@@ -52,13 +47,13 @@ export default function LinkArea(props: LinkAreaProps) {
             // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
             id={locationCards.length ? "" : location}
             ref={dropToField as any}
-            isOver={side === SIDE.MY && isOverField && isSingleCard}
+            isOver={side === SIDE.MY && isOverField}
             stackOpened={stackOpened}
             onClick={() => stackOpened && setStackModal(false)}
             className={stackOpened ? "button" : undefined}
         >
             <div style={{ position: "relative", height: "100%", width: "100%" }}>
-                {showLinkIcon && <StyledLinkIcon />}
+                {/*{showLinkIcon && <StyledLinkIcon />}*/}
                 {stackOpened && <StyledCloseDetailsIcon />}
                 {!!locationCards.length && !stackOpened && (
                     <CardStack

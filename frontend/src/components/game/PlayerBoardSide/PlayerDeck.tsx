@@ -22,16 +22,10 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
         id: "myDeckField",
         data: { accept: ["card"] },
     });
-    const {
-        setNodeRef: deckBottomRef,
-        isOver: isOverBottom,
-        active,
-    } = useDroppableReactDnd({ 
-        id: "myDeckField_bottom", 
+    const { setNodeRef: deckBottomRef, isOver: isOverBottom } = useDroppableReactDnd({
+        id: "myDeckField_bottom",
         data: { accept: ["card"] },
     });
-
-    const canDropToBottom = active && !active.data?.current?.type?.includes("card-stack");
 
     const { show: showDeckMenu } = useContextMenu({ id: "deckMenu" });
 
@@ -59,20 +53,16 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
                 isOver={isOverTop}
                 onClick={handleClick}
                 onContextMenu={(e) => showDeckMenu({ event: e })}
-                style={{ pointerEvents: canDropToBottom ? "none" : "unset", zIndex: isOverTop ? -1 : "unset" }}
+                style={{ zIndex: isOverTop ? -1 : "unset" }}
                 className={"prevent-default-long-press"}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             />
 
             <DeckBottomZone ref={deckBottomRef as any} isOver={isOverBottom}>
-                {canDropToBottom && (
-                    <>
-                        <TriangleIcon />
-                        <TriangleIcon />
-                        <TriangleIcon />
-                    </>
-                )}
+                <TriangleIcon />
+                <TriangleIcon sx={{ visibility: "hidden" }} />
+                <TriangleIcon />
                 <StyledSpan>{myDeckField.length}</StyledSpan>
             </DeckBottomZone>
         </Container>

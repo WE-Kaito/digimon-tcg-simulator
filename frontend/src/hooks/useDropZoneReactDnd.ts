@@ -257,11 +257,11 @@ export default function useDropZoneReactDnd(props: Props) {
                     const { id, location, type, name } = draggedItem;
                     if (type === "Token") return;
 
-                    if (targetZone === "myDeckField_bottom") {
+                    if (targetZone === "myDeckField") {
                         dropCardToDeck(draggedItem, "Bottom");
                         return;
                     }
-                    if (targetZone === "myEggDeck_bottom") {
+                    if (targetZone === "myEggDeck") {
                         handleDropToEggDeck(draggedItem, "Bottom");
                         return;
                     }
