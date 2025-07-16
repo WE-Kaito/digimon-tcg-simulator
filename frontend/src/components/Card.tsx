@@ -205,7 +205,6 @@ export default function Card(props: CardProps) {
             }),
         }),
         [
-            isSingleDrag,
             card.id,
             location,
             card.cardNumber,
@@ -213,7 +212,6 @@ export default function Card(props: CardProps) {
             card.name,
             card.imgUrl,
             card.isFaceUp,
-            locationCards,
             opponentFieldLocations,
             opponentReady,
         ]
