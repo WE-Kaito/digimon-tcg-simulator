@@ -186,29 +186,19 @@ export default function Card(props: CardProps) {
     // React-DND drag logic
     const [{ isDragging }, dragRef, preview] = useDrag(
         () => ({
-            type: isSingleDrag ? "card" : "card-stack",
-            item: isSingleDrag
-                ? {
-                      type: "card",
-                      content: {
-                          id: card.id,
-                          location,
-                          cardnumber: card.cardNumber,
-                          type: card.cardType,
-                          name: card.name,
-                          imgSrc: card.imgUrl,
-                          isFaceUp: card.isFaceUp,
-                      },
-                  }
-                : {
-                      type: "card-stack",
-                      content: {
-                          location,
-                          cards: inTamerField
-                              ? locationCards.slice(index ?? 0) // For tamers, drag from current index to end
-                              : locationCards.slice(0, (index ?? 0) + 1), // For digimon, drag from start to current index
-                      },
-                  },
+            type: "card",
+            item: {
+                type: "card",
+                content: {
+                    id: card.id,
+                    location,
+                    cardnumber: card.cardNumber,
+                    type: card.cardType,
+                    name: card.name,
+                    imgSrc: card.imgUrl,
+                    isFaceUp: card.isFaceUp,
+                },
+            },
             canDrag: !opponentFieldLocations.includes(location) && opponentReady,
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
@@ -414,7 +404,7 @@ export default function Card(props: CardProps) {
                 // id is set for correct AttackArrow targeting
                 id={index === (myTamerLocations.includes(location) ? 0 : locationCards.length - 1) ? location : ""}
                 style={style}
-                ref={dragRef as any}
+                ref={(isSingleDrag ? dragRef : stackDragRef) as any}
                 isDragIconHovered={isDragIconHovered}
             >
                 {((index !== 0 && (myDigimonLocations.includes(location) || location === "myBreedingArea")) ||
@@ -533,7 +523,7 @@ export default function Card(props: CardProps) {
                     }}
                     className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                     onClick={handleClick}
-                    onTouchStartCapture={() => index && isStackDragMode && setStackSliceIndex(index)}
+                    // onTouchStartCapture={() => index !== undefined && isStackDragMode && setStackSliceIndex(index)}
                     onDoubleClick={handleTiltCard}
                     onMouseEnter={handleHover}
                     onMouseOver={handleHover}
