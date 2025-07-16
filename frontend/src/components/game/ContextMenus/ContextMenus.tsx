@@ -24,7 +24,6 @@ import { CardModifiers, CardTypeGame, FieldCardContextMenuItemProps } from "../.
 import "react-contexify/dist/ReactContexify.css";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
-import SendToSecurityMenu from "./SendToSecurityMenu.tsx";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const { sendMessage, sendChatMessage, sendSfx, sendUpdate, matchInfo, sendMoveCard } = wsUtils ?? {};
@@ -214,7 +213,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         {contextCard?.isFaceUp ? <VisibleOffIcon /> : <VisibleIcon />}
                     </div>
                 </Item>
-                <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
+                {/*<SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />*/}
                 <Separator />
                 <Item onClick={toggleIsHandHidden}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
@@ -248,7 +247,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Training</span> <TrainingIcon />
                     </div>
                 </Item>
-                <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
+                {/*<SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />*/}
                 <Separator />
                 <Item onClick={handleFlipCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
@@ -294,7 +293,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Target Card</span> <TargetIcon />
                     </div>
                 </Item>
-                <SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />
+                {/*<SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />*/}
             </StyledMenu>
 
             <StyledMenu id={"opponentCardMenu"} theme="dark">
