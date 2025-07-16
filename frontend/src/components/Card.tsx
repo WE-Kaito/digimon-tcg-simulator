@@ -262,7 +262,7 @@ export default function Card(props: CardProps) {
     useEffect(() => setRenderTargetAnimation(getIsCardTarget(card.id)), [cardIdWithTarget]);
 
     function handleTiltCard() {
-        if (!location.includes("myDigi")) return;
+        if (!location.includes("myDigi") && location !== "myBreedingArea") return;
         if (card !== locationCards[inTamerField ? 0 : locationCards.length - 1] && card.cardType !== "Tamer") return;
         tiltCard(card.id, location, playSuspendSfx, playUnsuspendSfx);
         wsUtils?.sendMessage(
