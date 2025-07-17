@@ -30,7 +30,7 @@ const HybridNames = [
 
 export default function CardDetails() {
     const location = useLocation();
-    const inGame = location.pathname === "/game";
+    const inGame = location.pathname === "/game" || location.pathname === "/test";
 
     const selectedCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.selectedCard);
     const hoverCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.hoverCard);
