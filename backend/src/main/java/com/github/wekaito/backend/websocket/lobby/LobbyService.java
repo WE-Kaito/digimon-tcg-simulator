@@ -203,7 +203,7 @@ public class LobbyService extends TextWebSocketHandler {
         broadcastRooms();
     }
 
-    @Scheduled(fixedRate = 7000) // 7 seconds
+    @Scheduled(fixedRate = 30000) // 30 seconds
     private void assignQuickPlay() throws IOException {
         startGameQuickPlay();
     }
@@ -327,6 +327,7 @@ public class LobbyService extends TextWebSocketHandler {
     private void broadcastUserCount() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
             sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
+            sendTextMessage(session, "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size());
         }
     }
 

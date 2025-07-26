@@ -80,6 +80,7 @@ export default function Lobby() {
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
+    const [userCountQuickPlay, setUserCountQuickPlay] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
     const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -143,6 +144,10 @@ export default function Lobby() {
 
             if (event.data.startsWith("[USER_COUNT]:")) {
                 setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
+            }
+
+            if (event.data.startsWith("[USER_COUNT_QUICK_PLAY]:")) {
+                setUserCountQuickPlay(parseInt(event.data.substring("[USER_COUNT_QUICK_PLAY]:".length)));
             }
 
             if (event.data.startsWith("[ROOMS]:")) {
@@ -438,7 +443,7 @@ export default function Lobby() {
                                     onClick={handleQuickPlay}
                                     isSearchingGame={isSearchingGame}
                                 >
-                                    {isSearchingGame ? "Finding Opponent..." : "Quick Play"}
+                                    {isSearchingGame ? "Finding Opponent..." : "Quick Play"} 👤{userCountQuickPlay}
                                 </QuickPlayButton>
                             )}
                         </div>
