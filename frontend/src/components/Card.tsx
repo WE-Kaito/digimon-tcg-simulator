@@ -412,11 +412,7 @@ export default function Card(props: CardProps) {
                         <DragStackIconDiv
                             ref={stackDragRef as any}
                             className={"custom-hand-cursor"}
-                            style={{
-                                right: -(cardWidth / 15),
-                                bottom: -(cardWidth / 15),
-                                position: stackModal === location ? "absolute" : "fixed",
-                            }}
+                            style={{ position: stackModal === location ? "absolute" : "fixed" }}
                             onMouseEnter={handleHoverDragIcon}
                             onMouseOver={handleHoverDragIcon}
                             onMouseLeave={() => {
@@ -433,7 +429,6 @@ export default function Card(props: CardProps) {
                             <>
                                 {isModifiersAllowed && (
                                     <PlusDpSpan
-                                        isHovering={isHovered}
                                         isNegative={finalDp < card.dp!}
                                         {...(finalDp === card.dp && { style: { color: "ghostwhite" } })}
                                     >
@@ -441,41 +436,39 @@ export default function Card(props: CardProps) {
                                     </PlusDpSpan>
                                 )}
                                 {secAtkString && (
-                                    <PlusSecAtkSpan isHovering={isHovered} isNegative={secAtkString.startsWith("-")}>
+                                    <PlusSecAtkSpan isNegative={secAtkString.startsWith("-")}>
                                         {secAtkString}
                                         <StyledShieldIcon />
                                     </PlusSecAtkSpan>
                                 )}
 
-                                {hoverCard !== card && (
-                                    <>
-                                        {showColors && (
-                                            <ColorStack>
-                                                {modifiers?.colors.map((c) => (
-                                                    <span key={`${c}_${card.id}_view`}>{getColor(c)}</span>
-                                                ))}
-                                            </ColorStack>
-                                        )}
-                                        <KeywordWrapper>
-                                            {modifiers?.keywords
-                                                .filter((w) => w !== "SICK")
-                                                .map((keyword) => (
-                                                    <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
-                                                        <span>{keyword}</span>
-                                                    </ModifierSpan>
-                                                ))}
-                                        </KeywordWrapper>
-                                        {card.level && (
-                                            <LevelSpan isMega={card.level >= 6}>
-                                                <span>Lv.</span>
-                                                {card.level}
-                                            </LevelSpan>
-                                        )}
-                                        {card.aceEffect && (
-                                            <StyledAceSpan isMega={card.level! >= 6}>ACE-{aceOverflow}</StyledAceSpan>
-                                        )}
-                                    </>
-                                )}
+                                <>
+                                    {showColors && (
+                                        <ColorStack>
+                                            {modifiers?.colors.map((c) => (
+                                                <span key={`${c}_${card.id}_view`}>{getColor(c)}</span>
+                                            ))}
+                                        </ColorStack>
+                                    )}
+                                    <KeywordWrapper>
+                                        {modifiers?.keywords
+                                            .filter((w) => w !== "SICK")
+                                            .map((keyword) => (
+                                                <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
+                                                    <span>{keyword}</span>
+                                                </ModifierSpan>
+                                            ))}
+                                    </KeywordWrapper>
+                                    {card.level && (
+                                        <LevelSpan isMega={card.level >= 6}>
+                                            <span>Lv.</span>
+                                            {card.level}
+                                        </LevelSpan>
+                                    )}
+                                    {card.aceEffect && (
+                                        <StyledAceSpan isMega={card.level! >= 6}>ACE-{aceOverflow}</StyledAceSpan>
+                                    )}
+                                </>
                             </>
                         )}
 
@@ -561,7 +554,6 @@ type StyledImageProps = {
 
 const StyledImage = styled.img<StyledImageProps>`
     border-radius: 5px;
-    transition: all 0.15s ease-out;
     cursor: ${({ location }) => (opponentFieldLocations?.includes(location) ? "pointer" : undefined)};
     touch-action: none;
     display: block;
@@ -591,9 +583,9 @@ const StyledImage = styled.img<StyledImageProps>`
     user-select: none;
 
     &:hover {
-        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5))
-            ${({ isTilted }) => (isTilted ? "brightness(0.7) saturate(0.7)" : "none")};
-        transform: scale(1.1);
+        filter: saturate(1.15) brightness(0.9) contrast(1.05);
+        outline: 3px solid dodgerblue;
+        outline-offset: -2px;
     }
 
     @keyframes effect {
@@ -655,12 +647,11 @@ export const CardAnimationContainer = styled.div`
     pointer-events: none;
 `;
 
-const PlusDpSpan = styled.span<{ isHovering?: boolean; isNegative?: boolean }>`
+const PlusDpSpan = styled.span<{ isNegative?: boolean }>`
     position: absolute;
     z-index: 15000;
-    top: ${({ isHovering }) => (isHovering ? "-8px" : "-1px")};
-    right: ${({ isHovering }) => (isHovering ? "-6px" : 0)};
-    font-size: ${({ isHovering }) => (isHovering ? "1.1em" : "1em")};
+    top: -1px;
+    right: 0;
     border: 1px solid #8b91fd;
     box-shadow: 0 0 2px black;
     pointer-events: none;
@@ -669,7 +660,7 @@ const PlusDpSpan = styled.span<{ isHovering?: boolean; isNegative?: boolean }>`
     font-weight: 500;
     color: ${({ isNegative }) => (isNegative ? "#ff2190" : "#49fcbd")};
     line-height: 0.9;
-    padding: ${({ isHovering }) => (isHovering ? "4px 2px 1px 2px" : "3px 2px 1px 2px")};
+    padding: 3px 2px 1px 2px;
     border-radius: 3px;
     background: rgba(21, 21, 21, 0.9);
     transition: all 0.05s;
@@ -683,7 +674,7 @@ const PlusDpSpan = styled.span<{ isHovering?: boolean; isNegative?: boolean }>`
 `;
 
 const PlusSecAtkSpan = styled(PlusDpSpan)`
-    left: ${({ isHovering }) => (isHovering ? "-5px" : "0px")};
+    left: 0;
     right: unset;
     border: unset;
     background: unset;
@@ -699,7 +690,7 @@ const LevelSpan = styled(PlusSecAtkSpan)<{ isMega: boolean }>`
     color: ghostwhite;
     filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black) drop-shadow(0 0 1px black);
     span {
-        font-size: ${({ isHovering }) => (isHovering ? "0.6em" : "0.5em")};
+        font-size: 0.5em;
         transform: translateY(3px);
     }
 `;
@@ -786,6 +777,7 @@ const ColorStack = styled.div`
 const DragStackIconDiv = styled.div`
     position: fixed;
     bottom: 0;
+    right: 0;
     z-index: 9999;
     border-radius: 3px;
     padding: 1px;

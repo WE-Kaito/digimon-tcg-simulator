@@ -120,16 +120,11 @@ export default function BattleArea(props: BattleAreaProps) {
 }
 
 const Container = styled.div<{ isBreeding?: boolean; num?: number; isOver: boolean; stackOpened: boolean }>`
-    //touch-action: none;
     grid-area: ${({ num }) => (num ? `BA${num}` : "breeding")};
     position: relative;
     height: calc(100% - 6px);
     width: calc(100% - 6px);
     border-radius: 2px;
-    display: flex;
-    flex-direction: ${({ isBreeding, num }) => (isBreeding || (num && num <= 8) ? "column" : "row")};
-    justify-content: center;
-    align-items: center;
     cursor: ${({ isOver }) => (isOver ? "grabbing" : "unset")};
     background: ${({ stackOpened }) => (stackOpened ? "#F5BE57FF" : "rgba(20, 20, 20, 0.25)")};
     box-shadow: inset 0 0 20px rgba(${({ isOver }) => (isOver ? "10, 10, 10" : "113, 175, 201")}, 0.2);
