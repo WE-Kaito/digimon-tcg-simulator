@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import { SIDE } from "../../../utils/types.ts";
 import BattleArea from "../BattleArea.tsx";
+import DigimonField from "../DigimonField.tsx";
 import OpponentSecurityStack from "./OpponentSecurityStack.tsx";
 import OpponentEggDeck from "./OpponentEggDeck.tsx";
 import OpponentDeck from "./OpponentDeck.tsx";
@@ -15,7 +16,6 @@ import RestartRequestModal from "../ModalDialog/RestartRequestModal.tsx";
 import SurrenderModal from "../ModalDialog/SurrenderModal.tsx";
 import { useState } from "react";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
-import LinkArea from "../LinkArea.tsx";
 
 export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
@@ -52,13 +52,8 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
 
             <OpponentSecurityStack />
             <OpponentEggDeck />
-            {Array.from({ length: 13 }).map((_, index) => (
-                <BattleArea key={"opponentBA" + index} num={index + 1} side={SIDE.OPPONENT} />
-            ))}
-            {Array.from({ length: 8 }).map((_, index) => (
-                <LinkArea key={"opponentLA" + index} num={index + 1} side={SIDE.OPPONENT} wsUtils={wsUtils} />
-            ))}
-            <BattleArea isBreeding side={SIDE.OPPONENT} />
+            <BattleArea side={SIDE.OPPONENT} wsUtils={wsUtils} />
+            <DigimonField isBreeding side={SIDE.OPPONENT} />
             <OpponentEventUtils wsUtils={wsUtils} />
             <OpponentTrash />
             <OpponentDeck />

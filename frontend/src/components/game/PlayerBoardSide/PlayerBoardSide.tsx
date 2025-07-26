@@ -3,6 +3,7 @@ import PlayerSecurityStack from "./PlayerSecurityStack.tsx";
 import PlayerHand from "./PlayerHand.tsx";
 import PlayerDeck from "./PlayerDeck.tsx";
 import BattleArea from "../BattleArea.tsx";
+import DigimonField from "../DigimonField.tsx";
 import { SIDE } from "../../../utils/types.ts";
 import TokenButton from "./TokenButton.tsx";
 import PlayerEggDeck from "./PlayerEggDeck.tsx";
@@ -12,7 +13,6 @@ import PlayerEventUtils from "./PlayerEventUtils/PlayerEventUtils.tsx";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import DragToggleButton from "./DragToggleButton.tsx";
 import PlayerCard from "../PlayerCard.tsx";
-import LinkArea from "../LinkArea.tsx";
 import { useEffect, useRef } from "react";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import SecurityDropSections from "./SecurityDropSections.tsx";
@@ -37,19 +37,8 @@ export default function PlayerBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     return (
         <LayoutContainer>
             <PlayerEggDeck wsUtils={wsUtils} />
-            {Array.from({ length: 13 }).map((_, index) => (
-                <BattleArea
-                    ref={index === 0 ? ref : undefined}
-                    key={"playerBA" + index}
-                    num={index + 1}
-                    side={SIDE.MY}
-                    wsUtils={wsUtils}
-                />
-            ))}
-            {Array.from({ length: 8 }).map((_, index) => (
-                <LinkArea key={"playerLA" + index} num={index + 1} side={SIDE.MY} wsUtils={wsUtils} />
-            ))}
-            <BattleArea isBreeding side={SIDE.MY} wsUtils={wsUtils} />
+            <BattleArea side={SIDE.MY} wsUtils={wsUtils} />
+            <DigimonField isBreeding side={SIDE.MY} wsUtils={wsUtils} ref={ref} />
 
             <PlayerSecurityStack wsUtils={wsUtils} />
             <SecurityDropSections />
