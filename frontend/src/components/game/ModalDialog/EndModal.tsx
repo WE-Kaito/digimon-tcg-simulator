@@ -10,7 +10,14 @@ export default function EndModal() {
     const navigate = useNavigate();
 
     const buttonProps = [
-        { text: "EXIT", onClick: () => navigate("/lobby"), color: "#FCCB0B" },
+        {
+            text: "EXIT",
+            onClick: () => {
+                setEndModal(false);
+                navigate("/lobby");
+            },
+            color: "#FCCB0B",
+        },
         { text: "CLOSE MODAL", onClick: () => setEndModal(false), color: "#FCCB0B" },
     ];
 
