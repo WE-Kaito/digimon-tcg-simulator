@@ -127,7 +127,7 @@ const MemoryButton = styled.button<{ myMemory: number; value: number; fontSize: 
     border: ${({ myMemory, value }) => getBorder(value, myMemory)};
     color: ${({ myMemory, value }) => getColor(value, myMemory)};
 
-    background: rgba(0, 0, 0, ${({ myMemory, value }) => (value === myMemory ? 0.6 : 0.5)});
+    background: rgba(0, 0, 0, ${({ myMemory, value }) => (value === myMemory ? 0.75 : 0.65)});
     border-radius: 50%;
 
     filter: drop-shadow(${({ myMemory, value }) => getDropShadow(value, myMemory)});
@@ -139,8 +139,6 @@ const MemoryButton = styled.button<{ myMemory: number; value: number; fontSize: 
         border: ${({ myMemory, value }) => getBorder(value, myMemory, true)};
         box-shadow: inset ${({ myMemory, value }) => getBoxShadow(value, myMemory, true)};
     }
-
-    backdrop-filter: brightness(0.5);
 `;
 
 const BigMemoryButton = styled(MemoryButton)`

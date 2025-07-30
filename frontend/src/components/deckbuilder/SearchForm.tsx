@@ -531,7 +531,6 @@ const Button = styled.button`
     border-radius: 0;
     outline: 1px solid #242424;
     border: 2px solid transparent;
-    backdrop-filter: blur(1);
 
     font-family: "League Spartan", sans-serif;
     letter-spacing: 2px;

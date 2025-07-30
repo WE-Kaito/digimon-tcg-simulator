@@ -126,12 +126,10 @@ const Container = styled.div<{ isBreeding?: boolean; num?: number; isOver: boole
     width: calc(100% - 6px);
     border-radius: 2px;
     cursor: ${({ isOver }) => (isOver ? "grabbing" : "unset")};
-    background: ${({ stackOpened }) => (stackOpened ? "#F5BE57FF" : "rgba(20, 20, 20, 0.25)")};
+    background: ${({ stackOpened }) => (stackOpened ? "#F5BE57FF" : "rgba(20, 20, 20, 0.30)")};
     box-shadow: inset 0 0 20px rgba(${({ isOver }) => (isOver ? "10, 10, 10" : "113, 175, 201")}, 0.2);
     outline: ${({ isOver }) => `1px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})`};
     cursor: ${({ stackOpened }) => (stackOpened ? "pointer" : "unset")};
-
-    backdrop-filter: brightness(0.75);
 `;
 
 const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`

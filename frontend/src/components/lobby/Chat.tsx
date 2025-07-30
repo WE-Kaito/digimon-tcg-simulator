@@ -105,8 +105,6 @@ const Wrapper = styled.div`
     min-width: 400px;
     max-height: 100%;
 
-    backdrop-filter: hue-rotate(100deg);
-
     @media (max-width: 499px) {
         order: -1;
         margin-top: 1px;

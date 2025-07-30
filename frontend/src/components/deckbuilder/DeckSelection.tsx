@@ -195,7 +195,6 @@ const Stats = styled.div`
     justify-content: space-evenly;
 
     background: var(--blue);
-    backdrop-filter: blur(1px);
 `;
 
 const StatContainer = styled.div`
@@ -220,7 +219,6 @@ const StyledSpan = styled.span`
 `;
 
 const DeckContainer = styled.div`
-    backdrop-filter: saturate(3) blur(4px);
     width: calc(100% - 16px);
     height: calc(100% - 16px);
     max-height: calc(100vh - 250px);

@@ -66,7 +66,6 @@ const LoadingContainer = styled.div`
 `;
 
 const DeckContainer = styled.div`
-    backdrop-filter: saturate(3) blur(4px);
     flex: 1;
     min-height: 400px;
     max-height: calc(100vh - 238px);

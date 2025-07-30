@@ -677,7 +677,6 @@ const Card = styled.div`
     border-radius: 3px;
     box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
-    backdrop-filter: hue-rotate(100deg);
 `;
 
 const ButtonCard = styled.div`
@@ -686,7 +685,6 @@ const ButtonCard = styled.div`
     border-radius: 3px;
     box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
-    backdrop-filter: hue-rotate(100deg);
 
     height: 65px;
     width: 275px;

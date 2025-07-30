@@ -174,7 +174,6 @@ const NameInput = styled.input`
     border: none;
 
     background: rgba(15, 50, 145, 0.3);
-    backdrop-filter: hue-rotate(100deg);
 
     &:focus {
         outline: 3px solid var(--blue);
