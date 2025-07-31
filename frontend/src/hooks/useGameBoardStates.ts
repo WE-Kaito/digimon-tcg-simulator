@@ -394,7 +394,6 @@ const fieldDefaultValues = {
     myLink15: [],
     myLink16: [],
 
-    opponentMemory: 0,
     opponentReveal: [],
 
     opponentHand: [],
