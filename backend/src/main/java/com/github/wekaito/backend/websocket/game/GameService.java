@@ -44,10 +44,18 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) {
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        gameRooms.values().forEach(value -> value.removeIf(s -> username.equals(Objects.requireNonNull(s.getPrincipal()).getName())));
-        gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException {
+        Optional<Set<WebSocketSession>> gameRoom = gameRooms.values().stream().filter(game -> game.contains(session)).findFirst();
+        if (gameRoom.isPresent()) {
+            Set<WebSocketSession> room = gameRoom.get();
+            for (WebSocketSession webSocketSession : room) {
+                if (!webSocketSession.equals(session)) {
+                    webSocketSession.sendMessage(new TextMessage("[OPPONENT_DISCONNECTED]"));
+                }
+            }
+            room.remove(session);
+            if (room.isEmpty()) gameRooms.values().remove(room);
+        }
     }
 
     @Scheduled(fixedRate = 5000)

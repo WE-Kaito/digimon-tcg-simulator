@@ -33,6 +33,7 @@ import TestIcon from "@mui/icons-material/FitnessCenterRounded";
 import Lottie from "lottie-react";
 import LogoutButton from "../components/lobby/LogoutButton.tsx";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
+import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 
 enum Format {
     CUSTOM = "CUSTOM",
@@ -66,12 +67,15 @@ export default function Lobby() {
     const activeDeckId = useGeneralStates((state) => state.activeDeckId);
     const getActiveDeck = useGeneralStates((state) => state.getActiveDeck);
 
+    const setIsRematch = useGameUIStates((state) => state.setIsRematch);
+
     const decks = useDeckStates((state) => state.decks);
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
+    const setIsReconnecting = useGameBoardStates((state) => state.setIsReconnecting);
 
     const playJoinSfx = useSound((state) => state.playJoinSfx);
     const playKickSfx = useSound((state) => state.playKickSfx);
@@ -110,6 +114,7 @@ export default function Lobby() {
     const navigate = useNavigate();
 
     function handleReconnect() {
+        setIsReconnecting(true);
         setIsOpponentOnline(true);
         setIsLoading(false);
         navigate("/game");
@@ -284,6 +289,8 @@ export default function Lobby() {
         setShowCountdown(true);
         const timer = setTimeout(() => {
             setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
+            setIsRematch(false);
+            setIsReconnecting(false);
             clearBoard();
             setIsLoading(false);
             navigate("/game");

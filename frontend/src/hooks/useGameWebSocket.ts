@@ -4,7 +4,7 @@ import { findTokenByName } from "../utils/tokens.ts";
 import { notifySecurityView } from "../utils/toasts.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 
@@ -85,7 +85,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
     const setOpponentAttackPhase = useGameBoardStates((state) => state.setOpponentAttackPhase);
     const distributeCards = useGameBoardStates((state) => state.distributeCards);
-    const updateOpponentField = useGameBoardStates((state) => state.updateOpponentField);
+    const updateFields = useGameBoardStates((state) => state.updateFields);
     const setMessages = useGameBoardStates((state) => state.setMessages);
     const setTurn = useGameBoardStates((state) => state.setTurn);
     const moveCard = useGameBoardStates((state) => state.moveCard);
@@ -105,10 +105,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const getPhase = useGameBoardStates((state) => state.getPhase);
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
-    const getMyFieldAsString = useGameBoardStates((state) => state.getMyFieldAsString);
+    const getUpdateDistributionString = useGameBoardStates((state) => state.getUpdateDistributionString);
     const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
     const flipCard = useGameBoardStates((state) => state.flipCard);
+    const isReconnecting = useGameBoardStates((state) => state.isReconnecting);
+    const setIsReconnecting = useGameBoardStates((state) => state.setIsReconnecting);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
@@ -146,7 +148,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     }
 
     function sendUpdate() {
-        const chunks = chunkString(getMyFieldAsString(), 1000);
+        const chunks = chunkString(getUpdateDistributionString(user, gameId), 1000);
         const timeoutIds: number[] = [];
         for (const chunk of chunks) {
             const timeoutId = setTimeout(() => {
@@ -157,34 +159,16 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         return () => timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
     }
 
-    const [resetOnlineCheck, setResetOnlineCheck] = useState<(() => void) | null>(null);
-    const onlineCheckTimeoutRef = useRef<number | null>(null);
-
-    const opponentOnlineCheck = useCallback(() => {
-        const cancelSetOffline = () => {
-            if (onlineCheckTimeoutRef.current !== null) {
-                clearTimeout(onlineCheckTimeoutRef.current);
-                onlineCheckTimeoutRef.current = null;
-            }
-            setIsOpponentOnline(true);
-        };
-
-        onlineCheckTimeoutRef.current = setTimeout(() => {
-            setIsOpponentOnline(false);
-        }, 30000);
-
-        setResetOnlineCheck(() => cancelSetOffline);
-    }, [setIsOpponentOnline]);
-
     let interval: ReturnType<typeof setInterval>;
 
     const websocket = useWebSocket(websocketURL, {
         shouldReconnect: () => true,
 
         onOpen: () => {
-            if (bootStage > BootStage.SHOW_STARTING_PLAYER) {
+            if (isReconnecting) {
                 setIsLoading(false);
                 websocket.sendMessage("/reconnect:" + gameId);
+                setIsReconnecting(false);
             } else websocket.sendMessage("/joinGame:" + gameId);
         },
 
@@ -219,7 +203,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
                 const chunk = event.data.substring("[UPDATE_OPPONENT]:".length);
-                updateOpponentField(chunk, sendLoaded);
+                updateFields(chunk, sendLoaded, user, gameId);
                 return;
             }
 
@@ -403,11 +387,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 case "[HEARTBEAT]": {
                     break;
                 }
-                case "[OPPONENT_ONLINE]": {
-                    resetOnlineCheck?.();
-                    opponentOnlineCheck?.();
-                    break;
-                }
                 case "[SURRENDER]": {
                     setEndModal(true);
                     setEndModalText("🎉 Your opponent surrendered!");
@@ -458,7 +437,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     setIsLoading(false);
                     break;
                 }
+                case "[OPPONENT_DISCONNECTED]": {
+                    setIsOpponentOnline(false);
+                    break;
+                }
                 case "[OPPONENT_RECONNECTED]": {
+                    setIsOpponentOnline(true);
                     sendUpdate();
                     break;
                 }
@@ -472,7 +456,17 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     useEffect(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         interval = setInterval(() => websocket.sendMessage(`${gameId}:/online:${opponentName}`), 5000);
-        return () => clearInterval(interval);
+
+        const handleUnload = () => setIsReconnecting(true);
+        window.addEventListener("beforeunload", handleUnload);
+        window.addEventListener("offline", handleUnload);
+
+        return () => {
+            clearInterval(interval);
+
+            window.removeEventListener("beforeunload", handleUnload);
+            window.removeEventListener("offline", handleUnload);
+        };
     }, []);
 
     return { sendMessage: websocket.sendMessage, sendUpdate };
