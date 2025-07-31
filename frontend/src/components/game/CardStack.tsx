@@ -23,16 +23,16 @@ type CardStackProps = {
 };
 
 const tamerLocations = [
-    "myDigi9",
-    "myDigi10",
-    "myDigi11",
-    "myDigi12",
-    "myDigi13",
-    "opponentDigi9",
-    "opponentDigi10",
-    "opponentDigi11",
-    "opponentDigi12",
-    "opponentDigi13",
+    "myDigi21",
+    "myDigi22",
+    "myDigi23",
+    "myDigi24",
+    "myDigi25",
+    "opponentDigi21",
+    "opponentDigi22",
+    "opponentDigi23",
+    "opponentDigi24",
+    "opponentDigi25",
 ];
 
 const linkLocations = [
@@ -44,6 +44,18 @@ const linkLocations = [
     "myLink6",
     "myLink7",
     "myLink8",
+    "myLink9",
+    "myLink10",
+    "myLink11",
+    "myLink12",
+    "myLink13",
+    "myLink14",
+    "myLink15",
+    "myLink16",
+    "myLink17",
+    "myLink18",
+    "myLink19",
+    "myLink20",
     "opponentLink1",
     "opponentLink2",
     "opponentLink3",
@@ -52,6 +64,18 @@ const linkLocations = [
     "opponentLink6",
     "opponentLink7",
     "opponentLink8",
+    "opponentLink9",
+    "opponentLink10",
+    "opponentLink11",
+    "opponentLink12",
+    "opponentLink13",
+    "opponentLink14",
+    "opponentLink15",
+    "opponentLink16",
+    "opponentLink17",
+    "opponentLink18",
+    "opponentLink19",
+    "opponentLink20",
 ];
 
 export default function CardStack(props: CardStackProps) {
@@ -119,6 +143,7 @@ export default function CardStack(props: CardStackProps) {
                       duration={500}
                       key={card.id}
                       style={{ ...getTamerCardContainerStyles(index, cards.length) }}
+                      triggerOnce
                   >
                       <Card
                           style={{ width: tamerWidth }}
@@ -161,6 +186,7 @@ export default function CardStack(props: CardStackProps) {
                           duration={500}
                           key={card.id}
                           style={getCardContainerStyles(index, cards.length)}
+                          triggerOnce
                       >
                           <Card
                               style={{ width: cardWidth, height: cardWidth * 1.4 }}

@@ -2,13 +2,7 @@ import { CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
-import {
-    arraysEqualUnordered,
-    getNumericModifier,
-    numbersWithModifiers,
-    topCardInfo,
-    topCardInfoLink,
-} from "../utils/functions.ts";
+import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useState } from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
@@ -24,7 +18,24 @@ import { OpenedCardModal, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 
-const myDigimonLocations = ["myDigi1", "myDigi2", "myDigi3", "myDigi4", "myDigi5", "myDigi6", "myDigi7", "myDigi8"];
+const myDigimonLocations = [
+    "myDigi1",
+    "myDigi2",
+    "myDigi3",
+    "myDigi4",
+    "myDigi5",
+    "myDigi6",
+    "myDigi7",
+    "myDigi8",
+    "myDigi9",
+    "myDigi10",
+    "myDigi11",
+    "myDigi12",
+    "myDigi13",
+    "myDigi14",
+    "myDigi15",
+    "myDigi16",
+];
 
 const digimonLocations = [
     ...myDigimonLocations,
@@ -36,28 +47,28 @@ const digimonLocations = [
     "opponentDigi6",
     "opponentDigi7",
     "opponentDigi8",
-];
-
-const myTamerLocations = ["myDigi9", "myDigi10", "myDigi11", "myDigi12", "myDigi13"];
-
-const tamerLocations = [
-    ...myTamerLocations,
+    "opponentDigi9",
+    "opponentDigi10",
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
     "opponentDigi14",
     "opponentDigi15",
+    "opponentDigi16",
 ];
 
-const myBALocations = [
-    ...myDigimonLocations,
-    "myDigi9",
-    "myDigi10",
-    "myDigi11",
-    "myDigi12",
-    "myDigi13",
-    "myBreedingArea",
+const myTamerLocations = ["myDigi17", "myDigi18", "myDigi19", "myDigi20", "myDigi21"];
+
+const tamerLocations = [
+    ...myTamerLocations,
+    "opponentDigi17",
+    "opponentDigi18",
+    "opponentDigi19",
+    "opponentDigi20",
+    "opponentDigi21",
 ];
+
+const myBALocations = [...myDigimonLocations, ...myTamerLocations, "myBreedingArea"];
 
 const opponentBALocations = [
     "opponentDigi1",
@@ -73,6 +84,14 @@ const opponentBALocations = [
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
+    "opponentDigi14",
+    "opponentDigi15",
+    "opponentDigi16",
+    "opponentDigi17",
+    "opponentDigi18",
+    "opponentDigi19",
+    "opponentDigi20",
+    "opponentDigi21",
     "opponentBreedingArea",
 ];
 
@@ -86,6 +105,14 @@ const opponentFieldLocations = [
     "opponentLink6",
     "opponentLink7",
     "opponentLink8",
+    "opponentLink9",
+    "opponentLink10",
+    "opponentLink11",
+    "opponentLink12",
+    "opponentLink13",
+    "opponentLink14",
+    "opponentLink15",
+    "opponentLink16",
     "opponentReveal",
     "opponentDeckField",
     "opponentEggDeck",
@@ -94,28 +121,36 @@ const opponentFieldLocations = [
     "opponentHand",
 ];
 
-const locationsWithInheritedInfo = [
-    "myBreedingArea",
-    "opponentBreedingArea",
-    "myDigi1",
-    "myDigi2",
-    "myDigi3",
-    "myDigi4",
-    "myDigi5",
-    "myDigi6",
-    "myDigi7",
-    "myDigi8",
-    "opponentDigi1",
-    "opponentDigi2",
-    "opponentDigi3",
-    "opponentDigi4",
-    "opponentDigi5",
-    "opponentDigi6",
-    "opponentDigi7",
-    "opponentDigi8",
-];
+const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea", ...digimonLocations];
 
 const locationsWithAdditionalInfo = [...locationsWithInheritedInfo, ...tamerLocations];
+
+function topCardInfo(locationCards: CardTypeGame[]) {
+    if (locationCards.length <= 1) return "";
+    const effectInfo = [""];
+    locationCards.forEach((card, index) => {
+        if (index === locationCards.length - 1 || !card.inheritedEffect || !card.isFaceUp) return;
+        effectInfo.push(card.inheritedEffect);
+    });
+    effectInfo.reverse();
+    return effectInfo.join("\n");
+}
+
+function topCardInfoLink(locationCards: CardTypeGame[]) {
+    if (!locationCards.length) return [];
+    const linkEffectInfo: { dp: number; effect: string }[] = [];
+    locationCards.forEach((card) => {
+        linkEffectInfo.push({ dp: card.linkDP ?? 0, effect: card.linkEffect ?? "" });
+    });
+    return linkEffectInfo.reverse();
+}
+
+function arraysEqualUnordered(arr1: string[], arr2: string[]) {
+    if (arr1.length !== arr2.length) return false;
+    const sortedArr1 = [...arr1].sort((a, b) => a.localeCompare(b));
+    const sortedArr2 = [...arr2].sort((a, b) => a.localeCompare(b));
+    return sortedArr1.every((value, index) => value === sortedArr2[index]);
+}
 
 type CardProps = {
     card: CardTypeGame;

@@ -1,6 +1,26 @@
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { getCardColor } from "../../utils/functions.ts";
 import styled from "@emotion/styled";
+
+function getCardColor(color: string): [string, string] {
+    switch (color) {
+        case "Red":
+            return ["#b02626", "ghostwhite"];
+        case "Yellow":
+            return ["#cbbc2f", "black"];
+        case "Green":
+            return ["#0c8a3e", "ghostwhite"];
+        case "Blue":
+            return ["#017fc2", "ghostwhite"];
+        case "Purple":
+            return ["#7f2dbd", "ghostwhite"];
+        case "Black":
+            return ["#212121", "ghostwhite"];
+        case "White":
+            return ["#DBDBDB", "black"];
+        default:
+            return ["transparent", ""];
+    }
+}
 
 export default function ColorSpan() {
     const selectedCard = useGeneralStates((state) => state.selectedCard);

@@ -1,8 +1,5 @@
 import styled from "@emotion/styled";
 import noiseBG from "../../assets/noiseBG.png";
-import { getAttributeImage, getCardTypeImage } from "../../utils/functions.ts";
-import cardBackSrc from "../../assets/cardBack.jpg";
-import suspendedAnimation from "../../assets/lotties/square-sparkle-apng.png";
 import { useSettingStates } from "../../hooks/useSettingStates.ts";
 
 export default function GameBackground() {
@@ -10,23 +7,6 @@ export default function GameBackground() {
 
     return (
         <>
-            {/* Workaround to preload asset images: */}
-            <div style={{ position: "absolute", pointerEvents: "none", visibility: "hidden" }}>
-                <img width={30} alt={"cardType1"} src={getCardTypeImage("Digimon")} />
-                <img width={30} alt={"cardType2"} src={getCardTypeImage("Option")} />
-                <img width={30} alt={"cardType3"} src={getCardTypeImage("Tamer")} />
-                <img width={30} alt={"cardType4"} src={getCardTypeImage("DigiEgg")} />
-
-                <img width={30} alt={"attribute1"} src={getAttributeImage("Virus")} />
-                <img width={30} alt={"attribute2"} src={getAttributeImage("Data")} />
-                <img width={30} alt={"attribute3"} src={getAttributeImage("Vaccine")} />
-                <img width={30} alt={"attribute4"} src={getAttributeImage("Free")} />
-                <img width={30} alt={"attribute5"} src={getAttributeImage("Variable")} />
-                <img width={30} alt={"attribute6"} src={getAttributeImage("Unknown")} />
-                <img width={30} alt={"attribute7"} src={suspendedAnimation} />
-                <img width={30} alt={"attribute8"} src={cardBackSrc} />
-            </div>
-
             <BackGroundPattern />
             <BackGround color1={colors.color1} color2={colors.color2} color3={colors.color3} />
         </>

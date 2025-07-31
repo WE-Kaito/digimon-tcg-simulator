@@ -26,6 +26,7 @@ export default function RevealArea() {
                             ...(bothRevealed && { transform: "translateY(-100px)" }),
                         }),
                     }}
+                    triggerOnce
                 >
                     <Card card={card} location={"myReveal"} style={{ width: cardWidth * 2 }} />
                 </Flip>
@@ -40,6 +41,7 @@ export default function RevealArea() {
                             ...(bothRevealed && { transform: "translateY(100px)" }),
                         }),
                     }}
+                    triggerOnce
                 >
                     <Card card={card} location={"opponentReveal"} style={{ width: cardWidth * 2 }} />
                 </Flip>

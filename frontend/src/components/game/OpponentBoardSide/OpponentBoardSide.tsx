@@ -1,7 +1,8 @@
 import styled from "@emotion/styled";
 import { SIDE } from "../../../utils/types.ts";
 import BattleArea from "../BattleArea.tsx";
-import DigimonField from "../DigimonField.tsx";
+import BreedingArea from "../BreedingArea.tsx";
+import FieldNavigationButtons from "../FieldNavigationButtons.tsx";
 import OpponentSecurityStack from "./OpponentSecurityStack.tsx";
 import OpponentEggDeck from "./OpponentEggDeck.tsx";
 import OpponentDeck from "./OpponentDeck.tsx";
@@ -53,7 +54,10 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
             <OpponentSecurityStack />
             <OpponentEggDeck />
             <BattleArea side={SIDE.OPPONENT} wsUtils={wsUtils} />
-            <DigimonField isBreeding side={SIDE.OPPONENT} />
+            <BreedingArea side={SIDE.OPPONENT} />
+            <OpponentFieldNavigationContainer>
+                <FieldNavigationButtons side={SIDE.OPPONENT} />
+            </OpponentFieldNavigationContainer>
             <OpponentEventUtils wsUtils={wsUtils} />
             <OpponentTrash />
             <OpponentDeck />
@@ -78,9 +82,17 @@ const LayoutContainer = styled.div`
         ". .  LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1                    breeding breeding . . . . . . ."
         "trash trash  LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1                    breeding breeding . . . . . . ."
         "trash trash  LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1            . .             . . . . . . ."
-        ". .  LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1                    . .             . . . . . . .";
+        ". .  LA8 BA8 BA8 LA7 BA7 BA7 LA6 BA6 BA6 LA5 BA5 BA5 LA4 BA4 BA4 LA3 BA3 BA3 LA2 BA2 BA2 LA1 BA1 BA1                    opponent-field-nav opponent-field-nav             . . . . . . .";
     gap: 1px;
     position: relative;
+`;
+
+const OpponentFieldNavigationContainer = styled.div`
+    grid-area: opponent-field-nav;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
 `;
 
 const PanelButton = styled.div`

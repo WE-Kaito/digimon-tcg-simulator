@@ -173,6 +173,14 @@ export type OneSideDistribution = {
     playerDigi11?: CardTypeGame[];
     playerDigi12?: CardTypeGame[];
     playerDigi13?: CardTypeGame[];
+    playerDigi14?: CardTypeGame[];
+    playerDigi15?: CardTypeGame[];
+    playerDigi16?: CardTypeGame[];
+    playerDigi17?: CardTypeGame[];
+    playerDigi18?: CardTypeGame[];
+    playerDigi19?: CardTypeGame[];
+    playerDigi20?: CardTypeGame[];
+    playerDigi21?: CardTypeGame[];
     playerBreedingArea?: CardTypeGame[];
 
     playerLink1?: CardTypeGame[];
@@ -183,6 +191,14 @@ export type OneSideDistribution = {
     playerLink6?: CardTypeGame[];
     playerLink7?: CardTypeGame[];
     playerLink8?: CardTypeGame[];
+    playerLink9?: CardTypeGame[];
+    playerLink10?: CardTypeGame[];
+    playerLink11?: CardTypeGame[];
+    playerLink12?: CardTypeGame[];
+    playerLink13?: CardTypeGame[];
+    playerLink14?: CardTypeGame[];
+    playerLink15?: CardTypeGame[];
+    playerLink16?: CardTypeGame[];
 
     playerMemory?: number;
     playerPhase?: Phase;
@@ -261,6 +277,14 @@ export type BoardState = {
     myDigi11: CardTypeGame[];
     myDigi12: CardTypeGame[];
     myDigi13: CardTypeGame[];
+    myDigi14: CardTypeGame[];
+    myDigi15: CardTypeGame[];
+    myDigi16: CardTypeGame[];
+    myDigi17: CardTypeGame[];
+    myDigi18: CardTypeGame[];
+    myDigi19: CardTypeGame[];
+    myDigi20: CardTypeGame[];
+    myDigi21: CardTypeGame[];
     myBreedingArea: CardTypeGame[];
 
     myLink1: CardTypeGame[];
@@ -271,6 +295,14 @@ export type BoardState = {
     myLink6: CardTypeGame[];
     myLink7: CardTypeGame[];
     myLink8: CardTypeGame[];
+    myLink9: CardTypeGame[];
+    myLink10: CardTypeGame[];
+    myLink11: CardTypeGame[];
+    myLink12: CardTypeGame[];
+    myLink13: CardTypeGame[];
+    myLink14: CardTypeGame[];
+    myLink15: CardTypeGame[];
+    myLink16: CardTypeGame[];
 
     opponentMemory: number;
     opponentReveal: CardTypeGame[];
@@ -294,6 +326,14 @@ export type BoardState = {
     opponentDigi11: CardTypeGame[];
     opponentDigi12: CardTypeGame[];
     opponentDigi13: CardTypeGame[];
+    opponentDigi14: CardTypeGame[];
+    opponentDigi15: CardTypeGame[];
+    opponentDigi16: CardTypeGame[];
+    opponentDigi17: CardTypeGame[];
+    opponentDigi18: CardTypeGame[];
+    opponentDigi19: CardTypeGame[];
+    opponentDigi20: CardTypeGame[];
+    opponentDigi21: CardTypeGame[];
     opponentBreedingArea: CardTypeGame[];
 
     opponentLink1: CardTypeGame[];
@@ -304,6 +344,14 @@ export type BoardState = {
     opponentLink6: CardTypeGame[];
     opponentLink7: CardTypeGame[];
     opponentLink8: CardTypeGame[];
+    opponentLink9: CardTypeGame[];
+    opponentLink10: CardTypeGame[];
+    opponentLink11: CardTypeGame[];
+    opponentLink12: CardTypeGame[];
+    opponentLink13: CardTypeGame[];
+    opponentLink14: CardTypeGame[];
+    opponentLink15: CardTypeGame[];
+    opponentLink16: CardTypeGame[];
 };
 
 export type SendToStackFunction = (
@@ -333,6 +381,14 @@ export const tamerLocations = [
     "myDigi11",
     "myDigi12",
     "myDigi13",
+    "myDigi14",
+    "myDigi15",
+    "myDigi16",
+    "myDigi17",
+    "myDigi18",
+    "myDigi19",
+    "myDigi20",
+    "myDigi21",
     "myBreedingArea",
     "opponentDigi1",
     "opponentDigi2",
@@ -347,5 +403,13 @@ export const tamerLocations = [
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
+    "opponentDigi14",
+    "opponentDigi15",
+    "opponentDigi16",
+    "opponentDigi17",
+    "opponentDigi18",
+    "opponentDigi19",
+    "opponentDigi20",
+    "opponentDigi21",
     "opponentBreedingArea",
 ] as const;

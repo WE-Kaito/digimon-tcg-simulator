@@ -1,6 +1,5 @@
 import useWebSocket, { SendMessage } from "react-use-websocket";
 import { AttackPhase, BootStage, CardModifiers, Phase, Player, SIDE } from "../utils/types.ts";
-import { getOpponentSfx } from "../utils/functions.ts";
 import { findTokenByName } from "../utils/tokens.ts";
 import { notifySecurityView } from "../utils/toasts.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
@@ -33,6 +32,32 @@ function chunkString(str: string, size: number): string[] {
         chunks.push(str.substring(i, i + size));
     }
     return chunks;
+}
+
+function getValidOffset(toFieldNumber: number, currentOffset: number) {
+    const MAX_OFFSET = 8;
+    const FIELDS_VISIBLE = 8;
+
+    // If already visible, keep the current offset
+    if (toFieldNumber >= currentOffset + 1 && toFieldNumber <= currentOffset + FIELDS_VISIBLE) {
+        return currentOffset;
+    }
+
+    let newOffset;
+
+    if (toFieldNumber > currentOffset + FIELDS_VISIBLE) {
+        // Push it to the right edge
+        newOffset = toFieldNumber - FIELDS_VISIBLE;
+    } else {
+        // Push it to the left edge
+        newOffset = toFieldNumber - 1;
+    }
+
+    // Clamp between 0 and MAX_OFFSET
+    if (newOffset > MAX_OFFSET) newOffset = MAX_OFFSET;
+    if (newOffset < 0) newOffset = 0;
+
+    return newOffset;
 }
 
 /**
@@ -88,6 +113,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
     const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
+    const fieldOffset = useGameUIStates((state) => state.fieldOffset);
+    const setFieldOffset = useGameUIStates((state) => state.setFieldOffset);
 
     // Improved player one detection with validation
     const gameIdParts = gameId.split("‗");
@@ -314,6 +341,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[ATTACK]:")) {
                 const parts = event.data.substring("[ATTACK]:".length).split(":");
+                const toFieldNumber = Number(parts[1].match(/\d+/)[0]);
+                setFieldOffset(getValidOffset(toFieldNumber, fieldOffset));
                 clearAttackAnimation?.();
                 setArrowFrom(parts[0]);
                 setArrowTo(parts[1]);
@@ -343,6 +372,55 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const modifiers: CardModifiers = JSON.parse(parts.slice(2).join(":"));
                 setModifiers(id, location, modifiers);
                 return;
+            }
+
+            if (event.data.includes("SFX")) {
+                switch (event.data) {
+                    case "[REVEAL_SFX]": {
+                        playRevealCardSfx();
+                        break;
+                    }
+                    case "[SECURITY_REVEAL_SFX]": {
+                        playSecurityRevealSfx();
+                        break;
+                    }
+                    case "[PLACE_CARD_SFX]": {
+                        playOpponentPlaceCardSfx();
+                        break;
+                    }
+                    case "[DRAW_CARD_SFX]": {
+                        playDrawCardSfx();
+                        break;
+                    }
+                    case "[SUSPEND_CARD_SFX]": {
+                        playSuspendSfx();
+                        break;
+                    }
+                    case "[UNSUSPEND_CARD_SFX]": {
+                        playUnsuspendSfx();
+                        break;
+                    }
+                    case "[BUTTON_CLICK_SFX]": {
+                        playButtonClickSfx();
+                        break;
+                    }
+                    case "[TRASH_CARD_SFX]": {
+                        playTrashCardSfx();
+                        break;
+                    }
+                    case "[SHUFFLE_DECK_SFX]": {
+                        playShuffleDeckSfx();
+                        break;
+                    }
+                    case "[NEXT_PHASE_SFX]": {
+                        playNextPhaseSfx();
+                        break;
+                    }
+                    case "[PASS_TURN_SFX]": {
+                        playPassTurnSfx();
+                        break;
+                    }
+                }
             }
 
             switch (event.data) {
@@ -422,19 +500,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 default: {
-                    getOpponentSfx(event.data, {
-                        playButtonClickSfx,
-                        playDrawCardSfx,
-                        playNextPhaseSfx,
-                        playOpponentPlaceCardSfx,
-                        playPassTurnSfx,
-                        playRevealCardSfx,
-                        playSecurityRevealSfx,
-                        playShuffleDeckSfx,
-                        playSuspendSfx,
-                        playTrashCardSfx,
-                        playUnsuspendSfx,
-                    });
+                    break;
                 }
             }
         },

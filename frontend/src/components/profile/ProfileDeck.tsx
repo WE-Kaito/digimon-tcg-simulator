@@ -2,7 +2,7 @@ import { CardType, DeckType } from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { fallbackCardNumber, useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { generateGradient, getCardTypeImage, handleImageError } from "../../utils/functions.ts";
+import { getCardTypeImage, handleImageError } from "../../utils/functions.ts";
 import { getSleeve } from "../../utils/sleeves.ts";
 import LevelDistribution from "./LevelDistribution.tsx";
 import { Dispatch, SetStateAction } from "react";
@@ -23,6 +23,73 @@ export type ProfileDeckProps = {
     isDragging?: boolean;
     lobbyView?: boolean;
 };
+
+function generateGradient(deckCards: CardType[]) {
+    const colorMap = {
+        Blue: "#3486E3FF",
+        Green: "#25AB3BFF",
+        Red: "#AB2530FF",
+        Yellow: "#AB9925FF",
+        Purple: "#9135AFFF",
+        Black: "#212121FF",
+        White: "#B2B2B2FF",
+    };
+
+    const colorCounts = {
+        Blue: 0,
+        White: 0,
+        Green: 0,
+        Purple: 0,
+        Black: 0,
+        Red: 0,
+        Yellow: 0,
+    };
+
+    deckCards.forEach((card) =>
+        card.color.forEach((color) => {
+            // @ts-expect-error - colorCounts is defined above
+            if (color in colorCounts) colorCounts[color]++;
+        })
+    );
+
+    const totalCards = Object.values(colorCounts).reduce((sum, count) => sum + count, 0);
+
+    const gradientParts: string[] = [];
+    let accumulatedPercentage = 0;
+
+    Object.entries(colorCounts)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .filter(([_, count]) => count > 0)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .sort(([_, countA], [__, countB]) => countB - countA)
+        .forEach(([color, count], index) => {
+            const thisColorPercentage = (count / totalCards) * 100;
+            // @ts-expect-error - colorMap is defined above
+            const hexColor = colorMap[color];
+
+            // for smooth gradients:
+            // if (index === 0) gradientParts.push(`${hexColor} ${accumulatedPercentage.toFixed(2)}%`);
+            //
+            // accumulatedPercentage += thisColorPercentage;
+            //
+            // if (index === array.length - 1) accumulatedPercentage = 100;
+            //
+            // gradientParts.push(`${hexColor} ${accumulatedPercentage.toFixed(2)}%`);
+
+            // for sharp gradients:
+            const startPercentage = accumulatedPercentage;
+            let endPercentage = accumulatedPercentage + thisColorPercentage;
+
+            if (index === Object.keys(colorCounts).length - 1) endPercentage = 100;
+
+            gradientParts.push(`${hexColor} ${startPercentage.toFixed(2)}%`);
+            gradientParts.push(`${hexColor} ${endPercentage.toFixed(2)}%`);
+
+            accumulatedPercentage += thisColorPercentage;
+        });
+
+    return `linear-gradient(90deg, ${gradientParts.join(", ")})`;
+}
 
 export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
     const { deck, isDragging, setSleeveSelectionOpen, setImageSelectionOpen, lobbyView } = props;

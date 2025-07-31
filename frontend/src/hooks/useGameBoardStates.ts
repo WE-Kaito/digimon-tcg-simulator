@@ -31,6 +31,14 @@ const battleAreaLocations = [
     "myDigi6",
     "myDigi7",
     "myDigi8",
+    "myDigi9",
+    "myDigi10",
+    "myDigi11",
+    "myDigi12",
+    "myDigi13",
+    "myDigi14",
+    "myDigi15",
+    "myDigi16",
     "opponentDigi1",
     "opponentDigi2",
     "opponentDigi3",
@@ -39,21 +47,29 @@ const battleAreaLocations = [
     "opponentDigi6",
     "opponentDigi7",
     "opponentDigi8",
-];
-
-export const digimonLocations = ["myBreedingArea", "opponentBreedingArea", ...battleAreaLocations];
-
-const tamerLocations = [
-    "myDigi9",
-    "myDigi10",
-    "myDigi11",
-    "myDigi12",
-    "myDigi13",
     "opponentDigi9",
     "opponentDigi10",
     "opponentDigi11",
     "opponentDigi12",
     "opponentDigi13",
+    "opponentDigi14",
+    "opponentDigi15",
+    "opponentDigi16",
+];
+
+export const digimonLocations = ["myBreedingArea", "opponentBreedingArea", ...battleAreaLocations];
+
+const tamerLocations = [
+    "myDigi17",
+    "myDigi18",
+    "myDigi19",
+    "myDigi20",
+    "myDigi21",
+    "opponentDigi17",
+    "opponentDigi18",
+    "opponentDigi19",
+    "opponentDigi20",
+    "opponentDigi21",
 ];
 
 // const myLinkLocations = [
@@ -76,6 +92,14 @@ const opponentLinkLocations = [
     "opponentLink6",
     "opponentLink7",
     "opponentLink8",
+    "opponentLink9",
+    "opponentLink10",
+    "opponentLink11",
+    "opponentLink12",
+    "opponentLink13",
+    "opponentLink14",
+    "opponentLink15",
+    "opponentLink16",
 ];
 
 // const linkLocations = [...myLinkLocations, ...opponentLinkLocations];
@@ -278,6 +302,14 @@ export const useGameBoardStates = create<State>()(
                 myDigi11: [],
                 myDigi12: [],
                 myDigi13: [],
+                myDigi14: [],
+                myDigi15: [],
+                myDigi16: [],
+                myDigi17: [],
+                myDigi18: [],
+                myDigi19: [],
+                myDigi20: [],
+                myDigi21: [],
                 myBreedingArea: [],
 
                 myLink1: [],
@@ -288,6 +320,14 @@ export const useGameBoardStates = create<State>()(
                 myLink6: [],
                 myLink7: [],
                 myLink8: [],
+                myLink9: [],
+                myLink10: [],
+                myLink11: [],
+                myLink12: [],
+                myLink13: [],
+                myLink14: [],
+                myLink15: [],
+                myLink16: [],
 
                 opponentMemory: 0,
                 opponentReveal: [],
@@ -311,6 +351,14 @@ export const useGameBoardStates = create<State>()(
                 opponentDigi11: [],
                 opponentDigi12: [],
                 opponentDigi13: [],
+                opponentDigi14: [],
+                opponentDigi15: [],
+                opponentDigi16: [],
+                opponentDigi17: [],
+                opponentDigi18: [],
+                opponentDigi19: [],
+                opponentDigi20: [],
+                opponentDigi21: [],
                 opponentBreedingArea: [],
 
                 opponentLink1: [],
@@ -321,6 +369,14 @@ export const useGameBoardStates = create<State>()(
                 opponentLink6: [],
                 opponentLink7: [],
                 opponentLink8: [],
+                opponentLink9: [],
+                opponentLink10: [],
+                opponentLink11: [],
+                opponentLink12: [],
+                opponentLink13: [],
+                opponentLink14: [],
+                opponentLink15: [],
+                opponentLink16: [],
 
                 phase: Phase.BREEDING,
                 isMyTurn: false,
@@ -370,6 +426,14 @@ export const useGameBoardStates = create<State>()(
                         myDigi11: [],
                         myDigi12: [],
                         myDigi13: [],
+                        myDigi14: [],
+                        myDigi15: [],
+                        myDigi16: [],
+                        myDigi17: [],
+                        myDigi18: [],
+                        myDigi19: [],
+                        myDigi20: [],
+                        myDigi21: [],
                         myLink1: [],
                         myLink2: [],
                         myLink3: [],
@@ -378,6 +442,14 @@ export const useGameBoardStates = create<State>()(
                         myLink6: [],
                         myLink7: [],
                         myLink8: [],
+                        myLink9: [],
+                        myLink10: [],
+                        myLink11: [],
+                        myLink12: [],
+                        myLink13: [],
+                        myLink14: [],
+                        myLink15: [],
+                        myLink16: [],
                         myBreedingArea: [],
                         opponentMemory: 0,
                         opponentReveal: [],
@@ -399,6 +471,14 @@ export const useGameBoardStates = create<State>()(
                         opponentDigi11: [],
                         opponentDigi12: [],
                         opponentDigi13: [],
+                        opponentDigi14: [],
+                        opponentDigi15: [],
+                        opponentDigi16: [],
+                        opponentDigi17: [],
+                        opponentDigi18: [],
+                        opponentDigi19: [],
+                        opponentDigi20: [],
+                        opponentDigi21: [],
                         opponentLink1: [],
                         opponentLink2: [],
                         opponentLink3: [],
@@ -407,6 +487,14 @@ export const useGameBoardStates = create<State>()(
                         opponentLink6: [],
                         opponentLink7: [],
                         opponentLink8: [],
+                        opponentLink9: [],
+                        opponentLink10: [],
+                        opponentLink11: [],
+                        opponentLink12: [],
+                        opponentLink13: [],
+                        opponentLink14: [],
+                        opponentLink15: [],
+                        opponentLink16: [],
                         opponentBreedingArea: [],
                         phase: Phase.BREEDING,
                         isMyTurn: false,
@@ -522,6 +610,15 @@ export const useGameBoardStates = create<State>()(
                         playerDigi11: get().myDigi11,
                         playerDigi12: get().myDigi12,
                         playerDigi13: get().myDigi13,
+                        playerDigi14: get().myDigi14,
+                        playerDigi15: get().myDigi15,
+                        playerDigi16: get().myDigi16,
+                        playerDigi17: get().myDigi17,
+                        playerDigi18: get().myDigi18,
+                        playerDigi19: get().myDigi19,
+                        playerDigi20: get().myDigi20,
+                        playerDigi21: get().myDigi21,
+
                         playerBreedingArea: get().myBreedingArea,
 
                         playerLink1: get().myLink1,
@@ -532,6 +629,14 @@ export const useGameBoardStates = create<State>()(
                         playerLink6: get().myLink6,
                         playerLink7: get().myLink7,
                         playerLink8: get().myLink8,
+                        playerLink9: get().myLink9,
+                        playerLink10: get().myLink10,
+                        playerLink11: get().myLink11,
+                        playerLink12: get().myLink12,
+                        playerLink13: get().myLink13,
+                        playerLink14: get().myLink14,
+                        playerLink15: get().myLink15,
+                        playerLink16: get().myLink16,
 
                         playerMemory: get().opponentMemory,
                         playerPhase: get().phase,
@@ -576,6 +681,15 @@ export const useGameBoardStates = create<State>()(
                             opponentDigi11: opponentGameJson.playerDigi11,
                             opponentDigi12: opponentGameJson.playerDigi12,
                             opponentDigi13: opponentGameJson.playerDigi13,
+                            opponentDigi14: opponentGameJson.playerDigi14,
+                            opponentDigi15: opponentGameJson.playerDigi15,
+                            opponentDigi16: opponentGameJson.playerDigi16,
+                            opponentDigi17: opponentGameJson.playerDigi17,
+                            opponentDigi18: opponentGameJson.playerDigi18,
+                            opponentDigi19: opponentGameJson.playerDigi19,
+                            opponentDigi20: opponentGameJson.playerDigi20,
+                            opponentDigi21: opponentGameJson.playerDigi21,
+
                             opponentBreedingArea: opponentGameJson.playerBreedingArea,
 
                             opponentLink1: opponentGameJson.playerLink1,
@@ -586,6 +700,14 @@ export const useGameBoardStates = create<State>()(
                             opponentLink6: opponentGameJson.playerLink6,
                             opponentLink7: opponentGameJson.playerLink7,
                             opponentLink8: opponentGameJson.playerLink8,
+                            opponentLink9: opponentGameJson.playerLink9,
+                            opponentLink10: opponentGameJson.playerLink10,
+                            opponentLink11: opponentGameJson.playerLink11,
+                            opponentLink12: opponentGameJson.playerLink12,
+                            opponentLink13: opponentGameJson.playerLink13,
+                            opponentLink14: opponentGameJson.playerLink14,
+                            opponentLink15: opponentGameJson.playerLink15,
+                            opponentLink16: opponentGameJson.playerLink16,
 
                             myMemory: opponentGameJson.playerMemory,
                             phase: opponentGameJson.playerPhase,
@@ -851,7 +973,15 @@ export const useGameBoardStates = create<State>()(
                         get().myDigi10.some((card) => card.isTilted) ||
                         get().myDigi11.some((card) => card.isTilted) ||
                         get().myDigi12.some((card) => card.isTilted) ||
-                        get().myDigi13.some((card) => card.isTilted)
+                        get().myDigi13.some((card) => card.isTilted) ||
+                        get().myDigi14.some((card) => card.isTilted) ||
+                        get().myDigi15.some((card) => card.isTilted) ||
+                        get().myDigi16.some((card) => card.isTilted) ||
+                        get().myDigi17.some((card) => card.isTilted) ||
+                        get().myDigi18.some((card) => card.isTilted) ||
+                        get().myDigi19.some((card) => card.isTilted) ||
+                        get().myDigi20.some((card) => card.isTilted) ||
+                        get().myDigi21.some((card) => card.isTilted)
                     );
                 },
 

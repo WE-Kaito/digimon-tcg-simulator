@@ -3,7 +3,7 @@ import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import HighlightedKeyWords from "./HighlightedKeyWords.tsx";
 import { EffectCard, LinkEffectCard, EffectText, RuleEffectCard } from "./EffectCard.tsx";
 import { Stack, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
-import { getAttributeImage, getCardTypeImage } from "../../utils/functions.ts";
+import { getCardTypeImage } from "../../utils/functions.ts";
 import { CardTypeGame, CardTypeWithId } from "../../utils/types.ts";
 import { useLocation } from "react-router-dom";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
@@ -12,6 +12,19 @@ import { styled as muiStyled } from "@mui/material/styles";
 import { indigo } from "@mui/material/colors";
 import { DetailsView, useSettingStates } from "../../hooks/useSettingStates.ts";
 import { EffectVariant } from "./EffectVariant.ts";
+import virusImage from "../../assets/attribute_icons/virus.png";
+import dataImage from "../../assets/attribute_icons/data.png";
+import vaccineImage from "../../assets/attribute_icons/vaccine.png";
+import freeImage from "../../assets/attribute_icons/free.png";
+import variableImage from "../../assets/attribute_icons/variable.png";
+import unknownImage from "../../assets/attribute_icons/unknown.png";
+import godIconSrc from "../../assets/attribute_icons/appmon/god.png";
+import gameIconSrc from "../../assets/attribute_icons/appmon/game.png";
+import lifeIconSrc from "../../assets/attribute_icons/appmon/life.png";
+import naviIconSrc from "../../assets/attribute_icons/appmon/navi.png";
+import socialIconSrc from "../../assets/attribute_icons/appmon/social.png";
+import systemIconSrc from "../../assets/attribute_icons/appmon/system.png";
+import toolIconSrc from "../../assets/attribute_icons/appmon/tool.png";
 
 const HybridNames = [
     "Takuya Kanbara",
@@ -27,6 +40,39 @@ const HybridNames = [
     "Hacker Judge",
     "Kosuke Kisakata",
 ];
+
+function getAttributeImage(attribute: string | null | undefined) {
+    switch (attribute) {
+        case "Virus":
+            return virusImage;
+        case "Data":
+            return dataImage;
+        case "Vaccine":
+            return vaccineImage;
+        case "Free":
+            return freeImage;
+        case "Variable":
+            return variableImage;
+        case "Unknown":
+            return unknownImage;
+        case "God":
+            return godIconSrc;
+        case "Game":
+            return gameIconSrc;
+        case "Life":
+            return lifeIconSrc;
+        case "Navi":
+            return naviIconSrc;
+        case "Social":
+            return socialIconSrc;
+        case "System":
+            return systemIconSrc;
+        case "Tool":
+            return toolIconSrc;
+        case "default":
+            return;
+    }
+}
 
 export default function CardDetails() {
     const location = useLocation();

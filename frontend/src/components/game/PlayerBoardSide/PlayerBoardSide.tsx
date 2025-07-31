@@ -3,7 +3,8 @@ import PlayerSecurityStack from "./PlayerSecurityStack.tsx";
 import PlayerHand from "./PlayerHand.tsx";
 import PlayerDeck from "./PlayerDeck.tsx";
 import BattleArea from "../BattleArea.tsx";
-import DigimonField from "../DigimonField.tsx";
+import BreedingArea from "../BreedingArea.tsx";
+import FieldNavigationButtons from "../FieldNavigationButtons.tsx";
 import { SIDE } from "../../../utils/types.ts";
 import TokenButton from "./TokenButton.tsx";
 import PlayerEggDeck from "./PlayerEggDeck.tsx";
@@ -38,7 +39,10 @@ export default function PlayerBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
         <LayoutContainer>
             <PlayerEggDeck wsUtils={wsUtils} />
             <BattleArea side={SIDE.MY} wsUtils={wsUtils} />
-            <DigimonField isBreeding side={SIDE.MY} wsUtils={wsUtils} ref={ref} />
+            <BreedingArea side={SIDE.MY} wsUtils={wsUtils} ref={ref} />
+            <FieldNavigationContainer>
+                <FieldNavigationButtons side={SIDE.MY} />
+            </FieldNavigationContainer>
 
             <PlayerSecurityStack wsUtils={wsUtils} />
             <SecurityDropSections />
@@ -55,6 +59,14 @@ export default function PlayerBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     );
 }
 
+const FieldNavigationContainer = styled.div`
+    grid-area: field-nav;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+`;
+
 const LayoutContainer = styled.div`
     grid-column: 1 / -1;
     grid-row: 12 / 21;
@@ -62,7 +74,7 @@ const LayoutContainer = styled.div`
     grid-template-columns: subgrid;
     grid-template-rows: subgrid;
     grid-template-areas:
-        " tokens tokens                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . . . ."
+        " tokens tokens                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 field-nav field-nav . . . . . . ."
         " tokens tokens                               BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 trash trash . . . . . . ."
         " breeding breeding                   BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 trash trash . . . . . . ."
         " breeding breeding                   BA1 BA1 LA1 BA2 BA2 LA2 BA3 BA3 LA3 BA4 BA4 LA4 BA5 BA5 LA5 BA6 BA6 LA6 BA7 BA7 LA7 BA8 BA8 LA8 . . . . . . . . ."

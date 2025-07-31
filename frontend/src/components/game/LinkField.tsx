@@ -17,7 +17,15 @@ type LinkAreaProps = {
 
 export default function LinkArea(props: LinkAreaProps) {
     const { num, side, wsUtils } = props;
-    const location = `${side}Link${num}`;
+    const fieldOffset = useGameUIStates((state) => state.fieldOffset);
+    const opponentFieldOffset = useGameUIStates((state) => state.opponentFieldOffset);
+    
+    // Use the appropriate offset based on which side this is
+    const currentOffset = side === SIDE.MY ? fieldOffset : opponentFieldOffset;
+    
+    // Calculate actual link number based on position and offset
+    const actualLinkNum = num <= 8 ? num + currentOffset : num + 8; // LA9-13 become Link17-21
+    const location = `${side}Link${actualLinkNum}`;
 
     const { setNodeRef: dropToField, isOver: isOverField } = useDroppableReactDnd({
         id: location,

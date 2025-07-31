@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { CardTypeGame, SIDE } from "../../utils/types.ts";
 import { useContextMenu } from "react-contexify";
+import EggIcon from "@mui/icons-material/Egg";
 import DetailsIcon from "@mui/icons-material/SearchRounded";
 import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
 import { WSUtils } from "../../pages/GamePage.tsx";
@@ -12,24 +13,15 @@ import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { RefObject, useMemo, useState } from "react";
 
-type DigimonFieldProps = {
+type BreedingAreaProps = {
     side: SIDE;
     wsUtils?: WSUtils;
     ref?: RefObject<HTMLDivElement | null>;
-    num: number;
 };
 
-export default function DigimonField(props: DigimonFieldProps) {
-    const { num, side, wsUtils, ref } = props;
-    const fieldOffset = useGameUIStates((state) => state.fieldOffset);
-    const opponentFieldOffset = useGameUIStates((state) => state.opponentFieldOffset);
-    
-    // Use the appropriate offset based on which side this is
-    const currentOffset = side === SIDE.MY ? fieldOffset : opponentFieldOffset;
-    
-    // Calculate actual field number based on position and offset
-    const actualFieldNum = num <= 8 ? num + currentOffset : num + 8; // BA9-13 become myDigi17-21
-    const location = `${side}Digi${actualFieldNum}`;
+export default function BreedingArea(props: BreedingAreaProps) {
+    const { side, wsUtils, ref } = props;
+    const location = `${side}BreedingArea`;
 
     const { setNodeRef: dropToField, isOver: isOverField } = useDroppableReactDnd({
         id: location,
@@ -63,6 +55,7 @@ export default function DigimonField(props: DigimonFieldProps) {
     const memoizedField = useMemo(
         () => (
             <div ref={ref} style={{ position: "relative", height: "100%", width: "100%" }}>
+                <StyledEggIcon side={side} sx={{ fontSize: iconSize }} />
                 {stackOpened && (isHoveringOverField ? <StyledCloseDetailsIcon /> : <StyledDetailsIcon />)}
                 {!!locationCards.length && !stackOpened && (
                     <CardStack
@@ -74,7 +67,7 @@ export default function DigimonField(props: DigimonFieldProps) {
                         showOpponentCardMenu={showOpponentCardMenu}
                     />
                 )}
-                {side === SIDE.MY && num <= 8 && locationCards.length !== 0 && (
+                {side === SIDE.MY && locationCards.length !== 0 && (
                     <BottomDropZone
                         style={{ pointerEvents: isOverField ? "auto" : "none" }}
                         isOver={isOverBottom}
@@ -99,16 +92,13 @@ export default function DigimonField(props: DigimonFieldProps) {
             wsUtils,
             showFieldCardMenu,
             showOpponentCardMenu,
-            num,
             isOverBottom,
             dropToBottom,
-            currentOffset,
         ]
     );
 
     return (
         <Container
-            num={num}
             style={{ zIndex: 2 }}
             // id is set for correct AttackArrow targeting. In case there is no card the field itself is the target.
             id={locationCards.length ? "" : location}
@@ -125,23 +115,32 @@ export default function DigimonField(props: DigimonFieldProps) {
     );
 }
 
-const Container = styled.div<{ num: number; isOver: boolean; stackOpened: boolean }>`
-    grid-area: ${({ num }) => `BA${num}`};
+const Container = styled.div<{ isOver: boolean; stackOpened: boolean }>`
+    grid-area: breeding;
     position: relative;
     height: calc(100% - 6px);
     width: calc(100% - 6px);
     border-radius: 2px;
     display: flex;
-    flex-direction: ${({ num }) => num <= 8 ? "column" : "row"};
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     cursor: ${({ isOver }) => (isOver ? "grabbing" : "unset")};
-    background: ${({ stackOpened }) => (stackOpened ? "#F5BE57FF" : "rgba(20, 20, 20, 0.30)")};
+    background: ${({ stackOpened }) => (stackOpened ? "#F5BE57FF" : "rgba(20, 20, 20, 0.25)")};
     box-shadow: inset 0 0 20px rgba(${({ isOver }) => (isOver ? "10, 10, 10" : "113, 175, 201")}, 0.2);
     outline: ${({ isOver }) => `1px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})`};
     cursor: ${({ stackOpened }) => (stackOpened ? "pointer" : "unset")};
+
+    backdrop-filter: brightness(0.75);
 `;
 
+const StyledEggIcon = styled(EggIcon)<{ side: SIDE }>`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(${({ side }) => (side === SIDE.MY ? "0" : "180deg")});
+    opacity: 0.5;
+`;
 
 const StyledDetailsIcon = styled(DetailsIcon)`
     color: black;

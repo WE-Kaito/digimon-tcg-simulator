@@ -70,6 +70,12 @@ type State = {
 
     opponentEmote: Emote | null;
     setOpponentEmote: (emote: Emote | null) => void;
+
+    fieldOffset: number;
+    setFieldOffset: (offset: number) => void;
+
+    opponentFieldOffset: number;
+    setOpponentFieldOffset: (offset: number) => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
@@ -126,4 +132,10 @@ export const useGameUIStates = create<State>((set) => ({
         set({ opponentEmote: emote });
         setTimeout(() => set({ opponentEmote: null }), 5000);
     },
+
+    fieldOffset: 0,
+    setFieldOffset: (offset) => set({ fieldOffset: Math.max(0, Math.min(8, offset)) }),
+
+    opponentFieldOffset: 0,
+    setOpponentFieldOffset: (offset) => set({ opponentFieldOffset: Math.max(0, Math.min(8, offset)) }),
 }));

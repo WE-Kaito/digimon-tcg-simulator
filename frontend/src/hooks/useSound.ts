@@ -58,7 +58,17 @@ import bgm_19 from "../assets/music/project_drasil_bgm/Drasil-BGM-19.mp3";
 import bgm_20 from "../assets/music/project_drasil_bgm/Drasil-BGM-20.mp3";
 
 import { create } from "zustand";
-import { isTrue, shuffleArray } from "../utils/functions.ts";
+
+const isTrue = (value: string): boolean => value === "true";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function shuffleArray(array: any[]) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
 type State = {
     playlist: string[];
