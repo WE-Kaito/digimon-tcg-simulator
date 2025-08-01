@@ -34,23 +34,23 @@ function chunkString(str: string, size: number): string[] {
     return chunks;
 }
 
-function getValidOffset(toFieldNumber: number, currentOffset: number) {
+function getValidOffset(fieldNumber: number, currentOffset: number) {
     const MAX_OFFSET = 8;
     const FIELDS_VISIBLE = 8;
 
     // If already visible, keep the current offset
-    if (toFieldNumber >= currentOffset + 1 && toFieldNumber <= currentOffset + FIELDS_VISIBLE) {
+    if (fieldNumber >= currentOffset + 1 && fieldNumber <= currentOffset + FIELDS_VISIBLE) {
         return currentOffset;
     }
 
     let newOffset;
 
-    if (toFieldNumber > currentOffset + FIELDS_VISIBLE) {
+    if (fieldNumber > currentOffset + FIELDS_VISIBLE) {
         // Push it to the right edge
-        newOffset = toFieldNumber - FIELDS_VISIBLE;
+        newOffset = fieldNumber - FIELDS_VISIBLE;
     } else {
         // Push it to the left edge
-        newOffset = toFieldNumber - 1;
+        newOffset = fieldNumber - 1;
     }
 
     // Clamp between 0 and MAX_OFFSET
@@ -118,6 +118,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
     const fieldOffset = useGameUIStates((state) => state.fieldOffset);
     const setFieldOffset = useGameUIStates((state) => state.setFieldOffset);
+    const setOpponentFieldOffset = useGameUIStates((state) => state.setOpponentFieldOffset);
 
     const isPlayerOne = user === gameId.split("‗")[0];
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
@@ -308,6 +309,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[ATTACK]:")) {
                 const parts = event.data.substring("[ATTACK]:".length).split(":");
+                const fromFieldNumber = Number(parts[0].match(/\d+/)[0]);
+                setOpponentFieldOffset(getValidOffset(fromFieldNumber, fieldOffset));
                 const toFieldNumber = Number(parts[1].match(/\d+/)[0]);
                 setFieldOffset(getValidOffset(toFieldNumber, fieldOffset));
                 clearAttackAnimation?.();

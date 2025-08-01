@@ -186,6 +186,7 @@ type GameDistribution = {
 type UpdateDistribution = GameDistribution & {
     player1Reveal?: CardTypeGame[];
     player2Reveal?: CardTypeGame[];
+    playerSleeve?: string;
     playerMemory?: number;
     playerPhase?: Phase;
     isPlayerTurn?: boolean;
@@ -655,6 +656,7 @@ export const useGameBoardStates = create<State>()(
                         player2Link15: isPlayer1 ? get().opponentLink15 : get().myLink15,
                         player2Link16: isPlayer1 ? get().opponentLink16 : get().myLink16,
 
+                        playerSleeve: isPlayer1 ? get().opponentSleeve : get().mySleeve,
                         playerMemory: get().opponentMemory,
                         playerPhase: get().phase,
                         isPlayerTurn: !get().isMyTurn,
@@ -773,12 +775,14 @@ export const useGameBoardStates = create<State>()(
                             myLink15: isPlayer1 ? gameJson.player1Link15 : gameJson.player2Link15,
                             myLink16: isPlayer1 ? gameJson.player1Link16 : gameJson.player2Link16,
 
+                            mySleeve: gameJson.playerSleeve,
                             myMemory: gameJson.playerMemory,
                             phase: gameJson.playerPhase,
                             isMyTurn: gameJson.isPlayerTurn,
 
                             isLoading: false,
                             bootStage: BootStage.GAME_IN_PROGRESS,
+                            opponentReady: true,
                         });
                     }
                     sendLoaded();
@@ -1026,7 +1030,7 @@ export const useGameBoardStates = create<State>()(
                         modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: tokenVariant.color },
                     };
                     set((state) => {
-                        for (let i = 1; i <= 8; i++) {
+                        for (let i = 1; i <= 16; i++) {
                             const digiKey = `${side}Digi${i}` as keyof State;
                             if (
                                 Array.isArray(state[digiKey] as CardTypeGame[]) &&
