@@ -23,16 +23,16 @@ type CardStackProps = {
 };
 
 const tamerLocations = [
+    "myDigi17",
+    "myDigi18",
+    "myDigi19",
+    "myDigi20",
     "myDigi21",
-    "myDigi22",
-    "myDigi23",
-    "myDigi24",
-    "myDigi25",
+    "opponentDigi17",
+    "opponentDigi18",
+    "opponentDigi19",
+    "opponentDigi20",
     "opponentDigi21",
-    "opponentDigi22",
-    "opponentDigi23",
-    "opponentDigi24",
-    "opponentDigi25",
 ];
 
 const linkLocations = [
@@ -52,10 +52,6 @@ const linkLocations = [
     "myLink14",
     "myLink15",
     "myLink16",
-    "myLink17",
-    "myLink18",
-    "myLink19",
-    "myLink20",
     "opponentLink1",
     "opponentLink2",
     "opponentLink3",
@@ -72,10 +68,6 @@ const linkLocations = [
     "opponentLink14",
     "opponentLink15",
     "opponentLink16",
-    "opponentLink17",
-    "opponentLink18",
-    "opponentLink19",
-    "opponentLink20",
 ];
 
 export default function CardStack(props: CardStackProps) {
