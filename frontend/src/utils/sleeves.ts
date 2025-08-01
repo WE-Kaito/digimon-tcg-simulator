@@ -68,6 +68,9 @@ import otamamonSrc from "../assets/sleeves/EX7_015_OTAMAMON.png";
 import lilithmonSrc from "../assets/sleeves/EX6_057_LILITHMON.png";
 import gracenovamonSrc from "../assets/sleeves/EX5_073_GRACENOVAMON.png";
 import dobemonSrc from "../assets/sleeves/BT4_082_DOBERMON.png";
+import lillymonSrc from "../assets/sleeves/BT1_079_LILLYMON.png";
+import psychemonSrc from "../assets/sleeves/BT8_071_PSYCHEMON.png";
+import duftmonSrc from "../assets/sleeves/BT3_030_DUFTMON.png";
 
 import defaultBlack from "../assets/sleeves/cardBackBlack.jpg";
 import defaultWhite from "../assets/sleeves/cardBackWhite.jpg";
@@ -158,6 +161,9 @@ export const sleeves: Picture[] = [
     { name: "Lilithmon", imagePath: lilithmonSrc, artist: "Drak" },
     { name: "Gracenovamon", imagePath: gracenovamonSrc, artist: "Drak" },
     { name: "Dobermon", imagePath: dobemonSrc, artist: "Drak" },
+    { name: "Lillymon", imagePath: lillymonSrc, artist: "Drak" },
+    { name: "Psychemon", imagePath: psychemonSrc, artist: "Drak" },
+    { name: "Duftmon", imagePath: duftmonSrc, artist: "Drak" },
 ];
 
 export function getSleeve(sleeveName?: string): string {

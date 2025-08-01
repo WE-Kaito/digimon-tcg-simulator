@@ -66,6 +66,9 @@ import namakemonSrc from "../assets/profile_pictures/Namakemon.png";
 import pteromonSrc from "../assets/profile_pictures/PTEROMON.png";
 import punkmonSrc from "../assets/profile_pictures/punk.png";
 import shoemonSrc from "../assets/profile_pictures/SHOEMON.png";
+import searcherSrc from "../assets/profile_pictures/searcher.png";
+import eaterSrc from "../assets/profile_pictures/eater.png";
+import motherSrc from "../assets/profile_pictures/Mother.png";
 
 export const avatars: Picture[] = [
     { name: "AncientIrismon", imagePath: ancientIrismon, artist: "Tortoiseshel" },
@@ -134,6 +137,9 @@ export const avatars: Picture[] = [
     { name: "Shoemon", imagePath: shoemonSrc, artist: "Drak" },
     { name: "Namakemon", imagePath: namakemonSrc, artist: "Drak" },
     { name: "Pteromon", imagePath: pteromonSrc, artist: "Drak" },
+    { name: "Mother", imagePath: motherSrc, artist: "Drak" },
+    { name: "Searcher", imagePath: searcherSrc, artist: "Ruki" },
+    { name: "Eater", imagePath: eaterSrc, artist: "Ruki" },
 ];
 
 export function profilePicture(avatarName: string): string {
