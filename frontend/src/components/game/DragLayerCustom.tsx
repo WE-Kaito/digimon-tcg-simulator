@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import { getSleeve } from "../../utils/sleeves.ts";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 
-const tamerLocations = ["myDigi9", "myDigi10", "myDigi11", "myDigi12", "myDigi13"];
+const tamerLocations = ["myDigi17", "myDigi18", "myDigi19", "myDigi20", "myDigi21"];
 
 /**
  * React-DND custom drag layer component that provides visual feedback during drag operations.
