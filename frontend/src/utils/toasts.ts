@@ -178,3 +178,11 @@ export const notifyQuestionChanged = () =>
         hideProgressBar: false,
         pauseOnHover: false,
     });
+
+export const notifyTutorialMulligan = () =>
+    toast.info("Mulligan will now wait for both players to decide", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        pauseOnHover: true,
+    });

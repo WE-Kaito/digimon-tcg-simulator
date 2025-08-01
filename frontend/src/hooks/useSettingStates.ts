@@ -20,6 +20,9 @@ type State = {
     backgroundColors: { color1: string; color2: string; color3: string };
     setBackgroundColors: (colors: { color1: string; color2: string; color3: string }) => void;
     resetBackgroundColors: () => void;
+
+    seenMulliganTutorial: boolean;
+    setSeenMulliganTutorial: (seen: boolean) => void;
 };
 
 export const useSettingStates = create<State>()(
@@ -34,6 +37,9 @@ export const useSettingStates = create<State>()(
 
                 details: DetailsView.DEFAULT,
                 setDetails: (details) => set({ details }),
+
+                seenMulliganTutorial: false,
+                setSeenMulliganTutorial: (seen) => set({ seenMulliganTutorial: seen }),
 
                 backgroundColors: { color1: "#214d44", color2: "#0b3d65", color3: "#522170" },
                 setBackgroundColors: (colors) => set({ backgroundColors: colors }),

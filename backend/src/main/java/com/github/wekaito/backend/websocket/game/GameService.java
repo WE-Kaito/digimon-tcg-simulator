@@ -38,6 +38,8 @@ public class GameService extends TextWebSocketHandler {
 
     private static final String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget", "/emote"};
 
+    private static final String MULLIGAN_KEY = "mulliganSent";
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         // do nothing
@@ -109,6 +111,20 @@ public class GameService extends TextWebSocketHandler {
         }
 
         if (gameRoom == null) return;
+
+        if(roomMessage.startsWith("/mulligan:")) {
+            if (gameRoom.size() > 1) {
+                WebSocketSession opponentSession = gameRoom.stream().filter(s -> !s.equals(session)).findFirst().orElse(null);
+                if (opponentSession != null) {
+                    Object opponentSentMulliganObj = opponentSession.getAttributes().get(MULLIGAN_KEY);
+                    String opponentSentMulligan = opponentSentMulliganObj instanceof String ? (String) opponentSentMulliganObj : null;
+                    if (Objects.equals(opponentSentMulligan, "true")) return;
+                    else {
+                        sendTextMessage(opponentSession, "[MULLIGAN]:" + roomMessage.split(":")[1]);
+                    }
+                }
+            }
+        }
 
         if (roomMessage.startsWith("/updateGame:")) processGameChunk(session, roomMessage, gameRoom);
 

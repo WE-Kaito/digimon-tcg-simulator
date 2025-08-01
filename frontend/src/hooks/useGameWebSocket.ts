@@ -111,6 +111,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const flipCard = useGameBoardStates((state) => state.flipCard);
     const isReconnecting = useGameBoardStates((state) => state.isReconnecting);
     const setIsReconnecting = useGameBoardStates((state) => state.setIsReconnecting);
+    const setOpponentMulliganDecision = useGameBoardStates((state) => state.setOpponentMulliganDecision);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
@@ -198,6 +199,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
                 distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx);
                 setOpenedCardModal(false);
+                return;
+            }
+
+            if (event.data.startsWith("[MULLIGAN]:")) {
+                const decision = event.data.substring("[MULLIGAN]:".length) === "true";
+                setOpponentMulliganDecision(decision);
                 return;
             }
 
