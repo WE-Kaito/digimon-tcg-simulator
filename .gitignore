@@ -132,6 +132,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+project-drasil-firebase-adminsdk-fbsvc-2b4535c579.json
 
 # Spyder project settings
 .spyderproject
