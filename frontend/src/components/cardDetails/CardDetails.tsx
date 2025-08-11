@@ -306,7 +306,7 @@ export default function CardDetails() {
                             </EffectCard>
                         )}
 
-                        {linkRequirementText && (
+                        {(linkEffectText || linkDP) && (
                             <EffectCard variant={EffectVariant.LINK} key={`${cardNumber}_link`}>
                                 <div style={{ display: "flex", alignItems: "center", marginBottom: "1px" }}>
                                     <div style={{ display: "flex", width: "100%", flexDirection: "column" }}>
