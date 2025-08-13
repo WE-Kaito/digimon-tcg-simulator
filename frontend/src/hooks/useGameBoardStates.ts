@@ -234,7 +234,7 @@ export type State = BoardState & {
 
     // --------------------------------------------------------
 
-    mulligan: (mulliganWanted: boolean) => Promise<void>;
+    mulligan: (myDecision: boolean, opponentDecision: boolean) => Promise<void>;
     opponentReady: boolean;
     setOpponentReady: (ready: boolean) => void;
 
@@ -297,9 +297,6 @@ export type State = BoardState & {
 
     isReconnecting: boolean;
     setIsReconnecting: (isReconnecting: boolean) => void;
-
-    opponentMulliganDecision: null | boolean;
-    setOpponentMulliganDecision: (decision: boolean) => void;
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -464,9 +461,6 @@ export const useGameBoardStates = create<State>()(
                 isReconnecting: false,
                 setIsReconnecting: (isReconnecting: boolean) => set({ isReconnecting }),
 
-                opponentMulliganDecision: false,
-                setOpponentMulliganDecision: (decision: boolean) => set({ opponentMulliganDecision: decision }),
-
                 bootStage: BootStage.CLEAR,
                 restartObject: { me: emptyPlayer, opponent: emptyPlayer },
 
@@ -522,7 +516,6 @@ export const useGameBoardStates = create<State>()(
                         initialDistributionState: "",
                         savedGameStateChunks: "",
                         isOpponentOnline: true,
-                        opponentMulliganDecision: null,
                     });
                 },
 
@@ -656,7 +649,7 @@ export const useGameBoardStates = create<State>()(
                         player2Link15: isPlayer1 ? get().opponentLink15 : get().myLink15,
                         player2Link16: isPlayer1 ? get().opponentLink16 : get().myLink16,
 
-                        playerSleeve: isPlayer1 ? get().opponentSleeve : get().mySleeve,
+                        playerSleeve: get().opponentSleeve,
                         playerMemory: get().opponentMemory,
                         playerPhase: get().phase,
                         isPlayerTurn: !get().isMyTurn,
@@ -936,11 +929,9 @@ export const useGameBoardStates = create<State>()(
                     });
                 },
 
-                mulligan: async (mulliganWanted) => {
+                mulligan: async (myDecision, opponentDecision) => {
                     set((state) => {
-                        const opponentDecision = Boolean(state.opponentMulliganDecision);
-
-                        if (!mulliganWanted && !opponentDecision) {
+                        if (!myDecision && !opponentDecision) {
                             return {
                                 bootStage: BootStage.GAME_IN_PROGRESS,
                                 isLoading: false,
@@ -952,7 +943,7 @@ export const useGameBoardStates = create<State>()(
                         const security = state.mySecurity;
                         const updatedDeck = [...hand, ...deck, ...security];
 
-                        if (mulliganWanted) {
+                        if (myDecision) {
                             const cryptoArray = new Uint32Array(updatedDeck.length);
                             crypto.getRandomValues(cryptoArray);
                             for (let i = updatedDeck.length - 1; i > 0; i--) {
@@ -983,9 +974,9 @@ export const useGameBoardStates = create<State>()(
                         const updatedOpponentSecurity = updatedOpponentDeck.splice(0, 5);
 
                         return {
-                            myHand: mulliganWanted ? updatedHand : hand,
-                            mySecurity: mulliganWanted ? updatedSecurity : security,
-                            myDeckField: mulliganWanted ? updatedDeck : deck,
+                            myHand: myDecision ? updatedHand : hand,
+                            mySecurity: myDecision ? updatedSecurity : security,
+                            myDeckField: myDecision ? updatedDeck : deck,
 
                             opponentHand: opponentDecision ? updatedOpponentHand : opponentHand,
                             opponentSecurity: opponentDecision ? updatedOpponentSecurity : opponentSecurity,

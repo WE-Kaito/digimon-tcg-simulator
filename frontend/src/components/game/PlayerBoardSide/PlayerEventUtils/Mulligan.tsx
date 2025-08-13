@@ -10,32 +10,19 @@ import { useSettingStates } from "../../../../hooks/useSettingStates.ts";
 export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
     const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const bootStage = useGameBoardStates((state) => state.bootStage);
-    const mulligan = useGameBoardStates((state) => state.mulligan);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
-    const opponentMulliganDecision = useGameBoardStates((state) => state.opponentMulliganDecision);
 
     const seenMulliganTutorial = useSettingStates((state) => state.seenMulliganTutorial);
     const setSeenMulliganTutorial = useSettingStates((state) => state.setSeenMulliganTutorial);
 
-    const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
-
     function handleMulligan(mulliganWanted: boolean) {
         wsUtils?.sendMessage(wsUtils.matchInfo.gameId + ":/playerReady:" + wsUtils.matchInfo.opponentName);
-
-        if (opponentMulliganDecision !== null) {
-            mulligan(mulliganWanted).then(() => {
-                if (mulliganWanted) playShuffleDeckSfx();
-                wsUtils?.sendUpdate();
-                wsUtils?.sendSfx("playShuffleDeckSfx");
-                wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
-            });
-        } else {
-            wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
-            wsUtils?.sendMessage(wsUtils.matchInfo.gameId + ":/mulligan:" + mulliganWanted);
-            if (!seenMulliganTutorial && mulliganWanted) {
-                notifyTutorialMulligan();
-                setSeenMulliganTutorial(true);
-            }
+        wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
+        wsUtils?.sendMessage(wsUtils.matchInfo.gameId + ":/mulligan:" + mulliganWanted);
+        
+        if (!seenMulliganTutorial && mulliganWanted) {
+            notifyTutorialMulligan();
+            setSeenMulliganTutorial(true);
         }
 
         if (getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);

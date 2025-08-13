@@ -114,13 +114,28 @@ public class GameService extends TextWebSocketHandler {
 
         if(roomMessage.startsWith("/mulligan:")) {
             if (gameRoom.size() > 1) {
+                String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
+                String username1 = gameId.split("‗")[0];
+                String username2 = gameId.split("‗")[1];
+
+                String currentPlayerDecision = roomMessage.split(":")[1];
+                session.getAttributes().put(MULLIGAN_KEY, currentPlayerDecision);
+
                 WebSocketSession opponentSession = gameRoom.stream().filter(s -> !s.equals(session)).findFirst().orElse(null);
+
                 if (opponentSession != null) {
                     Object opponentSentMulliganObj = opponentSession.getAttributes().get(MULLIGAN_KEY);
                     String opponentSentMulligan = opponentSentMulliganObj instanceof String ? (String) opponentSentMulliganObj : null;
-                    if (Objects.equals(opponentSentMulligan, "true")) return;
+
+                    if (opponentSentMulligan == null) return;
                     else {
-                        sendTextMessage(opponentSession, "[MULLIGAN]:" + roomMessage.split(":")[1]);
+                        String player1Decision = sessionUsername.equals(username1) ? currentPlayerDecision : opponentSentMulligan;
+                        String player2Decision = sessionUsername.equals(username2) ? currentPlayerDecision : opponentSentMulligan;
+
+                        sendTextMessage(session, "[MULLIGAN]:" + player1Decision + ":" + player2Decision);
+
+                        session.getAttributes().remove(MULLIGAN_KEY);
+                        opponentSession.getAttributes().remove(MULLIGAN_KEY);
                     }
                 }
             }

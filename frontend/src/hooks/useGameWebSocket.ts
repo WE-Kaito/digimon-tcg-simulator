@@ -111,7 +111,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const flipCard = useGameBoardStates((state) => state.flipCard);
     const isReconnecting = useGameBoardStates((state) => state.isReconnecting);
     const setIsReconnecting = useGameBoardStates((state) => state.setIsReconnecting);
-    const setOpponentMulliganDecision = useGameBoardStates((state) => state.setOpponentMulliganDecision);
+    const mulligan = useGameBoardStates((state) => state.mulligan);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
@@ -204,8 +204,20 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
 
             if (event.data.startsWith("[MULLIGAN]:")) {
-                const decision = event.data.substring("[MULLIGAN]:".length) === "true";
-                setOpponentMulliganDecision(decision);
+                const decisions = event.data.substring("[MULLIGAN]:".length).split(":");
+                const player1Decision = decisions[0] === "true";
+                const player2Decision = decisions[1] === "true";
+
+                const gameIdParts = gameId.split("‗");
+                const isPlayer1 = user === gameIdParts[0];
+                const myDecision = isPlayer1 ? player1Decision : player2Decision;
+                const opponentDecision = isPlayer1 ? player2Decision : player1Decision;
+
+                mulligan(myDecision, opponentDecision).then(() => {
+                    if (myDecision) playShuffleDeckSfx();
+                    sendUpdate();
+                    websocket.sendMessage(`${gameId}:/playShuffleDeckSfx:${opponentName}`);
+                });
                 return;
             }
 
