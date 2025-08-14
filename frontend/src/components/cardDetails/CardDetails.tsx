@@ -306,7 +306,7 @@ export default function CardDetails() {
                             </EffectCard>
                         )}
 
-                        {(linkEffectText || linkDP) && (
+                        {(linkEffectText || linkDP !== 0) && (
                             <EffectCard variant={EffectVariant.LINK} key={`${cardNumber}_link`}>
                                 <div style={{ display: "flex", alignItems: "center", marginBottom: "1px" }}>
                                     <div style={{ display: "flex", width: "100%", flexDirection: "column" }}>
@@ -338,13 +338,15 @@ export default function CardDetails() {
                                                 "linear-gradient(to right top, rgba(47,225,172,0.4) 0%, rgba(67,245,192,0.4) 20%, rgba(67,245,192,0.3) 75%, rgba(77,255, 200,0.2) 100%)",
                                         }}
                                     >
-                                        {linkDP !== 0 && (
+                                        {linkDP !== null && (
                                             <span style={{ fontWeight: 500, fontSize: "1.1em", lineHeight: 1 }}>
                                                 {"+ DP"}
                                             </span>
                                         )}
-                                        {linkDP !== 0 && (
-                                            <span style={{ fontFamily: "Awsumsans, sans-serif" }}>{linkDP}</span>
+                                        {linkDP !== null && (
+                                            <span style={{ fontFamily: "Awsumsans, sans-serif", minWidth: "4ch" }}>
+                                                {linkDP}
+                                            </span>
                                         )}
                                     </div>
                                 </div>
