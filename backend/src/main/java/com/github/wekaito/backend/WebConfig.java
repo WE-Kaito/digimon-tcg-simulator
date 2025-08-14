@@ -13,15 +13,14 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         boolean isProduction = isProductionEnvironment();
         
+    // Always serve from filesystem for now - simpler and more reliable
+        // Production images are downloaded to a runtime directory that needs filesystem access
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:images/");
+        
         if (isProduction) {
-            // Production: serve from classpath (images embedded in JAR)
-            registry.addResourceHandler("/images/**")
-                    .addResourceLocations("classpath:/static/images/");
-            log.info("Image serving configured for production (classpath:/static/images/)");
+            log.info("Image serving configured for production (file:images/)");
         } else {
-            // Development: serve from file system
-            registry.addResourceHandler("/images/**")
-                    .addResourceLocations("file:images/");
             log.info("Image serving configured for development (file:images/)");
         }
     }

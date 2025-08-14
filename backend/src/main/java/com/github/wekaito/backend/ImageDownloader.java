@@ -74,7 +74,9 @@ public class ImageDownloader {
     }
     
     private String getImagesDirectory() {
-        return isProduction ? prodImagesDir : DEV_IMAGES_DIR;
+        // Always use the images directory for simplicity and reliability
+        // Both development and production serve from file:images/
+        return DEV_IMAGES_DIR;
     }
     
     public boolean downloadImage(String imageUrl, String cardId) {
@@ -135,32 +137,10 @@ public class ImageDownloader {
     }
     
     /**
-     * Copy existing images from dev to prod directory for build preparation
+     * No longer needed - both dev and production use same images directory
      */
     public void copyImagesToProduction() {
-        if (isProduction) {
-            try {
-                Path devDir = Paths.get(DEV_IMAGES_DIR);
-                Path prodDir = Paths.get(prodImagesDir);
-                
-                if (Files.exists(devDir)) {
-                    Files.walk(devDir)
-                            .filter(Files::isRegularFile)
-                            .filter(path -> path.toString().endsWith(".jpg"))
-                            .forEach(source -> {
-                                try {
-                                    Path target = prodDir.resolve(devDir.relativize(source));
-                                    Files.createDirectories(target.getParent());
-                                    Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-                                    log.info("Copied image to production: {}", target);
-                                } catch (IOException e) {
-                                    log.error("Failed to copy image to production: {}", source, e);
-                                }
-                            });
-                }
-            } catch (IOException e) {
-                log.error("Failed to copy images to production directory", e);
-            }
-        }
+        // No-op: simplified approach uses same directory for both environments
+        log.debug("Image copy not needed - using unified images directory");
     }
 }
