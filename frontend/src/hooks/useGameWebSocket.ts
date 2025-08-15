@@ -111,7 +111,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const flipCard = useGameBoardStates((state) => state.flipCard);
     const isReconnecting = useGameBoardStates((state) => state.isReconnecting);
     const setIsReconnecting = useGameBoardStates((state) => state.setIsReconnecting);
-    const mulligan = useGameBoardStates((state) => state.mulligan);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
@@ -203,21 +202,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
-            if (event.data.startsWith("[MULLIGAN]:")) {
-                const decisions = event.data.substring("[MULLIGAN]:".length).split(":");
-                const player1Decision = decisions[0] === "true";
-                const player2Decision = decisions[1] === "true";
-
-                const gameIdParts = gameId.split("‗");
-                const isPlayer1 = user === gameIdParts[0];
-                const myDecision = isPlayer1 ? player1Decision : player2Decision;
-                const opponentDecision = isPlayer1 ? player2Decision : player1Decision;
-
-                mulligan(myDecision, opponentDecision).then(() => {
-                    if (myDecision) playShuffleDeckSfx();
-                    sendUpdate();
-                    websocket.sendMessage(`${gameId}:/playShuffleDeckSfx:${opponentName}`);
-                });
+            if (event.data.startsWith("[REDISTRIBUTE_CARDS]:")) {
+                const chunk = event.data.substring("[REDISTRIBUTE_CARDS]:".length);
+                distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx);
+                setOpenedCardModal(false);
+                // Advance boot stage to GAME_IN_PROGRESS after redistribution
+                setBootStage(BootStage.GAME_IN_PROGRESS);
                 return;
             }
 

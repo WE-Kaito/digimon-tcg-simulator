@@ -930,59 +930,20 @@ export const useGameBoardStates = create<State>()(
                 },
 
                 mulligan: async (myDecision, opponentDecision) => {
-                    set((state) => {
+                    // Card redistribution is now handled by backend via [REDISTRIBUTE_CARDS] message
+                    // This function only handles UI state transitions for the "neither player mulligan" case
+                    set(() => {
                         if (!myDecision && !opponentDecision) {
                             return {
                                 bootStage: BootStage.GAME_IN_PROGRESS,
                                 isLoading: false,
                             };
                         }
-
-                        const hand = state.myHand;
-                        const deck = state.myDeckField;
-                        const security = state.mySecurity;
-                        const updatedDeck = [...hand, ...deck, ...security];
-
-                        if (myDecision) {
-                            const cryptoArray = new Uint32Array(updatedDeck.length);
-                            crypto.getRandomValues(cryptoArray);
-                            for (let i = updatedDeck.length - 1; i > 0; i--) {
-                                const j = cryptoArray[i] % (i + 1);
-                                [updatedDeck[i], updatedDeck[j]] = [updatedDeck[j], updatedDeck[i]];
-                            }
-                        }
-
-                        const updatedHand = updatedDeck.splice(0, 5);
-                        const updatedSecurity = updatedDeck.splice(0, 5);
-
-                        const opponentHand = state.opponentHand;
-                        const opponentDeck = state.opponentDeckField;
-                        const opponentSecurity = state.opponentSecurity;
-
-                        const updatedOpponentDeck = [...opponentHand, ...opponentDeck, ...opponentSecurity];
-                        const cryptoOpponentArray = new Uint32Array(updatedOpponentDeck.length);
-                        crypto.getRandomValues(cryptoOpponentArray);
-                        for (let i = updatedOpponentDeck.length - 1; i > 0; i--) {
-                            const j = cryptoOpponentArray[i] % (i + 1);
-                            [updatedOpponentDeck[i], updatedOpponentDeck[j]] = [
-                                updatedOpponentDeck[j],
-                                updatedOpponentDeck[i],
-                            ];
-                        }
-
-                        const updatedOpponentHand = updatedOpponentDeck.splice(0, 5);
-                        const updatedOpponentSecurity = updatedOpponentDeck.splice(0, 5);
-
+                        
+                        // For mulligan cases, backend handles card redistribution
+                        // Just advance to MULLIGAN_DONE stage, cards will be updated via [REDISTRIBUTE_CARDS]
                         return {
-                            myHand: myDecision ? updatedHand : hand,
-                            mySecurity: myDecision ? updatedSecurity : security,
-                            myDeckField: myDecision ? updatedDeck : deck,
-
-                            opponentHand: opponentDecision ? updatedOpponentHand : opponentHand,
-                            opponentSecurity: opponentDecision ? updatedOpponentSecurity : opponentSecurity,
-                            opponentDeckField: opponentDecision ? updatedOpponentDeck : opponentDeck,
-
-                            bootStage: BootStage.GAME_IN_PROGRESS,
+                            bootStage: BootStage.MULLIGAN_DONE,
                             isLoading: true, // will be set false in distributeCards
                         };
                     });
