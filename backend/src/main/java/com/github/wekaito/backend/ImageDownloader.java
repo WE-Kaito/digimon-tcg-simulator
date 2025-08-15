@@ -12,77 +12,21 @@ import java.time.Duration;
 @Slf4j
 public class ImageDownloader {
     
-    private static final String DEV_IMAGES_DIR = "images";
+    private static final String IMAGES_DIR = "images";
     private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
     
-    private final String prodImagesDir;
-    private final boolean isProduction;
-    
     public ImageDownloader() {
-        // Determine the correct production path based on current working directory
-        String currentDir = System.getProperty("user.dir");
-        if (currentDir.endsWith("backend")) {
-            // Running from backend directory (IntelliJ or direct java -jar)
-            prodImagesDir = "src/main/resources/static/images";
-        } else {
-            // Running from project root (Docker or npm run scripts)
-            prodImagesDir = "backend/src/main/resources/static/images";
-        }
-        
-        // Auto-detect production environment
-        // Production indicators: JAR execution, no dev tools, packaged environment
-        isProduction = isProductionEnvironment();
-        
         try {
-            // Create directories to ensure they exist
-            Files.createDirectories(Paths.get(DEV_IMAGES_DIR));
-            if (isProduction) {
-                Files.createDirectories(Paths.get(prodImagesDir));
-            }
-            log.info("Image environment detected - production: {}, dev dir: {}, prod dir: {}", 
-                    isProduction, DEV_IMAGES_DIR, prodImagesDir);
+            Files.createDirectories(Paths.get(IMAGES_DIR));
+            log.info("Images directory created: {}", IMAGES_DIR);
         } catch (IOException e) {
-            log.error("Failed to create images directories", e);
+            log.error("Failed to create images directory", e);
         }
-    }
-    
-    private boolean isProductionEnvironment() {
-        // Check multiple indicators to determine if we're in production
-        try {
-            // 1. Check if running from JAR (strongest production indicator)
-            String classPath = System.getProperty("java.class.path");
-            boolean isJar = classPath.contains(".jar") && !classPath.contains("target/classes");
-            
-            // 2. Check system properties for production indicators
-            String javaCommand = System.getProperty("sun.java.command", "");
-            boolean isJarCommand = javaCommand.endsWith(".jar");
-            
-            // 3. Check if we're running in a packaged environment (not IDE)
-            boolean isIDE = classPath.contains("target/classes") || classPath.contains("build/classes");
-            
-            log.debug("Production detection - isJar: {}, isJarCommand: {}, isIDE: {}", 
-                    isJar, isJarCommand, isIDE);
-            
-            // Only use production mode if definitely running from JAR
-            // Don't use static directory existence as it can be created during development
-            return isJar || isJarCommand;
-            
-        } catch (Exception e) {
-            log.warn("Failed to detect environment, defaulting to development", e);
-            return false;
-        }
-    }
-    
-    private String getImagesDirectory() {
-        // Always use the images directory for simplicity and reliability
-        // Both development and production serve from file:images/
-        return DEV_IMAGES_DIR;
     }
     
     public boolean downloadImage(String imageUrl, String cardId) {
         String fileName = cardId + ".jpg";
-        String imagesDir = getImagesDirectory();
-        String savePath = imagesDir + "/" + fileName;
+        String savePath = IMAGES_DIR + "/" + fileName;
         
         if (imageExists(cardId)) {
             log.debug("Image already exists for card: {}", cardId);
@@ -110,8 +54,7 @@ public class ImageDownloader {
     
     public boolean imageExists(String cardId) {
         String fileName = cardId + ".jpg";
-        String imagesDir = getImagesDirectory();
-        String filePath = imagesDir + "/" + fileName;
+        String filePath = IMAGES_DIR + "/" + fileName;
         return Files.exists(Paths.get(filePath));
     }
     
@@ -136,11 +79,4 @@ public class ImageDownloader {
                 });
     }
     
-    /**
-     * No longer needed - both dev and production use same images directory
-     */
-    public void copyImagesToProduction() {
-        // No-op: simplified approach uses same directory for both environments
-        log.debug("Image copy not needed - using unified images directory");
-    }
 }

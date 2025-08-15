@@ -182,9 +182,6 @@ public class CardService {
         List<Card> fallbackCards = fetchFallbackCards();
         log.info("Adding {} fallback cards to collection", fallbackCards.size());
         cards.addAll(fallbackCards);
-        
-        // Copy images to production directory if needed
-        imageDownloader.copyImagesToProduction();
 
         // CardRepo is a fail-safe in case the API is missing cards or shuts down
         // But exclude EX10/BT22 cards from repository fallback since we have fresh data

@@ -81,6 +81,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
+            mkdir -p ${{ vars.DEPLOY_PATH }}/images
             sudo /usr/sbin/service project-drasil restart
 
   deploy-bot:
