@@ -17,6 +17,7 @@ import { WSUtils } from "../pages/GamePage.tsx";
 import { OpenedCardModal, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
+import { useImageCache } from "../hooks/useImageCache.ts";
 
 const myDigimonLocations = [
     "myDigi1",
@@ -199,7 +200,15 @@ export default function Card(props: CardProps) {
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
 
-    const [cardImageUrl, setCardImageUrl] = useState(card.imgUrl);
+    const cachedImageUrl = useImageCache(card.imgUrl);
+    const [cardImageUrl, setCardImageUrl] = useState(cachedImageUrl || card.imgUrl);
+
+    // Update cardImageUrl when cached image becomes available
+    useEffect(() => {
+        if (cachedImageUrl) {
+            setCardImageUrl(cachedImageUrl);
+        }
+    }, [cachedImageUrl]);
 
     const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
     const [renderTargetAnimation, setRenderTargetAnimation] = useState(false);
