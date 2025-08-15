@@ -9,10 +9,6 @@ export default defineConfig({
         target: 'http://192.168.0.26:8080',
         changeOrigin: true,
       },
-      '/images': {
-        target: 'http://192.168.0.26:8080',
-        changeOrigin: true,
-      },
     },
   },
 })

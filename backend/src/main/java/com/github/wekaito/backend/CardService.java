@@ -31,7 +31,6 @@ public class CardService {
     private static final String BASE_URL = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Cards/refs/heads/main/src/";
     private static final String EX10_API_URL = "https://digimoncard.io/api-public/search.php?pack=ex-10";
     private static final String BT22_API_URL = "https://digimoncard.io/api-public/search.php?pack=bt-22";
-    private static final String IMAGE_BASE_URL = "https://images.digimoncard.io/images/cards/{card-id}.jpg";
 
     private final CardRepo cardRepo;
     private final ImageDownloader imageDownloader;
@@ -213,13 +212,6 @@ public class CardService {
             allFallbackCards.stream().filter(c -> c.uniqueCardNumber().startsWith("EX10-")).count(),
             allFallbackCards.stream().filter(c -> c.uniqueCardNumber().startsWith("BT22-")).count());
 
-        // Download images asynchronously
-        List<String> cardIds = allFallbackCards.stream()
-                .map(Card::uniqueCardNumber)
-                .toList();
-        
-        new Thread(() -> imageDownloader.downloadImagesAsync(cardIds, IMAGE_BASE_URL))
-                .start();
 
         return allFallbackCards;
     }
@@ -290,7 +282,7 @@ public class CardService {
         return new Card(
                 ioCard.id(),                                    // uniqueCardNumber
                 ioCard.name(),                                  // name
-                imageDownloader.getLocalImagePath(ioCard.id()), // imgUrl - local path
+                imageDownloader.getDirectImageUrl(ioCard.id()), // imgUrl - direct URL
                 ioCard.type(),                                  // cardType
                 colors,                                         // color
                 ioCard.attribute(),                             // attribute
