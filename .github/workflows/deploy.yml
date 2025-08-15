@@ -45,25 +45,26 @@ jobs:
           path: backend/target/digimon-tcg-sim.jar
 
   deploy:
-    name: Deploy to Server
+    name: Push to Server
     runs-on: ubuntu-latest
     needs: build-backend
     environment: Musubi
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout the code
+        uses: actions/checkout@v3
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-build
           path: backend/target
-      - name: Deploy Backend Jar
+      - name: Deploy to Server
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.HOST }}
           REMOTE_USER: ${{ vars.USERNAME }}
-          TARGET: ${{ vars.DEPLOY_PATH }}/backend
-          SOURCE: backend/target/digimon-tcg-sim.jar
+          TARGET: ${{ vars.DEPLOY_PATH }}
+          SOURCE: backend/target
 
   start-server:
     name: Start Server
@@ -78,14 +79,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            # Create images directory if it doesn't exist
+            # 1. Create writable images directory
             mkdir -p /app/data/images
             chmod 775 /app/data/images
-            echo "Images directory ensured at /app/data/images"
+            echo "Images directory prepared at /app/data/images"
 
-            # Restart the service normally
+            # 2. Restart service with IMAGES_DIR env var
+            sudo systemctl set-environment IMAGES_DIR=/app/data/images
             sudo /usr/sbin/service project-drasil restart
-
 
   deploy-bot:
     name: Push Bot to Server
@@ -93,12 +94,13 @@ jobs:
     needs: start-server
     environment: Musubi
     steps:
-      - uses: actions/checkout@v3
-      - name: Deploy Bot
+      - name: Checkout the code
+        uses: actions/checkout@v3
+      - name: Deploy to Server
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.HOST }}
           REMOTE_USER: ${{ vars.USERNAME }}
-          TARGET: ${{ vars.DEPLOY_PATH }}/ai
+          TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: ai
