@@ -26,8 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
             Files.createDirectories(imagesDir);
             log.info("Images directory ready at: {}", imagesDir);
         } catch (IOException e) {
-            log.error("Failed to create images directory: {}", imagesDir, e);
-
+            throw new IllegalStateException("Failed to create images directory: " + imagesDir, e);
         }
     }
 
