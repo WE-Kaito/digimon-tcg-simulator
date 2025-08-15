@@ -30,7 +30,6 @@ public class CardService {
 
     private static final String BASE_URL = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Cards/refs/heads/main/src/";
     private static final String EX10_API_URL = "https://digimoncard.io/api-public/search.php?pack=ex-10";
-    private static final String BT22_API_URL = "https://digimoncard.io/api-public/search.php?pack=bt-22";
 
     private final CardRepo cardRepo;
     private final ImageDownloader imageDownloader;
@@ -164,29 +163,29 @@ public class CardService {
                     card.illustrator()));
         });
 
-        // Remove any existing EX10 and BT22 cards that might be in the main source
+        // Remove any existing EX10 cards that might be in the main source
         // Check multiple fields since the main source might use different formats
         int originalSize = cards.size();
         cards.removeIf(card -> {
-            boolean isEX10OrBT22 = isEX10OrBT22Card(card);
-            if (isEX10OrBT22) {
-                log.info("Removing EX10/BT22 card from main source: {} ({})", card.name(), card.uniqueCardNumber());
+            boolean isEX10 = isEX10Card(card);
+            if (isEX10) {
+                log.info("Removing EX10 card from main source: {} ({})", card.name(), card.uniqueCardNumber());
             }
-            return isEX10OrBT22;
+            return isEX10;
         });
         int removedCount = originalSize - cards.size();
-        log.info("Removed {} EX10/BT22 cards from main source", removedCount);
+        log.info("Removed {} EX10 cards from main source", removedCount);
 
-        // Fetch fallback cards for EX10 and BT22 sets
+        // Fetch fallback cards for EX10 set
         List<Card> fallbackCards = fetchFallbackCards();
         log.info("Adding {} fallback cards to collection", fallbackCards.size());
         cards.addAll(fallbackCards);
 
         // CardRepo is a fail-safe in case the API is missing cards or shuts down
-        // But exclude EX10/BT22 cards from repository fallback since we have fresh data
+        // But exclude EX10 cards from repository fallback since we have fresh data
         for (Card repoCard : this.cardRepo.findAll()) {
             if (cards.stream().noneMatch(card -> card.cardNumber().equals(repoCard.cardNumber())) &&
-                !isEX10OrBT22Card(repoCard)) {
+                !isEX10Card(repoCard)) {
                 cards.add(repoCard);
             }
         }
@@ -199,21 +198,12 @@ public class CardService {
     }
 
     private List<Card> fetchFallbackCards() {
-        List<Card> allFallbackCards = new ArrayList<>();
+        // Fetch EX10 cards only
+        List<Card> fallbackCards = fetchCardsFromUrl(EX10_API_URL, "EX10");
         
-        // Fetch EX10 cards
-        allFallbackCards.addAll(fetchCardsFromUrl(EX10_API_URL, "EX10"));
-        
-        // Fetch BT22 cards
-        allFallbackCards.addAll(fetchCardsFromUrl(BT22_API_URL, "BT22"));
-        
-        log.info("Total fallback cards fetched: {} (EX10: {}, BT22: {})", 
-            allFallbackCards.size(),
-            allFallbackCards.stream().filter(c -> c.uniqueCardNumber().startsWith("EX10-")).count(),
-            allFallbackCards.stream().filter(c -> c.uniqueCardNumber().startsWith("BT22-")).count());
+        log.info("Total fallback cards fetched: {} EX10 cards", fallbackCards.size());
 
-
-        return allFallbackCards;
+        return fallbackCards;
     }
 
     private List<Card> fetchCardsFromUrl(String apiUrl, String setName) {
@@ -311,23 +301,19 @@ public class CardService {
         );
     }
 
-    private boolean isEX10OrBT22Card(Card card) {
-        // Check multiple fields for EX10 or BT22 identification
+    private boolean isEX10Card(Card card) {
+        // Check multiple fields for EX10 identification
         return (card.uniqueCardNumber() != null && 
                 (card.uniqueCardNumber().startsWith("EX10-") || 
-                 card.uniqueCardNumber().startsWith("BT22-") ||
-                 card.uniqueCardNumber().contains("EX10") ||
-                 card.uniqueCardNumber().contains("BT22"))) ||
+                 card.uniqueCardNumber().contains("EX10"))) ||
                (card.cardNumber() != null && 
-                (card.cardNumber().startsWith("EX10-") || 
-                 card.cardNumber().startsWith("BT22-") ||
-                 card.cardNumber().contains("EX10") ||
-                 card.cardNumber().contains("BT22"))) ||
+                (card.cardNumber().startsWith("EX10-") ||
+                 card.cardNumber().contains("EX10"))) ||
                (card.name() != null && 
-                (card.name().contains("EX10") || card.name().contains("BT22"))) ||
+                card.name().contains("EX10")) ||
                // Check image URL path for set identifiers
                (card.imgUrl() != null && 
-                (card.imgUrl().contains("EX10") || card.imgUrl().contains("BT22") ||
-                 card.imgUrl().contains("ex10") || card.imgUrl().contains("bt22")));
+                (card.imgUrl().contains("EX10") ||
+                 card.imgUrl().contains("ex10")));
     }
 }
