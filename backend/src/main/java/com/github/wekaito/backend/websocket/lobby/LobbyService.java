@@ -19,6 +19,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.annotation.PostConstruct;
 
 @Getter
 @Service
@@ -45,8 +46,16 @@ public class LobbyService extends TextWebSocketHandler {
 
     private final String warning = "[CHAT_MESSAGE]:【SERVER】: ⚠ The server detected multiple connections for the same user. Make sure to only use one tab per account. ⚠";
 
+    // Add usernames here that should be filtered from lobby operations
+    private static final List<String> FILTERED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer");
+
     @Autowired
     private GameService gameService;
+
+    @PostConstruct
+    public void setupQuickPlayQueue() {
+        quickPlayQueue.setFilteredUsernamesSupplier(() -> FILTERED_USERNAMES);
+    }
 
     private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
@@ -74,7 +83,10 @@ public class LobbyService extends TextWebSocketHandler {
 
         if (tryReconnectToRoom(session)) return; // Try to reconnect first
 
-        List<Room> openRooms = rooms.stream().filter(r -> r.getPlayers().size() == 1).toList();
+        List<Room> openRooms = rooms.stream()
+                .filter(r -> r.getPlayers().size() == 1)
+                .filter(r -> !FILTERED_USERNAMES.contains(r.getHostName())) // Filter out rooms created by filtered users
+                .toList();
         List<RoomDTO> openRoomsDTO = openRooms.stream().map(this::getRoomDTO).toList();
 
         sendTextMessage(session, "[ROOMS]:" + objectMapper.writeValueAsString(openRoomsDTO));
@@ -306,6 +318,7 @@ public class LobbyService extends TextWebSocketHandler {
         synchronized (rooms) {
             roomsWithOnlyHosts = rooms.stream()
                     .filter(r -> r.getPlayers().size() == 1)
+                    .filter(r -> !FILTERED_USERNAMES.contains(r.getHostName()))
                     .toList();
         }
 
@@ -425,6 +438,14 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     private void handleJoinRoomAttempt(WebSocketSession session, String roomId) throws IOException {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        
+        // Filtered users get success message but can't join rooms
+        if (FILTERED_USERNAMES.contains(username)) {
+            sendTextMessage(session, "[SUCCESS]");
+            return;
+        }
+        
         String password = getRoomById(roomId).getPassword();
         if (password != null && !password.isEmpty()) sendTextMessage(session, "[PROMPT_PASSWORD]");
         else joinRoom(session, roomId, false);
@@ -434,6 +455,12 @@ public class LobbyService extends TextWebSocketHandler {
         String[] parts = payload.split(":");
         String roomId = parts[1];
         String passwordInput = parts[2];
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+
+        if (FILTERED_USERNAMES.contains(username)) {
+            sendTextMessage(session, "[SUCCESS]");
+            return;
+        }
 
         String password = getRoomById(roomId).getPassword();
         if (password == null || password.isEmpty()) {
