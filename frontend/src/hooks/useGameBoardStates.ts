@@ -12,6 +12,7 @@ import {
     SendToStackFunction,
     SIDE,
 } from "../utils/types.ts";
+import { Dispatch, SetStateAction } from "react";
 
 const emptyPlayer: Player = {
     username: "",
@@ -214,7 +215,6 @@ export type State = BoardState & {
     bootStage: BootStage;
     restartObject: { me: Player; opponent: Player };
 
-    initialDistributionState: string;
     myAvatar: string;
     opponentAvatar: string;
     mySleeve: string;
@@ -224,7 +224,6 @@ export type State = BoardState & {
     isMyTurn: boolean;
     myAttackPhase: AttackPhase | false;
     opponentAttackPhase: AttackPhase | false;
-    savedGameStateChunks: string;
 
     messages: string[];
     setMessages: (message: string) => void;
@@ -245,11 +244,20 @@ export type State = BoardState & {
         chunk: string,
         gameId: string,
         sendLoaded: () => void,
-        playDrawCardSfx: () => void
+        playDrawCardSfx: () => void,
+        distributionChunks: string,
+        setDistributionChunks: Dispatch<SetStateAction<string>>
     ) => void;
     moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
     getUpdateDistributionString: (user: string, gameId: string) => string;
-    updateFields: (chunk: string, sendLoaded: () => void, user: string, gameId: string) => void;
+    updateFields: (
+        chunk: string,
+        sendLoaded: () => void,
+        user: string,
+        gameId: string,
+        distributionChunks: string,
+        setDistributionChunks: Dispatch<SetStateAction<string>>
+    ) => void;
 
     moveCardToStack: SendToStackFunction;
     setMemory: (memory: number) => void;
@@ -464,7 +472,6 @@ export const useGameBoardStates = create<State>()(
                 bootStage: BootStage.CLEAR,
                 restartObject: { me: emptyPlayer, opponent: emptyPlayer },
 
-                initialDistributionState: "",
                 myAvatar: "",
                 opponentAvatar: "",
                 mySleeve: "",
@@ -513,20 +520,28 @@ export const useGameBoardStates = create<State>()(
                         opponentReady: false,
                         isLoading: false,
                         bootStage: BootStage.CLEAR,
-                        initialDistributionState: "",
-                        savedGameStateChunks: "",
                         isOpponentOnline: true,
                     });
                 },
 
-                distributeCards: (user, chunk, gameId, sendLoaded, playDrawCardSfx) => {
-                    set((state) => ({ initialDistributionState: state.initialDistributionState + chunk }));
+                distributeCards: (
+                    user,
+                    chunk,
+                    gameId,
+                    sendLoaded,
+                    playDrawCardSfx,
+                    distributionChunks,
+                    setDistributionChunks
+                ) => {
+                    const newDistributionChunks = distributionChunks + chunk;
+                    setDistributionChunks(newDistributionChunks);
 
                     if (chunk.length < 1000 || chunk.endsWith("false}]}")) {
                         const player1 = gameId.split("‗")[0];
-                        const game: GameDistribution = JSON.parse(get().initialDistributionState);
+                        const game: GameDistribution = JSON.parse(newDistributionChunks);
 
-                        set({ initialDistributionState: "", bootStage: BootStage.MULLIGAN });
+                        set({ bootStage: BootStage.MULLIGAN });
+                        setDistributionChunks("");
 
                         if (user === player1) {
                             set({
@@ -657,23 +672,17 @@ export const useGameBoardStates = create<State>()(
                     return JSON.stringify(updatedGame);
                 },
 
-                updateFields: (chunk, sendLoaded, user, gameId) => {
+                updateFields: (chunk, sendLoaded, user, gameId, distributionChunks, setDistributionChunks) => {
                     const isPlayer1 = gameId.split("‗")[0] === user;
 
-                    set((state) => {
-                        if (!state.isLoading) {
-                            return {
-                                savedGameStateChunks: chunk,
-                                isLoading: true,
-                            };
-                        }
-                        return { savedGameStateChunks: state.savedGameStateChunks + chunk };
-                    });
+                    if (!get().isLoading) set({ isLoading: true });
+                    const newDistributionChunks = distributionChunks + chunk;
+                    setDistributionChunks(newDistributionChunks);
 
                     if (chunk.length < 1000 || chunk.endsWith(":true}") || chunk.endsWith(":false}")) {
-                        const gameJson: UpdateDistribution = JSON.parse(get().savedGameStateChunks);
+                        const gameJson: UpdateDistribution = JSON.parse(newDistributionChunks);
 
-                        set({ savedGameStateChunks: "" });
+                        setDistributionChunks("");
 
                         set({
                             opponentReveal: isPlayer1 ? gameJson.player2Reveal : gameJson.player1Reveal,
@@ -939,7 +948,7 @@ export const useGameBoardStates = create<State>()(
                                 isLoading: false,
                             };
                         }
-                        
+
                         // For mulligan cases, backend handles card redistribution
                         // Just advance to MULLIGAN_DONE stage, cards will be updated via [REDISTRIBUTE_CARDS]
                         return {
@@ -1172,7 +1181,7 @@ export const useGameBoardStates = create<State>()(
                     });
                 },
             }),
-            { name: "bearStore" }
+            { name: "boardStore" }
         )
     )
 );

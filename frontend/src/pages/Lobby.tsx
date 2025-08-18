@@ -200,6 +200,7 @@ export default function Lobby() {
 
             if (event.data.startsWith("[START_GAME]:")) {
                 localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
+                localStorage.removeItem("bearStore");
                 const gameId = event.data.substring("[START_GAME]:".length);
                 startGameSequence(gameId);
             }

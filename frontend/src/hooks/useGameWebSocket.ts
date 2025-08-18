@@ -4,7 +4,7 @@ import { findTokenByName } from "../utils/tokens.ts";
 import { notifySecurityView } from "../utils/toasts.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 
@@ -136,6 +136,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playRematchSfx = useSound((state) => state.playRematchSfx);
 
+    const [distributionChunks, setDistributionChunks] = useState<string>("");
+
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
 
     function clearCardEffect() {
@@ -197,14 +199,30 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx);
+                distributeCards(
+                    user,
+                    chunk,
+                    gameId,
+                    sendLoaded,
+                    playDrawCardSfx,
+                    distributionChunks,
+                    setDistributionChunks
+                );
                 setOpenedCardModal(false);
                 return;
             }
 
             if (event.data.startsWith("[REDISTRIBUTE_CARDS]:")) {
                 const chunk = event.data.substring("[REDISTRIBUTE_CARDS]:".length);
-                distributeCards(user, chunk, gameId, sendLoaded, playDrawCardSfx);
+                distributeCards(
+                    user,
+                    chunk,
+                    gameId,
+                    sendLoaded,
+                    playDrawCardSfx,
+                    distributionChunks,
+                    setDistributionChunks
+                );
                 setOpenedCardModal(false);
                 // Advance boot stage to GAME_IN_PROGRESS after redistribution
                 setBootStage(BootStage.GAME_IN_PROGRESS);
@@ -213,7 +231,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
                 const chunk = event.data.substring("[UPDATE_OPPONENT]:".length);
-                updateFields(chunk, sendLoaded, user, gameId);
+                updateFields(chunk, sendLoaded, user, gameId, distributionChunks, setDistributionChunks);
                 return;
             }
 
@@ -422,6 +440,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     setMyAttackPhase(false);
                     setOpponentAttackPhase(false);
                     clearBoard();
+                    setDistributionChunks("");
                     setIsRematch(true);
                     setEndModal(false);
                     setUpGame(restartObject.me, restartObject.opponent);
