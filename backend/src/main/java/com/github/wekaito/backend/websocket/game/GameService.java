@@ -84,7 +84,7 @@ public class GameService extends TextWebSocketHandler {
             if (parts[0].equals(setupCommands.get(0))) computeGameRoom(session, gameId);
             if (parts[0].equals(setupCommands.get(1))) setUpGame(gameId, username1, username2);
             if (parts[0].equals(setupCommands.get(2))) setStartingPlayer(gameId, username1, username2);
-            if (parts[0].equals(setupCommands.get(3))) distributeCards(gameId, username1, username2);
+            if (parts[0].equals(setupCommands.get(3))) prepareCardDistribution(gameId, username1, username2);
             if (parts[0].equals(setupCommands.get(4))) {
                 synchronized (gameRooms) {
                     Set<WebSocketSession> existingGameRoom = gameRooms.get(gameId);
@@ -384,30 +384,8 @@ public class GameService extends TextWebSocketHandler {
         return drawnCards;
     }
 
-    private void distributeCards(String gameId, String username1, String username2) throws IOException {
-        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
-        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
-        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username2));
-
-        List<GameCard> newDeck1 = createGameDeck(deck1);
-        List<GameCard> newDeck2 = createGameDeck(deck2);
-
-        List<GameCard> player1EggDeck = getEggDeck(newDeck1);
-        List<GameCard> player1Security = drawCards(newDeck1);
-        List<GameCard> player1Hand = drawCards(newDeck1);
-
-        List<GameCard> player2EggDeck = getEggDeck(newDeck2);
-        List<GameCard> player2Security = drawCards(newDeck2);
-        List<GameCard> player2Hand = drawCards(newDeck2);
-
-        GameStart newGame = new GameStart(player1Hand, newDeck1, player1EggDeck, player1Security, player2Hand, newDeck2, player2EggDeck, player2Security);
-        
-        // Store original distribution in session attributes for potential mulligan
-        for (WebSocketSession session : gameRoom) {
-            session.getAttributes().put("originalDistribution", newGame);
-        }
-        
+    private void distributeCards(Set<WebSocketSession> gameRoom, GameStart newGame) throws IOException {
         String newGameJson = objectMapper.writeValueAsString(newGame);
 
         int chunkSize = 1000;
@@ -421,6 +399,34 @@ public class GameService extends TextWebSocketHandler {
                 sendTextMessage(s, "[DISTRIBUTE_CARDS]:" + chunk);
             }
         }
+    }
+
+    private void prepareCardDistribution(String gameId, String username1, String username2) throws IOException {
+        Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+
+        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
+        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username2));
+
+        List<GameCard> newDeck1 = createGameDeck(deck1);
+        List<GameCard> newDeck2 = createGameDeck(deck2);
+
+        List<GameCard> player1EggDeck = getEggDeck(newDeck1);
+        List<GameCard> player1Hand = drawCards(newDeck1);
+
+        List<GameCard> player2EggDeck = getEggDeck(newDeck2);
+        List<GameCard> player2Hand = drawCards(newDeck2);
+
+        GameStart newGame = new GameStart(
+                player1Hand, newDeck1, player1EggDeck, Collections.emptyList(),
+                player2Hand, newDeck2, player2EggDeck, Collections.emptyList()
+        );
+        
+        // Store original distribution in session attributes for potential mulligan
+        for (WebSocketSession session : gameRoom) {
+            session.getAttributes().put("originalDistribution", newGame);
+        }
+
+        distributeCards(gameRoom, newGame);
     }
 
     private void redistributeCardsAfterMulligan(String gameId, String username1, String username2, boolean player1Mulligan, boolean player2Mulligan) throws IOException {
@@ -440,81 +446,49 @@ public class GameService extends TextWebSocketHandler {
         GameStart originalGame = (GameStart) player1Session.getAttributes().get("originalDistribution");
         if (originalGame == null) return;
 
-        // Handle player 1 cards
-        List<GameCard> player1Hand, player1DeckField, player1Security;
+        List<GameCard> player1Hand, player1DeckField;
         if (player1Mulligan) {
-            // Combine all cards and redistribute
             List<GameCard> allCards = new ArrayList<>();
             allCards.addAll(originalGame.player1Hand());
             allCards.addAll(originalGame.player1DeckField());
-            allCards.addAll(originalGame.player1Security());
-            
-            // Shuffle using same pattern as createGameDeck
+
             Collections.shuffle(allCards, secureRand);
-            Collections.shuffle(allCards, secureRand);
-            Collections.shuffle(allCards, secureRand);
-            
-            // Redistribute: 5 hand, 5 security, rest deck
+
             player1Hand = allCards.stream().limit(5).toList();
             allCards.removeAll(player1Hand);
-            player1Security = allCards.stream().limit(5).toList();
-            allCards.removeAll(player1Security);
             player1DeckField = new ArrayList<>(allCards);
         } else {
-            // Keep original cards
             player1Hand = originalGame.player1Hand();
             player1DeckField = originalGame.player1DeckField();
-            player1Security = originalGame.player1Security();
         }
 
-        // Handle player 2 cards
-        List<GameCard> player2Hand, player2DeckField, player2Security;
+        List<GameCard> player2Hand, player2DeckField;
         if (player2Mulligan) {
-            // Combine all cards and redistribute
             List<GameCard> allCards = new ArrayList<>();
             allCards.addAll(originalGame.player2Hand());
             allCards.addAll(originalGame.player2DeckField());
-            allCards.addAll(originalGame.player2Security());
-            
-            // Shuffle using same pattern as createGameDeck
+
             Collections.shuffle(allCards, secureRand);
-            Collections.shuffle(allCards, secureRand);
-            Collections.shuffle(allCards, secureRand);
-            
-            // Redistribute: 5 hand, 5 security, rest deck
+
             player2Hand = allCards.stream().limit(5).toList();
             allCards.removeAll(player2Hand);
-            player2Security = allCards.stream().limit(5).toList();
-            allCards.removeAll(player2Security);
             player2DeckField = new ArrayList<>(allCards);
         } else {
-            // Keep original cards
             player2Hand = originalGame.player2Hand();
             player2DeckField = originalGame.player2DeckField();
-            player2Security = originalGame.player2Security();
         }
 
-        // Create new GameStart with redistributed cards (egg decks remain unchanged)
+        // After mulligan decisions, draw security cards from final deck state
+        List<GameCard> player1Security = drawCards(player1DeckField);
+        List<GameCard> player2Security = drawCards(player2DeckField);
+
         GameStart redistributedGame = new GameStart(
                 player1Hand, player1DeckField, originalGame.player1EggDeck(), player1Security,
                 player2Hand, player2DeckField, originalGame.player2EggDeck(), player2Security
         );
-        
-        String redistributedGameJson = objectMapper.writeValueAsString(redistributedGame);
 
-        // Send chunked message using same pattern as distributeCards
-        int chunkSize = 1000;
-        int length = redistributedGameJson.length();
+        distributeCards(gameRoom, redistributedGame);
 
-        for (int i = 0; i < length; i += chunkSize) {
-            int end = Math.min(length, i + chunkSize);
-            String chunk = redistributedGameJson.substring(i, end);
-            for (WebSocketSession s : gameRoom) {
-                sendTextMessage(s, "[REDISTRIBUTE_CARDS]:" + chunk);
-            }
-        }
-
-        // Clean up session attributes
         player1Session.getAttributes().remove("originalDistribution");
         player2Session.getAttributes().remove("originalDistribution");
     }

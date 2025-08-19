@@ -24,8 +24,7 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
             setSeenMulliganTutorial(true);
         }
 
-        if (getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
-        else setBootStage(BootStage.MULLIGAN_DONE);
+        setBootStage(BootStage.MULLIGAN_DONE);
     }
 
     if (bootStage !== BootStage.MULLIGAN && bootStage !== BootStage.MULLIGAN_DONE) return <></>;

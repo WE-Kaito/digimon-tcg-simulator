@@ -212,23 +212,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
-            if (event.data.startsWith("[REDISTRIBUTE_CARDS]:")) {
-                const chunk = event.data.substring("[REDISTRIBUTE_CARDS]:".length);
-                distributeCards(
-                    user,
-                    chunk,
-                    gameId,
-                    sendLoaded,
-                    playDrawCardSfx,
-                    distributionChunks,
-                    setDistributionChunks
-                );
-                setOpenedCardModal(false);
-                // Advance boot stage to GAME_IN_PROGRESS after redistribution
-                setBootStage(BootStage.GAME_IN_PROGRESS);
-                return;
-            }
-
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
                 const chunk = event.data.substring("[UPDATE_OPPONENT]:".length);
                 updateFields(chunk, sendLoaded, user, gameId, distributionChunks, setDistributionChunks);

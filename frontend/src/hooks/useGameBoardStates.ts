@@ -536,11 +536,16 @@ export const useGameBoardStates = create<State>()(
                     const newDistributionChunks = distributionChunks + chunk;
                     setDistributionChunks(newDistributionChunks);
 
-                    if (chunk.length < 1000 || chunk.endsWith("false}]}")) {
+                    if (chunk.length < 1000 || chunk.endsWith("]}")) {
                         const player1 = gameId.split("‗")[0];
                         const game: GameDistribution = JSON.parse(newDistributionChunks);
 
-                        set({ bootStage: BootStage.MULLIGAN });
+                        set((state) => ({
+                            bootStage:
+                                state.bootStage === BootStage.MULLIGAN_DONE
+                                    ? BootStage.GAME_IN_PROGRESS
+                                    : BootStage.MULLIGAN,
+                        }));
                         setDistributionChunks("");
 
                         if (user === player1) {
