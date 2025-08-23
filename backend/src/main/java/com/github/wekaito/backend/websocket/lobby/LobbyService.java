@@ -268,9 +268,6 @@ public class LobbyService extends TextWebSocketHandler {
         broadcastRooms();
     }
 
-    /**
-     * Entfernt einen Spieler aus allen Räumen, ohne UI-Benachrichtigungen zu senden
-     */
     private void leaveAllRoomsQuietly(String username) throws IOException {
         List<Room> roomsWithPlayer = new ArrayList<>();
 
@@ -284,7 +281,7 @@ public class LobbyService extends TextWebSocketHandler {
             for (Room room : roomsWithPlayer) {
                 room.getPlayers().removeIf(p -> p.getName().equals(username));
 
-                // Host-Wechsel falls nötig
+                // change host, if needed
                 if (room.getHostName().equals(username) && !room.getPlayers().isEmpty()) {
                     LobbyPlayer remainingPlayer = room.getPlayers().get(0);
                     room.setHostName(remainingPlayer.getName());
@@ -299,19 +296,6 @@ public class LobbyService extends TextWebSocketHandler {
         lastPlayerRooms.remove(username);
     }
 
-//    private void broadcastRooms() throws IOException {
-//        // Broadcast to sessions in lobby
-//        for (WebSocketSession session : globalActiveSessions) {
-//            // change this when rooms allow more users:
-//            List<Room> roomsWithOnlyHosts = rooms.stream().filter(r -> r.getPlayers().size() == 1).toList();
-//            List<RoomDTO> roomDTOs = roomsWithOnlyHosts.stream().map(this::getRoomDTO).toList();
-//
-//            String roomsJson = objectMapper.writeValueAsString(roomDTOs);
-//
-//            sendTextMessage(session, "[ROOMS]:" + roomsJson);
-//        }
-//    }
-
     private void broadcastRooms() throws IOException {
         // Filter once: Only rooms with a single player (the host)
         List<Room> roomsWithOnlyHosts;
@@ -322,16 +306,13 @@ public class LobbyService extends TextWebSocketHandler {
                     .toList();
         }
 
-        // Convert to DTOs once
         List<RoomDTO> roomDTOs = roomsWithOnlyHosts.stream()
                 .map(this::getRoomDTO)
                 .toList();
 
-        // Serialize once
         String roomsJson = objectMapper.writeValueAsString(roomDTOs);
         String message = "[ROOMS]:" + roomsJson;
 
-        // Send to all sessions
         for (WebSocketSession session : globalActiveSessions) {
             sendTextMessage(session, message);
         }
@@ -496,7 +477,6 @@ public class LobbyService extends TextWebSocketHandler {
                 remainingPlayer.setReady(true);
             }
 
-            // Only clean up if explicitly requested
             if (shouldCleanLastRoom.equals("true")) {
                 lastPlayerRooms.remove(userName);
             }
