@@ -47,24 +47,31 @@ public class GameService extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException {
-        Optional<Set<WebSocketSession>> gameRoom = gameRooms.values().stream().filter(game -> game.contains(session)).findFirst();
-        if (gameRoom.isPresent()) {
-            Set<WebSocketSession> room = gameRoom.get();
-            for (WebSocketSession webSocketSession : room) {
-                if (!webSocketSession.equals(session)) {
-                    webSocketSession.sendMessage(new TextMessage("[OPPONENT_DISCONNECTED]"));
+        synchronized (gameRooms) {
+            Optional<Set<WebSocketSession>> gameRoom = gameRooms.values().stream().filter(game -> game.contains(session)).findFirst();
+            if (gameRoom.isPresent()) {
+                Set<WebSocketSession> room = gameRoom.get();
+                for (WebSocketSession webSocketSession : room) {
+                    if (!webSocketSession.equals(session)) {
+                        sendTextMessage(webSocketSession, "[OPPONENT_DISCONNECTED]");
+                    }
+                }
+                room.remove(session);
+                if (room.isEmpty()) {
+                    gameRooms.values().remove(room);
                 }
             }
-            room.remove(session);
-            if (room.isEmpty()) gameRooms.values().remove(room);
         }
     }
 
     @Scheduled(fixedRate = 5000)
-    private synchronized void sendHeartbeat() throws IOException {
-        for (Set<WebSocketSession> gameRoom : gameRooms.values()) {
-            for (WebSocketSession webSocketSession : gameRoom) {
-                webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+    private void sendHeartbeat() throws IOException {
+        for (Set<WebSocketSession> gameRoom : new ArrayList<>(gameRooms.values())) {
+            if (gameRoom != null) {
+                Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
+                for (WebSocketSession webSocketSession : roomCopy) {
+                    sendTextMessage(webSocketSession, "[HEARTBEAT]");
+                }
             }
         }
     }
@@ -100,6 +107,7 @@ public class GameService extends TextWebSocketHandler {
 
         String gameId = parts[0];
         String roomMessage = parts[1];
+        
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
         if (roomMessage.startsWith("/restartGame:")) {
@@ -114,32 +122,34 @@ public class GameService extends TextWebSocketHandler {
 
         if(roomMessage.startsWith("/mulligan:")) {
             if (gameRoom.size() > 1) {
-                String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
-                String username1 = gameId.split("‗")[0];
-                String username2 = gameId.split("‗")[1];
+                synchronized (gameRoom) {
+                    String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
+                    String username1 = gameId.split("‗")[0];
+                    String username2 = gameId.split("‗")[1];
 
-                String currentPlayerDecision = roomMessage.split(":")[1];
-                session.getAttributes().put(MULLIGAN_KEY, currentPlayerDecision);
+                    String currentPlayerDecision = roomMessage.split(":")[1];
+                    session.getAttributes().put(MULLIGAN_KEY, currentPlayerDecision);
 
-                WebSocketSession opponentSession = gameRoom.stream().filter(s -> !s.equals(session)).findFirst().orElse(null);
+                    WebSocketSession opponentSession = gameRoom.stream().filter(s -> !s.equals(session)).findFirst().orElse(null);
 
-                if (opponentSession != null) {
-                    Object opponentSentMulliganObj = opponentSession.getAttributes().get(MULLIGAN_KEY);
-                    String opponentSentMulligan = opponentSentMulliganObj instanceof String ? (String) opponentSentMulliganObj : null;
+                    if (opponentSession != null) {
+                        Object opponentSentMulliganObj = opponentSession.getAttributes().get(MULLIGAN_KEY);
+                        String opponentSentMulligan = opponentSentMulliganObj instanceof String ? (String) opponentSentMulliganObj : null;
 
-                    if (opponentSentMulligan == null) return;
-                    else {
-                        String player1Decision = sessionUsername.equals(username1) ? currentPlayerDecision : opponentSentMulligan;
-                        String player2Decision = sessionUsername.equals(username2) ? currentPlayerDecision : opponentSentMulligan;
+                        if (opponentSentMulligan == null) return;
+                        else {
+                            String player1Decision = sessionUsername.equals(username1) ? currentPlayerDecision : opponentSentMulligan;
+                            String player2Decision = sessionUsername.equals(username2) ? currentPlayerDecision : opponentSentMulligan;
 
-                        // Parse decisions and redistribute cards
-                        boolean player1Mulligan = Boolean.parseBoolean(player1Decision);
-                        boolean player2Mulligan = Boolean.parseBoolean(player2Decision);
-                        
-                        redistributeCardsAfterMulligan(gameId, username1, username2, player1Mulligan, player2Mulligan);
+                            // Parse decisions and redistribute cards
+                            boolean player1Mulligan = Boolean.parseBoolean(player1Decision);
+                            boolean player2Mulligan = Boolean.parseBoolean(player2Decision);
+                            
+                            redistributeCardsAfterMulligan(gameId, username1, username2, player1Mulligan, player2Mulligan);
 
-                        session.getAttributes().remove(MULLIGAN_KEY);
-                        opponentSession.getAttributes().remove(MULLIGAN_KEY);
+                            session.getAttributes().remove(MULLIGAN_KEY);
+                            opponentSession.getAttributes().remove(MULLIGAN_KEY);
+                        }
                     }
                 }
             }
@@ -310,13 +320,13 @@ public class GameService extends TextWebSocketHandler {
     }
 
     private void sendMessageToOpponent(Set<WebSocketSession> gameRoom, String opponentName, String message) throws IOException {
-        WebSocketSession opponentSession = gameRoom.stream()
+        WebSocketSession opponentSession = new HashSet<>(gameRoom).stream()
                 .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
         sendTextMessage(opponentSession, message);
     }
 
-    private synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
+    private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
         session.sendMessage(new TextMessage(message));
     }
@@ -335,7 +345,7 @@ public class GameService extends TextWebSocketHandler {
         return objectMapper.writeValueAsString(players);
     }
 
-    private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
+    private synchronized void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.computeIfAbsent(gameId, key -> new HashSet<>());
         gameRoom.add(session);
 
@@ -348,27 +358,36 @@ public class GameService extends TextWebSocketHandler {
 
     private void setUpGame(String gameId, String username1, String username2) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
-        for (WebSocketSession s : gameRoom) {
-            sendTextMessage(s, "[START_GAME]:" + getPlayersJson(username1, username2));
+        if (gameRoom != null) {
+            Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
+            for (WebSocketSession s : roomCopy) {
+                sendTextMessage(s, "[START_GAME]:" + getPlayersJson(username1, username2));
+            }
         }
     }
 
     private void setStartingPlayer(String gameId, String username1, String username2) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
-        String[] names = {username1, username2};
-        int index = secureRand.nextInt(names.length);
-        for (WebSocketSession s : gameRoom) {
-            sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
+        if (gameRoom != null) {
+            String[] names = {username1, username2};
+            int index = secureRand.nextInt(names.length);
+            Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
+            for (WebSocketSession s : roomCopy) {
+                sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
+            }
         }
     }
 
     private void restartGame(WebSocketSession session, String gameId, String username1, String username2, String startingPlayer) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+        
+        if (gameRoom != null) {
+            sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
 
-        sendTextMessage(session, "[START_GAME]:" + getPlayersJson(username1, username2));
-
-        for (WebSocketSession s : gameRoom) {
-            sendTextMessage(s, "[STARTING_PLAYER]:" + startingPlayer);
+            Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
+            for (WebSocketSession s : roomCopy) {
+                sendTextMessage(s, "[STARTING_PLAYER]:" + startingPlayer);
+            }
         }
     }
 
@@ -391,11 +410,12 @@ public class GameService extends TextWebSocketHandler {
         int chunkSize = 1000;
         int length = newGameJson.length();
 
+        Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
         for (int i = 0; i < length; i += chunkSize) {
 
             int end = Math.min(length, i + chunkSize);
             String chunk = newGameJson.substring(i, end);
-            for (WebSocketSession s : gameRoom) {
+            for (WebSocketSession s : roomCopy) {
                 sendTextMessage(s, "[DISTRIBUTE_CARDS]:" + chunk);
             }
         }
@@ -403,6 +423,7 @@ public class GameService extends TextWebSocketHandler {
 
     private void prepareCardDistribution(String gameId, String username1, String username2) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
+        if (gameRoom == null) return;
 
         List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
         List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username2));
@@ -422,7 +443,8 @@ public class GameService extends TextWebSocketHandler {
         );
         
         // Store original distribution in session attributes for potential mulligan
-        for (WebSocketSession session : gameRoom) {
+        Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
+        for (WebSocketSession session : roomCopy) {
             session.getAttributes().put("originalDistribution", newGame);
         }
 
@@ -435,7 +457,8 @@ public class GameService extends TextWebSocketHandler {
 
         // Retrieve stored original distributions from session attributes
         WebSocketSession player1Session = null, player2Session = null;
-        for (WebSocketSession session : gameRoom) {
+        Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
+        for (WebSocketSession session : roomCopy) {
             String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
             if (sessionUsername.equals(username1)) player1Session = session;
             else if (sessionUsername.equals(username2)) player2Session = session;
@@ -545,7 +568,8 @@ public class GameService extends TextWebSocketHandler {
     private void processGameChunk(WebSocketSession session, String command, Set<WebSocketSession> gameRoom) throws IOException {
         if (gameRoom == null) return;
         String chunk = command.substring("/updateGame:".length());
-        for (WebSocketSession s : gameRoom) {
+        Set<WebSocketSession> roomCopy = new HashSet<>(gameRoom);
+        for (WebSocketSession s : roomCopy) {
             if (s.isOpen() && !s.equals(session)) {
                 sendTextMessage(s, "[UPDATE_OPPONENT]:" + chunk);
             }
