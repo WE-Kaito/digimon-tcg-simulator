@@ -12,7 +12,6 @@ import {
     SendToStackFunction,
     SIDE,
 } from "../utils/types.ts";
-import { Dispatch, SetStateAction } from "react";
 
 const emptyPlayer: Player = {
     username: "",
@@ -241,22 +240,18 @@ export type State = BoardState & {
     clearBoard: () => void;
     distributeCards: (
         user: string,
-        chunk: string,
+        gameStateJson: string,
         gameId: string,
         sendLoaded: () => void,
-        playDrawCardSfx: () => void,
-        distributionChunks: string,
-        setDistributionChunks: Dispatch<SetStateAction<string>>
+        playDrawCardSfx: () => void
     ) => void;
     moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
     getUpdateDistributionString: (user: string, gameId: string) => string;
     updateFields: (
-        chunk: string,
+        gameStateJson: string,
         sendLoaded: () => void,
         user: string,
-        gameId: string,
-        distributionChunks: string,
-        setDistributionChunks: Dispatch<SetStateAction<string>>
+        gameId: string
     ) => void;
 
     moveCardToStack: SendToStackFunction;
@@ -485,7 +480,6 @@ export const useGameBoardStates = create<State>()(
                 isMyTurn: false,
                 myAttackPhase: false,
                 opponentAttackPhase: false,
-                savedGameStateChunks: "",
 
                 messages: [],
                 opponentReady: false,
@@ -526,54 +520,46 @@ export const useGameBoardStates = create<State>()(
 
                 distributeCards: (
                     user,
-                    chunk,
+                    gameStateJson,
                     gameId,
                     sendLoaded,
-                    playDrawCardSfx,
-                    distributionChunks,
-                    setDistributionChunks
+                    playDrawCardSfx
                 ) => {
-                    const newDistributionChunks = distributionChunks + chunk;
-                    setDistributionChunks(newDistributionChunks);
+                    const player1 = gameId.split("‗")[0];
+                    const game: GameDistribution = JSON.parse(gameStateJson);
 
-                    if (chunk.length < 1000 || chunk.endsWith("]}")) {
-                        const player1 = gameId.split("‗")[0];
-                        const game: GameDistribution = JSON.parse(newDistributionChunks);
+                    set((state) => ({
+                        bootStage:
+                            state.bootStage === BootStage.MULLIGAN_DONE
+                                ? BootStage.GAME_IN_PROGRESS
+                                : BootStage.MULLIGAN,
+                    }));
 
-                        set((state) => ({
-                            bootStage:
-                                state.bootStage === BootStage.MULLIGAN_DONE
-                                    ? BootStage.GAME_IN_PROGRESS
-                                    : BootStage.MULLIGAN,
-                        }));
-                        setDistributionChunks("");
-
-                        if (user === player1) {
-                            set({
-                                myHand: game.player1Hand,
-                                myDeckField: game.player1DeckField,
-                                myEggDeck: game.player1EggDeck,
-                                mySecurity: game.player1Security,
-                                opponentHand: game.player2Hand,
-                                opponentDeckField: game.player2DeckField,
-                                opponentEggDeck: game.player2EggDeck,
-                                opponentSecurity: game.player2Security,
-                            });
-                        } else {
-                            set({
-                                myHand: game.player2Hand,
-                                myDeckField: game.player2DeckField,
-                                myEggDeck: game.player2EggDeck,
-                                mySecurity: game.player2Security,
-                                opponentHand: game.player1Hand,
-                                opponentDeckField: game.player1DeckField,
-                                opponentEggDeck: game.player1EggDeck,
-                                opponentSecurity: game.player1Security,
-                            });
-                        }
-                        sendLoaded();
-                        playDrawCardSfx();
+                    if (user === player1) {
+                        set({
+                            myHand: game.player1Hand,
+                            myDeckField: game.player1DeckField,
+                            myEggDeck: game.player1EggDeck,
+                            mySecurity: game.player1Security,
+                            opponentHand: game.player2Hand,
+                            opponentDeckField: game.player2DeckField,
+                            opponentEggDeck: game.player2EggDeck,
+                            opponentSecurity: game.player2Security,
+                        });
+                    } else {
+                        set({
+                            myHand: game.player2Hand,
+                            myDeckField: game.player2DeckField,
+                            myEggDeck: game.player2EggDeck,
+                            mySecurity: game.player2Security,
+                            opponentHand: game.player1Hand,
+                            opponentDeckField: game.player1DeckField,
+                            opponentEggDeck: game.player1EggDeck,
+                            opponentSecurity: game.player1Security,
+                        });
                     }
+                    sendLoaded();
+                    playDrawCardSfx();
                 },
 
                 getUpdateDistributionString: (user, gameId) => {
@@ -677,121 +663,116 @@ export const useGameBoardStates = create<State>()(
                     return JSON.stringify(updatedGame);
                 },
 
-                updateFields: (chunk, sendLoaded, user, gameId, distributionChunks, setDistributionChunks) => {
+                updateFields: (gameStateJson, sendLoaded, user, gameId) => {
                     const isPlayer1 = gameId.split("‗")[0] === user;
 
                     if (!get().isLoading) set({ isLoading: true });
-                    const newDistributionChunks = distributionChunks + chunk;
-                    setDistributionChunks(newDistributionChunks);
+                    
+                    const gameJson: UpdateDistribution = JSON.parse(gameStateJson);
 
-                    if (chunk.length < 1000 || chunk.endsWith(":true}") || chunk.endsWith(":false}")) {
-                        const gameJson: UpdateDistribution = JSON.parse(newDistributionChunks);
+                    set({
+                        opponentReveal: isPlayer1 ? gameJson.player2Reveal : gameJson.player1Reveal,
+                        opponentHand: isPlayer1 ? gameJson.player2Hand : gameJson.player1Hand,
+                        opponentDeckField: isPlayer1 ? gameJson.player2DeckField : gameJson.player1DeckField,
+                        opponentEggDeck: isPlayer1 ? gameJson.player2EggDeck : gameJson.player1EggDeck,
+                        opponentTrash: isPlayer1 ? gameJson.player2Trash : gameJson.player1Trash,
+                        opponentSecurity: isPlayer1 ? gameJson.player2Security : gameJson.player1Security,
+                        opponentDigi1: isPlayer1 ? gameJson.player2Digi1 : gameJson.player1Digi1,
+                        opponentDigi2: isPlayer1 ? gameJson.player2Digi2 : gameJson.player1Digi2,
+                        opponentDigi3: isPlayer1 ? gameJson.player2Digi3 : gameJson.player1Digi3,
+                        opponentDigi4: isPlayer1 ? gameJson.player2Digi4 : gameJson.player1Digi4,
+                        opponentDigi5: isPlayer1 ? gameJson.player2Digi5 : gameJson.player1Digi5,
+                        opponentDigi6: isPlayer1 ? gameJson.player2Digi6 : gameJson.player1Digi6,
+                        opponentDigi7: isPlayer1 ? gameJson.player2Digi7 : gameJson.player1Digi7,
+                        opponentDigi8: isPlayer1 ? gameJson.player2Digi8 : gameJson.player1Digi8,
+                        opponentDigi9: isPlayer1 ? gameJson.player2Digi9 : gameJson.player1Digi9,
+                        opponentDigi10: isPlayer1 ? gameJson.player2Digi10 : gameJson.player1Digi10,
+                        opponentDigi11: isPlayer1 ? gameJson.player2Digi11 : gameJson.player1Digi11,
+                        opponentDigi12: isPlayer1 ? gameJson.player2Digi12 : gameJson.player1Digi12,
+                        opponentDigi13: isPlayer1 ? gameJson.player2Digi13 : gameJson.player1Digi13,
+                        opponentDigi14: isPlayer1 ? gameJson.player2Digi14 : gameJson.player1Digi14,
+                        opponentDigi15: isPlayer1 ? gameJson.player2Digi15 : gameJson.player1Digi15,
+                        opponentDigi16: isPlayer1 ? gameJson.player2Digi16 : gameJson.player1Digi16,
+                        opponentDigi17: isPlayer1 ? gameJson.player2Digi17 : gameJson.player1Digi17,
+                        opponentDigi18: isPlayer1 ? gameJson.player2Digi18 : gameJson.player1Digi18,
+                        opponentDigi19: isPlayer1 ? gameJson.player2Digi19 : gameJson.player1Digi19,
+                        opponentDigi20: isPlayer1 ? gameJson.player2Digi20 : gameJson.player1Digi20,
+                        opponentDigi21: isPlayer1 ? gameJson.player2Digi21 : gameJson.player1Digi21,
+                        opponentBreedingArea: isPlayer1
+                            ? gameJson.player2BreedingArea
+                            : gameJson.player1BreedingArea,
+                        opponentLink1: isPlayer1 ? gameJson.player2Link1 : gameJson.player1Link1,
+                        opponentLink2: isPlayer1 ? gameJson.player2Link2 : gameJson.player1Link2,
+                        opponentLink3: isPlayer1 ? gameJson.player2Link3 : gameJson.player1Link3,
+                        opponentLink4: isPlayer1 ? gameJson.player2Link4 : gameJson.player1Link4,
+                        opponentLink5: isPlayer1 ? gameJson.player2Link5 : gameJson.player1Link5,
+                        opponentLink6: isPlayer1 ? gameJson.player2Link6 : gameJson.player1Link6,
+                        opponentLink7: isPlayer1 ? gameJson.player2Link7 : gameJson.player1Link7,
+                        opponentLink8: isPlayer1 ? gameJson.player2Link8 : gameJson.player1Link8,
+                        opponentLink9: isPlayer1 ? gameJson.player2Link9 : gameJson.player1Link9,
+                        opponentLink10: isPlayer1 ? gameJson.player2Link10 : gameJson.player1Link10,
+                        opponentLink11: isPlayer1 ? gameJson.player2Link11 : gameJson.player1Link11,
+                        opponentLink12: isPlayer1 ? gameJson.player2Link12 : gameJson.player1Link12,
+                        opponentLink13: isPlayer1 ? gameJson.player2Link13 : gameJson.player1Link13,
+                        opponentLink14: isPlayer1 ? gameJson.player2Link14 : gameJson.player1Link14,
+                        opponentLink15: isPlayer1 ? gameJson.player2Link15 : gameJson.player1Link15,
+                        opponentLink16: isPlayer1 ? gameJson.player2Link16 : gameJson.player1Link16,
 
-                        setDistributionChunks("");
+                        myReveal: isPlayer1 ? gameJson.player1Reveal : gameJson.player2Reveal,
+                        myHand: isPlayer1 ? gameJson.player1Hand : gameJson.player2Hand,
+                        myDeckField: isPlayer1 ? gameJson.player1DeckField : gameJson.player2DeckField,
+                        myEggDeck: isPlayer1 ? gameJson.player1EggDeck : gameJson.player2EggDeck,
+                        myTrash: isPlayer1 ? gameJson.player1Trash : gameJson.player2Trash,
+                        mySecurity: isPlayer1 ? gameJson.player1Security : gameJson.player2Security,
+                        myDigi1: isPlayer1 ? gameJson.player1Digi1 : gameJson.player2Digi1,
+                        myDigi2: isPlayer1 ? gameJson.player1Digi2 : gameJson.player2Digi2,
+                        myDigi3: isPlayer1 ? gameJson.player1Digi3 : gameJson.player2Digi3,
+                        myDigi4: isPlayer1 ? gameJson.player1Digi4 : gameJson.player2Digi4,
+                        myDigi5: isPlayer1 ? gameJson.player1Digi5 : gameJson.player2Digi5,
+                        myDigi6: isPlayer1 ? gameJson.player1Digi6 : gameJson.player2Digi6,
+                        myDigi7: isPlayer1 ? gameJson.player1Digi7 : gameJson.player2Digi7,
+                        myDigi8: isPlayer1 ? gameJson.player1Digi8 : gameJson.player2Digi8,
+                        myDigi9: isPlayer1 ? gameJson.player1Digi9 : gameJson.player2Digi9,
+                        myDigi10: isPlayer1 ? gameJson.player1Digi10 : gameJson.player2Digi10,
+                        myDigi11: isPlayer1 ? gameJson.player1Digi11 : gameJson.player2Digi11,
+                        myDigi12: isPlayer1 ? gameJson.player1Digi12 : gameJson.player2Digi12,
+                        myDigi13: isPlayer1 ? gameJson.player1Digi13 : gameJson.player2Digi13,
+                        myDigi14: isPlayer1 ? gameJson.player1Digi14 : gameJson.player2Digi14,
+                        myDigi15: isPlayer1 ? gameJson.player1Digi15 : gameJson.player2Digi15,
+                        myDigi16: isPlayer1 ? gameJson.player1Digi16 : gameJson.player2Digi16,
+                        myDigi17: isPlayer1 ? gameJson.player1Digi17 : gameJson.player2Digi17,
+                        myDigi18: isPlayer1 ? gameJson.player1Digi18 : gameJson.player2Digi18,
+                        myDigi19: isPlayer1 ? gameJson.player1Digi19 : gameJson.player2Digi19,
+                        myDigi20: isPlayer1 ? gameJson.player1Digi20 : gameJson.player2Digi20,
+                        myDigi21: isPlayer1 ? gameJson.player1Digi21 : gameJson.player2Digi21,
+                        myBreedingArea: isPlayer1 ? gameJson.player1BreedingArea : gameJson.player2BreedingArea,
+                        myLink1: isPlayer1 ? gameJson.player1Link1 : gameJson.player2Link1,
+                        myLink2: isPlayer1 ? gameJson.player1Link2 : gameJson.player2Link2,
+                        myLink3: isPlayer1 ? gameJson.player1Link3 : gameJson.player2Link3,
+                        myLink4: isPlayer1 ? gameJson.player1Link4 : gameJson.player2Link4,
+                        myLink5: isPlayer1 ? gameJson.player1Link5 : gameJson.player2Link5,
+                        myLink6: isPlayer1 ? gameJson.player1Link6 : gameJson.player2Link6,
+                        myLink7: isPlayer1 ? gameJson.player1Link7 : gameJson.player2Link7,
+                        myLink8: isPlayer1 ? gameJson.player1Link8 : gameJson.player2Link8,
+                        myLink9: isPlayer1 ? gameJson.player1Link9 : gameJson.player2Link9,
+                        myLink10: isPlayer1 ? gameJson.player1Link10 : gameJson.player2Link10,
+                        myLink11: isPlayer1 ? gameJson.player1Link11 : gameJson.player2Link11,
+                        myLink12: isPlayer1 ? gameJson.player1Link12 : gameJson.player2Link12,
+                        myLink13: isPlayer1 ? gameJson.player1Link13 : gameJson.player2Link13,
+                        myLink14: isPlayer1 ? gameJson.player1Link14 : gameJson.player2Link14,
+                        myLink15: isPlayer1 ? gameJson.player1Link15 : gameJson.player2Link15,
+                        myLink16: isPlayer1 ? gameJson.player1Link16 : gameJson.player2Link16,
 
-                        set({
-                            opponentReveal: isPlayer1 ? gameJson.player2Reveal : gameJson.player1Reveal,
-                            opponentHand: isPlayer1 ? gameJson.player2Hand : gameJson.player1Hand,
-                            opponentDeckField: isPlayer1 ? gameJson.player2DeckField : gameJson.player1DeckField,
-                            opponentEggDeck: isPlayer1 ? gameJson.player2EggDeck : gameJson.player1EggDeck,
-                            opponentTrash: isPlayer1 ? gameJson.player2Trash : gameJson.player1Trash,
-                            opponentSecurity: isPlayer1 ? gameJson.player2Security : gameJson.player1Security,
-                            opponentDigi1: isPlayer1 ? gameJson.player2Digi1 : gameJson.player1Digi1,
-                            opponentDigi2: isPlayer1 ? gameJson.player2Digi2 : gameJson.player1Digi2,
-                            opponentDigi3: isPlayer1 ? gameJson.player2Digi3 : gameJson.player1Digi3,
-                            opponentDigi4: isPlayer1 ? gameJson.player2Digi4 : gameJson.player1Digi4,
-                            opponentDigi5: isPlayer1 ? gameJson.player2Digi5 : gameJson.player1Digi5,
-                            opponentDigi6: isPlayer1 ? gameJson.player2Digi6 : gameJson.player1Digi6,
-                            opponentDigi7: isPlayer1 ? gameJson.player2Digi7 : gameJson.player1Digi7,
-                            opponentDigi8: isPlayer1 ? gameJson.player2Digi8 : gameJson.player1Digi8,
-                            opponentDigi9: isPlayer1 ? gameJson.player2Digi9 : gameJson.player1Digi9,
-                            opponentDigi10: isPlayer1 ? gameJson.player2Digi10 : gameJson.player1Digi10,
-                            opponentDigi11: isPlayer1 ? gameJson.player2Digi11 : gameJson.player1Digi11,
-                            opponentDigi12: isPlayer1 ? gameJson.player2Digi12 : gameJson.player1Digi12,
-                            opponentDigi13: isPlayer1 ? gameJson.player2Digi13 : gameJson.player1Digi13,
-                            opponentDigi14: isPlayer1 ? gameJson.player2Digi14 : gameJson.player1Digi14,
-                            opponentDigi15: isPlayer1 ? gameJson.player2Digi15 : gameJson.player1Digi15,
-                            opponentDigi16: isPlayer1 ? gameJson.player2Digi16 : gameJson.player1Digi16,
-                            opponentDigi17: isPlayer1 ? gameJson.player2Digi17 : gameJson.player1Digi17,
-                            opponentDigi18: isPlayer1 ? gameJson.player2Digi18 : gameJson.player1Digi18,
-                            opponentDigi19: isPlayer1 ? gameJson.player2Digi19 : gameJson.player1Digi19,
-                            opponentDigi20: isPlayer1 ? gameJson.player2Digi20 : gameJson.player1Digi20,
-                            opponentDigi21: isPlayer1 ? gameJson.player2Digi21 : gameJson.player1Digi21,
-                            opponentBreedingArea: isPlayer1
-                                ? gameJson.player2BreedingArea
-                                : gameJson.player1BreedingArea,
-                            opponentLink1: isPlayer1 ? gameJson.player2Link1 : gameJson.player1Link1,
-                            opponentLink2: isPlayer1 ? gameJson.player2Link2 : gameJson.player1Link2,
-                            opponentLink3: isPlayer1 ? gameJson.player2Link3 : gameJson.player1Link3,
-                            opponentLink4: isPlayer1 ? gameJson.player2Link4 : gameJson.player1Link4,
-                            opponentLink5: isPlayer1 ? gameJson.player2Link5 : gameJson.player1Link5,
-                            opponentLink6: isPlayer1 ? gameJson.player2Link6 : gameJson.player1Link6,
-                            opponentLink7: isPlayer1 ? gameJson.player2Link7 : gameJson.player1Link7,
-                            opponentLink8: isPlayer1 ? gameJson.player2Link8 : gameJson.player1Link8,
-                            opponentLink9: isPlayer1 ? gameJson.player2Link9 : gameJson.player1Link9,
-                            opponentLink10: isPlayer1 ? gameJson.player2Link10 : gameJson.player1Link10,
-                            opponentLink11: isPlayer1 ? gameJson.player2Link11 : gameJson.player1Link11,
-                            opponentLink12: isPlayer1 ? gameJson.player2Link12 : gameJson.player1Link12,
-                            opponentLink13: isPlayer1 ? gameJson.player2Link13 : gameJson.player1Link13,
-                            opponentLink14: isPlayer1 ? gameJson.player2Link14 : gameJson.player1Link14,
-                            opponentLink15: isPlayer1 ? gameJson.player2Link15 : gameJson.player1Link15,
-                            opponentLink16: isPlayer1 ? gameJson.player2Link16 : gameJson.player1Link16,
+                        mySleeve: gameJson.playerSleeve,
+                        myMemory: gameJson.playerMemory,
+                        phase: gameJson.playerPhase,
+                        isMyTurn: gameJson.isPlayerTurn,
 
-                            myReveal: isPlayer1 ? gameJson.player1Reveal : gameJson.player2Reveal,
-                            myHand: isPlayer1 ? gameJson.player1Hand : gameJson.player2Hand,
-                            myDeckField: isPlayer1 ? gameJson.player1DeckField : gameJson.player2DeckField,
-                            myEggDeck: isPlayer1 ? gameJson.player1EggDeck : gameJson.player2EggDeck,
-                            myTrash: isPlayer1 ? gameJson.player1Trash : gameJson.player2Trash,
-                            mySecurity: isPlayer1 ? gameJson.player1Security : gameJson.player2Security,
-                            myDigi1: isPlayer1 ? gameJson.player1Digi1 : gameJson.player2Digi1,
-                            myDigi2: isPlayer1 ? gameJson.player1Digi2 : gameJson.player2Digi2,
-                            myDigi3: isPlayer1 ? gameJson.player1Digi3 : gameJson.player2Digi3,
-                            myDigi4: isPlayer1 ? gameJson.player1Digi4 : gameJson.player2Digi4,
-                            myDigi5: isPlayer1 ? gameJson.player1Digi5 : gameJson.player2Digi5,
-                            myDigi6: isPlayer1 ? gameJson.player1Digi6 : gameJson.player2Digi6,
-                            myDigi7: isPlayer1 ? gameJson.player1Digi7 : gameJson.player2Digi7,
-                            myDigi8: isPlayer1 ? gameJson.player1Digi8 : gameJson.player2Digi8,
-                            myDigi9: isPlayer1 ? gameJson.player1Digi9 : gameJson.player2Digi9,
-                            myDigi10: isPlayer1 ? gameJson.player1Digi10 : gameJson.player2Digi10,
-                            myDigi11: isPlayer1 ? gameJson.player1Digi11 : gameJson.player2Digi11,
-                            myDigi12: isPlayer1 ? gameJson.player1Digi12 : gameJson.player2Digi12,
-                            myDigi13: isPlayer1 ? gameJson.player1Digi13 : gameJson.player2Digi13,
-                            myDigi14: isPlayer1 ? gameJson.player1Digi14 : gameJson.player2Digi14,
-                            myDigi15: isPlayer1 ? gameJson.player1Digi15 : gameJson.player2Digi15,
-                            myDigi16: isPlayer1 ? gameJson.player1Digi16 : gameJson.player2Digi16,
-                            myDigi17: isPlayer1 ? gameJson.player1Digi17 : gameJson.player2Digi17,
-                            myDigi18: isPlayer1 ? gameJson.player1Digi18 : gameJson.player2Digi18,
-                            myDigi19: isPlayer1 ? gameJson.player1Digi19 : gameJson.player2Digi19,
-                            myDigi20: isPlayer1 ? gameJson.player1Digi20 : gameJson.player2Digi20,
-                            myDigi21: isPlayer1 ? gameJson.player1Digi21 : gameJson.player2Digi21,
-                            myBreedingArea: isPlayer1 ? gameJson.player1BreedingArea : gameJson.player2BreedingArea,
-                            myLink1: isPlayer1 ? gameJson.player1Link1 : gameJson.player2Link1,
-                            myLink2: isPlayer1 ? gameJson.player1Link2 : gameJson.player2Link2,
-                            myLink3: isPlayer1 ? gameJson.player1Link3 : gameJson.player2Link3,
-                            myLink4: isPlayer1 ? gameJson.player1Link4 : gameJson.player2Link4,
-                            myLink5: isPlayer1 ? gameJson.player1Link5 : gameJson.player2Link5,
-                            myLink6: isPlayer1 ? gameJson.player1Link6 : gameJson.player2Link6,
-                            myLink7: isPlayer1 ? gameJson.player1Link7 : gameJson.player2Link7,
-                            myLink8: isPlayer1 ? gameJson.player1Link8 : gameJson.player2Link8,
-                            myLink9: isPlayer1 ? gameJson.player1Link9 : gameJson.player2Link9,
-                            myLink10: isPlayer1 ? gameJson.player1Link10 : gameJson.player2Link10,
-                            myLink11: isPlayer1 ? gameJson.player1Link11 : gameJson.player2Link11,
-                            myLink12: isPlayer1 ? gameJson.player1Link12 : gameJson.player2Link12,
-                            myLink13: isPlayer1 ? gameJson.player1Link13 : gameJson.player2Link13,
-                            myLink14: isPlayer1 ? gameJson.player1Link14 : gameJson.player2Link14,
-                            myLink15: isPlayer1 ? gameJson.player1Link15 : gameJson.player2Link15,
-                            myLink16: isPlayer1 ? gameJson.player1Link16 : gameJson.player2Link16,
-
-                            mySleeve: gameJson.playerSleeve,
-                            myMemory: gameJson.playerMemory,
-                            phase: gameJson.playerPhase,
-                            isMyTurn: gameJson.isPlayerTurn,
-
-                            isLoading: false,
-                            bootStage: BootStage.GAME_IN_PROGRESS,
-                            opponentReady: true,
-                        });
-                    }
+                        isLoading: false,
+                        bootStage: BootStage.GAME_IN_PROGRESS,
+                        opponentReady: true,
+                    });
+                    
                     sendLoaded();
                 },
 

@@ -4,7 +4,7 @@ import { findTokenByName } from "../utils/tokens.ts";
 import { notifySecurityView } from "../utils/toasts.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 
@@ -26,13 +26,6 @@ type UseGameWebSocketReturn = {
     sendUpdate: () => void;
 };
 
-function chunkString(str: string, size: number): string[] {
-    const chunks = [];
-    for (let i = 0; i < str.length; i += size) {
-        chunks.push(str.substring(i, i + size));
-    }
-    return chunks;
-}
 
 function getValidOffset(fieldNumber: number, currentOffset: number) {
     const MAX_OFFSET = 8;
@@ -136,7 +129,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playRematchSfx = useSound((state) => state.playRematchSfx);
 
-    const [distributionChunks, setDistributionChunks] = useState<string>("");
 
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
 
@@ -151,15 +143,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     }
 
     function sendUpdate() {
-        const chunks = chunkString(getUpdateDistributionString(user, gameId), 1000);
-        const timeoutIds: number[] = [];
-        for (const chunk of chunks) {
-            const timeoutId = setTimeout(() => {
-                websocket.sendMessage(`${gameId}:/updateGame:${chunk}`);
-            }, 10);
-            timeoutIds.push(timeoutId);
-        }
-        return () => timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
+        const gameState = getUpdateDistributionString(user, gameId);
+        websocket.sendMessage(`${gameId}:/updateGame:${gameState}`);
     }
 
     let interval: ReturnType<typeof setInterval>;
@@ -198,23 +183,21 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
-                const chunk = event.data.substring("[DISTRIBUTE_CARDS]:".length);
+                const gameStateJson = event.data.substring("[DISTRIBUTE_CARDS]:".length);
                 distributeCards(
                     user,
-                    chunk,
+                    gameStateJson,
                     gameId,
                     sendLoaded,
-                    playDrawCardSfx,
-                    distributionChunks,
-                    setDistributionChunks
+                    playDrawCardSfx
                 );
                 setOpenedCardModal(false);
                 return;
             }
 
             if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
-                const chunk = event.data.substring("[UPDATE_OPPONENT]:".length);
-                updateFields(chunk, sendLoaded, user, gameId, distributionChunks, setDistributionChunks);
+                const gameStateJson = event.data.substring("[UPDATE_OPPONENT]:".length);
+                updateFields(gameStateJson, sendLoaded, user, gameId);
                 return;
             }
 
@@ -423,7 +406,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     setMyAttackPhase(false);
                     setOpponentAttackPhase(false);
                     clearBoard();
-                    setDistributionChunks("");
                     setIsRematch(true);
                     setEndModal(false);
                     setUpGame(restartObject.me, restartObject.opponent);

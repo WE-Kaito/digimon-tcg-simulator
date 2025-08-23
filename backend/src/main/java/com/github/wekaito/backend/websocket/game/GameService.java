@@ -145,7 +145,7 @@ public class GameService extends TextWebSocketHandler {
             }
         }
 
-        if (roomMessage.startsWith("/updateGame:")) processGameChunk(session, roomMessage, gameRoom);
+        if (roomMessage.startsWith("/updateGame:")) processGameUpdate(session, roomMessage, gameRoom);
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, roomMessage);
 
@@ -387,17 +387,9 @@ public class GameService extends TextWebSocketHandler {
 
     private void distributeCards(Set<WebSocketSession> gameRoom, GameStart newGame) throws IOException {
         String newGameJson = objectMapper.writeValueAsString(newGame);
-
-        int chunkSize = 1000;
-        int length = newGameJson.length();
-
-        for (int i = 0; i < length; i += chunkSize) {
-
-            int end = Math.min(length, i + chunkSize);
-            String chunk = newGameJson.substring(i, end);
-            for (WebSocketSession s : gameRoom) {
-                sendTextMessage(s, "[DISTRIBUTE_CARDS]:" + chunk);
-            }
+        
+        for (WebSocketSession s : gameRoom) {
+            sendTextMessage(s, "[DISTRIBUTE_CARDS]:" + newGameJson);
         }
     }
 
@@ -542,12 +534,12 @@ public class GameService extends TextWebSocketHandler {
         return gameDeck;
     }
 
-    private void processGameChunk(WebSocketSession session, String command, Set<WebSocketSession> gameRoom) throws IOException {
+    private void processGameUpdate(WebSocketSession session, String command, Set<WebSocketSession> gameRoom) throws IOException {
         if (gameRoom == null) return;
-        String chunk = command.substring("/updateGame:".length());
+        String gameState = command.substring("/updateGame:".length());
         for (WebSocketSession s : gameRoom) {
             if (s.isOpen() && !s.equals(session)) {
-                sendTextMessage(s, "[UPDATE_OPPONENT]:" + chunk);
+                sendTextMessage(s, "[UPDATE_OPPONENT]:" + gameState);
             }
         }
     }
