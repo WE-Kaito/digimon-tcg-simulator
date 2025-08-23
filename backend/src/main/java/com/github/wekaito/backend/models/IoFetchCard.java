@@ -2,6 +2,8 @@ package com.github.wekaito.backend.models;
 
 import java.util.List;
 
+
+// fallback for when main source is down, currently unused
 public record IoFetchCard(
         String name,
         String type,
