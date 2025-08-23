@@ -47,7 +47,7 @@ public class LobbyService extends TextWebSocketHandler {
     private final String warning = "[CHAT_MESSAGE]:【SERVER】: ⚠ The server detected multiple connections for the same user. Make sure to only use one tab per account. ⚠";
 
     // Add usernames here that should be filtered from lobby operations
-    private static final List<String> FILTERED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer");
+    private static final List<String> FILTERED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer", "Humungosaurio2");
 
     @Autowired
     private GameService gameService;
