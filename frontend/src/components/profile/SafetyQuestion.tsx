@@ -20,8 +20,8 @@ export default function SafetyQuestion() {
             <div style={{ gap: 8, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <span style={{ fontFamily: "Naston, sans-serif", color: "#1d7dfc" }}>Safety Question:</span>
                 <ChangeQuestionForm onSubmit={handleSubmit}>
-                    <ChangeQuestionInput name="question" placeholder="question"></ChangeQuestionInput>
-                    <ChangeQuestionInput name="answer" placeholder="answer"></ChangeQuestionInput>
+                    <StyledInput name="question" placeholder="question"></StyledInput>
+                    <StyledInput name="answer" placeholder="answer"></StyledInput>
                     <Button type={"submit"}>SAVE</Button>
                 </ChangeQuestionForm>
             </div>
@@ -49,15 +49,14 @@ const ChangeQuestionForm = styled.form`
     flex-wrap: wrap;
 `;
 
-const ChangeQuestionInput = styled.input`
-    width: 245px;
+const StyledInput = styled.input`
+    width: 243px;
     height: 32px;
-    border-radius: 5px;
-    border: 1px solid gray;
     background: #242424;
     font-family: Cousine, sans-serif;
 
     &:focus {
-        outline: #1d7dfc;
+        outline: 2px solid #1d7dfc;
+        outline-offset: -2px;
     }
 `;

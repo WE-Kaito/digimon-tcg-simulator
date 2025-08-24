@@ -73,13 +73,11 @@ export default function BlockedUsers() {
             <span style={{ fontFamily: "Naston, sans-serif", color: "#1d7dfc" }}>Blocked Users:</span>
             <form onSubmit={handleSubmit}>
                 <InputRow>
-                    <StyledTextField
-                        size="small"
+                    <StyledInput
                         placeholder="Enter username to block"
                         value={newUsername}
                         onChange={(e) => setNewUsername(e.target.value)}
                         disabled={loading}
-                        variant="outlined"
                     />
                     <Button type="submit" disabled={loading || !newUsername.trim()}>
                         ADD
@@ -118,48 +116,36 @@ const InputRow = styled.div`
     align-items: center;
 `;
 
-const StyledTextField = styled(TextField)`
-    .MuiOutlinedInput-root {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: white;
-
-        .MuiOutlinedInput-notchedOutline {
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        &:hover .MuiOutlinedInput-notchedOutline {
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        &.Mui-focused .MuiOutlinedInput-notchedOutline {
-            border-color: #1976d2;
-        }
-    }
-
-    .MuiInputBase-input::placeholder {
-        color: rgba(255, 255, 255, 0.7);
-        opacity: 1;
-    }
-`;
-
 const StyledChip = styled(Chip)`
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05);
     color: white;
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(241, 185, 73, 0.53);
 
     .MuiChip-deleteIcon {
         color: rgba(255, 255, 255, 0.7);
 
         &:hover {
-            color: white;
+            color: #ff1b58;
         }
     }
 
     &:hover {
-        background-color: rgba(255, 255, 255, 0.15);
+        background-color: rgba(12, 12, 12, 0.9);
     }
 
     &.Mui-disabled {
         opacity: 0.5;
+    }
+`;
+
+const StyledInput = styled.input`
+    width: 200px;
+    height: 32px;
+    background: #242424;
+    font-family: Cousine, sans-serif;
+
+    &:focus {
+        outline: 2px solid #1d7dfc;
+        outline-offset: -2px;
     }
 `;
