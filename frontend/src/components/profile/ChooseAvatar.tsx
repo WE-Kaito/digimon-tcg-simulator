@@ -18,7 +18,6 @@ export default function ChooseAvatar() {
 
     return (
         <GridContainer>
-            <AvatarSpan>Avatar</AvatarSpan>
             {avatars.map((avatar) => (
                 <Tooltip
                     followCursor
@@ -50,60 +49,30 @@ const GridContainer = styled.div`
     align-self: center;
     width: fit-content;
     height: fit-content;
-    display: grid;
-    grid-template-columns: repeat(23, 48px);
-    grid-template-rows: repeat(3, 48px);
-    gap: 3px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     position: relative;
     padding: 5px;
-    border: 1px solid #1d7dfc;
-    border-radius: 5px;
     transition: all 0.2s ease-in-out;
-    @media (max-width: 1050px) {
-        grid-template-columns: repeat(10, 32px);
-        grid-template-rows: repeat(3, 32px);
-        gap: 2px;
-        padding: 3px;
-    }
 `;
 
 const SpriteButton = styled.img<{ chosen: boolean }>`
     width: 48px;
     opacity: ${({ chosen }) => (chosen ? "1" : "0.5")};
-    background: ${({ chosen }) => (chosen ? "ghostwhite" : "none")};
+    background: ${({ chosen }) => (chosen ? "rgba(220 ,220 ,220, 0.2)" : "none")};
+    outline: ${({ chosen }) => (chosen ? "2px solid dodgerblue" : "none")};
     border-radius: 3px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+
     :hover {
-        width: 64px;
-        height: 64px;
         opacity: 1;
         z-index: 100;
         filter: drop-shadow(0 0 3px #57a0ff);
-        transform: translate(-8px, -8px);
     }
 
     @media (max-width: 1050px) {
         width: 32px;
-        :hover {
-            width: 32px;
-            height: 32px;
-            transform: translate(-1px, -1px);
-        }
-    }
-`;
-
-const AvatarSpan = styled.span`
-    position: absolute;
-    top: -26px;
-    left: 2px;
-    color: #1d7dfc;
-    font-size: 22px;
-    font-family: Naston, sans-serif;
-    transition: all 0.2s ease-in-out;
-    @media (max-width: 1050px) {
-        visibility: hidden;
-        font-size: 17px;
-        top: -22px;
     }
 `;

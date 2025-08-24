@@ -78,7 +78,7 @@ export default function Deckbuilder() {
                         }}
                     >
                         <UpdateDeckButtons deckName={deckName} />
-                        <BackButton isInDeckbuilder />
+                        <BackButton route={"/decks"} />
                     </div>
                     <SearchForm />
 
@@ -179,15 +179,3 @@ const NameInput = styled.input`
         outline: 3px solid var(--blue);
     }
 `;
-
-// const SleeveImage = styled.img`
-//     max-height: 100%;
-//     border-radius: 2px;
-//     grid-area: sleeve;
-//     transform: translate(-2px, -1px);
-//
-//     :hover {
-//         cursor: pointer;
-//         filter: drop-shadow(0 0 2px rgba(87, 160, 255, 0.5)) contrast(1.1);
-//     }
-// `;

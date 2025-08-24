@@ -11,7 +11,9 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -70,7 +72,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 registrationUser.question(),
                 registrationUser.answer(),
                 UUID.randomUUID().toString(),
-                "AncientIrismon"
+                "AncientIrismon",
+                Collections.emptyList()
         );
 
         starterDeckService.createStarterDecksForUser(newUser.id(), newUser.activeDeckId());
@@ -89,7 +92,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.question(),
                 mongoUser.answer(),
                 deckId,
-                mongoUser.avatarName()
+                mongoUser.avatarName(),
+                mongoUser.blockedAccounts()
         );
         mongoUserRepository.save(updatedUser);
     }
@@ -109,7 +113,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.question(),
                 mongoUser.answer(),
                 mongoUser.activeDeckId(),
-                avatarName
+                avatarName,
+                mongoUser.blockedAccounts()
         );
         mongoUserRepository.save(updatedUser);
     }
@@ -139,7 +144,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                     mongoUser.question(),
                     mongoUser.answer(),
                     mongoUser.activeDeckId(),
-                    mongoUser.avatarName()
+                    mongoUser.avatarName(),
+                    mongoUser.blockedAccounts()
             );
             mongoUserRepository.save(updatedUser);
             return "Password changed!";
@@ -155,10 +161,55 @@ public class MongoUserDetailsService implements UserDetailsService {
                     safetyQuestionChange.question(),
                     safetyQuestionChange.answer(),
                     mongoUser.activeDeckId(),
-                    mongoUser.avatarName()
+                    mongoUser.avatarName(),
+                    mongoUser.blockedAccounts()
             );
             mongoUserRepository.save(updatedUser);
             return "Safety question changed!";
 
+    }
+
+    public void setBlockedAccounts(List<String> blockedAccounts) {
+        MongoUser mongoUser = getCurrentUser();
+        MongoUser updatedUser = new MongoUser(
+                mongoUser.id(),
+                mongoUser.username(),
+                mongoUser.password(),
+                mongoUser.question(),
+                mongoUser.answer(),
+                mongoUser.activeDeckId(),
+                mongoUser.avatarName(),
+                blockedAccounts
+        );
+        mongoUserRepository.save(updatedUser);
+    }
+
+    public List<String> getBlockedAccounts(String username) {
+        MongoUser user = getUserByUsername(username);
+        List<String> blockedAccounts = user.blockedAccounts();
+        return blockedAccounts != null ? blockedAccounts : Collections.emptyList();
+    }
+    
+    public boolean userExists(String username) {
+        return mongoUserRepository.findByUsername(username).isPresent();
+    }
+    
+    public void addBlockedAccount(String currentUsername, String usernameToBlock) {
+        MongoUser mongoUser = getUserByUsername(currentUsername);
+        List<String> blockedAccounts = new ArrayList<>(mongoUser.blockedAccounts() != null ? mongoUser.blockedAccounts() : Collections.emptyList());
+        if (!blockedAccounts.contains(usernameToBlock)) {
+            blockedAccounts.add(usernameToBlock);
+            setBlockedAccounts(blockedAccounts);
+        }
+    }
+    
+    public boolean removeBlockedAccount(String currentUsername, String usernameToUnblock) {
+        MongoUser mongoUser = getUserByUsername(currentUsername);
+        List<String> blockedAccounts = new ArrayList<>(mongoUser.blockedAccounts() != null ? mongoUser.blockedAccounts() : Collections.emptyList());
+        boolean removed = blockedAccounts.remove(usernameToUnblock);
+        if (removed) {
+            setBlockedAccounts(blockedAccounts);
+        }
+        return removed;
     }
 }

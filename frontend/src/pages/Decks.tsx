@@ -14,6 +14,7 @@ import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import BackButton from "../components/BackButton.tsx";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
+import SectionHeadline from "../components/SectionHeadline.tsx";
 
 export default function Decks() {
     const loadOrderedDecks = useDeckStates((state) => state.loadOrderedDecks);
@@ -70,21 +71,7 @@ export default function Decks() {
                 <ChooseDeckImage />
             </MenuDialog>
 
-            <DeckHeaderContainer>
-                <div
-                    style={{
-                        width: "100%",
-                        height: "3.5em",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                    }}
-                >
-                    <span>Decks</span>
-                    <BackButton />
-                </div>
-                <hr style={{ width: "100vw", maxWidth: 1204 }} />
-            </DeckHeaderContainer>
+            <SectionHeadline headline={"Decks"} rightElement={<BackButton />} />
 
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <Container>
@@ -128,35 +115,6 @@ const Container = styled.div`
 
     ::-webkit-scrollbar {
         visibility: hidden;
-    }
-`;
-
-const DeckHeaderContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-
-    width: 100vw;
-    max-width: 1204px;
-
-    span {
-        color: #1d7dfc;
-        line-height: 1;
-        font-family: Naston, sans-serif;
-        font-size: 26px;
-        @media (max-width: 1050px) {
-            padding-left: 5px;
-        }
-        transform: translateY(5px);
-    }
-
-    hr {
-        color: #1d7dfc;
-        width: 100%;
-        background: #1d7dfc;
-        height: 2px;
-        border-radius: 3px;
-        margin-top: 0;
     }
 `;
 

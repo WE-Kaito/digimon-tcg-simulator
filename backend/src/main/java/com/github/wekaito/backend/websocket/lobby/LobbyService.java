@@ -55,6 +55,7 @@ public class LobbyService extends TextWebSocketHandler {
     @PostConstruct
     public void setupQuickPlayQueue() {
         quickPlayQueue.setFilteredUsernamesSupplier(() -> FILTERED_USERNAMES);
+        quickPlayQueue.setBlockedAccountsSupplier(mongoUserDetailsService::getBlockedAccounts);
     }
 
     private void sendTextMessage(WebSocketSession session, String message) throws IOException {
@@ -83,9 +84,12 @@ public class LobbyService extends TextWebSocketHandler {
 
         if (tryReconnectToRoom(session)) return; // Try to reconnect first
 
+        List<String> userBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(username);
+        
         List<Room> openRooms = rooms.stream()
                 .filter(r -> r.getPlayers().size() == 1)
                 .filter(r -> !FILTERED_USERNAMES.contains(r.getHostName())) // Filter out rooms created by filtered users
+                .filter(r -> !userBlockedAccounts.contains(r.getHostName())) // Filter out rooms created by blocked users
                 .toList();
         List<RoomDTO> openRoomsDTO = openRooms.stream().map(this::getRoomDTO).toList();
 
@@ -314,7 +318,19 @@ public class LobbyService extends TextWebSocketHandler {
         String message = "[ROOMS]:" + roomsJson;
 
         for (WebSocketSession session : globalActiveSessions) {
-            sendTextMessage(session, message);
+            String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
+            List<String> sessionUserBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(sessionUsername);
+            
+            // Filter rooms based on current user's blocked accounts
+            List<RoomDTO> filteredRoomDTOs = roomsWithOnlyHosts.stream()
+                    .filter(r -> !sessionUserBlockedAccounts.contains(r.getHostName()))
+                    .map(this::getRoomDTO)
+                    .toList();
+            
+            String personalizedRoomsJson = objectMapper.writeValueAsString(filteredRoomDTOs);
+            String personalizedMessage = "[ROOMS]:" + personalizedRoomsJson;
+            
+            sendTextMessage(session, personalizedMessage);
         }
     }
 
@@ -404,6 +420,16 @@ public class LobbyService extends TextWebSocketHandler {
             }
 
             String username = Objects.requireNonNull(session.getPrincipal()).getName();
+            String hostUsername = room.getHostName();
+
+            // Check if host has blocked the joining user (only for non-host joins)
+            if (!host && !hostUsername.equals(username)) {
+                List<String> hostBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(hostUsername);
+                if (hostBlockedAccounts.contains(username)) {
+                    sendTextMessage(session, "[SUCCESS]");
+                    return;
+                }
+            }
             LobbyPlayer player = new LobbyPlayer(session, username, host);
 
             room.getPlayers().add(player);
@@ -427,7 +453,22 @@ public class LobbyService extends TextWebSocketHandler {
             return;
         }
         
-        String password = getRoomById(roomId).getPassword();
+        Room targetRoom = getRoomById(roomId);
+        if (targetRoom == null) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
+            return;
+        }
+        
+        String hostUsername = targetRoom.getHostName();
+        List<String> userBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(username);
+        
+        // Check if user is trying to join a room hosted by someone they blocked
+        if (userBlockedAccounts.contains(hostUsername)) {
+            sendTextMessage(session, "[SUCCESS]");
+            return;
+        }
+        
+        String password = targetRoom.getPassword();
         if (password != null && !password.isEmpty()) sendTextMessage(session, "[PROMPT_PASSWORD]");
         else joinRoom(session, roomId, false);
     }

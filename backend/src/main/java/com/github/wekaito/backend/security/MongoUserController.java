@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/user")
@@ -65,6 +67,37 @@ public class MongoUserController {
     @PutMapping("/change-question")
     public String changeQuestion(@Valid @RequestBody SafetyQuestionChange safetyQuestionChange) {
         return mongoUserDetailsService.changeQuestion(safetyQuestionChange);
+    }
+
+    @PostMapping("/blocked/{username}")
+    public String addBlockedAccount(@PathVariable String username) {
+        try {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (mongoUserDetailsService.userExists(username)) {
+                mongoUserDetailsService.addBlockedAccount(currentUsername, username);
+                return "User blocked successfully.";
+            } else return "Error: Username not registered.";
+        } catch (Exception e) {
+            return "Error blocking user: " + e.getMessage();
+        }
+    }
+
+    @DeleteMapping("/blocked/{username}")
+    public String removeBlockedAccount(@PathVariable String username) {
+        try {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            boolean removed = mongoUserDetailsService.removeBlockedAccount(currentUsername, username);
+            if (removed) return "User unblocked successfully.";
+            else return "Error: User was not in blocked list.";
+        } catch (Exception e) {
+            return "Error unblocking user: " + e.getMessage();
+        }
+    }
+
+    @GetMapping("/blocked")
+    public List<String> getBlockedAccounts() {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        return mongoUserDetailsService.getBlockedAccounts(currentUsername);
     }
 
 }
