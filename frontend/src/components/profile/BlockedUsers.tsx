@@ -27,7 +27,7 @@ export default function BlockedUsers() {
         try {
             setLoading(true);
             const response = await axios.post(`/api/user/blocked/${username}`);
-            if (response.data.includes("Error")) notifyError(response.data);
+            if (response.data.includes("Error")) notifyError(response.data.substring("Error: ".length));
         } catch (error) {
             console.error("Failed to block user:", error);
         } finally {
@@ -40,7 +40,7 @@ export default function BlockedUsers() {
         try {
             setLoading(true);
             const response = await axios.delete(`/api/user/blocked/${username}`);
-            if (response.data.includes("Error")) notifyError(response.data);
+            if (response.data.includes("Error")) notifyError(response.data.substring("Error: ".length));
         } catch (error) {
             console.error("Failed to unblock user:", error);
         } finally {

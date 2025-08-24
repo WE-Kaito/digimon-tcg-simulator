@@ -80,8 +80,8 @@ public class MongoUserController {
             String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             if (mongoUserDetailsService.userExists(username)) {
                 mongoUserDetailsService.addBlockedAccount(currentUsername, username);
-                return "User blocked successfully.";
-            } else return "Error: Username not registered.";
+                return "User blocked successfully";
+            } else return "Error: User not found";
         } catch (Exception e) {
             return "Error blocking user: " + e.getMessage();
         }
@@ -92,8 +92,8 @@ public class MongoUserController {
         try {
             String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             boolean removed = mongoUserDetailsService.removeBlockedAccount(currentUsername, username);
-            if (removed) return "User unblocked successfully.";
-            else return "Error: User was not in blocked list.";
+            if (removed) return "User unblocked successfully";
+            else return "Error: User was not in blocked list";
         } catch (Exception e) {
             return "Error unblocking user: " + e.getMessage();
         }
