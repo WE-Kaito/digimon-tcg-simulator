@@ -132,7 +132,22 @@ public class MongoUserDetailsService implements UserDetailsService {
         return getUserByUsername(username).question();
     }
 
-    public String changePassword(PasswordRecovery passwordRecovery) {
+    public void changePassword(String newPassword) {
+        MongoUser mongoUser = getCurrentUser();
+        MongoUser updatedUser = new MongoUser(
+                mongoUser.id(),
+                mongoUser.username(),
+                getEncodedPassword(newPassword),
+                mongoUser.question(),
+                mongoUser.answer(),
+                mongoUser.activeDeckId(),
+                mongoUser.avatarName(),
+                mongoUser.blockedAccounts()
+        );
+        mongoUserRepository.save(updatedUser);
+    }
+
+    public String changePasswordWithSafetyAnswer(PasswordRecovery passwordRecovery) {
         MongoUser mongoUser = getUserByUsername(passwordRecovery.username());
         if (!mongoUser.answer().equals(passwordRecovery.answer())) {
             return "Answer didn't match!";

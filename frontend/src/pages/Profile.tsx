@@ -5,6 +5,7 @@ import SafetyQuestion from "../components/profile/SafetyQuestion.tsx";
 import BlockedUsers from "../components/profile/BlockedUsers.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import SectionHeadline from "../components/SectionHeadline.tsx";
+import ChangePassword from "../components/profile/ChangePassword.tsx";
 
 export default function Profile() {
     const user = useGeneralStates((state) => state.user);
@@ -25,6 +26,7 @@ export default function Profile() {
                 <SectionHeadline headline={"Profile Settings for " + user} rightElement={<BackButton />} />
 
                 <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+                    <ChangePassword />
                     <SafetyQuestion />
                     <BlockedUsers />
                 </div>

@@ -1,18 +1,22 @@
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { Button } from "../Button.tsx";
 
 export default function SafetyQuestion() {
     const changeSafetyQuestion = useGeneralStates((state) => state.changeSafetyQuestion);
+    const [question, setQuestion] = useState("");
+    const [answer, setAnswer] = useState("");
+
+    const isValidInput = question.trim().length > 0 && answer.trim().length > 0;
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        const question = formData.get("question") as string;
-        const answer = formData.get("answer") as string;
+        if (!isValidInput) return;
+
         changeSafetyQuestion(question, answer);
-        event.currentTarget.reset();
+        setQuestion("");
+        setAnswer("");
     }
 
     return (
@@ -20,9 +24,21 @@ export default function SafetyQuestion() {
             <div style={{ gap: 8, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                 <span style={{ fontFamily: "Naston, sans-serif", color: "#1d7dfc" }}>Safety Question:</span>
                 <ChangeQuestionForm onSubmit={handleSubmit}>
-                    <StyledInput name="question" placeholder="question"></StyledInput>
-                    <StyledInput name="answer" placeholder="answer"></StyledInput>
-                    <Button type={"submit"}>SAVE</Button>
+                    <StyledInput
+                        name="question"
+                        placeholder="Question"
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                    />
+                    <StyledInput
+                        name="answer"
+                        placeholder="Answer"
+                        value={answer}
+                        onChange={(e) => setAnswer(e.target.value)}
+                    />
+                    <Button type="submit" disabled={!isValidInput}>
+                        SAVE
+                    </Button>
                 </ChangeQuestionForm>
             </div>
         </Wrapper>

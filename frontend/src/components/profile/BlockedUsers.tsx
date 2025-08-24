@@ -140,7 +140,7 @@ const StyledChip = styled(Chip)`
 `;
 
 const StyledInput = styled.input`
-    width: 200px;
+    width: 243px;
     height: 32px;
     background: #242424;
     font-family: Cousine, sans-serif;
