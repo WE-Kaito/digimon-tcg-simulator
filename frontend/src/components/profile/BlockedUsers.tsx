@@ -1,8 +1,9 @@
 import styled from "@emotion/styled";
-import { TextField, Chip } from "@mui/material";
+import { Chip } from "@mui/material";
 import { useState, useEffect, FormEvent } from "react";
 import axios from "axios";
 import { Button } from "../Button.tsx";
+import { notifyError } from "../../utils/toasts.ts";
 
 export default function BlockedUsers() {
     const [newUsername, setNewUsername] = useState("");
@@ -26,7 +27,7 @@ export default function BlockedUsers() {
         try {
             setLoading(true);
             const response = await axios.post(`/api/user/blocked/${username}`);
-            if (response.data.includes("Error")) alert(response.data);
+            if (response.data.includes("Error")) notifyError(response.data);
         } catch (error) {
             console.error("Failed to block user:", error);
         } finally {
@@ -39,7 +40,7 @@ export default function BlockedUsers() {
         try {
             setLoading(true);
             const response = await axios.delete(`/api/user/blocked/${username}`);
-            if (response.data.includes("Error")) alert(response.data);
+            if (response.data.includes("Error")) notifyError(response.data);
         } catch (error) {
             console.error("Failed to unblock user:", error);
         } finally {

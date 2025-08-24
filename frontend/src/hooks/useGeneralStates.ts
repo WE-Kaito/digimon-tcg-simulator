@@ -2,16 +2,7 @@ import { create } from "zustand";
 import { CardTypeGame, CardTypeWithId } from "../utils/types.ts";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import {
-    notifyAlreadyExists,
-    notifyInvalidUsername,
-    notifyCredentials,
-    notifyGeneralError,
-    notifyPasswordChanged,
-    notifyQuestionChanged,
-    notifyRegistered,
-    notifyWrongAnswer,
-} from "../utils/toasts.ts";
+import { notifySuccess, notifyError } from "../utils/toasts.ts";
 import { NavigateFunction } from "react-router-dom";
 import { avatars } from "../utils/avatars.ts";
 
@@ -103,7 +94,7 @@ export const useGeneralStates = create<State>((set, get) => ({
             })
             .catch((error) => {
                 console.error(error);
-                notifyCredentials();
+                notifyError("Wrong username or password!");
                 throw error;
             });
     },
@@ -123,13 +114,13 @@ export const useGeneralStates = create<State>((set, get) => ({
         axios.post("/api/user/register", newUserData).then((response) => {
             setRegisterPage(false);
             if (response.data === "Username already exists!") {
-                notifyAlreadyExists();
+                notifyError("Username already exists!");
             }
             if (response.data === "Invalid username!") {
-                notifyInvalidUsername();
+                notifyError("Invalid username!");
             }
             if (response.data === "Successfully registered!") {
-                notifyRegistered();
+                notifySuccess("Registered successfully!");
                 get().login(userName, password, navigate);
             }
         });
@@ -139,9 +130,7 @@ export const useGeneralStates = create<State>((set, get) => ({
         axios
             .put(`/api/user/active-deck/${deckId}`, null)
             .catch(console.error)
-            .finally(() => {
-                set({ activeDeckId: deckId });
-            });
+            .finally(() => set({ activeDeckId: deckId }));
     },
 
     getActiveDeck: () => {
@@ -160,9 +149,7 @@ export const useGeneralStates = create<State>((set, get) => ({
         axios
             .put(`/api/user/avatar/${avatarName}`, null)
             .catch(console.error)
-            .finally(() => {
-                set({ avatarName: avatarName });
-            });
+            .finally(() => set({ avatarName: avatarName }));
     },
 
     getAvatar: () => {
@@ -198,10 +185,10 @@ export const useGeneralStates = create<State>((set, get) => ({
 
         axios.put("/api/user/recovery", passwordRecovery).then((response) => {
             if (response.data === "Answer didn't match!") {
-                notifyWrongAnswer();
+                notifyError("Answer didn't match!");
             }
             if (response.data === "Password changed!") {
-                notifyPasswordChanged();
+                notifySuccess("Password changed!");
                 navigate("/login");
             }
         });
@@ -214,11 +201,8 @@ export const useGeneralStates = create<State>((set, get) => ({
         };
 
         axios.put("/api/user/change-question", safetyQuestionChange).then((response) => {
-            if (response.data === "Safety question changed!") {
-                notifyQuestionChanged();
-            } else {
-                notifyGeneralError();
-            }
+            if (response.data === "Safety question changed!") notifySuccess("Safety question updated!");
+            else notifyError("Something went wrong!");
         });
     },
 

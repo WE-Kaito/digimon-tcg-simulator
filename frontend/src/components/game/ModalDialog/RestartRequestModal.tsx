@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { WSUtils } from "../../../pages/GamePage.tsx";
-import { notifyRequestedRestart } from "../../../utils/toasts.ts";
+import { notifySuccess } from "../../../utils/toasts.ts";
 import ModalDialog from "./ModalDialog.tsx";
 
 type Props = {
@@ -16,7 +16,7 @@ export default function RestartRequestModal({ setRestartRequestModal, wsUtils }:
 
     function sendRequest(order: "AsFirst" | "AsSecond") {
         sendMessage(`${gameId}:/restartRequest${order}:${opponentName}`);
-        notifyRequestedRestart();
+        notifySuccess("Sent restart request!");
         setRestartRequestModal(false);
     }
 

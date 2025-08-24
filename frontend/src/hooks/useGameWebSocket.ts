@@ -1,7 +1,7 @@
 import useWebSocket, { SendMessage } from "react-use-websocket";
 import { AttackPhase, BootStage, CardModifiers, Phase, Player, SIDE } from "../utils/types.ts";
 import { findTokenByName } from "../utils/tokens.ts";
-import { notifySecurityView } from "../utils/toasts.ts";
+import { notifyInfo } from "../utils/toasts.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
 import { useEffect } from "react";
@@ -25,7 +25,6 @@ type UseGameWebSocketReturn = {
      */
     sendUpdate: () => void;
 };
-
 
 function getValidOffset(fieldNumber: number, currentOffset: number) {
     const MAX_OFFSET = 8;
@@ -129,7 +128,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playRematchSfx = useSound((state) => state.playRematchSfx);
 
-
     const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
 
     function clearCardEffect() {
@@ -184,13 +182,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const gameStateJson = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(
-                    user,
-                    gameStateJson,
-                    gameId,
-                    sendLoaded,
-                    playDrawCardSfx
-                );
+                distributeCards(user, gameStateJson, gameId, sendLoaded, playDrawCardSfx);
                 setOpenedCardModal(false);
                 return;
             }
@@ -389,7 +381,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[SECURITY_VIEWED]": {
-                    notifySecurityView();
+                    notifyInfo("Opponent opened Security Stack!");
                     break;
                 }
                 case "[RESTART_AS_FIRST]": {

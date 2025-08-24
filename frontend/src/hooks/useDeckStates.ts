@@ -1,14 +1,5 @@
 import { create } from "zustand/index";
-import {
-    notifyDelete,
-    notifyError,
-    notifyGeneralError,
-    notifyInvalidImport,
-    notifyLength,
-    notifyName,
-    notifySuccess,
-    notifyUpdate,
-} from "../utils/toasts.ts";
+import { notifyError, notifySuccess } from "../utils/toasts.ts";
 import axios from "axios";
 import { CardType, CardTypeWithId, DeckType, SearchCards } from "../utils/types.ts";
 import { generalToken } from "../utils/tokens.ts";
@@ -361,12 +352,12 @@ export const useDeckStates = create<State>((set, get) => ({
         const filteredLength = get().deckCards.length - eggCardLength;
 
         if (filteredLength !== 50) {
-            notifyLength();
+            notifyError("Only full decks can be saved!");
             return;
         }
 
         if (name === "") {
-            notifyName();
+            notifyError("Please enter a name.");
             return;
         }
 
@@ -388,13 +379,14 @@ export const useDeckStates = create<State>((set, get) => ({
             .then((res) => res.data)
             .catch((error) => {
                 console.error(error.message);
-                notifyGeneralError();
+                notifyError("Something went wrong!");
                 throw error;
             })
             .then((data) => {
-                if (data === "There was an error while saving the deck.") notifyGeneralError();
+                if (data === "There was an error while saving the deck.")
+                    notifyError("There was an error while saving the deck.");
                 else {
-                    notifySuccess();
+                    notifySuccess("Deck saved!");
                     get().fetchDecks();
                     localStorage.removeItem("deckCards");
                     localStorage.removeItem("deckName");
@@ -413,13 +405,13 @@ export const useDeckStates = create<State>((set, get) => ({
             .then((res) => res.data)
             .catch((error) => {
                 console.error(error);
-                notifyError();
+                notifyError("Could not be deleted");
                 throw error;
             })
             .then(() => {
                 navigate("/decks");
                 set({ deckCards: [] });
-                notifyDelete();
+                notifySuccess("Deck deleted!");
             });
     },
 
@@ -449,12 +441,12 @@ export const useDeckStates = create<State>((set, get) => ({
         const filteredLength = get().deckCards.length - eggCardLength;
 
         if (filteredLength !== 50) {
-            notifyLength();
+            notifyError("Only full decks can be saved!");
             return;
         }
 
         if (name === "") {
-            notifyName();
+            notifyError("Please enter a name.");
             return;
         }
 
@@ -471,11 +463,11 @@ export const useDeckStates = create<State>((set, get) => ({
             .then((res) => res.data)
             .catch((error) => {
                 console.error(error);
-                notifyError();
+                notifyError("Could not update");
                 throw error;
             })
             .then(() => {
-                notifyUpdate();
+                notifySuccess("Deck updated!");
             });
     },
 
@@ -505,7 +497,7 @@ export const useDeckStates = create<State>((set, get) => ({
         const eggCardLength = cardsWithId.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = cardsWithId.length - eggCardLength;
         if (eggCardLength > 5 || filteredLength > 50) {
-            notifyInvalidImport();
+            notifyError("Deck exceeds card limits!");
             set({ isLoading: false });
             return;
         }
@@ -513,7 +505,7 @@ export const useDeckStates = create<State>((set, get) => ({
         for (const card of cardsWithId) {
             const cardOfIdInDeck = cardsWithId.filter((c) => c.cardNumber === card.cardNumber).length;
             if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardNumber)) {
-                notifyInvalidImport();
+                notifyError("Deck exceeds card limits!");
                 set({ isLoading: false });
                 return;
             }

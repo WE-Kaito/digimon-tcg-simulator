@@ -9,7 +9,7 @@ import {
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import useWebSocket from "react-use-websocket";
-import { notifyBrokenDeck, notifyNoActiveDeck } from "../utils/toasts.ts";
+import { notifyWarning } from "../utils/toasts.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { useSound } from "../hooks/useSound.ts";
 import { useNavigate } from "react-router-dom";
@@ -137,13 +137,13 @@ export default function Lobby() {
             }
 
             if (event.data === "[NO_ACTIVE_DECK]") {
-                notifyNoActiveDeck();
+                notifyWarning("No active deck not found! Please refresh if this error should not appear.");
                 setNoActiveDeck(true);
                 setIsLoadingWithDebounce();
             }
 
             if (event.data === "[BROKEN_DECK]") {
-                notifyBrokenDeck();
+                notifyWarning("Cards in your deck could not be found!");
                 setNoActiveDeck(true);
                 setIsLoadingWithDebounce();
             }

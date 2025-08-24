@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../../hooks/useGameBoardStates.ts";
 import { ShuffleOnOutlined as ShuffleIcon } from "@mui/icons-material";
 import { WSUtils } from "../../../../pages/GamePage.tsx";
-import { notifyTutorialMulligan } from "../../../../utils/toasts.ts";
+import { notifyInfo } from "../../../../utils/toasts.ts";
 import { useSettingStates } from "../../../../hooks/useSettingStates.ts";
 
 export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
@@ -20,7 +20,7 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
         wsUtils?.sendMessage(wsUtils.matchInfo.gameId + ":/mulligan:" + mulliganWanted);
 
         if (!seenMulliganTutorial && mulliganWanted) {
-            notifyTutorialMulligan();
+            notifyInfo("Mulligan will now wait for both players to decide");
             setSeenMulliganTutorial(true);
         }
 
