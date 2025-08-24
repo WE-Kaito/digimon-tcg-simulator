@@ -481,6 +481,10 @@ public class GameService extends TextWebSocketHandler {
 
         distributeCards(gameRoom, redistributedGame);
 
+        for (WebSocketSession session : gameRoom) {
+            session.sendMessage(new TextMessage("[PLAYER_READY]"));
+        }
+
         player1Session.getAttributes().remove("originalDistribution");
         player2Session.getAttributes().remove("originalDistribution");
     }

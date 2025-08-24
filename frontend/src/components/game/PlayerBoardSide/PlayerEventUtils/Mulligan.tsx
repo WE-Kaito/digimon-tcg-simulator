@@ -15,7 +15,6 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
     const setSeenMulliganTutorial = useSettingStates((state) => state.setSeenMulliganTutorial);
 
     function handleMulligan(mulliganWanted: boolean) {
-        wsUtils?.sendMessage(wsUtils.matchInfo.gameId + ":/playerReady:" + wsUtils.matchInfo.opponentName);
         wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【MULLIGAN】`);
         wsUtils?.sendMessage(wsUtils.matchInfo.gameId + ":/mulligan:" + mulliganWanted);
 
