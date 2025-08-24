@@ -1,6 +1,5 @@
 package com.github.wekaito.backend.security;
 
-import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.StarterDeckService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +33,7 @@ class MongoUserDetailsServiceTest {
     @BeforeEach
     void setUp() {
         mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository, starterDeckService);
-        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon")));
+        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon", Collections.emptyList())));
     }
 
     @Test
