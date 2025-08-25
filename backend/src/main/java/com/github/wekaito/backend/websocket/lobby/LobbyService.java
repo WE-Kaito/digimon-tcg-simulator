@@ -205,7 +205,7 @@ public class LobbyService extends TextWebSocketHandler {
         String gameId = parts[2];
 
         Room room = getRoomById(roomId);
-        assert room != null;
+        if (room == null) return;
 
         for (LobbyPlayer player : room.getPlayers()) {
             sendTextMessage(player.getSession(), "[START_GAME]:" + gameId);
@@ -301,7 +301,6 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     private void broadcastRooms() throws IOException {
-        // Filter once: Only rooms with a single player (the host)
         List<Room> roomsWithOnlyHosts;
         synchronized (rooms) {
             roomsWithOnlyHosts = rooms.stream()
@@ -309,13 +308,6 @@ public class LobbyService extends TextWebSocketHandler {
                     .filter(r -> !FILTERED_USERNAMES.contains(r.getHostName()))
                     .toList();
         }
-
-        List<RoomDTO> roomDTOs = roomsWithOnlyHosts.stream()
-                .map(this::getRoomDTO)
-                .toList();
-
-        String roomsJson = objectMapper.writeValueAsString(roomDTOs);
-        String message = "[ROOMS]:" + roomsJson;
 
         for (WebSocketSession session : globalActiveSessions) {
             String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
@@ -422,7 +414,6 @@ public class LobbyService extends TextWebSocketHandler {
             String username = Objects.requireNonNull(session.getPrincipal()).getName();
             String hostUsername = room.getHostName();
 
-            // Check if host has blocked the joining user (only for non-host joins)
             if (!host && !hostUsername.equals(username)) {
                 List<String> hostBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(hostUsername);
                 if (hostBlockedAccounts.contains(username)) {
@@ -432,14 +423,14 @@ public class LobbyService extends TextWebSocketHandler {
             }
             LobbyPlayer player = new LobbyPlayer(session, username, host);
 
+            String roomJson = objectMapper.writeValueAsString(getRoomDTO(room));
+            sendTextMessage(session, "[JOIN_ROOM]:" + roomJson);
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + ".");
+
             room.getPlayers().add(player);
         }
 
             sendRoomUpdate(room, true);
-
-            String roomJson = objectMapper.writeValueAsString(getRoomDTO(room));
-            sendTextMessage(session, "[JOIN_ROOM]:" + roomJson);
-            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + ".");
 
             broadcastRooms();
     }
@@ -484,7 +475,13 @@ public class LobbyService extends TextWebSocketHandler {
             return;
         }
 
-        String password = getRoomById(roomId).getPassword();
+        Room room = getRoomById(roomId);
+        if (room == null) {
+            sendTextMessage(session, "[SUCCESS]");
+            return;
+        }
+        
+        String password = room.getPassword();
         if (password == null || password.isEmpty()) {
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: This room does not require a password.");
             return;
