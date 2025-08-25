@@ -147,7 +147,7 @@ public class CardService {
         // CardRepo is a fail-safe in case the API is missing cards or shuts down
         for (Card repoCard : this.cardRepo.findAll()) {
             if(!repoCard.name().equals("[[:Category:|]]")) {
-                if (cards.stream().noneMatch(card -> card.cardNumber().equals(repoCard.cardNumber()))) {
+                if (cards.stream().noneMatch(card -> card.uniqueCardNumber().equals(repoCard.uniqueCardNumber()))) {
                     cards.add(repoCard);
                 }
             }
