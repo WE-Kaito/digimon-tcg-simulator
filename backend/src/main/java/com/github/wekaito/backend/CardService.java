@@ -8,11 +8,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -71,23 +73,25 @@ public class CardService {
         return cardCollection.stream().filter(card -> uniqueCardNumber.equals(card.uniqueCardNumber())).findFirst().orElse(fallbackCard);
     }
 
+    private final WebClient webClient = WebClient.builder()
+            .baseUrl(BASE_URL)
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.toString())
+            .exchangeStrategies(ExchangeStrategies.builder()
+                    .codecs(configurer -> configurer
+                            .defaultCodecs()
+                            .maxInMemorySize(1024 * 1024 * 100)) // 100MB
+                    .build())
+            .build();
+
     @Scheduled(fixedRate = 3600000) // 1hour
     void fetchCards() {
-        String responseBody = null;
-        try (InputStream inputStream = getClass().getResourceAsStream("/cardFallback.json")) {
-            if (inputStream != null) {
-                responseBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            }
-        } catch (IOException e) {
-            log.error("Failed to read cardFallback.json", e);
-            return;
-        }
-
-        if (responseBody == null) {
-            log.error("cardFallback.json not found in resources");
-            return;
-        }
-
+        String responseBody = webClient.get()
+                .uri("assets/cardlists/PreparedDigimonCardsENG.json")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
         Type listType = new TypeToken<List<FetchCard>>() {
         }.getType();
         List<FetchCard> fetchedCards = gson.fromJson(responseBody, listType);
