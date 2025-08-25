@@ -61,7 +61,7 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Scheduled(fixedRate = 5000)
-    private synchronized void sendHeartbeat() throws IOException {
+    private void sendHeartbeat() throws IOException {
         for (Set<WebSocketSession> gameRoom : gameRooms.values()) {
             for (WebSocketSession webSocketSession : gameRoom) {
                 webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
@@ -316,7 +316,7 @@ public class GameService extends TextWebSocketHandler {
         sendTextMessage(opponentSession, message);
     }
 
-    private synchronized void sendTextMessage(WebSocketSession session, String message) throws IOException {
+    private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
         session.sendMessage(new TextMessage(message));
     }
@@ -393,7 +393,7 @@ public class GameService extends TextWebSocketHandler {
         }
     }
 
-    private void prepareCardDistribution(String gameId, String username1, String username2) throws IOException {
+    private synchronized void prepareCardDistribution(String gameId, String username1, String username2) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
 
         List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
@@ -421,7 +421,7 @@ public class GameService extends TextWebSocketHandler {
         distributeCards(gameRoom, newGame);
     }
 
-    private void redistributeCardsAfterMulligan(String gameId, String username1, String username2, boolean player1Mulligan, boolean player2Mulligan) throws IOException {
+    private synchronized void redistributeCardsAfterMulligan(String gameId, String username1, String username2, boolean player1Mulligan, boolean player2Mulligan) throws IOException {
         Set<WebSocketSession> gameRoom = gameRooms.get(gameId);
         if (gameRoom == null) return;
 
