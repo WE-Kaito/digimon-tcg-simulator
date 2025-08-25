@@ -460,10 +460,10 @@ public class LobbyService extends TextWebSocketHandler {
         }
         
         String hostUsername = targetRoom.getHostName();
-        List<String> userBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(username);
+        List<String> hostBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(hostUsername);
         
-        // Check if user is trying to join a room hosted by someone they blocked
-        if (userBlockedAccounts.contains(hostUsername)) {
+        // Check if host has blocked the joining user
+        if (hostBlockedAccounts.contains(username)) {
             sendTextMessage(session, "[SUCCESS]");
             return;
         }
