@@ -401,6 +401,23 @@ public class LobbyService extends TextWebSocketHandler {
 
     private void joinRoom(WebSocketSession session, String roomId, boolean host) throws IOException {
         Room room = getRoomById(roomId);
+        if (room == null) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
+            return;
+        }
+        
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        String hostUsername = room.getHostName();
+
+        // Check blocking OUTSIDE synchronized block to avoid deadlock
+        if (!host && !hostUsername.equals(username)) {
+            List<String> hostBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(hostUsername);
+            if (hostBlockedAccounts.contains(username)) {
+                sendTextMessage(session, "[SUCCESS]");
+                return;
+            }
+        }
+        
         synchronized (room) {
             if (room.getPlayers().size() >= 3) {
                 sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room is full.");
@@ -411,22 +428,11 @@ public class LobbyService extends TextWebSocketHandler {
                 return;
             }
 
-            String username = Objects.requireNonNull(session.getPrincipal()).getName();
-            String hostUsername = room.getHostName();
-
-            if (!host && !hostUsername.equals(username)) {
-                List<String> hostBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(hostUsername);
-                if (hostBlockedAccounts.contains(username)) {
-                    sendTextMessage(session, "[SUCCESS]");
-                    return;
-                }
-            }
             LobbyPlayer player = new LobbyPlayer(session, username, host);
-
             String roomJson = objectMapper.writeValueAsString(getRoomDTO(room));
+
             sendTextMessage(session, "[JOIN_ROOM]:" + roomJson);
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + ".");
-
             room.getPlayers().add(player);
         }
 
@@ -562,17 +568,25 @@ public class LobbyService extends TextWebSocketHandler {
         String userName = parts[2];
 
         Room room = getRoomById(roomId);
-
-        LobbyPlayer player = room.getPlayers().stream().filter(p -> p.getName().equals(userName)).findFirst().orElse(null);
-
-        if (player == null) {
-            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Player not found in the room.");
+        if (room == null) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
             sendTextMessage(session, "[SUCCESS]");
             return;
         }
 
-        room.getPlayers().remove(player);
-        lastPlayerRooms.remove(userName);
+        LobbyPlayer player;
+        synchronized (room) {
+            player = room.getPlayers().stream().filter(p -> p.getName().equals(userName)).findFirst().orElse(null);
+
+            if (player == null) {
+                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Player not found in the room.");
+                sendTextMessage(session, "[SUCCESS]");
+                return;
+            }
+
+            room.getPlayers().remove(player);
+            lastPlayerRooms.remove(userName);
+        }
 
         sendRoomUpdate(room);
 
