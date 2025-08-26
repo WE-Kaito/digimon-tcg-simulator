@@ -84,7 +84,7 @@ public class CardService {
                     .build())
             .build();
 
-    @Scheduled(fixedRate = 3600000) // 1hour
+    @Scheduled(fixedRate = 86400000) // 24 hours
     void fetchCards() {
         String responseBody = webClient.get()
                 .uri("assets/cardlists/PreparedDigimonCardsENG.json")
