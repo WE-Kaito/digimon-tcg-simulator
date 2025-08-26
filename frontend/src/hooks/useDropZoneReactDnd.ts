@@ -251,7 +251,8 @@ export default function useDropZoneReactDnd(props: Props) {
             accept: ["card", "card-stack"],
             drop: (item: { type: string; content: DraggedItem | DraggedStack }) => {
                 const draggedItem = item.content as DraggedItem;
-                const targetField = options?.bottom ? targetZone.split("_")[0] : targetZone;
+                const targetFieldParts = targetZone.split("_");
+                const targetField = options?.bottom && targetFieldParts.length > 0 ? targetFieldParts[0] : targetZone;
 
                 if (options?.bottom) {
                     const { id, location, type, name } = draggedItem;

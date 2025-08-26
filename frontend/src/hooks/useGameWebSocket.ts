@@ -170,8 +170,11 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 setOpponentReady(false);
                 const playersJson = event.data.substring("[START_GAME]:".length);
                 const players = JSON.parse(playersJson);
-                const me = players.slice().filter((player: Player) => player.username === user)[0];
-                const opponent = players.slice().filter((player: Player) => player.username !== user)[0];
+                const myPlayerArray = players.slice().filter((player: Player) => player.username === user);
+                const opponentPlayerArray = players.slice().filter((player: Player) => player.username !== user);
+                if (myPlayerArray.length === 0 || opponentPlayerArray.length === 0) return;
+                const me = myPlayerArray[0];
+                const opponent = opponentPlayerArray[0];
                 setUpGame(me, opponent);
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
@@ -215,41 +218,43 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[MOVE_CARD]:")) {
                 const parts = event.data.substring("[MOVE_CARD]:".length).split(":");
-                const cardId = parts[0];
-                const from = parts[1];
-                const to = parts[2];
-                moveCard(cardId, from, to);
-                if (!getOpponentReady()) setOpponentReady(true);
-                if (getOpponentReady() && bootStage >= BootStage.MULLIGAN) setBootStage(BootStage.GAME_IN_PROGRESS);
+                const cardId = parts?.[0];
+                const from = parts?.[1];
+                const to = parts?.[2];
+                if (cardId && from && to) {
+                    moveCard(cardId, from, to);
+                    if (!getOpponentReady()) setOpponentReady(true);
+                    if (getOpponentReady() && bootStage >= BootStage.MULLIGAN) setBootStage(BootStage.GAME_IN_PROGRESS);
+                }
                 return;
             }
 
             if (event.data.startsWith("[MOVE_CARD_TO_STACK]:")) {
                 const parts = event.data.substring("[MOVE_CARD_TO_STACK]:".length).split(":");
-                const topOrBottom = parts[0];
-                const cardId = parts[1];
-                const from = parts[2];
-                const to = parts[3];
-                const facing = parts[4] === "undefined" ? undefined : parts[4];
-                moveCardToStack(topOrBottom, cardId, from, to, facing);
+                const topOrBottom = parts?.[0];
+                const cardId = parts?.[1];
+                const from = parts?.[2];
+                const to = parts?.[3];
+                const facing = parts?.[4] === "undefined" ? undefined : parts?.[4];
+                if (topOrBottom && cardId && from && to) moveCardToStack(topOrBottom, cardId, from, to, facing);
                 return;
             }
 
             if (event.data.startsWith("[TILT_CARD]:")) {
                 const parts = event.data.substring("[TILT_CARD]:".length).split(":");
 
-                const cardId = parts[0];
-                const location = parts[1];
-                tiltCard(cardId, location, playSuspendSfx, playUnsuspendSfx);
+                const cardId = parts?.[0];
+                const location = parts?.[1];
+                if (cardId && location) tiltCard(cardId, location, playSuspendSfx, playUnsuspendSfx);
                 return;
             }
 
             if (event.data.startsWith("[FLIP_CARD]:")) {
                 const parts = event.data.substring("[FLIP_CARD]:".length).split(":");
 
-                const cardId = parts[0];
-                const location = parts[1];
-                flipCard(cardId, location);
+                const cardId = parts?.[0];
+                const location = parts?.[1];
+                if (cardId && location) flipCard(cardId, location);
                 return;
             }
 
@@ -287,15 +292,21 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[ATTACK]:")) {
                 const parts = event.data.substring("[ATTACK]:".length).split(":");
-                const fromFieldNumber = Number(parts[0].match(/\d+/)[0]);
-                setOpponentFieldOffset(getValidOffset(fromFieldNumber, fieldOffset));
-                const toFieldNumber = Number(parts[1].match(/\d+/)[0]);
-                setFieldOffset(getValidOffset(toFieldNumber, fieldOffset));
-                clearAttackAnimation?.();
-                setArrowFrom(parts[0]);
-                setArrowTo(parts[1]);
-                setIsEffectArrow(parts[2] === "true");
-                restartAttackAnimation(parts[2] === "true");
+                if (parts.length < 3) return;
+                const fromMatch = parts[0]?.match(/\d+/);
+                const toMatch = parts[1]?.match(/\d+/);
+
+                if (fromMatch?.length > 0 && toMatch?.length > 0 && fromMatch[0] && toMatch[0]) {
+                    const fromFieldNumber = Number(fromMatch[0]);
+                    setOpponentFieldOffset(getValidOffset(fromFieldNumber, fieldOffset));
+                    const toFieldNumber = Number(toMatch[0]);
+                    setFieldOffset(getValidOffset(toFieldNumber, fieldOffset));
+                    clearAttackAnimation?.();
+                    setArrowFrom(parts[0]);
+                    setArrowTo(parts[1]);
+                    setIsEffectArrow(parts[2] === "true");
+                    restartAttackAnimation(parts[2] === "true");
+                }
                 return;
             }
 
@@ -307,18 +318,25 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[CREATE_TOKEN]:")) {
                 const parts = event.data.substring("[CREATE_TOKEN]:".length).split(":");
+                if (parts.length < 2) return;
                 const id = parts[0];
                 const token = findTokenByName(parts[1]);
-                createToken(token, SIDE.OPPONENT, id);
+                if (token) createToken(token, SIDE.OPPONENT, id);
                 return;
             }
 
             if (event.data.startsWith("[SET_MODIFIERS]:")) {
                 const parts = event.data.substring("[SET_MODIFIERS]:".length).split(":");
+                if (parts.length < 3) return;
                 const id = parts[0];
                 const location = parts[1];
-                const modifiers: CardModifiers = JSON.parse(parts.slice(2).join(":"));
-                setModifiers(id, location, modifiers);
+                try {
+                    const modifiers: CardModifiers = JSON.parse(parts.slice(2).join(":"));
+                    setModifiers(id, location, modifiers);
+                } catch (e) {
+                    // Handle JSON parse errors gracefully
+                    console.warn("Failed to parse modifiers:", parts.slice(2).join(":"));
+                }
                 return;
             }
 

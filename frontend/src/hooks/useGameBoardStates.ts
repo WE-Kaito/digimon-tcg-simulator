@@ -247,12 +247,7 @@ export type State = BoardState & {
     ) => void;
     moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
     getUpdateDistributionString: (user: string, gameId: string) => string;
-    updateFields: (
-        gameStateJson: string,
-        sendLoaded: () => void,
-        user: string,
-        gameId: string
-    ) => void;
+    updateFields: (gameStateJson: string, sendLoaded: () => void, user: string, gameId: string) => void;
 
     moveCardToStack: SendToStackFunction;
     setMemory: (memory: number) => void;
@@ -518,13 +513,7 @@ export const useGameBoardStates = create<State>()(
                     });
                 },
 
-                distributeCards: (
-                    user,
-                    gameStateJson,
-                    gameId,
-                    sendLoaded,
-                    playDrawCardSfx
-                ) => {
+                distributeCards: (user, gameStateJson, gameId, sendLoaded, playDrawCardSfx) => {
                     const player1 = gameId.split("‗")[0];
                     const game: GameDistribution = JSON.parse(gameStateJson);
 
@@ -563,7 +552,7 @@ export const useGameBoardStates = create<State>()(
                 },
 
                 getUpdateDistributionString: (user, gameId) => {
-                    const isPlayer1 = gameId.split("‗")[0] === user;
+                    const isPlayer1 = (gameId?.split("‗")?.[0] ?? "") === user;
                     const updatedGame: UpdateDistribution = {
                         player1Reveal: isPlayer1 ? get().myReveal : get().opponentReveal,
                         player1Hand: isPlayer1 ? get().myHand : get().opponentHand,
@@ -667,7 +656,7 @@ export const useGameBoardStates = create<State>()(
                     const isPlayer1 = gameId.split("‗")[0] === user;
 
                     if (!get().isLoading) set({ isLoading: true });
-                    
+
                     const gameJson: UpdateDistribution = JSON.parse(gameStateJson);
 
                     set({
@@ -698,9 +687,7 @@ export const useGameBoardStates = create<State>()(
                         opponentDigi19: isPlayer1 ? gameJson.player2Digi19 : gameJson.player1Digi19,
                         opponentDigi20: isPlayer1 ? gameJson.player2Digi20 : gameJson.player1Digi20,
                         opponentDigi21: isPlayer1 ? gameJson.player2Digi21 : gameJson.player1Digi21,
-                        opponentBreedingArea: isPlayer1
-                            ? gameJson.player2BreedingArea
-                            : gameJson.player1BreedingArea,
+                        opponentBreedingArea: isPlayer1 ? gameJson.player2BreedingArea : gameJson.player1BreedingArea,
                         opponentLink1: isPlayer1 ? gameJson.player2Link1 : gameJson.player1Link1,
                         opponentLink2: isPlayer1 ? gameJson.player2Link2 : gameJson.player1Link2,
                         opponentLink3: isPlayer1 ? gameJson.player2Link3 : gameJson.player1Link3,
@@ -772,7 +759,7 @@ export const useGameBoardStates = create<State>()(
                         bootStage: BootStage.GAME_IN_PROGRESS,
                         opponentReady: true,
                     });
-                    
+
                     sendLoaded();
                 },
 
@@ -780,8 +767,9 @@ export const useGameBoardStates = create<State>()(
                     if (!cardId || !from || !to) return;
 
                     const fromState = get()[from as keyof State] as CardTypeGame[];
-                    const card = fromState.find((card) => card.id === cardId);
+                    if (!fromState || !Array.isArray(fromState)) return; // Prevent null access
 
+                    const card = fromState.find((card) => card.id === cardId);
                     if (!card) return;
                     if (resetModifierLocations.includes(to))
                         card.modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color };
@@ -797,31 +785,35 @@ export const useGameBoardStates = create<State>()(
                     const updatedFromState = fromState.filter((card) => card.id !== cardId);
 
                     const toState = get()[to as keyof State] as CardTypeGame[];
+                    if (!toState || !Array.isArray(toState)) return; // Prevent null access
 
                     if (toState.length > 0) {
                         const prevTopCard = toState[toState.length - 1];
+                        if (!prevTopCard) return; // Additional safety check
 
                         if (prevTopCard.isTilted) {
                             prevTopCard.isTilted = false;
                             card.isTilted = !tamerLocations.includes(to);
                         } else card.isTilted = false;
 
-                        if (!card.modifiers.plusDp) {
-                            card.modifiers.plusDp = prevTopCard.modifiers.plusDp;
-                            prevTopCard.modifiers.plusDp = 0;
-                        } else prevTopCard.modifiers.plusDp = 0;
+                        if (card.modifiers && prevTopCard.modifiers) {
+                            if (!card.modifiers.plusDp) {
+                                card.modifiers.plusDp = prevTopCard.modifiers.plusDp || 0;
+                                prevTopCard.modifiers.plusDp = 0;
+                            } else prevTopCard.modifiers.plusDp = 0;
 
-                        if (!card.modifiers.plusSecurityAttacks) {
-                            card.modifiers.plusSecurityAttacks = prevTopCard.modifiers.plusSecurityAttacks;
-                            prevTopCard.modifiers.plusSecurityAttacks = 0;
-                        } else prevTopCard.modifiers.plusSecurityAttacks = 0;
+                            if (!card.modifiers.plusSecurityAttacks) {
+                                card.modifiers.plusSecurityAttacks = prevTopCard.modifiers.plusSecurityAttacks || 0;
+                                prevTopCard.modifiers.plusSecurityAttacks = 0;
+                            } else prevTopCard.modifiers.plusSecurityAttacks = 0;
 
-                        if (!card.modifiers.keywords.length) {
-                            card.modifiers.keywords = prevTopCard.modifiers.keywords;
-                            prevTopCard.modifiers.keywords = [];
-                        } else prevTopCard.modifiers.keywords = [];
+                            if (!card.modifiers.keywords?.length) {
+                                card.modifiers.keywords = prevTopCard.modifiers.keywords || [];
+                                prevTopCard.modifiers.keywords = [];
+                            } else prevTopCard.modifiers.keywords = [];
 
-                        prevTopCard.modifiers.colors = prevTopCard.color;
+                            prevTopCard.modifiers.colors = prevTopCard.color;
+                        }
                     }
 
                     if (from === to) {
@@ -1082,12 +1074,14 @@ export const useGameBoardStates = create<State>()(
 
                 getDigimonNumber: (location) => {
                     const locationState = get()[location as keyof State] as CardTypeGame[];
-                    return locationState[locationState.length - 1].cardNumber;
+                    if (!locationState || locationState.length === 0) return "";
+                    return locationState[locationState.length - 1]?.cardNumber ?? "";
                 },
 
                 getCardType: (location) => {
                     const locationState = get()[location as keyof State] as CardTypeGame[];
-                    return locationState[locationState.length - 1].cardType;
+                    if (!locationState || locationState.length === 0) return "";
+                    return locationState[locationState.length - 1]?.cardType ?? "";
                 },
 
                 getPhase: () => get().phase,
