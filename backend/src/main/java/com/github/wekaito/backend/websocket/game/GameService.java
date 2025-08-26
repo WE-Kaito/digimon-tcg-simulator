@@ -315,10 +315,45 @@ public class GameService extends TextWebSocketHandler {
                 .findFirst().orElse(null);
         sendTextMessage(opponentSession, message);
     }
+    
 
     private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
-        session.sendMessage(new TextMessage(message));
+        
+        int maxRetries = 5;
+        int retryDelay = 200; // 0.2s
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                session.sendMessage(new TextMessage(message));
+                return; // Success - exit retry loop
+            } catch (Exception e) {
+                if (attempt == maxRetries) {
+                    // Last attempt failed - close connection to trigger frontend reconnection
+                    try {
+                        session.close();
+                    } catch (Exception closeEx) {
+                        // If close fails, remove from rooms as fallback
+                        removeSessionFromAllRooms(session);
+                    }
+                    return;
+                }
+
+                try {
+                    Thread.sleep((long) retryDelay * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+
+                if (!session.isOpen()) return; // Session already closed, no need to retry
+            }
+        }
+    }
+    
+    private void removeSessionFromAllRooms(WebSocketSession session) {
+        gameRooms.values().forEach(room -> room.remove(session));
+        gameRooms.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
     private String getPlayersJson(String username1, String username2) throws JsonProcessingException {
