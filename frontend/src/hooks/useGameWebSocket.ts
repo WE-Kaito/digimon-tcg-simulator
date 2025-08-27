@@ -154,13 +154,13 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (isReconnecting) {
                 setIsLoading(false);
                 websocket.sendMessage("/reconnect:" + gameId);
+                setIsReconnecting(false);
             } else websocket.sendMessage("/joinGame:" + gameId);
         },
 
         onMessage: (event) => {
             if (event.data === "[PLAYERS_READY]" && isPlayerOne && bootStage < BootStage.MULLIGAN) {
                 websocket.sendMessage("/startGame:" + gameId);
-                setIsReconnecting(true);
                 return;
             }
 
@@ -462,7 +462,17 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     useEffect(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         interval = setInterval(() => websocket.sendMessage(`${gameId}:/online:${opponentName}`), 5000);
-        return () => clearInterval(interval);
+
+        const handleUnload = () => setIsReconnecting(true);
+        window.addEventListener("beforeunload", handleUnload);
+        window.addEventListener("offline", handleUnload);
+
+        return () => {
+            clearInterval(interval);
+
+            window.removeEventListener("beforeunload", handleUnload);
+            window.removeEventListener("offline", handleUnload);
+        };
     }, []);
 
     return { sendMessage: websocket.sendMessage, sendUpdate };
