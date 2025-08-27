@@ -83,11 +83,11 @@ export default function ReportButton({
 
 async function sendReport(reportMessage: string, messages: string[], matchInfo: WSUtils["matchInfo"]) {
     const history = formatTextMessagesForReport(messages, matchInfo);
-    if (history.length > 5000) {
-        const historyChunks = splitStringAtNearestNewline(history, 5000);
-        const additionalChunks = historyChunks.slice(1);
+    if (history.length > 1800) {
+        const historyChunks = splitStringAtNearestNewline(history, 1800);
 
-        const returnedValue = axios.post("/api/report", {
+        // Send first chunk
+        await sendReportChunk({
             embeds: [
                 {
                     title: `1/${historyChunks.length}`,
@@ -101,21 +101,23 @@ async function sendReport(reportMessage: string, messages: string[], matchInfo: 
             ],
         });
 
-        additionalChunks.forEach((chunk, index) => {
-            axios.post("/api/report", {
+        for (let i = 1; i < historyChunks.length; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay between requests
+
+            await sendReportChunk({
                 embeds: [
                     {
-                        title: `Report from ${matchInfo.user} for ${matchInfo.opponentName} ${index + 2}/${historyChunks.length}`,
-                        fields: [{ name: "`Chat History`", value: chunk }],
+                        title: `Report from ${matchInfo.user} for ${matchInfo.opponentName} ${i + 1}/${historyChunks.length}`,
+                        fields: [{ name: "`Chat History`", value: historyChunks[i] }],
                     },
                 ],
             });
-        });
+        }
 
-        return returnedValue;
+        return Promise.resolve("All chunks sent successfully");
     }
 
-    return axios.post("/api/report", {
+    return sendReportChunk({
         embeds: [
             {
                 fields: [
@@ -129,6 +131,24 @@ async function sendReport(reportMessage: string, messages: string[], matchInfo: 
             },
         ],
     });
+}
+
+async function sendReportChunk(payload: any, retryCount = 0): Promise<any> {
+    const maxRetries = 3;
+
+    try {
+        return await axios.post("/api/report", payload);
+    } catch (error) {
+        console.error(`Report chunk failed (attempt ${retryCount + 1}):`, error);
+
+        if (retryCount < maxRetries) {
+            const delay = Math.pow(2, retryCount) * 1000;
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return sendReportChunk(payload, retryCount + 1);
+        }
+
+        console.error(`Failed to send report chunk after ${maxRetries + 1} attempts`);
+    }
 }
 
 function formatTextMessagesForReport(messages: string[], matchInfo: WSUtils["matchInfo"]): string {
