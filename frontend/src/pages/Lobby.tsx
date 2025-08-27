@@ -115,7 +115,6 @@ export default function Lobby() {
     const navigate = useNavigate();
 
     function handleReconnect() {
-        setIsReconnecting(true);
         setIsOpponentOnline(true);
         setIsLoading(false);
         navigate("/game");
@@ -201,7 +200,7 @@ export default function Lobby() {
 
             if (event.data.startsWith("[START_GAME]:")) {
                 localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
-                localStorage.removeItem("bearStore");
+                localStorage.removeItem("boardStore");
                 const gameId = event.data.substring("[START_GAME]:".length);
                 startGameSequence(gameId);
             }
