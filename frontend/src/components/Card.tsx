@@ -172,7 +172,6 @@ export default function Card(props: CardProps) {
     const setHoverCard = useGeneralStates((state) => state.setHoverCard);
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
-    const opponentReady = useGameBoardStates((state) => state.opponentReady);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
     const getIsCardEffect = useGameBoardStates((state) => state.getIsCardEffect);
@@ -243,7 +242,7 @@ export default function Card(props: CardProps) {
                     isFaceUp: card.isFaceUp,
                 },
             },
-            canDrag: !opponentFieldLocations.includes(location) && opponentReady,
+            canDrag: !opponentFieldLocations.includes(location),
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
@@ -257,7 +256,6 @@ export default function Card(props: CardProps) {
             card.imgUrl,
             card.isFaceUp,
             opponentFieldLocations,
-            opponentReady,
         ]
     );
 
@@ -276,7 +274,7 @@ export default function Card(props: CardProps) {
                     cards: stackCards,
                 },
             },
-            canDrag: !opponentFieldLocations.includes(location) && opponentReady && stackDraggedLocation === null,
+            canDrag: !opponentFieldLocations.includes(location) && stackDraggedLocation === null,
             end: () => {
                 setStackSliceIndex(0);
                 setStackDragIcon(null);
@@ -286,7 +284,7 @@ export default function Card(props: CardProps) {
                 isDragging: monitor.isDragging(),
             }),
         };
-    }, [location, locationCards, index, inTamerField, opponentFieldLocations, opponentReady]);
+    }, [location, locationCards, index, inTamerField, opponentFieldLocations]);
 
     useEffect(() => setStackDraggedLocation(isStackDragging ? location : null), [isStackDragging]);
 

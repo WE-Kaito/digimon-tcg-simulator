@@ -11,7 +11,6 @@ import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const myEggDeck = useGameBoardStates((state) => state.myEggDeck);
     const moveCard = useGameBoardStates((state) => state.moveCard);
-    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
@@ -27,7 +26,6 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
 
     function handleClick(e: React.MouseEvent<HTMLImageElement>) {
         e.stopPropagation();
-        if (!getOpponentReady()) return;
         moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
         playDrawCardSfx();
         if (wsUtils) {

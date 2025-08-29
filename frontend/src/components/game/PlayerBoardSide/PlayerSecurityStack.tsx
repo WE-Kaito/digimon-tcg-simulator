@@ -20,7 +20,6 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const opponentReveal = useGameBoardStates((state) => state.opponentReveal);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const bootStage = useGameBoardStates((state) => state.bootStage);
-    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
 
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
@@ -29,7 +28,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
     const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
 
-    const isDisabled = bootStage !== BootStage.GAME_IN_PROGRESS || !getOpponentReady();
+    const isDisabled = bootStage !== BootStage.GAME_IN_PROGRESS;
 
     function sendSecurityReveal() {
         if (opponentReveal.length) return;
@@ -44,7 +43,6 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
         setOpenedCardModal(false);
         shuffleSecurity();
         playShuffleDeckSfx();
-        wsUtils?.sendUpdate?.();
         wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【Closed Security】`);
         wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【↻ Security Stack】`);
         wsUtils?.sendSfx?.("playShuffleDeckSfx");
