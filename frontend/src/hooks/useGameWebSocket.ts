@@ -27,19 +27,12 @@ function getValidOffset(fieldNumber: number, currentOffset: number) {
     const FIELDS_VISIBLE = 8;
 
     // If already visible, keep the current offset
-    if (fieldNumber >= currentOffset + 1 && fieldNumber <= currentOffset + FIELDS_VISIBLE) {
-        return currentOffset;
-    }
+    if (fieldNumber >= currentOffset + 1 && fieldNumber <= currentOffset + FIELDS_VISIBLE) return currentOffset;
 
     let newOffset;
 
-    if (fieldNumber > currentOffset + FIELDS_VISIBLE) {
-        // Push it to the right edge
-        newOffset = fieldNumber - FIELDS_VISIBLE;
-    } else {
-        // Push it to the left edge
-        newOffset = fieldNumber - 1;
-    }
+    if (fieldNumber > currentOffset + FIELDS_VISIBLE) newOffset = fieldNumber - FIELDS_VISIBLE;
+    else newOffset = fieldNumber - 1;
 
     // Clamp between 0 and MAX_OFFSET
     if (newOffset > MAX_OFFSET) newOffset = MAX_OFFSET;
@@ -86,8 +79,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const createToken = useGameBoardStates((state) => state.createToken);
     const setModifiers = useGameBoardStates((state) => state.setModifiers);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
-    const getPhase = useGameBoardStates((state) => state.getPhase);
-    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const phase = useGameBoardStates((state) => state.phase);
+    const progressToNextPhase = useGameBoardStates((state) => state.progressToNextPhase);
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
     const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
@@ -402,12 +395,11 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     clearBoard();
                     setIsRematch(true);
                     setEndModal(false);
-                    // setUpGame(restartObject.me, restartObject.opponent); // maybe this needs the players as payload again?
                     break;
                 }
                 case "[UPDATE_PHASE]": {
-                    if (getPhase() === Phase.MAIN) setTurn(true);
-                    setPhase();
+                    if (phase === Phase.MAIN) setTurn(true);
+                    progressToNextPhase();
                     break;
                 }
                 case "[RESOLVE_COUNTER_BLOCK]": {

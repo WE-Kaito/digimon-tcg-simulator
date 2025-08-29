@@ -39,7 +39,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
     const getDigimonNumber = useGameBoardStates((state) => state.getDigimonNumber);
     const getCardType = useGameBoardStates((state) => state.getCardType);
     const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
-    const getPhase = useGameBoardStates((state) => state.getPhase);
+    const phase = useGameBoardStates((state) => state.phase);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
 
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
@@ -59,7 +59,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
 
-    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const setPhase = useGameBoardStates((state) => state.progressToNextPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
@@ -132,7 +132,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
     }
 
     function initiateAttack() {
-        if (getPhase() === Phase.MAIN) {
+        if (phase === Phase.MAIN) {
             setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
             sendAttackPhaseUpdate(AttackPhase.WHEN_ATTACKING);
         }
@@ -187,10 +187,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
         const myTurn = getIsMyTurn();
         const type = getCardType(from);
         const isEffect =
-            !myTurn ||
-            type !== "Digimon" ||
-            getPhase() !== Phase.MAIN ||
-            (type === "Digimon" && !areCardsSuspended(from));
+            !myTurn || type !== "Digimon" || phase !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
         const attackAllowed = areCardsSuspended(from) || getDigimonNumber(from) === "BT12-083";
         clearAttackAnimation?.();
         setArrowFrom(from);
