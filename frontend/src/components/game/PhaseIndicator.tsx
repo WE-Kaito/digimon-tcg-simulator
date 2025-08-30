@@ -8,8 +8,8 @@ import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 
 export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
     const phase = useGameBoardStates((state) => state.phase);
-    const setPhase = useGameBoardStates((state) => state.setPhase);
-    const isMyTurn = useGameBoardStates((state) => state.isMyTurn);
+    const setPhase = useGameBoardStates((state) => state.progressToNextPhase);
+    const isMyTurn = useGameBoardStates((state) => state.getIsMyTurn());
     const setTurn = useGameBoardStates((state) => state.setTurn);
     const myMemory = useGameBoardStates((state) => state.myMemory);
     const areCardsSuspended = useGameBoardStates((state) => state.areCardsSuspended);

@@ -231,7 +231,7 @@ export type State = BoardState & {
     moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
     moveCardToStack: SendToStackFunction;
     setMemory: (memory: number) => void;
-    setPhase: () => void;
+    progressToNextPhase: () => void;
     setTurn: (isMyTurn: boolean) => void;
     shuffleSecurity: () => void;
     tiltCard: (cardId: string, location: string, playSuspendSfx: () => void, playUnsuspendSfx: () => void) => void;
@@ -252,7 +252,6 @@ export type State = BoardState & {
     setOpponentAttackPhase: (phase: AttackPhase | false) => void;
     getDigimonNumber: (location: string) => string;
     getCardType: (location: string) => string;
-    getPhase: () => Phase;
     setIsLoading: (isLoading: boolean) => void;
     setCardIdWithEffect: (cardId: string) => void;
     getIsCardEffect: (compareCardId: string) => boolean;
@@ -722,23 +721,14 @@ export const useGameBoardStates = create<State>()((set, get) => ({
 
     setMemory: (memory: number) => set({ myMemory: memory, opponentMemory: -memory }),
 
-    setPhase: () => {
-        const phase = get().phase;
+    progressToNextPhase: () => {
         set({ myAttackPhase: false, opponentAttackPhase: false });
-        switch (phase) {
-            case Phase.UNSUSPEND:
-                set({ phase: Phase.DRAW });
-                return;
-            case Phase.DRAW:
-                set({ phase: Phase.BREEDING });
-                return;
-            case Phase.BREEDING:
-                set({ phase: Phase.MAIN });
-                return;
-            case Phase.MAIN:
-                set({ phase: Phase.UNSUSPEND });
-                return;
-        }
+
+        const phase = get().phase;
+        if (phase === Phase.UNSUSPEND) set({ phase: Phase.DRAW });
+        if (phase === Phase.DRAW) set({ phase: Phase.BREEDING });
+        if (phase === Phase.BREEDING) set({ phase: Phase.MAIN });
+        if (phase === Phase.MAIN) set({ phase: Phase.UNSUSPEND });
     },
 
     setTurn: (isMyTurn: boolean) => set({ isMyTurn }),
@@ -928,8 +918,6 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         if (!locationState || locationState.length === 0) return "";
         return locationState[locationState.length - 1]?.cardType ?? "";
     },
-
-    getPhase: () => get().phase,
 
     setIsLoading: (isLoading) => set({ isLoading }),
 

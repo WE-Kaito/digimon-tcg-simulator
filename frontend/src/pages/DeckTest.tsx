@@ -56,7 +56,7 @@ export default function DeckTest() {
 
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const setUpGame = useGameBoardStates((state) => state.setPlayers);
-    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const setPhase = useGameBoardStates((state) => state.progressToNextPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
     const playAttackSfx = useSound((state) => state.playAttackSfx);
