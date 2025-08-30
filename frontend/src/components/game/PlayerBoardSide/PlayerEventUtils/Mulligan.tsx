@@ -5,12 +5,11 @@ import { ShuffleOnOutlined as ShuffleIcon } from "@mui/icons-material";
 import { WSUtils } from "../../../../pages/GamePage.tsx";
 import { notifyInfo } from "../../../../utils/toasts.ts";
 import { useSettingStates } from "../../../../hooks/useSettingStates.ts";
-import { useState } from "react";
 
 export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
     const bootStage = useGameBoardStates((state) => state.bootStage);
-
-    const [hasDecided, setHasDecided] = useState(false);
+    const hasDecidedMulligan = useGameBoardStates((state) => state.hasDecidedMulligan);
+    const setHasDecidedMulligan = useGameBoardStates((state) => state.setHasDecidedMulligan);
 
     const seenMulliganTutorial = useSettingStates((state) => state.seenMulliganTutorial);
     const setSeenMulliganTutorial = useSettingStates((state) => state.setSeenMulliganTutorial);
@@ -24,14 +23,14 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
             setSeenMulliganTutorial(true);
         }
 
-        setHasDecided(true);
+        setHasDecidedMulligan(true);
     }
 
     if (bootStage !== BootStage.MULLIGAN) return <></>;
 
     return (
         <Container>
-            {hasDecided ? (
+            {hasDecidedMulligan ? (
                 <MulliganSpan style={{ top: 3, fontSize }}>Waiting for opponent ...</MulliganSpan>
             ) : (
                 <>

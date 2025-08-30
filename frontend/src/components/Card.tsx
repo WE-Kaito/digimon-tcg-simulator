@@ -1,4 +1,4 @@
-import { CardTypeGame } from "../utils/types.ts";
+import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
@@ -187,6 +187,8 @@ export default function Card(props: CardProps) {
     const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
     const setStackSliceIndex = useGameBoardStates((state) => state.setStackSliceIndex);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
 
     const useToggleForStacks = useSettingStates((state) => state.useToggleForStacks);
     const isStackDragMode = useGameUIStates((state) => state.isStackDragMode);
@@ -242,7 +244,7 @@ export default function Card(props: CardProps) {
                     isFaceUp: card.isFaceUp,
                 },
             },
-            canDrag: !opponentFieldLocations.includes(location),
+            canDrag: !opponentFieldLocations.includes(location) && gameHasStarted,
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
@@ -256,6 +258,7 @@ export default function Card(props: CardProps) {
             card.imgUrl,
             card.isFaceUp,
             opponentFieldLocations,
+            gameHasStarted,
         ]
     );
 
