@@ -14,7 +14,6 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
     const opponentReveal = useGameBoardStates((state) => state.opponentReveal);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
-    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
 
     const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
@@ -59,14 +58,13 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
                 className="button"
                 title="Reveal the top card of your deck"
                 onClick={() => moveDeckCard("myReveal")}
-                disabled={opponentReveal.length > 0 || !getOpponentReady()}
+                disabled={opponentReveal.length > 0}
             >
                 <RevealIcon sx={{ fontSize: iconSize }} />
             </StyledButton>
             <StyledButton
                 className="button"
                 title="Send top card from your deck to Trash"
-                disabled={!getOpponentReady()}
                 onClick={() => moveDeckCard("myTrash")}
             >
                 <TrashFromDeckIcon sx={{ fontSize: iconSize * 1.25 }} />
@@ -74,7 +72,6 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
             <StyledButton
                 className="button"
                 title="Send top card from your deck to Security Stack"
-                disabled={!getOpponentReady()}
                 onClick={() => moveDeckCard("mySecurity")}
             >
                 <RecoveryIcon sx={{ fontSize: iconSize * 0.95 }} />

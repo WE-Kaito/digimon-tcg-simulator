@@ -134,8 +134,7 @@ export enum BootStage {
     CLEAR = 0,
     SHOW_STARTING_PLAYER = 1,
     MULLIGAN = 2,
-    MULLIGAN_DONE = 3,
-    GAME_IN_PROGRESS = 4,
+    GAME_IN_PROGRESS = 3,
 }
 
 export type BoardState = {

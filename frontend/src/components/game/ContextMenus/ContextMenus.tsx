@@ -26,7 +26,7 @@ import { WSUtils } from "../../../pages/GamePage.tsx";
 import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
-    const { sendMessage, sendChatMessage, sendSfx, sendUpdate, matchInfo, sendMoveCard } = wsUtils ?? {};
+    const { sendMessage, sendChatMessage, sendSfx, matchInfo, sendMoveCard } = wsUtils ?? {};
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
 
@@ -38,7 +38,6 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
-    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
     const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
@@ -75,13 +74,11 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     function handleShuffleSecurity() {
         shuffleSecurity();
         playShuffleDeckSfx();
-        sendUpdate?.();
         sendChatMessage?.(`[FIELD_UPDATE]≔【↻ Security Stack】`);
         sendSfx?.("playShuffleDeckSfx");
     }
 
     function moveSecurityCard(to: "myTrash" | "myHand", bottomCard?: boolean) {
-        if (!getOpponentReady()) return;
         const card = bottomCard ? mySecurity[mySecurity.length - 1] : mySecurity[0];
         moveCard(card.id, "mySecurity", to);
         to === "myHand" ? playDrawCardSfx() : playTrashCardSfx();
@@ -93,7 +90,6 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     }
 
     function moveDeckCard(to: string, bottomCard?: boolean) {
-        if (!getOpponentReady()) return;
         const cardId = bottomCard ? myDeckField[myDeckField.length - 1].id : myDeckField[0].id;
         switch (to) {
             case "myReveal":
@@ -134,13 +130,13 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     }
 
     function showStack({ props }: ItemParams<FieldCardContextMenuItemProps>) {
-        if (!getOpponentReady() || props === undefined) return;
+        if (props === undefined) return;
         const { location } = props;
         setStackModal(location);
     }
 
     function activateEffectAnimation({ props }: ItemParams<FieldCardContextMenuItemProps>) {
-        if (!getOpponentReady() || props === undefined) return;
+        if (props === undefined) return;
         const { name, id, location } = props;
         setCardIdWithEffect(id);
         playActivateEffectSfx();
@@ -152,7 +148,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     }
 
     function activateTargetAnimation({ props }: ItemParams<FieldCardContextMenuItemProps>) {
-        if (!getOpponentReady() || props === undefined) return;
+        if (props === undefined) return;
         const { name, id, location } = props;
         const logName = location === "opponentHand" ? `…${id.slice(-5)}(ID)` : name;
         setCardIdWithTarget(id);

@@ -5,11 +5,12 @@ import { ShuffleOnOutlined as ShuffleIcon } from "@mui/icons-material";
 import { WSUtils } from "../../../../pages/GamePage.tsx";
 import { notifyInfo } from "../../../../utils/toasts.ts";
 import { useSettingStates } from "../../../../hooks/useSettingStates.ts";
+import { useState } from "react";
 
 export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
-    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const bootStage = useGameBoardStates((state) => state.bootStage);
-    const setBootStage = useGameBoardStates((state) => state.setBootStage);
+
+    const [hasDecided, setHasDecided] = useState(false);
 
     const seenMulliganTutorial = useSettingStates((state) => state.seenMulliganTutorial);
     const setSeenMulliganTutorial = useSettingStates((state) => state.setSeenMulliganTutorial);
@@ -23,17 +24,16 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
             setSeenMulliganTutorial(true);
         }
 
-        setBootStage(BootStage.MULLIGAN_DONE);
+        setHasDecided(true);
     }
 
-    if (bootStage !== BootStage.MULLIGAN && bootStage !== BootStage.MULLIGAN_DONE) return <></>;
+    if (bootStage !== BootStage.MULLIGAN) return <></>;
 
     return (
         <Container>
-            {bootStage === BootStage.MULLIGAN_DONE && !getOpponentReady() && (
+            {hasDecided ? (
                 <MulliganSpan style={{ top: 3, fontSize }}>Waiting for opponent ...</MulliganSpan>
-            )}
-            {bootStage === BootStage.MULLIGAN && (
+            ) : (
                 <>
                     <MulliganSpan style={{ fontSize: fontSize }}>MULLIGAN?</MulliganSpan>
                     <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>

@@ -20,10 +20,6 @@ type UseGameWebSocketProps = {
 
 type UseGameWebSocketReturn = {
     sendMessage: SendMessage;
-    /**
-     * Sends the whole chunked game state as JSON to your opponent.
-     */
-    sendUpdate: () => void;
 };
 
 function getValidOffset(fieldNumber: number, currentOffset: number) {
@@ -73,19 +69,15 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const gameId = useGameBoardStates((state) => state.gameId);
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
-    const setUpGame = useGameBoardStates((state) => state.setUpGame);
+    const setPlayers = useGameBoardStates((state) => state.setPlayers);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
     const setOpponentAttackPhase = useGameBoardStates((state) => state.setOpponentAttackPhase);
     const distributeCards = useGameBoardStates((state) => state.distributeCards);
-    const updateFields = useGameBoardStates((state) => state.updateFields);
     const setMessages = useGameBoardStates((state) => state.setMessages);
+    const setAllMessages = useGameBoardStates((state) => state.setAllMessages);
     const setTurn = useGameBoardStates((state) => state.setTurn);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
-    const restartObject = useGameBoardStates((state) => state.restartObject);
-    const setRestartObject = useGameBoardStates((state) => state.setRestartObject);
-    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
-    const setOpponentReady = useGameBoardStates((state) => state.setOpponentReady);
     const setIsLoading = useGameBoardStates((state) => state.setIsLoading);
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
     const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
@@ -97,12 +89,9 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const getPhase = useGameBoardStates((state) => state.getPhase);
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
-    const getUpdateDistributionString = useGameBoardStates((state) => state.getUpdateDistributionString);
     const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
     const flipCard = useGameBoardStates((state) => state.flipCard);
-    const isReconnecting = useGameBoardStates((state) => state.isReconnecting);
-    const setIsReconnecting = useGameBoardStates((state) => state.setIsReconnecting);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
@@ -140,45 +129,24 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         return () => clearTimeout(timer);
     }
 
-    function sendUpdate() {
-        const gameState = getUpdateDistributionString(user, gameId);
-        websocket.sendMessage(`${gameId}:/updateGame:${gameState}`);
-    }
-
     let interval: ReturnType<typeof setInterval>;
 
     const websocket = useWebSocket(websocketURL, {
         shouldReconnect: () => true,
 
-        onOpen: () => {
-            if (isReconnecting) {
-                setIsLoading(false);
-                websocket.sendMessage("/reconnect:" + gameId);
-            } else websocket.sendMessage("/joinGame:" + gameId);
-        },
+        onOpen: () => websocket.sendMessage("/joinGame:" + gameId),
 
         onMessage: (event) => {
             if (event.data === "[PLAYERS_READY]" && isPlayerOne && bootStage < BootStage.MULLIGAN) {
                 websocket.sendMessage("/startGame:" + gameId);
-                setIsReconnecting(true);
                 return;
             }
 
-            if (event.data.startsWith("[START_GAME]:")) {
+            if (event.data === "[START_GAME]") {
                 setIsLoading(true);
                 setStartingPlayer("");
-                setOpponentReady(false);
-                const playersJson = event.data.substring("[START_GAME]:".length);
-                const players = JSON.parse(playersJson);
-                const myPlayerArray = players.slice().filter((player: Player) => player.username === user);
-                const opponentPlayerArray = players.slice().filter((player: Player) => player.username !== user);
-                if (myPlayerArray.length === 0 || opponentPlayerArray.length === 0) return;
-                const me = myPlayerArray[0];
-                const opponent = opponentPlayerArray[0];
-                setUpGame(me, opponent);
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
-                setRestartObject({ me, opponent });
                 if (isPlayerOne && !isRematch) websocket.sendMessage("/getStartingPlayers:" + gameId);
                 return;
             }
@@ -190,9 +158,19 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
-            if (event.data.startsWith("[UPDATE_OPPONENT]:")) {
-                const gameStateJson = event.data.substring("[UPDATE_OPPONENT]:".length);
-                updateFields(gameStateJson, sendLoaded, user, gameId);
+            if (event.data.startsWith("[PLAYER_INFO]:")) {
+                const playersJson = event.data.substring("[PLAYER_INFO]:".length);
+                const players = JSON.parse(playersJson);
+                const myPlayerArray = players.slice().filter((player: Player) => player.username === user);
+                const opponentPlayerArray = players.slice().filter((player: Player) => player.username !== user);
+                if (myPlayerArray.length === 0 || opponentPlayerArray.length === 0) return;
+                const me = myPlayerArray[0];
+                const opponent = opponentPlayerArray[0];
+                setPlayers(me, opponent);
+            }
+
+            if (event.data.startsWith("[SET_BOOT_STAGE]:")) {
+                setBootStage(parseInt(event.data.substring("[SET_BOOT_STAGE]:".length)));
                 return;
             }
 
@@ -207,7 +185,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     () => {
                         setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                         if (firstPlayer === user) setTurn(true);
-                        setOpponentReady(false);
                         if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
                     },
                     isRematch ? 1500 : 4800
@@ -221,11 +198,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const cardId = parts?.[0];
                 const from = parts?.[1];
                 const to = parts?.[2];
-                if (cardId && from && to) {
-                    moveCard(cardId, from, to);
-                    if (!getOpponentReady()) setOpponentReady(true);
-                    if (getOpponentReady() && bootStage >= BootStage.MULLIGAN) setBootStage(BootStage.GAME_IN_PROGRESS);
-                }
+                if (cardId && from && to) moveCard(cardId, from, to);
                 return;
             }
 
@@ -281,6 +254,17 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[CHAT_MESSAGE]:")) {
                 const chatMessage = event.data.substring("[CHAT_MESSAGE]:".length);
                 setMessages(chatMessage);
+                return;
+            }
+
+            if (event.data.startsWith("[CHAT_HISTORY]:")) {
+                const chatHistoryJson = event.data.substring("[CHAT_HISTORY]:".length);
+                try {
+                    const chatHistory: string[] = JSON.parse(chatHistoryJson);
+                    setAllMessages(chatHistory);
+                } catch (e) {
+                    console.warn("Failed to parse chat history:", chatHistoryJson);
+                }
                 return;
             }
 
@@ -418,12 +402,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     clearBoard();
                     setIsRematch(true);
                     setEndModal(false);
-                    setUpGame(restartObject.me, restartObject.opponent);
-                    break;
-                }
-                case "[PLAYER_READY]": {
-                    setOpponentReady(true);
-                    if (bootStage === BootStage.MULLIGAN_DONE) setBootStage(BootStage.GAME_IN_PROGRESS);
+                    // setUpGame(restartObject.me, restartObject.opponent); // maybe this needs the players as payload again?
                     break;
                 }
                 case "[UPDATE_PHASE]": {
@@ -449,7 +428,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 }
                 case "[OPPONENT_RECONNECTED]": {
                     setIsOpponentOnline(true);
-                    sendUpdate();
                     break;
                 }
                 default: {
@@ -465,5 +443,5 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         return () => clearInterval(interval);
     }, []);
 
-    return { sendMessage: websocket.sendMessage, sendUpdate };
+    return { sendMessage: websocket.sendMessage };
 }
