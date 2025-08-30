@@ -15,6 +15,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const mySleeve = useGameBoardStates((state) => state.mySleeve);
     const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
     const moveCard = useGameBoardStates((state) => state.moveCard);
+    const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -36,7 +37,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
             wsUtils.sendSfx("playDrawCardSfx");
             wsUtils.sendMoveCard(myDeckField[0].id, "myDeckField", "myHand");
             wsUtils.sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
-            nextPhaseTrigger(wsUtils.nextPhase, Phase.DRAW);
+            if (getIsMyTurn(wsUtils.matchInfo.user)) nextPhaseTrigger(wsUtils.nextPhase, Phase.DRAW);
         }
     }
 

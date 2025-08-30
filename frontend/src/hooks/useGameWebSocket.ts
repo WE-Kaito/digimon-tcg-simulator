@@ -63,12 +63,13 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
     const setPlayers = useGameBoardStates((state) => state.setPlayers);
+    const setPhase = useGameBoardStates((state) => state.setPhase);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
     const setOpponentAttackPhase = useGameBoardStates((state) => state.setOpponentAttackPhase);
     const distributeCards = useGameBoardStates((state) => state.distributeCards);
     const setMessages = useGameBoardStates((state) => state.setMessages);
     const setAllMessages = useGameBoardStates((state) => state.setAllMessages);
-    const setTurn = useGameBoardStates((state) => state.setTurn);
+    const setUsernameTurn = useGameBoardStates((state) => state.setUsernameTurn);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
     const setIsLoading = useGameBoardStates((state) => state.setIsLoading);
@@ -167,6 +168,16 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
+            if (event.data.startsWith("[SET_PHASE]:")) {
+                setPhase(event.data.substring("[SET_PHASE]:".length));
+                return;
+            }
+
+            if (event.data.startsWith("[SET_TURN]:")) {
+                setUsernameTurn(event.data.substring("[SET_TURN]:".length));
+                return;
+            }
+
             if (event.data.startsWith("[STARTING_PLAYER]:")) {
                 const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
 
@@ -177,7 +188,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const timeout = setTimeout(
                     () => {
                         setMessages("[STARTING_PLAYER]≔" + firstPlayer);
-                        if (firstPlayer === user) setTurn(true);
+                        if (firstPlayer === user) setUsernameTurn(user);
+                        else setUsernameTurn(opponentName);
                         if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
                     },
                     isRematch ? 1500 : 4800
@@ -398,7 +410,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[UPDATE_PHASE]": {
-                    if (phase === Phase.MAIN) setTurn(true);
+                    if (phase === Phase.MAIN) setUsernameTurn(user); // opponent sent phase_update in main -> passed turn
                     progressToNextPhase();
                     break;
                 }

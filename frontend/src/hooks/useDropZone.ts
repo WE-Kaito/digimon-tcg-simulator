@@ -156,7 +156,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
 
     // return
     function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
-        if (item.location === "myBreedingArea") nextPhaseTrigger(nextPhase, Phase.BREEDING);
+        if (item.location === "myBreedingArea" && getIsMyTurn(user)) nextPhaseTrigger(nextPhase, Phase.BREEDING);
         if (isCardStack(item)) {
             const { location } = item;
             moveCardStack(stackSliceIndex, location, targetField, handleDropToField);
@@ -184,7 +184,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
     function handleDropToOpponent(from: string, to: string) {
         if (!from || !to) return;
 
-        const myTurn = getIsMyTurn();
+        const myTurn = getIsMyTurn(user);
         const type = getCardType(from);
         const isEffect =
             !myTurn || type !== "Digimon" || phase !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
