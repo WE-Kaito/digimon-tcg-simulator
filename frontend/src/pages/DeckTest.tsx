@@ -394,7 +394,6 @@ export default function DeckTest() {
                 myMemory: 0,
                 opponentMemory: 0,
                 phase: Phase.MAIN,
-                isMyTurn: true,
                 bootStage: BootStage.GAME_IN_PROGRESS, // Start directly in game
                 myAvatar: userAvatar,
                 mySleeve: userSleeve,
