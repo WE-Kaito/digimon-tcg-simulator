@@ -1,4 +1,4 @@
-import { AttackPhase, DraggedItem, DraggedStack, Phase } from "../utils/types.ts";
+import { AttackPhase, BootStage, DraggedItem, DraggedStack, Phase } from "../utils/types.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { convertForLog } from "../utils/functions.ts";
 import { useSound } from "./useSound.ts";
@@ -43,10 +43,13 @@ export default function useDropZoneReactDnd(props: Props) {
     const user = useGeneralStates((state) => state.user);
     const gameId = useGameBoardStates((state) => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const setBootStage = useGameBoardStates((state) => state.setBootStage);
 
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
@@ -113,6 +116,7 @@ export default function useDropZoneReactDnd(props: Props) {
 
     function sendMoveCard(cardId: string, from: string, to: string) {
         sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+        if (bootStage === BootStage.MULLIGAN && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
     }
 
     function initiateAttack() {

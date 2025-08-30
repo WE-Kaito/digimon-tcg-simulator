@@ -62,6 +62,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
@@ -128,7 +129,7 @@ export default function useDropZone(props: Props): (event: DragEndEvent) => void
 
     function sendMoveCard(cardId: string, from: string, to: string) {
         sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
-        if (bootStage === BootStage.MULLIGAN) setBootStage(BootStage.GAME_IN_PROGRESS);
+        if (bootStage === BootStage.MULLIGAN && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
     }
 
     function initiateAttack() {

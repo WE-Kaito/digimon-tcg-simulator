@@ -1,4 +1,4 @@
-package com.github.wekaito.backend.websocket.game.models;
+package com.github.wekaito.backend.websocket.game;
 
 public record Player(
         String username,

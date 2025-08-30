@@ -21,11 +21,12 @@ type SendToSecurityMenuProps = {
 };
 
 export default function SendToSecurityMenu({ wsUtils, card, location }: SendToSecurityMenuProps) {
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 
     function sendCardToSecurityStack(topOrBottom: "Top" | "Bottom", facing: "up" | "down") {
-        if (!card || card.id.startsWith("TOKEN")) return;
+        if (!getOpponentReady() || !card || card.id.startsWith("TOKEN")) return;
 
         moveCardToStack(topOrBottom, card.id, location, "mySecurity", facing);
         wsUtils?.sendChatMessage(

@@ -18,6 +18,7 @@ import { TouchBackend } from "react-dnd-touch-backend";
 import useDropZoneReactDnd from "../hooks/useDropZoneReactDnd.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
+import { BootStage } from "../utils/types.ts";
 import { SendMessage } from "react-use-websocket";
 import RestartPromptModal from "../components/game/ModalDialog/RestartPromptModal.tsx";
 import EndModal from "../components/game/ModalDialog/EndModal.tsx";
@@ -46,6 +47,7 @@ export type WSUtils = {
     sendSfx: (sfx: string) => void;
     sendChatMessage: (message: string) => void;
     nextPhase: () => void;
+    sendUpdate: () => void;
 };
 
 export default function GamePage() {
@@ -56,12 +58,15 @@ export default function GamePage() {
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const setBootStage = useGameBoardStates((state) => state.setBootStage);
 
     const playAttackSfx = useSound((state) => state.playAttackSfx);
     const playEffectAttackSfx = useSound((state) => state.playEffectAttackSfx);
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
 
     const setPhase = useGameBoardStates((state) => state.setPhase);
+    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
@@ -108,7 +113,7 @@ export default function GamePage() {
         [playAttackSfx, playEffectAttackSfx]
     );
 
-    const { sendMessage } = useGameWebSocket({
+    const { sendMessage, sendUpdate } = useGameWebSocket({
         clearAttackAnimation,
         restartAttackAnimation,
     });
@@ -155,6 +160,7 @@ export default function GamePage() {
 
     function sendMoveCard(cardId: string, from: string, to: string) {
         sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+        if (bootStage === BootStage.MULLIGAN && getOpponentReady()) setBootStage(BootStage.GAME_IN_PROGRESS);
     }
 
     function sendChatMessage(message: string) {
@@ -176,6 +182,7 @@ export default function GamePage() {
         sendSfx,
         sendPhaseUpdate,
         nextPhase,
+        sendUpdate,
     };
 
     // Layout ##########################################################################################################

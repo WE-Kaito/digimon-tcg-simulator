@@ -76,6 +76,7 @@ export default function Lobby() {
     const setGameId = useGameBoardStates((state) => state.setGameId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
+    const setIsReconnecting = useGameBoardStates((state) => state.setIsReconnecting);
 
     const playJoinSfx = useSound((state) => state.playJoinSfx);
     const playKickSfx = useSound((state) => state.playKickSfx);
@@ -197,10 +198,10 @@ export default function Lobby() {
                 setIsWrongPassword(true);
             }
 
-            if (event.data.startsWith("[COMPUTE_GAME]:")) {
+            if (event.data.startsWith("[START_GAME]:")) {
                 localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
                 localStorage.removeItem("boardStore");
-                const gameId = event.data.substring("[COMPUTE_GAME]:".length);
+                const gameId = event.data.substring("[START_GAME]:".length);
                 startGameSequence(gameId);
             }
 
@@ -290,6 +291,7 @@ export default function Lobby() {
         const timer = setTimeout(() => {
             setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
             setIsRematch(false);
+            setIsReconnecting(false);
             clearBoard();
             setIsLoading(false);
             navigate("/game");

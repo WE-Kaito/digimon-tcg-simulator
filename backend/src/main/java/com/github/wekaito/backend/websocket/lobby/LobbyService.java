@@ -5,7 +5,6 @@ import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
-import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import com.github.wekaito.backend.websocket.game.GameService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -209,7 +208,7 @@ public class LobbyService extends TextWebSocketHandler {
         if (room == null) return;
 
         for (LobbyPlayer player : room.getPlayers()) {
-            sendTextMessage(player.getSession(), "[COMPUTE_GAME]:" + gameId);
+            sendTextMessage(player.getSession(), "[START_GAME]:" + gameId);
         }
     }
 
@@ -355,16 +354,14 @@ public class LobbyService extends TextWebSocketHandler {
             globalActiveSessions.remove(player2);
         }
 
-        sendTextMessage(player1, "[COMPUTE_GAME]:" + newGameId);
-        sendTextMessage(player2, "[COMPUTE_GAME]:" + newGameId);
+        sendTextMessage(player1, "[START_GAME]:" + newGameId);
+        sendTextMessage(player2, "[START_GAME]:" + newGameId);
     }
 
     private void checkForRejoinableGameRoom() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
-            String username = Objects.requireNonNull(session.getPrincipal()).getName();
-            String matchingRoomId = gameService.gameRooms.stream()
-                    .map(GameRoom::getRoomId)
-                    .filter(roomId -> roomId.contains(username))
+            String matchingRoomId = gameService.gameRooms.keySet().stream()
+                    .filter(roomId -> roomId.contains(Objects.requireNonNull(session.getPrincipal()).getName()))
                     .findFirst().orElse(null);
             if (matchingRoomId != null) sendTextMessage(session, "[RECONNECT_ENABLED]:" + matchingRoomId);
             else sendTextMessage(session, "[RECONNECT_DISABLED]");
@@ -372,7 +369,7 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     private int getTotalSessionCount() {
-        int inGameSessionCount = gameService.gameRooms.stream().mapToInt(room -> room.getSessions().size()).sum();
+        int inGameSessionCount = gameService.gameRooms.values().stream().mapToInt(Set::size).sum();
         return globalActiveSessions.size() + inGameSessionCount;
     }
 

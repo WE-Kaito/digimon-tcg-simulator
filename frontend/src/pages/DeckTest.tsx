@@ -55,7 +55,7 @@ export default function DeckTest() {
     const fetchedCards = useDeckStates((state) => state.fetchedCards);
 
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
-    const setUpGame = useGameBoardStates((state) => state.setPlayers);
+    const setUpGame = useGameBoardStates((state) => state.setUpGame);
     const setPhase = useGameBoardStates((state) => state.setPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
@@ -393,11 +393,13 @@ export default function DeckTest() {
                 myEggDeck: eggDeck,
                 myMemory: 0,
                 opponentMemory: 0,
-                phase: Phase.MAIN,
+                phase: Phase.BREEDING,
                 isMyTurn: true,
                 bootStage: BootStage.GAME_IN_PROGRESS, // Start directly in game
                 myAvatar: userAvatar,
                 mySleeve: userSleeve,
+                // Simulate opponent being ready for test mode
+                opponentReady: true,
             });
 
             // Set up game info
@@ -596,6 +598,7 @@ export default function DeckTest() {
         },
         sendPhaseUpdate: () => console.log("Test mode: phase update"),
         nextPhase,
+        sendUpdate: () => console.log("Test mode: send update"),
     };
 
     // Mouse and touch sensors for drag and drop
