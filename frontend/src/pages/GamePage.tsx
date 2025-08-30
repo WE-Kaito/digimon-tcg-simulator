@@ -61,7 +61,7 @@ export default function GamePage() {
     const playEffectAttackSfx = useSound((state) => state.playEffectAttackSfx);
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
 
-    const setPhase = useGameBoardStates((state) => state.progressToNextPhase);
+    const setPhase = useGameBoardStates((state) => state.setPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);

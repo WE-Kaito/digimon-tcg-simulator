@@ -6,7 +6,7 @@ import { WSUtils } from "../../../../pages/GamePage.tsx";
 
 export default function UnsuspendAllButton({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
     const phase = useGameBoardStates((state) => state.phase);
-    const isMyTurn = useGameBoardStates((state) => state.getIsMyTurn());
+    const isMyTurn = useGameBoardStates((state) => state.isMyTurn);
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
     const areCardsSuspended = useGameBoardStates((state) => state.areCardsSuspended());
 

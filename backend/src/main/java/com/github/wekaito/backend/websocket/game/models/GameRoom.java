@@ -20,7 +20,6 @@ public class GameRoom {
     private String[] chat;
     int bootStage = 0; // 0 = CLEAR, 1 = SHOW_STARTING_PLAYER, 2 = MULLIGAN, 3 = MULLIGAN, 4 = GAME_START
 
-
     public void addSession(WebSocketSession session) {
         sessions.add(session);
     }
