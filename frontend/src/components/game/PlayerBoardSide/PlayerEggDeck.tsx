@@ -12,7 +12,6 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const myEggDeck = useGameBoardStates((state) => state.myEggDeck);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
-    const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -30,7 +29,7 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
         moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
         playDrawCardSfx();
         if (wsUtils) {
-            if (getIsMyTurn(wsUtils.matchInfo.user)) nextPhaseTrigger(wsUtils.nextPhase, Phase.BREEDING);
+            nextPhaseTrigger(wsUtils.nextPhase, Phase.BREEDING);
             wsUtils.sendMoveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
             wsUtils.sendSfx("playPlaceCardSfx");
             wsUtils.sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);

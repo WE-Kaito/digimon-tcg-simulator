@@ -203,8 +203,7 @@ export type State = BoardState & {
     opponentSleeve: string;
 
     phase: Phase;
-    setPhase: (phase: Phase) => void;
-    usernameTurn: string;
+    isMyTurn: boolean;
     myAttackPhase: AttackPhase | false;
     opponentAttackPhase: AttackPhase | false;
 
@@ -233,7 +232,7 @@ export type State = BoardState & {
     moveCardToStack: SendToStackFunction;
     setMemory: (memory: number) => void;
     progressToNextPhase: () => void;
-    setUsernameTurn: (usernameTurn: string) => void;
+    setTurn: (isMyTurn: boolean) => void;
     shuffleSecurity: () => void;
     tiltCard: (cardId: string, location: string, playSuspendSfx: () => void, playUnsuspendSfx: () => void) => void;
     createToken: (token: CardType, side: SIDE, id: string) => void;
@@ -246,7 +245,7 @@ export type State = BoardState & {
     areCardsSuspended: (from?: string) => boolean;
     nextPhaseTrigger: (nextPhaseFunction: () => void, currentPhase?: string) => void;
     unsuspendAll: (side: SIDE) => void;
-    getIsMyTurn: (username: string) => boolean;
+    getIsMyTurn: () => boolean;
     getMyAttackPhase: () => AttackPhase | false;
     getOpponentAttackPhase: () => AttackPhase | false;
     setMyAttackPhase: (phase: AttackPhase | false) => void;
@@ -440,7 +439,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     opponentMemory: 0,
 
     phase: Phase.BREEDING,
-    usernameTurn: "",
+    isMyTurn: false,
     myAttackPhase: false,
     opponentAttackPhase: false,
 
@@ -459,15 +458,13 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         });
     },
 
-    setPhase: (phase) => set({ phase }),
-
     clearBoard: () => {
         set({
             ...fieldDefaultValues,
             myMemory: 0,
             opponentMemory: 0,
             phase: Phase.BREEDING,
-            usernameTurn: "",
+            isMyTurn: false,
             opponentAttackPhase: false,
             myAttackPhase: false,
             isLoading: false,
@@ -734,7 +731,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         if (phase === Phase.MAIN) set({ phase: Phase.UNSUSPEND });
     },
 
-    setUsernameTurn: (usernameTurn) => set({ usernameTurn }),
+    setTurn: (isMyTurn: boolean) => set({ isMyTurn }),
 
     shuffleSecurity: () => {
         set((state) => {
@@ -869,7 +866,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     },
 
     nextPhaseTrigger: (nextPhaseFunction, currentPhase) => {
-        if (get().phase === Phase.MAIN) return;
+        if (get().phase === Phase.MAIN || !get().isMyTurn) return;
+
         if (
             (get().phase === Phase.BREEDING && currentPhase === Phase.BREEDING) ||
             (get().phase === Phase.DRAW && currentPhase === Phase.DRAW) ||
@@ -899,7 +897,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         }));
     },
 
-    getIsMyTurn: (username) => get().usernameTurn === username,
+    getIsMyTurn: () => get().isMyTurn,
 
     getMyAttackPhase: () => get().myAttackPhase,
 

@@ -167,7 +167,6 @@ public class GameService extends TextWebSocketHandler {
         else {
             String[] roomMessageParts = roomMessage.split(":", 2);
             String command = roomMessageParts[0];
-            if (command.equals("/updatePhase")) gameRoom.progressPhase();
             String opponentName = roomMessageParts[1];
             sendMessageToOpponent(gameRoom, opponentName, convertCommand(command));
         }
@@ -797,7 +796,6 @@ public class GameService extends TextWebSocketHandler {
             // Store starting player message in chat
             storeChatMessage(gameRoom, startingPlayerMessage);
             gameRoom.setBootStage(1);
-            gameRoom.setUsernameTurn(names[index]);
             for (WebSocketSession s : gameRoom.getSessions()) {
                 sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
             }
@@ -991,8 +989,8 @@ public class GameService extends TextWebSocketHandler {
 
         for (WebSocketSession s : gameRoom.getSessions()) {
             sendTextMessage(s, "[SET_BOOT_STAGE]:" + gameRoom.getBootStage());
-            sendTextMessage(s, "[SET_PHASE]:" + gameRoom.getPhase());
-            sendTextMessage(s, "[SET_TURN]:" + gameRoom.getUsernameTurn());
+            // send phase
+            // send turn
         }
     }
     
@@ -1481,13 +1479,10 @@ public class GameService extends TextWebSocketHandler {
                     
             if (currentPlayer != null) {
                 boolean isPlayer1 = gameRoom.getPlayer1().username().equals(currentPlayer);
-                int newMemory = Integer.parseInt(parts[2]);
                 if (isPlayer1) {
-                    boardState.setPlayer1Memory(newMemory);
-                    boardState.setPlayer2Memory(-1 * newMemory);
+                    boardState.setPlayer1Memory(boardState.getPlayer1Memory() + Integer.parseInt(parts[2]));
                 } else {
-                    boardState.setPlayer1Memory(-1 * newMemory);
-                    boardState.setPlayer2Memory(newMemory);
+                    boardState.setPlayer2Memory(boardState.getPlayer2Memory() + Integer.parseInt(parts[2]));
                 }
             }
         }
