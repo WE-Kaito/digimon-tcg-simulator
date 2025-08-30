@@ -2,21 +2,17 @@ import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useSound } from "../../../hooks/useSound.ts";
 import eggBackSrc from "../../../assets/eggBack.jpg";
-import { BootStage, Phase } from "../../../utils/types.ts";
+import { Phase } from "../../../utils/types.ts";
 import { WSUtils } from "../../../pages/GamePage.tsx";
+// import { useDroppable } from "@dnd-kit/core";
 import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
-import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const myEggDeck = useGameBoardStates((state) => state.myEggDeck);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
-    const bootStage = useGameBoardStates((state) => state.bootStage);
-    const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
     const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
-    const username = useGeneralStates((state) => state.user);
-    const isMyTurn = getIsMyTurn(username);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -30,12 +26,11 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     });
 
     function handleClick(e: React.MouseEvent<HTMLImageElement>) {
-        if (!gameHasStarted) return;
         e.stopPropagation();
         moveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
         playDrawCardSfx();
         if (wsUtils) {
-            if (isMyTurn) nextPhaseTrigger(wsUtils.nextPhase, Phase.BREEDING);
+            if (getIsMyTurn(wsUtils.matchInfo.user)) nextPhaseTrigger(wsUtils.nextPhase, Phase.BREEDING);
             wsUtils.sendMoveCard(myEggDeck[0].id, "myEggDeck", "myBreedingArea");
             wsUtils.sendSfx("playPlaceCardSfx");
             wsUtils.sendChatMessage(`[FIELD_UPDATE]≔【${myEggDeck[0].name}】﹕Egg-Deck ➟ Breeding`);
@@ -45,14 +40,7 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     return (
         <>
             <Container ref={setNodeRef as any}>
-                <DeckImg
-                    alt="egg-deck"
-                    src={eggBackSrc}
-                    isOver={false}
-                    onClick={handleClick}
-                    style={gameHasStarted ? undefined : { cursor: "not-allowed!important" }}
-                    className={"button"}
-                />
+                <DeckImg alt="egg-deck" src={eggBackSrc} isOver={false} onClick={handleClick} className={"button"} />
             </Container>
             <DeckBottomZone ref={deckBottomRef as any} isOver={isOverBottom}>
                 <TriangleIcon />

@@ -8,15 +8,12 @@ import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useSound } from "../../../hooks/useSound.ts";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
-import { BootStage } from "../../../utils/types.ts";
 
 export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
     const opponentReveal = useGameBoardStates((state) => state.opponentReveal);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
-    const bootStage = useGameBoardStates((state) => state.bootStage);
-    const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
 
     const playRevealCardSfx = useSound((state) => state.playRevealCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
@@ -61,7 +58,7 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
                 className="button"
                 title="Reveal the top card of your deck"
                 onClick={() => moveDeckCard("myReveal")}
-                disabled={opponentReveal.length > 0 || !gameHasStarted || myDeckField.length === 0}
+                disabled={opponentReveal.length > 0}
             >
                 <RevealIcon sx={{ fontSize: iconSize }} />
             </StyledButton>
@@ -69,7 +66,6 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
                 className="button"
                 title="Send top card from your deck to Trash"
                 onClick={() => moveDeckCard("myTrash")}
-                disabled={!gameHasStarted || myDeckField.length === 0}
             >
                 <TrashFromDeckIcon sx={{ fontSize: iconSize * 1.25 }} />
             </StyledButton>
@@ -77,7 +73,6 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
                 className="button"
                 title="Send top card from your deck to Security Stack"
                 onClick={() => moveDeckCard("mySecurity")}
-                disabled={!gameHasStarted || myDeckField.length === 0}
             >
                 <RecoveryIcon sx={{ fontSize: iconSize * 0.95 }} />
             </StyledButton>

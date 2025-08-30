@@ -871,6 +871,10 @@ public class GameService extends TextWebSocketHandler {
         List<GameCard> player2EggDeck = getEggDeck(newDeck2);
         List<GameCard> player2Hand = drawCards(newDeck2);
 
+        // Draw Security cards from the top of each deck (5 cards each)
+        List<GameCard> player1Security = drawCards(newDeck1);
+        List<GameCard> player2Security = drawCards(newDeck2);
+
         // Initialize BoardState with original distribution for mulligan
         BoardState boardState = new BoardState();
         boardState.setPlayer1OriginalHand(player1Hand.toArray(new GameCard[0]));
@@ -882,16 +886,18 @@ public class GameService extends TextWebSocketHandler {
         boardState.setPlayer1Hand(player1Hand.toArray(new GameCard[0]));
         boardState.setPlayer1Deck(newDeck1.toArray(new GameCard[0]));
         boardState.setPlayer1EggDeck(player1EggDeck.toArray(new GameCard[0]));
+        boardState.setPlayer1Security(player1Security.toArray(new GameCard[0]));
         boardState.setPlayer2Hand(player2Hand.toArray(new GameCard[0]));
         boardState.setPlayer2Deck(newDeck2.toArray(new GameCard[0]));
         boardState.setPlayer2EggDeck(player2EggDeck.toArray(new GameCard[0]));
+        boardState.setPlayer2Security(player2Security.toArray(new GameCard[0]));
         
         gameRoom.setBoardState(boardState);
         gameRoom.setBootStage(2);
 
         GameStart newGame = new GameStart(
-                player1Hand, newDeck1, player1EggDeck, new ArrayList<>(),
-                player2Hand, newDeck2, player2EggDeck, new ArrayList<>()
+                player1Hand, newDeck1, player1EggDeck, player1Security,
+                player2Hand, newDeck2, player2EggDeck, player2Security
         );
 
         distributeCards(gameRoom, newGame);

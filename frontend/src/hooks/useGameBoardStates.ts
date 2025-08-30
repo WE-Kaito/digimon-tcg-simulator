@@ -270,9 +270,6 @@ export type State = BoardState & {
     setStartingPlayer: (side: SIDE | "") => void;
 
     flipCard: (cardId: string, location: string) => void;
-
-    hasDecidedMulligan: boolean;
-    setHasDecidedMulligan: (hasDecidedMulligan: boolean) => void;
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -453,9 +450,6 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     startingPlayer: "",
     distributionChunks: "",
 
-    hasDecidedMulligan: false,
-    setHasDecidedMulligan: (hasDecidedMulligan) => set({ hasDecidedMulligan }),
-
     setPlayers: (me, opponent) => {
         set({
             myAvatar: me.avatarName,
@@ -479,7 +473,6 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             isLoading: false,
             bootStage: BootStage.CLEAR,
             isOpponentOnline: true,
-            hasDecidedMulligan: false,
         });
     },
 

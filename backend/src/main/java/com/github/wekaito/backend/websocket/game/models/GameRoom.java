@@ -47,6 +47,7 @@ public class GameRoom {
             phase = Phase.UNSUSPEND;
             usernameTurn = usernameTurn.equals(player1.username()) ? player2.username() : player1.username();
         }
+        System.out.println("Phase progressed to " + phase + " for " + usernameTurn);
     }
 }
 

@@ -21,6 +21,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
+
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
     const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
 
