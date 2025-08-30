@@ -3,7 +3,9 @@ package com.github.wekaito.backend.websocket.game;
 import com.github.wekaito.backend.models.Deck;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
-import com.github.wekaito.backend.websocket.game.GameService;
+import com.github.wekaito.backend.websocket.game.models.GameRoom;
+import com.github.wekaito.backend.websocket.game.models.Player;
+import com.github.wekaito.backend.websocket.game.models.BoardState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +17,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
@@ -46,10 +46,12 @@ class GameServiceTest {
     }
 
     private void putPlayersToGameRoom() {
-        Set<WebSocketSession> gameRoom = new HashSet<>();
-        gameRoom.add(session1);
-        gameRoom.add(session2);
-        gameService.getGameRooms().put(gameId, gameRoom);
+        Player player1 = new Player(username1, "takato", "sleeve1");
+        Player player2 = new Player(username2, "tai", "sleeve2");
+        GameRoom gameRoom = new GameRoom(gameId, player1, player2);
+        gameRoom.addSession(session1);
+        gameRoom.addSession(session2);
+        gameService.getGameRooms().add(gameRoom);
     }
 
     @BeforeEach
@@ -70,13 +72,17 @@ class GameServiceTest {
 
     @Test
     void testStartGameMessage() throws IOException {
-        // WHEN
-        gameService.afterConnectionEstablished(session1);
-        gameService.afterConnectionEstablished(session2);
+        // GIVEN
+        TextMessage expectedMessage1 = new TextMessage("[START_GAME]");
+        TextMessage startGameMessage = new TextMessage("/startGame:testUser1‗testUser2");
         putPlayersToGameRoom();
-        gameService.handleTextMessage(session1, new TextMessage("/startGame:testUser1‗testUser2"));
+        // WHEN
+        gameService.handleTextMessage(session1, startGameMessage);
         // THEN
-        verify(session1, times(1)).sendMessage(any());
+        verify(session1, times(1)).sendMessage(expectedMessage1);
+        verify(session2, times(1)).sendMessage(expectedMessage1);
+        verify(session1, times(2)).sendMessage(any(TextMessage.class));
+        verify(session2, times(2)).sendMessage(any(TextMessage.class));
     }
 
     @Test
@@ -148,10 +154,10 @@ class GameServiceTest {
     }
 
     @Test
-    void testProcessGameChunks() throws IOException, InterruptedException {
+    void testUpdatePhase() throws IOException, InterruptedException {
         // GIVEN
-        TextMessage expectedMessage = new TextMessage("[UPDATE_OPPONENT]:{test}");
-        TextMessage updateFromClient = new TextMessage(gameId + ":/updateGame:{test}");
+        TextMessage expectedMessage = new TextMessage("[UPDATE_PHASE]");
+        TextMessage updateFromClient = new TextMessage(gameId + ":/updatePhase:" + username2);
         putPlayersToGameRoom();
         // WHEN
         gameService.handleTextMessage(session1, updateFromClient);
@@ -225,11 +231,14 @@ class GameServiceTest {
     }
 
     @Test
-    void testSingleUpdate() throws IOException, InterruptedException {
+    void testMoveCard() throws IOException, InterruptedException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[MOVE_CARD]:123abc:opponentDigi1:opponentDigi2");
-        TextMessage updateFromClient = new TextMessage(gameId + ":/moveCard:"+ username2 +":123abc:myDigi1:myDigi2");
+        TextMessage updateFromClient = new TextMessage(gameId + ":/moveCard:" + username2 + ":123abc:myDigi1:myDigi2");
         putPlayersToGameRoom();
+        // Initialize board state in the game room for this test
+        GameRoom gameRoom = gameService.getGameRooms().get(0);
+        gameRoom.setBoardState(new BoardState());
         // WHEN
         gameService.handleTextMessage(session1, updateFromClient);
         // THEN
@@ -240,8 +249,11 @@ class GameServiceTest {
     void testMemoryUpdate() throws IOException, InterruptedException {
         // GIVEN
         TextMessage expectedMessage = new TextMessage("[UPDATE_MEMORY]:-5");
-        TextMessage updateFromClient = new TextMessage(gameId + ":/updateMemory:"+ username2 +":5");
+        TextMessage updateFromClient = new TextMessage(gameId + ":/updateMemory:" + username2 + ":5");
         putPlayersToGameRoom();
+        // Initialize board state in the game room for this test
+        GameRoom gameRoom = gameService.getGameRooms().get(0);
+        gameRoom.setBoardState(new BoardState());
         // WHEN
         gameService.handleTextMessage(session1, updateFromClient);
         // THEN
