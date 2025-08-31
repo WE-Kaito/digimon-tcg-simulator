@@ -58,7 +58,7 @@ jobs:
           name: backend-build
           path: backend/target
 
-      - name: Deploy to Server
+      - name: Deploy to Dev Server
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -70,7 +70,7 @@ jobs:
 
 
   start-dev-server:
-    name: Start Server
+    name: Start Dev Server
     runs-on: ubuntu-latest
     needs: dev-deploy
     environment: Dev
