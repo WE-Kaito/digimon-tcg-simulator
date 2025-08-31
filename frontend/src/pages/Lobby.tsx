@@ -59,9 +59,10 @@ type Room = {
 
 export default function Lobby() {
     const currentPort = window.location.port;
+    const currentUrl = window.location.origin.replace('https://','');
     //TODO: using www.project-drasil.online as the domain is not working, need a fix
     const websocketURL =
-        currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/lobby" : "wss://project-drasil.online/api/ws/lobby";
+        currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/lobby" : "wss://" + currentUrl + "/api/ws/game";
 
     const user = useGeneralStates((state) => state.user);
     const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
