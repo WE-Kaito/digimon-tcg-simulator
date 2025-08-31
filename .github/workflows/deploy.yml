@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - feature/test-server
 
 jobs:
   build-frontend:
@@ -66,7 +67,7 @@ jobs:
           REMOTE_USER: ${{ vars.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
-          PORT: ${{ secrets.PORT }}
+          REMOTE_PORT: ${{ secrets.PORT }}
 
 
   start-dev-server:
