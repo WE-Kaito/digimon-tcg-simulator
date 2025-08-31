@@ -60,7 +60,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
 
     const gameId = useGameBoardStates((state) => state.gameId);
-    const bootStage = useGameBoardStates((state) => state.bootStage);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
     const setPlayers = useGameBoardStates((state) => state.setPlayers);
     const setPhase = useGameBoardStates((state) => state.setPhase);
@@ -94,7 +93,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setFieldOffset = useGameUIStates((state) => state.setFieldOffset);
     const setOpponentFieldOffset = useGameUIStates((state) => state.setOpponentFieldOffset);
 
-    const isPlayerOne = user === gameId.split("‗")[0];
     const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
     const playCoinFlipSfx = useSound((state) => state.playCoinFlipSfx);
@@ -131,17 +129,11 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         onOpen: () => websocket.sendMessage("/joinGame:" + gameId),
 
         onMessage: (event) => {
-            if (event.data === "[PLAYERS_READY]" && isPlayerOne && bootStage < BootStage.MULLIGAN) {
-                websocket.sendMessage("/startGame:" + gameId);
-                return;
-            }
-
             if (event.data === "[START_GAME]") {
                 setIsLoading(true);
                 setStartingPlayer("");
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
-                if (isPlayerOne && !isRematch) websocket.sendMessage("/getStartingPlayers:" + gameId);
                 return;
             }
 
@@ -190,7 +182,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                         setMessages("[STARTING_PLAYER]≔" + firstPlayer);
                         if (firstPlayer === user) setUsernameTurn(user);
                         else setUsernameTurn(opponentName);
-                        if (isPlayerOne) websocket.sendMessage("/distributeCards:" + gameId);
                     },
                     isRematch ? 1500 : 4800
                 );
