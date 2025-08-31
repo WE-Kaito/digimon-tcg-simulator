@@ -44,6 +44,47 @@ jobs:
           name: backend-build
           path: backend/target/digimon-tcg-sim.jar
 
+  dev-deploy:
+    name: Push to Dev Server
+    runs-on: ubuntu-latest
+    needs: build-backend
+    environment: Dev
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+          path: backend/target
+
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@v2.1.5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ vars.USERNAME }}
+          TARGET: ${{ vars.DEPLOY_PATH }}
+          SOURCE: backend/target
+          PORT: ${{ secrets.PORT }}
+
+
+  start-dev-server:
+    name: Start Server
+    runs-on: ubuntu-latest
+    needs: dev-deploy
+    environment: Dev
+    steps:
+      - uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ vars.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            sudo /usr/sbin/service project-drasil restart
+
+
   deploy:
     name: Push to Server
     runs-on: ubuntu-latest
@@ -83,19 +124,20 @@ jobs:
           script: |
             sudo /usr/sbin/service project-drasil restart
 
-  deploy-bot:
-    name: Push Bot to Server
-    runs-on: ubuntu-latest
-    needs: start-server
-    environment: Musubi
-    steps:
-      - name: Checkout the code
-        uses: actions/checkout@v3
-      - name: Deploy to Server
-        uses: easingthemes/ssh-deploy@v2.1.5
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.HOST }}
-          REMOTE_USER: ${{ vars.USERNAME }}
-          TARGET: ${{ vars.DEPLOY_PATH }}
-          SOURCE: ai
+  # Disable bots until they work again so they do not dos server
+  # deploy-bot:
+  #   name: Push Bot to Server
+  #   runs-on: ubuntu-latest
+  #   needs: start-server
+  #   environment: Musubi
+  #   steps:
+  #     - name: Checkout the code
+  #       uses: actions/checkout@v3
+  #     - name: Deploy to Server
+  #       uses: easingthemes/ssh-deploy@v2.1.5
+  #       env:
+  #         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         REMOTE_HOST: ${{ secrets.HOST }}
+  #         REMOTE_USER: ${{ vars.USERNAME }}
+  #         TARGET: ${{ vars.DEPLOY_PATH }}
+  #         SOURCE: ai
