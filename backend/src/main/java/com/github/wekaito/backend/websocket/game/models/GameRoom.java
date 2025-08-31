@@ -7,6 +7,8 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Setter
 @Getter
@@ -23,6 +25,8 @@ public class GameRoom {
     private Phase phase = Phase.BREEDING;
     private String usernameTurn;
 
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
     public void addSession(WebSocketSession session) {
         sessions.add(session);
     }
@@ -32,11 +36,15 @@ public class GameRoom {
     }
     
     public boolean hasFullConnection() {
-        return sessions.size() >= 2;
+        return getOpenSessionCount() >= 2;
     }
     
     public boolean isEmpty() {
-        return sessions.isEmpty();
+        return getOpenSessionCount() == 0;
+    }
+    
+    private long getOpenSessionCount() {
+        return sessions.stream().filter(WebSocketSession::isOpen).count();
     }
 
     public void progressPhase() {
@@ -47,6 +55,10 @@ public class GameRoom {
             phase = Phase.UNSUSPEND;
             usernameTurn = usernameTurn.equals(player1.username()) ? player2.username() : player1.username();
         }
+    }
+
+    public void shutdownScheduler() {
+        scheduler.shutdownNow(); // important to stop any scheduled tasks when the room is closed
     }
 }
 

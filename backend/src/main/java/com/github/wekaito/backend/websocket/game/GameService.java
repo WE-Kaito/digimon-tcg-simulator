@@ -19,8 +19,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,8 +36,6 @@ public class GameService extends TextWebSocketHandler {
 
     private static final SecureRandom secureRand = new SecureRandom();
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
     private static final String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget", "/emote"};
 
     private static final String MULLIGAN_KEY = "mulliganSent";
@@ -50,32 +46,62 @@ public class GameService extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) throws IOException {
-        Optional<GameRoom> gameRoomOpt = gameRooms.stream().filter(room ->
-                room.getPlayer1().username().equals(Objects.requireNonNull(session.getPrincipal()).getName()) ||
-                        room.getPlayer2().username().equals(Objects.requireNonNull(session.getPrincipal()).getName())
-        ).findFirst();
-        
-        if (gameRoomOpt.isPresent()) {
-            GameRoom gameRoom = gameRoomOpt.get();
-            for (WebSocketSession webSocketSession : gameRoom.getSessions()) {
-                if (!webSocketSession.equals(session)) {
-                    webSocketSession.sendMessage(new TextMessage("[OPPONENT_DISCONNECTED]"));
+    public void afterConnectionClosed(@NotNull WebSocketSession session, CloseStatus status) {
+        synchronized (gameRooms) {
+            Optional<GameRoom> gameRoomOpt = gameRooms.stream().filter(room ->
+                    room.getPlayer1().username().equals(Objects.requireNonNull(session.getPrincipal()).getName()) ||
+                            room.getPlayer2().username().equals(Objects.requireNonNull(session.getPrincipal()).getName())
+            ).findFirst();
+            
+            if (gameRoomOpt.isPresent()) {
+                GameRoom gameRoom = gameRoomOpt.get();
+                // Notify remaining active sessions about disconnection
+                for (WebSocketSession webSocketSession : gameRoom.getSessions()) {
+                    if (!webSocketSession.equals(session) && webSocketSession.isOpen()) {
+                        try {
+                            webSocketSession.sendMessage(new TextMessage("[OPPONENT_DISCONNECTED]"));
+                        } catch (IOException e) {
+                            // If we can't send the message, the session is likely also broken
+                        }
+                    }
                 }
-            }
-            gameRoom.removeSession(session);
-            if (gameRoom.isEmpty()) {
-                gameRooms.remove(gameRoom);
+                gameRoom.removeSession(session);
+                
+                // Use isEmpty method that checks for actually open sessions
+                if (gameRoom.isEmpty()) {
+                    gameRoom.shutdownScheduler(); // Clean up scheduler before removing room
+                    gameRooms.remove(gameRoom);
+                }
             }
         }
     }
 
     @Scheduled(fixedRate = 5000)
-    private void sendHeartbeat() throws IOException {
+    private void sendHeartbeat() {
         for (GameRoom gameRoom : gameRooms) {
             for (WebSocketSession webSocketSession : gameRoom.getSessions()) {
-                webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+                if (webSocketSession.isOpen()) {
+                    try {
+                        webSocketSession.sendMessage(new TextMessage("[HEARTBEAT]"));
+                    } catch (IOException e) {
+                        // Session is broken, will be cleaned up by the cleanup scheduler
+                    }
+                }
             }
+        }
+    }
+
+    @Scheduled(fixedRate = 60000) // Run every minute
+    private void cleanupStaleRooms() {
+        synchronized (gameRooms) {
+            gameRooms.removeIf(gameRoom -> {
+                gameRoom.getSessions().removeIf(session -> !session.isOpen());
+                if (gameRoom.isEmpty()) {
+                    gameRoom.shutdownScheduler();
+                    return true; // Remove this room
+                }
+                return false; // Keep this room
+            });
         }
     }
 
@@ -324,22 +350,22 @@ public class GameService extends TextWebSocketHandler {
         WebSocketSession opponentSession = gameRoom.getSessions().stream()
                 .filter(s -> opponentName.equals(Objects.requireNonNull(s.getPrincipal()).getName()))
                 .findFirst().orElse(null);
-        sendTextMessage(opponentSession, message);
+        sendTextMessage(opponentSession, message, gameRoom);
     }
 
 
-    public void sendTextMessage(WebSocketSession session, String message) {
+    public void sendTextMessage(WebSocketSession session, String message, GameRoom gameRoom) {
         if (session == null || !session.isOpen()) return;
 
         int maxRetries = 5;
         int retryDelay = 200; // base delay in ms
 
         // Start with attempt = 1
-        sendWithRetry(session, message, maxRetries, retryDelay, 1);
+        sendWithRetry(session, message, maxRetries, retryDelay, 1, gameRoom);
     }
 
     private void sendWithRetry(WebSocketSession session, String message,
-                               int maxRetries, int retryDelay, int attempt) {
+                               int maxRetries, int retryDelay, int attempt, GameRoom gameRoom) {
         try {
             session.sendMessage(new TextMessage(message));
         } catch (Exception e) {
@@ -354,29 +380,49 @@ public class GameService extends TextWebSocketHandler {
 
             long delay = (long) retryDelay * attempt;
 
-            scheduler.schedule(
-                    () -> {
-                        if (session.isOpen()) {
-                            sendWithRetry(session, message, maxRetries, retryDelay, attempt + 1);
-                        }
-                    },
-                    delay,
-                    TimeUnit.MILLISECONDS
-            );
+            // Use gameRoom's scheduler if available, otherwise fallback to a simple retry without scheduler
+            if (gameRoom != null) {
+                gameRoom.getScheduler().schedule(
+                        () -> {
+                            if (session.isOpen()) {
+                                sendWithRetry(session, message, maxRetries, retryDelay, attempt + 1, gameRoom);
+                            }
+                        },
+                        delay,
+                        TimeUnit.MILLISECONDS
+                );
+            } else {
+                // Fallback: just close the session if we can't find the room
+                try {
+                    session.close();
+                } catch (Exception closeEx) {
+                    removeSessionFromAllRooms(session);
+                }
+            }
         }
     }
 
 
     private void removeSessionFromAllRooms(WebSocketSession session) {
-        gameRooms.forEach(room -> room.removeSession(session));
-        gameRooms.removeIf(GameRoom::isEmpty);
+        synchronized (gameRooms) {
+            gameRooms.forEach(room -> room.removeSession(session));
+            gameRooms.removeIf(room -> {
+                if (room.isEmpty()) {
+                    room.shutdownScheduler();
+                    return true; // Remove this room
+                }
+                return false; // Keep this room
+            });
+        }
     }
     
     private GameRoom findGameRoomById(String gameId) {
-        return gameRooms.stream()
-                .filter(room -> room.getRoomId().equals(gameId))
-                .findFirst()
-                .orElse(null);
+        synchronized (gameRooms) {
+            return gameRooms.stream()
+                    .filter(room -> room.getRoomId().equals(gameId))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
     
     private String mapClientToServer(String clientPosition, String username, GameRoom gameRoom) {
@@ -702,64 +748,70 @@ public class GameService extends TextWebSocketHandler {
     private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         
-        // First check if this user belongs to any existing GameRoom (reconnection)
-        GameRoom existingRoom = gameRooms.stream()
-                .filter(room -> room.getPlayer1().username().equals(username) || 
-                               room.getPlayer2().username().equals(username))
-                .findFirst()
-                .orElse(null);
+        synchronized (gameRooms) {
+            // First check if this user belongs to any existing GameRoom (reconnection)
+            GameRoom existingRoom = gameRooms.stream()
+                    .filter(room -> room.getPlayer1().username().equals(username) || 
+                                   room.getPlayer2().username().equals(username))
+                    .findFirst()
+                    .orElse(null);
         
-        if (existingRoom != null) {
-            // Reconnection: add user back to their existing room
-            existingRoom.addSession(session);
-            
-            if (existingRoom.hasFullConnection()) {
-                // Both players are connected - notify reconnection
-                for (WebSocketSession s : existingRoom.getSessions()) {
-                    if (!s.equals(session)) {
-                        sendTextMessage(s, "[OPPONENT_RECONNECTED]");
-                    }
-                }
+            if (existingRoom != null) {
+                // Reconnection: add user back to their existing room
+                existingRoom.addSession(session);
                 
-                // If there's a BoardState, distribute it to both players using existing method
-                if (existingRoom.getBoardState() != null) {
-                    distributeExistingBoardState(existingRoom);
+                if (existingRoom.hasFullConnection()) {
+                    // Both players are connected - notify reconnection
                     for (WebSocketSession s : existingRoom.getSessions()) {
-                        sendTextMessage(s, "[SET_BOOT_STAGE]:" + existingRoom.getBootStage());
+                        if (!s.equals(session) && s.isOpen()) {
+                            sendTextMessage(s, "[OPPONENT_RECONNECTED]", existingRoom);
+                        }
+                    }
+                    
+                    // If there's a BoardState, distribute it to both players using existing method
+                    if (existingRoom.getBoardState() != null) {
+                        distributeExistingBoardState(existingRoom);
+                        for (WebSocketSession s : existingRoom.getSessions()) {
+                            sendTextMessage(s, "[SET_BOOT_STAGE]:" + existingRoom.getBootStage(), existingRoom);
+                        }
+                    } else {
+                        setUpGame(gameId, existingRoom.getPlayer1().username(), existingRoom.getPlayer2().username());
                     }
                 } else {
-                    setUpGame(gameId, existingRoom.getPlayer1().username(), existingRoom.getPlayer2().username());
+                    sendTextMessage(session, "[OPPONENT_DISCONNECTED]", existingRoom); // Notify player that opponent is still missing
                 }
-            } else {
-                sendTextMessage(session, "[OPPONENT_DISCONNECTED]"); // Notify player that opponent is still missing
+                return;
             }
-            return;
-        }
 
-        // No existing room found, check if we should create a new one for this gameId
-        GameRoom gameRoom = findGameRoomById(gameId);
-        if (gameRoom == null) {
-            // Create new game room
-            String[] usernames = gameId.split("‗");
-            if (usernames.length == 2) {
-                String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
-                String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
-                String sleeve1 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(usernames[0]));
-                String sleeve2 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(usernames[1]));
-                
-                Player player1 = new Player(usernames[0], avatar1, sleeve1);
-                Player player2 = new Player(usernames[1], avatar2, sleeve2);
-                gameRoom = new GameRoom(gameId, player1, player2);
-                // Initialize empty chat array
-                gameRoom.setChat(new String[0]);
-                gameRooms.add(gameRoom);
+            // No existing room found, check if we should create a new one for this gameId
+            GameRoom gameRoom = gameRooms.stream()
+                    .filter(room -> room.getRoomId().equals(gameId))
+                    .findFirst()
+                    .orElse(null);
+                    
+            if (gameRoom == null) {
+                // Create new game room
+                String[] usernames = gameId.split("‗");
+                if (usernames.length == 2) {
+                    String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
+                    String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
+                    String sleeve1 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(usernames[0]));
+                    String sleeve2 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(usernames[1]));
+                    
+                    Player player1 = new Player(usernames[0], avatar1, sleeve1);
+                    Player player2 = new Player(usernames[1], avatar2, sleeve2);
+                    gameRoom = new GameRoom(gameId, player1, player2);
+                    // Initialize empty chat array
+                    gameRoom.setChat(new String[0]);
+                    gameRooms.add(gameRoom);
+                }
             }
-        }
-        
-        if (gameRoom != null) {
-            gameRoom.addSession(session);
-            if (gameRoom.hasFullConnection()) {
-                setUpGame(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
+            
+            if (gameRoom != null) {
+                gameRoom.addSession(session);
+                if (gameRoom.hasFullConnection()) {
+                    setUpGame(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
+                }
             }
         }
     }
@@ -769,17 +821,17 @@ public class GameService extends TextWebSocketHandler {
         gameRoom.setBoardState(null);
         gameRoom.setBootStage(1);
         for (WebSocketSession s : gameRoom.getSessions()) {
-            sendTextMessage(s, "[START_GAME]");
-            sendTextMessage(s, "[PLAYER_INFO]:" + getPlayersJson(username1, username2));
+            sendTextMessage(s, "[START_GAME]", gameRoom);
+            sendTextMessage(s, "[PLAYER_INFO]:" + getPlayersJson(username1, username2), gameRoom);
         }
-        scheduler.schedule(() -> {
+        gameRoom.getScheduler().schedule(() -> {
             try {
                 setStartingPlayer(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }, 100, TimeUnit.MILLISECONDS);
-        scheduler.schedule(() -> {
+        gameRoom.getScheduler().schedule(() -> {
             try {
                 prepareCardDistribution(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
             } catch (IOException e) {
@@ -800,7 +852,7 @@ public class GameService extends TextWebSocketHandler {
             gameRoom.setBootStage(1);
             gameRoom.setUsernameTurn(names[index]);
             for (WebSocketSession s : gameRoom.getSessions()) {
-                sendTextMessage(s, "[STARTING_PLAYER]:" + names[index]);
+                sendTextMessage(s, "[STARTING_PLAYER]:" + names[index], gameRoom);
             }
         }
     }
@@ -834,7 +886,7 @@ public class GameService extends TextWebSocketHandler {
             for (int i = 0; i < newGameJson.length(); i += chunkSize) {
                 int end = Math.min(i + chunkSize, newGameJson.length());
                 String chunk = newGameJson.substring(i, end);
-                sendTextMessage(session, "[DISTRIBUTE_CARDS]:" + chunk);
+                sendTextMessage(session, "[DISTRIBUTE_CARDS]:" + chunk, gameRoom);
             }
         }
     }
@@ -887,7 +939,7 @@ public class GameService extends TextWebSocketHandler {
 
         distributeCards(gameRoom, newGame);
         for (WebSocketSession session : gameRoom.getSessions()) {
-            sendTextMessage(session, "[SET_BOOT_STAGE]:" + 2);
+            sendTextMessage(session, "[SET_BOOT_STAGE]:" + 2, gameRoom);
         }
     }
 
@@ -951,7 +1003,7 @@ public class GameService extends TextWebSocketHandler {
         distributeCards(gameRoom, redistributedGame);
 
         for (WebSocketSession session : gameRoom.getSessions()) {
-            sendTextMessage(session, "[SET_BOOT_STAGE]:" + 3);
+            sendTextMessage(session, "[SET_BOOT_STAGE]:" + 3, gameRoom);
         }
     }
 
@@ -964,7 +1016,7 @@ public class GameService extends TextWebSocketHandler {
         if (usernames.length == 2) {
             String playersJson = getPlayersJson(usernames[0], usernames[1]);
             for (WebSocketSession s : gameRoom.getSessions()) {
-                sendTextMessage(s, "[PLAYER_INFO]:" + playersJson);
+                sendTextMessage(s, "[PLAYER_INFO]:" + playersJson, gameRoom);
             }
         }
         
@@ -975,9 +1027,9 @@ public class GameService extends TextWebSocketHandler {
         distributeChatHistory(gameRoom);
 
         for (WebSocketSession s : gameRoom.getSessions()) {
-            sendTextMessage(s, "[SET_BOOT_STAGE]:" + gameRoom.getBootStage());
-            sendTextMessage(s, "[SET_PHASE]:" + gameRoom.getPhase());
-            sendTextMessage(s, "[SET_TURN]:" + gameRoom.getUsernameTurn());
+            sendTextMessage(s, "[SET_BOOT_STAGE]:" + gameRoom.getBootStage(), gameRoom);
+            sendTextMessage(s, "[SET_PHASE]:" + gameRoom.getPhase(), gameRoom);
+            sendTextMessage(s, "[SET_TURN]:" + gameRoom.getUsernameTurn(), gameRoom);
         }
     }
     
@@ -997,12 +1049,12 @@ public class GameService extends TextWebSocketHandler {
             
             // Send to all players to ensure complete synchronization
             for (WebSocketSession session : gameRoom.getSessions()) {
-                sendTextMessage(session, "[CHAT_HISTORY]:" + chatHistoryJson);
+                sendTextMessage(session, "[CHAT_HISTORY]:" + chatHistoryJson, gameRoom);
             }
         } catch (Exception e) {
             // Fallback to empty array if serialization fails
             for (WebSocketSession session : gameRoom.getSessions()) {
-                sendTextMessage(session, "[CHAT_HISTORY]:[]");
+                sendTextMessage(session, "[CHAT_HISTORY]:[]", gameRoom);
             }
         }
     }
@@ -1062,7 +1114,7 @@ public class GameService extends TextWebSocketHandler {
             for (int i = 0; i < boardStateJson.length(); i += chunkSize) {
                 int end = Math.min(i + chunkSize, boardStateJson.length());
                 String chunk = boardStateJson.substring(i, end);
-                sendTextMessage(session, "[DISTRIBUTE_CARDS]:" + chunk);
+                sendTextMessage(session, "[DISTRIBUTE_CARDS]:" + chunk, gameRoom);
             }
         }
     }
