@@ -80,6 +80,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ vars.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
