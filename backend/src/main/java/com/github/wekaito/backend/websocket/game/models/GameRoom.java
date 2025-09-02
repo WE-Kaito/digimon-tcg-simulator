@@ -3,8 +3,11 @@ package com.github.wekaito.backend.websocket.game.models;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -59,6 +62,35 @@ public class GameRoom {
 
     public void shutdownScheduler() {
         scheduler.shutdownNow(); // important to stop any scheduled tasks when the room is closed
+    }
+
+    public void sendMessagesToAll(String message) {
+        for (WebSocketSession s : sessions) {
+            if (s.isOpen()) {
+                try {
+                    s.sendMessage(new TextMessage(message));
+                } catch (IOException e) {
+                    // Session is broken, will be cleaned up by the cleanup scheduler
+                }
+            }
+        }
+    }
+
+    public void sendMessageToOtherSessions(WebSocketSession sender, String message) {
+        for (WebSocketSession s : sessions) {
+            if (s.isOpen() && !s.getId().equals(sender.getId())) {
+                try {
+                    s.sendMessage(new TextMessage(message));
+                } catch (IOException e) {
+                    // Session is broken, will be cleaned up by the cleanup scheduler
+                }
+            }
+        }
+    }
+
+    @Scheduled(fixedRate = 5000)
+    private void sendHeartbeat() {
+        sendMessagesToAll("[HEARTBEAT]");
     }
 }
 

@@ -71,7 +71,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setUsernameTurn = useGameBoardStates((state) => state.setUsernameTurn);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
-    const setIsLoading = useGameBoardStates((state) => state.setIsLoading);
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
     const setCardIdWithEffect = useGameBoardStates((state) => state.setCardIdWithEffect);
     const setCardIdWithTarget = useGameBoardStates((state) => state.setCardIdWithTarget);
@@ -109,8 +108,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playRematchSfx = useSound((state) => state.playRematchSfx);
 
-    const sendLoaded = () => websocket.sendMessage(`${gameId}:/loaded:${opponentName}`);
-
     function clearCardEffect() {
         const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
         return () => clearTimeout(timer);
@@ -130,7 +127,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
         onMessage: (event) => {
             if (event.data === "[START_GAME]") {
-                setIsLoading(true);
                 setStartingPlayer("");
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
@@ -139,7 +135,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const gameStateJson = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(user, gameStateJson, gameId, sendLoaded, playDrawCardSfx);
+                distributeCards(user, gameStateJson, gameId, playDrawCardSfx);
                 setOpenedCardModal(false);
                 return;
             }
@@ -170,23 +166,16 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
-            if (event.data.startsWith("[STARTING_PLAYER]:")) {
-                const firstPlayer = event.data.substring("[STARTING_PLAYER]:".length);
+            if (event.data.startsWith("[STARTING_PLAYER]")) {
+                const firstPlayer = event.data.substring("[STARTING_PLAYER]≔".length);
 
                 setStartingPlayer(firstPlayer);
                 setBootStage(BootStage.SHOW_STARTING_PLAYER);
                 isRematch ? playRematchSfx() : playCoinFlipSfx();
-
-                const timeout = setTimeout(
-                    () => {
-                        setMessages("[STARTING_PLAYER]≔" + firstPlayer);
-                        if (firstPlayer === user) setUsernameTurn(user);
-                        else setUsernameTurn(opponentName);
-                    },
-                    isRematch ? 1500 : 4800
-                );
-
-                return () => clearTimeout(timeout);
+                if (firstPlayer === user) setUsernameTurn(user);
+                else setUsernameTurn(opponentName);
+                setMessages(event.data);
+                return;
             }
 
             if (event.data.startsWith("[MOVE_CARD]:")) {
@@ -411,10 +400,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 }
                 case "[UNSUSPEND_ALL]": {
                     unsuspendAll(SIDE.OPPONENT);
-                    break;
-                }
-                case "[LOADED]": {
-                    setIsLoading(false);
                     break;
                 }
                 case "[OPPONENT_DISCONNECTED]": {

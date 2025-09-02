@@ -179,7 +179,6 @@ type GameDistribution = {
 export type State = BoardState & {
     gameId: string;
 
-    isLoading: boolean;
     cardIdWithEffect: string;
     cardIdWithTarget: string;
     isHandHidden: boolean;
@@ -214,7 +213,6 @@ export type State = BoardState & {
     stackSliceIndex: number;
     isOpponentOnline: boolean;
     startingPlayer: string;
-    distributionChunks: string;
 
     // --------------------------------------------------------
 
@@ -222,13 +220,7 @@ export type State = BoardState & {
 
     setPlayers: (me: Player, opponent: Player) => void;
     clearBoard: () => void;
-    distributeCards: (
-        user: string,
-        chunk: string,
-        gameId: string,
-        sendLoaded: () => void,
-        playDrawCardSfx: () => void
-    ) => void;
+    distributeCards: (user: string, distributionJSON: string, gameId: string, playDrawCardSfx: () => void) => void;
     moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
     moveCardToStack: SendToStackFunction;
     setMemory: (memory: number) => void;
@@ -253,7 +245,6 @@ export type State = BoardState & {
     setOpponentAttackPhase: (phase: AttackPhase | false) => void;
     getDigimonNumber: (location: string) => string;
     getCardType: (location: string) => string;
-    setIsLoading: (isLoading: boolean) => void;
     setCardIdWithEffect: (cardId: string) => void;
     getIsCardEffect: (compareCardId: string) => boolean;
     setCardIdWithTarget: (cardId: string) => void;
@@ -423,7 +414,6 @@ const fieldDefaultValues = {
 export const useGameBoardStates = create<State>()((set, get) => ({
     gameId: localStorage.getItem("gameId") || "",
 
-    isLoading: false,
     cardIdWithEffect: "",
     cardIdWithTarget: "",
     isHandHidden: false,
@@ -451,7 +441,6 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     stackSliceIndex: 0,
     isOpponentOnline: true,
     startingPlayer: "",
-    distributionChunks: "",
 
     hasDecidedMulligan: false,
     setHasDecidedMulligan: (hasDecidedMulligan) => set({ hasDecidedMulligan }),
@@ -476,146 +465,135 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             usernameTurn: "",
             opponentAttackPhase: false,
             myAttackPhase: false,
-            isLoading: false,
             bootStage: BootStage.CLEAR,
             isOpponentOnline: true,
             hasDecidedMulligan: false,
         });
     },
 
-    distributeCards: (user, chunk, gameId, sendLoaded, playDrawCardSfx) => {
-        const currentChunks = get().distributionChunks;
-        const newDistributionChunks = currentChunks + chunk;
-        set({ distributionChunks: newDistributionChunks });
+    distributeCards: (user, distributionJSON, gameId, playDrawCardSfx) => {
+        const player1 = gameId.split("‗")[0];
+        const gameData = JSON.parse(distributionJSON);
 
-        if (chunk.length < 40000 || chunk.endsWith("]}")) {
-            const player1 = gameId.split("‗")[0];
-            const gameData = JSON.parse(newDistributionChunks);
+        const isPlayer1 = user === player1;
 
-            set({ distributionChunks: "" });
+        // Check if this is BoardState format (has player1Deck) or GameStart format (has player1DeckField)
+        const isBoardStateFormat = "player1Deck" in gameData;
 
-            const isPlayer1 = user === player1;
+        if (isBoardStateFormat) {
+            // Handle complete BoardState format (reconnection)
+            const boardState = gameData;
+            set({
+                myHand: isPlayer1 ? boardState.player1Hand : boardState.player2Hand,
+                myDeckField: isPlayer1 ? boardState.player1Deck : boardState.player2Deck,
+                myEggDeck: isPlayer1 ? boardState.player1EggDeck : boardState.player2EggDeck,
+                mySecurity: isPlayer1 ? boardState.player1Security : boardState.player2Security,
+                myTrash: isPlayer1 ? boardState.player1Trash : boardState.player2Trash,
+                myReveal: isPlayer1 ? boardState.player1Reveal : boardState.player2Reveal,
+                myDigi1: isPlayer1 ? boardState.player1Digi1 : boardState.player2Digi1,
+                myDigi2: isPlayer1 ? boardState.player1Digi2 : boardState.player2Digi2,
+                myDigi3: isPlayer1 ? boardState.player1Digi3 : boardState.player2Digi3,
+                myDigi4: isPlayer1 ? boardState.player1Digi4 : boardState.player2Digi4,
+                myDigi5: isPlayer1 ? boardState.player1Digi5 : boardState.player2Digi5,
+                myDigi6: isPlayer1 ? boardState.player1Digi6 : boardState.player2Digi6,
+                myDigi7: isPlayer1 ? boardState.player1Digi7 : boardState.player2Digi7,
+                myDigi8: isPlayer1 ? boardState.player1Digi8 : boardState.player2Digi8,
+                myDigi9: isPlayer1 ? boardState.player1Digi9 : boardState.player2Digi9,
+                myDigi10: isPlayer1 ? boardState.player1Digi10 : boardState.player2Digi10,
+                myDigi11: isPlayer1 ? boardState.player1Digi11 : boardState.player2Digi11,
+                myDigi12: isPlayer1 ? boardState.player1Digi12 : boardState.player2Digi12,
+                myDigi13: isPlayer1 ? boardState.player1Digi13 : boardState.player2Digi13,
+                myDigi14: isPlayer1 ? boardState.player1Digi14 : boardState.player2Digi14,
+                myDigi15: isPlayer1 ? boardState.player1Digi15 : boardState.player2Digi15,
+                myDigi16: isPlayer1 ? boardState.player1Digi16 : boardState.player2Digi16,
+                myDigi17: isPlayer1 ? boardState.player1Digi17 : boardState.player2Digi17,
+                myDigi18: isPlayer1 ? boardState.player1Digi18 : boardState.player2Digi18,
+                myDigi19: isPlayer1 ? boardState.player1Digi19 : boardState.player2Digi19,
+                myDigi20: isPlayer1 ? boardState.player1Digi20 : boardState.player2Digi20,
+                myDigi21: isPlayer1 ? boardState.player1Digi21 : boardState.player2Digi21,
+                myBreedingArea: isPlayer1 ? boardState.player1Digi1 : boardState.player2Digi1, // Breeding area is Digi1
+                myLink1: isPlayer1 ? boardState.player1Link1 : boardState.player2Link1,
+                myLink2: isPlayer1 ? boardState.player1Link2 : boardState.player2Link2,
+                myLink3: isPlayer1 ? boardState.player1Link3 : boardState.player2Link3,
+                myLink4: isPlayer1 ? boardState.player1Link4 : boardState.player2Link4,
+                myLink5: isPlayer1 ? boardState.player1Link5 : boardState.player2Link5,
+                myLink6: isPlayer1 ? boardState.player1Link6 : boardState.player2Link6,
+                myLink7: isPlayer1 ? boardState.player1Link7 : boardState.player2Link7,
+                myLink8: isPlayer1 ? boardState.player1Link8 : boardState.player2Link8,
+                myLink9: isPlayer1 ? boardState.player1Link9 : boardState.player2Link9,
+                myLink10: isPlayer1 ? boardState.player1Link10 : boardState.player2Link10,
+                myLink11: isPlayer1 ? boardState.player1Link11 : boardState.player2Link11,
+                myLink12: isPlayer1 ? boardState.player1Link12 : boardState.player2Link12,
+                myLink13: isPlayer1 ? boardState.player1Link13 : boardState.player2Link13,
+                myLink14: isPlayer1 ? boardState.player1Link14 : boardState.player2Link14,
+                myLink15: isPlayer1 ? boardState.player1Link15 : boardState.player2Link15,
+                myLink16: isPlayer1 ? boardState.player1Link16 : boardState.player2Link16,
 
-            // Check if this is BoardState format (has player1Deck) or GameStart format (has player1DeckField)
-            const isBoardStateFormat = "player1Deck" in gameData;
+                // Opponent fields
+                opponentHand: isPlayer1 ? boardState.player2Hand : boardState.player1Hand,
+                opponentDeckField: isPlayer1 ? boardState.player2Deck : boardState.player1Deck,
+                opponentEggDeck: isPlayer1 ? boardState.player2EggDeck : boardState.player1EggDeck,
+                opponentSecurity: isPlayer1 ? boardState.player2Security : boardState.player1Security,
+                opponentTrash: isPlayer1 ? boardState.player2Trash : boardState.player1Trash,
+                opponentReveal: isPlayer1 ? boardState.player2Reveal : boardState.player1Reveal,
+                opponentDigi1: isPlayer1 ? boardState.player2Digi1 : boardState.player1Digi1,
+                opponentDigi2: isPlayer1 ? boardState.player2Digi2 : boardState.player1Digi2,
+                opponentDigi3: isPlayer1 ? boardState.player2Digi3 : boardState.player1Digi3,
+                opponentDigi4: isPlayer1 ? boardState.player2Digi4 : boardState.player1Digi4,
+                opponentDigi5: isPlayer1 ? boardState.player2Digi5 : boardState.player1Digi5,
+                opponentDigi6: isPlayer1 ? boardState.player2Digi6 : boardState.player1Digi6,
+                opponentDigi7: isPlayer1 ? boardState.player2Digi7 : boardState.player1Digi7,
+                opponentDigi8: isPlayer1 ? boardState.player2Digi8 : boardState.player1Digi8,
+                opponentDigi9: isPlayer1 ? boardState.player2Digi9 : boardState.player1Digi9,
+                opponentDigi10: isPlayer1 ? boardState.player2Digi10 : boardState.player1Digi10,
+                opponentDigi11: isPlayer1 ? boardState.player2Digi11 : boardState.player1Digi11,
+                opponentDigi12: isPlayer1 ? boardState.player2Digi12 : boardState.player1Digi12,
+                opponentDigi13: isPlayer1 ? boardState.player2Digi13 : boardState.player1Digi13,
+                opponentDigi14: isPlayer1 ? boardState.player2Digi14 : boardState.player1Digi14,
+                opponentDigi15: isPlayer1 ? boardState.player2Digi15 : boardState.player1Digi15,
+                opponentDigi16: isPlayer1 ? boardState.player2Digi16 : boardState.player1Digi16,
+                opponentDigi17: isPlayer1 ? boardState.player2Digi17 : boardState.player1Digi17,
+                opponentDigi18: isPlayer1 ? boardState.player2Digi18 : boardState.player1Digi18,
+                opponentDigi19: isPlayer1 ? boardState.player2Digi19 : boardState.player1Digi19,
+                opponentDigi20: isPlayer1 ? boardState.player2Digi20 : boardState.player1Digi20,
+                opponentDigi21: isPlayer1 ? boardState.player2Digi21 : boardState.player1Digi21,
+                opponentBreedingArea: isPlayer1 ? boardState.player2Digi1 : boardState.player1Digi1,
+                opponentLink1: isPlayer1 ? boardState.player2Link1 : boardState.player1Link1,
+                opponentLink2: isPlayer1 ? boardState.player2Link2 : boardState.player1Link2,
+                opponentLink3: isPlayer1 ? boardState.player2Link3 : boardState.player1Link3,
+                opponentLink4: isPlayer1 ? boardState.player2Link4 : boardState.player1Link4,
+                opponentLink5: isPlayer1 ? boardState.player2Link5 : boardState.player1Link5,
+                opponentLink6: isPlayer1 ? boardState.player2Link6 : boardState.player1Link6,
+                opponentLink7: isPlayer1 ? boardState.player2Link7 : boardState.player1Link7,
+                opponentLink8: isPlayer1 ? boardState.player2Link8 : boardState.player1Link8,
+                opponentLink9: isPlayer1 ? boardState.player2Link9 : boardState.player1Link9,
+                opponentLink10: isPlayer1 ? boardState.player2Link10 : boardState.player1Link10,
+                opponentLink11: isPlayer1 ? boardState.player2Link11 : boardState.player1Link11,
+                opponentLink12: isPlayer1 ? boardState.player2Link12 : boardState.player1Link12,
+                opponentLink13: isPlayer1 ? boardState.player2Link13 : boardState.player1Link13,
+                opponentLink14: isPlayer1 ? boardState.player2Link14 : boardState.player1Link14,
+                opponentLink15: isPlayer1 ? boardState.player2Link15 : boardState.player1Link15,
+                opponentLink16: isPlayer1 ? boardState.player2Link16 : boardState.player1Link16,
 
-            if (isBoardStateFormat) {
-                // Handle complete BoardState format (reconnection)
-                const boardState = gameData;
-                set({
-                    myHand: isPlayer1 ? boardState.player1Hand : boardState.player2Hand,
-                    myDeckField: isPlayer1 ? boardState.player1Deck : boardState.player2Deck,
-                    myEggDeck: isPlayer1 ? boardState.player1EggDeck : boardState.player2EggDeck,
-                    mySecurity: isPlayer1 ? boardState.player1Security : boardState.player2Security,
-                    myTrash: isPlayer1 ? boardState.player1Trash : boardState.player2Trash,
-                    myReveal: isPlayer1 ? boardState.player1Reveal : boardState.player2Reveal,
-                    myDigi1: isPlayer1 ? boardState.player1Digi1 : boardState.player2Digi1,
-                    myDigi2: isPlayer1 ? boardState.player1Digi2 : boardState.player2Digi2,
-                    myDigi3: isPlayer1 ? boardState.player1Digi3 : boardState.player2Digi3,
-                    myDigi4: isPlayer1 ? boardState.player1Digi4 : boardState.player2Digi4,
-                    myDigi5: isPlayer1 ? boardState.player1Digi5 : boardState.player2Digi5,
-                    myDigi6: isPlayer1 ? boardState.player1Digi6 : boardState.player2Digi6,
-                    myDigi7: isPlayer1 ? boardState.player1Digi7 : boardState.player2Digi7,
-                    myDigi8: isPlayer1 ? boardState.player1Digi8 : boardState.player2Digi8,
-                    myDigi9: isPlayer1 ? boardState.player1Digi9 : boardState.player2Digi9,
-                    myDigi10: isPlayer1 ? boardState.player1Digi10 : boardState.player2Digi10,
-                    myDigi11: isPlayer1 ? boardState.player1Digi11 : boardState.player2Digi11,
-                    myDigi12: isPlayer1 ? boardState.player1Digi12 : boardState.player2Digi12,
-                    myDigi13: isPlayer1 ? boardState.player1Digi13 : boardState.player2Digi13,
-                    myDigi14: isPlayer1 ? boardState.player1Digi14 : boardState.player2Digi14,
-                    myDigi15: isPlayer1 ? boardState.player1Digi15 : boardState.player2Digi15,
-                    myDigi16: isPlayer1 ? boardState.player1Digi16 : boardState.player2Digi16,
-                    myDigi17: isPlayer1 ? boardState.player1Digi17 : boardState.player2Digi17,
-                    myDigi18: isPlayer1 ? boardState.player1Digi18 : boardState.player2Digi18,
-                    myDigi19: isPlayer1 ? boardState.player1Digi19 : boardState.player2Digi19,
-                    myDigi20: isPlayer1 ? boardState.player1Digi20 : boardState.player2Digi20,
-                    myDigi21: isPlayer1 ? boardState.player1Digi21 : boardState.player2Digi21,
-                    myBreedingArea: isPlayer1 ? boardState.player1Digi1 : boardState.player2Digi1, // Breeding area is Digi1
-                    myLink1: isPlayer1 ? boardState.player1Link1 : boardState.player2Link1,
-                    myLink2: isPlayer1 ? boardState.player1Link2 : boardState.player2Link2,
-                    myLink3: isPlayer1 ? boardState.player1Link3 : boardState.player2Link3,
-                    myLink4: isPlayer1 ? boardState.player1Link4 : boardState.player2Link4,
-                    myLink5: isPlayer1 ? boardState.player1Link5 : boardState.player2Link5,
-                    myLink6: isPlayer1 ? boardState.player1Link6 : boardState.player2Link6,
-                    myLink7: isPlayer1 ? boardState.player1Link7 : boardState.player2Link7,
-                    myLink8: isPlayer1 ? boardState.player1Link8 : boardState.player2Link8,
-                    myLink9: isPlayer1 ? boardState.player1Link9 : boardState.player2Link9,
-                    myLink10: isPlayer1 ? boardState.player1Link10 : boardState.player2Link10,
-                    myLink11: isPlayer1 ? boardState.player1Link11 : boardState.player2Link11,
-                    myLink12: isPlayer1 ? boardState.player1Link12 : boardState.player2Link12,
-                    myLink13: isPlayer1 ? boardState.player1Link13 : boardState.player2Link13,
-                    myLink14: isPlayer1 ? boardState.player1Link14 : boardState.player2Link14,
-                    myLink15: isPlayer1 ? boardState.player1Link15 : boardState.player2Link15,
-                    myLink16: isPlayer1 ? boardState.player1Link16 : boardState.player2Link16,
-
-                    // Opponent fields
-                    opponentHand: isPlayer1 ? boardState.player2Hand : boardState.player1Hand,
-                    opponentDeckField: isPlayer1 ? boardState.player2Deck : boardState.player1Deck,
-                    opponentEggDeck: isPlayer1 ? boardState.player2EggDeck : boardState.player1EggDeck,
-                    opponentSecurity: isPlayer1 ? boardState.player2Security : boardState.player1Security,
-                    opponentTrash: isPlayer1 ? boardState.player2Trash : boardState.player1Trash,
-                    opponentReveal: isPlayer1 ? boardState.player2Reveal : boardState.player1Reveal,
-                    opponentDigi1: isPlayer1 ? boardState.player2Digi1 : boardState.player1Digi1,
-                    opponentDigi2: isPlayer1 ? boardState.player2Digi2 : boardState.player1Digi2,
-                    opponentDigi3: isPlayer1 ? boardState.player2Digi3 : boardState.player1Digi3,
-                    opponentDigi4: isPlayer1 ? boardState.player2Digi4 : boardState.player1Digi4,
-                    opponentDigi5: isPlayer1 ? boardState.player2Digi5 : boardState.player1Digi5,
-                    opponentDigi6: isPlayer1 ? boardState.player2Digi6 : boardState.player1Digi6,
-                    opponentDigi7: isPlayer1 ? boardState.player2Digi7 : boardState.player1Digi7,
-                    opponentDigi8: isPlayer1 ? boardState.player2Digi8 : boardState.player1Digi8,
-                    opponentDigi9: isPlayer1 ? boardState.player2Digi9 : boardState.player1Digi9,
-                    opponentDigi10: isPlayer1 ? boardState.player2Digi10 : boardState.player1Digi10,
-                    opponentDigi11: isPlayer1 ? boardState.player2Digi11 : boardState.player1Digi11,
-                    opponentDigi12: isPlayer1 ? boardState.player2Digi12 : boardState.player1Digi12,
-                    opponentDigi13: isPlayer1 ? boardState.player2Digi13 : boardState.player1Digi13,
-                    opponentDigi14: isPlayer1 ? boardState.player2Digi14 : boardState.player1Digi14,
-                    opponentDigi15: isPlayer1 ? boardState.player2Digi15 : boardState.player1Digi15,
-                    opponentDigi16: isPlayer1 ? boardState.player2Digi16 : boardState.player1Digi16,
-                    opponentDigi17: isPlayer1 ? boardState.player2Digi17 : boardState.player1Digi17,
-                    opponentDigi18: isPlayer1 ? boardState.player2Digi18 : boardState.player1Digi18,
-                    opponentDigi19: isPlayer1 ? boardState.player2Digi19 : boardState.player1Digi19,
-                    opponentDigi20: isPlayer1 ? boardState.player2Digi20 : boardState.player1Digi20,
-                    opponentDigi21: isPlayer1 ? boardState.player2Digi21 : boardState.player1Digi21,
-                    opponentBreedingArea: isPlayer1 ? boardState.player2Digi1 : boardState.player1Digi1,
-                    opponentLink1: isPlayer1 ? boardState.player2Link1 : boardState.player1Link1,
-                    opponentLink2: isPlayer1 ? boardState.player2Link2 : boardState.player1Link2,
-                    opponentLink3: isPlayer1 ? boardState.player2Link3 : boardState.player1Link3,
-                    opponentLink4: isPlayer1 ? boardState.player2Link4 : boardState.player1Link4,
-                    opponentLink5: isPlayer1 ? boardState.player2Link5 : boardState.player1Link5,
-                    opponentLink6: isPlayer1 ? boardState.player2Link6 : boardState.player1Link6,
-                    opponentLink7: isPlayer1 ? boardState.player2Link7 : boardState.player1Link7,
-                    opponentLink8: isPlayer1 ? boardState.player2Link8 : boardState.player1Link8,
-                    opponentLink9: isPlayer1 ? boardState.player2Link9 : boardState.player1Link9,
-                    opponentLink10: isPlayer1 ? boardState.player2Link10 : boardState.player1Link10,
-                    opponentLink11: isPlayer1 ? boardState.player2Link11 : boardState.player1Link11,
-                    opponentLink12: isPlayer1 ? boardState.player2Link12 : boardState.player1Link12,
-                    opponentLink13: isPlayer1 ? boardState.player2Link13 : boardState.player1Link13,
-                    opponentLink14: isPlayer1 ? boardState.player2Link14 : boardState.player1Link14,
-                    opponentLink15: isPlayer1 ? boardState.player2Link15 : boardState.player1Link15,
-                    opponentLink16: isPlayer1 ? boardState.player2Link16 : boardState.player1Link16,
-
-                    // Set memory values
-                    myMemory: isPlayer1 ? boardState.player1Memory : boardState.player2Memory,
-                    opponentMemory: isPlayer1 ? boardState.player2Memory : boardState.player1Memory,
-                });
-            } else {
-                // Handle GameStart format (initial distribution)
-                const game: GameDistribution = gameData;
-                set({
-                    myHand: isPlayer1 ? game.player1Hand : game.player2Hand,
-                    myDeckField: isPlayer1 ? game.player1DeckField : game.player2DeckField,
-                    myEggDeck: isPlayer1 ? game.player1EggDeck : game.player2EggDeck,
-                    mySecurity: isPlayer1 ? game.player1Security : game.player2Security,
-                    opponentHand: isPlayer1 ? game.player2Hand : game.player1Hand,
-                    opponentDeckField: isPlayer1 ? game.player2DeckField : game.player1DeckField,
-                    opponentEggDeck: isPlayer1 ? game.player2EggDeck : game.player1EggDeck,
-                    opponentSecurity: isPlayer1 ? game.player2Security : game.player1Security,
-                });
-            }
-
-            sendLoaded();
-            playDrawCardSfx();
+                // Set memory values
+                myMemory: isPlayer1 ? boardState.player1Memory : boardState.player2Memory,
+                opponentMemory: isPlayer1 ? boardState.player2Memory : boardState.player1Memory,
+            });
+        } else {
+            // Handle GameStart format (initial distribution)
+            const game: GameDistribution = gameData;
+            set({
+                myHand: isPlayer1 ? game.player1Hand : game.player2Hand,
+                myDeckField: isPlayer1 ? game.player1DeckField : game.player2DeckField,
+                myEggDeck: isPlayer1 ? game.player1EggDeck : game.player2EggDeck,
+                mySecurity: isPlayer1 ? game.player1Security : game.player2Security,
+                opponentHand: isPlayer1 ? game.player2Hand : game.player1Hand,
+                opponentDeckField: isPlayer1 ? game.player2DeckField : game.player1DeckField,
+                opponentEggDeck: isPlayer1 ? game.player2EggDeck : game.player1EggDeck,
+                opponentSecurity: isPlayer1 ? game.player2Security : game.player1Security,
+            });
         }
+        playDrawCardSfx();
     },
 
     moveCard: (cardId, from, to, facing?: "down" | "up") => {
@@ -755,7 +733,6 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             }
             return {
                 mySecurity: security,
-                isLoading: true,
             };
         });
     },
@@ -763,19 +740,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     mulligan: async (myDecision, opponentDecision) => {
         // Card redistribution is now handled by backend via [REDISTRIBUTE_CARDS] message
         // This function only handles UI state transitions for the "neither player mulligan" case
-        set(() => {
-            if (!myDecision && !opponentDecision) {
-                return {
-                    bootStage: BootStage.GAME_IN_PROGRESS,
-                    isLoading: false,
-                };
-            }
-
-            // For mulligan cases, backend handles card redistribution
-            return {
-                isLoading: true, // will be set false in distributeCards
-            };
-        });
+        if (!myDecision && !opponentDecision) set({ bootStage: BootStage.GAME_IN_PROGRESS });
     },
 
     tiltCard: (cardId, location, playSuspendSfx, playUnsuspendSfx) => {
@@ -927,8 +892,6 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         if (!locationState || locationState.length === 0) return "";
         return locationState[locationState.length - 1]?.cardType ?? "";
     },
-
-    setIsLoading: (isLoading) => set({ isLoading }),
 
     setCardIdWithEffect: (cardIdWithEffect) => set({ cardIdWithEffect }),
 

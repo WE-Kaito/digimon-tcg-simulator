@@ -20,7 +20,12 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUt
         <>
             <History>
                 {messages.map((message, index) => {
-                    if (message.startsWith("[STARTING_PLAYER]≔")) return <></>;
+                    if (message.startsWith("[STARTING_PLAYER]≔"))
+                        return (
+                            <UpdateMessage style={{ background: "rgba(255, 215, 0, 0.25)" }}>
+                                <p>FIRST TURN: {message.split("≔")[1]}</p>
+                            </UpdateMessage>
+                        );
 
                     const userName = message.split("﹕", 2)[0];
                     const isMyMessage = userName === matchInfo?.user;
@@ -210,7 +215,7 @@ const InputContainer = styled.form`
     justify-content: space-between;
 `;
 
-const UpdateMessage = styled.div<{ isMyMessage: boolean }>`
+const UpdateMessage = styled.div<{ isMyMessage?: boolean }>`
     display: flex;
     width: 96%;
     height: fit-content;
