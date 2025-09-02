@@ -245,7 +245,8 @@ export default function Lobby() {
     function handleCreateRoom() {
         setIsLoadingWithDebounce();
         cancelQuickPlayQueue();
-        websocket.sendMessage("/createRoom:" + newRoomName + ":" + newRoomPassword + ":" + newRoomFormat);
+        const sanitizedNewRoomName = newRoomName.trim().replace(":", "∶"); // remove colons to avoid issues with message parsing
+        websocket.sendMessage("/createRoom:" + sanitizedNewRoomName + ":" + newRoomPassword + ":" + newRoomFormat);
     }
 
     function handleJoinRoom(roomId: string) {

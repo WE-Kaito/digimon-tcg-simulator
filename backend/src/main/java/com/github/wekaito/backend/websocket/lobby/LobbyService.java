@@ -547,19 +547,17 @@ public class LobbyService extends TextWebSocketHandler {
     private void toggleReady(WebSocketSession session, String roomId) throws IOException {
         Room room = getRoomById(roomId);
 
-        synchronized (room) {
-            LobbyPlayer player = room.getPlayers().stream()
-                    .filter(p -> p.getSession().equals(session))
-                    .findFirst().orElse(null);
+        LobbyPlayer player = room.getPlayers().stream()
+                .filter(p -> p.getSession().equals(session))
+                .findFirst().orElse(null);
 
-            if(player == null) {
-                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You are not in this room.");
-                sendTextMessage(session, "[SUCCESS]");
-                return;
-            }
-
-            player.ready = !player.isReady();
+        if(player == null) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You are not in this room.");
+            sendTextMessage(session, "[SUCCESS]");
+            return;
         }
+
+        player.ready = !player.isReady();
 
         sendRoomUpdate(room);
         sendTextMessage(session, "[SUCCESS]");
@@ -628,8 +626,6 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     private Room getRoomById(String roomId) {
-        synchronized (rooms) {
-            return rooms.stream().filter(r -> r.getId().equals(roomId)).findFirst().orElse(null);
-        }
+        return rooms.stream().filter(r -> r.getId().equals(roomId)).findFirst().orElse(null);
     }
 }
