@@ -8,10 +8,15 @@ import { WSUtils } from "../../../pages/GamePage.tsx";
 import { useSound } from "../../../hooks/useSound.ts";
 import { useLongPress } from "../../../hooks/useLongPress.ts";
 import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
+    const username = useGeneralStates((state) => state.user);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
+
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
-    const mySleeve = useGameBoardStates((state) => state.mySleeve);
     const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);

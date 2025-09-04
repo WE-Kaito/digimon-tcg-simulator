@@ -27,7 +27,10 @@ export default function SecurityDropSections() {
     const width = useGeneralStates((state) => state.cardWidth) / 2.5;
     const height = width * (7 / 5); // prevents breaking layout
 
-    const mySleeve = useGameBoardStates((state) => state.mySleeve);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const username = useGeneralStates((state) => state.user);
+    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
 
     return (
         <>

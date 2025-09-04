@@ -166,10 +166,17 @@ type CardProps = {
 export default function Card(props: CardProps) {
     const { card, location, index, setImageError, style, onContextMenu, wsUtils } = props;
 
+    const username = useGeneralStates((state) => state.user);
     const cardWidth = useGeneralStates((state) => state.cardWidth);
     const selectCard = useGeneralStates((state) => state.selectCard);
     const selectedCard = useGeneralStates((state) => state.selectedCard);
     const setHoverCard = useGeneralStates((state) => state.setHoverCard);
+
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
+    const opponentSleeve = player1.username === username ? player2.sleeveName : player1.sleeveName;
+
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
@@ -183,8 +190,6 @@ export default function Card(props: CardProps) {
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
-    const mySleeve = useGameBoardStates((state) => state.mySleeve);
-    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
     const setStackSliceIndex = useGameBoardStates((state) => state.setStackSliceIndex);
     const bootStage = useGameBoardStates((state) => state.bootStage);

@@ -395,8 +395,7 @@ export default function DeckTest() {
                 opponentMemory: 0,
                 phase: Phase.MAIN,
                 bootStage: BootStage.GAME_IN_PROGRESS, // Start directly in game
-                myAvatar: userAvatar,
-                mySleeve: userSleeve,
+                player1: { username: user, avatarName: userAvatar, sleeveName: userSleeve },
             });
 
             // Set up game info
@@ -575,10 +574,13 @@ export default function DeckTest() {
 
                 // Update the game field sleeve to match the updated deck sleeve
                 const currentGameState = useGameBoardStates.getState();
-                if (currentGameState.myAvatar && updatedDeck.sleeveName !== currentGameState.mySleeve) {
-                    useGameBoardStates.setState({
-                        mySleeve: updatedDeck.sleeveName || "Default",
-                    });
+                if (
+                    currentGameState.player1.sleeveName &&
+                    updatedDeck.sleeveName !== currentGameState.player1.sleeveName
+                ) {
+                    useGameBoardStates.setState((state) => ({
+                        player1: { ...state.player1, sleeveName: updatedDeck.sleeveName || "Default" },
+                    }));
                 }
             });
         }

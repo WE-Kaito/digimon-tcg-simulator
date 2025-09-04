@@ -142,13 +142,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[PLAYER_INFO]:")) {
                 const playersJson = event.data.substring("[PLAYER_INFO]:".length);
-                const players = JSON.parse(playersJson);
-                const myPlayerArray = players.slice().filter((player: Player) => player.username === user);
-                const opponentPlayerArray = players.slice().filter((player: Player) => player.username !== user);
-                if (myPlayerArray.length === 0 || opponentPlayerArray.length === 0) return;
-                const me = myPlayerArray[0];
-                const opponent = opponentPlayerArray[0];
-                setPlayers(me, opponent);
+                const players: Player[] = JSON.parse(playersJson);
+                setPlayers(players[0], players[1]);
             }
 
             if (event.data.startsWith("[SET_BOOT_STAGE]:")) {

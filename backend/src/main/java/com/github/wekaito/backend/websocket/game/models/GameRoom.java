@@ -318,7 +318,7 @@ public class GameRoom {
     }
 
     public void broadcastPlayerInfo() throws JsonProcessingException {
-        Player[] players = {player1, player2};
+        List<Player> players = new ArrayList<>(List.of(player1, player2));
         sendMessagesToAll("[PLAYER_INFO]:" + objectMapper.writeValueAsString(players));
     }
 

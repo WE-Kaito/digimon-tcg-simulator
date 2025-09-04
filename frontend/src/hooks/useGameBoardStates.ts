@@ -196,10 +196,8 @@ export type State = BoardState & {
 
     bootStage: BootStage;
 
-    myAvatar: string;
-    opponentAvatar: string;
-    mySleeve: string;
-    opponentSleeve: string;
+    player1: Player;
+    player2: Player;
 
     phase: Phase;
     setPhase: (phase: Phase) => void;
@@ -218,7 +216,7 @@ export type State = BoardState & {
 
     mulligan: (myDecision: boolean, opponentDecision: boolean) => Promise<void>;
 
-    setPlayers: (me: Player, opponent: Player) => void;
+    setPlayers: (player1: Player, player2: Player) => void;
     clearBoard: () => void;
     distributeCards: (user: string, distributionJSON: string, gameId: string, playDrawCardSfx: () => void) => void;
     moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
@@ -423,10 +421,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
 
     bootStage: BootStage.CLEAR,
 
-    myAvatar: "",
-    opponentAvatar: "",
-    mySleeve: "",
-    opponentSleeve: "",
+    player1: { avatarName: "", sleeveName: "", username: "" },
+    player2: { avatarName: "", sleeveName: "", username: "" },
 
     ...fieldDefaultValues,
     myMemory: 0,
@@ -445,13 +441,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     hasDecidedMulligan: false,
     setHasDecidedMulligan: (hasDecidedMulligan) => set({ hasDecidedMulligan }),
 
-    setPlayers: (me, opponent) => {
-        set({
-            myAvatar: me.avatarName,
-            opponentAvatar: opponent.avatarName,
-            mySleeve: me.sleeveName,
-            opponentSleeve: opponent.sleeveName,
-        });
+    setPlayers: (player1, player2) => {
+        set({ player1, player2 });
     },
 
     setPhase: (phase) => set({ phase }),
