@@ -5,6 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
+//@Builder
 public class BoardState {
     private int player1Memory = 0;
     private GameCard[] player1Deck = new GameCard[0];

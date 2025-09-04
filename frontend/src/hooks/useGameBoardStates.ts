@@ -468,6 +468,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             bootStage: BootStage.CLEAR,
             isOpponentOnline: true,
             hasDecidedMulligan: false,
+            messages: [],
         });
     },
 

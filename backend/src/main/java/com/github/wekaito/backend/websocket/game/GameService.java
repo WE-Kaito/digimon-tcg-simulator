@@ -1,6 +1,5 @@
 package com.github.wekaito.backend.websocket.game;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.DeckService;
@@ -10,7 +9,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.SneakyThrows;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -18,9 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Getter
@@ -30,16 +29,14 @@ public class GameService extends TextWebSocketHandler {
     private final MongoUserDetailsService mongoUserDetailsService;
 
     private final DeckService deckService;
+    
+    private final ApplicationEventPublisher eventPublisher;
 
     public final List<GameRoom> gameRooms = new ArrayList<>();
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final SecureRandom secureRand = new SecureRandom();
-
     private static final String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget", "/emote"};
-
-    private static final String MULLIGAN_KEY = "mulliganSent";
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -69,15 +66,18 @@ public class GameService extends TextWebSocketHandler {
             }
     }
 
-    @Scheduled(fixedRate = 30000) // Run every 30s
-    private void cleanupStaleRooms() {
-        gameRooms.removeIf(gameRoom -> {
-            if (gameRoom.isEmpty()) {
-                gameRoom.shutdownScheduler();
-                return true; // Remove this room
-            }
-            return false; // Keep this room
-        });
+    @EventListener
+    public void handleGameRoomEmptyEvent(GameRoomEmptyEvent event) {
+        String roomId = event.getRoomId();
+        synchronized (gameRooms) {
+            gameRooms.removeIf(gameRoom -> {
+                if (gameRoom.getRoomId().equals(roomId) && gameRoom.isEmpty()) {
+                    gameRoom.shutdownScheduler();
+                    return true; // Remove this room
+                }
+                return false; // Keep this room
+            });
+        }
     }
 
     @Override
@@ -95,7 +95,7 @@ public class GameService extends TextWebSocketHandler {
         String roomMessage = parts[1];
 
         if (roomMessage.startsWith("/restartGame:")) {
-            restartGame(gameId);
+            gameRooms.stream().findFirst().ifPresent(GameRoom::setUpGame);
             return;
         }
 
@@ -104,36 +104,8 @@ public class GameService extends TextWebSocketHandler {
         if (gameRoom == null) return;
 
         if(roomMessage.startsWith("/mulligan:")) {
-            if (gameRoom.hasFullConnection()) {
-                String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
-                String username1 = gameId.split("‗")[0];
-                String username2 = gameId.split("‗")[1];
-
-                String currentPlayerDecision = roomMessage.split(":")[1];
-                session.getAttributes().put(MULLIGAN_KEY, currentPlayerDecision);
-
-                WebSocketSession opponentSession = gameRoom.getSessions().stream().filter(s -> !s.equals(session)).findFirst().orElse(null);
-
-                if (opponentSession != null) {
-                    Object opponentSentMulliganObj = opponentSession.getAttributes().get(MULLIGAN_KEY);
-                    String opponentSentMulligan = opponentSentMulliganObj instanceof String ? (String) opponentSentMulliganObj : null;
-
-                    if (opponentSentMulligan == null) return;
-                    else {
-                        String player1Decision = sessionUsername.equals(username1) ? currentPlayerDecision : opponentSentMulligan;
-                        String player2Decision = sessionUsername.equals(username2) ? currentPlayerDecision : opponentSentMulligan;
-
-                        // Parse decisions and redistribute cards
-                        boolean player1Mulligan = Boolean.parseBoolean(player1Decision);
-                        boolean player2Mulligan = Boolean.parseBoolean(player2Decision);
-                        
-                        redistributeCardsAfterMulligan(gameId, player1Mulligan, player2Mulligan);
-
-                        session.getAttributes().remove(MULLIGAN_KEY);
-                        opponentSession.getAttributes().remove(MULLIGAN_KEY);
-                    }
-                }
-            }
+            boolean currentPlayerDecision = roomMessage.split(":")[1].equals("true");
+            gameRoom.setMulliganDecisionForSession(session, currentPlayerDecision);
         }
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, session, roomMessage);
@@ -635,266 +607,54 @@ public class GameService extends TextWebSocketHandler {
                toServer.equals("player1Trash") || toServer.equals("player2Trash");
     }
 
-    private String getPlayersJson(String username1, String username2) throws JsonProcessingException {
-        String avatar1 = mongoUserDetailsService.getAvatar(username1);
-        String avatar2 = mongoUserDetailsService.getAvatar(username2);
-
-        String sleeve1 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(username1));
-        String sleeve2 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(username2));
-
-        Player player1 = new Player(username1, avatar1, sleeve1);
-        Player player2 = new Player(username2, avatar2, sleeve2);
-
-        Player[] players = {player1, player2};
-        return objectMapper.writeValueAsString(players);
-    }
-
     private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        
         synchronized (gameRooms) {
-            // First check if this user belongs to any existing GameRoom (reconnection)
-            GameRoom existingRoom = gameRooms.stream()
-                    .filter(room -> room.getPlayer1().username().equals(username) || 
-                                   room.getPlayer2().username().equals(username))
-                    .findFirst()
-                    .orElse(null);
-        
-            if (existingRoom != null) {
-                // Reconnection: add user back to their existing room
-                existingRoom.addSession(session);
-                
-                if (existingRoom.hasFullConnection()) {
-                    existingRoom.sendMessagesToAll("[OPPONENT_RECONNECTED]");
-                    
-                    // If there's a BoardState, distribute it to both players using existing method
-                    if (existingRoom.getBoardState() != null) {
-                        distributeExistingBoardState(existingRoom);
-                        existingRoom.sendMessagesToAll("[SET_BOOT_STAGE]:" + existingRoom.getBootStage());
-                    } else {
-                        setUpGame(gameId, existingRoom.getPlayer1().username(), existingRoom.getPlayer2().username());
-                    }
-                } else {
-                    existingRoom.sendMessagesToAll("[OPPONENT_DISCONNECTED]"); // Notify player that opponent is still missing
-                }
-                return;
-            }
-
-            // No existing room found, check if we should create a new one for this gameId
             GameRoom gameRoom = gameRooms.stream()
                     .filter(room -> room.getRoomId().equals(gameId))
                     .findFirst()
                     .orElse(null);
-                    
+
             if (gameRoom == null) {
-                // Create new game room
                 String[] usernames = gameId.split("‗");
                 if (usernames.length == 2) {
                     String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
                     String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
-                    String sleeve1 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(usernames[0]));
-                    String sleeve2 = deckService.getDeckSleeveById(mongoUserDetailsService.getActiveDeck(usernames[1]));
-                    
+
+                    String deckId1 = mongoUserDetailsService.getActiveDeck(usernames[0]);
+                    String deckId2 = mongoUserDetailsService.getActiveDeck(usernames[1]);
+
+                    String sleeve1 = deckService.getDeckSleeveById(deckId1);
+                    String sleeve2 = deckService.getDeckSleeveById(deckId2);
+
                     Player player1 = new Player(usernames[0], avatar1, sleeve1);
                     Player player2 = new Player(usernames[1], avatar2, sleeve2);
-                    gameRoom = new GameRoom(gameId, player1, player2);
+
+                    List<Card> player1Deck = deckService.getDeckCardsById(deckId1);
+                    List<Card> player2Deck = deckService.getDeckCardsById(deckId2);
+
+                    gameRoom = new GameRoom(gameId, player1, player1Deck, player2, player2Deck, eventPublisher);
                     // Initialize empty chat array
                     gameRoom.setChat(new String[0]);
                     gameRooms.add(gameRoom);
                 }
             }
-            
+
             if (gameRoom != null) {
                 gameRoom.addSession(session);
                 if (gameRoom.hasFullConnection()) {
-                    setUpGame(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
+                    gameRoom.sendMessagesToAll("[OPPONENT_RECONNECTED]");
+                    if (gameRoom.getBoardState() == null) gameRoom.setUpGame();
+                    else distributeExistingBoardState(gameRoom);
                 }
             }
         }
     }
 
-    private void setUpGame(String gameId, String username1, String username2) throws IOException {
-        GameRoom gameRoom = findGameRoomById(gameId);
-        gameRoom.setBoardState(null);
-        gameRoom.setBootStage(1);
-        gameRoom.sendMessagesToAll("[START_GAME]");
-        gameRoom.sendMessagesToAll("[PLAYER_INFO]:" + getPlayersJson(username1, username2));
-
-        gameRoom.getScheduler().schedule(() -> {
-            try {
-                setStartingPlayer(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }, 50, TimeUnit.MILLISECONDS);
-        gameRoom.getScheduler().schedule(() -> {
-            try {
-                prepareCardDistribution(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }, 4800, TimeUnit.MILLISECONDS);
-    }
-
-    private void setStartingPlayer(String gameId, String username1, String username2) throws IOException {
-        GameRoom gameRoom = findGameRoomById(gameId);
-        if (gameRoom != null) {
-            String[] names = {username1, username2};
-            int index = secureRand.nextInt(names.length);
-            String startingPlayerMessage = "[STARTING_PLAYER]≔" + names[index];
-
-            gameRoom.setBootStage(1);
-            gameRoom.setUsernameTurn(names[index]);
-            gameRoom.sendMessagesToAll(startingPlayerMessage);
-            storeChatMessage(gameRoom, startingPlayerMessage);
-        }
-    }
-
-    private void restartGame(String gameId) throws IOException {
-        GameRoom gameRoom = findGameRoomById(gameId);
-        if (gameRoom != null && gameRoom.hasFullConnection()) {
-            setUpGame(gameId, gameRoom.getPlayer1().username(), gameRoom.getPlayer2().username());
-        }
-    }
-
-    private static List<GameCard> getEggDeck(List<GameCard> deck) {
-        List<GameCard> eggDeck = deck.stream().filter(card -> card.cardType().equals("Digi-Egg")).toList();
-        deck.removeAll(eggDeck);
-        return eggDeck;
-    }
-
-    private static List<GameCard> drawCards(List<GameCard> deck) {
-        List<GameCard> drawnCards = deck.stream().limit(5).toList();
-        deck.removeAll(drawnCards);
-        return drawnCards;
-    }
-
-
-    private void distributeCards(GameRoom gameRoom, GameStart newGame) throws IOException {
-        String newGameJson = objectMapper.writeValueAsString(newGame);
-        gameRoom.sendMessagesToAll("[DISTRIBUTE_CARDS]:" + newGameJson);
-    }
-
-    private synchronized void prepareCardDistribution(String gameId, String username1, String username2) throws IOException {
-        GameRoom gameRoom = findGameRoomById(gameId);
-        if (gameRoom == null || !gameRoom.hasFullConnection()) return;
-        
-        // Check if this is a reconnection; if so, redistribute existing BoardState
-        if (gameRoom.getBoardState() != null) {
-            distributeExistingBoardState(gameRoom);
-            return;
-        }
-        
-        // New game - create initial distribution
-        List<Card> deck1 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username1));
-        List<Card> deck2 = deckService.getDeckCardsById(mongoUserDetailsService.getActiveDeck(username2));
-
-        List<GameCard> newDeck1 = createGameDeck(deck1);
-        List<GameCard> newDeck2 = createGameDeck(deck2);
-
-        List<GameCard> player1EggDeck = getEggDeck(newDeck1);
-        List<GameCard> player1Hand = drawCards(newDeck1);
-
-        List<GameCard> player2EggDeck = getEggDeck(newDeck2);
-        List<GameCard> player2Hand = drawCards(newDeck2);
-
-        // Initialize BoardState with original distribution for mulligan
-        BoardState boardState = new BoardState();
-        boardState.setPlayer1OriginalHand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1OriginalDeck(newDeck1.toArray(new GameCard[0]));
-        boardState.setPlayer2OriginalHand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2OriginalDeck(newDeck2.toArray(new GameCard[0]));
-        
-        // Set current state including Security cards
-        boardState.setPlayer1Hand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1Deck(newDeck1.toArray(new GameCard[0]));
-        boardState.setPlayer1EggDeck(player1EggDeck.toArray(new GameCard[0]));
-        boardState.setPlayer2Hand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2Deck(newDeck2.toArray(new GameCard[0]));
-        boardState.setPlayer2EggDeck(player2EggDeck.toArray(new GameCard[0]));
-        
-        gameRoom.setBoardState(boardState);
-        gameRoom.setBootStage(2);
-
-        GameStart newGame = new GameStart(
-                player1Hand, newDeck1, player1EggDeck, new ArrayList<>(),
-                player2Hand, newDeck2, player2EggDeck, new ArrayList<>()
-        );
-
-        distributeCards(gameRoom, newGame);
-        gameRoom.sendMessagesToAll("[SET_BOOT_STAGE]:" + 2);
-    }
-
-    private synchronized void redistributeCardsAfterMulligan(String gameId, boolean player1Mulligan, boolean player2Mulligan) throws IOException {
-        GameRoom gameRoom = findGameRoomById(gameId);
-        if (gameRoom == null || !gameRoom.hasFullConnection()) return;
-        
-        BoardState boardState = gameRoom.getBoardState();
-        if (boardState == null) return;
-
-        List<GameCard> player1Hand, player1DeckField;
-        if (player1Mulligan) {
-            List<GameCard> allCards = new ArrayList<>();
-            allCards.addAll(Arrays.asList(boardState.getPlayer1OriginalHand()));
-            allCards.addAll(Arrays.asList(boardState.getPlayer1OriginalDeck()));
-
-            Collections.shuffle(allCards, secureRand);
-
-            player1Hand = allCards.stream().limit(5).toList();
-            allCards.removeAll(player1Hand);
-            player1DeckField = new ArrayList<>(allCards);
-        } else {
-            player1Hand = new ArrayList<>(Arrays.asList(boardState.getPlayer1OriginalHand()));
-            player1DeckField = new ArrayList<>(Arrays.asList(boardState.getPlayer1OriginalDeck()));
-        }
-
-        List<GameCard> player2Hand, player2DeckField;
-        if (player2Mulligan) {
-            List<GameCard> allCards = new ArrayList<>();
-            allCards.addAll(Arrays.asList(boardState.getPlayer2OriginalHand()));
-            allCards.addAll(Arrays.asList(boardState.getPlayer2OriginalDeck()));
-
-            Collections.shuffle(allCards, secureRand);
-
-            player2Hand = allCards.stream().limit(5).toList();
-            allCards.removeAll(player2Hand);
-            player2DeckField = new ArrayList<>(allCards);
-        } else {
-            player2Hand = new ArrayList<>(Arrays.asList(boardState.getPlayer2OriginalHand()));
-            player2DeckField = new ArrayList<>(Arrays.asList(boardState.getPlayer2OriginalDeck()));
-        }
-
-        // After mulligan decisions, draw security cards from final deck state
-        List<GameCard> player1Security = drawCards(player1DeckField);
-        List<GameCard> player2Security = drawCards(player2DeckField);
-
-        // Update BoardState with final distribution
-        boardState.setPlayer1Hand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1Deck(player1DeckField.toArray(new GameCard[0]));
-        boardState.setPlayer1Security(player1Security.toArray(new GameCard[0]));
-        boardState.setPlayer2Hand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2Deck(player2DeckField.toArray(new GameCard[0]));
-        boardState.setPlayer2Security(player2Security.toArray(new GameCard[0]));
-
-        GameStart redistributedGame = new GameStart(
-                player1Hand, player1DeckField, Arrays.asList(boardState.getPlayer1EggDeck()), player1Security,
-                player2Hand, player2DeckField, Arrays.asList(boardState.getPlayer2EggDeck()), player2Security
-        );
-
-        distributeCards(gameRoom, redistributedGame);
-        gameRoom.setBootStage(3);
-        gameRoom.sendMessagesToAll("[SET_BOOT_STAGE]:" + 3);
-    }
-
     private void distributeExistingBoardState(GameRoom gameRoom) throws IOException {
         BoardState boardState = gameRoom.getBoardState();
         if (boardState == null) return;
-        
-        // First send player info like in START_GAME command
-        String[] usernames = gameRoom.getRoomId().split("‗");
-        String playersJson = getPlayersJson(usernames[0], usernames[1]);
-        gameRoom.sendMessagesToAll("[PLAYER_INFO]:" + playersJson);
 
+        gameRoom.broadcastPlayerInfo();
         distributeBoardStateCards(gameRoom, boardState);
         distributeChatHistory(gameRoom);
 
@@ -969,56 +729,6 @@ public class GameService extends TextWebSocketHandler {
 
         String boardStateJson = objectMapper.writeValueAsString(completeBoardState);
         gameRoom.sendMessagesToAll("[DISTRIBUTE_CARDS]:" + boardStateJson);
-    }
-
-    private List<GameCard> createGameDeck(List<Card> deck) {
-        List<GameCard> gameDeck = new ArrayList<>();
-
-        // Multiple shuffle passes to break up card clusters more effectively
-        Collections.shuffle(deck, secureRand);
-        Collections.shuffle(deck, secureRand);
-        Collections.shuffle(deck, secureRand);
-
-        for (Card card : deck) {
-            GameCard newCard = new GameCard(
-                    card.uniqueCardNumber(),
-                    card.name(),
-                    card.imgUrl(),
-                    card.cardType(),
-                    card.color(),
-                    card.attribute(),
-                    card.cardNumber(),
-                    card.digivolveConditions(),
-                    card.specialDigivolve(),
-                    card.stage(),
-                    card.digiType(),
-                    card.dp(),
-                    card.playCost(),
-                    card.level(),
-                    card.mainEffect(),
-                    card.inheritedEffect(),
-                    card.aceEffect(),
-                    card.burstDigivolve(),
-                    card.digiXros(),
-                    card.dnaDigivolve(),
-                    card.securityEffect(),
-                    card.linkDP(),
-                    card.linkEffect(),
-                    card.linkRequirement(),
-                    card.assemblyEffect(),
-                    card.restrictions(),
-                    card.illustrator(),
-                    UUID.randomUUID(),
-                    new Modifiers(0,0, new ArrayList<>(), card.color()),
-                    false, // isTilted
-                    false); // isFaceUp (cards start face down by default)
-            gameDeck.add(newCard);
-        }
-        
-        // Final shuffle of the converted GameCard objects
-        Collections.shuffle(gameDeck, secureRand);
-        
-        return gameDeck;
     }
 
     private void handleAttack(GameRoom gameRoom, WebSocketSession session, String message) {
