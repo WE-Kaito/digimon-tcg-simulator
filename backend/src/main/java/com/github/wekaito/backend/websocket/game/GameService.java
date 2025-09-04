@@ -310,7 +310,7 @@ public class GameService extends TextWebSocketHandler {
             case "myTrash" -> isPlayer1 ? "player1Trash" : "player2Trash";
             case "mySecurity" -> isPlayer1 ? "player1Security" : "player2Security";
             case "myReveal" -> isPlayer1 ? "player1Reveal" : "player2Reveal";
-            case "myBreedingArea" -> isPlayer1 ? "player1Digi1" : "player2Digi1"; // Breeding area is Digi1
+            case "myBreedingArea" -> isPlayer1 ? "player1BreedingArea" : "player2BreedingArea";
             case "myDigi1" -> isPlayer1 ? "player1Digi1" : "player2Digi1";
             case "myDigi2" -> isPlayer1 ? "player1Digi2" : "player2Digi2";
             case "myDigi3" -> isPlayer1 ? "player1Digi3" : "player2Digi3";
@@ -360,6 +360,7 @@ public class GameService extends TextWebSocketHandler {
             case "player1Trash" -> boardState.getPlayer1Trash();
             case "player1Security" -> boardState.getPlayer1Security();
             case "player1Reveal" -> boardState.getPlayer1Reveal();
+            case "player1BreedingArea" -> boardState.getPlayer1BreedingArea();
             case "player1Digi1" -> boardState.getPlayer1Digi1();
             case "player1Digi2" -> boardState.getPlayer1Digi2();
             case "player1Digi3" -> boardState.getPlayer1Digi3();
@@ -403,6 +404,7 @@ public class GameService extends TextWebSocketHandler {
             case "player2Trash" -> boardState.getPlayer2Trash();
             case "player2Security" -> boardState.getPlayer2Security();
             case "player2Reveal" -> boardState.getPlayer2Reveal();
+            case "player2BreedingArea" -> boardState.getPlayer2BreedingArea();
             case "player2Digi1" -> boardState.getPlayer2Digi1();
             case "player2Digi2" -> boardState.getPlayer2Digi2();
             case "player2Digi3" -> boardState.getPlayer2Digi3();
@@ -452,6 +454,7 @@ public class GameService extends TextWebSocketHandler {
             case "player1Trash" -> boardState.setPlayer1Trash(cards);
             case "player1Security" -> boardState.setPlayer1Security(cards);
             case "player1Reveal" -> boardState.setPlayer1Reveal(cards);
+            case "player1BreedingArea" -> boardState.setPlayer1BreedingArea(cards);
             case "player1Digi1" -> boardState.setPlayer1Digi1(cards);
             case "player1Digi2" -> boardState.setPlayer1Digi2(cards);
             case "player1Digi3" -> boardState.setPlayer1Digi3(cards);
@@ -495,6 +498,7 @@ public class GameService extends TextWebSocketHandler {
             case "player2Trash" -> boardState.setPlayer2Trash(cards);
             case "player2Security" -> boardState.setPlayer2Security(cards);
             case "player2Reveal" -> boardState.setPlayer2Reveal(cards);
+            case "player2BreedingArea" -> boardState.setPlayer2BreedingArea(cards);
             case "player2Digi1" -> boardState.setPlayer2Digi1(cards);
             case "player2Digi2" -> boardState.setPlayer2Digi2(cards);
             case "player2Digi3" -> boardState.setPlayer2Digi3(cards);
@@ -535,6 +539,61 @@ public class GameService extends TextWebSocketHandler {
         }
     }
     
+    private void updateBoardStateForStackMove(GameRoom gameRoom, String cardId, String fromClient, String toClient, String topOrBottom, String facing, String username) {
+        BoardState boardState = gameRoom.getBoardState();
+        if (boardState == null) return;
+        
+        String fromServer = mapClientToServer(fromClient, username, gameRoom);
+        String toServer = mapClientToServer(toClient, username, gameRoom);
+        
+        // Find and remove card from source position
+        GameCard[] fromArray = getBoardStatePosition(boardState, fromServer);
+        GameCard cardToMove = null;
+        List<GameCard> fromList = new ArrayList<>(Arrays.asList(fromArray));
+        
+        for (int i = 0; i < fromList.size(); i++) {
+            if (fromList.get(i).id().toString().equals(cardId)) {
+                cardToMove = fromList.get(i);
+                fromList.remove(i);
+                break;
+            }
+        }
+        
+        if (cardToMove == null) return; // Card not found
+        
+        // Update source position
+        setBoardStatePosition(boardState, fromServer, fromList.toArray(new GameCard[0]));
+        
+        // Handle face status based on facing parameter
+        if (facing != null) {
+            boolean shouldBeFaceUp = facing.equals("up");
+            if (shouldBeFaceUp != cardToMove.isFaceUp()) {
+                cardToMove = new GameCard(
+                    cardToMove.uniqueCardNumber(), cardToMove.name(), cardToMove.imgUrl(), cardToMove.cardType(),
+                    cardToMove.color(), cardToMove.attribute(), cardToMove.cardNumber(), cardToMove.digivolveConditions(),
+                    cardToMove.specialDigivolve(), cardToMove.stage(), cardToMove.digiType(), cardToMove.dp(),
+                    cardToMove.playCost(), cardToMove.level(), cardToMove.mainEffect(), cardToMove.inheritedEffect(),
+                    cardToMove.aceEffect(), cardToMove.burstDigivolve(), cardToMove.digiXros(), cardToMove.dnaDigivolve(),
+                    cardToMove.securityEffect(), cardToMove.linkDP(), cardToMove.linkEffect(), cardToMove.linkRequirement(),
+                    cardToMove.assemblyEffect(), cardToMove.restrictions(), cardToMove.illustrator(), cardToMove.id(),
+                    cardToMove.modifiers(), cardToMove.isTilted(), shouldBeFaceUp
+                );
+            }
+        }
+        
+        // Add card to destination stack in correct position (top or bottom)
+        GameCard[] toArray = getBoardStatePosition(boardState, toServer);
+        List<GameCard> toList = new ArrayList<>(Arrays.asList(toArray));
+        
+        if (topOrBottom.equals("Top")) {
+            toList.add(0, cardToMove); // Add to beginning (top of stack)
+        } else {
+            toList.add(cardToMove); // Add to end (bottom of stack)
+        }
+        
+        setBoardStatePosition(boardState, toServer, toList.toArray(new GameCard[0]));
+    }
+
     private void updateBoardStateForCardMove(GameRoom gameRoom, String cardId, String fromClient, String toClient, String username) {
         BoardState boardState = gameRoom.getBoardState();
         if (boardState == null) return;
@@ -560,15 +619,31 @@ public class GameService extends TextWebSocketHandler {
         // Update source position
         setBoardStatePosition(boardState, fromServer, fromList.toArray(new GameCard[0]));
         
-        // Check if destination is a field position and update face status accordingly
+        // Determine correct face status for destination position
         boolean shouldBeFaceUp = isFieldPosition(toServer);
+        boolean shouldBeFaceDown = shouldBeFaceDown(toServer);
+        
         // Check if modifiers should be reset
         boolean shouldResetModifiers = shouldResetModifiersOnMove(fromServer, toServer);
         
-        if (shouldBeFaceUp && !cardToMove.isFaceUp() || shouldResetModifiers) {
+        // Update card if face status needs to change or modifiers need reset
+        boolean needsFaceStatusUpdate = (shouldBeFaceUp && !cardToMove.isFaceUp()) || 
+                                      (shouldBeFaceDown && cardToMove.isFaceUp());
+        
+        if (needsFaceStatusUpdate || shouldResetModifiers) {
             // Create default modifiers for reset
             Modifiers resetModifiers = shouldResetModifiers ?
                 new Modifiers(0, 0, new ArrayList<>(), cardToMove.color()) : cardToMove.modifiers();
+            
+            // Determine final face status
+            boolean finalFaceUp;
+            if (shouldBeFaceUp) {
+                finalFaceUp = true;
+            } else if (shouldBeFaceDown) {
+                finalFaceUp = false;
+            } else {
+                finalFaceUp = cardToMove.isFaceUp(); // Keep current status
+            }
                 
             // Update card with new face status and/or reset modifiers
             cardToMove = new GameCard(
@@ -579,7 +654,7 @@ public class GameService extends TextWebSocketHandler {
                 cardToMove.aceEffect(), cardToMove.burstDigivolve(), cardToMove.digiXros(), cardToMove.dnaDigivolve(),
                 cardToMove.securityEffect(), cardToMove.linkDP(), cardToMove.linkEffect(), cardToMove.linkRequirement(),
                 cardToMove.assemblyEffect(), cardToMove.restrictions(), cardToMove.illustrator(), cardToMove.id(),
-                resetModifiers, cardToMove.isTilted(), shouldBeFaceUp ? true : cardToMove.isFaceUp()
+                resetModifiers, cardToMove.isTilted(), finalFaceUp
             );
         }
         
@@ -595,7 +670,15 @@ public class GameService extends TextWebSocketHandler {
         return position.startsWith("player1Digi") || position.startsWith("player2Digi") ||
                position.startsWith("player1Link") || position.startsWith("player2Link") ||
                position.equals("player1Reveal") || position.equals("player2Reveal") ||
-               position.equals("player1Trash") || position.equals("player2Trash");
+               position.equals("player1Trash") || position.equals("player2Trash") ||
+               position.equals("player1BreedingArea") || position.equals("player2BreedingArea");
+    }
+    
+    private boolean shouldBeFaceDown(String position) {
+        // Positions where cards should be face-down (mirrors frontend logic)
+        return position.equals("player1Hand") || position.equals("player2Hand") ||
+               position.equals("player1Deck") || position.equals("player2Deck") ||
+               position.equals("player1Security") || position.equals("player2Security");
     }
     
     private boolean shouldResetModifiersOnMove(String fromServer, String toServer) {
@@ -692,6 +775,7 @@ public class GameService extends TextWebSocketHandler {
         completeBoardState.put("player1Security", Arrays.asList(boardState.getPlayer1Security()));
         completeBoardState.put("player1Trash", Arrays.asList(boardState.getPlayer1Trash()));
         completeBoardState.put("player1Reveal", Arrays.asList(boardState.getPlayer1Reveal()));
+        completeBoardState.put("player1BreedingArea", Arrays.asList(boardState.getPlayer1BreedingArea()));
         
         // Add all digimon field positions
         for (int i = 1; i <= 21; i++) {
@@ -712,6 +796,7 @@ public class GameService extends TextWebSocketHandler {
         completeBoardState.put("player2Security", Arrays.asList(boardState.getPlayer2Security()));
         completeBoardState.put("player2Trash", Arrays.asList(boardState.getPlayer2Trash()));
         completeBoardState.put("player2Reveal", Arrays.asList(boardState.getPlayer2Reveal()));
+        completeBoardState.put("player2BreedingArea", Arrays.asList(boardState.getPlayer2BreedingArea()));
         
         for (int i = 1; i <= 21; i++) {
             GameCard[] cards = getBoardStatePosition(boardState, "player2Digi" + i);
@@ -778,6 +863,15 @@ public class GameService extends TextWebSocketHandler {
         String from = parts[4];
         String to = parts[5];
         String facing = parts[6];
+        
+        // Get current player username
+        String currentPlayer = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
+        
+        if (currentPlayer != null) {
+            // Update BoardState for stack move
+            updateBoardStateForStackMove(gameRoom, cardId, from, to, topOrBottom, facing, currentPlayer);
+        }
+        
         gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD_TO_STACK]:" + topOrBottom + ":" + cardId + ":" + getPosition(from) + ":" + getPosition(to) + ":" + facing);
     }
 

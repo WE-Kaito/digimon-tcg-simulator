@@ -14,6 +14,7 @@ public class BoardState {
     private GameCard[] player1Trash = new GameCard[0];
     private GameCard[] player1Security = new GameCard[0];
     private GameCard[] player1Reveal = new GameCard[0];
+    private GameCard[] player1BreedingArea = new GameCard[0];
 
     // Store original distribution for mulligan
     private GameCard[] player1OriginalHand;
@@ -65,6 +66,7 @@ public class BoardState {
     private GameCard[] player2Trash = new GameCard[0];
     private GameCard[] player2Security = new GameCard[0];
     private GameCard[] player2Reveal = new GameCard[0];
+    private GameCard[] player2BreedingArea = new GameCard[0];
 
     // Store original distribution for mulligan
     private GameCard[] player2OriginalHand;

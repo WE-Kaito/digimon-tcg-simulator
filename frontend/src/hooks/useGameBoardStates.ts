@@ -218,7 +218,7 @@ export type State = BoardState & {
 
     setPlayers: (player1: Player, player2: Player) => void;
     clearBoard: () => void;
-    distributeCards: (user: string, distributionJSON: string, gameId: string, playDrawCardSfx: () => void) => void;
+    distributeCards: (user: string, distributionJSON: string, playDrawCardSfx: () => void) => void;
     moveCard: (cardId: string, from: string, to: string, facing?: "down" | "up") => void;
     moveCardToStack: SendToStackFunction;
     setMemory: (memory: number) => void;
@@ -463,11 +463,11 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         });
     },
 
-    distributeCards: (user, distributionJSON, gameId, playDrawCardSfx) => {
-        const player1 = gameId.split("‗")[0];
+    distributeCards: (user, distributionJSON, playDrawCardSfx) => {
+        const player1 = get().player1;
         const gameData = JSON.parse(distributionJSON);
 
-        const isPlayer1 = user === player1;
+        const isPlayer1 = user === player1.username;
 
         // Check if this is BoardState format (has player1Deck) or GameStart format (has player1DeckField)
         const isBoardStateFormat = "player1Deck" in gameData;
@@ -503,7 +503,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                 myDigi19: isPlayer1 ? boardState.player1Digi19 : boardState.player2Digi19,
                 myDigi20: isPlayer1 ? boardState.player1Digi20 : boardState.player2Digi20,
                 myDigi21: isPlayer1 ? boardState.player1Digi21 : boardState.player2Digi21,
-                myBreedingArea: isPlayer1 ? boardState.player1Digi1 : boardState.player2Digi1, // Breeding area is Digi1
+                myBreedingArea: isPlayer1 ? boardState.player1BreedingArea : boardState.player2BreedingArea,
                 myLink1: isPlayer1 ? boardState.player1Link1 : boardState.player2Link1,
                 myLink2: isPlayer1 ? boardState.player1Link2 : boardState.player2Link2,
                 myLink3: isPlayer1 ? boardState.player1Link3 : boardState.player2Link3,
@@ -549,7 +549,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                 opponentDigi19: isPlayer1 ? boardState.player2Digi19 : boardState.player1Digi19,
                 opponentDigi20: isPlayer1 ? boardState.player2Digi20 : boardState.player1Digi20,
                 opponentDigi21: isPlayer1 ? boardState.player2Digi21 : boardState.player1Digi21,
-                opponentBreedingArea: isPlayer1 ? boardState.player2Digi1 : boardState.player1Digi1,
+                opponentBreedingArea: isPlayer1 ? boardState.player2BreedingArea : boardState.player1BreedingArea,
                 opponentLink1: isPlayer1 ? boardState.player2Link1 : boardState.player1Link1,
                 opponentLink2: isPlayer1 ? boardState.player2Link2 : boardState.player1Link2,
                 opponentLink3: isPlayer1 ? boardState.player2Link3 : boardState.player1Link3,
