@@ -135,7 +135,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const gameStateJson = event.data.substring("[DISTRIBUTE_CARDS]:".length);
-                distributeCards(user, gameStateJson, gameId, playDrawCardSfx);
+                distributeCards(user, gameStateJson, playDrawCardSfx);
                 setOpenedCardModal(false);
                 return;
             }
