@@ -1,8 +1,8 @@
-name: Deploy to Server
+name: Deploy to Dev Server
 on:
   push:
     branches:
-      - main
+      - '**'
 
 jobs:
   build-frontend:
@@ -43,12 +43,12 @@ jobs:
         with:
           name: backend-build
           path: backend/target/digimon-tcg-sim.jar
-
-  deploy:
-    name: Push to Server
+  
+  dev-deploy:
+    name: Push to Dev Server
     runs-on: ubuntu-latest
     needs: build-backend
-    environment: Musubi
+    environment: Dev
     steps:
       - name: Checkout the code
         uses: actions/checkout@v3
@@ -58,7 +58,7 @@ jobs:
           name: backend-build
           path: backend/target
 
-      - name: Deploy to Server
+      - name: Deploy to Dev Server
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -66,13 +66,14 @@ jobs:
           REMOTE_USER: ${{ vars.USERNAME }}
           TARGET: ${{ vars.DEPLOY_PATH }}
           SOURCE: backend/target
+          REMOTE_PORT: ${{ secrets.PORT }}
 
 
-  start-server:
-    name: Start Server
+  start-dev-server:
+    name: Start Dev Server
     runs-on: ubuntu-latest
-    needs: deploy
-    environment: Musubi
+    needs: dev-deploy
+    environment: Dev
     steps:
       - uses: appleboy/ssh-action@v1.0.3
         with:
@@ -82,21 +83,3 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             sudo /usr/sbin/service project-drasil restart
-
-  # Disable bots until they work again so they do not dos server
-  # deploy-bot:
-  #   name: Push Bot to Server
-  #   runs-on: ubuntu-latest
-  #   needs: start-server
-  #   environment: Musubi
-  #   steps:
-  #     - name: Checkout the code
-  #       uses: actions/checkout@v3
-  #     - name: Deploy to Server
-  #       uses: easingthemes/ssh-deploy@v2.1.5
-  #       env:
-  #         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  #         REMOTE_HOST: ${{ secrets.HOST }}
-  #         REMOTE_USER: ${{ vars.USERNAME }}
-  #         TARGET: ${{ vars.DEPLOY_PATH }}
-  #         SOURCE: ai
