@@ -324,6 +324,7 @@ public class GameRoom {
 
     public void checkAndEmitIfEmpty() {
         if (isEmpty()) {
+            shutdownScheduler();
             eventPublisher.publishEvent(new GameRoomEmptyEvent(this, roomId));
         }
     }

@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -45,9 +44,9 @@ public class GameService extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
             Optional<GameRoom> gameRoomOpt = gameRooms.stream().filter(room ->
-                    room.getPlayer1().username().equals(Objects.requireNonNull(session.getPrincipal()).getName()) ||
-                            room.getPlayer2().username().equals(Objects.requireNonNull(session.getPrincipal()).getName())
+                    room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
             ).findFirst();
             
             if (gameRoomOpt.isPresent()) {
@@ -68,15 +67,8 @@ public class GameService extends TextWebSocketHandler {
 
     @EventListener
     public void handleGameRoomEmptyEvent(GameRoomEmptyEvent event) {
-        String roomId = event.getRoomId();
         synchronized (gameRooms) {
-            gameRooms.removeIf(gameRoom -> {
-                if (gameRoom.getRoomId().equals(roomId) && gameRoom.isEmpty()) {
-                    gameRoom.shutdownScheduler();
-                    return true; // Remove this room
-                }
-                return false; // Keep this room
-            });
+            gameRooms.removeIf(gameRoom -> gameRoom.getRoomId().equals(event.getRoomId()));
         }
     }
 
@@ -94,11 +86,6 @@ public class GameService extends TextWebSocketHandler {
         String gameId = parts[0];
         String roomMessage = parts[1];
 
-        if (roomMessage.startsWith("/restartGame:")) {
-            gameRooms.stream().findFirst().ifPresent(GameRoom::setUpGame);
-            return;
-        }
-
         GameRoom gameRoom = findGameRoomById(gameId);
 
         if (gameRoom == null) return;
@@ -107,6 +94,8 @@ public class GameService extends TextWebSocketHandler {
             boolean currentPlayerDecision = roomMessage.split(":")[1].equals("true");
             gameRoom.setMulliganDecisionForSession(session, currentPlayerDecision);
         }
+
+        if (roomMessage.startsWith("/restartGame")) gameRoom.setUpGame();
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, session, roomMessage);
 
