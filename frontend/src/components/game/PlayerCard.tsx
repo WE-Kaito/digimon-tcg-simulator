@@ -11,8 +11,10 @@ export default function PlayerCard({ side, wsUtils }: Props) {
     const username = useGeneralStates((state) => state.user);
     const player1 = useGameBoardStates((state) => state.player1);
     const player2 = useGameBoardStates((state) => state.player2);
-    const avatar = player1.username === username ? player1.avatarName : player2.avatarName;
+    const myAvatar = player1.username === username ? player1.avatarName : player2.avatarName;
+    const opponentAvatar = player1.username === username ? player2.avatarName : player1.avatarName;
     const avatarWidth = useGeneralStates((state) => state.cardWidth / 1.5);
+    const avatar = side === SIDE.MY ? myAvatar : opponentAvatar;
 
     return (
         <Container>
