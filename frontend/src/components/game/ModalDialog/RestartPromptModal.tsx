@@ -21,7 +21,7 @@ export default function RestartPromptModal({ wsUtils }: { wsUtils: WSUtils }) {
         setRestartPromptModal(false);
         setIsRematch(true);
         sendMessage(`${gameId}:/acceptRestart`);
-        sendMessage(`${gameId}:/restartGame`);
+        sendMessage(`${gameId}:/restartGame:${restartOrder}`);
     }
 
     const buttonProps = [

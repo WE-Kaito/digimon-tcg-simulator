@@ -175,6 +175,40 @@ public class GameRoom {
     }
 
     public void setUpGame() {
+        initiateGame();
+
+        String[] names = {this.player1.username(), this.player2.username()};
+        int index = secureRand.nextInt(names.length);
+        String startingPlayerMessage = "[STARTING_PLAYER]≔" + names[index];
+
+        scheduler.schedule(() -> {
+            this.usernameTurn = names[index];
+            sendMessagesToAll(startingPlayerMessage);
+            storeChatMessage(startingPlayerMessage);
+        }, 50, TimeUnit.MILLISECONDS);
+
+        initiallyDistributeCards();
+    }
+
+    /* Restart case */
+    public void setUpGame(WebSocketSession session, boolean isThisPlayerStarting) {
+        initiateGame();
+
+        String startingPlayer = isThisPlayerStarting ?
+                Objects.requireNonNull(session.getPrincipal()).getName() :
+                (Objects.requireNonNull(session.getPrincipal()).getName().equals(player1.username()) ? player2.username() : player1.username());
+        String startingPlayerMessage = "[STARTING_PLAYER]≔" + startingPlayer;
+
+        scheduler.schedule(() -> {
+            this.usernameTurn = startingPlayer;
+            sendMessagesToAll(startingPlayerMessage);
+            storeChatMessage(startingPlayerMessage);
+        }, 50, TimeUnit.MILLISECONDS);
+
+        initiallyDistributeCards();
+    }
+
+    private void initiateGame(){
         this.boardState = null;
         this.player1Mulligan = null;
         this.player2Mulligan = null;
@@ -187,18 +221,11 @@ public class GameRoom {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
 
-        scheduler.schedule(() -> {
-            String[] names = {this.player1.username(), this.player2.username()};
-            int index = secureRand.nextInt(names.length);
-            String startingPlayerMessage = "[STARTING_PLAYER]≔" + names[index];
-            this.usernameTurn = names[index];
-            sendMessagesToAll(startingPlayerMessage);
-            storeChatMessage(startingPlayerMessage);
-        }, 50, TimeUnit.MILLISECONDS);
-
-        List<GameCard> deck1 = createGameDeck(player1Deck);
-        List<GameCard> deck2 = createGameDeck(player2Deck);
+    private void initiallyDistributeCards() {
+        List<GameCard> deck1 = createGameDeck(this.player1Deck);
+        List<GameCard> deck2 = createGameDeck(this.player2Deck);
 
         List<GameCard> player1EggDeck = getEggDeck(deck1);
         List<GameCard> player1Hand = drawCards(deck1);

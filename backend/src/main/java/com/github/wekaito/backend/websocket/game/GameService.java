@@ -95,7 +95,10 @@ public class GameService extends TextWebSocketHandler {
             gameRoom.setMulliganDecisionForSession(session, currentPlayerDecision);
         }
 
-        if (roomMessage.startsWith("/restartGame")) gameRoom.setUpGame();
+        if (roomMessage.startsWith("/restartGame:")) {
+            boolean isThisPlayerStarting = roomMessage.split(":")[1].equals("first");
+            gameRoom.setUpGame(session, isThisPlayerStarting);
+        }
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, session, roomMessage);
 
@@ -994,7 +997,7 @@ public class GameService extends TextWebSocketHandler {
             // Log error or handle gracefully
         }
     }
-    
+
     private void handleUnsuspendAll(GameRoom gameRoom, WebSocketSession session) {
         if (!gameRoom.hasFullConnection()) return;
 

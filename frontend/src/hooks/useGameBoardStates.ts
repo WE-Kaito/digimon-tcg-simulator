@@ -460,6 +460,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             isOpponentOnline: true,
             hasDecidedMulligan: false,
             messages: [],
+            player1: { avatarName: "", sleeveName: "", username: "" },
+            player2: { avatarName: "", sleeveName: "", username: "" },
         });
     },
 
