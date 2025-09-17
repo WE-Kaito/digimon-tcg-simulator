@@ -1,4 +1,4 @@
-package com.github.wekaito.backend.websocket.game;
+package com.github.wekaito.backend.websocket.game.models;
 
 import java.util.List;
 

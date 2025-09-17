@@ -55,8 +55,8 @@ export default function DeckTest() {
     const fetchedCards = useDeckStates((state) => state.fetchedCards);
 
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
-    const setUpGame = useGameBoardStates((state) => state.setUpGame);
-    const setPhase = useGameBoardStates((state) => state.setPhase);
+    const setUpGame = useGameBoardStates((state) => state.setPlayers);
+    const setPhase = useGameBoardStates((state) => state.progressToNextPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
 
     const playAttackSfx = useSound((state) => state.playAttackSfx);
@@ -393,13 +393,9 @@ export default function DeckTest() {
                 myEggDeck: eggDeck,
                 myMemory: 0,
                 opponentMemory: 0,
-                phase: Phase.BREEDING,
-                isMyTurn: true,
+                phase: Phase.MAIN,
                 bootStage: BootStage.GAME_IN_PROGRESS, // Start directly in game
-                myAvatar: userAvatar,
-                mySleeve: userSleeve,
-                // Simulate opponent being ready for test mode
-                opponentReady: true,
+                player1: { username: user, avatarName: userAvatar, sleeveName: userSleeve },
             });
 
             // Set up game info
@@ -578,10 +574,13 @@ export default function DeckTest() {
 
                 // Update the game field sleeve to match the updated deck sleeve
                 const currentGameState = useGameBoardStates.getState();
-                if (currentGameState.myAvatar && updatedDeck.sleeveName !== currentGameState.mySleeve) {
-                    useGameBoardStates.setState({
-                        mySleeve: updatedDeck.sleeveName || "Default",
-                    });
+                if (
+                    currentGameState.player1.sleeveName &&
+                    updatedDeck.sleeveName !== currentGameState.player1.sleeveName
+                ) {
+                    useGameBoardStates.setState((state) => ({
+                        player1: { ...state.player1, sleeveName: updatedDeck.sleeveName || "Default" },
+                    }));
                 }
             });
         }
@@ -598,7 +597,6 @@ export default function DeckTest() {
         },
         sendPhaseUpdate: () => console.log("Test mode: phase update"),
         nextPhase,
-        sendUpdate: () => console.log("Test mode: send update"),
     };
 
     // Mouse and touch sensors for drag and drop

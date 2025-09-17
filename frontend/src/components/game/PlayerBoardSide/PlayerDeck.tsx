@@ -1,20 +1,27 @@
 import styled from "@emotion/styled";
-import { Phase } from "../../../utils/types.ts";
+import { BootStage, Phase } from "../../../utils/types.ts";
 import { getSleeve } from "../../../utils/sleeves.ts";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useContextMenu } from "react-contexify";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { useSound } from "../../../hooks/useSound.ts";
-// import { useDroppable } from "@dnd-kit/core";
 import { useLongPress } from "../../../hooks/useLongPress.ts";
 import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
+    const username = useGeneralStates((state) => state.user);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
+
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
-    const mySleeve = useGameBoardStates((state) => state.mySleeve);
     const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
     const moveCard = useGameBoardStates((state) => state.moveCard);
+    const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
+    const bootStage = useGameBoardStates((state) => state.bootStage);
+    const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -30,13 +37,14 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const { show: showDeckMenu } = useContextMenu({ id: "deckMenu" });
 
     function handleClick() {
+        if (!gameHasStarted) return;
         moveCard(myDeckField[0].id, "myDeckField", "myHand");
         playDrawCardSfx();
         if (wsUtils) {
             wsUtils.sendSfx("playDrawCardSfx");
             wsUtils.sendMoveCard(myDeckField[0].id, "myDeckField", "myHand");
             wsUtils.sendChatMessage(`[FIELD_UPDATE]≔【Draw Card】`);
-            nextPhaseTrigger(wsUtils.nextPhase, Phase.DRAW);
+            if (getIsMyTurn(wsUtils.matchInfo.user)) nextPhaseTrigger(wsUtils.nextPhase, Phase.DRAW);
         }
     }
 
@@ -53,7 +61,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
                 isOver={isOverTop}
                 onClick={handleClick}
                 onContextMenu={(e) => showDeckMenu({ event: e })}
-                style={{ zIndex: isOverTop ? -1 : "unset" }}
+                style={{ zIndex: isOverTop ? -1 : "unset", ...(!gameHasStarted && { cursor: "not-allowed" }) }}
                 className={"prevent-default-long-press"}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}

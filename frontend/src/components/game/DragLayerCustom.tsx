@@ -18,8 +18,11 @@ export default function DragLayerCustom() {
     }));
 
     const cardWidth = useGeneralStates((state) => state.cardWidth);
+    const username = useGeneralStates((state) => state.user);
 
-    const mySleeve = useGameBoardStates((state) => state.mySleeve);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
 
     if (!isDragging || !item || !currentOffset) {
         return null;

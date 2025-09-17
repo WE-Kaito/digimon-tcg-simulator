@@ -1,10 +1,15 @@
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { getSleeve } from "../../../utils/sleeves.ts";
 import styled from "@emotion/styled";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function OpponentDeck() {
+    const username = useGeneralStates((state) => state.user);
     const opponentDeckField = useGameBoardStates((state) => state.opponentDeckField);
-    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+
+    const opponentSleeve = player1.username === username ? player2.sleeveName : player1.sleeveName;
 
     return (
         <Container>

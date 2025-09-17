@@ -8,13 +8,15 @@ import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 
 export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
     const phase = useGameBoardStates((state) => state.phase);
-    const setPhase = useGameBoardStates((state) => state.setPhase);
-    const isMyTurn = useGameBoardStates((state) => state.isMyTurn);
-    const setTurn = useGameBoardStates((state) => state.setTurn);
+    const setPhase = useGameBoardStates((state) => state.progressToNextPhase);
+    const setUsernameTurn = useGameBoardStates((state) => state.setUsernameTurn);
     const myMemory = useGameBoardStates((state) => state.myMemory);
     const areCardsSuspended = useGameBoardStates((state) => state.areCardsSuspended);
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
+    const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
+    const username = useGeneralStates((state) => state.user);
+    const isMyTurn = getIsMyTurn(username);
 
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
     const playPassTurnSfx = useSound((state) => state.playPassTurnSfx);
@@ -29,7 +31,7 @@ export default function PhaseIndicator({ wsUtils }: { wsUtils?: WSUtils }) {
         if (isMainPhase) {
             if (!isPassTurnAllowed) return;
             playPassTurnSfx();
-            setTurn(false);
+            setUsernameTurn(wsUtils?.matchInfo.opponentName ?? "");
             wsUtils?.sendSfx("playPassTurnSfx");
         } else {
             playNextPhaseSfx();

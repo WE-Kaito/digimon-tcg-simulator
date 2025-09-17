@@ -17,11 +17,14 @@ const myTamerLocations = ["myDigi9", "myDigi10", "myDigi11", "myDigi12", "myDigi
 
 export default function DragOverlayCards() {
     const { active, over } = useDndContext();
-
+    const username = useGeneralStates((state) => state.user);
     const width = useGeneralStates((state) => state.cardWidth);
-    const mySleeve = useGameBoardStates((state) => state.mySleeve);
-    const opponentSleeve = useGameBoardStates((state) => state.opponentSleeve);
+
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
+    const opponentSleeve = player1.username === username ? player2.sleeveName : player1.sleeveName;
 
     const imgSrc =
         active?.data?.current?.type === "card"

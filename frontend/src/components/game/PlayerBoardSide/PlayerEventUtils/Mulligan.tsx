@@ -7,9 +7,9 @@ import { notifyInfo } from "../../../../utils/toasts.ts";
 import { useSettingStates } from "../../../../hooks/useSettingStates.ts";
 
 export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
-    const getOpponentReady = useGameBoardStates((state) => state.getOpponentReady);
     const bootStage = useGameBoardStates((state) => state.bootStage);
-    const setBootStage = useGameBoardStates((state) => state.setBootStage);
+    const hasDecidedMulligan = useGameBoardStates((state) => state.hasDecidedMulligan);
+    const setHasDecidedMulligan = useGameBoardStates((state) => state.setHasDecidedMulligan);
 
     const seenMulliganTutorial = useSettingStates((state) => state.seenMulliganTutorial);
     const setSeenMulliganTutorial = useSettingStates((state) => state.setSeenMulliganTutorial);
@@ -23,17 +23,16 @@ export default function Mulligan({ wsUtils, fontSize }: { wsUtils?: WSUtils; fon
             setSeenMulliganTutorial(true);
         }
 
-        setBootStage(BootStage.MULLIGAN_DONE);
+        setHasDecidedMulligan(true);
     }
 
-    if (bootStage !== BootStage.MULLIGAN && bootStage !== BootStage.MULLIGAN_DONE) return <></>;
+    if (bootStage !== BootStage.MULLIGAN) return <></>;
 
     return (
         <Container>
-            {bootStage === BootStage.MULLIGAN_DONE && !getOpponentReady() && (
+            {hasDecidedMulligan ? (
                 <MulliganSpan style={{ top: 3, fontSize }}>Waiting for opponent ...</MulliganSpan>
-            )}
-            {bootStage === BootStage.MULLIGAN && (
+            ) : (
                 <>
                     <MulliganSpan style={{ fontSize: fontSize }}>MULLIGAN?</MulliganSpan>
                     <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>

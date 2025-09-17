@@ -3,10 +3,12 @@ import { Phase, SIDE } from "../../../../utils/types.ts";
 import styled from "@emotion/styled";
 import { useSound } from "../../../../hooks/useSound.ts";
 import { WSUtils } from "../../../../pages/GamePage.tsx";
+import { useGeneralStates } from "../../../../hooks/useGeneralStates.ts";
 
 export default function UnsuspendAllButton({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
+    const username = useGeneralStates((state) => state.user);
     const phase = useGameBoardStates((state) => state.phase);
-    const isMyTurn = useGameBoardStates((state) => state.isMyTurn);
+    const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
     const areCardsSuspended = useGameBoardStates((state) => state.areCardsSuspended());
 
@@ -14,7 +16,7 @@ export default function UnsuspendAllButton({ wsUtils, fontSize }: { wsUtils?: WS
 
     const isUnsuspendPhase = phase === Phase.UNSUSPEND;
 
-    if (!isMyTurn || !isUnsuspendPhase || !areCardsSuspended) return <></>;
+    if (!getIsMyTurn(username) || !isUnsuspendPhase || !areCardsSuspended) return <></>;
 
     return (
         <StyledButton

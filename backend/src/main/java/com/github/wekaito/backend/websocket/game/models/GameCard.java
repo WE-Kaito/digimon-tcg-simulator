@@ -1,9 +1,10 @@
-package com.github.wekaito.backend.websocket.game;
+package com.github.wekaito.backend.websocket.game.models;
 
 import com.github.wekaito.backend.models.DigivolveCondition;
 import com.github.wekaito.backend.models.Restrictions;
 
 import java.util.List;
+import java.util.UUID;
 
 public record GameCard (
         String uniqueCardNumber,
@@ -33,17 +34,11 @@ public record GameCard (
         String assemblyEffect,
         Restrictions restrictions,
         String illustrator,
-        String id,
+        UUID id,
         Modifiers modifiers,
-        Boolean isTilted
+        Boolean isTilted,
+        Boolean isFaceUp
 ) {
 
 }
 
-record Modifiers(
-        Integer plusDp,
-        Integer plusSecurityAttacks,
-        List<String> keywords,
-        List<String> colors
-) {
-}
