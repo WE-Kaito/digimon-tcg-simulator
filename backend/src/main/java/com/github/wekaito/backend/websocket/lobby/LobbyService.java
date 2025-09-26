@@ -47,15 +47,13 @@ public class LobbyService extends TextWebSocketHandler {
 
     private final String warning = "[CHAT_MESSAGE]:【SERVER】: ⚠ The server detected multiple connections for the same user. Make sure to only use one tab per account. ⚠";
 
-    // Add usernames here that should be filtered from lobby operations
-    private static final List<String> FILTERED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer", "Humungosaurio2");
+    private static final List<String> BANNED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer", "Humungosaurio2", "season1yugioh");
 
     @Autowired
     private GameService gameService;
 
     @PostConstruct
     public void setupQuickPlayQueue() {
-        quickPlayQueue.setFilteredUsernamesSupplier(() -> FILTERED_USERNAMES);
         quickPlayQueue.setBlockedAccountsSupplier(mongoUserDetailsService::getBlockedAccounts);
     }
 
@@ -80,6 +78,8 @@ public class LobbyService extends TextWebSocketHandler {
             return;
         }
 
+        if (BANNED_USERNAMES.contains(username)) return;
+
         globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
         globalActiveSessions.add(session);
 
@@ -89,7 +89,6 @@ public class LobbyService extends TextWebSocketHandler {
         
         List<Room> openRooms = rooms.stream()
                 .filter(r -> r.getPlayers().size() == 1)
-                .filter(r -> !FILTERED_USERNAMES.contains(r.getHostName())) // Filter out rooms created by filtered users
                 .filter(r -> !userBlockedAccounts.contains(r.getHostName())) // Filter out rooms created by blocked users
                 .toList();
         List<RoomDTO> openRoomsDTO = openRooms.stream().map(this::getRoomDTO).toList();
@@ -306,7 +305,6 @@ public class LobbyService extends TextWebSocketHandler {
         synchronized (rooms) {
             roomsWithOnlyHosts = rooms.stream()
                     .filter(r -> r.getPlayers().size() == 1)
-                    .filter(r -> !FILTERED_USERNAMES.contains(r.getHostName()))
                     .toList();
         }
 
@@ -334,7 +332,7 @@ public class LobbyService extends TextWebSocketHandler {
         }
     }
 
-    private void startGameQuickPlay() throws IOException {
+    private void startGameQuickPlay() {
         List<WebSocketSession> players;
 
         synchronized (quickPlayLock) {
@@ -346,17 +344,40 @@ public class LobbyService extends TextWebSocketHandler {
         WebSocketSession player1 = players.get(0);
         WebSocketSession player2 = players.get(1);
 
-        String newGameId = Objects.requireNonNull(player1.getPrincipal()).getName()
-                + "‗"
-                + Objects.requireNonNull(player2.getPrincipal()).getName();
+        String username1 = (player1 != null && player1.getPrincipal() != null)
+                ? player1.getPrincipal().getName()
+                : null;
+        String username2 = (player2 != null && player2.getPrincipal() != null)
+                ? player2.getPrincipal().getName()
+                : null;
+
+        if (username1 == null || username2 == null) {
+            // Put them back into the queue if usernames are missing
+            synchronized (quickPlayLock) {
+                if (player1 != null) quickPlayQueue.add(player1);
+                if (player2 != null) quickPlayQueue.add(player2);
+            }
+            return;
+        }
+
+        String newGameId = username1 + "‗" + username2;
 
         synchronized (globalActiveSessions) {
             globalActiveSessions.remove(player1);
             globalActiveSessions.remove(player2);
         }
 
-        sendTextMessage(player1, "[COMPUTE_GAME]:" + newGameId);
-        sendTextMessage(player2, "[COMPUTE_GAME]:" + newGameId);
+        try {
+            if (player1.isOpen()) sendTextMessage(player1, "[COMPUTE_GAME]:" + newGameId);
+        } catch (IOException e) {
+            System.err.println("Failed to send message to player1: " + e.getMessage());
+        }
+
+        try {
+            if (player2.isOpen()) sendTextMessage(player2, "[COMPUTE_GAME]:" + newGameId);
+        } catch (IOException e) {
+            System.err.println("Failed to send message to player2: " + e.getMessage());
+        }
     }
 
     private void checkForRejoinableGameRoom() throws IOException {
@@ -447,12 +468,6 @@ public class LobbyService extends TextWebSocketHandler {
     private void handleJoinRoomAttempt(WebSocketSession session, String roomId) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         
-        // Filtered users get success message but can't join rooms
-        if (FILTERED_USERNAMES.contains(username)) {
-            sendTextMessage(session, "[SUCCESS]");
-            return;
-        }
-        
         Room targetRoom = getRoomById(roomId);
         if (targetRoom == null) {
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
@@ -477,12 +492,6 @@ public class LobbyService extends TextWebSocketHandler {
         String[] parts = payload.split(":");
         String roomId = parts[1];
         String passwordInput = parts[2];
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
-
-        if (FILTERED_USERNAMES.contains(username)) {
-            sendTextMessage(session, "[SUCCESS]");
-            return;
-        }
 
         Room room = getRoomById(roomId);
         if (room == null) {

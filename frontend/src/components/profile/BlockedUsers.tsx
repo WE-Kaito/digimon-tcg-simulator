@@ -80,7 +80,10 @@ export default function BlockedUsers() {
                         onChange={(e) => setNewUsername(e.target.value)}
                         disabled={loading}
                     />
-                    <Button type="submit" disabled={loading || !newUsername.trim()}>
+                    <Button
+                        type="submit"
+                        disabled={loading || !newUsername.trim() || blockedUsers.includes(newUsername.trim())}
+                    >
                         ADD
                     </Button>
                 </InputRow>
