@@ -84,6 +84,14 @@ public class CardService {
                     .build())
             .build();
 
+    private static int safeParseInt(String value) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     @Scheduled(fixedRate = 86400000) // 24 hours
     void fetchCards() {
         String responseBody = webClient.get()
@@ -103,8 +111,8 @@ public class CardService {
             List<DigivolveCondition> digivolveConditions = card.digivolveCondition().stream()
                     .map(condition -> new DigivolveCondition(
                             condition.color(),
-                            Integer.parseInt(condition.cost()),
-                            condition.level().matches("\\d+") ? Integer.parseInt(condition.level()) : null
+                            safeParseInt(condition.cost()),
+                            condition.level().matches("\\d+") ? safeParseInt(condition.level()) : null
                     ))
                     .toList();
 
@@ -124,9 +132,9 @@ public class CardService {
                         (card.specialDigivolve().equals("-")) ? null : card.specialDigivolve(),
                         (card.form().equals("-")) ? null : card.form(),
                         digiTypes,
-                        (card.dp().equals("-")) ? null : Integer.parseInt(card.dp()),
-                        (card.playCost().equals("-")) ? null : Integer.parseInt(card.playCost()),
-                        (card.cardLv().equals("-")) ? null : Integer.parseInt(card.cardLv().split("\\.")[1]),
+                        (card.dp().equals("-")) ? null : safeParseInt(card.dp()),
+                        (card.playCost().equals("-")) ? null : safeParseInt(card.playCost()),
+                        (card.cardLv().equals("-")) ? null : safeParseInt(card.cardLv().split("\\.")[1]),
                         (card.effect().equals("-")) ? null : card.effect(),
                         (card.digivolveEffect().equals("-")) ? null : card.digivolveEffect(),
                         (card.aceEffect().equals("-")) ? null : card.aceEffect(),
@@ -135,7 +143,7 @@ public class CardService {
                         (card.dnaDigivolve().equals("-")) ? null : card.dnaDigivolve(),
                         (card.securityEffect().equals("-")) ? null : card.securityEffect(),
                         (card.rule().equals("-")) ? null : card.rule(),
-                        (card.linkDP().equals("-") ? null : Integer.parseInt(card.linkDP().replaceAll("[^\\d-]", ""))),
+                        (card.linkDP().equals("-") ? null : safeParseInt(card.linkDP().replaceAll("[^\\d-]", ""))),
                         (card.linkEffect().equals("-")) ? null : card.linkEffect(),
                         (card.linkRequirement().equals("-")) ? null : card.linkRequirement(),
                         (card.assembly().equals("-")) ? null : card.assembly(),
