@@ -19,6 +19,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Getter
@@ -31,7 +32,7 @@ public class GameService extends TextWebSocketHandler {
     
     private final ApplicationEventPublisher eventPublisher;
 
-    public final List<GameRoom> gameRooms = new ArrayList<>();
+    public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -45,7 +46,7 @@ public class GameService extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
-            Optional<GameRoom> gameRoomOpt = gameRooms.stream().filter(room ->
+            Optional<GameRoom> gameRoomOpt = gameRooms.values().stream().filter(room ->
                     room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
             ).findFirst();
             
@@ -58,18 +59,14 @@ public class GameService extends TextWebSocketHandler {
                 // Use isEmpty method that checks for actually open sessions
                 if (gameRoom.isEmpty()) {
                     gameRoom.shutdownScheduler(); // Clean up scheduler before removing room
-                    synchronized (gameRooms) {
-                        gameRooms.remove(gameRoom);
-                    }
+                    gameRooms.remove(gameRoom.getRoomId());
                 }
             }
     }
 
     @EventListener
     public void handleGameRoomEmptyEvent(GameRoomEmptyEvent event) {
-        synchronized (gameRooms) {
-            gameRooms.removeIf(gameRoom -> gameRoom.getRoomId().equals(event.getRoomId()));
-        }
+        gameRooms.remove(event.getRoomId());
     }
 
     @Override
@@ -285,12 +282,14 @@ public class GameService extends TextWebSocketHandler {
     }
 
     private GameRoom findGameRoomById(String gameId) {
-        synchronized (gameRooms) {
-            return gameRooms.stream()
-                    .filter(room -> room.getRoomId().equals(gameId))
-                    .findFirst()
-                    .orElse(null);
-        }
+        return gameRooms.get(gameId);
+    }
+
+    public GameRoom findGameRoomBySession(WebSocketSession session) {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        return gameRooms.values().stream().filter(room ->
+                room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
+        ).findFirst().orElse(null);
     }
     
     private String mapClientToServer(String clientPosition, String username, GameRoom gameRoom) {
@@ -683,44 +682,46 @@ public class GameService extends TextWebSocketHandler {
     }
 
     private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
-        synchronized (gameRooms) {
-            GameRoom gameRoom = gameRooms.stream()
-                    .filter(room -> room.getRoomId().equals(gameId))
-                    .findFirst()
-                    .orElse(null);
+        GameRoom gameRoom = gameRooms.get(gameId);
 
-            if (gameRoom == null) {
-                String[] usernames = gameId.split("‗");
-                if (usernames.length == 2) {
-                    String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
-                    String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
+        if (gameRoom == null) {
+            String[] usernames = gameId.split("‗");
+            if (usernames.length == 2) {
+                String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
+                String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
 
-                    String deckId1 = mongoUserDetailsService.getActiveDeck(usernames[0]);
-                    String deckId2 = mongoUserDetailsService.getActiveDeck(usernames[1]);
+                String deckId1 = mongoUserDetailsService.getActiveDeck(usernames[0]);
+                String deckId2 = mongoUserDetailsService.getActiveDeck(usernames[1]);
 
-                    String sleeve1 = deckService.getDeckSleeveById(deckId1);
-                    String sleeve2 = deckService.getDeckSleeveById(deckId2);
+                String sleeve1 = deckService.getDeckSleeveById(deckId1);
+                String sleeve2 = deckService.getDeckSleeveById(deckId2);
 
-                    Player player1 = new Player(usernames[0], avatar1, sleeve1);
-                    Player player2 = new Player(usernames[1], avatar2, sleeve2);
+                Player player1 = new Player(usernames[0], avatar1, sleeve1);
+                Player player2 = new Player(usernames[1], avatar2, sleeve2);
 
-                    List<Card> player1Deck = deckService.getDeckCardsById(deckId1);
-                    List<Card> player2Deck = deckService.getDeckCardsById(deckId2);
+                List<Card> player1Deck = deckService.getDeckCardsById(deckId1);
+                List<Card> player2Deck = deckService.getDeckCardsById(deckId2);
 
-                    gameRoom = new GameRoom(gameId, player1, player1Deck, player2, player2Deck, eventPublisher);
-                    // Initialize empty chat array
-                    gameRoom.setChat(new String[0]);
-                    gameRooms.add(gameRoom);
+                gameRoom = new GameRoom(gameId, player1, player1Deck, player2, player2Deck, eventPublisher);
+                // Initialize empty chat array
+                gameRoom.setChat(new String[0]);
+                
+                // Use putIfAbsent to handle race conditions
+                GameRoom existingRoom = gameRooms.putIfAbsent(gameId, gameRoom);
+                if (existingRoom != null) {
+                    // Another thread already created the room, use that instead and clean up our scheduler
+                    gameRoom.shutdownScheduler();
+                    gameRoom = existingRoom;
                 }
             }
+        }
 
-            if (gameRoom != null) {
-                gameRoom.addSession(session);
-                if (gameRoom.hasFullConnection()) {
-                    gameRoom.sendMessagesToAll("[OPPONENT_RECONNECTED]");
-                    if (gameRoom.getBoardState() == null) gameRoom.setUpGame();
-                    else distributeExistingBoardState(gameRoom);
-                }
+        if (gameRoom != null) {
+            gameRoom.addSession(session);
+            if (gameRoom.hasFullConnection()) {
+                gameRoom.sendMessagesToAll("[OPPONENT_RECONNECTED]");
+                if (gameRoom.getBoardState() == null) gameRoom.setUpGame();
+                else distributeExistingBoardState(gameRoom);
             }
         }
     }

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -203,6 +204,27 @@ public class MongoUserDetailsService implements UserDetailsService {
         MongoUser user = getUserByUsername(username);
         List<String> blockedAccounts = user.blockedAccounts();
         return blockedAccounts != null ? blockedAccounts : Collections.emptyList();
+    }
+
+    public boolean checkBlockedByWebSocketSessions(WebSocketSession player1, WebSocketSession player2) {
+        String player1Username = (player1 != null && player1.getPrincipal() != null)
+                ? player1.getPrincipal().getName()
+                : null;
+        String player2Username = (player2 != null && player2.getPrincipal() != null)
+                ? player2.getPrincipal().getName()
+                : null;
+
+        if (player1Username == null || player2Username == null) {
+            return false;
+        }
+
+        MongoUser user1 = getUserByUsername(player1Username);
+        MongoUser user2 = getUserByUsername(player2Username);
+
+        List<String> user1BlockedAccounts = user1.blockedAccounts() != null ? user1.blockedAccounts() : Collections.emptyList();
+        List<String> user2BlockedAccounts = user2.blockedAccounts() != null ? user2.blockedAccounts() : Collections.emptyList();
+
+        return user1BlockedAccounts.contains(player2Username) || user2BlockedAccounts.contains(player1Username);
     }
     
     public boolean userExists(String username) {

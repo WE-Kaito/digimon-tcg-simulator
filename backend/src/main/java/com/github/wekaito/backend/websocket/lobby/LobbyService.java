@@ -5,7 +5,6 @@ import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
-import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import com.github.wekaito.backend.websocket.game.GameService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import jakarta.annotation.PostConstruct;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Getter
 @Service
@@ -31,7 +30,7 @@ public class LobbyService extends TextWebSocketHandler {
 
     private final ConcurrentHashMap<WebSocketSession, Long> lastHeartbeatTimestamps = new ConcurrentHashMap<>();
 
-    private final QuickPlayQueue quickPlayQueue = new QuickPlayQueue();
+    private final Set<WebSocketSession> quickPlayQueue = ConcurrentHashMap.newKeySet();
 
     private final MongoUserDetailsService mongoUserDetailsService;
     private final DeckService deckService;
@@ -51,11 +50,6 @@ public class LobbyService extends TextWebSocketHandler {
 
     @Autowired
     private GameService gameService;
-
-    @PostConstruct
-    public void setupQuickPlayQueue() {
-        quickPlayQueue.setBlockedAccountsSupplier(mongoUserDetailsService::getBlockedAccounts);
-    }
 
     private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
@@ -220,8 +214,74 @@ public class LobbyService extends TextWebSocketHandler {
     }
 
     @Scheduled(fixedRate = 30000) // 30 seconds
-    private void assignQuickPlay() throws IOException {
-        startGameQuickPlay();
+    private void assignQuickPlay() {
+        List<WebSocketSession> players = new ArrayList<>(quickPlayQueue);
+
+        if (players.size() < 2) return; // Not enough players to form a match
+
+        if (players.size() % 2 != 0) players.remove(players.size() - 1); // Make even number of players
+
+        Collections.shuffle(players);
+
+        Queue<WebSocketSession> shuffledPlayers = new ConcurrentLinkedQueue<>(players); // Better semantics for polling
+
+        List <List<WebSocketSession>> matchedPairs = new ArrayList<>();
+
+        WebSocketSession player1 = shuffledPlayers.poll();
+        WebSocketSession player2 = shuffledPlayers.poll();
+        int attempts = 0;
+
+        while (player1 != null && player2 != null) {
+            if (mongoUserDetailsService.checkBlockedByWebSocketSessions(player1, player2)) {
+                shuffledPlayers.offer(player2);
+                player2 = shuffledPlayers.poll();
+                if (attempts >= shuffledPlayers.size()) {
+                    // No valid match found for player1, will be ignored this round
+                    player1 = shuffledPlayers.poll();
+                    attempts = 0;
+                } else attempts++;
+            } else {
+                matchedPairs.add(Arrays.asList(player1, player2));
+                player1 = shuffledPlayers.poll();
+                player2 = shuffledPlayers.poll();
+            }
+        }
+
+        for (List<WebSocketSession> pair : matchedPairs) {
+            WebSocketSession p1 = pair.get(0);
+            WebSocketSession p2 = pair.get(1);
+
+            String username1 = (p1 != null && p1.getPrincipal() != null)
+                    ? p1.getPrincipal().getName()
+                    : null;
+            String username2 = (p2 != null && p2.getPrincipal() != null)
+                    ? p2.getPrincipal().getName()
+                    : null;
+
+            if (username1 == null || username2 == null) {
+                continue; // Skip if usernames are missing
+            }
+
+            String newGameId = username1 + "‗" + username2;
+
+            quickPlayQueue.remove(p1);
+            quickPlayQueue.remove(p2);
+
+            globalActiveSessions.remove(p1);
+            globalActiveSessions.remove(p2);
+
+            try {
+                if (p1.isOpen()) sendTextMessage(p1, "[COMPUTE_GAME]:" + newGameId);
+            } catch (IOException e) {
+                System.err.println("Failed to send message to player1: " + e.getMessage());
+            }
+
+            try {
+                if (p2.isOpen()) sendTextMessage(p2, "[COMPUTE_GAME]:" + newGameId);
+            } catch (IOException e) {
+                System.err.println("Failed to send message to player2: " + e.getMessage());
+            }
+        }
     }
 
     @Scheduled(fixedRate = 10000) // 10 seconds
@@ -332,68 +392,16 @@ public class LobbyService extends TextWebSocketHandler {
         }
     }
 
-    private void startGameQuickPlay() {
-        List<WebSocketSession> players;
-
-        synchronized (quickPlayLock) {
-            players = quickPlayQueue.drawRandomPair();
-        }
-
-        if (players == null || players.size() < 2) return;
-
-        WebSocketSession player1 = players.get(0);
-        WebSocketSession player2 = players.get(1);
-
-        String username1 = (player1 != null && player1.getPrincipal() != null)
-                ? player1.getPrincipal().getName()
-                : null;
-        String username2 = (player2 != null && player2.getPrincipal() != null)
-                ? player2.getPrincipal().getName()
-                : null;
-
-        if (username1 == null || username2 == null) {
-            // Put them back into the queue if usernames are missing
-            synchronized (quickPlayLock) {
-                if (player1 != null) quickPlayQueue.add(player1);
-                if (player2 != null) quickPlayQueue.add(player2);
-            }
-            return;
-        }
-
-        String newGameId = username1 + "‗" + username2;
-
-        synchronized (globalActiveSessions) {
-            globalActiveSessions.remove(player1);
-            globalActiveSessions.remove(player2);
-        }
-
-        try {
-            if (player1.isOpen()) sendTextMessage(player1, "[COMPUTE_GAME]:" + newGameId);
-        } catch (IOException e) {
-            System.err.println("Failed to send message to player1: " + e.getMessage());
-        }
-
-        try {
-            if (player2.isOpen()) sendTextMessage(player2, "[COMPUTE_GAME]:" + newGameId);
-        } catch (IOException e) {
-            System.err.println("Failed to send message to player2: " + e.getMessage());
-        }
-    }
-
     private void checkForRejoinableGameRoom() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
-            String username = Objects.requireNonNull(session.getPrincipal()).getName();
-            String matchingRoomId = gameService.gameRooms.stream()
-                    .map(GameRoom::getRoomId)
-                    .filter(roomId -> roomId.contains(username))
-                    .findFirst().orElse(null);
-            if (matchingRoomId != null) sendTextMessage(session, "[RECONNECT_ENABLED]:" + matchingRoomId);
+            String roomId = gameService.findGameRoomBySession(session).getRoomId();
+            if (roomId != null) sendTextMessage(session, "[RECONNECT_ENABLED]:" + roomId);
             else sendTextMessage(session, "[RECONNECT_DISABLED]");
         }
     }
 
     private int getTotalSessionCount() {
-        int inGameSessionCount = gameService.gameRooms.stream().mapToInt(room -> room.getSessions().size()).sum();
+        int inGameSessionCount = gameService.gameRooms.size() * 2;
         return globalActiveSessions.size() + inGameSessionCount;
     }
 

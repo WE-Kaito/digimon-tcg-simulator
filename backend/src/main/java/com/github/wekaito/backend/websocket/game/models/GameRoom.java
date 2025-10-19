@@ -181,11 +181,23 @@ public class GameRoom {
         int index = secureRand.nextInt(names.length);
         String startingPlayerMessage = "[STARTING_PLAYER]≔" + names[index];
 
-        scheduler.schedule(() -> {
+        try {
+            scheduler.schedule(() -> {
+                try {
+                    this.usernameTurn = names[index];
+                    sendMessagesToAll(startingPlayerMessage);
+                    storeChatMessage(startingPlayerMessage);
+                } catch (Exception e) {
+                    System.err.println("Error in setUpGame timer for room " + roomId + ": " + e.getMessage());
+                }
+            }, 50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            System.err.println("Failed to schedule setUpGame timer for room " + roomId + ": " + e.getMessage());
+            // Fallback: execute immediately
             this.usernameTurn = names[index];
             sendMessagesToAll(startingPlayerMessage);
             storeChatMessage(startingPlayerMessage);
-        }, 50, TimeUnit.MILLISECONDS);
+        }
 
         initiallyDistributeCards();
     }
@@ -199,11 +211,25 @@ public class GameRoom {
                 (Objects.requireNonNull(session.getPrincipal()).getName().equals(player1.username()) ? player2.username() : player1.username());
         String startingPlayerMessage = "[STARTING_PLAYER]≔" + startingPlayer;
 
-        scheduler.schedule(() -> {
+        try {
+            scheduler.schedule(() -> {
+                try {
+                    if (startingPlayer != null) {
+                        this.usernameTurn = startingPlayer;
+                        sendMessagesToAll(startingPlayerMessage);
+                        storeChatMessage(startingPlayerMessage);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error in setUpGame restart timer for room " + roomId + ": " + e.getMessage());
+                }
+            }, 50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            System.err.println("Failed to schedule setUpGame restart timer for room " + roomId + ": " + e.getMessage());
+            // Fallback: execute immediately
             this.usernameTurn = startingPlayer;
             sendMessagesToAll(startingPlayerMessage);
             storeChatMessage(startingPlayerMessage);
-        }, 50, TimeUnit.MILLISECONDS);
+        }
 
         initiallyDistributeCards();
     }
@@ -255,15 +281,29 @@ public class GameRoom {
                 player2Hand, deck2, player2EggDeck, new ArrayList<>()
         );
 
-        scheduler.schedule(() -> {
+        try {
+            scheduler.schedule(() -> {
+                try {
+                    distributeCards(newGame);
+                    this.bootStage = 2;
+                    sendMessagesToAll("[SET_BOOT_STAGE]:" + 2);
+                } catch (JsonProcessingException e) {
+                    System.err.println("JsonProcessingException in initiallyDistributeCards timer for room " + roomId + ": " + e.getMessage());
+                } catch (Exception e) {
+                    System.err.println("Error in initiallyDistributeCards timer for room " + roomId + ": " + e.getMessage());
+                }
+            }, 4800, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            System.err.println("Failed to schedule initiallyDistributeCards timer for room " + roomId + ": " + e.getMessage());
+            // Fallback: execute immediately
             try {
                 distributeCards(newGame);
                 this.bootStage = 2;
                 sendMessagesToAll("[SET_BOOT_STAGE]:" + 2);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+            } catch (JsonProcessingException ex) {
+                System.err.println("Fallback execution failed for room " + roomId + ": " + ex.getMessage());
             }
-        }, 4800, TimeUnit.MILLISECONDS);
+        }
     }
 
     private synchronized void redistributeCardsAfterMulligan() throws JsonProcessingException {
