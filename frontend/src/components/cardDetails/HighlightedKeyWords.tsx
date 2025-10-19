@@ -320,6 +320,7 @@ function isTrait(trait: string) {
         case "Holy Dragon":
         case "Holy Sword":
         case "Holy Warrior":
+        case "Hudie":
         case "Hunter":
         case "Ice-Snow":
         case "Icy":
@@ -412,7 +413,8 @@ function isTrait(trait: string) {
         case "WG":
         case "Wizard":
         case "X Antibody":
-        case "Xros Heart": {
+        case "Xros Heart":
+        case "Zaxon": {
             return true;
         }
         default: {

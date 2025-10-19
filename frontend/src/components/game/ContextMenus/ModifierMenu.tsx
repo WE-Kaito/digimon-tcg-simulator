@@ -35,6 +35,7 @@ const battleKeywords = [
     "Reboot",
     "Retaliation",
     "Retal. ×2",
+    "Scapegoat",
     "Vortex",
 ];
 
