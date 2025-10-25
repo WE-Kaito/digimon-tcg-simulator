@@ -24,6 +24,7 @@ const battleKeywords = [
     "Collision",
     "Decoy",
     "Evade",
+    "Execute",
     "Fortitude",
     "Ice Armor",
     "Jamming",
@@ -173,7 +174,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                             arrow={<StyledLottie style={{ marginLeft: 60 }} animationData={arrowsAnimation} />}
                         >
                             <StyledFieldset>
-                                <Stack maxHeight={400} flexWrap={"wrap"}>
+                                <Stack maxHeight={432} flexWrap={"wrap"}>
                                     {battleKeywords.map(
                                         (keyword) =>
                                             !keywords.includes(keyword) && (
@@ -285,7 +286,7 @@ const ColorButton = styled.div<{ isActive: boolean }>`
     }
 `;
 
-export function getColor(color: string): string {
+function getColor(color: string): string {
     switch (color) {
         case "Red":
             return "🔴";
