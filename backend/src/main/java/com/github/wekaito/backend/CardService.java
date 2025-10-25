@@ -66,7 +66,8 @@ public class CardService {
     private static final Gson gson = new Gson();
 
     public List<Card> getCards() {
-        return cardCollection;
+        if (cardCollection.isEmpty()) return cardRepo.findAll();
+        else return cardCollection;
     }
 
     public Card getCardByUniqueCardNumber(String uniqueCardNumber) {

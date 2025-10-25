@@ -34,6 +34,16 @@ public class MongoUserController {
         return mongoUserDetailsService.registerNewUser(registrationUser);
     }
 
+    @GetMapping("/isAdmin")
+    public boolean getIsAdmin() {
+        return mongoUserDetailsService.isAdmin();
+    }
+
+    @GetMapping("/isBanned")
+    public boolean getIsBanned() {
+        return mongoUserDetailsService.isBanned();
+    }
+
     @PutMapping("/active-deck/{deckId}")
     public void setActiveDeck(@PathVariable String deckId) {
         mongoUserDetailsService.setActiveDeck(deckId);

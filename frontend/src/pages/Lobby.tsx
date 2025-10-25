@@ -35,6 +35,7 @@ import LogoutButton from "../components/lobby/LogoutButton.tsx";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { Button } from "../components/Button.tsx";
+import useQuery from "../hooks/useQuery.ts";
 
 enum Format {
     CUSTOM = "CUSTOM",
@@ -82,6 +83,9 @@ export default function Lobby() {
     const playKickSfx = useSound((state) => state.playKickSfx);
     const playCountdownSfx = useSound((state) => state.playCountdownSfx);
 
+    const { data: isAdmin, isFetching: isFetchingIsAdmin } = useQuery<boolean>("/api/user/isAdmin");
+    const { data: isBanned, isFetching: isFetchingIsBanned } = useQuery<boolean>("/api/user/isBanned");
+
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
@@ -127,112 +131,116 @@ export default function Lobby() {
         return () => clearTimeout(timer);
     }
 
-    const websocket = useWebSocket(websocketURL, {
-        shouldReconnect: () => true,
+    const websocket = useWebSocket(
+        websocketURL,
+        {
+            shouldReconnect: () => true,
 
-        onMessage: (event) => {
-            if (event.data === "[SUCCESS]") {
-                setIsLoading(false);
-            }
+            onMessage: (event) => {
+                if (event.data === "[SUCCESS]") {
+                    setIsLoading(false);
+                }
 
-            if (event.data === "[NO_ACTIVE_DECK]") {
-                notifyWarning("No active deck not found! Please refresh if this error should not appear.");
-                setNoActiveDeck(true);
-                setIsLoadingWithDebounce();
-            }
+                if (event.data === "[NO_ACTIVE_DECK]") {
+                    notifyWarning("No active deck not found! Please refresh if this error should not appear.");
+                    setNoActiveDeck(true);
+                    setIsLoadingWithDebounce();
+                }
 
-            if (event.data === "[BROKEN_DECK]") {
-                notifyWarning("Cards in your deck could not be found!");
-                setNoActiveDeck(true);
-                setIsLoadingWithDebounce();
-            }
+                if (event.data === "[BROKEN_DECK]") {
+                    notifyWarning("Cards in your deck could not be found!");
+                    setNoActiveDeck(true);
+                    setIsLoadingWithDebounce();
+                }
 
-            if (event.data.startsWith("[USER_COUNT]:")) {
-                setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
-            }
+                if (event.data.startsWith("[USER_COUNT]:")) {
+                    setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
+                }
 
-            if (event.data.startsWith("[USER_COUNT_QUICK_PLAY]:")) {
-                setUserCountQuickPlay(parseInt(event.data.substring("[USER_COUNT_QUICK_PLAY]:".length)));
-            }
+                if (event.data.startsWith("[USER_COUNT_QUICK_PLAY]:")) {
+                    setUserCountQuickPlay(parseInt(event.data.substring("[USER_COUNT_QUICK_PLAY]:".length)));
+                }
 
-            if (event.data.startsWith("[ROOMS]:")) {
-                setRooms(JSON.parse(event.data.substring("[ROOMS]:".length)));
-            }
+                if (event.data.startsWith("[ROOMS]:")) {
+                    setRooms(JSON.parse(event.data.substring("[ROOMS]:".length)));
+                }
 
-            if (event.data === "[PROMPT_PASSWORD]") {
-                setIsWrongPassword(false);
-                setPassword("");
-                setIsPasswordDialogOpen(true);
-            }
+                if (event.data === "[PROMPT_PASSWORD]") {
+                    setIsWrongPassword(false);
+                    setPassword("");
+                    setIsPasswordDialogOpen(true);
+                }
 
-            if (event.data.startsWith("[JOIN_ROOM]:")) {
-                setJoinedRoom(JSON.parse(event.data.substring("[JOIN_ROOM]:".length)));
-                setIsLoading(false);
-                setNewRoomName("");
-                setNewRoomPassword("");
-                setIsPasswordDialogOpen(false);
-                setNewRoomFormat(Format.CUSTOM);
-            }
+                if (event.data.startsWith("[JOIN_ROOM]:")) {
+                    setJoinedRoom(JSON.parse(event.data.substring("[JOIN_ROOM]:".length)));
+                    setIsLoading(false);
+                    setNewRoomName("");
+                    setNewRoomPassword("");
+                    setIsPasswordDialogOpen(false);
+                    setNewRoomFormat(Format.CUSTOM);
+                }
 
-            if (event.data.startsWith("[ROOM_UPDATE]:")) {
-                setJoinedRoom(JSON.parse(event.data.substring("[ROOM_UPDATE]:".length)));
-            }
+                if (event.data.startsWith("[ROOM_UPDATE]:")) {
+                    setJoinedRoom(JSON.parse(event.data.substring("[ROOM_UPDATE]:".length)));
+                }
 
-            if (event.data === "[LEAVE_ROOM]") {
-                setJoinedRoom(null);
-                setIsLoading(false);
-                playJoinSfx(); // new sound?
-            }
+                if (event.data === "[LEAVE_ROOM]") {
+                    setJoinedRoom(null);
+                    setIsLoading(false);
+                    playJoinSfx(); // new sound?
+                }
 
-            if (event.data === "[KICKED]") {
-                setJoinedRoom(null);
-                playKickSfx();
-            }
+                if (event.data === "[KICKED]") {
+                    setJoinedRoom(null);
+                    playKickSfx();
+                }
 
-            if (event.data === "[PLAYER_JOINED]") {
-                playJoinSfx();
-            }
+                if (event.data === "[PLAYER_JOINED]") {
+                    playJoinSfx();
+                }
 
-            if (event.data === "[WRONG_PASSWORD]") {
-                setIsLoading(false);
-                setIsWrongPassword(true);
-            }
+                if (event.data === "[WRONG_PASSWORD]") {
+                    setIsLoading(false);
+                    setIsWrongPassword(true);
+                }
 
-            if (event.data.startsWith("[COMPUTE_GAME]:")) {
-                localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
-                localStorage.removeItem("boardStore");
-                const gameId = event.data.substring("[COMPUTE_GAME]:".length);
-                startGameSequence(gameId);
-            }
+                if (event.data.startsWith("[COMPUTE_GAME]:")) {
+                    localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
+                    localStorage.removeItem("boardStore");
+                    const gameId = event.data.substring("[COMPUTE_GAME]:".length);
+                    startGameSequence(gameId);
+                }
 
-            if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
-                const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
-                setIsRejoinable(matchingRoomId === gameId);
-                // gameId could be set to older matching room id here, but not sure if this makes sense
-            }
+                if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
+                    const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
+                    setIsRejoinable(matchingRoomId === gameId);
+                    // gameId could be set to older matching room id here, but not sure if this makes sense
+                }
 
-            if (event.data === "[RECONNECT_DISABLED]") {
-                setIsRejoinable(false);
-            }
+                if (event.data === "[RECONNECT_DISABLED]") {
+                    setIsRejoinable(false);
+                }
 
-            if (event.data === "[SESSION_ALREADY_CONNECTED]") {
-                setIsAlreadyOpenedInOtherTab(true);
-            }
+                if (event.data === "[SESSION_ALREADY_CONNECTED]") {
+                    setIsAlreadyOpenedInOtherTab(true);
+                }
 
-            if (event.data.startsWith("[GLOBAL_CHAT]:")) {
-                const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as string[];
-                setMessages(messagesArray);
-            }
+                if (event.data.startsWith("[GLOBAL_CHAT]:")) {
+                    const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as string[];
+                    setMessages(messagesArray);
+                }
 
-            if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
-                setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
-            }
+                if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
+                    setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+                }
 
-            if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
-                setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
-            }
+                if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
+                    setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+                }
+            },
         },
-    });
+        !isFetchingIsBanned && !isBanned // connect only when not banned
+    );
 
     function handleOnCloseSetImageDialog() {
         setSleeveSelectionOpen(false);
@@ -424,6 +432,22 @@ export default function Lobby() {
                     <PopulationIcon sx={{ color: "whitesmoke", opacity: 0.8 }} fontSize={"large"} />
                     <span style={{ color: "whitesmoke", opacity: 0.8, lineHeight: 1 }}>{userCount}</span>
                 </OnlineUsers>
+
+                {!isFetchingIsAdmin && isAdmin && (
+                    <ButtonCard
+                        style={{
+                            width: "fit-content",
+                            height: "38px",
+                            padding: "0 1px 1px 6px",
+                            fontSize: "22px",
+                            fontFamily: "Pixel Digivolve, sans-serif",
+                        }}
+                        onClick={() => navigate("/administration")}
+                        className={"button"}
+                    >
+                        <span>ADMIN⚙️</span>
+                    </ButtonCard>
+                )}
 
                 <LogoutButton />
             </Header>

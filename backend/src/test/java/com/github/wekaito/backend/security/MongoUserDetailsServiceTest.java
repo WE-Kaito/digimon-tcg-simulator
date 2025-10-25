@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -24,16 +25,18 @@ class MongoUserDetailsServiceTest {
     private MongoUserRepository mongoUserRepository;
 
     @Mock
-    private StarterDeckService starterDeckService;
+    private MongoTemplate mongoTemplate;
 
+    @Mock
+    private StarterDeckService starterDeckService;
 
     @InjectMocks
     private MongoUserDetailsService mongoUserDetailsService;
 
     @BeforeEach
     void setUp() {
-        mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository, starterDeckService);
-        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon", Collections.emptyList())));
+        mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository, mongoTemplate, starterDeckService);
+        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon", Collections.emptyList(), Role.ROLE_USER)));
     }
 
     @Test
@@ -68,7 +71,6 @@ class MongoUserDetailsServiceTest {
         assertThat(userDetails).isNotNull();
         assertThat(userDetails.getUsername()).isEqualTo("testUser1");
         assertThat(userDetails.getPassword()).isEqualTo("password");
-        assertThat(userDetails.getAuthorities()).isEmpty();
         assertThrows(UsernameNotFoundException.class, () -> {
             mongoUserDetailsService.loadUserByUsername("notExistingUser");
         });

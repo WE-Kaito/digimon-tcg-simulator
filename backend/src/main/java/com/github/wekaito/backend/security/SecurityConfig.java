@@ -14,6 +14,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @EnableWebSecurity
+//@EnableMethodSecurity(prePostEnabled = true)
 @Configuration
 public class SecurityConfig {
 
@@ -49,6 +50,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/user/active-deck/**").authenticated()
                                 .requestMatchers("/api/user/avatar").authenticated()
                                 .requestMatchers("/api/user/avatar/**").authenticated()
+                                
+                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                                 .anyRequest().permitAll()
                 )

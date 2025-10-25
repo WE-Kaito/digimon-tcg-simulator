@@ -285,11 +285,11 @@ public class GameService extends TextWebSocketHandler {
         return gameRooms.get(gameId);
     }
 
-    public GameRoom findGameRoomBySession(WebSocketSession session) {
+    public Optional<GameRoom> findGameRoomBySession(WebSocketSession session) {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         return gameRooms.values().stream().filter(room ->
                 room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
-        ).findFirst().orElse(null);
+        ).findFirst();
     }
     
     private String mapClientToServer(String clientPosition, String username, GameRoom gameRoom) {

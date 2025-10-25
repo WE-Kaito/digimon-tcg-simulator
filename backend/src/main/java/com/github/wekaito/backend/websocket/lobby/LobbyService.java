@@ -6,6 +6,7 @@ import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import com.github.wekaito.backend.websocket.game.GameService;
+import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +49,6 @@ public class LobbyService extends TextWebSocketHandler {
 
     public final LinkedList<String> globalChatMessages = new LinkedList<>(List.of("【SERVER】: Join our Discord!"));
 
-    private static final List<String> BANNED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer", "Humungosaurio2", "season1yugioh");
-
     @Autowired
     private GameService gameService;
 
@@ -73,8 +72,6 @@ public class LobbyService extends TextWebSocketHandler {
             sendTextMessage(session, "[BROKEN_DECK]");
             return;
         }
-
-        if (BANNED_USERNAMES.contains(username)) return;
 
         globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
         if (tryReconnectToRoom(session)) return; // Try to reconnect first
@@ -396,8 +393,8 @@ public class LobbyService extends TextWebSocketHandler {
 
     private void checkForRejoinableGameRoom() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
-            String roomId = gameService.findGameRoomBySession(session).getRoomId();
-            if (roomId != null) sendTextMessage(session, "[RECONNECT_ENABLED]:" + roomId);
+            Optional<GameRoom> room = gameService.findGameRoomBySession(session);
+            if (room.isPresent()) sendTextMessage(session, "[RECONNECT_ENABLED]:" + room.get().getRoomId());
             else sendTextMessage(session, "[RECONNECT_DISABLED]");
         }
     }

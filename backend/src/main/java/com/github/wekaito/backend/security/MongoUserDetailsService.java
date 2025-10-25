@@ -2,6 +2,11 @@ package com.github.wekaito.backend.security;
 
 import com.github.wekaito.backend.StarterDeckService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,22 +17,63 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import jakarta.annotation.PostConstruct;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class MongoUserDetailsService implements UserDetailsService {
 
     private final MongoUserRepository mongoUserRepository;
-
+    private final MongoTemplate mongoTemplate;
     private final StarterDeckService starterDeckService;
 
     private static final String[] badWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "fuck", "fuuck", "rape", "whore", "nigger", "nazi", "jews"};
 
+    private static final List<String> BANNED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer", "Humungosaurio2", "season1yugioh");
+    private static final List<String> ADMIN_USERS = List.of("Kaito", "StargazerVinny", "GhostTurt", "EfzPlayer", "Hercole", "lar_ott", "Lar_ott");
+
     String exceptionMessage = " not found";
+    
+    @PostConstruct
+    public void migrateUsersToRoleSchema() {
+        try {
+            // Try to use repository first
+            List<MongoUser> allUsers = mongoUserRepository.findAll();
+            
+            for (MongoUser user : allUsers) {
+                if (user.role() == null) {
+                    Role role = Role.ROLE_USER;
+                    if (BANNED_USERNAMES.contains(user.username())) role = Role.ROLE_BANNED;
+                    if (ADMIN_USERS.contains(user.username())) role = Role.ROLE_ADMIN;
+
+                    MongoUser updatedUser = new MongoUser(
+                            user.id(),
+                            user.username(),
+                            user.password(),
+                            user.question(),
+                            user.answer(),
+                            user.activeDeckId(),
+                            user.avatarName(),
+                            user.blockedAccounts(),
+                            role
+                    );
+                    mongoUserRepository.save(updatedUser);
+                }
+            }
+        } catch (Exception e) {
+            // If repository fails due to schema mismatch, use raw MongoDB update
+            try {
+                Query query = new Query(Criteria.where("role").exists(false));
+                Update update = new Update().set("role", Role.ROLE_USER.name());
+                mongoTemplate.updateMulti(query, update, "users");
+                System.out.println("Successfully migrated users to role schema using MongoTemplate");
+            } catch (Exception mongoError) {
+                System.err.println("User migration failed completely: " + mongoError.getMessage());
+            }
+        }
+    }
 
     public MongoUser getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -52,7 +98,15 @@ public class MongoUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         MongoUser mongoUser = getUserByUsername(username);
-        return new User(mongoUser.username(), mongoUser.password(), Collections.emptyList());
+        
+        if (mongoUser.role() == Role.ROLE_BANNED) {
+            throw new UsernameNotFoundException("User " + username + " is banned");
+        }
+        
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(mongoUser.role().name()));
+        
+        return new User(mongoUser.username(), mongoUser.password(), authorities);
     }
 
     public String registerNewUser(RegistrationUser registrationUser){
@@ -74,7 +128,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 registrationUser.answer(),
                 UUID.randomUUID().toString(),
                 "AncientIrismon",
-                Collections.emptyList()
+                Collections.emptyList(),
+                Role.ROLE_USER
         );
 
         starterDeckService.createStarterDecksForUser(newUser.id(), newUser.activeDeckId());
@@ -94,7 +149,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.answer(),
                 deckId,
                 mongoUser.avatarName(),
-                mongoUser.blockedAccounts()
+                mongoUser.blockedAccounts(),
+                mongoUser.role()
         );
         mongoUserRepository.save(updatedUser);
     }
@@ -115,7 +171,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.answer(),
                 mongoUser.activeDeckId(),
                 avatarName,
-                mongoUser.blockedAccounts()
+                mongoUser.blockedAccounts(),
+                mongoUser.role()
         );
         mongoUserRepository.save(updatedUser);
     }
@@ -143,7 +200,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.answer(),
                 mongoUser.activeDeckId(),
                 mongoUser.avatarName(),
-                mongoUser.blockedAccounts()
+                mongoUser.blockedAccounts(),
+                mongoUser.role()
         );
         mongoUserRepository.save(updatedUser);
     }
@@ -161,7 +219,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                     mongoUser.answer(),
                     mongoUser.activeDeckId(),
                     mongoUser.avatarName(),
-                    mongoUser.blockedAccounts()
+                    mongoUser.blockedAccounts(),
+                    mongoUser.role()
             );
             mongoUserRepository.save(updatedUser);
             return "Password changed!";
@@ -178,7 +237,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                     safetyQuestionChange.answer(),
                     mongoUser.activeDeckId(),
                     mongoUser.avatarName(),
-                    mongoUser.blockedAccounts()
+                    mongoUser.blockedAccounts(),
+                    mongoUser.role()
             );
             mongoUserRepository.save(updatedUser);
             return "Safety question changed!";
@@ -195,7 +255,8 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.answer(),
                 mongoUser.activeDeckId(),
                 mongoUser.avatarName(),
-                blockedAccounts
+                blockedAccounts,
+                mongoUser.role()
         );
         mongoUserRepository.save(updatedUser);
     }
@@ -248,5 +309,29 @@ public class MongoUserDetailsService implements UserDetailsService {
             setBlockedAccounts(blockedAccounts);
         }
         return removed;
+    }
+    
+    public boolean isAdmin() {
+        return getCurrentUser().role() == Role.ROLE_ADMIN;
+    }
+    
+    public boolean isBanned() {
+        return getCurrentUser().role() == Role.ROLE_BANNED;
+    }
+    
+    public void setUserRole(String username, Role role) {
+        MongoUser mongoUser = getUserByUsername(username);
+        MongoUser updatedUser = new MongoUser(
+                mongoUser.id(),
+                mongoUser.username(),
+                mongoUser.password(),
+                mongoUser.question(),
+                mongoUser.answer(),
+                mongoUser.activeDeckId(),
+                mongoUser.avatarName(),
+                mongoUser.blockedAccounts(),
+                role
+        );
+        mongoUserRepository.save(updatedUser);
     }
 }

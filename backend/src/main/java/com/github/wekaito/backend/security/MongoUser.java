@@ -15,6 +15,7 @@ public record MongoUser(
         String answer,
         String activeDeckId,
         String avatarName,
-        List<String> blockedAccounts
+        List<String> blockedAccounts,
+        Role role
 ) {
 }
