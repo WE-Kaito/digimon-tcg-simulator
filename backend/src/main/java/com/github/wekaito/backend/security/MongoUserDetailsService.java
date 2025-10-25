@@ -100,7 +100,7 @@ public class MongoUserDetailsService implements UserDetailsService {
         MongoUser mongoUser = getUserByUsername(username);
         
         if (mongoUser.role() == Role.ROLE_BANNED) {
-            throw new UsernameNotFoundException("User " + username + " is banned");
+            throw new UserBannedException("Your account has been suspended.");
         }
         
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();

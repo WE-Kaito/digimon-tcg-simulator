@@ -93,8 +93,7 @@ export const useGeneralStates = create<State>((set, get) => ({
                 navigate("/");
             })
             .catch((error) => {
-                console.error(error);
-                notifyError("Wrong username or password!");
+                notifyError(error?.request?.response ?? "Authentication failed");
                 throw error;
             });
     },

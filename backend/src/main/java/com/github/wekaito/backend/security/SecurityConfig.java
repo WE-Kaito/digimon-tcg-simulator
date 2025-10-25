@@ -1,5 +1,6 @@
 package com.github.wekaito.backend.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,7 +30,23 @@ public class SecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler))
 
-                .httpBasic(Customizer.withDefaults())
+                .httpBasic(basic -> basic
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+
+                            String message;
+                            if (authException.getCause() instanceof UserBannedException) {
+                                message = authException.getCause().getMessage();
+                            } else if (authException instanceof UserBannedException) {
+                                message = authException.getMessage();
+                            } else {
+                                message = "Wrong username or password.";
+                            }
+
+                            response.getWriter().write(message);
+                        })
+                )
 
                 .sessionManagement(httpSecuritySessionManagementConfigurer ->
                         httpSecuritySessionManagementConfigurer
