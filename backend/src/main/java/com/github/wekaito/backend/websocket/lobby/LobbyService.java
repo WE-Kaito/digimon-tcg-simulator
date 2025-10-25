@@ -46,6 +46,8 @@ public class LobbyService extends TextWebSocketHandler {
 
     private final String warning = "[CHAT_MESSAGE]:【SERVER】: ⚠ The server detected multiple connections for the same user. Make sure to only use one tab per account. ⚠";
 
+    public final LinkedList<String> globalChatMessages = new LinkedList<>(List.of("【SERVER】: Join our Discord!"));
+
     private static final List<String> BANNED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer", "Humungosaurio2", "season1yugioh");
 
     @Autowired
@@ -75,12 +77,10 @@ public class LobbyService extends TextWebSocketHandler {
         if (BANNED_USERNAMES.contains(username)) return;
 
         globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
-        globalActiveSessions.add(session);
-
         if (tryReconnectToRoom(session)) return; // Try to reconnect first
 
         List<String> userBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(username);
-        
+
         List<Room> openRooms = rooms.stream()
                 .filter(r -> r.getPlayers().size() == 1)
                 .filter(r -> !userBlockedAccounts.contains(r.getHostName())) // Filter out rooms created by blocked users
@@ -88,8 +88,10 @@ public class LobbyService extends TextWebSocketHandler {
         List<RoomDTO> openRoomsDTO = openRooms.stream().map(this::getRoomDTO).toList();
 
         sendTextMessage(session, "[ROOMS]:" + objectMapper.writeValueAsString(openRoomsDTO));
-        sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Join our Discord!");
+        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
         sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
+
+        globalActiveSessions.add(session);
     }
 
     @Override
@@ -621,10 +623,15 @@ public class LobbyService extends TextWebSocketHandler {
         if (payload.substring("/chatMessage:".length()).trim().isEmpty()) return;
 
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        String message = "[CHAT_MESSAGE]:" + username + ": " + payload.substring("/chatMessage:".length());
+
+        String message = username + ": " + payload.substring("/chatMessage:".length());
+
+        globalChatMessages.add(message);
+
+        if (globalChatMessages.size() > 500) globalChatMessages.removeFirst();
 
         for (WebSocketSession webSocketSession : globalActiveSessions) {
-            sendTextMessage(webSocketSession, message);
+            sendTextMessage(webSocketSession, "[CHAT_MESSAGE]:" + message);
         }
     }
 

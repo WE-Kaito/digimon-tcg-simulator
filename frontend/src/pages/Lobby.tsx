@@ -59,7 +59,7 @@ type Room = {
 
 export default function Lobby() {
     const currentPort = window.location.port;
-    const currentUrl = window.location.origin.replace('https://','');
+    const currentUrl = window.location.origin.replace("https://", "");
     //TODO: using www.project-drasil.online as the domain is not working, need a fix
     const websocketURL =
         currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/lobby" : "wss://" + currentUrl + "/api/ws/lobby";
@@ -217,6 +217,11 @@ export default function Lobby() {
 
             if (event.data === "[SESSION_ALREADY_CONNECTED]") {
                 setIsAlreadyOpenedInOtherTab(true);
+            }
+
+            if (event.data.startsWith("[GLOBAL_CHAT]:")) {
+                const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as string[];
+                setMessages(messagesArray);
             }
 
             if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
