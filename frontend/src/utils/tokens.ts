@@ -6,9 +6,9 @@ import Fujitsumon from "../assets/tokens/Fujitsumon.webp";
 import Gyuukimon from "../assets/tokens/Gyuukimon.webp";
 import HackmonToken from "../assets/tokens/tokenCard.jpg";
 import VoleeUndZerdruecken from "../assets/tokens/VoleeUndZerdruecken.webp";
-import Rapidmon from "../assets/tokens/Rapidmon V-Pet.webp";
-import WarGrowlmon from "../assets/tokens/WarGrowlmon V-Pet.webp";
-import Taomon from "../assets/tokens/Taomon V-Pet.webp";
+import Rapidmon from "../assets/tokens/Rapidmon.png";
+import WarGrowlmon from "../assets/tokens/WarGrowlmon.png";
+import Taomon from "../assets/tokens/Taomon.png";
 import Familiar from "../assets/tokens/Familiar_Token.webp";
 import PipeFox from "../assets/tokens/Fox_Token.webp";
 import UkaNoMitama from "../assets/tokens/Mitama_Token.webp";
@@ -205,7 +205,7 @@ export const rapidmonToken: CardType = {
     mainEffect: tokenEffect("Rapidmon"),
     name: "Rapidmon",
     restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol",
+    illustrator: "765Nanami",
 };
 
 export const warGrowlmonToken: CardType = {
@@ -218,7 +218,7 @@ export const warGrowlmonToken: CardType = {
     mainEffect: tokenEffect("WarGrowlmon"),
     name: "WarGrowlmon",
     restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol",
+    illustrator: "765Nanami",
 };
 
 export const taomonToken: CardType = {
@@ -231,7 +231,7 @@ export const taomonToken: CardType = {
     mainEffect: tokenEffect("Taomon"),
     name: "Taomon",
     restrictions: emptyRestrictions,
-    illustrator: "Template By SergioGranSol",
+    illustrator: "765Nanami",
 };
 
 export const generalToken: CardType = {
