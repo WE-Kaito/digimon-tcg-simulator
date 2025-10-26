@@ -5,6 +5,7 @@ import BannedUsers from "../components/administration/BannedUsers.tsx";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import useQuery from "../hooks/useQuery.ts";
 import { Navigate } from "react-router-dom";
+import ServerMessageInput from "../components/administration/ServerMessageInput.tsx";
 
 export default function Administration() {
     const user = useGeneralStates((state) => state.user);
@@ -28,8 +29,9 @@ export default function Administration() {
                 <SectionHeadline headline={"Administration"} rightElement={<BackButton />} />
 
                 {!isFetching && (
-                    <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                         <BannedUsers />
+                        <ServerMessageInput />
                     </div>
                 )}
             </div>

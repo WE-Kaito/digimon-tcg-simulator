@@ -1,6 +1,9 @@
 package com.github.wekaito.backend.security;
 
+import com.github.wekaito.backend.websocket.game.GameWebSocket;
+import com.github.wekaito.backend.websocket.lobby.LobbyWebSocket;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +20,12 @@ public class AdminController {
 
     private final MongoUserDetailsService mongoUserDetailsService;
     private final MongoUserRepository mongoUserRepository;
+    
+    @Autowired
+    private LobbyWebSocket lobbyWebSocket;
+    
+    @Autowired
+    private GameWebSocket gameWebSocket;
 
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> banUser(@PathVariable String username) {
@@ -103,5 +112,18 @@ public class AdminController {
                 .collect(Collectors.toList());
     }
 
+    @PostMapping("/server-message")
+    public ResponseEntity<Void> sendServerMessage(@RequestBody ServerMessageDTO serverMessageDTO) {
+        try {
+            lobbyWebSocket.broadcastServerMessage(serverMessageDTO.message);
+            gameWebSocket.broadcastServerMessageToAllGameRooms(serverMessageDTO.message);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     public record UserStatusDTO(String username, Role role) {}
+
+    public record ServerMessageDTO(String message) {}
 }

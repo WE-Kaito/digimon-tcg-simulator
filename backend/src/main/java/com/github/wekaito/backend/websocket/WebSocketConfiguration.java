@@ -1,7 +1,7 @@
 package com.github.wekaito.backend.websocket;
 
-import com.github.wekaito.backend.websocket.game.GameService;
-import com.github.wekaito.backend.websocket.lobby.LobbyService;
+import com.github.wekaito.backend.websocket.game.GameWebSocket;
+import com.github.wekaito.backend.websocket.lobby.LobbyWebSocket;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,14 +15,14 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 @Profile("!test")
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
-    private final LobbyService lobbyService;
-    private final GameService gameService;
+    private final LobbyWebSocket lobbyWebSocket;
+    private final GameWebSocket gameWebSocket;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(lobbyService, "/api/ws/lobby")
+        registry.addHandler(lobbyWebSocket, "/api/ws/lobby")
                 .setAllowedOrigins("*");
-        registry.addHandler(gameService, "/api/ws/game")
+        registry.addHandler(gameWebSocket, "/api/ws/game")
                 .setAllowedOrigins("*");
     }
 

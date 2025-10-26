@@ -20,16 +20,32 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUt
         <>
             <History>
                 {messages.map((message, index) => {
-                    if (message.startsWith("[STARTING_PLAYER]≔"))
+                    if (message.startsWith("[STARTING_PLAYER]≔")) {
                         return (
                             <UpdateMessage style={{ background: "rgba(255, 215, 0, 0.25)" }}>
                                 <p>FIRST TURN: {message.split("≔")[1]}</p>
                             </UpdateMessage>
                         );
+                    }
 
                     const userName = message.split("﹕", 2)[0];
                     const isMyMessage = userName === matchInfo?.user;
                     const chatMessage = message.split("﹕", 2)[1];
+
+                    if (userName === "【SERVER】") {
+                        return (
+                            <UpdateMessage
+                                key={"msx_" + index}
+                                style={{
+                                    background: "rgba(4,241,150,0.25)",
+                                    outline: "1px solid rgba(4,241,150,0.75)",
+                                    outlineOffset: "-1px",
+                                }}
+                            >
+                                <p>{chatMessage}</p>
+                            </UpdateMessage>
+                        );
+                    }
 
                     if (chatMessage?.startsWith("[FIELD_UPDATE]≔")) {
                         const startIndex = message.indexOf("【");

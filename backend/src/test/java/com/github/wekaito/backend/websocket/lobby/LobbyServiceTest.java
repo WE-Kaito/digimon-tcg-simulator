@@ -24,7 +24,7 @@
 //import static org.mockito.Mockito.*;
 //
 //@ExtendWith(SpringExtension.class)
-//class LobbyServiceTest {
+//class LobbyWebSocketTest {
 //
 //    @Mock
 //    private MongoUserDetailsService mongoUserDetailsService;

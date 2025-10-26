@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Getter
 @RequiredArgsConstructor
-public class GameService extends TextWebSocketHandler {
+public class GameWebSocket extends TextWebSocketHandler {
 
     private final MongoUserDetailsService mongoUserDetailsService;
 
@@ -1084,5 +1084,12 @@ public class GameService extends TextWebSocketHandler {
         String command = parts[0];
         String id = parts[2];
         gameRoom.sendMessageToOtherSessions(session, convertCommand(command) + ":" + id);
+    }
+    
+    public void broadcastServerMessageToAllGameRooms(String message) {
+        String formattedMessage = "[CHAT_MESSAGE]:【SERVER】﹕" + message;
+        for (GameRoom gameRoom : gameRooms.values()) {
+            gameRoom.sendMessagesToAll(formattedMessage);
+        }
     }
 }

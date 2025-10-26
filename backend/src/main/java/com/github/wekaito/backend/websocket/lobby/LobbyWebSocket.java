@@ -5,7 +5,7 @@ import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
-import com.github.wekaito.backend.websocket.game.GameService;
+import com.github.wekaito.backend.websocket.game.GameWebSocket;
 import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Getter
 @Service
 @RequiredArgsConstructor
-public class LobbyService extends TextWebSocketHandler {
+public class LobbyWebSocket extends TextWebSocketHandler {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,7 +50,7 @@ public class LobbyService extends TextWebSocketHandler {
     public final LinkedList<String> globalChatMessages = new LinkedList<>(List.of("【SERVER】: Join our Discord!"));
 
     @Autowired
-    private GameService gameService;
+    private GameWebSocket gameWebSocket;
 
     private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
@@ -393,14 +393,14 @@ public class LobbyService extends TextWebSocketHandler {
 
     private void checkForRejoinableGameRoom() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
-            Optional<GameRoom> room = gameService.findGameRoomBySession(session);
+            Optional<GameRoom> room = gameWebSocket.findGameRoomBySession(session);
             if (room.isPresent()) sendTextMessage(session, "[RECONNECT_ENABLED]:" + room.get().getRoomId());
             else sendTextMessage(session, "[RECONNECT_DISABLED]");
         }
     }
 
     private int getTotalSessionCount() {
-        int inGameSessionCount = gameService.gameRooms.size() * 2;
+        int inGameSessionCount = gameWebSocket.gameRooms.size() * 2;
         return globalActiveSessions.size() + inGameSessionCount;
     }
 
@@ -648,5 +648,17 @@ public class LobbyService extends TextWebSocketHandler {
 
     private Room getRoomById(String roomId) {
         return rooms.stream().filter(r -> r.getId().equals(roomId)).findFirst().orElse(null);
+    }
+    
+    public void broadcastServerMessage(String message) throws IOException {
+        String formattedMessage = "【SERVER】: " + message;
+
+        globalChatMessages.add(formattedMessage);
+        
+        if (globalChatMessages.size() > 500) globalChatMessages.removeFirst();
+        
+        for (WebSocketSession session : globalActiveSessions) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:" + formattedMessage);
+        }
     }
 }

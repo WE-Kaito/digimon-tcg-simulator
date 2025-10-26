@@ -17,7 +17,7 @@ export default function useMutation(path: string, method: Method) {
         try {
             const res = await axios({
                 method: method,
-                url: path + options?.pathVariable,
+                url: path + (options?.pathVariable ?? ""),
                 data: options?.payload,
             });
             return res.data;

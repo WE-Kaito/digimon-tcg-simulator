@@ -23,7 +23,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-class GameServiceTest {
+class GameWebSocketTest {
 
 //    @Mock
 //    private MongoUserDetailsService mongoUserDetailsService;
@@ -32,7 +32,7 @@ class GameServiceTest {
 //    @Mock
 //    private ApplicationEventPublisher eventPublisher;
 //    @InjectMocks
-//    private GameService gameService;
+//    private GameWebSocket gameWebSocket;
 //    private WebSocketSession session1;
 //    private WebSocketSession session2;
 //    String username1 = "testUser1";
