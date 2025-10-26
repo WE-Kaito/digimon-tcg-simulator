@@ -9,7 +9,7 @@ import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 
 const currentPort = window.location.port;
-const currentUrl = window.location.origin.replace('https://','');
+const currentUrl = window.location.origin.replace("https://", "");
 // TODO: using www.project-drasil.online as the domain is not working, need a fix
 const websocketURL =
     currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/game" : "wss://" + currentUrl + "/api/ws/game";
@@ -285,7 +285,9 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const parts = event.data.substring("[CREATE_TOKEN]:".length).split(":");
                 if (parts.length < 2) return;
                 const id = parts[0];
-                const token = findTokenByName(parts[1]);
+                const tokenName = parts[1];
+                // const position = parts[2];
+                const token = findTokenByName(tokenName);
                 if (token) createToken(token, SIDE.OPPONENT, id);
                 return;
             }

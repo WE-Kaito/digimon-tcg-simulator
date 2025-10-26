@@ -236,7 +236,7 @@ export const taomonToken: CardType = {
 
 export const generalToken: CardType = {
     imgUrl: HackmonToken,
-    uniqueCardNumber: "Token",
+    uniqueCardNumber: "TOKEN",
     cardNumber: "",
     cardType: "Digimon",
     color: ["Unknown"],

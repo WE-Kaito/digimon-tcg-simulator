@@ -7,6 +7,7 @@ import { tokenCollection } from "../../../utils/tokens.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 import styled from "@emotion/styled";
+import { generateUUID } from "../../../utils/generateUUID.ts";
 
 export default function TokenModal({ wsUtils }: { wsUtils?: WSUtils }) {
     const setHoverCard = useGeneralStates((state) => state.setHoverCard);
@@ -17,12 +18,21 @@ export default function TokenModal({ wsUtils }: { wsUtils?: WSUtils }) {
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 
     function handleCreateToken(token: CardType) {
-        const id = "TOKEN-" + uid();
-        createToken(token, SIDE.MY, id);
+        const id = generateUUID();
+        const placementPosition = createToken(token, SIDE.MY, id);
         playPlaceCardSfx();
-        wsUtils?.sendMessage(
-            `${wsUtils.matchInfo.gameId}:/createToken:${wsUtils.matchInfo.opponentName}:${id}:${token.name}`
-        );
+
+        // Create CardTypeGame object to send to backend
+        const tokenGame = {
+            ...token,
+            id: id,
+            isTilted: false,
+            isFaceUp: true,
+            modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: token.color },
+        };
+        const cardJson = JSON.stringify(tokenGame);
+
+        wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/createToken:${placementPosition}:${cardJson}`);
         wsUtils?.sendSfx("playPlaceCardSfx");
         wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【Spawn ${token.name}-Token】`);
         setTokenModal(false);

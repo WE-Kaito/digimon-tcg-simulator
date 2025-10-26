@@ -18,6 +18,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -34,6 +35,8 @@ public class GameWebSocket extends TextWebSocketHandler {
     private final DeckService deckService;
     
     private final ApplicationEventPublisher eventPublisher;
+    
+    private final CardJsonConverter cardJsonConverter;
 
     public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
     
@@ -42,6 +45,11 @@ public class GameWebSocket extends TextWebSocketHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget", "/emote"};
+    
+    private static final Set<String> DESTROY_TOKEN_LOCATIONS = Set.of(
+        "player1Hand", "player1Deck", "player1EggDeck", "player1Trash", "player1Security", "player1BreedingArea",
+        "player2Hand", "player2Deck", "player2EggDeck", "player2Trash", "player2Security", "player2BreedingArea"
+    );
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -50,22 +58,26 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
-            Optional<GameRoom> gameRoomOpt = gameRooms.values().stream().filter(room ->
-                    room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
-            ).findFirst();
-            
-            if (gameRoomOpt.isPresent()) {
-                GameRoom gameRoom = gameRoomOpt.get();
-                // Notify remaining active sessions about disconnection
-                gameRoom.sendMessageToOtherSessions(session, "[OPPONENT_DISCONNECTED]");
-                gameRoom.removeSession(session);
-                
-                // Use isEmpty method that checks for actually open sessions
-                if (gameRoom.isEmpty()) {
-                    gameRooms.remove(gameRoom.getRoomId());
-                }
+        Principal principal = session.getPrincipal();
+        if (principal == null) return;
+
+        String username = principal.getName();
+
+        Optional<GameRoom> gameRoomOpt = gameRooms.values().stream().filter(room ->
+                room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
+        ).findFirst();
+
+        if (gameRoomOpt.isPresent()) {
+            GameRoom gameRoom = gameRoomOpt.get();
+            // Notify remaining active sessions about disconnection
+            gameRoom.sendMessageToOtherSessions(session, "[OPPONENT_DISCONNECTED]");
+            gameRoom.removeSession(session);
+
+            // Use isEmpty method that checks for actually open sessions
+            if (gameRoom.isEmpty()) {
+                gameRooms.remove(gameRoom.getRoomId());
             }
+        }
     }
 
     @EventListener
@@ -563,6 +575,12 @@ public class GameWebSocket extends TextWebSocketHandler {
         // Update source position
         setBoardStatePosition(boardState, fromServer, fromList.toArray(new GameCard[0]));
         
+        // Check if it's a token being moved to a destroy location
+        if (DESTROY_TOKEN_LOCATIONS.contains(toServer) && cardToMove.uniqueCardNumber().contains("TOKEN")) {
+            // Token is destroyed - don't add to destination, just remove from source
+            return;
+        }
+        
         // Handle face status based on facing parameter
         if (facing != null) {
             boolean shouldBeFaceUp = facing.equals("up");
@@ -617,6 +635,12 @@ public class GameWebSocket extends TextWebSocketHandler {
         
         // Update source position
         setBoardStatePosition(boardState, fromServer, fromList.toArray(new GameCard[0]));
+        
+        // Check if it's a token being moved to a destroy location
+        if (DESTROY_TOKEN_LOCATIONS.contains(toServer) && cardToMove.uniqueCardNumber().contains("TOKEN")) {
+            // Token is destroyed - don't add to destination, just remove from source
+            return;
+        }
         
         // Determine correct face status for destination position
         boolean shouldBeFaceUp = isFieldPosition(toServer);
@@ -1056,11 +1080,32 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private void handleCreateToken(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
-        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 4) return;
-        String[] parts = roomMessage.split(":", 4);
-        String cardId = parts[2];
-        String name = parts[3];
-        gameRoom.sendMessageToOtherSessions(session, "[CREATE_TOKEN]:" + cardId + ":" + name);
+        if (!gameRoom.hasFullConnection()) return;
+        String[] parts = roomMessage.split(":", 3);
+        String targetPosition = parts[1];
+        String cardJson = parts[2];
+
+        // Get current player username
+        String currentPlayer = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
+        
+        if (currentPlayer != null) {
+            try {
+                GameCard card = cardJsonConverter.convertToGameCard(cardJson);
+                
+                // Persist card in BoardState at the specified target position
+                BoardState boardState = gameRoom.getBoardState();
+                if (boardState != null) {
+                    String serverPosition = mapClientToServer(targetPosition, currentPlayer, gameRoom);
+                    setBoardStatePosition(boardState, serverPosition, new GameCard[]{card});
+                }
+
+                gameRoom.sendMessageToOtherSessions(session, 
+                    "[CREATE_TOKEN]:" + card.id() + ":" + card.name() + ":" + getPosition(targetPosition));
+                    
+            } catch (Exception e) {
+                System.err.println("ERROR in handleCreateToken: " + e.getMessage());
+            }
+        }
     }
 
     private void handleMemoryUpdate(GameRoom gameRoom, WebSocketSession session, String roomMessage) {

@@ -18,6 +18,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -59,7 +60,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        Principal principal = session.getPrincipal();
+        if (principal == null) return;
+
+        String username = principal.getName();
 
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
         if (activeDeck.isEmpty() || deckService.getDeckById(activeDeck) == null) {
@@ -93,7 +97,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        Principal principal = session.getPrincipal();
+        if (principal == null) return;
+
+        String username = principal.getName();
 
         synchronized (rooms) {
             Room playerRoom = rooms.stream()

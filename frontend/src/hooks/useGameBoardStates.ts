@@ -656,7 +656,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             set({ bootStage: BootStage.GAME_IN_PROGRESS });
         }
 
-        if (destroyTokenLocations.includes(to) && card.id.startsWith("TOKEN")) {
+        if (destroyTokenLocations.includes(to) && card.uniqueCardNumber.includes("TOKEN")) {
             set({ [from]: updatedFromState });
             return;
         }
@@ -776,6 +776,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             isFaceUp: true,
             modifiers: { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: tokenVariant.color },
         };
+        let placementPosition: string | null = null;
+
         set((state) => {
             for (let i = 1; i <= 16; i++) {
                 const digiKey = `${side}Digi${i}` as keyof State;
@@ -783,6 +785,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                     Array.isArray(state[digiKey] as CardTypeGame[]) &&
                     (state[digiKey] as CardTypeGame[]).length === 0
                 ) {
+                    placementPosition = digiKey;
                     return {
                         [digiKey]: [token],
                     };
@@ -790,6 +793,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             }
             return state;
         });
+
+        return placementPosition;
     },
 
     moveCardStack: (index, from, to, handleDropToField) => {
