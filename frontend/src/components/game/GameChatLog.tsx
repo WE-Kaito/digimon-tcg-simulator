@@ -42,7 +42,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUt
                                     outlineOffset: "-1px",
                                 }}
                             >
-                                <p>{chatMessage}</p>
+                                <p>{"SERVER: " + chatMessage}</p>
                             </UpdateMessage>
                         );
                     }
@@ -209,10 +209,7 @@ const StyledInput = styled.input`
     font-size: 1.05em;
     background: rgba(255, 239, 213, 0.25);
     color: #1a1a1a;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    border-top-right-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-radius: 5px 2px 2px 5px;
 
     :focus {
         outline: none;

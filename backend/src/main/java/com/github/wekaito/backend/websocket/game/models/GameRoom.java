@@ -13,9 +13,6 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Setter
 @Getter
@@ -38,16 +35,12 @@ public class GameRoom {
     private Boolean player2Mulligan;
     private BoardState boardState = null;
     private String[] chat;
-    int bootStage = 0; // 0 = CLEAR, 1 = SHOW_STARTING_PLAYER, 2 = MULLIGAN, 3 = MULLIGAN, 4 = GAME_START
     private Phase phase = Phase.BREEDING;
+    @Setter
     private String usernameTurn;
+    @Setter
+    int bootStage = 0; // 0 = CLEAR, 1 = SHOW_STARTING_PLAYER, 2 = MULLIGAN, 3 = MULLIGAN, 4 = GAME_START
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-    {
-        scheduler.scheduleWithFixedDelay(() -> sendMessagesToAll("[HEARTBEAT]"), 5, 5, TimeUnit.SECONDS);
-        scheduler.scheduleWithFixedDelay(this::checkAndEmitIfEmpty, 10, 10, TimeUnit.SECONDS);
-    }
 
     public void addSession(WebSocketSession session) {
         sessions.add(session);
@@ -69,9 +62,6 @@ public class GameRoom {
         return sessions.stream().filter(WebSocketSession::isOpen).count();
     }
 
-    public void shutdownScheduler() {
-        scheduler.shutdownNow(); // important to stop any scheduled tasks when the room is closed
-    }
 
     public void sendMessagesToAll(String message) {
         for (WebSocketSession s : sessions) {
@@ -174,64 +164,28 @@ public class GameRoom {
         sendMessagesToAll("[DISTRIBUTE_CARDS]:" + newGameJson);
     }
 
-    public void setUpGame() {
+    public SetupInfo setUpGame() {
         initiateGame();
 
         String[] names = {this.player1.username(), this.player2.username()};
         int index = secureRand.nextInt(names.length);
-        String startingPlayerMessage = "[STARTING_PLAYER]≔" + names[index];
-
-        try {
-            scheduler.schedule(() -> {
-                try {
-                    this.usernameTurn = names[index];
-                    sendMessagesToAll(startingPlayerMessage);
-                    storeChatMessage(startingPlayerMessage);
-                } catch (Exception e) {
-                    System.err.println("Error in setUpGame timer for room " + roomId + ": " + e.getMessage());
-                }
-            }, 50, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            System.err.println("Failed to schedule setUpGame timer for room " + roomId + ": " + e.getMessage());
-            // Fallback: execute immediately
-            this.usernameTurn = names[index];
-            sendMessagesToAll(startingPlayerMessage);
-            storeChatMessage(startingPlayerMessage);
-        }
 
         initiallyDistributeCards();
+        
+        return new SetupInfo(names, index);
     }
 
     /* Restart case */
-    public void setUpGame(WebSocketSession session, boolean isThisPlayerStarting) {
+    public String setUpGameRestart(WebSocketSession session, boolean isThisPlayerStarting) {
         initiateGame();
 
         String startingPlayer = isThisPlayerStarting ?
                 Objects.requireNonNull(session.getPrincipal()).getName() :
                 (Objects.requireNonNull(session.getPrincipal()).getName().equals(player1.username()) ? player2.username() : player1.username());
-        String startingPlayerMessage = "[STARTING_PLAYER]≔" + startingPlayer;
-
-        try {
-            scheduler.schedule(() -> {
-                try {
-                    if (startingPlayer != null) {
-                        this.usernameTurn = startingPlayer;
-                        sendMessagesToAll(startingPlayerMessage);
-                        storeChatMessage(startingPlayerMessage);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error in setUpGame restart timer for room " + roomId + ": " + e.getMessage());
-                }
-            }, 50, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            System.err.println("Failed to schedule setUpGame restart timer for room " + roomId + ": " + e.getMessage());
-            // Fallback: execute immediately
-            this.usernameTurn = startingPlayer;
-            sendMessagesToAll(startingPlayerMessage);
-            storeChatMessage(startingPlayerMessage);
-        }
 
         initiallyDistributeCards();
+        
+        return startingPlayer;
     }
 
     private void initiateGame(){
@@ -249,7 +203,7 @@ public class GameRoom {
         }
     }
 
-    private void initiallyDistributeCards() {
+    public GameStart initiallyDistributeCards() {
         List<GameCard> deck1 = createGameDeck(this.player1Deck);
         List<GameCard> deck2 = createGameDeck(this.player2Deck);
 
@@ -276,33 +230,21 @@ public class GameRoom {
 
         this.boardState = boardState;
 
-        GameStart newGame = new GameStart(
+        return new GameStart(
                 player1Hand, deck1, player1EggDeck, new ArrayList<>(),
                 player2Hand, deck2, player2EggDeck, new ArrayList<>()
         );
-
+    }
+    
+    public void distributeCardsAndSetStage(GameStart newGame) {
         try {
-            scheduler.schedule(() -> {
-                try {
-                    distributeCards(newGame);
-                    this.bootStage = 2;
-                    sendMessagesToAll("[SET_BOOT_STAGE]:" + 2);
-                } catch (JsonProcessingException e) {
-                    System.err.println("JsonProcessingException in initiallyDistributeCards timer for room " + roomId + ": " + e.getMessage());
-                } catch (Exception e) {
-                    System.err.println("Error in initiallyDistributeCards timer for room " + roomId + ": " + e.getMessage());
-                }
-            }, 4800, TimeUnit.MILLISECONDS);
+            distributeCards(newGame);
+            this.bootStage = 2;
+            sendMessagesToAll("[SET_BOOT_STAGE]:" + 2);
+        } catch (JsonProcessingException e) {
+            System.err.println("JsonProcessingException in distributeCardsAndSetStage for room " + roomId + ": " + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Failed to schedule initiallyDistributeCards timer for room " + roomId + ": " + e.getMessage());
-            // Fallback: execute immediately
-            try {
-                distributeCards(newGame);
-                this.bootStage = 2;
-                sendMessagesToAll("[SET_BOOT_STAGE]:" + 2);
-            } catch (JsonProcessingException ex) {
-                System.err.println("Fallback execution failed for room " + roomId + ": " + ex.getMessage());
-            }
+            System.err.println("Error in distributeCardsAndSetStage for room " + roomId + ": " + e.getMessage());
         }
     }
 
@@ -391,7 +333,6 @@ public class GameRoom {
 
     public void checkAndEmitIfEmpty() {
         if (isEmpty()) {
-            shutdownScheduler();
             eventPublisher.publishEvent(new GameRoomEmptyEvent(this, roomId));
         }
     }
