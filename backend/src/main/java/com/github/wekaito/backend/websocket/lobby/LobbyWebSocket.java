@@ -209,7 +209,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         for (LobbyPlayer player : room.getPlayers()) {
             sendTextMessage(player.getSession(), "[COMPUTE_GAME]:" + gameId);
+            lastPlayerRooms.remove(player.getName());
         }
+
+        rooms.remove(room);
     }
 
     @Scheduled(fixedRate = 3000) // 3 seconds

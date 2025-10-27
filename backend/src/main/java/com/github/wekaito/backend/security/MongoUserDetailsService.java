@@ -68,7 +68,6 @@ public class MongoUserDetailsService implements UserDetailsService {
                 Query query = new Query(Criteria.where("role").exists(false));
                 Update update = new Update().set("role", Role.ROLE_USER.name());
                 mongoTemplate.updateMulti(query, update, "users");
-                System.out.println("Successfully migrated users to role schema using MongoTemplate");
             } catch (Exception mongoError) {
                 System.err.println("User migration failed completely: " + mongoError.getMessage());
             }

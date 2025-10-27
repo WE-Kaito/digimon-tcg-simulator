@@ -6,13 +6,14 @@ import com.github.wekaito.backend.models.Card;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 
 @Setter
 @Getter
@@ -24,23 +25,23 @@ public class GameRoom {
     private final Player player2;
     private final List<Card> player2Deck;
 
-    private final ApplicationEventPublisher eventPublisher;
-
     private static final SecureRandom secureRand = new SecureRandom();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Set<WebSocketSession> sessions = new HashSet<>();
+    private final List<ScheduledFuture<?>> scheduledTasks = new ArrayList<>();
 
     private Boolean player1Mulligan;
     private Boolean player2Mulligan;
+
+    private volatile long lastHeartBeatReceivedPlayer1 = System.currentTimeMillis();
+    private volatile long lastHeartBeatReceivedPlayer2 = System.currentTimeMillis();
+
     private BoardState boardState = null;
     private String[] chat;
     private Phase phase = Phase.BREEDING;
-    @Setter
     private String usernameTurn;
-    @Setter
     int bootStage = 0; // 0 = CLEAR, 1 = SHOW_STARTING_PLAYER, 2 = MULLIGAN, 3 = MULLIGAN, 4 = GAME_START
-
 
     public void addSession(WebSocketSession session) {
         sessions.add(session);
@@ -49,19 +50,30 @@ public class GameRoom {
     public void removeSession(WebSocketSession session) {
         sessions.remove(session);
     }
-    
-    public boolean hasFullConnection() {
-        return getOpenSessionCount() >= 2;
-    }
-    
-    public boolean isEmpty() {
-        return getOpenSessionCount() == 0;
-    }
-    
-    private long getOpenSessionCount() {
-        return sessions.stream().filter(WebSocketSession::isOpen).count();
+
+    public void updateLastHearBeat(WebSocketSession session) {
+        Principal principal = session.getPrincipal();
+        if (principal == null) return;
+        if (session.getPrincipal().getName().equals(player1.username())) {
+            lastHeartBeatReceivedPlayer1 = System.currentTimeMillis();
+        } else if (session.getPrincipal().getName().equals(player2.username())) {
+            lastHeartBeatReceivedPlayer2 = System.currentTimeMillis();
+        }
     }
 
+    private static final long HEARTBEAT_TIMEOUT_MS = 10500; // 10 seconds of client heartbeat + 0.5s buffer
+
+    public boolean hasFullConnection() {
+        long now = System.currentTimeMillis();
+        return (now - lastHeartBeatReceivedPlayer1 < HEARTBEAT_TIMEOUT_MS) &&
+                (now - lastHeartBeatReceivedPlayer2 < HEARTBEAT_TIMEOUT_MS);
+    }
+
+    public boolean isEmpty() {
+        long now = System.currentTimeMillis();
+        return (now - lastHeartBeatReceivedPlayer1 >= HEARTBEAT_TIMEOUT_MS) &&
+                (now - lastHeartBeatReceivedPlayer2 >= HEARTBEAT_TIMEOUT_MS);
+    }
 
     public void sendMessagesToAll(String message) {
         for (WebSocketSession s : sessions) {
@@ -164,31 +176,19 @@ public class GameRoom {
         sendMessagesToAll("[DISTRIBUTE_CARDS]:" + newGameJson);
     }
 
-    public SetupInfo setUpGame() {
-        initiateGame();
-
+    public Player getRandomPlayer() {
         String[] names = {this.player1.username(), this.player2.username()};
         int index = secureRand.nextInt(names.length);
-
-        initiallyDistributeCards();
-        
-        return new SetupInfo(names, index);
+        return names[index].equals(this.player1.username()) ? this.player1 : this.player2;
     }
 
-    /* Restart case */
-    public String setUpGameRestart(WebSocketSession session, boolean isThisPlayerStarting) {
-        initiateGame();
-
-        String startingPlayer = isThisPlayerStarting ?
-                Objects.requireNonNull(session.getPrincipal()).getName() :
-                (Objects.requireNonNull(session.getPrincipal()).getName().equals(player1.username()) ? player2.username() : player1.username());
-
-        initiallyDistributeCards();
-        
-        return startingPlayer;
+    public void setStartingPlayer(String startingPlayer) {
+        this.usernameTurn = startingPlayer;
+        sendMessagesToAll("[STARTING_PLAYER]≔" + startingPlayer);
+        storeChatMessage("[STARTING_PLAYER]≔" + startingPlayer);
     }
 
-    private void initiateGame(){
+    public void initiateGame(){
         this.boardState = null;
         this.player1Mulligan = null;
         this.player2Mulligan = null;
@@ -248,7 +248,7 @@ public class GameRoom {
         }
     }
 
-    private synchronized void redistributeCardsAfterMulligan() throws JsonProcessingException {
+    private void redistributeCardsAfterMulligan() throws JsonProcessingException {
         List<GameCard> player1Hand, player1DeckField;
         if (this.player1Mulligan) {
             List<GameCard> allCards = new ArrayList<>();
@@ -331,11 +331,15 @@ public class GameRoom {
         sendMessagesToAll("[PLAYER_INFO]:" + objectMapper.writeValueAsString(players));
     }
 
-    public void checkAndEmitIfEmpty() {
-        if (isEmpty()) {
-            eventPublisher.publishEvent(new GameRoomEmptyEvent(this, roomId));
-        }
+    public void cancelAllScheduledTasks() {
+        scheduledTasks.forEach(task -> {
+            if (!task.isCancelled()) {
+                task.cancel(false);
+            }
+        });
+        scheduledTasks.clear();
     }
+
 }
 
 enum Phase {

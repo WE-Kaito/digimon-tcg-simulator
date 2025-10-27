@@ -99,6 +99,7 @@ export default function Lobby() {
     const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
 
     const [messages, setMessages] = useState<string[]>([]);
+    const [privateMessages, setPrivateMessages] = useState<string[]>([]);
     const [rooms, setRooms] = useState<Room[]>([]);
 
     const [newRoomName, setNewRoomName] = useState<string>("");
@@ -186,12 +187,14 @@ export default function Lobby() {
 
                 if (event.data === "[LEAVE_ROOM]") {
                     setJoinedRoom(null);
+                    setPrivateMessages([]);
                     setIsLoading(false);
                     playJoinSfx(); // new sound?
                 }
 
                 if (event.data === "[KICKED]") {
                     setJoinedRoom(null);
+                    setPrivateMessages([]);
                     playKickSfx();
                 }
 
@@ -235,7 +238,7 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
-                    setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+                    setPrivateMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
                 }
             },
         },
@@ -307,6 +310,7 @@ export default function Lobby() {
             setIsRematch(false);
             clearBoard();
             setIsLoading(false);
+            setJoinedRoom(null);
             navigate("/game");
         }, 3150);
         return () => clearTimeout(timer);
@@ -442,7 +446,10 @@ export default function Lobby() {
                             fontSize: "22px",
                             fontFamily: "Pixel Digivolve, sans-serif",
                         }}
-                        onClick={() => navigate("/administration")}
+                        onClick={() => {
+                            navigate("/administration");
+                            setJoinedRoom(null);
+                        }}
                         className={"button"}
                     >
                         <span>ADMIN⚙️</span>
@@ -585,15 +592,33 @@ export default function Lobby() {
                     >
                         {!joinedRoom && (
                             <MenuButtonContainerDiv>
-                                <ButtonCard className={"button"} onClick={() => navigate("/decks")}>
+                                <ButtonCard
+                                    className={"button"}
+                                    onClick={() => {
+                                        navigate("/decks");
+                                        setJoinedRoom(null);
+                                    }}
+                                >
                                     <DeckIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Decks</span>
                                 </ButtonCard>
-                                <ButtonCard className={"button"} onClick={() => navigate("/test")}>
+                                <ButtonCard
+                                    className={"button"}
+                                    onClick={() => {
+                                        navigate("/test");
+                                        setJoinedRoom(null);
+                                    }}
+                                >
                                     <TestIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Test </span>
                                 </ButtonCard>
-                                <ButtonCard className={"button"} onClick={() => navigate("/profile")}>
+                                <ButtonCard
+                                    className={"button"}
+                                    onClick={() => {
+                                        navigate("/profile");
+                                        setJoinedRoom(null);
+                                    }}
+                                >
                                     <ProfileIcon style={{ fontSize: 50 }} />
                                     <span style={{ fontFamily: "Naston, sans-serif", fontSize: 40 }}>Profile</span>
                                 </ButtonCard>
@@ -625,7 +650,7 @@ export default function Lobby() {
                                 <Input
                                     value={newRoomName}
                                     onChange={(e) => setNewRoomName(e.target.value)}
-                                    placeholder="Room name"
+                                    placeholder="New room name"
                                     style={{ marginBottom: "1rem", width: "95%" }}
                                 />
                                 <Input
@@ -651,7 +676,11 @@ export default function Lobby() {
                     </div>
                 </LeftColumn>
 
-                <Chat sendMessage={websocket.sendMessage} messages={messages} roomId={joinedRoom?.id} />
+                <Chat
+                    sendMessage={websocket.sendMessage}
+                    messages={joinedRoom ? privateMessages : messages}
+                    roomId={joinedRoom?.id}
+                />
             </ContentDiv>
         </MenuBackgroundWrapper>
     );
@@ -749,27 +778,6 @@ const ButtonCard = styled.div`
         }
     }
 `;
-
-// const DisabledButtonCard = styled(ButtonCard)`
-//     & > * {
-//         opacity: 0.35;
-//         color: #646262;
-//     }
-//
-//     &:hover {
-//         & > * {
-//             opacity: 0.35;
-//             color: darkgrey;
-//         }
-//     }
-//
-//     &:active {
-//         & > * {
-//             opacity: 0.35;
-//             color: darkgrey;
-//         }
-//     }
-// `;
 
 const CardTitle = styled.span`
     font-family: "League Spartan", sans-serif;

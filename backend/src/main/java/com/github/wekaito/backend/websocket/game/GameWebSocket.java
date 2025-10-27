@@ -9,8 +9,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -20,10 +18,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 @Getter
@@ -33,8 +28,6 @@ public class GameWebSocket extends TextWebSocketHandler {
     private final MongoUserDetailsService mongoUserDetailsService;
 
     private final DeckService deckService;
-    
-    private final ApplicationEventPublisher eventPublisher;
     
     private final CardJsonConverter cardJsonConverter;
 
@@ -75,20 +68,17 @@ public class GameWebSocket extends TextWebSocketHandler {
 
             // Use isEmpty method that checks for actually open sessions
             if (gameRoom.isEmpty()) {
-                gameRooms.remove(gameRoom.getRoomId());
+                GameRoom removed = gameRooms.remove(gameRoom.getRoomId());
+                if (removed != null) {
+                    removed.cancelAllScheduledTasks();
+                }
             }
         }
-    }
-
-    @EventListener
-    public void handleGameRoomEmptyEvent(GameRoomEmptyEvent event) {
-        gameRooms.remove(event.getRoomId());
     }
 
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) throws IOException {
         String payload = message.getPayload();
-        if (payload.equals("/heartbeat/")) return;
         String[] parts = payload.split(":", 2);
 
         if (parts[0].equals("/joinGame")) {
@@ -110,12 +100,15 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/restartGame:")) {
             boolean isThisPlayerStarting = roomMessage.split(":")[1].equals("first");
-            String startingPlayer = gameRoom.setUpGameRestart(session, isThisPlayerStarting);
-            scheduleGameSetupRestart(gameRoom, startingPlayer);
-            
-            GameStart newGame = gameRoom.initiallyDistributeCards();
-            scheduleCardDistribution(gameRoom, () -> gameRoom.distributeCardsAndSetStage(newGame));
+            String username = Objects.requireNonNull(session.getPrincipal()).getName();
+            String startingPlayerUsername = isThisPlayerStarting ? username :
+                    gameRoom.getPlayer1().username().equals(username) ? gameRoom.getPlayer2().username() : gameRoom.getPlayer1().username();
+            gameRoom.initiateGame();
+            gameRoom.setStartingPlayer(startingPlayerUsername);
+            scheduleCardDistribution(gameRoom);
         }
+
+        if (roomMessage.startsWith("/heartbeat")) gameRoom.updateLastHearBeat(session);
 
         if (roomMessage.startsWith("/attack:")) handleAttack(gameRoom, session, roomMessage);
 
@@ -198,7 +191,6 @@ public class GameWebSocket extends TextWebSocketHandler {
             case "/updatePhase" -> "[UPDATE_PHASE]";
             case "/unsuspendAll" -> "[UNSUSPEND_ALL]";
             case "/resolveCounterBlock" -> "[RESOLVE_COUNTER_BLOCK]";
-            case "/online" -> "[OPPONENT_ONLINE]";
             case "/activateTarget" -> "[ACTIVATE_TARGET]";
             case "/activateEffect" -> "[ACTIVATE_EFFECT]";
             case "/updateAttackPhase" -> "[OPPONENT_ATTACK_PHASE]";
@@ -715,10 +707,12 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
         GameRoom gameRoom = gameRooms.get(gameId);
+        boolean shouldStartScheduledTasks = false;
 
         if (gameRoom == null) {
             String[] usernames = gameId.split("‗");
-            if (usernames.length == 2) {
+
+            try {
                 String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
                 String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
 
@@ -734,29 +728,43 @@ public class GameWebSocket extends TextWebSocketHandler {
                 List<Card> player1Deck = deckService.getDeckCardsById(deckId1);
                 List<Card> player2Deck = deckService.getDeckCardsById(deckId2);
 
-                gameRoom = new GameRoom(gameId, player1, player1Deck, player2, player2Deck, eventPublisher);
+                GameRoom newGameRoom = new GameRoom(gameId, player1, player1Deck, player2, player2Deck);
+                newGameRoom.setChat(new String[0]);
 
-                gameRoom.setChat(new String[0]);
-
-                GameRoom existingRoom = gameRooms.putIfAbsent(gameId, gameRoom); // returns null for the first connection
-                if (existingRoom == null) startGameRoomScheduledTasks(gameRoom); // and starts the schedule
-                else gameRoom = existingRoom; // second connecting player joins
+                GameRoom existingRoom = gameRooms.putIfAbsent(gameId, newGameRoom);
+                if (existingRoom == null) {
+                    gameRoom = newGameRoom;
+                    shouldStartScheduledTasks = true;
+                } else {
+                    gameRoom = existingRoom; // Another thread created it first
+                }
+            } catch (Exception e) {
+                return;
             }
         }
 
-        if (gameRoom != null) {
-            gameRoom.addSession(session);
-            if (gameRoom.hasFullConnection()) {
-                gameRoom.sendMessagesToAll("[OPPONENT_RECONNECTED]");
-                if (gameRoom.getBoardState() == null) {
-                    SetupInfo setupInfo = gameRoom.setUpGame();
-                    scheduleGameSetup(gameRoom, setupInfo.names(), setupInfo.startingPlayerIndex());
-                    
-                    GameStart newGame = gameRoom.initiallyDistributeCards();
-                    GameRoom finalGameRoom = gameRoom;
-                    scheduleCardDistribution(gameRoom, () -> finalGameRoom.distributeCardsAndSetStage(newGame));
+        if (shouldStartScheduledTasks) {
+            startGameRoomScheduledTasks(gameRoom);
+        }
+
+        gameRoom.addSession(session);
+
+        GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency
+
+        if (gameRoomFromMap.getSessions().size() >= 2) {
+            if (gameRoomFromMap.getBoardState() != null) {
+                gameRoomFromMap.sendMessagesToAll("[OPPONENT_RECONNECTED]");
+                distributeExistingBoardState(gameRoomFromMap);
+            }
+
+            else if (gameRoomFromMap.getBootStage() == 0) {
+                try {
+                    gameRoomFromMap.initiateGame();
+                    gameRoomFromMap.setStartingPlayer(gameRoomFromMap.getRandomPlayer().username());
+                    scheduleCardDistribution(gameRoomFromMap);
+                } catch (Exception e) {
+                    System.err.println("Error in initial game setup for room " + gameRoomFromMap.getRoomId() + ": " + e.getMessage());
                 }
-                else distributeExistingBoardState(gameRoom);
             }
         }
     }
@@ -1150,56 +1158,46 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
     
     private void startGameRoomScheduledTasks(GameRoom gameRoom) {
-        SHARED_SCHEDULER.scheduleWithFixedDelay(() -> {
+        // Heartbeat Task
+        ScheduledFuture<?> heartbeatTask = SHARED_SCHEDULER.scheduleWithFixedDelay(() -> {
+            if (!gameRooms.containsKey(gameRoom.getRoomId()) || gameRoom.isEmpty()) {
+                return; // Early exit if room no longer exists or is empty
+            }
             try {
                 gameRoom.sendMessagesToAll("[HEARTBEAT]");
             } catch (Exception e) {
                 System.err.println("Error in heartbeat for room " + gameRoom.getRoomId() + ": " + e.getMessage());
             }
         }, 10, 10, TimeUnit.SECONDS);
+        gameRoom.getScheduledTasks().add(heartbeatTask);
 
-        SHARED_SCHEDULER.scheduleWithFixedDelay(() -> {
+        // Cleanup Task
+        ScheduledFuture<?> cleanupTask = SHARED_SCHEDULER.scheduleWithFixedDelay(() -> {
+            if (!gameRooms.containsKey(gameRoom.getRoomId())) {
+                return; // Early exit if room no longer exists
+            }
             try {
-                gameRoom.checkAndEmitIfEmpty();
+                if (gameRoom.isEmpty()) {
+                    GameRoom removed = gameRooms.remove(gameRoom.getRoomId());
+                    if (removed != null) {
+                        removed.cancelAllScheduledTasks();
+                    }
+                }
             } catch (Exception e) {
                 System.err.println("Error in empty check for room " + gameRoom.getRoomId() + ": " + e.getMessage());
             }
-        }, 30, 30, TimeUnit.SECONDS);
+        }, 15, 15, TimeUnit.SECONDS);
+        gameRoom.getScheduledTasks().add(cleanupTask);
     }
     
-    private void scheduleGameSetup(GameRoom gameRoom, String[] names, int startingPlayerIndex) {
+    private void scheduleCardDistribution(GameRoom gameRoom) {
         SHARED_SCHEDULER.schedule(() -> {
             try {
-                gameRoom.setUsernameTurn(names[startingPlayerIndex]);
-                String startingPlayerMessage = "[STARTING_PLAYER]≔" + names[startingPlayerIndex];
-                gameRoom.sendMessagesToAll(startingPlayerMessage);
-                gameRoom.storeChatMessage(startingPlayerMessage);
-            } catch (Exception e) {
-                System.err.println("Error in scheduleGameSetup for room " + gameRoom.getRoomId() + ": " + e.getMessage());
-            }
-        }, 50, TimeUnit.MILLISECONDS);
-    }
-    
-    private void scheduleGameSetupRestart(GameRoom gameRoom, String startingPlayer) {
-        SHARED_SCHEDULER.schedule(() -> {
-            try {
-                gameRoom.setUsernameTurn(startingPlayer);
-                String startingPlayerMessage = "[STARTING_PLAYER]≔" + startingPlayer;
-                gameRoom.sendMessagesToAll(startingPlayerMessage);
-                gameRoom.storeChatMessage(startingPlayerMessage);
-            } catch (Exception e) {
-                System.err.println("Error in scheduleGameSetupRestart for room " + gameRoom.getRoomId() + ": " + e.getMessage());
-            }
-        }, 50, TimeUnit.MILLISECONDS);
-    }
-    
-    private void scheduleCardDistribution(GameRoom gameRoom, Runnable distributionTask) {
-        SHARED_SCHEDULER.schedule(() -> {
-            try {
-                distributionTask.run();
+                GameStart newGame = gameRoom.initiallyDistributeCards();
+                gameRoom.distributeCardsAndSetStage(newGame);
             } catch (Exception e) {
                 System.err.println("Error in scheduleCardDistribution for room " + gameRoom.getRoomId() + ": " + e.getMessage());
             }
-        }, 4800, TimeUnit.MILLISECONDS);
+        }, 4500, TimeUnit.MILLISECONDS);
     }
 }

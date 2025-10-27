@@ -4,7 +4,6 @@ import { findTokenByName } from "../utils/tokens.ts";
 import { notifyInfo } from "../utils/toasts.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
-import { useEffect } from "react";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 
@@ -118,8 +117,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
         return () => clearTimeout(timer);
     }
-
-    let interval: ReturnType<typeof setInterval>;
 
     const websocket = useWebSocket(websocketURL, {
         shouldReconnect: () => true,
@@ -358,6 +355,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
             switch (event.data) {
                 case "[HEARTBEAT]": {
+                    websocket.sendMessage(`${gameId}:/heartbeat`);
                     break;
                 }
                 case "[SURRENDER]": {
@@ -414,12 +412,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
         },
     });
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        interval = setInterval(() => websocket.sendMessage(`${gameId}:/online:${opponentName}`), 5000);
-        return () => clearInterval(interval);
-    }, []);
 
     return { sendMessage: websocket.sendMessage };
 }
