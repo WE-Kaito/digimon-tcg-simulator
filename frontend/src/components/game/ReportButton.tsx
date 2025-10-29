@@ -1,11 +1,11 @@
 import { ReportOutlined as ReportIcon } from "@mui/icons-material";
 import { DialogContent, DialogTitle, TextField } from "@mui/material";
 import { WSUtils } from "../../pages/GamePage.tsx";
-import axios from "axios";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import MenuDialog from "../MenuDialog.tsx";
 import { useState } from "react";
 import styled from "@emotion/styled";
+import useMutation from "../../hooks/useMutation.ts";
 
 export default function ReportButton({
     matchInfo,
@@ -15,13 +15,16 @@ export default function ReportButton({
     iconFontSize: string;
 }) {
     const messages = useGameBoardStates((state) => state.messages);
+
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
     const [reportMessage, setReportMessage] = useState("");
+
+    const { mutate, isPending } = useMutation("/api/report", "POST");
 
     const isDisabled = localStorage.getItem("isReported") === "true";
 
     function handleSendReport() {
-        sendReport(reportMessage, messages, matchInfo).catch(console.error); //TODO: Toast error message
+        sendReport(reportMessage, messages, matchInfo, mutate);
         setIsReportDialogOpen(false);
         localStorage.setItem("isReported", JSON.stringify(true));
     }
@@ -61,7 +64,7 @@ export default function ReportButton({
                                 if (e.target.value.length <= 800) setReportMessage(e.target.value);
                             }}
                         />
-                        <StyledButton disabled={reportMessage.length === 0} onClick={handleSendReport}>
+                        <StyledButton disabled={reportMessage.length === 0 || isPending} onClick={handleSendReport}>
                             SUBMIT REPORT
                         </StyledButton>
                         <CancelButton onClick={() => setIsReportDialogOpen(false)}>CANCEL</CancelButton>
@@ -81,73 +84,46 @@ export default function ReportButton({
     );
 }
 
-async function sendReport(reportMessage: string, messages: string[], matchInfo: WSUtils["matchInfo"]) {
+async function sendReport(
+    reportMessage: string,
+    messages: string[],
+    matchInfo: WSUtils["matchInfo"],
+    mutate: <T>(options?: { payload: any }) => Promise<T | null>
+) {
     const history = formatTextMessagesForReport(messages, matchInfo);
-    if (history.length > 1800) {
-        const historyChunks = splitStringAtNearestNewline(history, 1800);
+    const historyChunks = splitStringAtNearestNewline(history, 1024); // discords maxlength for a field. (might be a little higher)
 
-        // Send first chunk
-        await sendReportChunk({
-            embeds: [
-                {
-                    title: `1/${historyChunks.length}`,
-                    fields: [
-                        { name: "`From`", value: matchInfo.user, inline: true },
-                        { name: "`Reported User`", value: matchInfo.opponentName, inline: true },
-                        { name: "`Message`", value: reportMessage },
-                        { name: "`Chat History`", value: historyChunks[0] },
-                    ],
-                },
-            ],
-        });
+    for (let i = 0; i < historyChunks.length; i++) {
+        const chunk = historyChunks[i];
 
-        for (let i = 1; i < historyChunks.length; i++) {
-            await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay between requests
-
-            await sendReportChunk({
+        await mutate({
+            payload: {
                 embeds: [
                     {
-                        title: `Report from ${matchInfo.user} for ${matchInfo.opponentName} ${i + 1}/${historyChunks.length}`,
-                        fields: [{ name: "`Chat History`", value: historyChunks[i] }],
+                        fields: [
+                            { name: "`From`", value: matchInfo.user, inline: true },
+                            { name: "`Reported User`", value: matchInfo.opponentName, inline: true },
+                            ...(historyChunks.length > 1
+                                ? [
+                                      {
+                                          name: "`Part`",
+                                          value: `${i + 1}/${historyChunks.length}`,
+                                          inline: true,
+                                      },
+                                  ]
+                                : []),
+                            ...(i === 0 ? [{ name: "`Message`", value: reportMessage }] : []),
+                            { name: "`Chat History`", value: chunk },
+                        ],
                     },
                 ],
-            });
-        }
-
-        return Promise.resolve("All chunks sent successfully");
-    }
-
-    return sendReportChunk({
-        embeds: [
-            {
-                fields: [
-                    { name: "`From`", value: matchInfo.user, inline: true },
-                    { name: "`Reported User`", value: matchInfo.opponentName, inline: true },
-                    { name: "`Message`", value: reportMessage },
-                    ...(messages.length > 1
-                        ? [{ name: "`Chat History`", value: formatTextMessagesForReport(messages, matchInfo) }]
-                        : []),
-                ],
             },
-        ],
-    });
-}
+        });
 
-async function sendReportChunk(payload: any, retryCount = 0): Promise<any> {
-    const maxRetries = 3;
-
-    try {
-        return await axios.post("/api/report", payload);
-    } catch (error) {
-        console.error(`Report chunk failed (attempt ${retryCount + 1}):`, error);
-
-        if (retryCount < maxRetries) {
-            const delay = Math.pow(2, retryCount) * 1000;
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            return sendReportChunk(payload, retryCount + 1);
+        // Add delay between requests to respect Discord's rate limit (5 requests per second)
+        if (i < historyChunks.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
         }
-
-        console.error(`Failed to send report chunk after ${maxRetries + 1} attempts`);
     }
 }
 
