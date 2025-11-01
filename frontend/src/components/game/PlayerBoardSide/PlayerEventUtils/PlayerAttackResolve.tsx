@@ -8,41 +8,55 @@ import { useSound } from "../../../../hooks/useSound.ts";
  * For Opponent {@link AttackPhase}
  */
 export default function PlayerAttackResolve({ wsUtils, fontSize }: { wsUtils?: WSUtils; fontSize: number }) {
-    const opponentAttackPhase = useGameBoardStates((state) => state.opponentAttackPhase);
-    const setOpponentAttackPhase = useGameBoardStates((state) => state.setOpponentAttackPhase);
+    const myAttackPhase = useGameBoardStates((state) => state.myAttackPhase);
+    const getMyAttackPhase = useGameBoardStates((state) => state.getMyAttackPhase);
+    const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
 
     const playNextAttackPhaseSfx = useSound((state) => state.playNextAttackPhaseSfx);
 
-    const isDisabled = opponentAttackPhase !== AttackPhase.COUNTER_BLOCK;
+    const isDisabled = myAttackPhase === AttackPhase.COUNTER_BLOCK;
 
-    function resolveCounterBlockTiming() {
-        setOpponentAttackPhase(AttackPhase.RESOLVE_ATTACK);
+    function sendAttackPhaseUpdate(attackPhase: AttackPhase | false) {
+        wsUtils?.sendMessage(
+            `${wsUtils?.matchInfo.gameId}:/updateAttackPhase:${wsUtils?.matchInfo.opponentName}:${attackPhase}`
+        );
+    }
+
+    function resolveMyAttack() {
+        const attackPhase = getMyAttackPhase();
+        if (!attackPhase) return;
+        else if (attackPhase === AttackPhase.WHEN_ATTACKING) {
+            setMyAttackPhase(AttackPhase.COUNTER_BLOCK);
+            sendAttackPhaseUpdate(AttackPhase.COUNTER_BLOCK);
+        } else if (attackPhase === AttackPhase.RESOLVE_ATTACK) {
+            setMyAttackPhase(false);
+            sendAttackPhaseUpdate(false);
+        }
         playNextAttackPhaseSfx();
-        wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/resolveCounterBlock:${wsUtils?.matchInfo.opponentName}`);
         wsUtils?.sendSfx("playNextAttackPhaseSfx");
     }
 
-    if (!opponentAttackPhase) return <></>;
+    if (!myAttackPhase) return <></>;
 
     return (
         <StyledButton
             className={isDisabled ? undefined : "button"}
             style={{ fontSize }}
-            onClick={resolveCounterBlockTiming}
+            onClick={resolveMyAttack}
             disabled={isDisabled}
         >
-            <span style={{ transform: "translateY(5px)" }}>{opponentAttackPhase}</span>
+            <span style={{ transform: "translateY(3px)" }}>{myAttackPhase}</span>
         </StyledButton>
     );
 }
 
 const StyledButton = styled.div<{ disabled: boolean }>`
     z-index: 5;
-    width: 95%;
-    height: 90%;
+    width: 98%;
+    height: 98%;
 
     --color: ${({ disabled }) => (disabled ? "#ea6c1f" : "#11eaf1")};
-
+    letter-spacing: 0.06em;
     position: relative;
     font-family: "Sakana", sans-serif;
     line-height: 1.25;
@@ -61,7 +75,7 @@ const StyledButton = styled.div<{ disabled: boolean }>`
     box-shadow:
         inset 0 0 10px ${({ disabled }) => (disabled ? "rgba(234,10,124,0.4)" : "rgba(27, 140, 253, 0.4)")},
         0 0 9px 3px ${({ disabled }) => (disabled ? "rgba(122,11,46,0.27)" : "rgba(27, 140, 253, 0.1)")};
-
+    cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
     pointer-events: ${({ disabled }) => (disabled ? "none" : "unset")};
 
     &:hover {
