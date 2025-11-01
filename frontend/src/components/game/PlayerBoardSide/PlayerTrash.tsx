@@ -6,16 +6,16 @@ import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
 import CloseTrashIcon from "@mui/icons-material/DeleteForever";
 import TrashIcon from "@mui/icons-material/Delete";
-import { useDraggable } from "@dnd-kit/core";
-// import { useDroppable } from "@dnd-kit/core";
 import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { DragPreviewImage, useDrag } from "react-dnd";
 
 export default function PlayerTrash() {
     const myTrash = useGameBoardStates((state) => state.myTrash);
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
     const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
+    const isOpponentOnline = useGameBoardStates((state) => state.isOpponentOnline);
 
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
     const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
@@ -30,36 +30,29 @@ export default function PlayerTrash() {
         setOpenedCardModal(isMyTrashOpened ? false : OpenedCardModal.MY_TRASH);
     }
 
-    const { setNodeRef, isOver } = useDroppableReactDnd({ 
-        id: "myTrash", 
+    const { setNodeRef, isOver } = useDroppableReactDnd({
+        id: "myTrash",
         data: { accept: ["card", "card-stack"] },
     });
 
     const topCard = myTrash[myTrash.length - 1];
 
-    const {
-        attributes,
-        listeners,
-        setNodeRef: drag,
-        isDragging,
-    } = useDraggable({
-        id: topCard?.id + "_myTrash" + String(openedCardModal), // prevent colliding with id in CardModal
-        data: {
+    const [{ isDragging }, dragRef, preview] = useDrag(
+        () => ({
             type: "card",
-            content: {
-                id: topCard?.id,
-                location: "myTrash",
-                cardNumber: topCard?.cardNumber,
-                cardType: topCard?.cardType,
-                name: topCard?.name,
-                imgSrc: topCard?.imgUrl,
-                isFaceUp: true,
-            },
-        },
-    });
+            item: { type: "card", content: { card: topCard, location: "myTrash" } },
+            canDrag: isOpponentOnline,
+            collect: (monitor) => ({ isDragging: monitor.isDragging() }),
+        }),
+        [location, topCard, isOpponentOnline]
+    );
 
     return (
         <Container ref={setNodeRef as any}>
+            <DragPreviewImage
+                connect={preview}
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" // Transparent 1x1 GIF
+            />
             {(myTrash.length === 0 || (isDragging && myTrash.length === 1)) && !isMyTrashOpened && (
                 <PlaceholderDiv isOver={isOver}>
                     <StyledTrashIcon />
@@ -77,9 +70,7 @@ export default function PlayerTrash() {
                         onClick={isMySecurityOpened ? undefined : handleClick}
                         onError={handleImageError}
                         isOver={isOver}
-                        ref={drag}
-                        {...attributes}
-                        {...listeners}
+                        ref={dragRef as any}
                     />
                 )}
             {isMyTrashOpened && (
