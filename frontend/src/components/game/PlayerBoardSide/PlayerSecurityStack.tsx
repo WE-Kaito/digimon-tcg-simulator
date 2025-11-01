@@ -14,6 +14,11 @@ import { useLongPress } from "../../../hooks/useLongPress.ts";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 import CloseDetailsIcon from "@mui/icons-material/SearchOffRounded";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import ShieldIcon from "@mui/icons-material/Shield";
+import CloseIcon from "@mui/icons-material/Close";
+import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
+import { Button } from "../../Button.tsx";
+import { convertForLog } from "../../../utils/functions.ts";
 
 export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) {
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
@@ -21,13 +26,22 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
+    const cardToSend = useGameBoardStates((state) => state.cardToSend);
+    const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
+    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
+
     const openedCardModal = useGameUIStates((state) => state.openedCardModal);
     const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+    const showSecuritySendButtons = useGameUIStates((state) => state.showSecuritySendButtons);
+    const setShowSecuritySendButtons = useGameUIStates((state) => state.setShowSecuritySendButtons);
 
     const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
     const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
 
+    const isReadyToSendCard = cardToSend && showSecuritySendButtons;
     const isDisabled = bootStage !== BootStage.GAME_IN_PROGRESS;
+
+    const { setNodeRef, isOver } = useDroppableReactDnd({ id: "mySecurity", data: { accept: ["card"] } });
 
     function sendSecurityReveal() {
         if (opponentReveal.length) return;
@@ -45,6 +59,25 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
         wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【Closed Security】`);
         wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【↻ Security Stack】`);
         wsUtils?.sendSfx?.("playShuffleDeckSfx");
+    }
+
+    function closeSendButtons() {
+        setCardToSend(null);
+        setShowSecuritySendButtons(false);
+    }
+
+    function sendCardToSecurityStack(topOrBottom: "Top" | "Bottom", faceUpOrDown: "up" | "down") {
+        if (!cardToSend) return;
+        const { card, location } = cardToSend;
+        const sendFaceUp = faceUpOrDown === "up";
+        moveCardToStack(topOrBottom, card.id, location, "mySecurity", faceUpOrDown);
+        wsUtils?.sendMessage(
+            `${wsUtils.matchInfo.gameId}:/moveCardToStack:${wsUtils.matchInfo.opponentName}:${topOrBottom}:${card.id}:${location}:mySecurity:${faceUpOrDown}`
+        );
+        wsUtils?.sendChatMessage(
+            `[FIELD_UPDATE]≔【${location === "myHand" && !sendFaceUp ? `???…${card.id.slice(-5)}` : card.name}】﹕${convertForLog(location)} ➟ SS ${topOrBottom}(face ${faceUpOrDown})`
+        );
+        closeSendButtons();
     }
 
     const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
@@ -76,52 +109,126 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
 
     return (
         <Container>
-            <Tooltip
-                TransitionComponent={MuiZoom}
-                sx={{ width: "100%" }}
-                open={mySecurity.length === 0 ? false : isOpen}
-                onClose={() => setIsOpen(isDraggingFromSecurity)}
-                onOpen={() => setIsOpen(!!mySecurity.length)}
-                arrow
-                placement={"top"}
-                componentsProps={getTooltipStyles(mySecurity.length)}
-                title={
-                    <div style={{ position: "relative", display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                        {mySecurity.map((card, index) => (
-                            <Fragment key={card.id + "_fragment"}>
-                                {index === 0 && (
-                                    <ArrowDropUpIcon
-                                        key={card.id + "_arrow"}
-                                        sx={{
-                                            position: "absolute",
-                                            zIndex: 5,
-                                            fontSize: 35,
-                                            color: "#3787ff",
-                                            left: 9,
-                                            top: -21,
-                                            filter: "dropShadow(0 0 2px black)",
-                                        }}
-                                    />
-                                )}
-                                <Card key={card.id} card={card} location={"mySecurity"} style={{ width: "50px" }} />
-                            </Fragment>
-                        ))}
+            {isReadyToSendCard ? (
+                <div style={{ display: "flex", gap: 14, width: "85%", height: "95%" }}>
+                    <StyledButtonContainer>
+                        <Button onClick={() => sendCardToSecurityStack("Top", "up")}>
+                            Face Up <span>Top</span>
+                        </Button>
+                        <Button onClick={() => sendCardToSecurityStack("Top", "down")}>
+                            Face Down <span>Top</span>
+                        </Button>
+                        <Button onClick={() => sendCardToSecurityStack("Bottom", "up")}>
+                            Face Up <span>Bot</span>
+                        </Button>
+                        <Button onClick={() => sendCardToSecurityStack("Bottom", "down")}>
+                            Face Down <span>Bot</span>
+                        </Button>
+                    </StyledButtonContainer>
+                    <div
+                        style={{
+                            width: "20%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Button
+                            onClick={closeSendButtons}
+                            style={{ width: "fit-content", padding: "5px 10px", filter: "hue-rotate(120deg)" }}
+                        >
+                            <CloseIcon />
+                        </Button>
+                        <SecuritySpan style={{ fontSize: fontSize * 0.8, pointerEvents: "none" }}>
+                            {mySecurity.length}
+                            <ShieldIcon
+                                style={{
+                                    fontSize: fontSize * 0.9,
+                                    // transform: `translateY(${fontSize / 8}px)`,
+                                    position: "absolute",
+                                    left: "50%",
+                                    top: "47%",
+                                    transform: "translate(-50%, -50%)",
+                                    zIndex: -1,
+                                    opacity: 0.5,
+                                    filter: "saturate(0.5) brightness(0.7) drop-shadow(0 0 3px black)",
+                                }}
+                            />
+                        </SecuritySpan>
+                        {cardToSend && (
+                            <img
+                                src={cardToSend.card.imgUrl}
+                                alt={cardToSend.card.name}
+                                style={{ height: fontSize * 1.25 }}
+                            />
+                        )}
                     </div>
-                }
-            >
-                <SecuritySpan
-                    onContextMenu={(e) => !isDisabled && showSecurityStackMenu({ event: e })}
-                    id={"mySecurity"}
-                    style={{ fontSize, cursor: isDisabled ? "not-allowed" : undefined }}
-                    className={isDisabled ? undefined : "button"}
-                    onClick={() => !isDisabled && sendSecurityReveal()}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    {mySecurity.length}
-                </SecuritySpan>
-            </Tooltip>
-            <SecurityAnimationImg alt={"mySS"} src={mySecurityAnimation} className={"prevent-default-long-press"} />
+                </div>
+            ) : (
+                <>
+                    <InteractionZoneDiv
+                        ref={setNodeRef as any}
+                        onContextMenu={(e) => !isDisabled && showSecurityStackMenu({ event: e })}
+                        style={{ zIndex: isOver ? 10 : 1 }}
+                    />
+                    <Tooltip
+                        TransitionComponent={MuiZoom}
+                        sx={{ width: "100%" }}
+                        open={mySecurity.length === 0 ? false : isOpen}
+                        onClose={() => setIsOpen(isDraggingFromSecurity)}
+                        onOpen={() => setIsOpen(!!mySecurity.length)}
+                        arrow
+                        placement={"top"}
+                        componentsProps={getTooltipStyles(mySecurity.length)}
+                        title={
+                            <div style={{ position: "relative", display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                                {mySecurity.map((card, index) => (
+                                    <Fragment key={card.id + "_fragment"}>
+                                        {index === 0 && (
+                                            <ArrowDropUpIcon
+                                                key={card.id + "_arrow"}
+                                                sx={{
+                                                    position: "absolute",
+                                                    zIndex: 5,
+                                                    fontSize: 35,
+                                                    color: "#3787ff",
+                                                    left: 9,
+                                                    top: -21,
+                                                    filter: "dropShadow(0 0 2px black)",
+                                                }}
+                                            />
+                                        )}
+                                        <Card
+                                            key={card.id}
+                                            card={card}
+                                            location={"mySecurity"}
+                                            style={{ width: "50px" }}
+                                        />
+                                    </Fragment>
+                                ))}
+                            </div>
+                        }
+                    >
+                        <SecuritySpan
+                            id={"mySecurity"}
+                            onContextMenu={(e) => !isDisabled && showSecurityStackMenu({ event: e })}
+                            style={{ fontSize, cursor: isDisabled ? "not-allowed" : undefined }}
+                            className={isDisabled ? undefined : "button"}
+                            onClick={() => !isDisabled && sendSecurityReveal()}
+                            onTouchStart={handleTouchStart}
+                            onTouchEnd={handleTouchEnd}
+                        >
+                            {isOver ? "➕" : mySecurity.length}
+                        </SecuritySpan>
+                    </Tooltip>
+                    <SecurityAnimationImg
+                        alt={"mySS"}
+                        src={mySecurityAnimation}
+                        className={"prevent-default-long-press"}
+                        style={isOver ? { filter: "saturate(1.25) drop-shadow(0 0 2px black)" } : undefined}
+                    />
+                </>
+            )}
         </Container>
     );
 }
@@ -129,16 +236,27 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
 const Container = styled.div`
     grid-area: SS;
     height: 100%;
-    width: 100%;
+    width: 98%;
     z-index: 10;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 5px;
+`;
+
+const InteractionZoneDiv = styled.div`
+    width: 75%;
+    height: 95%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 `;
 
 const SecuritySpan = styled.span`
     z-index: 5;
+    position: relative;
     font-family: Awsumsans, sans-serif;
     font-style: normal;
     font-size: 2em;
@@ -163,7 +281,7 @@ const SecuritySpan = styled.span`
 `;
 
 const SecurityAnimationImg = styled.img`
-    width: 130%;
+    width: 85%;
     position: absolute;
     left: 50%;
     top: 47%;
@@ -198,6 +316,20 @@ const StyledCloseDetailsIcon = styled(CloseDetailsIcon)`
     transform: translate(-50%, -50%);
     opacity: 0.75;
     font-size: 3em;
+`;
+
+const StyledButtonContainer = styled.div`
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    button {
+        width: 100%;
+        padding: 2px 2px 0 2px;
+        display: flex;
+        justify-content: space-between;
+    }
 `;
 
 function getTooltipStyles(stackLength: number) {

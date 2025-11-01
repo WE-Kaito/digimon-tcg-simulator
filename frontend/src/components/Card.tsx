@@ -239,32 +239,14 @@ export default function Card(props: CardProps) {
             type: "card",
             item: {
                 type: "card",
-                content: {
-                    id: card.id,
-                    location,
-                    cardnumber: card.cardNumber,
-                    type: card.cardType,
-                    name: card.name,
-                    imgSrc: card.imgUrl,
-                    isFaceUp: card.isFaceUp,
-                },
+                content: { location, card },
             },
             canDrag: !opponentFieldLocations.includes(location) && gameHasStarted,
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
         }),
-        [
-            card.id,
-            location,
-            card.cardNumber,
-            card.cardType,
-            card.name,
-            card.imgUrl,
-            card.isFaceUp,
-            opponentFieldLocations,
-            gameHasStarted,
-        ]
+        [location, card, opponentFieldLocations, gameHasStarted]
     );
 
     // Separate drag logic for stack icon - always drags as card-stack
@@ -277,10 +259,7 @@ export default function Card(props: CardProps) {
             type: "card-stack",
             item: {
                 type: "card-stack",
-                content: {
-                    location,
-                    cards: stackCards,
-                },
+                content: { location, cards: stackCards },
             },
             canDrag: !opponentFieldLocations.includes(location) && stackDraggedLocation === null,
             end: () => {
@@ -415,7 +394,7 @@ export default function Card(props: CardProps) {
     }
 
     function onLongPress(e: React.TouchEvent<HTMLImageElement>) {
-        if (myBALocations.includes(location)) setCardToSend(card.id, location);
+        if (myBALocations.includes(location)) setCardToSend({ card, location });
         onContextMenu?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
     }
 
@@ -584,7 +563,9 @@ export default function Card(props: CardProps) {
                         setCardImageUrl(cardBackSrc);
                     }}
                     onContextMenu={(e) => {
-                        if (myBALocations.includes(location) || location === "myHand") setCardToSend(card.id, location);
+                        if (myBALocations.includes(location) || location === "myHand") {
+                            setCardToSend({ card, location });
+                        }
                         onContextMenu?.(e);
                     }}
                     width={style ? style.width : 95}

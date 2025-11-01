@@ -188,7 +188,7 @@ export type State = BoardState & {
      * Retrieve this to use also in {@link setModifiers}
      * Should be refactored.
      */
-    cardToSend: { id: string; location: string };
+    cardToSend: { card: CardTypeGame; location: string } | null;
     inheritCardInfo: string[];
     linkCardInfo: { dp: number; effect: string }[];
     setLinkCardInfo: (linkCardInfo: { dp: number; effect: string }[]) => void;
@@ -248,7 +248,7 @@ export type State = BoardState & {
     getIsCardEffect: (compareCardId: string) => boolean;
     setCardIdWithTarget: (cardId: string) => void;
     getIsCardTarget: (compareCardId: string) => boolean;
-    setCardToSend: (cardId: string, location: string) => void;
+    setCardToSend: (cardToSend: { card: CardTypeGame; location: string } | null) => void;
     setBootStage: (phase: BootStage) => void;
     setGameId: (gameId: string) => void;
     setInheritCardInfo: (inheritedEffects: string[]) => void;
@@ -416,7 +416,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     cardIdWithEffect: "",
     cardIdWithTarget: "",
     isHandHidden: false,
-    cardToSend: { id: "", location: "" },
+    cardToSend: null,
     inheritCardInfo: [],
     linkCardInfo: [],
 
@@ -904,7 +904,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
 
     getIsCardTarget: (compareCardId) => compareCardId === get().cardIdWithTarget,
 
-    setCardToSend: (id, location) => set({ cardToSend: { id, location } }),
+    setCardToSend: (cardToSend) => set({ cardToSend }),
 
     setBootStage: (stage) => set({ bootStage: stage }),
 

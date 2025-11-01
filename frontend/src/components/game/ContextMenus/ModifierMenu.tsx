@@ -45,7 +45,9 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
     const setModifiers = useGameBoardStates((state) => state.setModifiers);
 
     const card = useGameBoardStates((state) =>
-        (state[cardToSend.location as keyof typeof state] as CardTypeGame[]).find((card) => card.id === cardToSend.id)
+        (state[cardToSend?.location as keyof typeof state] as CardTypeGame[]).find(
+            (card) => card.id === cardToSend?.card.id
+        )
     );
 
     const [plusDp, setPlusDp] = useState<number>(0);
@@ -74,9 +76,10 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
     }
 
     function handleSubmit() {
+        if (!cardToSend) return;
         const modifiers = { plusDp, plusSecurityAttacks, keywords, colors };
-        setModifiers(cardToSend.id, cardToSend.location, modifiers);
-        sendSetModifiers(cardToSend.id, cardToSend.location, modifiers);
+        setModifiers(cardToSend.card.id, cardToSend.location, modifiers);
+        sendSetModifiers(cardToSend.card.id, cardToSend.location, modifiers);
         playModifyCardSfx();
     }
 
@@ -133,7 +136,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                                 <ColorButton
                                     isActive={colors?.includes(c)}
                                     onClick={() => handleSetColor(c)}
-                                    key={`${cardToSend.id}_${c}`}
+                                    key={`${cardToSend?.card.id}_${c}`}
                                 >
                                     {getColor(c)}
                                 </ColorButton>

@@ -113,7 +113,7 @@ export default function GamePage() {
         restartAttackAnimation,
     });
 
-    const { createDropHandler } = useDropZoneReactDnd({
+    const createDropHandler = useDropZoneReactDnd({
         sendMessage,
         restartAttackAnimation,
         clearAttackAnimation,

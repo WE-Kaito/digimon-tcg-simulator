@@ -90,13 +90,8 @@ export type Player = {
 };
 
 export type DraggedItem = {
-    id: string;
     location: string;
-    cardnumber: string;
-    type: string;
-    name: string;
-    isFaceUp: boolean;
-    imgSrc: string;
+    card: CardTypeGame;
 };
 
 export type DraggedStack = {

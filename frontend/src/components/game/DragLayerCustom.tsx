@@ -34,16 +34,13 @@ export default function DragLayerCustom() {
 
     // Handle single card dragging
     if (item.type === "card") {
-        const cardData = item.content as DraggedItem;
+        const { card, location } = item.content as DraggedItem;
 
-        let imgSrc = cardData.imgSrc;
-        if (!cardData.isFaceUp && cardData.location !== "myHand") {
-            imgSrc = getSleeve(mySleeve); // Use default card back if face down
-        }
+        const imgSrc = !card.isFaceUp && location !== "myHand" ? getSleeve(mySleeve) : card.imgUrl;
 
         return (
             <DragPreview style={{ transform: `translate(${x - 5}px, ${y - 5}px)` }}>
-                <CardPreview src={imgSrc} alt={cardData.name} width={width} height={height} />
+                <CardPreview src={imgSrc} alt={card.name} width={width} height={height} />
             </DragPreview>
         );
     }

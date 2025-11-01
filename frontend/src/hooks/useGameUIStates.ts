@@ -76,6 +76,9 @@ type State = {
 
     opponentFieldOffset: number;
     setOpponentFieldOffset: (offset: number) => void;
+
+    showSecuritySendButtons: boolean;
+    setShowSecuritySendButtons: (show: boolean) => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
@@ -138,4 +141,7 @@ export const useGameUIStates = create<State>((set) => ({
 
     opponentFieldOffset: 0,
     setOpponentFieldOffset: (offset) => set({ opponentFieldOffset: Math.max(0, Math.min(8, offset)) }),
+
+    showSecuritySendButtons: false,
+    setShowSecuritySendButtons: (showSecuritySendButtons) => set({ showSecuritySendButtons }),
 }));

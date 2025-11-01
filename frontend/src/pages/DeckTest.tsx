@@ -500,7 +500,7 @@ export default function DeckTest() {
     //     clearAttackAnimation,
     // });
 
-    const { createDropHandler } = useDropZoneReactDnd({
+    const createDropHandler = useDropZoneReactDnd({
         sendMessage: mockSendMessage,
         restartAttackAnimation,
         clearAttackAnimation,

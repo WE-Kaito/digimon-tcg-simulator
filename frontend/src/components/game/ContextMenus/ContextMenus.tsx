@@ -49,7 +49,9 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const toggleIsHandHidden = useGameBoardStates((state) => state.toggleIsHandHidden);
 
     const contextCard = useGameBoardStates((state) =>
-        (state[cardToSend.location as keyof typeof state] as CardTypeGame[])?.find((card) => card.id === cardToSend.id)
+        (state[cardToSend?.location as keyof typeof state] as CardTypeGame[])?.find(
+            (card) => card.id === cardToSend?.card.id
+        )
     );
 
     const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
