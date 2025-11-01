@@ -564,7 +564,7 @@ export default function Card(props: CardProps) {
                     }}
                     className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                     onClick={handleClick}
-                    // onTouchStartCapture={() => index !== undefined && isStackDragMode && setStackSliceIndex(index)}
+                    onTouchStartCapture={() => index !== undefined && isStackDragMode && setStackSliceIndex(index)}
                     onDoubleClick={handleTiltCard}
                     onMouseEnter={handleHover}
                     onMouseOver={handleHover}
