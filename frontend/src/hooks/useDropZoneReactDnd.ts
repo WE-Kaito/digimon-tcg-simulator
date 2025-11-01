@@ -1,4 +1,4 @@
-import { AttackPhase, DraggedItem, DraggedStack, Phase } from "../utils/types.ts";
+import { AttackPhase, CardTypeGame, DraggedItem, DraggedStack, Phase } from "../utils/types.ts";
 import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { convertForLog } from "../utils/functions.ts";
 import { useSound } from "./useSound.ts";
@@ -124,29 +124,37 @@ export default function useDropZoneReactDnd(props: Props) {
         sendSfx("playNextAttackPhaseSfx");
     }
 
-    function handleDropToField(cardId: string, from: string, to: string, cardName: string, isFaceUp: boolean) {
+    function handleDropToField(cardId: string, from: string, to: string) {
         if (!cardId || !from || !to) return;
         moveCard(cardId, from, to);
         sendMoveCard(cardId, from, to);
-        const isFaceDown = !isFaceUp && (from.includes("Digi") || from.includes("Link") || from.includes("Breeding"));
-        const hiddenCardInfo =
-            from === "myHand" && ["myTrash", "myDeckField"].includes(to) ? ` (…${cardId.slice(-5)})` : "";
+    }
 
-        if (from !== to)
-            sendChatMessage(
-                `[FIELD_UPDATE]≔【${isFaceDown ? "❔" : cardName + hiddenCardInfo}】﹕${convertForLog(from)} ➟ ${convertForLog(to)}`
-            );
+    function logCardMovement(from: string, to: string, cards: CardTypeGame[]) {
+        const formattedNames: string[] = cards.map((card) => {
+            const isFaceDown =
+                !card.isFaceUp && (from.includes("Digi") || from.includes("Link") || from.includes("Breeding"));
+
+            const hiddenCardInfo =
+                from === "myHand" && ["myTrash", "myDeckField"].includes(to) ? ` (…${card.id.slice(-5)})` : "";
+
+            return `【${isFaceDown ? "❔" : card.name}${hiddenCardInfo}】`;
+        });
+
+        sendChatMessage(`[FIELD_UPDATE]≔${formattedNames.join("")}﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
     }
 
     function dropCardOrStack(item: DraggedItem | DraggedStack, targetField: string) {
         if (item.location === "myBreedingArea" && getIsMyTurn(user)) nextPhaseTrigger(nextPhase, Phase.BREEDING);
         if (isCardStack(item)) {
             const { location } = item;
-            moveCardStack(stackSliceIndex, location, targetField, handleDropToField);
+            moveCardStack(stackSliceIndex, location, targetField, handleDropToField, logCardMovement);
             setStackDragIcon(null);
         } else {
             const { id, location, name, isFaceUp } = item;
-            handleDropToField(id, location, targetField, name, isFaceUp);
+            handleDropToField(id, location, targetField);
+            if (location !== targetField)
+                logCardMovement(location, targetField, [{ id, name, isFaceUp } as CardTypeGame]);
         }
 
         targetField === "myTrash" ? playTrashCardSfx() : playPlaceCardSfx();

@@ -231,7 +231,8 @@ export type State = BoardState & {
         index: number,
         from: string,
         to: string,
-        handleDropToField: (id: string, from: string, to: string, name: string, isFaceUp: boolean) => void
+        handleDropToField: (id: string, from: string, to: string) => void,
+        logCardMovement: (from: string, to: string, cards: CardTypeGame[]) => void
     ) => void;
     areCardsSuspended: (from?: string) => boolean;
     nextPhaseTrigger: (nextPhaseFunction: () => void, currentPhase?: string) => void;
@@ -797,7 +798,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         return placementPosition;
     },
 
-    moveCardStack: (index, from, to, handleDropToField) => {
+    moveCardStack: (index, from, to, handleDropToField, logCardMovement) => {
         const locationCards = get()[from as keyof State] as CardTypeGame[];
         const cards = tamerLocations.includes(from) ? locationCards.slice(index) : locationCards.slice(0, index + 1);
 
@@ -807,7 +808,10 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         ) {
             cards.reverse();
         }
-        cards.forEach((card) => handleDropToField(card.id, from, to, card.name, card.isFaceUp));
+
+        cards.forEach((card) => handleDropToField(card.id, from, to));
+        if (digimonLocations.includes(from) && tamerLocations.includes(to)) logCardMovement(from, to, cards);
+        else logCardMovement(from, to, cards.reverse());
     },
 
     areCardsSuspended: (from) => {
