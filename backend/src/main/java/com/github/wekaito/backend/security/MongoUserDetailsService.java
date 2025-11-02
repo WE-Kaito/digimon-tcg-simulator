@@ -2,10 +2,6 @@ package com.github.wekaito.backend.security;
 
 import com.github.wekaito.backend.StarterDeckService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -17,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
-import jakarta.annotation.PostConstruct;
-
 import java.util.*;
 
 @Service
@@ -26,53 +20,11 @@ import java.util.*;
 public class MongoUserDetailsService implements UserDetailsService {
 
     private final MongoUserRepository mongoUserRepository;
-    private final MongoTemplate mongoTemplate;
     private final StarterDeckService starterDeckService;
 
     private static final String[] badWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "fuck", "fuuck", "rape", "whore", "nigger", "nazi", "jews"};
 
-    private static final List<String> BANNED_USERNAMES = List.of("Altsaber", "Domo", "maxbugs", "JeanArc31", "Relancer", "Humungosaurio2", "season1yugioh");
-    private static final List<String> ADMIN_USERS = List.of("Kaito", "StargazerVinny", "GhostTurt", "EfzPlayer", "Hercole", "lar_ott", "Lar_ott");
-
     String exceptionMessage = " not found";
-    
-    @PostConstruct
-    public void migrateUsersToRoleSchema() {
-        try {
-            // Try to use repository first
-            List<MongoUser> allUsers = mongoUserRepository.findAll();
-            
-            for (MongoUser user : allUsers) {
-                if (user.role() == null) {
-                    Role role = Role.ROLE_USER;
-                    if (BANNED_USERNAMES.contains(user.username())) role = Role.ROLE_BANNED;
-                    if (ADMIN_USERS.contains(user.username())) role = Role.ROLE_ADMIN;
-
-                    MongoUser updatedUser = new MongoUser(
-                            user.id(),
-                            user.username(),
-                            user.password(),
-                            user.question(),
-                            user.answer(),
-                            user.activeDeckId(),
-                            user.avatarName(),
-                            user.blockedAccounts(),
-                            role
-                    );
-                    mongoUserRepository.save(updatedUser);
-                }
-            }
-        } catch (Exception e) {
-            // If repository fails due to schema mismatch, use raw MongoDB update
-            try {
-                Query query = new Query(Criteria.where("role").exists(false));
-                Update update = new Update().set("role", Role.ROLE_USER.name());
-                mongoTemplate.updateMulti(query, update, "users");
-            } catch (Exception mongoError) {
-                System.err.println("User migration failed completely: " + mongoError.getMessage());
-            }
-        }
-    }
 
     public MongoUser getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();

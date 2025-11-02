@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -25,9 +24,6 @@ class MongoUserDetailsServiceTest {
     private MongoUserRepository mongoUserRepository;
 
     @Mock
-    private MongoTemplate mongoTemplate;
-
-    @Mock
     private StarterDeckService starterDeckService;
 
     @InjectMocks
@@ -35,7 +31,7 @@ class MongoUserDetailsServiceTest {
 
     @BeforeEach
     void setUp() {
-        mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository, mongoTemplate, starterDeckService);
+        mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository, starterDeckService);
         when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon", Collections.emptyList(), Role.ROLE_USER)));
     }
 
