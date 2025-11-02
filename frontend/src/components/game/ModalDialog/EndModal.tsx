@@ -18,7 +18,7 @@ export default function EndModal() {
             },
             color: "#FCCB0B",
         },
-        { text: "CLOSE MODAL", onClick: () => setEndModal(false), color: "#FCCB0B" },
+        { text: "CLOSE DIALOG", onClick: () => setEndModal(false), color: "#FCCB0B" },
     ];
 
     if (!endModal) return <></>;

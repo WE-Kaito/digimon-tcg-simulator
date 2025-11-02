@@ -4,11 +4,11 @@ export default function PatchnotesLink() {
     return (
         <Wrapper>
             <Patchnotes
-                href={"https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Patchnotes"}
+                href={"https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Patchnotes#02112025"}
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                updated: 24.08.2025
+                🔗 Patch notes (02.11.2025)
             </Patchnotes>
         </Wrapper>
     );
@@ -24,15 +24,17 @@ const Wrapper = styled.sub`
 `;
 
 const Patchnotes = styled.a`
-    color: whitesmoke;
+    color: #38d4f0;
     text-decoration: none;
 
     &:hover {
         color: #daa600 !important;
     }
+
     &:visited {
-        color: whitesmoke;
+        color: #386ff0;
     }
+
     @media (max-width: 550px) {
         font-size: 0.8em;
     }

@@ -36,6 +36,7 @@ import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { Button } from "../components/Button.tsx";
 import useQuery from "../hooks/useQuery.ts";
+import PatchnotesLink from "../components/PatchnotesLink.tsx";
 
 enum Format {
     CUSTOM = "CUSTOM",
@@ -671,6 +672,7 @@ export default function Lobby() {
                                 >
                                     Create Room
                                 </Button>
+                                <PatchnotesLink />
                             </Card>
                         )}
                     </div>
