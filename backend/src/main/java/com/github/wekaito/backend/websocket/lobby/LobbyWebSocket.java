@@ -102,13 +102,14 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         String username = principal.getName();
 
-        synchronized (rooms) {
-            Room playerRoom = rooms.stream()
-                    .filter(room -> room.getPlayers().stream().anyMatch(p -> p.getName().equals(username)))
-                    .findFirst()
-                    .orElse(null);
 
-            if (playerRoom != null) {
+        Room playerRoom = rooms.stream()
+                .filter(room -> room.getPlayers().stream().anyMatch(p -> p.getName().equals(username)))
+                .findFirst()
+                .orElse(null);
+
+        if (playerRoom != null) {
+            synchronized (playerRoom) {
                 // Store which room the player was in for potential reconnect
                 lastPlayerRooms.put(username, playerRoom.getId());
 
@@ -122,13 +123,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             }
         }
 
-        synchronized (quickPlayQueue) {
-            quickPlayQueue.remove(session);
-        }
+        quickPlayQueue.remove(session);
 
-        synchronized (globalActiveSessions) {
-            globalActiveSessions.remove(session);
-        }
+        globalActiveSessions.remove(session);
     }
 
 
@@ -298,17 +295,15 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         long currentTime = System.currentTimeMillis();
         List<String> roomsToRemove = new ArrayList<>();
 
-        synchronized (emptyRoomTimestamps) {
-            for (Map.Entry<String, Long> entry : emptyRoomTimestamps.entrySet()) {
-                if (currentTime - entry.getValue() > 30000) { // 30 seconds
-                    roomsToRemove.add(entry.getKey());
-                }
+        for (Map.Entry<String, Long> entry : emptyRoomTimestamps.entrySet()) {
+            if (currentTime - entry.getValue() > 30000) { // 30 seconds
+                roomsToRemove.add(entry.getKey());
             }
+        }
 
-            for (String roomId : roomsToRemove) {
-                emptyRoomTimestamps.remove(roomId);
-                rooms.removeIf(room -> room.getId().equals(roomId));
-            }
+        for (String roomId : roomsToRemove) {
+            emptyRoomTimestamps.remove(roomId);
+            rooms.removeIf(room -> room.getId().equals(roomId));
         }
 
         broadcastRooms();
@@ -317,7 +312,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private void createRoom(WebSocketSession session, String payload) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
-        leaveAllRoomsQuietly(username);
+//        leaveAllRoomsQuietly(username);
 
         String[] parts = payload.split(":", 4);
 
@@ -333,49 +328,47 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 roomPassword,
                 new ArrayList<>());
 
-        synchronized (rooms) {
-            rooms.add(room);
-        }
+        rooms.add(room);
 
         joinRoom(session, room.getId(), true);
         broadcastRooms();
     }
 
-    private void leaveAllRoomsQuietly(String username) throws IOException {
-        List<Room> roomsWithPlayer = new ArrayList<>();
-
-        synchronized (rooms) {
-            for (Room r : rooms) {
-                if (r.getPlayers().stream().anyMatch(p -> p.getName().equals(username))) {
-                    roomsWithPlayer.add(r);
-                }
-            }
-
-            for (Room room : roomsWithPlayer) {
-                room.getPlayers().removeIf(p -> p.getName().equals(username));
-
-                // change host, if needed
-                if (room.getHostName().equals(username) && !room.getPlayers().isEmpty()) {
-                    LobbyPlayer remainingPlayer = room.getPlayers().get(0);
-                    room.setHostName(remainingPlayer.getName());
-                    remainingPlayer.setReady(true);
-                }
-
-                if (room.getPlayers().isEmpty()) emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
-                else sendRoomUpdate(room);
-            }
-        }
-
-        lastPlayerRooms.remove(username);
-    }
+//    private void leaveAllRoomsQuietly(String username) throws IOException {
+//        List<Room> roomsWithPlayer = new ArrayList<>();
+//
+//        synchronized (rooms) {
+//            for (Room r : rooms) {
+//                if (r.getPlayers().stream().anyMatch(p -> p.getName().equals(username))) {
+//                    roomsWithPlayer.add(r);
+//                }
+//            }
+//
+//            for (Room room : roomsWithPlayer) {
+//                room.getPlayers().removeIf(p -> p.getName().equals(username));
+//
+//                // change host, if needed
+//                if (room.getHostName().equals(username) && !room.getPlayers().isEmpty()) {
+//                    LobbyPlayer remainingPlayer = room.getPlayers().get(0);
+//                    room.setHostName(remainingPlayer.getName());
+//                    remainingPlayer.setReady(true);
+//                }
+//
+//                if (room.getPlayers().isEmpty()) emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
+//                else sendRoomUpdate(room);
+//            }
+//        }
+//
+//        lastPlayerRooms.remove(username);
+//    }
 
     private void broadcastRooms() throws IOException {
         List<Room> roomsWithOnlyHosts;
-        synchronized (rooms) {
-            roomsWithOnlyHosts = rooms.stream()
-                    .filter(r -> r.getPlayers().size() == 1)
-                    .toList();
-        }
+
+        roomsWithOnlyHosts = rooms.stream()
+                .filter(r -> r.getPlayers().size() == 1)
+                .toList();
+
 
         for (WebSocketSession session : globalActiveSessions) {
             String sessionUsername = Objects.requireNonNull(session.getPrincipal()).getName();
@@ -475,9 +468,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             sendTextMessage(session, "[JOIN_ROOM]:" + roomJson);
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + ".");
             room.getPlayers().add(player);
-        }
 
             sendRoomUpdate(room, true);
+        }
 
             broadcastRooms();
     }
@@ -537,36 +530,34 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         lastPlayerRooms.remove(userName);
 
         Room room = getRoomById(roomId);
-        if( room == null) {
+        if (room == null) {
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
             return;
         }
 
+        boolean roomIsEmpty;
         synchronized (room) {
             room.getPlayers().removeIf(p -> p.getName().equals(userName));
-            if(room.getHostName().equals(userName) && !room.getPlayers().isEmpty()) {
+
+            if (room.getHostName().equals(userName) && !room.getPlayers().isEmpty()) {
                 LobbyPlayer remainingPlayer = room.getPlayers().get(0);
                 room.setHostName(remainingPlayer.getName());
                 remainingPlayer.setReady(true);
             }
 
-            if (shouldCleanLastRoom.equals("true")) {
-                lastPlayerRooms.remove(userName);
-            }
+            roomIsEmpty = room.getPlayers().isEmpty();
 
-            if (room.getPlayers().isEmpty()) {
+            if (roomIsEmpty) {
                 emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
+                rooms.remove(room);
             } else {
                 sendRoomUpdate(room);
             }
         }
 
-        if (room.getPlayers().isEmpty()) rooms.remove(room);
-        else sendRoomUpdate(room);
-
         sendTextMessage(session, "[LEAVE_ROOM]");
+        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have left the room " + room.getName() + ".");
-
         broadcastRooms();
     }
 
@@ -618,6 +609,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         sendRoomUpdate(room);
 
         sendTextMessage(player.getSession(), "[KICKED]");
+        sendTextMessage(player.getSession(), "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
         sendTextMessage(player.getSession(), "[CHAT_MESSAGE]:【SERVER】: You have been kicked from the room " + room.getName() + ".");
 
         sendTextMessage(session, "[SUCCESS]");
@@ -669,6 +661,12 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         
         for (WebSocketSession session : globalActiveSessions) {
             sendTextMessage(session, "[CHAT_MESSAGE]:" + formattedMessage);
+        }
+
+        for (Room room : rooms) {
+            for (LobbyPlayer player : room.getPlayers()) {
+                sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + formattedMessage);
+            }
         }
     }
 }
