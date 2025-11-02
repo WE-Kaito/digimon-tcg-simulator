@@ -15,18 +15,18 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@emotion/css": "^11.13.5",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^7.1.0",
-    "@mui/material": "^7.1.0",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.4",
     "@tsparticles/engine": "^3.8.1",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.8.1",
-    "axios": "^1.8.2",
+    "axios": "^1.13.1",
     "dnd-kit": "^0.0.2",
     "lottie-react": "^2.4.1",
-    "mui-color-input": "^5.0.1",
-    "react": "^19.1.0",
+    "mui-color-input": "^7.0.0",
+    "react": "^19.2.0",
     "react-arrows": "^1.2.0",
     "react-awesome-reveal": "^4.3.1",
     "react-contexify": "^6.0.0",
@@ -38,25 +38,28 @@
     "react-toastify": "^10.0.5",
     "react-use-websocket": "^4.13.0",
     "uid": "^2.0.2",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@types/react": "^19.1.5",
-    "@types/react-dom": "^19.1.5",
-    "@typescript-eslint/eslint-plugin": "^8.32.1",
-    "@typescript-eslint/parser": "^8.32.1",
-    "@vitejs/plugin-react": "^4.4.1",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "prettier": "3.5.3",
-    "typescript": "^5.8.2",
-    "vite": "^4.5.14"
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^4.0.1",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "prettier": "3.6.2",
+    "typescript": "^5.9.3",
+    "vite": "7.1.12"
   },
   "overrides": {
     "@reach/auto-id": {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0"
+      "react": "^19.2.0",
+      "react-dom": "^19.2.0"
     }
   }
 }
