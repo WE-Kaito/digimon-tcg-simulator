@@ -482,6 +482,7 @@ export default function DeckTest() {
                 setIsEffectArrow(false);
             };
 
+            // @ts-ignore
             timeoutRef.current = setTimeout(() => {
                 setArrowFrom("");
                 setArrowTo("");

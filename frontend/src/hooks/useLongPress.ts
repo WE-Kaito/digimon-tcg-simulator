@@ -1,14 +1,14 @@
-import {useRef} from "react";
+import { useRef } from "react";
 
 type UseLongPressProps = {
     onLongPress: (e: React.TouchEvent<never>) => void;
     timeout?: number;
-}
+};
 
 type UseLongPressReturn = {
     handleTouchStart: (e: React.TouchEvent<never>) => void;
     handleTouchEnd: () => void;
-}
+};
 
 /**
  * This hook is used to detect long press events on a component for touch devices.
@@ -31,11 +31,12 @@ type UseLongPressReturn = {
  *         className="prevent-default-long-press"
  *    />
  * );
-*/
+ */
 export function useLongPress({ onLongPress, timeout = 1000 }: UseLongPressProps): UseLongPressReturn {
     const pressTimerRef = useRef(0);
 
     const handleTouchStart = (e: React.TouchEvent<never>) => {
+        // @ts-ignore
         pressTimerRef.current = setTimeout(() => onLongPress(e), timeout);
     };
 

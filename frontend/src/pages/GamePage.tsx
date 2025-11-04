@@ -97,6 +97,7 @@ export default function GamePage() {
                 setIsEffectArrow(false);
             };
 
+            // @ts-ignore
             timeoutRef.current = setTimeout(() => {
                 setArrowFrom("");
                 setArrowTo("");
