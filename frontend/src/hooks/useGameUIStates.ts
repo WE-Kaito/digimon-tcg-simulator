@@ -3,7 +3,7 @@ import { digimonLocations } from "./useGameBoardStates.ts";
 
 type DigimonLocation = (typeof digimonLocations)[number];
 
-export enum OpenedCardModal {
+export enum OpenedCardDialog {
     MY_SECURITY = "mySecurity",
     MY_TRASH = "myTrash",
     OPPONENT_TRASH = "opponentTrash",
@@ -20,11 +20,11 @@ type State = {
     isStackDragMode: boolean;
     setIsStackDragMode: (isStackDragMode: boolean) => void;
 
-    openedCardModal: OpenedCardModal | false;
-    setOpenedCardModal: (openedCardModal: OpenedCardModal | false) => void;
+    openedCardDialog: OpenedCardDialog | false;
+    setOpenedCardDialog: (openedCardModal: OpenedCardDialog | false) => void;
 
-    stackModal: DigimonLocation | false;
-    setStackModal: (location: DigimonLocation | false) => void;
+    stackDialog: DigimonLocation | false;
+    setStackDialog: (location: DigimonLocation | false) => void;
 
     restartPromptModal: boolean;
     setRestartPromptModal: (open: boolean) => void;
@@ -35,14 +35,14 @@ type State = {
     isRematch: boolean;
     setIsRematch: (isRematch: boolean) => void;
 
-    endModal: boolean; // TODO: Refactor to one modal state like openedCardModal, to avoid multiple modal dialogs
-    setEndModal: (open: boolean) => void;
+    isEndDialogOpen: boolean; // TODO: Refactor to one dialog state like openedCardDialog, to avoid multiple dialogs
+    setIsEndDialogOpen: (open: boolean) => void;
 
-    endModalText: string;
-    setEndModalText: (text: string) => void;
+    endDialogText: string;
+    setEndDialogText: (text: string) => void;
 
-    tokenModal: boolean;
-    setTokenModal: (open: boolean) => void;
+    isTokenDialogOpen: boolean;
+    setIsTokenDialogOpen: (open: boolean) => void;
 
     stackDragIcon: null | { location: string; index: number };
     setStackDragIcon: (stackDragIcon: { location: string; index: number } | null) => void;
@@ -85,11 +85,11 @@ export const useGameUIStates = create<State>((set) => ({
     isStackDragMode: false,
     setIsStackDragMode: (isStackDragMode) => set({ isStackDragMode }),
 
-    openedCardModal: false,
-    setOpenedCardModal: (openedCardModal) => set({ openedCardModal, stackModal: false }),
+    openedCardDialog: false,
+    setOpenedCardDialog: (openedCardDialog) => set({ openedCardDialog, stackDialog: false }),
 
-    stackModal: false,
-    setStackModal: (stackModal) => set({ stackModal, openedCardModal: false }),
+    stackDialog: false,
+    setStackDialog: (stackDialog) => set({ stackDialog, openedCardDialog: false }),
 
     restartOrder: "first",
     setRestartOrder: (restartOrder) => set({ restartOrder }),
@@ -100,14 +100,14 @@ export const useGameUIStates = create<State>((set) => ({
     isRematch: false,
     setIsRematch: (isRematch) => set({ isRematch }),
 
-    endModal: false,
-    setEndModal: (open) => set({ endModal: open }),
+    isEndDialogOpen: false,
+    setIsEndDialogOpen: (open) => set({ isEndDialogOpen: open }),
 
-    endModalText: "",
-    setEndModalText: (text) => set({ endModalText: text }),
+    endDialogText: "",
+    setEndDialogText: (text) => set({ endDialogText: text }),
 
-    tokenModal: false,
-    setTokenModal: (open) => set({ tokenModal: open }),
+    isTokenDialogOpen: false,
+    setIsTokenDialogOpen: (open) => set({ isTokenDialogOpen: open }),
 
     stackDragIcon: null,
     setStackDragIcon: (stackDragIcon) => set({ stackDragIcon }),

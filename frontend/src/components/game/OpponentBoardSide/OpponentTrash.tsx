@@ -6,7 +6,7 @@ import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import Lottie from "lottie-react";
 import TrashIcon from "@mui/icons-material/Delete";
 import CloseTrashIcon from "@mui/icons-material/DeleteForever";
-import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function OpponentTrash() {
     const opponentTrash = useGameBoardStates((state) => state.opponentTrash);
@@ -14,16 +14,16 @@ export default function OpponentTrash() {
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
     const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
 
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
-    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+    const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
+    const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
 
     const effectInTrash = getCardLocationById(cardIdWithEffect ?? "") === "opponentTrash";
     const targetInTrash = getCardLocationById(cardIdWithTarget ?? "") === "opponentTrash";
 
-    const isTrashOpened = openedCardModal === OpenedCardModal.OPPONENT_TRASH;
+    const isTrashOpened = openedCardDialog === OpenedCardDialog.OPPONENT_TRASH;
 
     function handleClick() {
-        setOpenedCardModal(isTrashOpened ? false : OpenedCardModal.OPPONENT_TRASH);
+        setOpenedCardDialog(isTrashOpened ? false : OpenedCardDialog.OPPONENT_TRASH);
     }
 
     return (

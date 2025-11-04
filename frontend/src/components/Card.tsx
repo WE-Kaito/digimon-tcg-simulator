@@ -1,7 +1,7 @@
 import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
-import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
+import { tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useState } from "react";
 import Lottie from "lottie-react";
@@ -14,7 +14,7 @@ import { useSound } from "../hooks/useSound.ts";
 import { getSleeve } from "../utils/sleeves.ts";
 import { DragPreviewImage, useDrag } from "react-dnd";
 import { WSUtils } from "../pages/GamePage.tsx";
-import { OpenedCardModal, useGameUIStates } from "../hooks/useGameUIStates.ts";
+import { OpenedCardDialog, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
@@ -60,16 +60,9 @@ const digimonLocations = [
 
 const myTamerLocations = ["myDigi17", "myDigi18", "myDigi19", "myDigi20", "myDigi21"];
 
-const tamerLocations = [
-    ...myTamerLocations,
-    "opponentDigi17",
-    "opponentDigi18",
-    "opponentDigi19",
-    "opponentDigi20",
-    "opponentDigi21",
-];
-
 const myBALocations = [...myDigimonLocations, ...myTamerLocations, "myBreedingArea"];
+
+const myCardLocations = [...myBALocations, "myTrash", "mySecurity", "myHand", "myReveal"];
 
 const opponentBALocations = [
     "opponentDigi1",
@@ -197,7 +190,7 @@ export default function Card(props: CardProps) {
 
     const useToggleForStacks = useSettingStates((state) => state.useToggleForStacks);
     const isStackDragMode = useGameUIStates((state) => state.isStackDragMode);
-    const stackModal = useGameUIStates((state) => state.stackModal);
+    const stackDialog = useGameUIStates((state) => state.stackDialog);
     const stackDragIcon = useGameUIStates((state) => state.stackDragIcon);
     const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
     const stackDraggedLocation = useGameUIStates((state) => state.stackDraggedLocation);
@@ -221,9 +214,9 @@ export default function Card(props: CardProps) {
 
     const inTamerField = tamerLocations.includes(location);
 
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+    const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
     const isCardFaceDown =
-        !(openedCardModal === OpenedCardModal.MY_SECURITY && location === "mySecurity") &&
+        !(openedCardDialog === OpenedCardDialog.MY_SECURITY && location === "mySecurity") &&
         ((isHandHidden && location === "myHand") || (!card.isFaceUp && location !== "myHand"));
 
     // Determine drag mode logic
@@ -401,7 +394,7 @@ export default function Card(props: CardProps) {
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
     if (isDragging || isPartOfDraggedStack) {
-        if (stackModal === location)
+        if (stackDialog === location)
             return (
                 <div
                     style={{ width: style?.width ?? cardWidth }}
@@ -441,7 +434,7 @@ export default function Card(props: CardProps) {
                         <DragStackIconDiv
                             ref={stackDragRef as any}
                             className={"custom-hand-cursor"}
-                            style={{ position: stackModal === location ? "absolute" : "fixed" }}
+                            style={{ position: stackDialog === location ? "absolute" : "fixed" }}
                             onMouseEnter={handleHoverDragIcon}
                             onMouseOver={handleHoverDragIcon}
                             onMouseLeave={() => {
@@ -554,7 +547,7 @@ export default function Card(props: CardProps) {
                     isTilted={card.isTilted}
                     activeEffect={renderEffectAnimation}
                     targeted={renderTargetAnimation}
-                    isTopCard={index === locationCards?.length - 1 || stackModal === location}
+                    isTopCard={index === locationCards?.length - 1 || stackDialog === location}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                     onTouchMove={handleTouchEnd}
@@ -563,7 +556,7 @@ export default function Card(props: CardProps) {
                         setCardImageUrl(cardBackSrc);
                     }}
                     onContextMenu={(e) => {
-                        if (myBALocations.includes(location) || location === "myHand") {
+                        if (myCardLocations.includes(location)) {
                             setCardToSend({ card, location });
                         }
                         onContextMenu?.(e);

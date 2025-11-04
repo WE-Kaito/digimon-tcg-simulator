@@ -29,9 +29,13 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const cardToSend = useGameBoardStates((state) => state.cardToSend);
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
+    const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
+    const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
+    const isEffectInSecurity = mySecurity.find((card) => card.id === cardIdWithEffect) !== undefined;
+    const isTargetInSecurity = mySecurity.find((card) => card.id === cardIdWithTarget) !== undefined;
 
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
-    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+    const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
+    const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
     const showSecuritySendButtons = useGameUIStates((state) => state.showSecuritySendButtons);
     const setShowSecuritySendButtons = useGameUIStates((state) => state.setShowSecuritySendButtons);
 
@@ -53,7 +57,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     }
 
     function handleCloseSecurity() {
-        setOpenedCardModal(false);
+        setOpenedCardDialog(false);
         shuffleSecurity();
         playShuffleDeckSfx();
         wsUtils?.sendChatMessage?.(`[FIELD_UPDATE]≔【Closed Security】`);
@@ -83,6 +87,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
 
     const [isOpen, setIsOpen] = useState(false);
+    8;
 
     const { show: showSecurityStackMenu } = useContextMenu({ id: "securityStackMenu" });
 
@@ -99,7 +104,9 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
 
     const { handleTouchStart, handleTouchEnd } = useLongPress({ onLongPress });
 
-    if (openedCardModal === "mySecurity") {
+    const { show: showContextMenu } = useContextMenu({ id: "dialogMenu", props: { index: -1, location: "", id: "" } });
+
+    if (openedCardDialog === "mySecurity") {
         return (
             <StyledButtonDiv onClick={handleCloseSecurity}>
                 <StyledCloseDetailsIcon />
@@ -174,7 +181,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
                     <Tooltip
                         TransitionComponent={MuiZoom}
                         sx={{ width: "100%" }}
-                        open={mySecurity.length === 0 ? false : isOpen}
+                        open={(mySecurity.length === 0 ? false : isOpen) || isEffectInSecurity || isTargetInSecurity}
                         onClose={() => setIsOpen(isDraggingFromSecurity)}
                         onOpen={() => setIsOpen(!!mySecurity.length)}
                         arrow
@@ -203,6 +210,17 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
                                             card={card}
                                             location={"mySecurity"}
                                             style={{ width: "50px" }}
+                                            onContextMenu={(e) => {
+                                                showContextMenu({
+                                                    event: e,
+                                                    props: {
+                                                        index,
+                                                        location: "mySecurity",
+                                                        id: card.id,
+                                                        name: card.name,
+                                                    },
+                                                });
+                                            }}
                                         />
                                     </Fragment>
                                 ))}

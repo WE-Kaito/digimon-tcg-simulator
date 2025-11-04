@@ -49,7 +49,7 @@ const battleAreaLocations = [
 
 export const digimonLocations = ["myBreedingArea", "opponentBreedingArea", ...battleAreaLocations];
 
-const tamerLocations = [
+export const tamerLocations = [
     "myDigi17",
     "myDigi18",
     "myDigi19",

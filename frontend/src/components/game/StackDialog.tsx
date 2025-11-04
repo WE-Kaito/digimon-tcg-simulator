@@ -1,36 +1,22 @@
 import styled from "@emotion/styled";
 import Card from "../Card.tsx";
-import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
+import { tamerLocations, useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { CardTypeGame } from "../../utils/types.ts";
 import { useContextMenu } from "react-contexify";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 
-const tamerLocations = [
-    "myDigi9",
-    "myDigi10",
-    "myDigi11",
-    "myDigi12",
-    "myDigi13",
-    "opponentDigi9",
-    "opponentDigi10",
-    "opponentDigi11",
-    "opponentDigi12",
-    "opponentDigi13",
-];
-
 /**
- * Modal that shows the stack of cards in a location and closes autimatically if the trash or security is opened.
- * It is only an alternative display of the cards in the location, and does not have any functionality.
- * A possible future improvement would be to add Sortable of dnd-kit.
+ * Dialog that shows the stack of cards in a location and closes automatically if the trash or security is opened.
+ * It is only an alternative display of the cards in the location and similar to the CardDialog but maintains stack-dragging functionality.
  */
-export default function StackModal() {
-    const stackModal = useGameUIStates((state) => state.stackModal);
-    const setStackModal = useGameUIStates((state) => state.setStackModal);
+export default function StackDialog() {
+    const stackDialog = useGameUIStates((state) => state.stackDialog);
+    const setStackDialog = useGameUIStates((state) => state.setStackDialog);
 
     const locationCards = useGameBoardStates((state) =>
-        stackModal ? (state[stackModal as keyof typeof state] as CardTypeGame[]) : []
+        stackDialog ? (state[stackDialog as keyof typeof state] as CardTypeGame[]) : []
     );
 
     const cardWidth = useGeneralStates((state) => state.cardWidth);
@@ -38,10 +24,10 @@ export default function StackModal() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(cardWidth);
 
-    const reverse = !(!!stackModal && tamerLocations.includes(stackModal));
+    const reverse = !(!!stackDialog && tamerLocations.includes(stackDialog));
 
     const { show: showCardMenu } = useContextMenu({
-        id: stackModal !== false && stackModal.includes("opponent") ? "modalMenuOpponent" : "modalMenu",
+        id: stackDialog !== false && stackDialog.includes("opponent") ? "dialogMenuOpponent" : "dialogMenu",
         props: { index: -1, location: "", id: "" },
     });
 
@@ -50,29 +36,29 @@ export default function StackModal() {
     }, [containerRef.current?.clientWidth]);
 
     useEffect(() => {
-        if (stackModal && !locationCards.length) setStackModal(false); // correctly close the modal if there are no cards
-    }, [locationCards, stackModal, setStackModal]);
+        if (stackDialog && !locationCards.length) setStackDialog(false); // correctly close the dialog if there are no cards
+    }, [locationCards, stackDialog, setStackDialog]);
 
-    if (!stackModal) return <></>;
+    if (!stackDialog) return <></>;
 
     return (
         <Container
             reverse={reverse}
             ref={containerRef}
-            id={stackModal + "_stackModal"}
+            id={stackDialog + "_stackModal"}
             onMouseOver={(e) => e.stopPropagation()}
         >
             {locationCards.map((card, index) => (
                 <Card
                     card={card}
-                    location={stackModal}
+                    location={stackDialog}
                     style={{ width }}
                     key={card.id}
                     index={index}
                     onContextMenu={(e) => {
                         showCardMenu?.({
                             event: e,
-                            props: { index, location: stackModal, id: card.id, name: card.name },
+                            props: { index, location: stackDialog, id: card.id, name: card.name },
                         });
                     }}
                 />

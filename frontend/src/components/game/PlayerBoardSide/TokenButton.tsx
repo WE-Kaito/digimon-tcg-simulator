@@ -5,11 +5,11 @@ import TokenIcon from "@mui/icons-material/GeneratingTokens";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function TokenButton() {
-    const setTokenModal = useGameUIStates((state) => state.setTokenModal);
+    const setIsTokenDialogOpen = useGameUIStates((state) => state.setIsTokenDialogOpen);
     const cardWidth = useGeneralStates((state) => state.cardWidth);
 
     return (
-        <StyledIconButton onClick={() => setTokenModal(true)}>
+        <StyledIconButton onClick={() => setIsTokenDialogOpen(true)}>
             <TokenIcon style={{ fontSize: cardWidth / 2 }} />
         </StyledIconButton>
     );

@@ -19,10 +19,10 @@ export default function LinkArea(props: LinkAreaProps) {
     const { num, side, wsUtils } = props;
     const fieldOffset = useGameUIStates((state) => state.fieldOffset);
     const opponentFieldOffset = useGameUIStates((state) => state.opponentFieldOffset);
-    
+
     // Use the appropriate offset based on which side this is
     const currentOffset = side === SIDE.MY ? fieldOffset : opponentFieldOffset;
-    
+
     // Calculate actual link number based on position and offset
     const actualLinkNum = num <= 8 ? num + currentOffset : num + 8; // LA9-13 become Link17-21
     const location = `${side}Link${actualLinkNum}`;
@@ -32,12 +32,12 @@ export default function LinkArea(props: LinkAreaProps) {
         data: { accept: side === SIDE.MY ? ["card"] : [] },
     });
 
-    const stackModal = useGameUIStates((state) => state.stackModal);
-    const setStackModal = useGameUIStates((state) => state.setStackModal);
+    const stackDialog = useGameUIStates((state) => state.stackDialog);
+    const setStackDialog = useGameUIStates((state) => state.setStackDialog);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
     // const showLinkIcon = side === SIDE.MY && !locationCards.length && isSingleCard;
-    const stackOpened = stackModal === location;
+    const stackOpened = stackDialog === location;
 
     const { show: showLinkFieldCardMenu } = useContextMenu({
         id: "fieldCardMenu",
@@ -56,7 +56,7 @@ export default function LinkArea(props: LinkAreaProps) {
             ref={dropToField as any}
             isOver={side === SIDE.MY && isOverField}
             stackOpened={stackOpened}
-            onClick={() => stackOpened && setStackModal(false)}
+            onClick={() => stackOpened && setStackDialog(false)}
             className={stackOpened ? "button" : undefined}
         >
             <div style={{ position: "relative", height: "100%", width: "100%" }}>

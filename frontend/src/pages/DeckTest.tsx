@@ -23,9 +23,9 @@ import GameChatLog from "../components/game/GameChatLog.tsx";
 import { Gavel as RulingsIcon, OpenInNew as LinkIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import RevealArea from "../components/game/RevealArea.tsx";
-import StackModal from "../components/game/StackModal.tsx";
+import StackDialog from "../components/game/StackDialog.tsx";
 import DragLayerCustom from "../components/game/DragLayerCustom.tsx";
-import CardModal from "../components/game/CardModal.tsx";
+import CardDialog from "../components/game/CardDialog.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
@@ -68,8 +68,8 @@ export default function DeckTest() {
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
     const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
 
-    const stackModal = useGameUIStates((state) => state.stackModal);
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
+    const stackDialog = useGameUIStates((state) => state.stackDialog);
+    const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
 
     const details = useSettingStates((state) => state.details);
 
@@ -640,11 +640,11 @@ export default function DeckTest() {
             </SettingsContainer>
 
             <ChatAndCardDialogContainerDiv>
-                {!stackModal && !openedCardModal && (
+                {!stackDialog && !openedCardDialog && (
                     <GameChatLog matchInfo={mockWSUtils.matchInfo} sendChatMessage={sendChatMessage} />
                 )}
-                {!!openedCardModal && <CardModal />}
-                {!!stackModal && <StackModal />}
+                {!!openedCardDialog && <CardDialog />}
+                {!!stackDialog && <StackDialog />}
             </ChatAndCardDialogContainerDiv>
 
             <RevealArea />

@@ -3,9 +3,9 @@ import ModalDialog from "./ModalDialog.tsx";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function EndModal() {
-    const endModal = useGameUIStates((state) => state.endModal);
-    const setEndModal = useGameUIStates((state) => state.setEndModal);
-    const endModalText = useGameUIStates((state) => state.endModalText);
+    const isEndDialogOpen = useGameUIStates((state) => state.isEndDialogOpen);
+    const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
+    const endDialogText = useGameUIStates((state) => state.endDialogText);
 
     const navigate = useNavigate();
 
@@ -13,15 +13,15 @@ export default function EndModal() {
         {
             text: "EXIT",
             onClick: () => {
-                setEndModal(false);
+                setIsEndDialogOpen(false);
                 navigate("/lobby");
             },
             color: "#FCCB0B",
         },
-        { text: "CLOSE DIALOG", onClick: () => setEndModal(false), color: "#FCCB0B" },
+        { text: "CLOSE DIALOG", onClick: () => setIsEndDialogOpen(false), color: "#FCCB0B" },
     ];
 
-    if (!endModal) return <></>;
+    if (!isEndDialogOpen) return <></>;
 
-    return <ModalDialog text={endModalText} buttonProps={buttonProps} />;
+    return <ModalDialog text={endDialogText} buttonProps={buttonProps} />;
 }

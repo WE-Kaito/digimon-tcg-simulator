@@ -50,13 +50,13 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
     const user = useGeneralStates((state) => state.user);
 
-    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+    const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
     const setRestartOrder = useGameUIStates((state) => state.setRestartOrder);
     const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
     const isRematch = useGameUIStates((state) => state.isRematch);
     const setIsRematch = useGameUIStates((state) => state.setIsRematch);
-    const setEndModal = useGameUIStates((state) => state.setEndModal);
-    const setEndModalText = useGameUIStates((state) => state.setEndModalText);
+    const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
+    const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
 
     const gameId = useGameBoardStates((state) => state.gameId);
@@ -134,7 +134,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[DISTRIBUTE_CARDS]:")) {
                 const gameStateJson = event.data.substring("[DISTRIBUTE_CARDS]:".length);
                 distributeCards(user, gameStateJson, playDrawCardSfx);
-                setOpenedCardModal(false);
+                setOpenedCardDialog(false);
                 return;
             }
 
@@ -359,8 +359,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[SURRENDER]": {
-                    setEndModal(true);
-                    setEndModalText("🎉 Your opponent surrendered!");
+                    setIsEndDialogOpen(true);
+                    setEndDialogText("🎉 Your opponent surrendered!");
                     break;
                 }
                 case "[SECURITY_VIEWED]": {
@@ -382,7 +382,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     setOpponentAttackPhase(false);
                     clearBoard();
                     setIsRematch(true);
-                    setEndModal(false);
+                    setIsEndDialogOpen(false);
                     break;
                 }
                 case "[UPDATE_PHASE]": {

@@ -23,10 +23,10 @@ export default function DigimonField(props: DigimonFieldProps) {
     const { num, side, wsUtils, ref } = props;
     const fieldOffset = useGameUIStates((state) => state.fieldOffset);
     const opponentFieldOffset = useGameUIStates((state) => state.opponentFieldOffset);
-    
+
     // Use the appropriate offset based on which side this is
     const currentOffset = side === SIDE.MY ? fieldOffset : opponentFieldOffset;
-    
+
     // Calculate actual field number based on position and offset
     const actualFieldNum = num <= 8 ? num + currentOffset : num + 8; // BA9-13 become myDigi17-21
     const location = `${side}Digi${actualFieldNum}`;
@@ -41,11 +41,11 @@ export default function DigimonField(props: DigimonFieldProps) {
         data: { accept: ["card"] },
     });
 
-    const stackModal = useGameUIStates((state) => state.stackModal);
-    const setStackModal = useGameUIStates((state) => state.setStackModal);
+    const stackDialog = useGameUIStates((state) => state.stackDialog);
+    const setStackDialog = useGameUIStates((state) => state.setStackDialog);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
-    const stackOpened = stackModal === location;
+    const stackOpened = stackDialog === location;
 
     const { show: showFieldCardMenu } = useContextMenu({
         id: "fieldCardMenu",
@@ -117,7 +117,7 @@ export default function DigimonField(props: DigimonFieldProps) {
             stackOpened={stackOpened}
             onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
             onMouseLeave={() => stackOpened && setIsHoveringOverField(false)}
-            onClick={() => stackOpened && setStackModal(false)}
+            onClick={() => stackOpened && setStackDialog(false)}
             className={stackOpened ? "button" : undefined}
         >
             {memoizedField}
@@ -132,7 +132,7 @@ const Container = styled.div<{ num: number; isOver: boolean; stackOpened: boolea
     width: calc(100% - 6px);
     border-radius: 2px;
     display: flex;
-    flex-direction: ${({ num }) => num <= 8 ? "column" : "row"};
+    flex-direction: ${({ num }) => (num <= 8 ? "column" : "row")};
     justify-content: center;
     align-items: center;
     cursor: ${({ isOver }) => (isOver ? "grabbing" : "unset")};
@@ -141,7 +141,6 @@ const Container = styled.div<{ num: number; isOver: boolean; stackOpened: boolea
     outline: ${({ isOver }) => `1px solid rgba(167, 189, 219, ${isOver ? 1 : 0.5})`};
     cursor: ${({ stackOpened }) => (stackOpened ? "pointer" : "unset")};
 `;
-
 
 const StyledDetailsIcon = styled(DetailsIcon)`
     color: black;

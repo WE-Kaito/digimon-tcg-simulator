@@ -11,8 +11,8 @@ import { generateUUID } from "../../../utils/generateUUID.ts";
 
 export default function TokenModal({ wsUtils }: { wsUtils?: WSUtils }) {
     const setHoverCard = useGeneralStates((state) => state.setHoverCard);
-    const tokenModal = useGameUIStates((state) => state.tokenModal);
-    const setTokenModal = useGameUIStates((state) => state.setTokenModal);
+    const isTokenDialogOpen = useGameUIStates((state) => state.isTokenDialogOpen);
+    const setIsTokenDialogOpen = useGameUIStates((state) => state.setIsTokenDialogOpen);
     const createToken = useGameBoardStates((state) => state.createToken);
 
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
@@ -35,12 +35,12 @@ export default function TokenModal({ wsUtils }: { wsUtils?: WSUtils }) {
         wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/createToken:${placementPosition}:${cardJson}`);
         wsUtils?.sendSfx("playPlaceCardSfx");
         wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【Spawn ${token.name}-Token】`);
-        setTokenModal(false);
+        setIsTokenDialogOpen(false);
     }
 
     const onHover = (token: CardType) => setHoverCard({ ...token, id: uid() });
 
-    if (!tokenModal) return <></>;
+    if (!isTokenDialogOpen) return <></>;
 
     return (
         <Container>
@@ -55,7 +55,7 @@ export default function TokenModal({ wsUtils }: { wsUtils?: WSUtils }) {
                         {token.name}
                     </StyledButton>
                 ))}
-                <StyledCancelButton onClick={() => setTokenModal(false)}>CANCEL</StyledCancelButton>
+                <StyledCancelButton onClick={() => setIsTokenDialogOpen(false)}>CANCEL</StyledCancelButton>
             </ButtonContainer>
         </Container>
     );

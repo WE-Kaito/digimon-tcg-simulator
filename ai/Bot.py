@@ -228,7 +228,7 @@ class Bot(ABC):
         card_index = self.find_card_index_by_id_in_battle_area(card_id)
         card = self.game['player2Digi'][card_index[0]][card_index[1]]
         await ws.send(f'{self.game_name}:/activateEffect:{self.opponent}:{card_id}')
-        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【{card['name']} at BA {card_index[0] + 1}】﹕✨ EFFECT ✨")
+        await self.send_game_chat_message(ws, f"[FIELD_UPDATE]≔【{card['name']}】 at BA {card_index[0] + 1}﹕✨ EFFECT ✨")
         await ws.send(f'{self.game_name}:/playActivateEffectSfx:{self.opponent}')
     
     async def pass_turn(self, ws):

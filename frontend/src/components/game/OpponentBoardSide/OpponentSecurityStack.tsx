@@ -10,17 +10,23 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 // import { useDroppable } from "@dnd-kit/core";
 import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import { useContextMenu } from "react-contexify";
 
 export default function OpponentSecurityStack() {
     const opponentSecurity = useGameBoardStates((state) => state.opponentSecurity);
+    const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
+    const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
+    const isEffectInSecurity = opponentSecurity.find((card) => card.id === cardIdWithEffect) !== undefined;
+    const isTargetInSecurity = opponentSecurity.find((card) => card.id === cardIdWithTarget) !== undefined;
 
     const { setNodeRef, isOver } = useDroppableReactDnd({
         id: "opponentSecurity",
         data: { accept: ["card"] },
     });
-    // const isOverOpponent = isOver && String(active?.id).includes("myDigi");
 
     const [isOpen, setIsOpen] = useState(false);
+
+    const { show: showContextMenu } = useContextMenu({ id: "opponentHandCardMenu", props: { index: -1 } });
 
     const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
 
@@ -33,7 +39,9 @@ export default function OpponentSecurityStack() {
                     <Tooltip
                         TransitionComponent={MuiZoom}
                         sx={{ width: "100%" }}
-                        open={opponentSecurity.length === 0 ? false : isOpen}
+                        open={
+                            (opponentSecurity.length === 0 ? false : isOpen) || isEffectInSecurity || isTargetInSecurity
+                        }
                         onClose={() => setIsOpen(false)}
                         onOpen={() => setIsOpen(!!opponentSecurity.length)}
                         arrow
@@ -62,6 +70,17 @@ export default function OpponentSecurityStack() {
                                             card={card}
                                             location={"opponentSecurity"}
                                             style={{ width: "50px" }}
+                                            onContextMenu={(e) =>
+                                                showContextMenu({
+                                                    event: e,
+                                                    props: {
+                                                        index,
+                                                        location: "opponentHand",
+                                                        id: card.id,
+                                                        name: card.name,
+                                                    },
+                                                })
+                                            }
                                         />
                                     </Fragment>
                                 ))}

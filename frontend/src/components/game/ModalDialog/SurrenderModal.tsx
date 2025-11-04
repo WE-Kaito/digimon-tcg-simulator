@@ -14,13 +14,13 @@ export default function SurrenderModal({ setSurrenderModal, wsUtils }: Props) {
         matchInfo: { gameId, opponentName },
     } = wsUtils;
 
-    const setEndModal = useGameUIStates((state) => state.setEndModal);
-    const setEndModalText = useGameUIStates((state) => state.setEndModalText);
+    const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
+    const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
 
     function handleSurrender() {
         setSurrenderModal(false);
-        setEndModal(true);
-        setEndModalText("🏳️ You surrendered.");
+        setIsEndDialogOpen(true);
+        setEndDialogText("🏳️ You surrendered.");
         sendMessage(`${gameId}:/surrender:${opponentName}`);
         // if (onlineCheckTimeoutRef.current !== null) {
         //   clearTimeout(onlineCheckTimeoutRef.current);

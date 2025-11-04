@@ -23,16 +23,16 @@ import { useSound } from "../../../hooks/useSound.ts";
 import { CardModifiers, CardTypeGame, FieldCardContextMenuItemProps } from "../../../utils/types.ts";
 import "react-contexify/dist/ReactContexify.css";
 import { WSUtils } from "../../../pages/GamePage.tsx";
-import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const { sendMessage, sendChatMessage, sendSfx, matchInfo, sendMoveCard } = wsUtils ?? {};
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
 
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
-    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
-    const setStackModal = useGameUIStates((state) => state.setStackModal);
+    const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
+    const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
+    const setStackDialog = useGameUIStates((state) => state.setStackDialog);
 
     const cardToSend = useGameBoardStates((state) => state.cardToSend);
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
@@ -68,7 +68,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute" };
 
     function handleOpenSecurity() {
-        setOpenedCardModal(OpenedCardModal.MY_SECURITY);
+        setOpenedCardDialog(OpenedCardDialog.MY_SECURITY);
         sendMessage?.(matchInfo?.gameId + ":/openedSecurity:" + matchInfo?.opponentName);
         sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`);
     }
@@ -134,7 +134,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     function showStack({ props }: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
         const { location } = props;
-        setStackModal(location);
+        setStackDialog(location);
     }
 
     function activateEffectAnimation({ props }: ItemParams<FieldCardContextMenuItemProps>) {
@@ -143,7 +143,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         setCardIdWithEffect(id);
         playActivateEffectSfx();
         sendMessage?.(`${matchInfo?.gameId}:/activateEffect:${matchInfo?.opponentName}:${id}`);
-        sendChatMessage?.(`[FIELD_UPDATE]≔【${name} at ${convertForLog(location)}】﹕✨ EFFECT ✨`);
+        sendChatMessage?.(`[FIELD_UPDATE]≔【${name}】 at ${convertForLog(location)}﹕✨ EFFECT ✨`);
         sendSfx?.("playActivateEffectSfx");
         const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
         return () => clearTimeout(timer);
@@ -157,7 +157,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         playTargetCardSfx();
         sendSfx?.("playTargetCardSfx");
         sendMessage?.(`${matchInfo?.gameId}:/activateTarget:${matchInfo?.opponentName}:${id}`);
-        sendChatMessage?.(`[FIELD_UPDATE]≔【${logName} at ${convertForLog(location)}】﹕💥 TARGETED 💥`);
+        sendChatMessage?.(`[FIELD_UPDATE]≔【${logName}】 at ${convertForLog(location)}﹕💥 TARGETED 💥`);
         const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
         return () => clearTimeout(timer);
     }
@@ -183,7 +183,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         sendMessage?.(`${matchInfo?.gameId}:/flipCard:${matchInfo?.opponentName}:${props?.id}:${props?.location}`);
         // sendSfx?.("playFlipCardSfx");
         sendChatMessage?.(
-            `[FIELD_UPDATE]≔【${contextCard?.name} at ${convertForLog(props?.location ?? "")}】﹕➟ ${contextCard?.isFaceUp ? "Face Up" : "Face Down"}`
+            `[FIELD_UPDATE]≔【${contextCard?.name}】 at ${convertForLog(props?.location ?? "")}﹕➟ ${contextCard?.isFaceUp ? "Face Up" : "Face Down"}`
         );
     }
 
@@ -194,7 +194,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             `${matchInfo?.gameId}:/moveCardToStack:${matchInfo?.opponentName}:Top:${myDeckField[0].id}:myDeckField:${props?.location}:down`
         );
         sendChatMessage?.(
-            `[FIELD_UPDATE]≔【${contextCard?.name} at ${convertForLog(props?.location ?? "")}】﹕➟ Training`
+            `[FIELD_UPDATE]≔【${contextCard?.name}】 at ${convertForLog(props?.location ?? "")}﹕➟ Training`
         );
     }
 
@@ -211,7 +211,6 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         {contextCard?.isFaceUp ? <VisibleOffIcon /> : <VisibleIcon />}
                     </div>
                 </Item>
-                {/*<SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />*/}
                 <Separator />
                 <Item onClick={toggleIsHandHidden}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
@@ -245,7 +244,6 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Training</span> <TrainingIcon />
                     </div>
                 </Item>
-                {/*<SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />*/}
                 <Separator />
                 <Item onClick={handleFlipCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
@@ -253,13 +251,13 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                     </div>
                 </Item>
                 <Separator />
-                <Item onClick={openedCardModal !== OpenedCardModal.MY_SECURITY ? showStack : undefined}>
+                <Item onClick={openedCardDialog !== OpenedCardDialog.MY_SECURITY ? showStack : undefined}>
                     <div
                         style={{
                             display: "flex",
                             justifyContent: "space-between",
                             width: "100%",
-                            cursor: openedCardModal !== OpenedCardModal.MY_SECURITY ? undefined : "not-allowed",
+                            cursor: openedCardDialog !== OpenedCardDialog.MY_SECURITY ? undefined : "not-allowed",
                         }}
                     >
                         <span>Show Stack</span> <DetailsIcon />
@@ -267,7 +265,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                 </Item>
             </StyledMenu>
 
-            <StyledMenu id={"modalMenuOpponent"} theme="dark">
+            <StyledMenu id={"dialogMenuOpponent"} theme="dark">
                 <Item onClick={activateTargetAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Target Card</span> <TargetIcon />
@@ -275,12 +273,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                 </Item>
             </StyledMenu>
 
-            <StyledMenu id={"modalMenu"} theme="dark">
-                <Item onClick={handleFlipCard}>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>Flip Card</span> <VisibleIcon />
-                    </div>
-                </Item>
+            <StyledMenu id={"dialogMenu"} theme="dark">
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />
@@ -291,7 +284,12 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Target Card</span> <TargetIcon />
                     </div>
                 </Item>
-                {/*<SendToSecurityMenu wsUtils={wsUtils} card={contextCard} location={cardToSend.location} />*/}
+                <Separator />
+                <Item onClick={handleFlipCard}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Flip Card</span> <VisibleIcon />
+                    </div>
+                </Item>
             </StyledMenu>
 
             <StyledMenu id={"opponentCardMenu"} theme="dark">

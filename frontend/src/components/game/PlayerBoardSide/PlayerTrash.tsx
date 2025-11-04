@@ -7,8 +7,11 @@ import Lottie from "lottie-react";
 import CloseTrashIcon from "@mui/icons-material/DeleteForever";
 import TrashIcon from "@mui/icons-material/Delete";
 import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
-import { OpenedCardModal, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 import { DragPreviewImage, useDrag } from "react-dnd";
+import { useContextMenu } from "react-contexify";
+import { getSleeve } from "../../../utils/sleeves.ts";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 
 export default function PlayerTrash() {
     const myTrash = useGameBoardStates((state) => state.myTrash);
@@ -16,18 +19,24 @@ export default function PlayerTrash() {
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
     const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
     const isOpponentOnline = useGameBoardStates((state) => state.isOpponentOnline);
+    const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
 
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
-    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+    const username = useGeneralStates((state) => state.user);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
+
+    const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
+    const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
 
     const effectInTrash = getCardLocationById(cardIdWithEffect ?? "") === "myTrash";
     const targetInTrash = getCardLocationById(cardIdWithTarget ?? "") === "myTrash";
 
-    const isMyTrashOpened = openedCardModal === OpenedCardModal.MY_TRASH;
-    const isMySecurityOpened = openedCardModal === OpenedCardModal.MY_SECURITY;
+    const isMyTrashOpened = openedCardDialog === OpenedCardDialog.MY_TRASH;
+    const isMySecurityOpened = openedCardDialog === OpenedCardDialog.MY_SECURITY;
 
     function handleClick() {
-        setOpenedCardModal(isMyTrashOpened ? false : OpenedCardModal.MY_TRASH);
+        setOpenedCardDialog(isMyTrashOpened ? false : OpenedCardDialog.MY_TRASH);
     }
 
     const { setNodeRef, isOver } = useDroppableReactDnd({
@@ -47,6 +56,10 @@ export default function PlayerTrash() {
         [location, topCard, isOpponentOnline]
     );
 
+    const { show: showContextMenu } = useContextMenu({ id: "dialogMenu", props: { index: -1, location: "", id: "" } });
+
+    const card = isDragging ? myTrash[myTrash.length - 2] : topCard;
+
     return (
         <Container ref={setNodeRef as any}>
             <DragPreviewImage
@@ -64,13 +77,20 @@ export default function PlayerTrash() {
                     <CardImg
                         className={isMySecurityOpened ? undefined : "custom-hand-cursor"}
                         style={{ cursor: isMySecurityOpened ? "not-allowed" : undefined }}
-                        src={isDragging ? myTrash[myTrash.length - 2]?.imgUrl : topCard?.imgUrl}
+                        src={card.isFaceUp ? card.imgUrl : getSleeve(mySleeve)}
                         alt={"myTrash"}
                         title="Open trash"
                         onClick={isMySecurityOpened ? undefined : handleClick}
                         onError={handleImageError}
                         isOver={isOver}
                         ref={dragRef as any}
+                        onContextMenu={(e) => {
+                            setCardToSend({ card, location: "myTrash" });
+                            showContextMenu({
+                                event: e,
+                                props: { index: -1, location: "myTrash", id: topCard.id, name: topCard.name },
+                            });
+                        }}
                     />
                 )}
             {isMyTrashOpened && (

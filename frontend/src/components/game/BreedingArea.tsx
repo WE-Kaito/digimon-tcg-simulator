@@ -33,11 +33,11 @@ export default function BreedingArea(props: BreedingAreaProps) {
         data: { accept: ["card"] },
     });
 
-    const stackModal = useGameUIStates((state) => state.stackModal);
-    const setStackModal = useGameUIStates((state) => state.setStackModal);
+    const stackDialog = useGameUIStates((state) => state.stackDialog);
+    const setStackDialog = useGameUIStates((state) => state.setStackDialog);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
 
-    const stackOpened = stackModal === location;
+    const stackOpened = stackDialog === location;
 
     const { show: showFieldCardMenu } = useContextMenu({
         id: "fieldCardMenu",
@@ -107,7 +107,7 @@ export default function BreedingArea(props: BreedingAreaProps) {
             stackOpened={stackOpened}
             onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
             onMouseLeave={() => stackOpened && setIsHoveringOverField(false)}
-            onClick={() => stackOpened && setStackModal(false)}
+            onClick={() => stackOpened && setStackDialog(false)}
             className={stackOpened ? "button" : undefined}
         >
             {memoizedField}

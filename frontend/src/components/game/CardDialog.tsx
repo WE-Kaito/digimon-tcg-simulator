@@ -5,17 +5,16 @@ import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import { CardTypeGame } from "../../utils/types.ts";
 import { useContextMenu } from "react-contexify";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { OpenedCardModal, useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import { OpenedCardDialog, useGameUIStates } from "../../hooks/useGameUIStates.ts";
 
 /**
- * Modal that shows the stack of cards in a location and closes autimatically if others are opened.
- *
+ * Dialog that shows the stack of cards in a location and closes automatically if others are opened.
  */
-export default function CardModal() {
-    const openedCardModal = useGameUIStates((state) => state.openedCardModal);
-    const setOpenedCardModal = useGameUIStates((state) => state.setOpenedCardModal);
+export default function CardDialog() {
+    const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
+    const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
     const locationCards = useGameBoardStates((state) =>
-        openedCardModal ? (state[openedCardModal as keyof typeof state] as CardTypeGame[]) : []
+        openedCardDialog ? (state[openedCardDialog as keyof typeof state] as CardTypeGame[]) : []
     );
     const cardWidth = useGeneralStates((state) => state.cardWidth) * 1.07;
 
@@ -24,37 +23,34 @@ export default function CardModal() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(cardWidth);
 
-    const { show: showTrashCardMenu } = useContextMenu({
-        id: openedCardModal === OpenedCardModal.OPPONENT_TRASH ? "modalMenuOpponent" : "modalMenu",
+    const { show: showContextMenu } = useContextMenu({
+        id: openedCardDialog === OpenedCardDialog.OPPONENT_TRASH ? "dialogMenuOpponent" : "dialogMenu",
         props: { index: -1, location: "", id: "" },
     });
 
     useEffect(() => {
-        if (openedCardModal && !locationCards.length) setOpenedCardModal(false); // correctly close the modal if there are no cards
-    }, [locationCards, openedCardModal, setOpenedCardModal]);
+        if (openedCardDialog && !locationCards.length) setOpenedCardDialog(false); // correctly close the dialog if there are no cards
+    }, [locationCards, openedCardDialog, setOpenedCardDialog]);
 
     useLayoutEffect(() => {
         if (containerRef.current) setWidth(containerRef.current.clientWidth / 4.4); //3.25 = 3 cards; 4.4 = 4 cards
     }, [containerRef.current?.clientWidth]);
 
-    if (!openedCardModal) return <></>;
+    if (!openedCardDialog) return <></>;
 
     return (
         <Container ref={containerRef}>
             {cardsToRender.map((card, index) => (
                 <Card
                     card={card}
-                    location={openedCardModal}
+                    location={openedCardDialog}
                     style={{ width }}
                     key={card.id}
                     onContextMenu={(e) => {
-                        if (openedCardModal === OpenedCardModal.MY_SECURITY) e.preventDefault();
-                        else {
-                            showTrashCardMenu?.({
-                                event: e,
-                                props: { index, location: openedCardModal, id: card.id, name: card.name },
-                            });
-                        }
+                        showContextMenu?.({
+                            event: e,
+                            props: { index, location: openedCardDialog, id: card.id, name: card.name },
+                        });
                     }}
                 />
             ))}
