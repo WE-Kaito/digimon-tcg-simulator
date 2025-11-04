@@ -157,6 +157,7 @@ export default function Lobby() {
 
                 if (event.data.startsWith("[USER_COUNT]:")) {
                     setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
+                    websocket.sendMessage("/heartbeat/");
                 }
 
                 if (event.data.startsWith("[USER_COUNT_QUICK_PLAY]:")) {
@@ -339,13 +340,6 @@ export default function Lobby() {
     useEffect(() => {
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }, [activeDeckId]);
-
-    useEffect(() => {
-        if (websocket.readyState !== 1) return;
-        // manual heartbeat because the built in heartbeat is not working; activity check in backend every 15 seconds
-        const heartbeatInterval = setInterval(() => websocket.sendMessage("/heartbeat/"), 5000);
-        return () => clearInterval(heartbeatInterval);
-    }, [websocket.readyState, websocket.sendMessage]);
 
     useEffect(() => {
         const handleBeforeUnload = () => {
