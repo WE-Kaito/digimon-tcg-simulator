@@ -4,11 +4,11 @@ export default function PatchnotesLink() {
     return (
         <Wrapper>
             <Patchnotes
-                href={"https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Patchnotes#02112025"}
+                href={"https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Patchnotes#04112025"}
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                🔗 Patch notes (02.11.2025)
+                🔗 Patch notes (04.11.2025)
             </Patchnotes>
         </Wrapper>
     );
