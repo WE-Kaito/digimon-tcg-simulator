@@ -14,6 +14,7 @@ import PipeFox from "../assets/tokens/Fox_Token.webp";
 import UkaNoMitama from "../assets/tokens/Mitama_Token.webp";
 import AthoRenePor from "../assets/tokens/ARP_Token.webp";
 import Petrification from "../assets/tokens/Petrification_Token.webp";
+import Hinukamuy from "../assets/tokens/Hinukamuy.png";
 
 import { CardType } from "./types.ts";
 
@@ -234,6 +235,19 @@ export const taomonToken: CardType = {
     illustrator: "765Nanami",
 };
 
+export const hinukamuyToken: CardType = {
+    imgUrl: Hinukamuy,
+    uniqueCardNumber: "Hinukamuy-TOKEN",
+    cardNumber: "",
+    cardType: "Digimon",
+    color: ["White"],
+    dp: 6000,
+    mainEffect: "＜Alliance＞ ＜Reboot＞ ＜Blocker＞\n" + tokenEffect("Hinukamuy"),
+    name: "Hinukamuy",
+    restrictions: emptyRestrictions,
+    illustrator: "",
+};
+
 export const generalToken: CardType = {
     imgUrl: HackmonToken,
     uniqueCardNumber: "TOKEN",
@@ -253,6 +267,7 @@ export const tokenCollection = [
     familiarToken,
     fujitsumonToken,
     gyuukimonToken,
+    hinukamuyToken,
     koHagurumonToken,
     petrificationToken,
     pipeFoxToken,
