@@ -82,12 +82,12 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
 
     function moveSecurityCard(to: "myTrash" | "myHand", bottomCard?: boolean) {
         const card = bottomCard ? mySecurity[mySecurity.length - 1] : mySecurity[0];
+        sendChatMessage?.(
+            `[FIELD_UPDATE]≔【${card.isFaceUp || to === "myTrash" ? card.name : "❔"}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`
+        ); // log before potentially flipping while moving
         moveCard(card.id, "mySecurity", to);
         to === "myHand" ? playDrawCardSfx() : playTrashCardSfx();
         sendMoveCard?.(card.id, "mySecurity", to);
-        sendChatMessage?.(
-            `[FIELD_UPDATE]≔【${to === "myHand" ? "Card" : card.name}】﹕Security ${bottomCard ? "Bot" : "Top"} ➟ ${convertForLog(to)}`
-        );
         sendSfx?.(to === "myHand" ? "playDrawCardSfx" : "playTrashCardSfx");
     }
 

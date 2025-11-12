@@ -129,12 +129,10 @@ export default function useDropZoneReactDnd(props: Props) {
     function logCardMovement(from: string, to: string, cards: CardTypeGame[]) {
         const formattedNames: string[] = cards.map((card) => {
             const isFaceDown =
-                !card.isFaceUp && (from.includes("Digi") || from.includes("Link") || from.includes("Breeding"));
+                !card.isFaceUp &&
+                (from.includes("Digi") || from.includes("Link") || from.includes("Breeding") || from === "mySecurity");
 
-            const hiddenCardInfo =
-                from === "myHand" && ["myTrash", "myDeckField"].includes(to) ? ` (…${card.id.slice(-5)})` : "";
-
-            return `【${isFaceDown ? "❔" : card.name}${hiddenCardInfo}】`;
+            return `【${isFaceDown ? `❔ (…${card.id.slice(-5)})` : card.name}】`;
         });
 
         sendChatMessage(`[FIELD_UPDATE]≔${formattedNames.join("")}﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
@@ -160,7 +158,7 @@ export default function useDropZoneReactDnd(props: Props) {
         const { card, location } = item;
         if (card.id.startsWith("TOKEN")) return;
         sendChatMessage(
-            `[FIELD_UPDATE]≔【${location === "myHand" ? `???…${card.id.slice(-5)}` : card.name}】﹕${convertForLog(location)} ➟ Deck ${topOrBottom}`
+            `[FIELD_UPDATE]≔【${location === "myHand" ? `❔ (…${card.id.slice(-5)})` : card.name}】﹕${convertForLog(location)} ➟ Deck ${topOrBottom}`
         );
         moveCardToStack(topOrBottom, card.id, location, "myDeckField");
         sendCardToStack(topOrBottom, card.id, location, "myDeckField");
@@ -198,7 +196,7 @@ export default function useDropZoneReactDnd(props: Props) {
         if (card.id.startsWith("TOKEN")) return;
 
         sendChatMessage(
-            `[FIELD_UPDATE]≔【${location === "myHand" ? `???…${card.id.slice(-5)}` : card.name}】﹕${convertForLog(location)} ➟ Egg Deck ${topOrBottom}`
+            `[FIELD_UPDATE]≔【${location === "myHand" ? `❔ (…${card.id.slice(-5)})` : card.name}】﹕${convertForLog(location)} ➟ Egg Deck ${topOrBottom}`
         );
         moveCardToStack(topOrBottom, card.id, location, "myEggDeck");
         sendCardToStack(topOrBottom, card.id, location, "myEggDeck");
