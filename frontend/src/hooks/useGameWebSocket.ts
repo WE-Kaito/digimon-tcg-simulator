@@ -263,12 +263,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     setOpponentFieldOffset(getValidOffset(fromFieldNumber, fieldOffset));
                     const toFieldNumber = Number(toMatch[0]);
                     setFieldOffset(getValidOffset(toFieldNumber, fieldOffset));
-                    clearAttackAnimation?.();
-                    setArrowFrom(parts[0]);
-                    setArrowTo(parts[1]);
-                    setIsEffectArrow(parts[2] === "true");
-                    restartAttackAnimation(parts[2] === "true");
                 }
+                clearAttackAnimation?.();
+                setArrowFrom(parts[0]);
+                setArrowTo(parts[1]);
+                setIsEffectArrow(parts[2] === "true");
+                restartAttackAnimation(parts[2] === "true");
                 return;
             }
 
