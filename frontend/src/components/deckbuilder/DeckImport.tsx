@@ -5,6 +5,12 @@ import DownIcon from "@mui/icons-material/KeyboardDoubleArrowDownSharp";
 import { useMediaQuery } from "@mui/material";
 import { useDeckStates } from "../../hooks/useDeckStates.ts";
 
+const placeholderMap = {
+    pd: '["BT1-001_P1", ...]',
+    tts: '["BT1-001", "BT1-001", "EX5-023", ...]',
+    text: "// deck name\n\n3 Agumon BT1-010\n2 Greymon BT1-015\n...",
+};
+
 export default function DeckImport({ deckName }: { deckName: string }) {
     const [deckString, setDeckString] = useState<string>("");
     const importDeck = useDeckStates((state) => state.importDeck);
@@ -96,7 +102,7 @@ export default function DeckImport({ deckName }: { deckName: string }) {
                             htmlFor="pd"
                             className="button"
                             checked={exportFormat === "pd"}
-                            title={"Project Drasil:  ['BT1-001_P1', ...] (includes Alternate Arts)"}
+                            title={"Project Drasil (includes Alternate Arts)"}
                         >
                             PD
                         </StyledLabel>
@@ -116,7 +122,7 @@ export default function DeckImport({ deckName }: { deckName: string }) {
                             htmlFor="tts"
                             className="button"
                             checked={exportFormat === "tts"}
-                            title={"Tabletop Simulator: ['BT1-001', 'BT1-001', 'EX5-023', ...]"}
+                            title={"Tabletop Simulator (without Alt Arts)"}
                         >
                             TTS
                         </StyledLabel>
@@ -155,9 +161,7 @@ export default function DeckImport({ deckName }: { deckName: string }) {
 
             <TextArea
                 value={deckString}
-                // placeholder={
-                //     'PD:  ["BT1-001_P1", ...] (includes Alternate Arts)\nTTS: ["BT1-001", "BT1-001", "EX5-023", ...]\nText: digimoncard.dev text format'
-                // }
+                placeholder={placeholderMap[exportFormat as keyof typeof placeholderMap]}
                 onChange={(e) => setDeckString(e.target.value)}
             />
         </Container>

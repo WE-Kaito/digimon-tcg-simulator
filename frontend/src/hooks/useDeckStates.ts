@@ -36,7 +36,6 @@ type State = {
 
     addCardToDeck: (cardnumber: string, type: string, uniqueCardNumber: string) => void;
     deleteFromDeck: (id: string) => void;
-    // saveDeck: (name: string, setCurrentDeckLength: Dispatch<SetStateAction<number>>) => void;
     saveDeck: (name: string) => void;
     fetchDecks: () => void;
     updateDeck: (id: string, name: string) => void;
@@ -57,6 +56,8 @@ const fallbackCard = {
     name: "Fallback Card",
     mainEffect: "If you see this card, the actual card was not found.",
 };
+
+const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", "EX9-048"]; // "Rule" effect
 
 //workaround for double cards in fetchCardList
 export function filterDoubleCardNumbers(cards: CardTypeWithId[]): CardTypeWithId[] {
@@ -330,9 +331,7 @@ export const useDeckStates = create<State>((set, get) => ({
 
         if (filteredLength >= 50) return;
 
-        const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", "EX9-048"];
         if (cardsWithoutLimit.includes(cardNumber)) {
-            // unique effect
             set({ deckCards: [cardToAdd, ...get().deckCards] });
             return;
         }
@@ -475,8 +474,13 @@ export const useDeckStates = create<State>((set, get) => ({
         set({ isLoading: true });
 
         const constructedDecklist: string[] = [];
+
         if (format === "text") {
             (decklist as string).split("\n").forEach((line) => {
+                if (line.startsWith("//")) {
+                    get().setDeckName(line.replace("//", "").trim());
+                    return;
+                }
                 const linesSplits = line.split(" ");
                 if (linesSplits.length < 2 || !Number(linesSplits[0])) return;
                 const amount = Number(linesSplits[0]);
@@ -493,6 +497,7 @@ export const useDeckStates = create<State>((set, get) => ({
                 id: uid(),
             }))
             .filter((card) => card.name !== undefined);
+
         // --- check if deck is valid ---
         const eggCardLength = cardsWithId.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = cardsWithId.length - eggCardLength;
@@ -501,16 +506,17 @@ export const useDeckStates = create<State>((set, get) => ({
             set({ isLoading: false });
             return;
         }
-        const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085"];
+
         for (const card of cardsWithId) {
             const cardOfIdInDeck = cardsWithId.filter((c) => c.cardNumber === card.cardNumber).length;
             if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardNumber)) {
-                notifyError("Deck exceeds card limits!");
+                notifyError("Too many copies of a single card!");
                 set({ isLoading: false });
                 return;
             }
         }
         // ---
+
         set({ deckCards: cardsWithId });
         const timeout = setTimeout(() => set({ isLoading: false }), 700);
         return () => clearTimeout(timeout);
@@ -531,12 +537,8 @@ export const useDeckStates = create<State>((set, get) => ({
             return `// ${deckname}\n\n${decklist}`;
         }
 
-        if (exportFormat === "tts") {
-            const decklist = get().deckCards.map((card) => card.cardNumber);
-            return JSON.stringify(decklist);
-        } else {
-            const decklist = get().deckCards.map((card) => card.uniqueCardNumber);
-            return JSON.stringify(decklist);
-        }
+        return JSON.stringify(
+            get().deckCards.map((card) => (exportFormat === "tts" ? card.cardNumber : card.uniqueCardNumber))
+        );
     },
 }));
