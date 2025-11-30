@@ -59,13 +59,13 @@ export default function useDropZoneReactDnd(props: Props) {
 
     function sendSfx(sfx: string) {
         const timeout = setTimeout(() => {
-            sendMessage(gameId + ":/" + sfx + ":" + opponentName);
+            sendMessage(gameId + ":/" + sfx);
         }, 10);
         return () => clearTimeout(timeout);
     }
 
     function sendPhaseUpdate() {
-        sendMessage(`${gameId}:/updatePhase:${opponentName}`);
+        sendMessage(`${gameId}:/updatePhase`);
     }
 
     function nextPhase() {
@@ -84,7 +84,7 @@ export default function useDropZoneReactDnd(props: Props) {
     function sendChatMessage(message: string) {
         if (message.length <= 0) return;
         setMessages(user + "﹕" + message);
-        sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
+        sendMessage(`${gameId}:/chatMessage:${message}`);
     }
 
     function sendCardToStack(
@@ -100,15 +100,15 @@ export default function useDropZoneReactDnd(props: Props) {
     }
 
     function sendAttackArrows(from: string, to: string, isEffect: boolean) {
-        sendMessage(gameId + ":/attack:" + opponentName + ":" + from + ":" + to + ":" + isEffect);
+        sendMessage(gameId + ":/attack:" + from + ":" + to + ":" + isEffect);
     }
 
     function sendAttackPhaseUpdate(attackPhase: AttackPhase | false) {
-        sendMessage(`${gameId}:/updateAttackPhase:${opponentName}:${attackPhase}`);
+        sendMessage(`${gameId}:/updateAttackPhase:${attackPhase}`);
     }
 
     function sendMoveCard(cardId: string, from: string, to: string) {
-        sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+        sendMessage(`${gameId}:/moveCard:${cardId}:${from}:${to}`);
     }
 
     function initiateAttack() {

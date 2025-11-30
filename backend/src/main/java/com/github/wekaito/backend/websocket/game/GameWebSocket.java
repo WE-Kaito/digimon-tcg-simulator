@@ -144,9 +144,9 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (!gameRoom.hasFullConnection()) return;
         String userName = Objects.requireNonNull(session.getPrincipal()).getName();
 
-        String[] roomMessageParts = roomMessage.split(":", 3);
-        if (roomMessageParts.length < 3) return;
-        String chatMessage = roomMessageParts[2];
+        String[] roomMessageParts = roomMessage.split(":", 2);
+        if (roomMessageParts.length < 2) return;
+        String chatMessage = roomMessageParts[1];
         
         // Store chat message in GameRoom
         String formattedMessage = userName + "﹕" + chatMessage;
@@ -853,20 +853,20 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private void handleAttack(GameRoom gameRoom, WebSocketSession session, String message) {
-        if (!gameRoom.hasFullConnection() || message.split(":").length < 5) return;
-        String[] parts = message.split(":", 5);
-        String from = parts[2];
-        String to = parts[3];
-        String isEffect = parts[4];
+        if (!gameRoom.hasFullConnection() || message.split(":").length < 4) return;
+        String[] parts = message.split(":", 4);
+        String from = parts[1];
+        String to = parts[2];
+        String isEffect = parts[3];
         gameRoom.sendMessageToOtherSessions(session,"[ATTACK]:" + getPosition(from) + ":" + getPosition(to) + ":" + isEffect);
     }
 
     private void handleSendMoveCard(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
-        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 5) return;
-        String[] parts = roomMessage.split(":", 5);
-        String cardId = parts[2];
-        String from = parts[3];
-        String to = parts[4];
+        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 4) return;
+        String[] parts = roomMessage.split(":", 4);
+        String cardId = parts[1];
+        String from = parts[2];
+        String to = parts[3];
         
         // Get current player username
         String currentPlayer = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
@@ -892,13 +892,13 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private void handleSendMoveToStack(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
-        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 7) return;
-        String[] parts = roomMessage.split(":", 7);
-        String topOrBottom = parts[2];
-        String cardId = parts[3];
-        String from = parts[4];
-        String to = parts[5];
-        String facing = parts[6];
+        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 6) return;
+        String[] parts = roomMessage.split(":", 6);
+        String topOrBottom = parts[1];
+        String cardId = parts[2];
+        String from = parts[3];
+        String to = parts[4];
+        String facing = parts[5];
         
         // Get current player username
         String currentPlayer = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
@@ -923,10 +923,10 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private void handleFlipCard(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
-        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 4) return;
-        String[] parts = roomMessage.split(":", 4);
-        String cardId = parts[2];
-        String location = parts[3];
+        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 3) return;
+        String[] parts = roomMessage.split(":", 3);
+        String cardId = parts[1];
+        String location = parts[2];
         
         // Update BoardState with face status
         updateCardFaceStatus(gameRoom, cardId, location);
@@ -1117,9 +1117,9 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private void handleMemoryUpdate(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
-        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 3) return;
-        String[] parts = roomMessage.split(":", 3);
-        int memory = Integer.parseInt(parts[2]) * -1;
+        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 2) return;
+        String[] parts = roomMessage.split(":", 2);
+        int memory = Integer.parseInt(parts[1]) * -1;
         
         // Update BoardState memory
         BoardState boardState = gameRoom.getBoardState();
@@ -1129,7 +1129,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                     
             if (currentPlayer != null) {
                 boolean isPlayer1 = gameRoom.getPlayer1().username().equals(currentPlayer);
-                int newMemory = Integer.parseInt(parts[2]);
+                int newMemory = Integer.parseInt(parts[1]);
                 if (isPlayer1) {
                     boardState.setPlayer1Memory(newMemory);
                     boardState.setPlayer2Memory(-1 * newMemory);
@@ -1143,10 +1143,10 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private void handleCommandWithId(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
-        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 3) return;
-        String[] parts = roomMessage.split(":", 3);
+        if (!gameRoom.hasFullConnection() || roomMessage.split(":").length < 2) return;
+        String[] parts = roomMessage.split(":", 2);
         String command = parts[0];
-        String id = parts[2];
+        String id = parts.length > 1 ? parts[1] : "";
         gameRoom.sendMessageToOtherSessions(session, convertCommand(command) + ":" + id);
     }
     

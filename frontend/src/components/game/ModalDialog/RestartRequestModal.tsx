@@ -15,7 +15,7 @@ export default function RestartRequestModal({ setRestartRequestModal, wsUtils }:
     } = wsUtils;
 
     function sendRequest(order: "AsFirst" | "AsSecond") {
-        sendMessage(`${gameId}:/restartRequest${order}:${opponentName}`);
+        sendMessage(`${gameId}:/restartRequest${order}`);
         notifySuccess("Sent restart request!");
         setRestartRequestModal(false);
     }

@@ -138,7 +138,7 @@ export default function GamePage() {
     }, [createDropHandler]);
 
     function sendPhaseUpdate() {
-        sendMessage(`${gameId}:/updatePhase:${opponentName}`);
+        sendMessage(`${gameId}:/updatePhase`);
     }
 
     function nextPhase() {
@@ -155,17 +155,17 @@ export default function GamePage() {
     }
 
     function sendMoveCard(cardId: string, from: string, to: string) {
-        sendMessage(`${gameId}:/moveCard:${opponentName}:${cardId}:${from}:${to}`);
+        sendMessage(`${gameId}:/moveCard:${cardId}:${from}:${to}`);
     }
 
     function sendChatMessage(message: string) {
         if (!message.length) return;
         setMessages(user + "﹕" + message);
-        sendMessage(`${gameId}:/chatMessage:${opponentName}:${message}`);
+        sendMessage(`${gameId}:/chatMessage:${message}`);
     }
 
     function sendSfx(sfx: string) {
-        const timeout = setTimeout(() => sendMessage(`${gameId}:/${sfx}:${opponentName}`), 10);
+        const timeout = setTimeout(() => sendMessage(`${gameId}:/${sfx}`), 10);
         return () => clearTimeout(timeout);
     }
 

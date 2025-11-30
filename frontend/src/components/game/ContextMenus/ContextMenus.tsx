@@ -69,7 +69,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
 
     function handleOpenSecurity() {
         setOpenedCardDialog(OpenedCardDialog.MY_SECURITY);
-        sendMessage?.(matchInfo?.gameId + ":/openedSecurity:" + matchInfo?.opponentName);
+        sendMessage?.(matchInfo?.gameId + ":/openedSecurity");
         sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`);
     }
 
@@ -142,7 +142,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         const { name, id, location } = props;
         setCardIdWithEffect(id);
         playActivateEffectSfx();
-        sendMessage?.(`${matchInfo?.gameId}:/activateEffect:${matchInfo?.opponentName}:${id}`);
+        sendMessage?.(`${matchInfo?.gameId}:/activateEffect:${id}`);
         sendChatMessage?.(`[FIELD_UPDATE]≔【${name}】 at ${convertForLog(location)}﹕✨ EFFECT ✨`);
         sendSfx?.("playActivateEffectSfx");
         const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
@@ -156,7 +156,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         setCardIdWithTarget(id);
         playTargetCardSfx();
         sendSfx?.("playTargetCardSfx");
-        sendMessage?.(`${matchInfo?.gameId}:/activateTarget:${matchInfo?.opponentName}:${id}`);
+        sendMessage?.(`${matchInfo?.gameId}:/activateTarget:${id}`);
         sendChatMessage?.(`[FIELD_UPDATE]≔【${logName}】 at ${convertForLog(location)}﹕💥 TARGETED 💥`);
         const timer = setTimeout(() => setCardIdWithTarget(""), 3500);
         return () => clearTimeout(timer);
@@ -180,7 +180,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     function handleFlipCard({ props }: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
         flipCard(props?.id, props?.location);
-        sendMessage?.(`${matchInfo?.gameId}:/flipCard:${matchInfo?.opponentName}:${props?.id}:${props?.location}`);
+        sendMessage?.(`${matchInfo?.gameId}:/flipCard:${props?.id}:${props?.location}`);
         // sendSfx?.("playFlipCardSfx");
         sendChatMessage?.(
             `[FIELD_UPDATE]≔【${contextCard?.name}】 at ${convertForLog(props?.location ?? "")}﹕➟ ${contextCard?.isFaceUp ? "Face Up" : "Face Down"}`

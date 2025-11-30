@@ -14,7 +14,7 @@ export default function MemoryBar({ wsUtils }: { wsUtils?: WSUtils }) {
         setMemory(memory);
         playButtonClickSfx();
         wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【MEMORY】﹕${myMemory}±${memory}`);
-        wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/updateMemory:${wsUtils.matchInfo.opponentName}:${memory}`);
+        wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/updateMemory:${memory}`);
         wsUtils?.sendSfx("playButtonClickSfx");
     }
 

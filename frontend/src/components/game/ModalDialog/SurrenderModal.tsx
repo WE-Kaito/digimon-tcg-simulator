@@ -21,7 +21,7 @@ export default function SurrenderModal({ setSurrenderModal, wsUtils }: Props) {
         setSurrenderModal(false);
         setIsEndDialogOpen(true);
         setEndDialogText("🏳️ You surrendered.");
-        sendMessage(`${gameId}:/surrender:${opponentName}`);
+        sendMessage(`${gameId}:/surrender`);
         // if (onlineCheckTimeoutRef.current !== null) {
         //   clearTimeout(onlineCheckTimeoutRef.current);
         //   onlineCheckTimeoutRef.current = null;

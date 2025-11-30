@@ -76,7 +76,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
         const sendFaceUp = faceUpOrDown === "up";
         moveCardToStack(topOrBottom, card.id, location, "mySecurity", faceUpOrDown);
         wsUtils?.sendMessage(
-            `${wsUtils.matchInfo.gameId}:/moveCardToStack:${wsUtils.matchInfo.opponentName}:${topOrBottom}:${card.id}:${location}:mySecurity:${faceUpOrDown}`
+            `${wsUtils.matchInfo.gameId}:/moveCardToStack:${topOrBottom}:${card.id}:${location}:mySecurity:${faceUpOrDown}`
         );
         wsUtils?.sendChatMessage(
             `[FIELD_UPDATE]≔【${location === "myHand" && !sendFaceUp ? `❔ (…${card.id.slice(-5)})` : card.name}】﹕${convertForLog(location)} ➟ SS ${topOrBottom}(face ${faceUpOrDown})`

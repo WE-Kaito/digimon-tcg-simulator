@@ -18,7 +18,7 @@ export default function PlayerAttackResolve({ wsUtils, fontSize }: { wsUtils?: W
 
     function sendAttackPhaseUpdate(attackPhase: AttackPhase | false) {
         wsUtils?.sendMessage(
-            `${wsUtils?.matchInfo.gameId}:/updateAttackPhase:${wsUtils?.matchInfo.opponentName}:${attackPhase}`
+            `${wsUtils?.matchInfo.gameId}:/updateAttackPhase:${attackPhase}`
         );
     }
 

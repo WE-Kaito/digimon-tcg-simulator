@@ -34,7 +34,7 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     function handleSendemote(emote: Emote) {
         setMyEmote(emote);
         setEmotesOpen(false);
-        wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/emote:${wsUtils?.matchInfo.opponentName}:${emote}`);
+        wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/emote:${emote}`);
     }
 
     return (

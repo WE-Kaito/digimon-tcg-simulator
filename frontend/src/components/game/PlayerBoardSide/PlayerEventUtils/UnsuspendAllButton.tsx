@@ -25,7 +25,7 @@ export default function UnsuspendAllButton({ wsUtils, fontSize }: { wsUtils?: WS
             onClick={() => {
                 unsuspendAll(SIDE.MY);
                 playUnsuspendSfx();
-                wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/unsuspendAll:${wsUtils?.matchInfo.opponentName}`);
+                wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/unsuspendAll`);
                 wsUtils?.sendSfx?.("playUnsuspendSfx");
                 wsUtils?.nextPhase();
             }}

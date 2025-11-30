@@ -49,7 +49,7 @@ export default function DeckUtilButtons({ wsUtils }: { wsUtils?: WSUtils }) {
             wsUtils?.sendSfx("playUnsuspendCardSfx");
             moveCardToStack("Top", cardId, "myDeckField", "mySecurity", "down");
             wsUtils?.sendMessage(
-                `${wsUtils.matchInfo.gameId}:/moveCardToStack:${wsUtils.matchInfo.opponentName}:Top:${cardId}:myDeckField:mySecurity:down`
+                `${wsUtils.matchInfo.gameId}:/moveCardToStack:Top:${cardId}:myDeckField:mySecurity:down`
             );
             wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
         }

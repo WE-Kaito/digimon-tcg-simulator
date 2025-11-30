@@ -18,7 +18,7 @@ export default function OpponentAttackResolve({ wsUtils, fontSize }: { wsUtils?:
     function resolveCounterBlockTiming() {
         setOpponentAttackPhase(AttackPhase.RESOLVE_ATTACK);
         playNextAttackPhaseSfx();
-        wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/resolveCounterBlock:${wsUtils?.matchInfo.opponentName}`);
+        wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/resolveCounterBlock`);
         wsUtils?.sendSfx("playNextAttackPhaseSfx");
     }
 
