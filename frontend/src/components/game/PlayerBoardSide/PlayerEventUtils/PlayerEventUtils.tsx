@@ -5,6 +5,7 @@ import { useGameBoardStates } from "../../../../hooks/useGameBoardStates.ts";
 import { BootStage } from "../../../../utils/types.ts";
 import { WSUtils } from "../../../../pages/GamePage.tsx";
 import PlayerAttackResolve from "./PlayerAttackResolve.tsx";
+import OpponentAttackResolve from "../../OpponentBoardSide/OpponentEventUtils/OpponentAttackResolve.tsx";
 import Lottie from "lottie-react";
 import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import EmoteIcon from "@mui/icons-material/TagFacesRounded";
@@ -84,6 +85,7 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
                                 )}
                                 <Mulligan wsUtils={wsUtils} fontSize={iconWidth} />
                                 <PlayerAttackResolve wsUtils={wsUtils} fontSize={iconWidth} />
+                                <OpponentAttackResolve wsUtils={wsUtils} fontSize={iconWidth} />
                                 <UnsuspendAllButton wsUtils={wsUtils} fontSize={iconWidth} />
                             </>
                         )}

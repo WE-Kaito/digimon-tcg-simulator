@@ -49,7 +49,6 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
                                     style={{ transform: "translateY(20%) scaleY(-1)" }}
                                 />
                             )}
-                            <OpponentAttackResolve wsUtils={wsUtils} fontSize={iconWidth} />
                         </>
                     )}
                 </>
