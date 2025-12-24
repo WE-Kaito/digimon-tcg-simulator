@@ -42,8 +42,6 @@ export default function useDropZoneReactDnd(props: Props) {
 
     const user = useGeneralStates((state) => state.user);
     const gameId = useGameBoardStates((state) => state.gameId);
-    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
-
     const progressToNextPhase = useGameBoardStates((state) => state.progressToNextPhase);
     const setMessages = useGameBoardStates((state) => state.setMessages);
     const setMyAttackPhase = useGameBoardStates((state) => state.setMyAttackPhase);
@@ -94,9 +92,7 @@ export default function useDropZoneReactDnd(props: Props) {
         to: string,
         sendFaceUp = "undefined"
     ) {
-        sendMessage(
-            `${gameId}:/moveCardToStack:${opponentName}:${topOrBottom}:${cardId}:${location}:${to}:${sendFaceUp}`
-        );
+        sendMessage(`${gameId}:/moveCardToStack:${topOrBottom}:${cardId}:${location}:${to}:${sendFaceUp}`);
     }
 
     function sendAttackArrows(from: string, to: string, isEffect: boolean) {
@@ -132,7 +128,7 @@ export default function useDropZoneReactDnd(props: Props) {
                 !card.isFaceUp &&
                 (from.includes("Digi") || from.includes("Link") || from.includes("Breeding") || from === "mySecurity");
 
-            return `【${isFaceDown ? `❔ (…${card.id.slice(-5)})` : card.name}】`;
+            return `【${isFaceDown ? "❔" : card.name}】`;
         });
 
         sendChatMessage(`[FIELD_UPDATE]≔${formattedNames.join("")}﹕${convertForLog(from)} ➟ ${convertForLog(to)}`);
@@ -158,7 +154,7 @@ export default function useDropZoneReactDnd(props: Props) {
         const { card, location } = item;
         if (card.id.startsWith("TOKEN")) return;
         sendChatMessage(
-            `[FIELD_UPDATE]≔【${location === "myHand" ? `❔ (…${card.id.slice(-5)})` : card.name}】﹕${convertForLog(location)} ➟ Deck ${topOrBottom}`
+            `[FIELD_UPDATE]≔【${location === "myHand" ? "❔" : card.name}】﹕${convertForLog(location)} ➟ Deck ${topOrBottom}`
         );
         moveCardToStack(topOrBottom, card.id, location, "myDeckField");
         sendCardToStack(topOrBottom, card.id, location, "myDeckField");
@@ -196,7 +192,7 @@ export default function useDropZoneReactDnd(props: Props) {
         if (card.id.startsWith("TOKEN")) return;
 
         sendChatMessage(
-            `[FIELD_UPDATE]≔【${location === "myHand" ? `❔ (…${card.id.slice(-5)})` : card.name}】﹕${convertForLog(location)} ➟ Egg Deck ${topOrBottom}`
+            `[FIELD_UPDATE]≔【${location === "myHand" ? "❔" : card.name}】﹕${convertForLog(location)} ➟ Egg Deck ${topOrBottom}`
         );
         moveCardToStack(topOrBottom, card.id, location, "myEggDeck");
         sendCardToStack(topOrBottom, card.id, location, "myEggDeck");
