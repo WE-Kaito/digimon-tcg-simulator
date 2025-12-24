@@ -255,7 +255,7 @@ export default function SearchForm() {
                 </StageSelect>
 
                 <DigitypeInput
-                    placeholder={"Digi-Type"}
+                    placeholder={"Trait"}
                     value={digitype ?? []}
                     onChange={(e) => {
                         setDigitype(e.target.value);

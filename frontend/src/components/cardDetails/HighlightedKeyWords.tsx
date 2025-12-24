@@ -324,6 +324,7 @@ function isTrait(trait: string) {
         case "Hunter":
         case "Ice-Snow":
         case "Icy":
+        case "Iliad":
         case "Insectoid":
         case "Intel Acquisition Agent":
         case "Invader":
@@ -362,6 +363,7 @@ function isTrait(trait: string) {
         case "NSo":
         case "NSp":
         case "NO DATA":
+        case "Olympos XII":
         case "Parasite":
         case "Perfect":
         case "Pixie":
@@ -388,10 +390,12 @@ function isTrait(trait: string) {
         case "Sky Dragon":
         case "Super Major":
         case "Ten Warriors":
+        case "Titan":
         case "Three Great Angels":
         case "Three Musketeers":
         case "Throne":
         case "Tropical Fish":
+        case "TS":
         case "Twilight":
         case "Unanalyzable":
         case "Undead":
