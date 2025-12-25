@@ -13,6 +13,7 @@ import {
     VisibilityOutlined as VisibleIcon,
     VisibilityOffOutlined as VisibleOffIcon,
     PreviewRounded as StreamerModeIcon,
+    LabelImportant as MarkerIcon,
 } from "@mui/icons-material";
 import { CSSProperties } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
@@ -44,6 +45,8 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const setCardIdWithTarget = useGameBoardStates((state) => state.setCardIdWithTarget);
     const setModifiers = useGameBoardStates((state) => state.setModifiers);
     const flipCard = useGameBoardStates((state) => state.flipCard);
+    const markedCard = useGameBoardStates((state) => state.markedCard);
+    const setMarkedCard = useGameBoardStates((state) => state.setMarkedCard);
 
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const toggleIsHandHidden = useGameBoardStates((state) => state.toggleIsHandHidden);
@@ -135,6 +138,11 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         if (props === undefined) return;
         const { location } = props;
         setStackDialog(location);
+    }
+
+    function handleMarkCard({ props }: ItemParams<FieldCardContextMenuItemProps>) {
+        if (props === undefined) return;
+        setMarkedCard(markedCard !== props.id ? props.id : "");
     }
 
     function activateEffectAnimation({ props }: ItemParams<FieldCardContextMenuItemProps>) {
@@ -271,6 +279,10 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Target Card</span> <TargetIcon />
                     </div>
                 </Item>
+                <Separator />
+                <Item onClick={handleMarkCard}>
+                    <span>(Un-) Mark</span> <MarkerIcon />
+                </Item>
             </StyledMenu>
 
             <StyledMenu id={"dialogMenu"} theme="dark">
@@ -304,12 +316,40 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>View Stack</span> <DetailsIcon />
                     </div>
                 </Item>
+                <Separator />
+                <Item onClick={handleMarkCard}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            width: "100%",
+                        }}
+                    >
+                        <span>(Un-) Mark</span> <span style={{ fontSize: "0.6125em" }}> (not visible to opp.)</span>
+                        <MarkerIcon />
+                    </div>
+                </Item>
             </StyledMenu>
 
             <StyledMenu id={"opponentHandCardMenu"} theme="dark">
                 <Item onClick={activateTargetAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Target Card</span> <TargetIcon />
+                    </div>
+                </Item>
+                <Separator />
+                <Item onClick={handleMarkCard}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            width: "100%",
+                        }}
+                    >
+                        <span>(Un-) Mark</span> <span style={{ fontSize: "0.6125em" }}> (not visible to opp.)</span>{" "}
+                        <MarkerIcon />
                     </div>
                 </Item>
             </StyledMenu>

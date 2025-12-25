@@ -187,6 +187,7 @@ export default function Card(props: CardProps) {
     const setStackSliceIndex = useGameBoardStates((state) => state.setStackSliceIndex);
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const gameHasStarted = bootStage === BootStage.GAME_IN_PROGRESS;
+    const markedCard = useGameBoardStates((state) => state.markedCard);
 
     const useToggleForStacks = useSettingStates((state) => state.useToggleForStacks);
     const isStackDragMode = useGameUIStates((state) => state.isStackDragMode);
@@ -533,6 +534,7 @@ export default function Card(props: CardProps) {
                             outline: "3px solid dodgerblue",
                             filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
                         }),
+                        ...(markedCard === card.id && { outline: "3px solid red" }),
                     }}
                     className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                     onClick={handleClick}

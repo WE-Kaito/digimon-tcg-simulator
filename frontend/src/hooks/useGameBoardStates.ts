@@ -263,6 +263,9 @@ export type State = BoardState & {
 
     hasDecidedMulligan: boolean;
     setHasDecidedMulligan: (hasDecidedMulligan: boolean) => void;
+
+    markedCard: string;
+    setMarkedCard: (cardId: string) => void;
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -645,6 +648,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         }
 
         if (from === to) {
+            if (get().markedCard === cardId && from === "opponentHand") get().setMarkedCard("");
             set({ [from]: [...updatedFromState, card] });
             return;
         }
@@ -681,6 +685,13 @@ export const useGameBoardStates = create<State>()((set, get) => ({
 
         if (resetModifierLocations.includes(to) && card)
             card.modifiers = { plusDp: 0, plusSecurityAttacks: 0, keywords: [], colors: card.color };
+
+        if (
+            card.id === get().markedCard &&
+            ["opponentDeckField", "opponentSecurityStack", "opponentEggDeck"].includes(to)
+        ) {
+            get().setMarkedCard("");
+        }
 
         if (cardLocation === to) {
             set({
@@ -969,4 +980,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             };
         });
     },
+
+    markedCard: "",
+    setMarkedCard: (cardId) => set({ markedCard: cardId }),
 }));
