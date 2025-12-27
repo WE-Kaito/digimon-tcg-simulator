@@ -340,17 +340,16 @@ export default function Card(props: CardProps) {
         else if (linkAllowed) setLinkCardInfo(linkInfo);
     }
 
+    const isTamerWithDP = numbersWithModifiers.includes(card.cardNumber);
+
     const isModifiersAllowed =
-        [...myBALocations, ...opponentBALocations].includes(location) &&
-        (card.cardType === "Digimon" || numbersWithModifiers.includes(card.cardNumber));
+        [...myBALocations, ...opponentBALocations].includes(location) && (card.cardType === "Digimon" || isTamerWithDP);
     const modifiers = isModifiersAllowed ? card.modifiers : undefined;
 
     const linkDP = linkCardsForLocation.reduce((sum, card) => sum + (card.linkDP ?? 0), 0);
 
-    let finalDp = modifiers && card.dp ? (card.dp + modifiers.plusDp < 0 ? 0 : card.dp + modifiers.plusDp) + linkDP : 0;
-    if (numbersWithModifiers.includes(card.cardNumber) && card.cardNumber !== "EX2-007") {
-        finalDp = modifiers?.plusDp ?? 0;
-    }
+    const finalDp = card.dp || isTamerWithDP ? Math.max(0, (card.dp ?? 0) + linkDP + (modifiers?.plusDp ?? 0)) : 0;
+
     const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
