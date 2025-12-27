@@ -3,17 +3,26 @@ import styled from "@emotion/styled";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { SendMessage } from "react-use-websocket";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
+import { useContextMenu } from "react-contexify";
+
+export type ChatMessage = {
+    id: string;
+    message: string;
+    author: string;
+};
 
 type Props = {
     sendMessage: SendMessage;
-    messages: string[];
+    messages: ChatMessage[];
+    isAdmin: boolean;
     roomId?: string;
 };
 
-export default function Chat({ sendMessage, messages, roomId }: Props) {
+export default function Chat({ sendMessage, messages, roomId, isAdmin }: Props) {
     const user = useGeneralStates((state) => state.user);
 
     const [message, setMessage] = useState<string>("");
+    const { show: showChatMessageMenu } = useContextMenu({ id: "chat-message-menu" });
 
     const historyRef = useRef<HTMLDivElement>(null);
 
@@ -26,6 +35,11 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
         setMessage("");
     }
 
+    function handleContextMenu(e: React.MouseEvent, message: ChatMessage) {
+        if (!isAdmin) return;
+        showChatMessageMenu({ event: e, props: { messageId: message.id } });
+    }
+
     useEffect(() => {
         if (historyRef.current) historyRef.current.scrollTop = historyRef.current.scrollHeight;
     }, [messages]);
@@ -34,52 +48,55 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
         <Wrapper>
             {!!roomId && <StyledPrivateSpan>PRIVATE ROOM CHAT</StyledPrivateSpan>}
             <History ref={historyRef}>
-                {messages.map((message, index) => {
-                    const colonIndex = message.indexOf(":");
-                    if (colonIndex !== -1) {
-                        const name = message.substring(0, colonIndex);
-                        const content = message.substring(colonIndex + 1);
-
-                        if (name === "【SERVER】") {
-                            return (
-                                <div style={{ display: "flex" }} key={index}>
-                                    {content === " Join our Discord!" ? (
-                                        <StyledServerSpan>
-                                            <span>Server </span>
-                                            <a
-                                                href="https://discord.gg/sBdByGAh2y"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                {content}
-                                            </a>
-                                            <img
-                                                alt="logo"
-                                                src={discordIcon}
-                                                height={14}
-                                                style={{ transform: "translate(3px, 2px)" }}
-                                            />
-                                        </StyledServerSpan>
-                                    ) : (
-                                        <StyledServerSpan>
-                                            <span>Server </span>
-                                            {content}
-                                        </StyledServerSpan>
-                                    )}
-                                </div>
-                            );
-                        }
-
+                {messages.map((message) => {
+                    if (message.author === "【SERVER】") {
                         return (
-                            <MessageContainer key={index}>
-                                <StyledSpan isMe={user === name}>
-                                    <span>{name + " "}</span>
-                                    {content}
-                                </StyledSpan>
+                            <MessageContainer
+                                key={message.id}
+                                data-message-id={message.id}
+                                onContextMenu={(e) => handleContextMenu(e, message)}
+                            >
+                                {message.message === "Join our Discord!" ? (
+                                    <StyledServerSpan>
+                                        <span>Server </span>
+                                        <span> </span>
+                                        <a
+                                            href="https://discord.gg/sBdByGAh2y"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {message.message}
+                                        </a>
+                                        <img
+                                            alt="logo"
+                                            src={discordIcon}
+                                            height={14}
+                                            style={{ transform: "translate(3px, 2px)" }}
+                                        />
+                                    </StyledServerSpan>
+                                ) : (
+                                    <StyledServerSpan>
+                                        <span>Server </span>
+                                        {message.message}
+                                    </StyledServerSpan>
+                                )}
                             </MessageContainer>
                         );
                     }
-                    return <div key={index}>{message}</div>;
+
+                    return (
+                        <MessageContainer
+                            key={message.id}
+                            data-message-id={message.id}
+                            onContextMenu={(e) => handleContextMenu(e, message)}
+                        >
+                            <StyledSpan isMe={user === message.author}>
+                                <span>{message.author + " "}</span>
+                                <span> </span>
+                                {message.message}
+                            </StyledSpan>
+                        </MessageContainer>
+                    );
                 })}
             </History>
             <InputContainer onSubmit={handleSubmit}>
@@ -131,7 +148,7 @@ const StyledSpan = styled.span<{ isMe?: boolean }>`
     text-align: left;
     color: papayawhip;
     word-break: break-all;
-    span {
+    span:first-of-type {
         border: 1px solid transparent;
         border-image: ${({ isMe }) =>
             isMe
@@ -149,7 +166,7 @@ const StyledServerSpan = styled.span`
     color: papayawhip;
     word-break: break-all;
 
-    span {
+    span:first-of-type {
         border: 1px solid transparent;
         border-image: linear-gradient(to bottom right, transparent 0%, transparent 50%, #31da75 100%);
         border-image-slice: 1;
@@ -163,7 +180,7 @@ const StyledInput = styled.input`
     padding-left: 10px;
     overflow-y: clip;
     height: 30px;
-    font-family: Cousine, sans-serif;
+    font-family: "Cousine", monospace;
     border: none;
     font-size: 1.05em;
     background: papayawhip;
@@ -279,6 +296,8 @@ const StyledPrivateSpan = styled.span`
 const MessageContainer = styled.div`
     display: flex;
     width: 100%;
+    position: relative;
+    cursor: pointer;
 
     &:hover {
         background: rgba(218, 51, 187, 0.1);

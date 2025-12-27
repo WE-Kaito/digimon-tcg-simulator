@@ -123,6 +123,21 @@ public class AdminController {
         }
     }
 
+    @DeleteMapping("/chat/{messageId}")
+    public ResponseEntity<String> deleteMessage(@PathVariable String messageId) {
+        try {
+            boolean removed = lobbyWebSocket.removeMessageById(messageId);
+            if (removed) {
+                return ResponseEntity.ok("Message deleted successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Message not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting message: " + e.getMessage());
+        }
+    }
+
     public record UserStatusDTO(String username, Role role) {}
 
     public record ServerMessageDTO(String message) {}

@@ -2,6 +2,7 @@ package com.github.wekaito.backend.websocket.lobby;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.models.Card;
+import com.github.wekaito.backend.models.ChatMessage;
 import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
@@ -48,7 +49,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     private final String warning = "[CHAT_MESSAGE]:【SERVER】: ⚠ The server detected multiple connections for the same user. Make sure to only use one tab per account. ⚠";
 
-    public final LinkedList<String> globalChatMessages = new LinkedList<>(List.of("【SERVER】: Join our Discord!"));
+    public final LinkedList<ChatMessage> globalChatMessages = new LinkedList<>(List.of(new ChatMessage("Join our Discord!", "【SERVER】")));
 
     @Autowired
     private GameWebSocket gameWebSocket;
@@ -186,7 +187,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 // Send room information to player
                 String roomJson = objectMapper.writeValueAsString(getRoomDTO(previousRoom));
                 sendTextMessage(session, "[JOIN_ROOM]:" + roomJson);
-                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Reconnected to your previous room.");
+                ChatMessage reconnectMessage = new ChatMessage("Reconnected to your previous room.", "【SERVER】");
+                sendTextMessage(session, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(reconnectMessage));
 
                 // Update room for all players
                 sendRoomUpdate(previousRoom);
@@ -614,14 +616,15 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
-        String message = username + ": " + payload.substring("/chatMessage:".length());
+        String messageContent = payload.substring("/chatMessage:".length());
+        ChatMessage chatMessage = new ChatMessage(messageContent, username);
 
-        globalChatMessages.add(message);
+        globalChatMessages.add(chatMessage);
 
         if (globalChatMessages.size() > 500) globalChatMessages.removeFirst();
 
         for (WebSocketSession webSocketSession : globalActiveSessions) {
-            sendTextMessage(webSocketSession, "[CHAT_MESSAGE]:" + message);
+            sendTextMessage(webSocketSession, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(chatMessage));
         }
     }
 
@@ -644,20 +647,33 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
     
     public void broadcastServerMessage(String message) throws IOException {
-        String formattedMessage = "【SERVER】: " + message;
+        ChatMessage serverMessage = new ChatMessage(message, "【SERVER】");
 
-        globalChatMessages.add(formattedMessage);
+        globalChatMessages.add(serverMessage);
         
         if (globalChatMessages.size() > 500) globalChatMessages.removeFirst();
         
         for (WebSocketSession session : globalActiveSessions) {
-            sendTextMessage(session, "[CHAT_MESSAGE]:" + formattedMessage);
+            sendTextMessage(session, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(serverMessage));
         }
 
         for (Room room : rooms) {
             for (LobbyPlayer player : room.getPlayers()) {
-                sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + formattedMessage);
+                sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + objectMapper.writeValueAsString(serverMessage));
             }
         }
+    }
+    
+    public boolean removeMessageById(String messageId) throws IOException {
+        boolean removed = globalChatMessages.removeIf(msg -> msg.id().equals(messageId));
+        
+        if (removed) {
+            // Broadcast message deletion to all connected clients
+            for (WebSocketSession session : globalActiveSessions) {
+                sendTextMessage(session, "[MESSAGE_DELETED]:" + messageId);
+            }
+        }
+        
+        return removed;
     }
 }

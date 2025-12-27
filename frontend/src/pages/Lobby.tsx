@@ -21,7 +21,7 @@ import MenuDialog from "../components/MenuDialog.tsx";
 import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
 import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
 import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
-import Chat from "../components/lobby/Chat.tsx";
+import Chat, { ChatMessage } from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
 import { Dialog, DialogContent, useMediaQuery } from "@mui/material";
 import crownSrc from "../assets/crown.webp";
@@ -37,6 +37,7 @@ import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { Button } from "../components/Button.tsx";
 import useQuery from "../hooks/useQuery.ts";
 import PatchnotesLink from "../components/PatchnotesLink.tsx";
+import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 
 enum Format {
     CUSTOM = "CUSTOM",
@@ -99,8 +100,8 @@ export default function Lobby() {
     const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
     const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
 
-    const [messages, setMessages] = useState<string[]>([]);
-    const [privateMessages, setPrivateMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [privateMessages, setPrivateMessages] = useState<ChatMessage[]>([]);
     const [rooms, setRooms] = useState<Room[]>([]);
 
     const [newRoomName, setNewRoomName] = useState<string>("");
@@ -231,16 +232,26 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[GLOBAL_CHAT]:")) {
-                    const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as string[];
+                    const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as ChatMessage[];
                     setMessages(messagesArray);
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
-                    setMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+                    const messageJson = event.data.substring("[CHAT_MESSAGE]:".length);
+                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    setMessages((messages) => [...messages, chatMessage]);
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
-                    setPrivateMessages((messages) => [...messages, event.data.substring(event.data.indexOf(":") + 1)]);
+                    const messageJson = event.data.substring("[CHAT_MESSAGE_ROOM]:".length);
+                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    setPrivateMessages((messages) => [...messages, chatMessage]);
+                }
+
+                if (event.data.startsWith("[MESSAGE_DELETED]:")) {
+                    const deletedMessageId = event.data.substring("[MESSAGE_DELETED]:".length);
+                    setMessages((messages) => messages.filter((msg) => msg.id !== deletedMessageId));
+                    setPrivateMessages((messages) => messages.filter((msg) => msg.id !== deletedMessageId));
                 }
             },
         },
@@ -676,8 +687,10 @@ export default function Lobby() {
                     sendMessage={websocket.sendMessage}
                     messages={joinedRoom ? privateMessages : messages}
                     roomId={joinedRoom?.id}
+                    isAdmin={!!isAdmin}
                 />
             </ContentDiv>
+            <ChatContextMenu />
         </MenuBackgroundWrapper>
     );
 }
