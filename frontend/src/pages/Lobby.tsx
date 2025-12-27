@@ -93,7 +93,6 @@ export default function Lobby() {
     const [userCount, setUserCount] = useState<number>(0);
     const [userCountQuickPlay, setUserCountQuickPlay] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
-    const [noActiveDeck, setNoActiveDeck] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [deckObject, setDeckObject] = useState<DeckType | null>(null);
@@ -146,14 +145,11 @@ export default function Lobby() {
 
                 if (event.data === "[NO_ACTIVE_DECK]") {
                     notifyWarning("No active deck not found! Please refresh if this error should not appear.");
-                    setNoActiveDeck(true);
-                    setIsLoadingWithDebounce();
+                    setActiveDeck(decks[0].id);
                 }
 
                 if (event.data === "[BROKEN_DECK]") {
                     notifyWarning("Cards in your deck could not be found!");
-                    setNoActiveDeck(true);
-                    setIsLoadingWithDebounce();
                 }
 
                 if (event.data.startsWith("[USER_COUNT]:")) {
@@ -266,10 +262,6 @@ export default function Lobby() {
 
     function handleDeckChange(event: ChangeEvent<HTMLSelectElement>) {
         setActiveDeck(String(event.target.value)); // TODO: check if backend checks validity on each change:
-        if (noActiveDeck) {
-            setNoActiveDeck(false);
-            setIsLoading(false);
-        }
     }
 
     function handleCreateRoom() {
