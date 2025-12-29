@@ -1,30 +1,36 @@
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import styled from "@emotion/styled";
 import { useSound } from "../../hooks/useSound.ts";
-import { useDeckStates } from "../../hooks/useDeckStates.ts";
+import { Dispatch, SetStateAction } from "react";
+import axios from "axios";
 
-export default function ChooseDeckImage() {
-    const selectedSleeveOrImage = useGeneralStates((state) => state.selectedSleeveOrImage);
-    const setCardImage = useGeneralStates((state) => state.setCardImage);
+type ChooseDeckImageProps = {
+    deckId: string;
+    selection: string[];
+    selectedImage: string;
+    setSelectedImage: Dispatch<SetStateAction<string>>;
+};
 
+export default function ChooseDeckImage({ deckId, selection, selectedImage, setSelectedImage }: ChooseDeckImageProps) {
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
-    const imageSelectionUrls = useDeckStates((state) => state.imageSelectionUrls);
-    const rows = Math.ceil(imageSelectionUrls.length / 10);
-    const mobileRows = Math.ceil(imageSelectionUrls.length / 5);
+    const rows = Math.ceil(selection.length / 10);
+    const mobileRows = Math.ceil(selection.length / 5);
 
     return (
         <GridContainer rows={rows} mobileRows={mobileRows}>
-            {imageSelectionUrls.map((url, index) => {
+            {selection.map((url, index) => {
                 return (
                     <SleeveButton
                         key={url}
                         alt={index.toString()}
                         src={url}
-                        chosen={selectedSleeveOrImage === url}
+                        chosen={selectedImage === url}
                         onClick={() => {
                             playButtonClickSfx();
-                            setCardImage(url);
+                            axios
+                                .put(`/api/profile/decks/${deckId}/image`, { imgUrl: url })
+                                .catch((e) => console.error(e))
+                                .finally(() => setSelectedImage(url));
                         }}
                     />
                 );

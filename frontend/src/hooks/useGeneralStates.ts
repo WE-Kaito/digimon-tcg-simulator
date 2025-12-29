@@ -8,6 +8,12 @@ import { avatars } from "../utils/avatars.ts";
 
 export const fallbackCardNumber = "1110101";
 
+export enum DeckReadySate {
+    OK,
+    VIOLATES_RESTRICTIONS,
+    NOT_FULL,
+}
+
 type State = {
     particlesInitialized: boolean;
     setParticlesInitialized: (state: boolean) => void;
@@ -25,8 +31,6 @@ type State = {
     user: string;
     activeDeckId: string;
     avatarName: string;
-    deckIdToSetSleeveOrImage: string;
-    selectedSleeveOrImage: string;
 
     login: (userName: string, password: string, navigate: NavigateFunction) => void;
     me: () => void;
@@ -49,10 +53,8 @@ type State = {
     recoverPassword: (answer: string, newPassword: string, navigate: NavigateFunction) => void;
     changeSafetyQuestion: (question: string, answer: string) => void;
 
-    setDeckIdToSetSleeveOrImage: (deckId: string) => void;
-    setSleeve: (sleeveName: string) => void;
-    setSelectedSleeveOrImage: (sleeveName: string) => void;
-    setCardImage: (imgUrl: string) => void;
+    activeDeckReadyState: DeckReadySate;
+    setActiveDeckReadyState: (state: DeckReadySate) => void;
 };
 
 export const useGeneralStates = create<State>((set, get) => ({
@@ -205,21 +207,6 @@ export const useGeneralStates = create<State>((set, get) => ({
         });
     },
 
-    setDeckIdToSetSleeveOrImage: (deckId) => set({ deckIdToSetSleeveOrImage: deckId }),
-
-    setSleeve: (sleeveName) => {
-        axios
-            .put(`/api/profile/decks/${get().deckIdToSetSleeveOrImage}/sleeve/${sleeveName}`)
-            .catch((e) => console.error(e))
-            .finally(() => set({ selectedSleeveOrImage: sleeveName }));
-    },
-
-    setSelectedSleeveOrImage: (sleeveName) => set({ selectedSleeveOrImage: sleeveName }),
-
-    setCardImage: (imgUrl) => {
-        axios
-            .put(`/api/profile/decks/${get().deckIdToSetSleeveOrImage}/image`, { imgUrl })
-            .catch((e) => console.error(e))
-            .finally(() => set({ selectedSleeveOrImage: imgUrl }));
-    },
+    activeDeckReadyState: DeckReadySate.OK,
+    setActiveDeckReadyState: (state: DeckReadySate) => set({ activeDeckReadyState: state }),
 }));

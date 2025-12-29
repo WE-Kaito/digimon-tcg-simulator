@@ -1,18 +1,22 @@
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 import styled from "@emotion/styled";
-import { sleeves, getSleeve } from "../../utils/sleeves.ts";
+import { getSleeve, eggSleeves } from "../../utils/sleeves.ts";
 import { useSound } from "../../hooks/useSound.ts";
 import { Tooltip } from "@mui/material";
+import { Dispatch, SetStateAction } from "react";
+import axios from "axios";
 
-export default function ChooseCardSleeve() {
-    const selectedSleeveOrImage = useGeneralStates((state) => state.selectedSleeveOrImage);
-    const setSleeve = useGeneralStates((state) => state.setSleeve);
+type ChooseCardSleeveProps = {
+    deckId: string;
+    selectedSleeve: string;
+    setSelectedSleeve: Dispatch<SetStateAction<string>>;
+};
 
+export default function ChooseEggDeckSleeve({ deckId, selectedSleeve, setSelectedSleeve }: ChooseCardSleeveProps) {
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     return (
         <GridContainer>
-            {sleeves.map((sleeve) => (
+            {eggSleeves.map((sleeve) => (
                 <Tooltip
                     followCursor
                     title={sleeve.artist ? `✒️ ${sleeve.artist}` : undefined}
@@ -34,11 +38,14 @@ export default function ChooseCardSleeve() {
                     <SleeveButton
                         key={sleeve.name}
                         alt={sleeve.name}
-                        src={getSleeve(sleeve.name)}
-                        chosen={selectedSleeveOrImage === sleeve.name}
+                        src={getSleeve("Digi-Egg", sleeve.name)}
+                        chosen={selectedSleeve === sleeve.name}
                         onClick={() => {
                             playButtonClickSfx();
-                            setSleeve(sleeve.name);
+                            axios
+                                .put(`/api/profile/decks/${deckId}/egg-sleeve/${sleeve.name}`)
+                                .catch((e) => console.error(e))
+                                .finally(() => setSelectedSleeve(sleeve.name));
                         }}
                     />
                 </Tooltip>
@@ -51,8 +58,8 @@ const GridContainer = styled.div`
     width: fit-content;
     height: fit-content;
     display: grid;
-    grid-template-columns: repeat(11, 63px);
-    grid-template-rows: repeat(8, 84px);
+    grid-template-columns: repeat(4, 63px);
+    grid-template-rows: repeat(2, 84px);
     gap: 2px;
     position: relative;
     padding: 3px;

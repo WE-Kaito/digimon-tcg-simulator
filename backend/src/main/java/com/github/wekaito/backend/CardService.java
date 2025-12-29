@@ -71,7 +71,23 @@ public class CardService {
     }
 
     public Card getCardByUniqueCardNumber(String uniqueCardNumber) {
-        return cardCollection.stream().filter(card -> uniqueCardNumber.equals(card.uniqueCardNumber())).findFirst().orElse(fallbackCard);
+        // First try exact match
+        Card card = cardCollection.stream()
+                .filter(c -> uniqueCardNumber.equals(c.uniqueCardNumber()))
+                .findFirst()
+                .orElse(null);
+
+        // If not found and uniqueCardNumber contains underscore, try with base number
+        if (card == null && uniqueCardNumber.contains("_")) {
+            String cardNumber = uniqueCardNumber.split("_")[0];
+            card = cardCollection.stream()
+                    .filter(c -> cardNumber.equals(c.uniqueCardNumber()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        // Return fallbackCard only if both attempts failed
+        return card != null ? card : fallbackCard;
     }
 
     private final WebClient webClient = WebClient.builder()

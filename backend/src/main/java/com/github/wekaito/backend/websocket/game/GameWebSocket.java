@@ -719,16 +719,22 @@ public class GameWebSocket extends TextWebSocketHandler {
                 String deckId1 = mongoUserDetailsService.getActiveDeck(usernames[0]);
                 String deckId2 = mongoUserDetailsService.getActiveDeck(usernames[1]);
 
-                String sleeve1 = deckService.getDeckSleeveById(deckId1);
-                String sleeve2 = deckService.getDeckSleeveById(deckId2);
+                String mainSleeve1 = deckService.getDeckSleeveById(deckId1);
+                String mainSleeve2 = deckService.getDeckSleeveById(deckId2);
 
-                Player player1 = new Player(usernames[0], avatar1, sleeve1);
-                Player player2 = new Player(usernames[1], avatar2, sleeve2);
+                String eggSleeve1 = deckService.getEggDeckSleeveById(deckId1);
+                String eggSleeve2 = deckService.getEggDeckSleeveById(deckId2);
 
-                List<Card> player1Deck = deckService.getDeckCardsById(deckId1);
-                List<Card> player2Deck = deckService.getDeckCardsById(deckId2);
+                Player player1 = new Player(usernames[0], avatar1, mainSleeve1, eggSleeve1);
+                Player player2 = new Player(usernames[1], avatar2, mainSleeve2, eggSleeve2);
 
-                GameRoom newGameRoom = new GameRoom(gameId, player1, player1Deck, player2, player2Deck);
+                List<Card> player1MainDeck = deckService.getMainDeckCardsById(deckId1);
+                List<Card> player1EggDeck = deckService.getEggDeckCardsById(deckId1);
+
+                List<Card> player2MainDeck = deckService.getMainDeckCardsById(deckId2);
+                List<Card> player2EggDeck = deckService.getEggDeckCardsById(deckId2);
+
+                GameRoom newGameRoom = new GameRoom(gameId, player1, player1MainDeck, player1EggDeck, player2, player2MainDeck, player2EggDeck);
                 newGameRoom.setChat(new String[0]);
 
                 GameRoom existingRoom = gameRooms.putIfAbsent(gameId, newGameRoom);
@@ -899,7 +905,7 @@ public class GameWebSocket extends TextWebSocketHandler {
         String from = parts[3];
         String to = parts[4];
         String facing = parts[5];
-        
+
         // Get current player username
         String currentPlayer = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
         

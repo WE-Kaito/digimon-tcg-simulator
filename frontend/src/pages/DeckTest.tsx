@@ -31,11 +31,7 @@ import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useNavigate } from "react-router-dom";
-import ProfileDeck from "../components/profile/ProfileDeck.tsx";
-import MenuDialog from "../components/MenuDialog.tsx";
-import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
-import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
+import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
 import axios from "axios";
 
 export default function DeckTest() {
@@ -77,8 +73,6 @@ export default function DeckTest() {
 
     const [clearAttackAnimation, setClearAttackAnimation] = useState<(() => void) | null>(null);
     const [phaseLoading, setPhaseLoading] = useState(false);
-    const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
-    const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
     const [deckObject, setDeckObject] = useState<DeckType | null>(null);
 
     const timeoutRef = useRef<number | null>(null);
@@ -322,14 +316,15 @@ export default function DeckTest() {
         (deckId: string) => {
             const deckData = decks.find((deck) => deck.id === deckId);
 
-            if (!deckData || !deckData.decklist.length) {
+            if (!deckData || !deckData.mainDeckList.length) {
                 setMessages("No deck found or deck is empty. Please select a different deck.");
                 return;
             }
 
             // Get user's actual avatar and deck sleeve
             const userAvatar = avatarName || "AncientIrismon"; // fallback to default
-            const userSleeve = deckData.sleeveName || "Default"; // fallback to default
+            const userMainSleeve = deckData.mainSleeveName || "Default"; // fallback to default
+            const userEggSleeve = deckData.eggSleeveName || "Default"; // fallback to default
 
             // Clear any existing board state and chat messages
             clearBoard();
@@ -341,7 +336,7 @@ export default function DeckTest() {
             const deckCards: CardTypeWithId[] = [];
             let missingCards = 0;
 
-            for (const cardId of deckData.decklist) {
+            for (const cardId of [...deckData.mainDeckList, ...deckData.eggDeckList]) {
                 const foundCard = fetchedCards.find((card) => card.uniqueCardNumber === cardId);
                 if (foundCard) {
                     // Create a new instance for each card to ensure unique IDs
@@ -395,13 +390,28 @@ export default function DeckTest() {
                 opponentMemory: 0,
                 phase: Phase.MAIN,
                 bootStage: BootStage.GAME_IN_PROGRESS, // Start directly in game
-                player1: { username: user, avatarName: userAvatar, sleeveName: userSleeve },
+                player1: {
+                    username: user,
+                    avatarName: userAvatar,
+                    mainSleeveName: userMainSleeve,
+                    eggSleeveName: userEggSleeve,
+                },
             });
 
             // Set up game info
             setUpGame(
-                { username: user, avatarName: userAvatar, sleeveName: userSleeve },
-                { username: "Test Dummy", avatarName: "AncientIrismon", sleeveName: "Default" }
+                {
+                    username: user,
+                    avatarName: userAvatar,
+                    mainSleeveName: userMainSleeve,
+                    eggSleeveName: userEggSleeve,
+                },
+                {
+                    username: "Test Dummy",
+                    avatarName: "AncientIrismon",
+                    mainSleeveName: "Default",
+                    eggSleeveName: "Default",
+                }
             );
         },
         [
@@ -494,13 +504,6 @@ export default function DeckTest() {
         [playAttackSfx, playEffectAttackSfx, setArrowFrom, setArrowTo, setIsEffectArrow]
     );
 
-    // Local drop zone handler (no WebSocket)
-    // const handleDragEnd = useDropZone({
-    //     sendMessage: mockSendMessage,
-    //     restartAttackAnimation,
-    //     clearAttackAnimation,
-    // });
-
     const createDropHandler = useDropZoneReactDnd({
         sendMessage: mockSendMessage,
         restartAttackAnimation,
@@ -561,30 +564,6 @@ export default function DeckTest() {
         setTimeout(() => {
             initializeTestGameWithDeck(newDeckId);
         }, 100);
-    }
-
-    // Handle modal close and reload deck (mirrors lobby implementation)
-    function handleOnCloseSetImageDialog() {
-        setSleeveSelectionOpen(false);
-        setImageSelectionOpen(false);
-        // Reload deck data after modal closes to reflect changes
-        if (activeDeckId) {
-            axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => {
-                const updatedDeck = res.data as DeckType;
-                setDeckObject(updatedDeck);
-
-                // Update the game field sleeve to match the updated deck sleeve
-                const currentGameState = useGameBoardStates.getState();
-                if (
-                    currentGameState.player1.sleeveName &&
-                    updatedDeck.sleeveName !== currentGameState.player1.sleeveName
-                ) {
-                    useGameBoardStates.setState((state) => ({
-                        player1: { ...state.player1, sleeveName: updatedDeck.sleeveName || "Default" },
-                    }));
-                }
-            });
-        }
     }
 
     // Mock WSUtils for components that need it (simplified for direct gameplay)
@@ -664,14 +643,7 @@ export default function DeckTest() {
                             </option>
                         ))}
                     </DeckSelect>
-                    {!!deckObject?.decklist?.length && (
-                        <ProfileDeck
-                            deck={deckObject}
-                            lobbyView
-                            setSleeveSelectionOpen={setSleeveSelectionOpen}
-                            setImageSelectionOpen={setImageSelectionOpen}
-                        />
-                    )}
+                    {!!deckObject?.mainDeckList?.length && <DeckPanel deck={deckObject} lobbyView />}
                 </DeckSelectionCard>
                 <ButtonsContainer>
                     <ResetButton
@@ -718,22 +690,6 @@ export default function DeckTest() {
                 {gameContent}
                 <DragLayerCustom />
             </DndProvider>
-
-            {/* Deck sleeve selection modal */}
-            <MenuDialog
-                onClose={handleOnCloseSetImageDialog}
-                open={sleeveSelectionOpen}
-                PaperProps={{ sx: { overflow: "hidden" } }}
-            >
-                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Sleeve"} />
-                <ChooseCardSleeve />
-            </MenuDialog>
-
-            {/* Deck image selection modal */}
-            <MenuDialog onClose={handleOnCloseSetImageDialog} open={imageSelectionOpen}>
-                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Image"} />
-                <ChooseDeckImage />
-            </MenuDialog>
         </Container>
     );
 }

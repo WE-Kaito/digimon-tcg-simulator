@@ -23,15 +23,18 @@ export default function DragOverlayCards() {
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const player1 = useGameBoardStates((state) => state.player1);
     const player2 = useGameBoardStates((state) => state.player2);
-    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
-    const opponentSleeve = player1.username === username ? player2.sleeveName : player1.sleeveName;
+    const mySleeve = player1.username === username ? player1.mainSleeveName : player2.mainSleeveName;
+    const opponentSleeve = player1.username === username ? player2.mainSleeveName : player1.mainSleeveName;
 
     const imgSrc =
         active?.data?.current?.type === "card"
             ? active?.data?.current?.content?.isFaceUp ||
               (!isHandHidden && active?.data?.current?.content?.location === "myHand")
                 ? active?.data?.current?.content?.imgSrc
-                : getSleeve(active?.data?.current?.content?.location?.includes("my") ? mySleeve : opponentSleeve)
+                : getSleeve(
+                      active?.data?.current?.content?.card?.cardType ?? "",
+                      active?.data?.current?.content?.location?.includes("my") ? mySleeve : opponentSleeve
+                  )
             : undefined;
 
     // stack ###########################################################################################################
@@ -75,6 +78,7 @@ export default function DragOverlayCards() {
                                 card.isFaceUp
                                     ? card.imgUrl
                                     : getSleeve(
+                                          active?.data?.current?.content?.card?.cardType ?? "",
                                           active?.data?.current?.content?.location?.includes("my")
                                               ? mySleeve
                                               : opponentSleeve

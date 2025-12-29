@@ -2,12 +2,10 @@ import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../../hooks/useGameBoardStates.ts";
 import { BootStage } from "../../../../utils/types.ts";
 import { WSUtils } from "../../../../pages/GamePage.tsx";
-import OpponentAttackResolve from "./OpponentAttackResolve.tsx";
 import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import Lottie from "lottie-react";
 import { WifiOffRounded as OfflineIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../../../../hooks/useGameUIStates.ts";
-import { useGeneralStates } from "../../../../hooks/useGeneralStates.ts";
 import { useState } from "react";
 import EmoteRender from "../../EmoteRender.tsx";
 
@@ -15,8 +13,6 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const isOpponentOnline = useGameBoardStates((state) => state.isOpponentOnline);
     const startingPlayer = useGameBoardStates((state) => state.startingPlayer);
-
-    const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
 
     const opponentEmote = useGameUIStates((state) => state.opponentEmote);
 

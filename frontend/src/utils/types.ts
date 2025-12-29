@@ -76,17 +76,18 @@ export type SearchCards = (
 export type DeckType = {
     id: string;
     name: string;
-    decklist: string[];
+    mainDeckList: string[];
+    eggDeckList: string[];
     deckImageCardUrl: string;
-    isAllowed_en: boolean | undefined;
-    isAllowed_jp: boolean | undefined;
-    sleeveName: string;
+    mainSleeveName: string;
+    eggSleeveName: string;
 };
 
 export type Player = {
     username: string;
     avatarName: string;
-    sleeveName: string;
+    mainSleeveName: string;
+    eggSleeveName: string;
 };
 
 export type DraggedItem = {

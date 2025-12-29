@@ -1,13 +1,14 @@
 import styled from "@emotion/styled";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import {
-    PeopleAlt as PopulationIcon,
-    HttpsOutlined as PrivateIcon,
-    WifiOffRounded as OfflineIcon,
     ErrorRounded as WarningIcon,
+    HttpsOutlined as PrivateIcon,
+    Rule as RestrictionsAppliedIcon,
+    PeopleAlt as PopulationIcon,
+    WifiOffRounded as OfflineIcon,
 } from "@mui/icons-material";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
-import { useGeneralStates } from "../hooks/useGeneralStates.ts";
+import { DeckReadySate, useGeneralStates } from "../hooks/useGeneralStates.ts";
 import useWebSocket from "react-use-websocket";
 import { notifyWarning } from "../utils/toasts.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
@@ -15,15 +16,12 @@ import { useSound } from "../hooks/useSound.ts";
 import { useNavigate } from "react-router-dom";
 import SoundBar from "../components/SoundBar.tsx";
 import { DeckType } from "../utils/types.ts";
-import ProfileDeck from "../components/profile/ProfileDeck.tsx";
+import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
 import axios from "axios";
 import MenuDialog from "../components/MenuDialog.tsx";
-import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
-import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import Chat, { ChatMessage } from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
-import { Dialog, DialogContent, useMediaQuery } from "@mui/material";
+import { Checkbox, Dialog, DialogContent, FormControlLabel, useMediaQuery } from "@mui/material";
 import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
@@ -39,12 +37,6 @@ import useQuery from "../hooks/useQuery.ts";
 import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 
-enum Format {
-    CUSTOM = "CUSTOM",
-    JP = "JP",
-    EN = "EN",
-}
-
 type LobbyPlayer = {
     name: string;
     avatarName: string;
@@ -56,7 +48,7 @@ type Room = {
     name: string;
     hostName: string;
     hasPassword: boolean;
-    format: Format;
+    restrictionsApplied: boolean;
     players: LobbyPlayer[];
 };
 
@@ -71,6 +63,7 @@ export default function Lobby() {
     const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
     const activeDeckId = useGeneralStates((state) => state.activeDeckId);
     const getActiveDeck = useGeneralStates((state) => state.getActiveDeck);
+    const activeDeckReadyState = useGeneralStates((state) => state.activeDeckReadyState);
 
     const setIsRematch = useGameUIStates((state) => state.setIsRematch);
 
@@ -96,8 +89,6 @@ export default function Lobby() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [deckObject, setDeckObject] = useState<DeckType | null>(null);
-    const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
-    const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<ChatMessage[]>([]);
@@ -105,7 +96,7 @@ export default function Lobby() {
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
-    const [newRoomFormat, setNewRoomFormat] = useState<Format>(Format.CUSTOM);
+    const [restrictionsApplied, setRestrictionsApplied] = useState<boolean>(false);
 
     const [roomToJoinId, setRoomToJoinId] = useState<string>(""); // for password protected rooms
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState<boolean>(false);
@@ -177,7 +168,7 @@ export default function Lobby() {
                     setNewRoomName("");
                     setNewRoomPassword("");
                     setIsPasswordDialogOpen(false);
-                    setNewRoomFormat(Format.CUSTOM);
+                    setRestrictionsApplied(false);
                 }
 
                 if (event.data.startsWith("[ROOM_UPDATE]:")) {
@@ -254,12 +245,6 @@ export default function Lobby() {
         !isFetchingIsBanned && !isBanned // connect only when not banned
     );
 
-    function handleOnCloseSetImageDialog() {
-        setSleeveSelectionOpen(false);
-        setImageSelectionOpen(false);
-        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
-    }
-
     function handleDeckChange(event: ChangeEvent<HTMLSelectElement>) {
         setActiveDeck(String(event.target.value)); // TODO: check if backend checks validity on each change:
     }
@@ -268,7 +253,9 @@ export default function Lobby() {
         setIsLoadingWithDebounce();
         cancelQuickPlayQueue();
         const sanitizedNewRoomName = newRoomName.trim().replace(":", "∶"); // remove colons to avoid issues with message parsing
-        websocket.sendMessage("/createRoom:" + sanitizedNewRoomName + ":" + newRoomPassword + ":" + newRoomFormat);
+        websocket.sendMessage(
+            "/createRoom:" + sanitizedNewRoomName + ":" + newRoomPassword + ":" + restrictionsApplied
+        );
     }
 
     function handleJoinRoom(roomId: string) {
@@ -354,27 +341,19 @@ export default function Lobby() {
     }, [joinedRoom, user, websocket]);
 
     const meInRoom = joinedRoom?.players.find((p) => p.name === user);
+    // Todo: add restriction to room creation and disable here if it matches
     const startGameDisabled =
-        !!joinedRoom && (isLoading || !!joinedRoom.players.find((p) => !p.ready) || joinedRoom.players.length < 2);
+        activeDeckReadyState === DeckReadySate.NOT_FULL ||
+        (!!joinedRoom &&
+            (isLoading ||
+                !!joinedRoom.players.find((p) => !p.ready) ||
+                joinedRoom.players.length < 2 ||
+                (joinedRoom.restrictionsApplied && activeDeckReadyState === DeckReadySate.VIOLATES_RESTRICTIONS)));
 
     const isMobile = useMediaQuery("(max-width:499px)");
 
     return (
         <MenuBackgroundWrapper>
-            <MenuDialog
-                onClose={handleOnCloseSetImageDialog}
-                open={sleeveSelectionOpen}
-                PaperProps={{ sx: { overflow: "hidden" } }}
-            >
-                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Sleeve"} />
-                <ChooseCardSleeve />
-            </MenuDialog>
-
-            <MenuDialog onClose={handleOnCloseSetImageDialog} open={imageSelectionOpen}>
-                <CustomDialogTitle handleOnClose={handleOnCloseSetImageDialog} variant={"Image"} />
-                <ChooseDeckImage />
-            </MenuDialog>
-
             {showCountdown && (
                 <Dialog
                     open={true}
@@ -475,13 +454,22 @@ export default function Lobby() {
                                         START GAME
                                     </Button>
                                 ) : (
-                                    <QuickPlayButton isSearchingGame={!!meInRoom?.ready} onClick={handleToggleReady}>
+                                    <QuickPlayButton
+                                        // Todo: incorporate restriction check to disabled
+                                        disabled={
+                                            activeDeckReadyState === DeckReadySate.NOT_FULL ||
+                                            (joinedRoom.restrictionsApplied &&
+                                                activeDeckReadyState === DeckReadySate.VIOLATES_RESTRICTIONS)
+                                        }
+                                        isSearchingGame={!!meInRoom?.ready}
+                                        onClick={handleToggleReady}
+                                    >
                                         READY
                                     </QuickPlayButton>
                                 )
                             ) : (
                                 <QuickPlayButton
-                                    disabled={isLoading}
+                                    disabled={isLoading || activeDeckReadyState === DeckReadySate.NOT_FULL}
                                     onClick={handleQuickPlay}
                                     isSearchingGame={isSearchingGame}
                                 >
@@ -568,6 +556,7 @@ export default function Lobby() {
                                                         style={{ marginLeft: "4px", transform: "translateY(-3px)" }}
                                                     />
                                                 </StyledSpan>
+                                                {room.restrictionsApplied && <RestrictionsAppliedIcon />}
                                                 {room.hasPassword && <PrivateIcon />}
                                                 <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
                                                     Join
@@ -625,21 +614,18 @@ export default function Lobby() {
 
                         <Card style={isMobile ? { order: 99, width: "100%" } : {}}>
                             {/*<CardTitle>Deck Selection</CardTitle>*/}
-                            <Select value={activeDeckId} onChange={handleDeckChange}>
+                            <Select
+                                value={activeDeckId}
+                                onChange={handleDeckChange}
+                                disabled={(!!meInRoom?.ready && joinedRoom?.hostName !== user) || isSearchingGame}
+                            >
                                 {decks.map((deck) => (
                                     <option value={deck.id} key={deck.id}>
                                         {deck.name}
                                     </option>
                                 ))}
                             </Select>
-                            {!!deckObject?.decklist?.length && (
-                                <ProfileDeck
-                                    deck={deckObject}
-                                    lobbyView
-                                    setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                    setImageSelectionOpen={setImageSelectionOpen}
-                                />
-                            )}
+                            {!!deckObject?.mainDeckList?.length && <DeckPanel deck={deckObject} lobbyView />}
                         </Card>
 
                         {!joinedRoom && (
@@ -657,11 +643,32 @@ export default function Lobby() {
                                     placeholder="Password (optional)"
                                     style={{ marginBottom: "1rem", width: "95%" }}
                                 />
-                                {/*TODO: enable when format enforcement can be implemented */}
-                                {/*<Select value={newRoomFormat} disabled onChange={(e) => setNewRoomFormat(e.target.value as Format)}>*/}
-                                {/*    {Object.values(Format).map((format) => <option value={format}*/}
-                                {/*                                                   key={format}>{format}</option>)}*/}
-                                {/*</Select>*/}
+                                <FormControlLabel
+                                    disabled
+                                    className={"button"}
+                                    checked={restrictionsApplied}
+                                    onClick={() => setRestrictionsApplied(!restrictionsApplied)}
+                                    control={<Checkbox />}
+                                    sx={{
+                                        "& .MuiButtonBase-root": { color: "rgba(56, 111, 240, 0.75)!important" },
+                                        width: "100%",
+                                        paddingLeft: "10px",
+                                        transform: "translateY(-6px)",
+                                    }}
+                                    label={
+                                        <span style={{ color: "antiquewhite" }}>
+                                            Apply current{" "}
+                                            <a
+                                                href={"https://world.digimoncard.com/rule/restriction_card/"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                restrictions
+                                            </a>
+                                        </span>
+                                    }
+                                />
                                 <Button
                                     disabled={!newRoomName || isLoading}
                                     onClick={handleCreateRoom}
@@ -669,7 +676,6 @@ export default function Lobby() {
                                 >
                                     Create Room
                                 </Button>
-                                <PatchnotesLink />
                             </Card>
                         )}
                     </div>
@@ -682,6 +688,7 @@ export default function Lobby() {
                     isAdmin={!!isAdmin}
                 />
             </ContentDiv>
+            <PatchnotesLink />
             <ChatContextMenu />
         </MenuBackgroundWrapper>
     );

@@ -6,6 +6,7 @@ import { generalToken } from "../utils/tokens.ts";
 import { uid } from "uid";
 import { Dispatch, SetStateAction } from "react";
 import { NavigateFunction } from "react-router-dom";
+import cardBackSrc from "../assets/cardBack.jpg";
 
 type State = {
     isLoading: boolean;
@@ -19,17 +20,17 @@ type State = {
     fetchedCards: CardTypeWithId[];
     filteredCards: CardTypeWithId[];
 
-    deckCards: CardTypeWithId[];
-    setDeckCards: (cards: CardTypeWithId[]) => void;
+    mainDeckCards: CardTypeWithId[];
+    setMainDeckCards: (cards: CardTypeWithId[]) => void;
+
+    eggDeckCards: CardTypeWithId[];
+    setEggDeckCards: (cards: CardTypeWithId[]) => void;
 
     deckName: string;
     setDeckName: (deckName: string) => void;
 
     fetchCards: () => void;
     filterCards: SearchCards;
-
-    imageSelectionUrls: string[];
-    setImageSelectionUrls: (urls: string[]) => void;
 
     isSettingDeck: boolean;
     setDeckById: (id: string) => void;
@@ -168,14 +169,20 @@ export const useDeckStates = create<State>((set, get) => ({
     fetchedCards: [],
     filteredCards: [],
 
-    deckCards: JSON.parse(localStorage.getItem("deckCards") ?? "[]"),
-    setDeckCards: (deckCards) => set({ deckCards }),
+    mainDeckCards: JSON.parse(localStorage.getItem("mainDeckCards") ?? "[]"),
+    setMainDeckCards: (mainDeckCards) => {
+        set({ mainDeckCards });
+        localStorage.setItem("mainDeckCards", JSON.stringify(mainDeckCards));
+    },
+
+    eggDeckCards: JSON.parse(localStorage.getItem("eggDeckCards") ?? "[]"),
+    setEggDeckCards: (eggDeckCards) => {
+        set({ eggDeckCards });
+        localStorage.setItem("eggDeckCards", JSON.stringify(eggDeckCards));
+    },
 
     deckName: localStorage.getItem("deckName") ?? "New Deck",
     setDeckName: (deckName) => set({ deckName }),
-
-    imageSelectionUrls: [],
-    setImageSelectionUrls: (urls) => set({ imageSelectionUrls: urls }),
 
     fetchDecks: () => {
         set({ isLoading: true });
@@ -309,93 +316,99 @@ export const useDeckStates = create<State>((set, get) => ({
                 (card) => !card.uniqueCardNumber.includes("_P") && !card.uniqueCardNumber.includes("-E")
             );
         filteredData = filterDoubleCardNumbers(filteredData); //bug quickfix
-
+        console.log(filteredData.map((card) => card.uniqueCardNumber));
         set({ filteredCards: filteredData, isLoading: false });
     },
 
     addCardToDeck: (cardNumber, type, uniqueCardNumber) => {
-        const digiEggsInDeck = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
-        const cardOfIdInDeck = get().deckCards.filter((card) => card.cardNumber === cardNumber).length;
         const cardToAdd = {
             ...get().fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0],
             id: uid(),
         };
 
-        if (type === "Digi-Egg" && digiEggsInDeck < 5 && cardOfIdInDeck < 4) {
-            set({ deckCards: [cardToAdd, ...get().deckCards] });
-            return;
+        if (type === "Digi-Egg") {
+            const eggDeckCards = get().eggDeckCards;
+            const digiEggsInDeck = eggDeckCards.length;
+            const cardOfIdInDeck = eggDeckCards.filter((card) => card.cardNumber === cardNumber).length;
+
+            if (digiEggsInDeck >= 5 || cardOfIdInDeck >= 4) return;
+
+            const newEggDeckCards = [cardToAdd, ...eggDeckCards];
+            set({ eggDeckCards: newEggDeckCards });
+            localStorage.setItem("eggDeckCards", JSON.stringify(newEggDeckCards));
+        } else {
+            const mainDeckCards = get().mainDeckCards;
+            const filteredLength = mainDeckCards.length;
+            const cardOfIdInDeck = mainDeckCards.filter((card) => card.cardNumber === cardNumber).length;
+
+            if (filteredLength >= 50) return;
+
+            if (!cardsWithoutLimit.includes(cardNumber) && cardOfIdInDeck >= 4) return;
+
+            const newMainDeckCards = [cardToAdd, ...mainDeckCards];
+            set({ mainDeckCards: newMainDeckCards });
+            localStorage.setItem("mainDeckCards", JSON.stringify(newMainDeckCards));
         }
-
-        const eggCardLength = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
-        const filteredLength = get().deckCards.length - eggCardLength; // 50 deck-cards & max 5 eggs
-
-        if (filteredLength >= 50) return;
-
-        if (cardsWithoutLimit.includes(cardNumber)) {
-            set({ deckCards: [cardToAdd, ...get().deckCards] });
-            return;
-        }
-
-        if ((type === "Digi-Egg" && digiEggsInDeck >= 5) || cardOfIdInDeck >= 4) return;
-
-        set({ deckCards: [cardToAdd, ...get().deckCards] });
-        localStorage.setItem("deckCards", JSON.stringify(get().deckCards));
     },
 
     deleteFromDeck: (id) => {
-        set({ deckCards: get().deckCards.filter((card) => card.id !== id) });
+        const mainDeckCards = get().mainDeckCards;
+        const eggDeckCards = get().eggDeckCards;
+
+        // Check if card is in main deck
+        const cardInMain = mainDeckCards.find((card) => card.id === id);
+        if (cardInMain) {
+            const newMainDeckCards = mainDeckCards.filter((card) => card.id !== id);
+            set({ mainDeckCards: newMainDeckCards });
+            localStorage.setItem("mainDeckCards", JSON.stringify(newMainDeckCards));
+            return;
+        }
+
+        // Check if card is in egg deck
+        const cardInEgg = eggDeckCards.find((card) => card.id === id);
+        if (cardInEgg) {
+            const newEggDeckCards = eggDeckCards.filter((card) => card.id !== id);
+            set({ eggDeckCards: newEggDeckCards });
+            localStorage.setItem("eggDeckCards", JSON.stringify(newEggDeckCards));
+        }
     },
 
     saveDeck: (name) => {
-        const eggCardLength = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
-        const filteredLength = get().deckCards.length - eggCardLength;
-
-        if (filteredLength !== 50) {
-            notifyError("Only full decks can be saved!");
-            return;
-        }
-
-        if (name === "") {
-            notifyError("Please enter a name.");
-            return;
-        }
+        const mainDeckCards = get().mainDeckCards;
+        const eggDeckCards = get().eggDeckCards;
 
         set({ isSaving: true });
 
-        const sortedDeck = sortCards(get().deckCards);
+        const sortedMainDeck = sortCards(mainDeckCards);
+        const sortedEggDeck = sortCards(eggDeckCards);
 
         const deckToSave = {
             name: name,
-            decklist: sortedDeck.map((card) => card.uniqueCardNumber),
-            deckImageCardUrl: sortedDeck.at(-1)?.imgUrl,
-            sleeveName: "Default",
-            isAllowed_en: getIsDeckAllowed(sortedDeck, "english"),
-            isAllowed_jp: getIsDeckAllowed(sortedDeck, "japanese"),
+            mainDeckList: sortedMainDeck.map((card) => card.uniqueCardNumber),
+            eggDeckList: sortedEggDeck.map((card) => card.uniqueCardNumber),
+            deckImageCardUrl: sortedMainDeck.at(-1)?.imgUrl || sortedEggDeck.at(-1)?.imgUrl || cardBackSrc,
+            mainSleeveName: "Default",
+            eggSleeveName: "Default",
         };
 
         axios
             .post("/api/profile/decks", deckToSave)
             .then((res) => res.data)
             .catch((error) => {
-                console.error(error.message);
-                notifyError("Something went wrong!");
+                console.warn(error);
+                notifyError(error.response.data.errors[0]?.defaultMessage || "Could not be saved");
+                set({ isSaving: false });
                 throw error;
             })
-            .then((data) => {
-                if (data === "There was an error while saving the deck.")
-                    notifyError("There was an error while saving the deck.");
-                else {
-                    notifySuccess("Deck saved!");
-                    get().fetchDecks();
-                    localStorage.removeItem("deckCards");
-                    localStorage.removeItem("deckName");
-                    window.location.reload();
-                }
-                setTimeout(function () {
-                    set({ isSaving: false });
-                }, 2900);
-            })
-            .finally(() => get().clearDeck());
+            .then(() => {
+                notifySuccess("Deck saved!");
+                get().fetchDecks();
+                localStorage.removeItem("mainDeckCards");
+                localStorage.removeItem("eggDeckCards");
+                localStorage.removeItem("deckName");
+                get().clearDeck();
+                set({ isSaving: false });
+            });
     },
 
     deleteDeck: (id, navigate) => {
@@ -409,65 +422,60 @@ export const useDeckStates = create<State>((set, get) => ({
             })
             .then(() => {
                 navigate("/decks");
-                set({ deckCards: [] });
+                set({ mainDeckCards: [], eggDeckCards: [] });
                 notifySuccess("Deck deleted!");
             });
     },
 
     clearDeck: () => {
-        set({ deckCards: [], deckName: "New Deck" });
-        localStorage.removeItem("deckCards");
+        set({ mainDeckCards: [], eggDeckCards: [], deckName: "New Deck" });
+        localStorage.removeItem("mainDeckCards");
+        localStorage.removeItem("eggDeckCards");
         localStorage.removeItem("deckName");
     },
 
     setDeckById: (id) => {
-        set({ deckName: "", deckCards: [], isSettingDeck: true });
+        set({ deckName: "", mainDeckCards: [], eggDeckCards: [], isSettingDeck: true });
 
         const deck = get().decks.find((deck) => deck.id === id);
         const fetchedCards = get().fetchedCards;
         if (!deck || !fetchedCards.length) return;
 
-        const deckCards = deck.decklist.map((cardNumber) => {
+        const mainDeckCards = deck.mainDeckList.map((cardNumber) => {
             const card = fetchedCards.find((c) => c.uniqueCardNumber === cardNumber);
             return { ...(card ? card : fallbackCard), id: uid() } as CardTypeWithId;
         });
 
-        set({ deckName: deck.name, deckCards, isSettingDeck: false });
+        const eggDeckCards = deck.eggDeckList.map((cardNumber) => {
+            const card = fetchedCards.find((c) => c.uniqueCardNumber === cardNumber);
+            return { ...(card ? card : fallbackCard), id: uid() } as CardTypeWithId;
+        });
+
+        set({ deckName: deck.name, mainDeckCards, eggDeckCards, isSettingDeck: false });
     },
 
     updateDeck: (id, name) => {
-        const eggCardLength = get().deckCards.filter((card) => card.cardType === "Digi-Egg").length;
-        const filteredLength = get().deckCards.length - eggCardLength;
+        const mainDeckCards = get().mainDeckCards;
+        const eggDeckCards = get().eggDeckCards;
 
-        if (filteredLength !== 50) {
-            notifyError("Only full decks can be saved!");
-            return;
-        }
-
-        if (name === "") {
-            notifyError("Please enter a name.");
-            return;
-        }
-
-        const sortedDeck = sortCards(get().deckCards);
+        const sortedMainDeck = sortCards(mainDeckCards);
+        const sortedEggDeck = sortCards(eggDeckCards);
         const deckWithoutId = {
             name: name,
-            decklist: sortedDeck.map((card) => card.uniqueCardNumber),
-            isAllowed_en: getIsDeckAllowed(sortedDeck, "english"),
-            isAllowed_jp: getIsDeckAllowed(sortedDeck, "japanese"),
+            mainDeckList: sortedMainDeck.map((card) => card.uniqueCardNumber),
+            eggDeckList: sortedEggDeck.map((card) => card.uniqueCardNumber),
         };
 
         axios
             .put(`/api/profile/decks/${id}`, deckWithoutId)
             .then((res) => res.data)
             .catch((error) => {
-                console.error(error);
-                notifyError("Could not update");
+                console.warn(error);
+                notifyError(error.response.data.errors[0]?.defaultMessage || "Could not be saved");
+                set({ isSaving: false });
                 throw error;
             })
-            .then(() => {
-                notifySuccess("Deck updated!");
-            });
+            .then(() => notifySuccess("Deck updated!"));
     },
 
     importDeck: (decklist, format) => {
@@ -517,20 +525,27 @@ export const useDeckStates = create<State>((set, get) => ({
         }
         // ---
 
-        set({ deckCards: cardsWithId });
+        // Split cards by type into appropriate decks
+        const mainDeckCards = cardsWithId.filter((card) => card.cardType !== "Digi-Egg");
+        const eggDeckCards = cardsWithId.filter((card) => card.cardType === "Digi-Egg");
+
+        set({ mainDeckCards, eggDeckCards });
         const timeout = setTimeout(() => set({ isLoading: false }), 700);
         return () => clearTimeout(timeout);
     },
 
     exportDeck: (exportFormat, deckname): string => {
+        const mainDeckCards = get().mainDeckCards;
+        const eggDeckCards = get().eggDeckCards;
+        const allCards = [...mainDeckCards, ...eggDeckCards];
+
         if (exportFormat === "text") {
-            const deckCards = get().deckCards;
             const uniqueCardsMap = new Map();
-            deckCards.forEach((card) => uniqueCardsMap.set(card.cardNumber, card));
+            allCards.forEach((card) => uniqueCardsMap.set(card.cardNumber, card));
             const uniqueCards = Array.from(uniqueCardsMap.values());
             const decklist = uniqueCards
                 .map((card) => {
-                    const cardCount = deckCards.filter((c) => c.cardNumber === card.cardNumber).length;
+                    const cardCount = allCards.filter((c) => c.cardNumber === card.cardNumber).length;
                     return `${cardCount} ${card.name} ${card.cardNumber}`;
                 })
                 .join("\n");
@@ -538,7 +553,7 @@ export const useDeckStates = create<State>((set, get) => ({
         }
 
         return JSON.stringify(
-            get().deckCards.map((card) => (exportFormat === "tts" ? card.cardNumber : card.uniqueCardNumber))
+            allCards.map((card) => (exportFormat === "tts" ? card.cardNumber : card.uniqueCardNumber))
         );
     },
 }));

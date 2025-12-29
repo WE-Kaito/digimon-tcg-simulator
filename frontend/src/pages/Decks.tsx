@@ -3,15 +3,11 @@ import { closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useS
 import { Loading } from "../components/deckbuilder/FetchedCards.tsx";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { Fragment, useCallback, useLayoutEffect, useState } from "react";
-import SortableProfileDeck from "../components/profile/SortableProfileDeck.tsx";
+import SortableDeckPanel from "../components/deckPanel/SortableDeckPanel.tsx";
 import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import styled from "@emotion/styled";
 import { DeckType } from "../utils/types.ts";
 import { useNavigate } from "react-router-dom";
-import MenuDialog from "../components/MenuDialog.tsx";
-import CustomDialogTitle from "../components/profile/CustomDialogTitle.tsx";
-import ChooseCardSleeve from "../components/profile/ChooseCardSleeve.tsx";
-import ChooseDeckImage from "../components/profile/ChooseDeckImage.tsx";
 import BackButton from "../components/BackButton.tsx";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
 import SectionHeadline from "../components/SectionHeadline.tsx";
@@ -25,8 +21,6 @@ export default function Decks() {
 
     const [renderAddButton, setRenderAddButton] = useState(false);
     const [orderedDecks, setOrderedDecks] = useState<DeckType[]>([]);
-    const [sleeveSelectionOpen, setSleeveSelectionOpen] = useState(false);
-    const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
 
     const navigate = useNavigate();
     const sensors = useSensors(useSensor(PointerSensor));
@@ -39,12 +33,6 @@ export default function Decks() {
             const newIndexId = deckIdOrder.findIndex((id) => id === over.id);
             setDeckIdOrder(arrayMove(deckIdOrder, oldIndexId, newIndexId), setOrderedDecks);
         }
-    }
-
-    function handleOnClose() {
-        setSleeveSelectionOpen(false);
-        setImageSelectionOpen(false);
-        loadOrderedDecks(setOrderedDecks);
     }
 
     function toDeckBuilder() {
@@ -61,17 +49,7 @@ export default function Decks() {
 
     return (
         <MenuBackgroundWrapper style={{ justifyContent: "flex-start" }}>
-            <MenuDialog onClose={handleOnClose} open={sleeveSelectionOpen} PaperProps={{ sx: { overflow: "hidden" } }}>
-                <CustomDialogTitle handleOnClose={handleOnClose} variant={"Sleeve"} />
-                <ChooseCardSleeve />
-            </MenuDialog>
-
-            <MenuDialog onClose={handleOnClose} open={imageSelectionOpen}>
-                <CustomDialogTitle handleOnClose={handleOnClose} variant={"Image"} />
-                <ChooseDeckImage />
-            </MenuDialog>
-
-            <SectionHeadline headline={"Decks"} rightElement={<BackButton />} />
+            <SectionHeadline headline={"Decks"} rightElement={<BackButton route={"/"} />} />
 
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <Container>
@@ -82,11 +60,7 @@ export default function Decks() {
                             <SortableContext items={orderedDecks}>
                                 {orderedDecks?.map((deck) => (
                                     <Fragment key={deck.id}>
-                                        <SortableProfileDeck
-                                            deck={deck}
-                                            setSleeveSelectionOpen={setSleeveSelectionOpen}
-                                            setImageSelectionOpen={setImageSelectionOpen}
-                                        />
+                                        <SortableDeckPanel deck={deck} />
                                     </Fragment>
                                 ))}
                             </SortableContext>

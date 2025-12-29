@@ -167,8 +167,22 @@ export default function Card(props: CardProps) {
 
     const player1 = useGameBoardStates((state) => state.player1);
     const player2 = useGameBoardStates((state) => state.player2);
-    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
-    const opponentSleeve = player1.username === username ? player2.sleeveName : player1.sleeveName;
+    const mySleeve =
+        player1.username === username
+            ? card.cardType === "Digi-Egg"
+                ? player1.eggSleeveName
+                : player1.mainSleeveName
+            : card.cardType === "Digi-Egg"
+              ? player2.eggSleeveName
+              : player2.mainSleeveName;
+    const opponentSleeve =
+        player1.username === username
+            ? card.cardType === "Digi-Egg"
+                ? player2.eggSleeveName
+                : player2.mainSleeveName
+            : card.cardType === "Digi-Egg"
+              ? player1.eggSleeveName
+              : player1.mainSleeveName;
 
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
@@ -543,7 +557,11 @@ export default function Card(props: CardProps) {
                     onMouseOver={handleHover}
                     onMouseLeave={handleStopHover}
                     alt={card.name + " " + card.uniqueCardNumber}
-                    src={isCardFaceDown ? getSleeve(location.includes("my") ? mySleeve : opponentSleeve) : cardImageUrl}
+                    src={
+                        isCardFaceDown
+                            ? getSleeve(card.cardType, location.includes("my") ? mySleeve : opponentSleeve)
+                            : cardImageUrl
+                    }
                     location={location}
                     isTilted={card.isTilted}
                     activeEffect={renderEffectAnimation}

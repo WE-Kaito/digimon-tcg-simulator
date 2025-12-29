@@ -21,9 +21,11 @@ import java.util.concurrent.ScheduledFuture;
 public class GameRoom {
     private final String roomId;
     private final Player player1;
-    private final List<Card> player1Deck;
+    private final List<Card> player1MainDeck;
+    private final List<Card> player1EggDeck;
     private final Player player2;
-    private final List<Card> player2Deck;
+    private final List<Card> player2MainDeck;
+    private final List<Card> player2EggDeck;
 
     private static final SecureRandom secureRand = new SecureRandom();
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -153,18 +155,6 @@ public class GameRoom {
         return gameDeck;
     }
 
-    private static List<GameCard> getEggDeck(List<GameCard> deck) {
-        List<GameCard> eggDeck = new ArrayList<>();
-        deck.removeIf(card -> {
-            if ("Digi-Egg".equals(card.cardType())) {
-                eggDeck.add(card);
-                return true;
-            }
-            return false;
-        });
-        return eggDeck;
-    }
-
     private static List<GameCard> drawCards(List<GameCard> deck) {
         List<GameCard> drawn = new ArrayList<>(deck.subList(0, 5));
         deck.subList(0, 5).clear();
@@ -204,35 +194,34 @@ public class GameRoom {
     }
 
     public GameStart initiallyDistributeCards() {
-        List<GameCard> deck1 = createGameDeck(this.player1Deck);
-        List<GameCard> deck2 = createGameDeck(this.player2Deck);
+        List<GameCard> mainDeck1 = createGameDeck(this.player1MainDeck);
+        List<GameCard> eggDeck1 = createGameDeck(this.player1EggDeck);
+        List<GameCard> mainDeck2 = createGameDeck(this.player2MainDeck);
+        List<GameCard> eggDeck2 = createGameDeck(this.player2EggDeck);
 
-        List<GameCard> player1EggDeck = getEggDeck(deck1);
-        List<GameCard> player1Hand = drawCards(deck1);
-
-        List<GameCard> player2EggDeck = getEggDeck(deck2);
-        List<GameCard> player2Hand = drawCards(deck2);
+        List<GameCard> player1Hand = drawCards(mainDeck1);
+        List<GameCard> player2Hand = drawCards(mainDeck2);
 
         // Initialize BoardState with original distribution for mulligan
         BoardState boardState = new BoardState();
         boardState.setPlayer1OriginalHand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1OriginalDeck(deck1.toArray(new GameCard[0]));
+        boardState.setPlayer1OriginalDeck(mainDeck1.toArray(new GameCard[0]));
         boardState.setPlayer2OriginalHand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2OriginalDeck(deck2.toArray(new GameCard[0]));
+        boardState.setPlayer2OriginalDeck(mainDeck2.toArray(new GameCard[0]));
 
         // Set current state including Security cards
         boardState.setPlayer1Hand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1Deck(deck1.toArray(new GameCard[0]));
-        boardState.setPlayer1EggDeck(player1EggDeck.toArray(new GameCard[0]));
+        boardState.setPlayer1Deck(mainDeck1.toArray(new GameCard[0]));
+        boardState.setPlayer1EggDeck(eggDeck1.toArray(new GameCard[0]));
         boardState.setPlayer2Hand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2Deck(deck2.toArray(new GameCard[0]));
-        boardState.setPlayer2EggDeck(player2EggDeck.toArray(new GameCard[0]));
+        boardState.setPlayer2Deck(mainDeck2.toArray(new GameCard[0]));
+        boardState.setPlayer2EggDeck(eggDeck2.toArray(new GameCard[0]));
 
         this.boardState = boardState;
 
         return new GameStart(
-                player1Hand, deck1, player1EggDeck, new ArrayList<>(),
-                player2Hand, deck2, player2EggDeck, new ArrayList<>()
+                player1Hand, mainDeck1, eggDeck1, new ArrayList<>(),
+                player2Hand, mainDeck2, eggDeck2, new ArrayList<>()
         );
     }
     

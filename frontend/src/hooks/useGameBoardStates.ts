@@ -425,8 +425,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
 
     bootStage: BootStage.CLEAR,
 
-    player1: { avatarName: "", sleeveName: "", username: "" },
-    player2: { avatarName: "", sleeveName: "", username: "" },
+    player1: { avatarName: "", mainSleeveName: "", eggSleeveName: "", username: "" },
+    player2: { avatarName: "", mainSleeveName: "", eggSleeveName: "", username: "" },
 
     ...fieldDefaultValues,
     myMemory: 0,
@@ -464,8 +464,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             isOpponentOnline: true,
             hasDecidedMulligan: false,
             messages: [],
-            player1: { avatarName: "", sleeveName: "", username: "" },
-            player2: { avatarName: "", sleeveName: "", username: "" },
+            player1: { avatarName: "", mainSleeveName: "", eggSleeveName: "", username: "" },
+            player2: { avatarName: "", mainSleeveName: "", eggSleeveName: "", username: "" },
         });
     },
 

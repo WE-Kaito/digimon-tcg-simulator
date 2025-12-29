@@ -24,7 +24,7 @@ export default function PlayerTrash() {
     const username = useGeneralStates((state) => state.user);
     const player1 = useGameBoardStates((state) => state.player1);
     const player2 = useGameBoardStates((state) => state.player2);
-    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
+    const mySleeve = player1.username === username ? player1.mainSleeveName : player2.mainSleeveName;
 
     const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
     const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
@@ -77,7 +77,7 @@ export default function PlayerTrash() {
                     <CardImg
                         className={isMySecurityOpened ? undefined : "custom-hand-cursor"}
                         style={{ cursor: isMySecurityOpened ? "not-allowed" : undefined }}
-                        src={card.isFaceUp ? card.imgUrl : getSleeve(mySleeve)}
+                        src={card.isFaceUp ? card.imgUrl : getSleeve(card.cardType, mySleeve)}
                         alt={"myTrash"}
                         title="Open trash"
                         onClick={isMySecurityOpened ? undefined : handleClick}

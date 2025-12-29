@@ -218,8 +218,22 @@
 
 a {
     font-weight: 500;
-    color: #646cff;
     text-decoration: inherit;
+
+    color: #38d4f0;
+    text-decoration: none;
+
+    &:hover {
+        color: #daa600 !important;
+    }
+
+    &:visited {
+        color: #386ff0;
+    }
+
+    @media (max-width: 550px) {
+        font-size: 0.8em;
+    }
 }
 
 a:hover {

@@ -1,25 +1,28 @@
 import { CardType, DeckType } from "../../utils/types.ts";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
-import { fallbackCardNumber, useGeneralStates } from "../../hooks/useGeneralStates.ts";
+import { fallbackCardNumber } from "../../hooks/useGeneralStates.ts";
 import { getCardTypeImage, handleImageError } from "../../utils/functions.ts";
 import { getSleeve } from "../../utils/sleeves.ts";
 import LevelDistribution from "./LevelDistribution.tsx";
-import { Dispatch, SetStateAction } from "react";
-import { Chip } from "@mui/material";
-import { grey, teal } from "@mui/material/colors";
+import { useState } from "react";
 import { generalToken } from "../../utils/tokens.ts";
 import hackmonImg from "../../assets/Hackmon.webp";
 import { useSound } from "../../hooks/useSound.ts";
 import { useDeckStates } from "../../hooks/useDeckStates.ts";
+import MenuDialog from "../MenuDialog.tsx";
+import CustomDialogTitle from "./CustomDialogTitle.tsx";
+import ChooseMainDeckSleeve from "./ChooseMainDeckSleeve.tsx";
+import ChooseDeckImage from "./ChooseDeckImage.tsx";
+import ChooseEggDeckSleeve from "./ChooseEggDeckSleeve.tsx";
+import { EditSquare as EditIcon } from "@mui/icons-material";
+import DeckReadyCheck from "./DeckReadyCheck.tsx";
 
 const tokenImageUrl =
     "https://raw.githubusercontent.com/WE-Kaito/digimon-tcg-simulator/main/frontend/src/assets/tokenCard.jpg";
 
 export type ProfileDeckProps = {
     deck: DeckType;
-    setSleeveSelectionOpen: Dispatch<SetStateAction<boolean>>;
-    setImageSelectionOpen: Dispatch<SetStateAction<boolean>>;
     isDragging?: boolean;
     lobbyView?: boolean;
 };
@@ -91,18 +94,26 @@ function generateGradient(deckCards: CardType[]) {
     return `linear-gradient(90deg, ${gradientParts.join(", ")})`;
 }
 
-export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
-    const { deck, isDragging, setSleeveSelectionOpen, setImageSelectionOpen, lobbyView } = props;
+export default function DeckPanel(props: Readonly<ProfileDeckProps>) {
+    const { deck, isDragging, lobbyView } = props;
 
-    const setSelectedSleeveOrImage = useGeneralStates((state) => state.setSelectedSleeveOrImage);
-    const setDeckIdToSetSleeveOrImage = useGeneralStates((state) => state.setDeckIdToSetSleeveOrImage);
+    const [isMainSleeveSelectionOpen, setIsMainSleeveSelectionOpen] = useState(false);
+    const [selectedMainSleeve, setSelectedMainSleeve] = useState("");
+
+    const [isEggSleeveSelectionOpen, setIsEggSleeveSelectionOpen] = useState(false);
+    const [selectedEggSleeve, setSelectedEggSleeve] = useState("");
+
+    const [isCoverCardSelectionOpen, setCoverCardSelectionOpen] = useState(false);
+    const [selectedCoverCard, setSelectedCoverCard] = useState("");
 
     const fetchedCards = useDeckStates((state) => state.fetchedCards);
     const decks = useDeckStates((state) => state.decks);
-    const setImageSelectionUrls = useDeckStates((state) => state.setImageSelectionUrls);
 
     const cardMap = new Map(fetchedCards.map((card) => [card.uniqueCardNumber, card]));
-    const uniqueCardNumbers = Array.from(new Set(deck.decklist));
+    const uniqueCardNumbers = Array.from(new Set([...deck.mainDeckList, ...deck.eggDeckList]));
+    const coverCardSelection = uniqueCardNumbers
+        .map((cardNumber) => cardMap.get(cardNumber)?.imgUrl)
+        .filter((url) => url !== undefined);
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -112,23 +123,22 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
         navigate(`/deckbuilder/${deck.id}`);
     };
 
-    function onSleeveClick() {
-        setSelectedSleeveOrImage(deck.sleeveName);
-        setDeckIdToSetSleeveOrImage(deck.id);
-        setSleeveSelectionOpen(true);
+    function onMainSleeveClick() {
+        if (!selectedMainSleeve) setSelectedMainSleeve(deck.mainSleeveName);
+        setIsMainSleeveSelectionOpen(true);
+    }
+
+    function onEggSleeveClick() {
+        if (!selectedEggSleeve) setSelectedEggSleeve(deck.eggSleeveName);
+        setIsEggSleeveSelectionOpen(true);
     }
 
     function onImageClick() {
-        const imgUrls = uniqueCardNumbers
-            .map((cardNumber) => cardMap.get(cardNumber)?.imgUrl)
-            .filter((url) => url !== undefined);
-        setImageSelectionUrls(imgUrls);
-        setSelectedSleeveOrImage(deck.deckImageCardUrl);
-        setDeckIdToSetSleeveOrImage(deck.id);
-        setImageSelectionOpen(true);
+        if (!selectedCoverCard) setSelectedCoverCard(deck.deckImageCardUrl);
+        setCoverCardSelectionOpen(true);
     }
 
-    const deckCards: CardType[] = deck.decklist.map(
+    const mainDeckCards: CardType[] = deck.mainDeckList.map(
         (uniqueCardNumber) =>
             fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0] ??
             fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0] ?? {
@@ -137,21 +147,74 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
             }
     );
 
-    const digimonCount = deckCards.filter((card) => card.cardType === "Digimon").length;
-    const tamerCount = deckCards.filter((card) => card.cardType === "Tamer").length;
-    const optionCount = deckCards.filter((card) => card.cardType === "Option").length;
-    const eggCount = deckCards.filter((card) => card.cardType === "Digi-Egg").length;
+    const eggDeckCards: CardType[] = deck.eggDeckList.map(
+        (uniqueCardNumber) =>
+            fetchedCards.filter((card) => card.uniqueCardNumber === uniqueCardNumber)[0] ??
+            fetchedCards.filter((card) => card.cardNumber === uniqueCardNumber.split("_")[0])[0] ?? {
+                ...generalToken,
+                cardNumber: fallbackCardNumber,
+            }
+    );
 
-    const errorCount = deckCards.filter((card) => card.cardNumber === fallbackCardNumber).length;
+    const digimonCount = mainDeckCards.filter((card) => card.cardType === "Digimon").length;
+    const tamerCount = mainDeckCards.filter((card) => card.cardType === "Tamer").length;
+    const optionCount = mainDeckCards.filter((card) => card.cardType === "Option").length;
+    const eggCount = eggDeckCards.length;
+
+    const errorCount =
+        mainDeckCards.filter((card) => card.cardNumber === fallbackCardNumber).length +
+        eggDeckCards.filter((card) => card.cardNumber === fallbackCardNumber).length;
 
     return (
         <WrapperDiv style={{ pointerEvents: isDragging ? "none" : "unset" }} lobbyView={lobbyView}>
+            <MenuDialog
+                onClose={() => setIsMainSleeveSelectionOpen(false)}
+                open={isMainSleeveSelectionOpen}
+                PaperProps={{ sx: { overflow: "hidden" } }}
+            >
+                <CustomDialogTitle
+                    handleOnClose={() => setIsMainSleeveSelectionOpen(false)}
+                    title={"Set main deck sleeve:"}
+                />
+                <ChooseMainDeckSleeve
+                    deckId={deck.id}
+                    selectedSleeve={selectedMainSleeve}
+                    setSelectedSleeve={setSelectedMainSleeve}
+                />
+            </MenuDialog>
+
+            <MenuDialog
+                onClose={() => setIsEggSleeveSelectionOpen(false)}
+                open={isEggSleeveSelectionOpen}
+                PaperProps={{ sx: { overflow: "hidden" } }}
+            >
+                <CustomDialogTitle
+                    handleOnClose={() => setIsEggSleeveSelectionOpen(false)}
+                    title={"Set egg deck sleeve:"}
+                />
+                <ChooseEggDeckSleeve
+                    deckId={deck.id}
+                    selectedSleeve={selectedEggSleeve}
+                    setSelectedSleeve={setSelectedEggSleeve}
+                />
+            </MenuDialog>
+
+            <MenuDialog onClose={() => setCoverCardSelectionOpen(false)} open={isCoverCardSelectionOpen}>
+                <CustomDialogTitle handleOnClose={() => setCoverCardSelectionOpen(false)} title={"Set cover card:"} />
+                <ChooseDeckImage
+                    deckId={deck.id}
+                    selection={coverCardSelection}
+                    selectedImage={selectedCoverCard}
+                    setSelectedImage={setSelectedCoverCard}
+                />
+            </MenuDialog>
+
             {!!errorCount && fetchedCards.length > 0 && decks.length > 0 && (
                 <ErrorSpan>{`${errorCount} missing cards`}</ErrorSpan>
             )}
             {!lobbyView && <DeckName>{deck.name}</DeckName>}
             <ContainerDiv style={{ transform: isDragging ? "scale(0.95)" : "unset" }} lobbyView={lobbyView}>
-                <LevelDistribution deckCards={deckCards} />
+                <LevelDistribution deckCards={mainDeckCards} />
 
                 <CardTypeDigimon>
                     <img src={getCardTypeImage("Digimon")} alt={"Digimon"} />
@@ -170,33 +233,43 @@ export default function ProfileDeck(props: Readonly<ProfileDeckProps>) {
                     <span>{eggCount}</span>
                 </CardTypeEgg>
 
-                <ChipEn label={"EN"} sx={{ backgroundColor: deck.isAllowed_en ? teal["A700"] : grey[800] }} />
-                <ChipJp label={"JP"} sx={{ backgroundColor: deck.isAllowed_jp ? teal["A700"] : grey[800] }} />
-
-                {!lobbyView && (
-                    <EditButton className={"button"} onClick={navigateToDeck}>
-                        EDIT➤
-                    </EditButton>
-                )}
+                <PanelButtonContainer className={"button"} onClick={navigateToDeck}>
+                    <EditIcon />
+                </PanelButtonContainer>
 
                 <SleeveImage
                     className={"button"}
-                    src={getSleeve(deck.sleeveName)}
+                    src={getSleeve("Digimon", selectedMainSleeve ? selectedMainSleeve : deck.mainSleeveName)}
                     onError={handleImageError}
-                    onClick={onSleeveClick}
+                    onClick={onMainSleeveClick}
                 />
 
-                {fetchedCards.length > 0 && deckCards.length > 0 && (
+                <EggSleeveImage
+                    className={"button"}
+                    src={getSleeve("Digi-Egg", selectedEggSleeve ? selectedEggSleeve : deck.eggSleeveName)}
+                    onError={handleImageError}
+                    onClick={onEggSleeveClick}
+                />
+
+                <DeckReadyCheck deck={deck} isLobbyView={!!lobbyView} />
+
+                {fetchedCards.length > 0 && mainDeckCards.length > 0 && (
                     <CardImage
                         className={"button"}
                         hasError={!!errorCount}
-                        src={errorCount ? hackmonImg : (deck.deckImageCardUrl ?? tokenImageUrl)}
+                        src={
+                            errorCount
+                                ? hackmonImg
+                                : selectedCoverCard
+                                  ? selectedCoverCard
+                                  : (deck.deckImageCardUrl ?? tokenImageUrl)
+                        }
                         onError={handleImageError}
                         onClick={onImageClick}
                     />
                 )}
 
-                <ColorLineDiv style={{ background: generateGradient(deckCards) }} />
+                <ColorLineDiv style={{ background: generateGradient([...mainDeckCards, ...eggDeckCards]) }} />
             </ContainerDiv>
         </WrapperDiv>
     );
@@ -232,55 +305,16 @@ const ContainerDiv = styled.div<{ lobbyView?: boolean }>`
     grid-template-columns: 1fr 1fr 1fr 0.8fr 0.8fr 1.2fr 1.2fr;
     grid-template-rows: repeat(6, 1fr);
     grid-template-areas:
+        "card-image card-image card-image sleeve sleeve egg-sleeve edit"
+        "card-image card-image card-image sleeve sleeve egg-sleeve edit"
+        "card-image card-image card-image sleeve sleeve . ready"
         "card-image card-image card-image levels levels digimons tamers"
         "card-image card-image card-image levels levels options eggs"
-        "card-image card-image card-image sleeve sleeve allowed_en allowed_jp"
-        "card-image card-image card-image sleeve sleeve edit edit"
-        "card-image card-image card-image sleeve sleeve edit edit"
         "card-image card-image card-image colors colors colors colors";
     background-color: #070707;
     box-shadow: inset 0 0 3px 0 rgba(0, 0, 0, 0.7);
     border-radius: 10px;
     transition: all 0.2s ease;
-`;
-
-const EditButton = styled.button`
-    grid-area: edit;
-    padding: 0 0 1px 2px;
-
-    border-bottom: 1px solid #131313;
-    border-right: 1px solid #131313;
-
-    cursor: pointer;
-    width: 95%;
-    height: 75%;
-    border-radius: 0;
-    background: black;
-    font-family:
-        Pixel Digivolve,
-        sans-serif;
-    font-size: 14px;
-    color: white;
-    letter-spacing: 2px;
-    box-shadow: 3px 6px 1px 0 rgb(0, 0, 0);
-    transition: all 0.15s ease;
-
-    &:hover {
-        background: lightgray;
-        transform: translateY(1px);
-        box-shadow: 2px 4px 1px 0 rgba(0, 0, 0, 0.9);
-        color: #0c0c0c;
-    }
-
-    &:focus {
-        outline: none;
-    }
-
-    &:active {
-        background: #f8f8f8;
-        transform: translateY(2px);
-        box-shadow: 1px 2px 1px 0 rgba(0, 0, 0, 0.8);
-    }
 `;
 
 const DeckName = styled.span`
@@ -312,7 +346,23 @@ const SleeveImage = styled.img`
     max-height: 100%;
     border-radius: 2px;
     grid-area: sleeve;
-    transform: translate(-2px, -1px);
+    transform: translateX(-2px);
+
+    :hover {
+        filter: drop-shadow(0 0 2px rgba(87, 160, 255, 0.5)) contrast(1.1);
+    }
+`;
+
+const EggSleeveImage = styled.img`
+    border-radius: 2px;
+    grid-area: egg-sleeve;
+    position: absolute;
+    height: 71px;
+    width: 53px;
+
+    left: 0;
+    top: 0;
+    transform: translateX(-5px);
 
     :hover {
         filter: drop-shadow(0 0 2px rgba(87, 160, 255, 0.5)) contrast(1.1);
@@ -324,6 +374,7 @@ const CardTypeContainer = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transform: translateY(3px);
 
     img {
         height: 22px;
@@ -362,27 +413,8 @@ const ColorLineDiv = styled.div`
     width: 100%;
     height: 15px;
     border-radius: 3px;
-    transform: translate(-1px, 2px);
+    transform: translate(-2px, 1px);
     box-shadow: inset 0 0 2px 0 rgba(219, 236, 243, 0.4);
-`;
-
-const StyledChip = styled(Chip)`
-    border-radius: 5px;
-    height: 20px;
-    font-weight: bolder;
-    box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.7);
-    transform: translateY(1px);
-    span {
-        transform: translateY(1px);
-    }
-`;
-
-const ChipEn = styled(StyledChip)`
-    grid-area: allowed_en;
-`;
-
-const ChipJp = styled(StyledChip)`
-    grid-area: allowed_jp;
 `;
 
 const ErrorSpan = styled.span`
@@ -394,4 +426,45 @@ const ErrorSpan = styled.span`
     bottom: 3px;
     left: 10px;
     z-index: 6;
+`;
+
+const PanelButtonContainer = styled.div`
+    grid-area: edit;
+    width: 92%;
+    height: 80%;
+    background: linear-gradient(
+        135deg,
+        rgba(87, 171, 255, 0.125) 0%,
+        rgba(93, 159, 236, 0.125) 70%,
+        rgba(94, 187, 245, 0.125) 98%,
+        rgba(94, 187, 245, 0.1) 100%
+    );
+
+    border-right: none;
+    border-radius: 0 10px 0 3px;
+    box-shadow: inset 5px 5px 30px 5px rgba(255, 255, 255, 0.05);
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    transform: translate(10px, -11px);
+
+    &:hover {
+        color: #508dd3;
+        background: linear-gradient(
+            135deg,
+            rgba(87, 171, 255, 0.14) 0%,
+            rgba(93, 159, 236, 0.13) 70%,
+            rgba(94, 187, 245, 0.125) 98%,
+            rgba(94, 187, 245, 0.1) 100%
+        );
+    }
+
+    &:active {
+        color: #3184e3;
+        svg {
+            scale: 0.95;
+        }
+    }
 `;

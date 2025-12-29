@@ -6,12 +6,13 @@ import { CardTypeWithId } from "../../utils/types.ts";
 import DeckbuilderCard from "./DeckbuilderCard.tsx";
 import { getCardTypeImage } from "../../utils/functions.ts";
 import { useSound } from "../../hooks/useSound.ts";
-import LevelDistribution from "../profile/LevelDistribution.tsx";
+import LevelDistribution from "../deckPanel/LevelDistribution.tsx";
 import { useMediaQuery } from "@mui/material";
 import { sortCards, useDeckStates } from "../../hooks/useDeckStates.ts";
 
 export default function DeckSelection() {
-    const deckCards = useDeckStates((state) => state.deckCards);
+    const mainDeckCards = useDeckStates((state) => state.mainDeckCards);
+    const eggDeckCards = useDeckStates((state) => state.eggDeckCards);
     const isLoading = useDeckStates((state) => state.isLoading);
     const isSettingDeck = useDeckStates((state) => state.isSettingDeck);
     const addCardToDeck = useDeckStates((state) => state.addCardToDeck);
@@ -20,12 +21,12 @@ export default function DeckSelection() {
     const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
 
-    const digimonLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Digimon").length;
-    const tamerLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Tamer").length;
-    const optionLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Option").length;
-    const eggLength = deckCards.filter((card: CardTypeWithId) => card.cardType === "Digi-Egg").length;
+    const digimonLength = mainDeckCards.filter((card: CardTypeWithId) => card.cardType === "Digimon").length;
+    const tamerLength = mainDeckCards.filter((card: CardTypeWithId) => card.cardType === "Tamer").length;
+    const optionLength = mainDeckCards.filter((card: CardTypeWithId) => card.cardType === "Option").length;
+    const eggLength = eggDeckCards.length;
 
-    const sortedDeck = sortCards(deckCards);
+    const sortedDeck = sortCards([...eggDeckCards, ...mainDeckCards]);
     const cardGroups: { [key: string]: CardTypeWithId[] } = {};
     sortedDeck.forEach((card) => {
         const uniqueCardNumber = card.uniqueCardNumber;
@@ -35,13 +36,14 @@ export default function DeckSelection() {
         cardGroups[uniqueCardNumber].push(card);
     });
 
-    const filteredDeckLength = deckCards.length - eggLength;
     const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", "EX9-048", fallbackCardNumber];
     function getAddAllowed(card: CardTypeWithId) {
+        if (card.cardType === "Digi-Egg") {
+            return eggLength < 5 && eggDeckCards.filter((c) => c.cardNumber === card.cardNumber).length < 4;
+        }
         return (
-            (filteredDeckLength < 50 || (card.cardType === "Digi-Egg" && eggLength < 5)) &&
-            (deckCards.filter((c) => c.cardNumber === card.cardNumber).length < 4 ||
-                cardsWithoutLimit.includes(card.cardNumber))
+            (mainDeckCards.length < 50 && mainDeckCards.filter((c) => c.cardNumber === card.cardNumber).length < 4) ||
+            cardsWithoutLimit.includes(card.cardNumber)
         );
     }
 
@@ -50,18 +52,16 @@ export default function DeckSelection() {
     return (
         <>
             <Stats>
-                <StyledSpan style={{ scale: isMobile ? 0.9 : undefined }}>
-                    {deckCards.length - eggLength} / 50
-                </StyledSpan>
+                <StyledSpan style={{ scale: isMobile ? 0.9 : undefined }}>{mainDeckCards.length} / 50</StyledSpan>
 
                 <div style={{ transform: "translateY(3px)", scale: isMobile ? 0.9 : 1.1, width: 50 }}>
-                    <LevelDistribution deckCards={deckCards} />
+                    <LevelDistribution deckCards={mainDeckCards} />
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "row", gap: isMobile ? 8 : 24 }}>
                     <StatContainer>
                         <StyledIcon src={getCardTypeImage("Digi-Egg")} alt="Egg: " />
-                        <StyledSpan>{eggLength}</StyledSpan>
+                        <StyledSpan>{eggLength} / 5</StyledSpan>
                     </StatContainer>
 
                     <StatContainer>

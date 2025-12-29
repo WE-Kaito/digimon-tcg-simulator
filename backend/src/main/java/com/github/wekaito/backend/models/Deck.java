@@ -8,11 +8,10 @@ import java.util.List;
 public record Deck(
         String id,
         String name,
-        List<String> decklist,
+        List<String> mainDeckList,
+        List<String> eggDeckList,
         String deckImageCardUrl,
-        String sleeveName,
-        boolean isAllowed_en,
-        boolean isAllowed_jp,
+        String mainSleeveName,
+        String eggSleeveName,
         String authorId) {
-
 }

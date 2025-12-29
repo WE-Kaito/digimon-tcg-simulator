@@ -18,7 +18,7 @@ class Room {
 
         private String hostName;
 
-        private Format format;
+        private boolean restrictionsApplied;
 
         private String password; // null if no password
 

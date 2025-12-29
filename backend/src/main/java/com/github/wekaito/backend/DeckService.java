@@ -2,14 +2,12 @@ package com.github.wekaito.backend;
 
 import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.models.Deck;
-import com.github.wekaito.backend.models.DeckWithoutId;
+import com.github.wekaito.backend.models.DeckCreateDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,24 +15,21 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class DeckService {
-
-    private static final SecureRandom secureRand = new SecureRandom();
-
     private final DeckRepo deckRepo;
 
     private final CardService cardService;
 
     private final UserIdService userIdService;
 
-    public void addDeck(DeckWithoutId deckWithoutId) {
+    public void addDeck(DeckCreateDto deckWithoutId) {
         Deck deckToSave = new Deck(
                 UUID.randomUUID().toString(),
                 deckWithoutId.name(),
-                deckWithoutId.decklist(),
+                deckWithoutId.mainDeckList(),
+                deckWithoutId.eggDeckList(),
                 deckWithoutId.deckImageCardUrl(),
-                deckWithoutId.sleeveName(),
-                deckWithoutId.isAllowed_en(),
-                deckWithoutId.isAllowed_jp(),
+                deckWithoutId.mainSleeveName(),
+                deckWithoutId.eggSleeveName(),
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
@@ -44,17 +39,17 @@ public class DeckService {
         return deckRepo.findByAuthorId(authorId);
     }
 
-    public void updateDeck(String id, @Valid DeckWithoutId deckWithoutId) {
+    public void updateDeck(String id, @Valid DeckCreateDto deckWithoutId) {
         if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
         Deck existingDeck = getDeckById(id);
         Deck deckToSave = new Deck(
                 id,
                 deckWithoutId.name(),
-                deckWithoutId.decklist(),
+                deckWithoutId.mainDeckList(),
+                deckWithoutId.eggDeckList(),
                 existingDeck.deckImageCardUrl(),
-                existingDeck.sleeveName(),
-                deckWithoutId.isAllowed_en(),
-                deckWithoutId.isAllowed_jp(),
+                existingDeck.mainSleeveName(),
+                existingDeck.eggSleeveName(),
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
@@ -65,30 +60,32 @@ public class DeckService {
         return optionalDeck.orElse(null);
     }
 
-    public List<Card> getDeckCardsById(String id) {
+    public List<Card> getMainDeckCardsById(String id) {
         Optional<Deck> optionalDeck = this.deckRepo.findById(id);
         List<Card> cards = new ArrayList<>();
         if (optionalDeck.isPresent()) {
             Deck deck = optionalDeck.get();
-            for (String uniqueCardNumber : deck.decklist()) {
+            for (String uniqueCardNumber : deck.mainDeckList()) {
                 Card card = cardService.getCardByUniqueCardNumber(uniqueCardNumber);
-
-                // If the alt art card is not found replace it with the regular card
-                if (card == null && uniqueCardNumber.contains("_")) {
-                    String cardNumber = uniqueCardNumber.split("_")[0];
-                    card = cardService.getCardByUniqueCardNumber(cardNumber);
-                }
-
-                // Add the card (either the complete one or the fallback) to the list
-                if (card != null) {
-                    cards.add(card);
-                }
+                cards.add(card);
             }
         }
         else throw new IllegalArgumentException();
 
-        // Preliminary shuffle to break up deck order patterns before game shuffling
-        Collections.shuffle(cards, secureRand);
+        return cards;
+    }
+
+    public List<Card> getEggDeckCardsById(String id) {
+        Optional<Deck> optionalDeck = this.deckRepo.findById(id);
+        List<Card> cards = new ArrayList<>();
+        if (optionalDeck.isPresent()) {
+            Deck deck = optionalDeck.get();
+            for (String uniqueCardNumber : deck.eggDeckList()) {
+                Card card = cardService.getCardByUniqueCardNumber(uniqueCardNumber);
+                cards.add(card);
+            }
+        }
+        else throw new IllegalArgumentException();
 
         return cards;
     }
@@ -106,27 +103,43 @@ public class DeckService {
         Deck deckToSave = new Deck(
                 id,
                 existingDeck.name(),
-                existingDeck.decklist(),
+                existingDeck.mainDeckList(),
+                existingDeck.eggDeckList(),
                 imageUrl,
-                existingDeck.sleeveName(),
-                existingDeck.isAllowed_en(),
-                existingDeck.isAllowed_jp(),
+                existingDeck.mainSleeveName(),
+                existingDeck.eggSleeveName(),
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
     }
 
-    public void updateDeckSleeve(String id, String sleeveName) {
+    public void updateMainDeckSleeve(String id, String sleeveName) {
         if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
         Deck existingDeck = getDeckById(id);
         Deck deckToSave = new Deck(
                 id,
                 existingDeck.name(),
-                existingDeck.decklist(),
+                existingDeck.mainDeckList(),
+                existingDeck.eggDeckList(),
                 existingDeck.deckImageCardUrl(),
                 sleeveName,
-                existingDeck.isAllowed_en(),
-                existingDeck.isAllowed_jp(),
+                existingDeck.eggSleeveName(),
+                userIdService.getCurrentUserId()
+        );
+        this.deckRepo.save(deckToSave);
+    }
+
+    public void updateEggDeckSleeve(String id, String sleeveName) {
+        if (!deckRepo.existsById(id)) throw new IllegalArgumentException();
+        Deck existingDeck = getDeckById(id);
+        Deck deckToSave = new Deck(
+                id,
+                existingDeck.name(),
+                existingDeck.mainDeckList(),
+                existingDeck.eggDeckList(),
+                existingDeck.deckImageCardUrl(),
+                existingDeck.mainSleeveName(),
+                sleeveName,
                 userIdService.getCurrentUserId()
         );
         this.deckRepo.save(deckToSave);
@@ -135,7 +148,13 @@ public class DeckService {
     public String getDeckSleeveById(String id) {
         Optional<Deck> optionalDeck = this.deckRepo.findById(id);
         if (optionalDeck.isEmpty()) throw new IllegalArgumentException();
-        return optionalDeck.get().sleeveName();
+        return optionalDeck.get().mainSleeveName();
+    }
+
+    public String getEggDeckSleeveById(String id) {
+        Optional<Deck> optionalDeck = this.deckRepo.findById(id);
+        if (optionalDeck.isEmpty()) throw new IllegalArgumentException();
+        return optionalDeck.get().eggSleeveName();
     }
 
 }

@@ -22,7 +22,6 @@ export default function DragLayerCustom() {
 
     const player1 = useGameBoardStates((state) => state.player1);
     const player2 = useGameBoardStates((state) => state.player2);
-    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
 
     if (!isDragging || !item || !currentOffset) {
         return null;
@@ -35,8 +34,16 @@ export default function DragLayerCustom() {
     // Handle single card dragging
     if (item.type === "card") {
         const { card, location } = item.content as DraggedItem;
+        const sleeve =
+            player1.username === username
+                ? card.cardType === "Digi-Egg"
+                    ? player1.eggSleeveName
+                    : player1.mainSleeveName
+                : card.cardType === "Digi-Egg"
+                  ? player2.eggSleeveName
+                  : player2.mainSleeveName;
 
-        const imgSrc = !card.isFaceUp && location !== "myHand" ? getSleeve(mySleeve) : card.imgUrl;
+        const imgSrc = !card.isFaceUp && location !== "myHand" ? getSleeve(card.cardType, sleeve) : card.imgUrl;
 
         return (
             <DragPreview style={{ transform: `translate(${x - 5}px, ${y - 5}px)` }}>
@@ -61,7 +68,20 @@ export default function DragLayerCustom() {
                     {cards.map((card: CardTypeGame, index: number) => (
                         <CardPreview
                             key={card.id}
-                            src={card.isFaceUp ? card.imgUrl : getSleeve(mySleeve)}
+                            src={
+                                card.isFaceUp
+                                    ? card.imgUrl
+                                    : getSleeve(
+                                          card.cardType,
+                                          player1.username === username
+                                              ? card.cardType === "Digi-Egg"
+                                                  ? player1.eggSleeveName
+                                                  : player1.mainSleeveName
+                                              : card.cardType === "Digi-Egg"
+                                                ? player2.eggSleeveName
+                                                : player2.mainSleeveName
+                                      )
+                            }
                             alt={card.name}
                             width={width}
                             height={height}

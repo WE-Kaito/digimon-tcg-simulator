@@ -2,7 +2,7 @@ package com.github.wekaito.backend;
 
 import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.models.Deck;
-import com.github.wekaito.backend.models.DeckWithoutId;
+import com.github.wekaito.backend.models.DeckCreateDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +26,7 @@ public class DeckController {
     }
 
     @PostMapping("/decks")
-    public String addDeck(@RequestBody @Valid DeckWithoutId deckWithoutId) {
-        if (deckWithoutId.decklist().get(0) == null) return "There was an error while saving the deck.";
+    public String addDeck(@RequestBody @Valid DeckCreateDto deckWithoutId) {
         this.deckService.addDeck(deckWithoutId);
         return "Deck saved successfully.";
     }
@@ -43,7 +42,7 @@ public class DeckController {
     }
 
     @PutMapping("/decks/{id}")
-    public void updateDeck(@PathVariable String id, @RequestBody @Valid DeckWithoutId deckWithoutId) {
+    public void updateDeck(@PathVariable String id, @RequestBody @Valid DeckCreateDto deckWithoutId) {
         this.deckService.updateDeck(id, deckWithoutId);
     }
 
@@ -53,8 +52,13 @@ public class DeckController {
     }
 
     @PutMapping("/decks/{id}/sleeve/{sleeveName}")
-    public void updateDeckSleeve(@PathVariable String id, @PathVariable String sleeveName) {
-        this.deckService.updateDeckSleeve(id, sleeveName);
+    public void updateMainDeckSleeve(@PathVariable String id, @PathVariable String sleeveName) {
+        this.deckService.updateMainDeckSleeve(id, sleeveName);
+    }
+
+    @PutMapping("/decks/{id}/egg-sleeve/{sleeveName}")
+    public void updateEggDeckSleeve(@PathVariable String id, @PathVariable String sleeveName) {
+        this.deckService.updateEggDeckSleeve(id, sleeveName);
     }
 
     @DeleteMapping("/decks/{id}")

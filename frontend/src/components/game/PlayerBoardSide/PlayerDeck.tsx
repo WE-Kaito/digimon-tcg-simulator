@@ -14,7 +14,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const username = useGeneralStates((state) => state.user);
     const player1 = useGameBoardStates((state) => state.player1);
     const player2 = useGameBoardStates((state) => state.player2);
-    const mySleeve = player1.username === username ? player1.sleeveName : player2.sleeveName;
+    const mySleeve = player1.username === username ? player1.mainSleeveName : player2.mainSleeveName;
 
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
     const nextPhaseTrigger = useGameBoardStates((state) => state.nextPhaseTrigger);
@@ -57,7 +57,7 @@ export default function PlayerDeck({ wsUtils }: { wsUtils?: WSUtils }) {
             <DeckImg
                 ref={deckTopRef as any}
                 alt="deck"
-                src={getSleeve(mySleeve)}
+                src={getSleeve("Digimon", mySleeve)}
                 isOver={isOverTop}
                 onClick={handleClick}
                 onContextMenu={(e) => showDeckMenu({ event: e })}

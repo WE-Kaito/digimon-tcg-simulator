@@ -8,8 +8,8 @@ export default function BackButton({ route }: { route?: string }) {
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
 
     function handleClick() {
-        navigate(route ? route : "/");
         playButtonClickSfx();
+        route ? navigate(route) : window.history.back();
     }
 
     return (

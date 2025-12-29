@@ -1,13 +1,20 @@
-import eggBackSrc from "../../../assets/eggBack.jpg";
 import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
+import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import { getSleeve } from "../../../utils/sleeves.ts";
 
 export default function OpponentEggDeck() {
+    const username = useGeneralStates((state) => state.user);
     const opponentEggDeck = useGameBoardStates((state) => state.opponentEggDeck);
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+
+    const opponentEggSleeve = player1.username === username ? player2.eggSleeveName : player1.eggSleeveName;
+
     return (
         <Container>
             {opponentEggDeck.length !== 0 && <StyledSpan>{opponentEggDeck.length}</StyledSpan>}
-            {opponentEggDeck.length !== 0 && <DeckImg alt="egg-deck" src={eggBackSrc} />}
+            {opponentEggDeck.length !== 0 && <DeckImg alt="egg-deck" src={getSleeve("Digi-Egg", opponentEggSleeve)} />}
         </Container>
     );
 }

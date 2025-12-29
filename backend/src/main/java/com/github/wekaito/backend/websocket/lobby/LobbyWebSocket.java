@@ -74,7 +74,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             return;
         }
 
-        List<Card> deckCards = deckService.getDeckCardsById(activeDeck);
+        // TODO: change this along with limited card check
+        List<Card> deckCards = deckService.getMainDeckCardsById(activeDeck);
         if (deckCards.stream().anyMatch(c -> "1110101".equals(c.cardNumber()))) {
             sendTextMessage(session, "[BROKEN_DECK]");
             return;
@@ -339,13 +340,13 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         String roomName = parts[1];
         String roomPassword = parts[2];
-        Format roomFormat = Format.valueOf(parts[3]);
+        boolean restrictionsApplied = Objects.equals(parts[3], "true");
 
         Room room = new Room(
                 UUID.randomUUID().toString(),
                 roomName,
                 username,
-                roomFormat,
+                restrictionsApplied,
                 roomPassword,
                 new ArrayList<>());
 
@@ -405,7 +406,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 room.getId(),
                 room.getName(),
                 room.getHostName(),
-                room.getFormat(),
+                room.isRestrictionsApplied(),
                 !room.getPassword().isEmpty(),
                 room.getPlayers().stream().map(p -> new LobbyPlayerDTO(
                         p.getName(),

@@ -10,14 +10,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class StarterDeckService {
-
     private final DeckRepo deckRepo;
 
-    public static final List<String> GALLANTMON = List.of(
-            "ST7-01",
-            "ST7-01",
-            "ST7-01",
-            "ST7-01",
+
+    public static final List<String> GALLANTMON_MAIN = List.of(
             "ST1-16",
             "ST1-16",
             "ST1-16",
@@ -70,11 +66,14 @@ public class StarterDeckService {
             "ST7-10"
     );
 
-    public static final List<String> BEELZEMON = List.of(
-            "ST14-01",
-            "ST14-01",
-            "ST14-01",
-            "ST14-01",
+    public static final List<String> GALLANTMON_EGGS = List.of(
+            "ST7-01",
+            "ST7-01",
+            "ST7-01",
+            "ST7-01"
+    );
+
+    public static final List<String> BEELZEMON_MAIN = List.of(
             "EX2-071",
             "EX2-071",
             "EX2-071",
@@ -127,15 +126,18 @@ public class StarterDeckService {
             "ST14-10"
     );
 
-    public static final List<String> DRAGON_OF_COURAGE = List.of(
+    public static final List<String> BEELZEMON_EGGS = List.of(
+            "ST14-01",
+            "ST14-01",
+            "ST14-01",
+            "ST14-01"
+    );
+
+    public static final List<String> DRAGON_OF_COURAGE_MAIN = List.of(
             "ST15-02_P1",
             "ST15-12_P1",
             "ST15-11_P1",
             "ST15-11_P1",
-            "ST15-01",
-            "ST15-01",
-            "ST15-01",
-            "ST15-01",
             "ST15-02",
             "ST15-03",
             "ST15-03",
@@ -184,7 +186,14 @@ public class StarterDeckService {
             "ST15-16"
     );
 
-    public static final List<String> VORTEX_WARRIORS = List.of(
+    public static final List<String> DRAGON_OF_COURAGE_EGGS = List.of(
+            "ST15-01",
+            "ST15-01",
+            "ST15-01",
+            "ST15-01"
+    );
+
+    public static final List<String> VORTEX_WARRIORS_MAIN = List.of(
             "P-038_P4",
             "P-038_P4",
             "ST18-15",
@@ -234,7 +243,10 @@ public class StarterDeckService {
             "ST18-02",
             "ST18-02",
             "ST18-02",
-            "ST18-02",
+            "ST18-02"
+    );
+
+    public static final List<String> VORTEX_WARRIORS_EGGS = List.of(
             "ST18-01",
             "ST18-01",
             "ST18-01",
@@ -245,44 +257,44 @@ public class StarterDeckService {
         Deck gallantmonDeck = new Deck(
                 firstDeckId,
                 "[STARTER] Gallantmon",
-                GALLANTMON,
+                GALLANTMON_MAIN,
+                GALLANTMON_EGGS,
                 "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST7-09.webp",
                 "Guilmon",
-                true,
-                true,
+                "Default",
                 userId
         );
 
         Deck beelzemonDeck = new Deck(
                 UUID.randomUUID().toString(),
                 "[STARTER] Beelzemon",
-                BEELZEMON,
+                BEELZEMON_MAIN,
+                BEELZEMON_EGGS,
                 "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST14-10.webp",
                 "Impmon",
-                true,
-                true,
+                "Default",
                 userId
         );
 
         Deck dragonOfCourageDeck = new Deck(
                 UUID.randomUUID().toString(),
                 "[STARTER] Dragon Of Courage",
-                DRAGON_OF_COURAGE,
+                DRAGON_OF_COURAGE_MAIN,
+                DRAGON_OF_COURAGE_EGGS,
                 "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST15-12.webp",
                 "Agumon",
-                true,
-                true,
+                "Default",
                 userId
         );
 
         Deck vortexWarriorsDeck = new Deck(
                 UUID.randomUUID().toString(),
                 "[STARTER] Vortex Warriors",
-                VORTEX_WARRIORS,
+                VORTEX_WARRIORS_MAIN,
+                VORTEX_WARRIORS_EGGS,
                 "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/P-038_P4-J.webp",
                 "Pteromon",
-                true,
-                true,
+                "Default",
                 userId
         );
 

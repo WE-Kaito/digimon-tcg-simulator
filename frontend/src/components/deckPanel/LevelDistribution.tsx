@@ -48,7 +48,7 @@ export default function LevelDistribution({ deckCards }: { deckCards: CardType[]
 const Container = styled.div`
     grid-area: levels;
     position: relative;
-    transform: translate(-5px, -18px);
+    transform: translate(-3px, -12px);
 `;
 
 const LevelsSvg = styled.svg`

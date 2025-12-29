@@ -21,7 +21,7 @@ export default function Deckbuilder() {
 
     const deckName = useDeckStates((state) => state.deckName);
     const setDeckName = useDeckStates((state) => state.setDeckName);
-    const deckCards = useDeckStates((state) => state.deckCards);
+    const deckCards = useDeckStates((state) => state.mainDeckCards);
     const setDeckById = useDeckStates((state) => state.setDeckById);
 
     const decks = useDeckStates((state) => state.decks);
@@ -78,7 +78,7 @@ export default function Deckbuilder() {
                         }}
                     >
                         <UpdateDeckButtons deckName={deckName} />
-                        <BackButton route={"/decks"} />
+                        <BackButton />
                     </div>
                     <SearchForm />
 

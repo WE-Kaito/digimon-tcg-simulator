@@ -1,12 +1,12 @@
 import styled from "@emotion/styled";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useSound } from "../../../hooks/useSound.ts";
-import eggBackSrc from "../../../assets/eggBack.jpg";
 import { BootStage, Phase } from "../../../utils/types.ts";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { useDroppableReactDnd } from "../../../hooks/useDroppableReactDnd.ts";
 import { ChangeHistoryTwoTone as TriangleIcon } from "@mui/icons-material";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import { getSleeve } from "../../../utils/sleeves.ts";
 
 export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const myEggDeck = useGameBoardStates((state) => state.myEggDeck);
@@ -17,6 +17,10 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
     const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
     const username = useGeneralStates((state) => state.user);
     const isMyTurn = getIsMyTurn(username);
+
+    const player1 = useGameBoardStates((state) => state.player1);
+    const player2 = useGameBoardStates((state) => state.player2);
+    const myEggSleeve = player1.username === username ? player1.eggSleeveName : player2.eggSleeveName;
 
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
@@ -47,7 +51,7 @@ export default function PlayerEggDeck({ wsUtils }: { wsUtils?: WSUtils }) {
             <Container ref={setNodeRef as any}>
                 <DeckImg
                     alt="egg-deck"
-                    src={eggBackSrc}
+                    src={getSleeve("Digi-Egg", myEggSleeve)}
                     isOver={false}
                     onClick={handleClick}
                     style={gameHasStarted ? undefined : { cursor: "not-allowed!important" }}

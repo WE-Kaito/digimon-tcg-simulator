@@ -9,12 +9,12 @@ export default function OpponentDeck() {
     const player1 = useGameBoardStates((state) => state.player1);
     const player2 = useGameBoardStates((state) => state.player2);
 
-    const opponentSleeve = player1.username === username ? player2.sleeveName : player1.sleeveName;
+    const opponentSleeve = player1.username === username ? player2.mainSleeveName : player1.mainSleeveName;
 
     return (
         <Container>
             <StyledSpan>{opponentDeckField.length}</StyledSpan>
-            <StyledImg alt="sleeve" src={getSleeve(opponentSleeve)} />
+            <StyledImg alt="sleeve" src={getSleeve("Digimon", opponentSleeve)} />
         </Container>
     );
 }
