@@ -16,7 +16,7 @@ export default function PatchnotesLink() {
 
 const Wrapper = styled.sub`
     width: 100vw;
-    position: absolute;
+    position: fixed;
     bottom: -2px;
     left: 114px;
     transform: translateX(-50%);

@@ -629,19 +629,27 @@ export default function Lobby() {
                         </Card>
 
                         {!joinedRoom && (
-                            <Card style={{ minWidth: 300, flex: 1 }}>
+                            <Card
+                                style={{
+                                    minWidth: 300,
+                                    flex: 1,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                }}
+                            >
                                 {/*<CardTitle>Room Setup</CardTitle>*/}
                                 <Input
                                     value={newRoomName}
                                     onChange={(e) => setNewRoomName(e.target.value)}
                                     placeholder="New room name"
-                                    style={{ marginBottom: "1rem", width: "95%" }}
+                                    style={{ marginBottom: "1rem", width: "95%", maxHeight: "1.25rem" }}
                                 />
                                 <Input
                                     value={newRoomPassword}
                                     onChange={(e) => setNewRoomPassword(e.target.value)}
                                     placeholder="Password (optional)"
-                                    style={{ marginBottom: "1rem", width: "95%" }}
+                                    style={{ marginBottom: "1rem", width: "95%", maxHeight: "1.25rem" }}
                                 />
                                 <FormControlLabel
                                     disabled
@@ -672,7 +680,7 @@ export default function Lobby() {
                                 <Button
                                     disabled={!newRoomName || isLoading}
                                     onClick={handleCreateRoom}
-                                    style={{ width: "250px", height: "36px" }}
+                                    style={{ width: "250px", height: "36px", marginTop: "auto" }}
                                 >
                                     Create Room
                                 </Button>
