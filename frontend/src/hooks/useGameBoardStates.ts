@@ -648,7 +648,9 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         }
 
         if (from === to) {
-            if (get().markedCard === cardId && from === "opponentHand") get().setMarkedCard("");
+            if (to === "opponentHand" && !!get().opponentHand.find((c) => c.id === get().markedCard)) {
+                get().setMarkedCard("");
+            }
             set({ [from]: [...updatedFromState, card] });
             return;
         }
