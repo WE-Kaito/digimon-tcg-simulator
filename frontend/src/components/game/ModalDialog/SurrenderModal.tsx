@@ -11,7 +11,7 @@ type Props = {
 export default function SurrenderModal({ setSurrenderModal, wsUtils }: Props) {
     const {
         sendMessage,
-        matchInfo: { gameId, opponentName },
+        matchInfo: { gameId },
     } = wsUtils;
 
     const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);

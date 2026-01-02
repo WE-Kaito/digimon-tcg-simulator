@@ -1,21 +1,21 @@
 import "./App.css";
-import { Navigate, Route, Routes } from "react-router-dom";
-import Profile from "./pages/Profile.tsx";
-import LoginPage from "./pages/LoginPage.tsx";
-import RecoveryPage from "./pages/RecoveryPage.tsx";
 import { useGeneralStates } from "./hooks/useGeneralStates.ts";
 import { useEffect } from "react";
-import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
-import Lobby from "./pages/Lobby.tsx";
-import CustomToastContainer from "./components/CustomToastContainer.tsx";
-import GamePage from "./pages/GamePage.tsx";
 import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
-import Decks from "./pages/Decks.tsx";
-import Deckbuilder from "./pages/Deckbuilder.tsx";
-import DeckTest from "./pages/DeckTest.tsx";
 import { useDeckStates } from "./hooks/useDeckStates.ts";
-import Administration from "./pages/Administration.tsx";
+// import { Navigate, Route, Routes } from "react-router-dom";
+// import Profile from "./pages/Profile.tsx";
+// import LoginPage from "./pages/LoginPage.tsx";
+// import RecoveryPage from "./pages/RecoveryPage.tsx";
+// import ProtectedRoutes from "./components/ProtectedRoutes.tsx";
+// import Lobby from "./pages/Lobby.tsx";
+// import CustomToastContainer from "./components/CustomToastContainer.tsx";
+// import GamePage from "./pages/GamePage.tsx";
+// import Decks from "./pages/Decks.tsx";
+// import Deckbuilder from "./pages/Deckbuilder.tsx";
+// import DeckTest from "./pages/DeckTest.tsx";
+// import Administration from "./pages/Administration.tsx";
 
 function App() {
     const me = useGeneralStates((state) => state.me);

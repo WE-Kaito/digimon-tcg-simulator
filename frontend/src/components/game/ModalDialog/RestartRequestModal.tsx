@@ -11,7 +11,7 @@ type Props = {
 export default function RestartRequestModal({ setRestartRequestModal, wsUtils }: Props) {
     const {
         sendMessage,
-        matchInfo: { gameId, opponentName },
+        matchInfo: { gameId },
     } = wsUtils;
 
     function sendRequest(order: "AsFirst" | "AsSecond") {
