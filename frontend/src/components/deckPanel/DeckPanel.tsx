@@ -25,6 +25,7 @@ export type ProfileDeckProps = {
     deck: DeckType;
     isDragging?: boolean;
     lobbyView?: boolean;
+    inRoom?: boolean;
 };
 
 function generateGradient(deckCards: CardType[]) {
@@ -95,7 +96,7 @@ function generateGradient(deckCards: CardType[]) {
 }
 
 export default function DeckPanel(props: Readonly<ProfileDeckProps>) {
-    const { deck, isDragging, lobbyView } = props;
+    const { deck, isDragging, lobbyView, inRoom } = props;
 
     const [isMainSleeveSelectionOpen, setIsMainSleeveSelectionOpen] = useState(false);
     const [selectedMainSleeve, setSelectedMainSleeve] = useState("");
@@ -118,7 +119,12 @@ export default function DeckPanel(props: Readonly<ProfileDeckProps>) {
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
 
     const navigate = useNavigate();
-    const navigateToDeck = () => {
+    const navigateToDeck = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (inRoom) {
+            e.preventDefault();
+            const confirmed = window.confirm("Opening Deck Builder will make you leave the room!");
+            if (!confirmed) return;
+        }
         playDrawCardSfx();
         navigate(`/deckbuilder/${deck.id}`);
     };

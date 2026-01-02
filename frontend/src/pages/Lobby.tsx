@@ -439,15 +439,10 @@ export default function Lobby() {
             <ContentDiv>
                 <LeftColumn>
                     <ListCard>
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "flex-end",
-                                justifyContent: "space-between",
-                                flexWrap: "wrap",
-                            }}
-                        >
-                            <CardTitle style={{ marginBottom: 0 }}>{joinedRoom?.name ?? "Rooms"}</CardTitle>
+                        <Tile>
+                            <CardTitle style={{ marginBottom: 0 }}>{joinedRoom?.name ?? "Room"}</CardTitle>
+                            <CardTitle style={{ color: "var(--lobby-accent)" }}>{joinedRoom ? "" : "Host"}</CardTitle>
+                            <CardTitle style={{ gridColumn: "span 2" }}>{joinedRoom ? "" : "Settings"}</CardTitle>
                             {joinedRoom ? (
                                 user === joinedRoom.hostName ? (
                                     <Button disabled={startGameDisabled} onClick={handleStartGame}>
@@ -476,7 +471,7 @@ export default function Lobby() {
                                     {isSearchingGame ? "Finding Opponent..." : "Quick Play"} 👤{userCountQuickPlay}
                                 </QuickPlayButton>
                             )}
-                        </div>
+                        </Tile>
                         <ScrollArea>
                             {joinedRoom ? (
                                 <RoomList>
@@ -486,8 +481,33 @@ export default function Lobby() {
                                         const amIHost = user === joinedRoom.hostName;
 
                                         return (
-                                            <RoomItemLobby key={player.name}>
+                                            <Tile key={player.name}>
+                                                {/*TODO: Replace name and avatar by name plates later*/}
+                                                <img
+                                                    alt={player.name + "img"}
+                                                    width={96}
+                                                    height={96}
+                                                    style={{ transform: "scaleX(-1)" }}
+                                                    src={profilePicture(player.avatarName)}
+                                                />
+
                                                 <StyledSpan>{player.name}</StyledSpan>
+
+                                                {host ? (
+                                                    <img
+                                                        alt={"HOST"}
+                                                        width={36}
+                                                        src={crownSrc}
+                                                        style={{ justifySelf: "center", gridColumn: "span 2" }}
+                                                    />
+                                                ) : (
+                                                    <StyledChip
+                                                        ready={player.ready}
+                                                        style={{ justifySelf: "center", gridColumn: "span 2" }}
+                                                    >
+                                                        {player.ready ? "READY" : "NOT READY"}
+                                                    </StyledChip>
+                                                )}
 
                                                 {me && (
                                                     <Button disabled={isLoading} onClick={handleLeaveRoom}>
@@ -502,32 +522,7 @@ export default function Lobby() {
                                                         KICK
                                                     </Button>
                                                 )}
-                                                {!me && !amIHost && (
-                                                    <div style={{ width: 250, height: 1, opacity: 0 }} />
-                                                )}
-
-                                                {host ? (
-                                                    <img
-                                                        alt={"HOST"}
-                                                        width={48}
-                                                        src={crownSrc}
-                                                        style={{ justifySelf: "center" }}
-                                                    />
-                                                ) : (
-                                                    <StyledChip ready={player.ready}>
-                                                        {player.ready ? "READY" : "NOT READY"}
-                                                    </StyledChip>
-                                                )}
-
-                                                {/*TODO: Replace name and avatar by name plates later*/}
-                                                <img
-                                                    alt={player.name + "img"}
-                                                    width={96}
-                                                    height={96}
-                                                    style={{ justifySelf: "flex-end" }}
-                                                    src={profilePicture(player.avatarName)}
-                                                />
-                                            </RoomItemLobby>
+                                            </Tile>
                                         );
                                     })}
                                 </RoomList>
@@ -536,19 +531,14 @@ export default function Lobby() {
                                     {rooms
                                         .sort((a, b) => a.name.localeCompare(b.name))
                                         .map((room) => (
-                                            <RoomItemLobby key={room.id}>
+                                            <RoomTile key={room.id}>
                                                 <StyledSpan>{room.name}</StyledSpan>
-                                                <StyledSpan style={{ display: "flex", alignItems: "center" }}>
-                                                    <img
-                                                        alt={"Host: "}
-                                                        width={16}
-                                                        src={crownSrc}
-                                                        style={{ marginRight: "4px", transform: "translateY(-1px)" }}
-                                                    />
+                                                <StyledSpan>
                                                     <span>{room.hostName}</span>
                                                     <img
                                                         alt={"Host: "}
                                                         width={24}
+                                                        height={24}
                                                         src={profilePicture(
                                                             room.players.find((p) => p.name === room.hostName)
                                                                 ?.avatarName || ""
@@ -556,12 +546,12 @@ export default function Lobby() {
                                                         style={{ marginLeft: "4px", transform: "translateY(-3px)" }}
                                                     />
                                                 </StyledSpan>
-                                                {room.restrictionsApplied && <RestrictionsAppliedIcon />}
-                                                {room.hasPassword && <PrivateIcon />}
+                                                {room.restrictionsApplied ? <RestrictionsAppliedIcon /> : <div />}
+                                                {room.hasPassword ? <PrivateIcon /> : <div />}
                                                 <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
                                                     Join
                                                 </Button>
-                                            </RoomItemLobby>
+                                            </RoomTile>
                                         ))}
                                 </RoomList>
                             )}
@@ -625,7 +615,9 @@ export default function Lobby() {
                                     </option>
                                 ))}
                             </Select>
-                            {!!deckObject?.mainDeckList?.length && <DeckPanel deck={deckObject} lobbyView />}
+                            {!!deckObject?.mainDeckList?.length && (
+                                <DeckPanel deck={deckObject} lobbyView inRoom={!!joinedRoom} />
+                            )}
                         </Card>
 
                         {!joinedRoom && (
@@ -643,13 +635,13 @@ export default function Lobby() {
                                     value={newRoomName}
                                     onChange={(e) => setNewRoomName(e.target.value)}
                                     placeholder="New room name"
-                                    style={{ marginBottom: "1rem", width: "95%", maxHeight: "1.25rem" }}
+                                    style={{ marginBottom: "1rem", width: "calc(100% - 24px)", maxHeight: "1.25rem" }}
                                 />
                                 <Input
                                     value={newRoomPassword}
                                     onChange={(e) => setNewRoomPassword(e.target.value)}
                                     placeholder="Password (optional)"
-                                    style={{ marginBottom: "1rem", width: "95%", maxHeight: "1.25rem" }}
+                                    style={{ marginBottom: "1rem", width: "calc(100% - 24px)", maxHeight: "1.25rem" }}
                                 />
                                 <FormControlLabel
                                     disabled
@@ -800,7 +792,7 @@ const CardTitle = styled.span`
     width: fit-content;
 
     color: var(--lobby-accent);
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1;
     font-weight: 300;
     border-bottom: 1px solid transparent;
@@ -813,7 +805,6 @@ const CardTitle = styled.span`
             transparent 100%
         )
         1;
-    margin-bottom: auto;
 `;
 
 const ScrollArea = styled.div`
@@ -845,33 +836,6 @@ const ScrollArea = styled.div`
 const RoomList = styled.ul`
     list-style-type: none;
     padding: 0;
-`;
-
-const RoomItem = styled.li`
-    width: calc(100% - 1rem);
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    justify-content: center;
-    align-items: center;
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--lobby-accent);
-    transition: background-color 0.3s ease;
-
-    &:last-child {
-        border-bottom: none;
-    }
-
-    &:hover {
-        background-color: rgba(218, 51, 187, 0.1);
-    }
-`;
-
-const RoomItemLobby = styled(RoomItem)`
-    width: unset;
-    display: flex;
-    grid-template-columns: unset;
-    justify-content: space-between;
-    flex-wrap: wrap;
 `;
 
 const Input = styled.input<{ error?: boolean }>`
@@ -951,8 +915,8 @@ const StyledSpan = styled.span`
     font-size: 24px;
     font-family: "League Spartan", sans-serif;
     color: ghostwhite;
-    text-shadow: 0 0 5px var(--christmas-green-shadow);
-    justify-self: flex-start;
+    display: flex;
+    align-items: center;
 `;
 
 const ListCard = styled(Card)`
@@ -986,5 +950,29 @@ const MenuButtonContainerDiv = styled.div`
         div {
             margin-top: 1px;
         }
+    }
+`;
+
+const Tile = styled.div`
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 2fr 2fr 0.5fr 0.5fr 250px;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    padding-left: 4px;
+
+    @media (max-width: 600px) and (orientation: portrait), (max-height: 499px) {
+    }
+    @media (max-width: 800px) and (orientation: landscape) {
+        grid-template-columns: 2fr 2fr 0.5fr 0.5fr 200px;
+    }
+`;
+
+const RoomTile = styled(Tile)`
+    border: 1px solid transparent;
+    background-color: rgba(0, 68, 192, 0.1);
+
+    &:hover {
+        background-color: rgba(218, 51, 187, 0.1);
     }
 `;
