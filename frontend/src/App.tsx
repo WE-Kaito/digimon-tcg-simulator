@@ -38,23 +38,34 @@ function App() {
 
     return (
         <>
-            <CustomToastContainer />
-            <Routes>
-                <Route element={<ProtectedRoutes />}>
-                    <Route path="/" element={<Lobby />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/decks" element={<Decks />} />
-                    <Route path="/deckbuilder" element={<Deckbuilder />} />
-                    <Route path="/deckbuilder/:id" element={<Deckbuilder />} />
-                    <Route path="/game" element={<GamePage />} />
-                    <Route path="/test" element={<DeckTest />} />
-                    <Route path="/administration" element={<Administration />} />
-                    <Route path="/*" element={<Navigate to="/" />} />
-                </Route>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: "32px",
+                    height: "100vh",
+                }}
+            >
+                {"Currently under maintenance. Please check back later."}
+            </div>
+            {/*<CustomToastContainer />*/}
+            {/*<Routes>*/}
+            {/*    <Route element={<ProtectedRoutes />}>*/}
+            {/*        <Route path="/" element={<Lobby />} />*/}
+            {/*        <Route path="/profile" element={<Profile />} />*/}
+            {/*        <Route path="/decks" element={<Decks />} />*/}
+            {/*        <Route path="/deckbuilder" element={<Deckbuilder />} />*/}
+            {/*        <Route path="/deckbuilder/:id" element={<Deckbuilder />} />*/}
+            {/*        <Route path="/game" element={<GamePage />} />*/}
+            {/*        <Route path="/test" element={<DeckTest />} />*/}
+            {/*        <Route path="/administration" element={<Administration />} />*/}
+            {/*        <Route path="/*" element={<Navigate to="/" />} />*/}
+            {/*    </Route>*/}
 
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/recover-password" element={<RecoveryPage />} />
-            </Routes>
+            {/*    <Route path="/login" element={<LoginPage />} />*/}
+            {/*    <Route path="/recover-password" element={<RecoveryPage />} />*/}
+            {/*</Routes>*/}
         </>
     );
 }
