@@ -657,14 +657,14 @@ export default function Lobby() {
                                     }}
                                     label={
                                         <span style={{ color: "antiquewhite" }}>
-                                            Apply current{" "}
+                                            Decks must follow the{" "}
                                             <a
                                                 href={"https://world.digimoncard.com/rule/restriction_card/"}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                restrictions
+                                                current restrictions
                                             </a>
                                         </span>
                                     }
