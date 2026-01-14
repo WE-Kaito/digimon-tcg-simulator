@@ -59,7 +59,7 @@ const GridContainer = styled.div`
     height: fit-content;
     display: grid;
     grid-template-columns: repeat(11, 63px);
-    grid-template-rows: repeat(7, 84px);
+    grid-template-rows: repeat(9, 84px);
     gap: 2px;
     position: relative;
     padding: 3px;
