@@ -8,7 +8,7 @@ import { getCardTypeImage } from "../../utils/functions.ts";
 import { useSound } from "../../hooks/useSound.ts";
 import LevelDistribution from "../deckPanel/LevelDistribution.tsx";
 import { useMediaQuery } from "@mui/material";
-import { sortCards, useDeckStates } from "../../hooks/useDeckStates.ts";
+import { cardsWithoutLimit, sortCards, useDeckStates } from "../../hooks/useDeckStates.ts";
 
 export default function DeckSelection() {
     const mainDeckCards = useDeckStates((state) => state.mainDeckCards);
@@ -36,14 +36,13 @@ export default function DeckSelection() {
         cardGroups[uniqueCardNumber].push(card);
     });
 
-    const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", "EX9-048", fallbackCardNumber];
     function getAddAllowed(card: CardTypeWithId) {
         if (card.cardType === "Digi-Egg") {
             return eggLength < 5 && eggDeckCards.filter((c) => c.cardNumber === card.cardNumber).length < 4;
         }
         return (
             (mainDeckCards.length < 50 && mainDeckCards.filter((c) => c.cardNumber === card.cardNumber).length < 4) ||
-            cardsWithoutLimit.includes(card.cardNumber)
+            [...cardsWithoutLimit, fallbackCardNumber].includes(card.cardNumber)
         );
     }
 

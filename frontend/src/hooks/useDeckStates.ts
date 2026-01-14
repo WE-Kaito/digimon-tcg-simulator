@@ -58,7 +58,7 @@ const fallbackCard = {
     mainEffect: "If you see this card, the actual card was not found.",
 };
 
-const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", "EX9-048"]; // "Rule" effect
+export const cardsWithoutLimit: string[] = ["BT11-061", "EX2-046", "BT6-085", "BT22-079", "EX9-048", "EX11-027"]; // "Rule" effect
 
 //workaround for double cards in fetchCardList
 export function filterDoubleCardNumbers(cards: CardTypeWithId[]): CardTypeWithId[] {
@@ -71,20 +71,6 @@ export function filterDoubleCardNumbers(cards: CardTypeWithId[]): CardTypeWithId
         }
     }
     return uniqueCards;
-}
-
-export function getIsDeckAllowed(deck: CardTypeWithId[], format: "english" | "japanese"): boolean {
-    if (deck.find((card) => ["Banned", "Not released"].includes(card.restrictions[format]))) return false;
-
-    const restrictedCards = deck.filter((card) => card.restrictions[format] === "Restricted to 1");
-    let lastCard: CardTypeWithId;
-
-    restrictedCards.forEach((card) => {
-        if (lastCard === card) return false;
-        lastCard = card;
-    });
-
-    return true;
 }
 
 export function sortCards(deck: CardTypeWithId[]) {
