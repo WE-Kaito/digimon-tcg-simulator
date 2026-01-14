@@ -75,6 +75,10 @@ textarea {
   cursor: url("assets/cursors/Neon Normal Select Cyan.cur"), auto!important;
 }
 
+.text {
+    cursor: url("assets/cursors/BlueglassTextSelect.cur"), auto!important;
+}
+
 .custom-hand-cursor {
   cursor: url("assets/cursors/sticker-grab.cur"), auto;
 }

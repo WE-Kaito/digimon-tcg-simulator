@@ -685,11 +685,10 @@ export default function Lobby() {
                     sendMessage={websocket.sendMessage}
                     messages={joinedRoom ? privateMessages : messages}
                     roomId={joinedRoom?.id}
-                    isAdmin={!!isAdmin}
                 />
             </ContentDiv>
             <PatchnotesLink />
-            <ChatContextMenu />
+            <ChatContextMenu isAdmin={!!isAdmin} />
         </MenuBackgroundWrapper>
     );
 }

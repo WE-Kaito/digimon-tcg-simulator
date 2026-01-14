@@ -14,11 +14,10 @@ export type ChatMessage = {
 type Props = {
     sendMessage: SendMessage;
     messages: ChatMessage[];
-    isAdmin: boolean;
     roomId?: string;
 };
 
-export default function Chat({ sendMessage, messages, roomId, isAdmin }: Props) {
+export default function Chat({ sendMessage, messages, roomId }: Props) {
     const user = useGeneralStates((state) => state.user);
 
     const [message, setMessage] = useState<string>("");
@@ -36,8 +35,7 @@ export default function Chat({ sendMessage, messages, roomId, isAdmin }: Props) 
     }
 
     function handleContextMenu(e: React.MouseEvent, message: ChatMessage) {
-        if (!isAdmin) return;
-        showChatMessageMenu({ event: e, props: { messageId: message.id } });
+        showChatMessageMenu({ event: e, props: message });
     }
 
     useEffect(() => {
@@ -93,7 +91,7 @@ export default function Chat({ sendMessage, messages, roomId, isAdmin }: Props) 
                             <StyledSpan isMe={user === message.author}>
                                 <span>{message.author + " "}</span>
                                 <span> </span>
-                                {message.message}
+                                <span className={"text"}>{message.message}</span>
                             </StyledSpan>
                         </MessageContainer>
                     );
@@ -297,8 +295,7 @@ const MessageContainer = styled.div`
     display: flex;
     width: 100%;
     position: relative;
-    cursor: pointer;
-
+    user-select: text;
     &:hover {
         background: rgba(218, 51, 187, 0.1);
         border-radius: 4px;
