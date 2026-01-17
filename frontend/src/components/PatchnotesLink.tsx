@@ -8,7 +8,7 @@ export default function PatchnotesLink() {
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                Patch notes (02.01.2026)
+                Patch notes (17.01.2026)
             </a>
         </Wrapper>
     );
