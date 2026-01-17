@@ -4,7 +4,7 @@ export default function PatchnotesLink() {
     return (
         <Wrapper>
             <a
-                href={"https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Patchnotes#02012026"}
+                href={"https://github.com/WE-Kaito/digimon-tcg-simulator/wiki/Patchnotes#17012026"}
                 target="_blank"
                 rel="noopener noreferrer"
             >
