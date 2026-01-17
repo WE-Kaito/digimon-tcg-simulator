@@ -54,30 +54,29 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
                                 data-message-id={message.id}
                                 onContextMenu={(e) => handleContextMenu(e, message)}
                             >
-                                {message.message === "Join our Discord!" ? (
-                                    <StyledServerSpan>
-                                        <span>Server </span>
-                                        <span> </span>
-                                        <a
-                                            href="https://discord.gg/sBdByGAh2y"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            {message.message}
-                                        </a>
-                                        <img
-                                            alt="logo"
-                                            src={discordIcon}
-                                            height={14}
-                                            style={{ transform: "translate(3px, 2px)" }}
-                                        />
-                                    </StyledServerSpan>
-                                ) : (
-                                    <StyledServerSpan>
-                                        <span>Server </span>
-                                        {message.message}
-                                    </StyledServerSpan>
-                                )}
+                                <StyledServerSpan>
+                                    <span>Server </span>
+                                    <span> </span>
+                                    {message.message === "Join our Discord!" ? (
+                                        <>
+                                            <a
+                                                href="https://discord.gg/sBdByGAh2y"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                {message.message}
+                                            </a>
+                                            <img
+                                                alt="logo"
+                                                src={discordIcon}
+                                                height={14}
+                                                style={{ transform: "translate(3px, 2px)" }}
+                                            />
+                                        </>
+                                    ) : (
+                                        message.message
+                                    )}
+                                </StyledServerSpan>
                             </MessageContainer>
                         );
                     }
