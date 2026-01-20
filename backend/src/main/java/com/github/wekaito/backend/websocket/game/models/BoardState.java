@@ -20,8 +20,8 @@ public class BoardState {
     private List<GameCard> player1Reveal = new ArrayList<>();
     private List<GameCard> player1BreedingArea = new ArrayList<>();
 
-    private List<GameCard> player1OriginalHand; // Store original distribution for mulligan
-    private List<GameCard> player1OriginalDeck; // Store original distribution for mulligan
+    private List<GameCard> player1OriginalHand = new ArrayList<>(); // Store original distribution for mulligan
+    private List<GameCard> player1OriginalDeck = new ArrayList<>(); // Store original distribution for mulligan
 
     private List<GameCard> player1Digi1 = new ArrayList<>();
     private List<GameCard> player1Digi2 = new ArrayList<>();
@@ -71,8 +71,8 @@ public class BoardState {
     private List<GameCard> player2Reveal = new ArrayList<>();
     private List<GameCard> player2BreedingArea = new ArrayList<>();
 
-    private List<GameCard> player2OriginalHand; // Store original distribution for mulligan
-    private List<GameCard> player2OriginalDeck; // Store original distribution for mulligan
+    private List<GameCard> player2OriginalHand = new ArrayList<>(); // Store original distribution for mulligan
+    private List<GameCard> player2OriginalDeck = new ArrayList<>(); // Store original distribution for mulligan
 
     private List<GameCard> player2Digi1 = new ArrayList<>();
     private List<GameCard> player2Digi2 = new ArrayList<>();
