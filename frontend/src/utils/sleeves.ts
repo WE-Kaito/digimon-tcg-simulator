@@ -75,7 +75,6 @@ import jijimon from "../assets/sleeves/main/BT11_056_JIJIMON_ARTIST_SHOWDOWN.png
 import darkknightmon from "../assets/sleeves/main/BT7_063_DARKKNIGHTMON.png";
 import hanimon from "../assets/sleeves/main/EX9_024_HANIMON.png";
 import gomamon from "../assets/sleeves/main/BT7_018_GOMAMON.png";
-import negamon from "../assets/sleeves/main/negamon.png";
 import justimon from "../assets/sleeves/main/justimon.png";
 import sanzomon from "../assets/sleeves/main/sanzomon.png";
 import vemmon from "../assets/sleeves/main/vemmon.png";
@@ -86,6 +85,8 @@ import abbadomonCore from "../assets/sleeves/main/abbadomoncore.png";
 import recomon from "../assets/sleeves/main/recomon.png";
 import goblimon from "../assets/sleeves/main/goblimon.png";
 import deputymon from "../assets/sleeves/main/deputymon.png";
+import aegiomon from "../assets/sleeves/main/aegiomon.png";
+import lucemoncm from "../assets/sleeves/main/lucemoncm.png";
 
 import koromon from "../assets/sleeves/egg/ST1_01_KOROMON.png";
 import tsunomon from "../assets/sleeves/egg/BT6_006_TSUNOMON.png";
@@ -99,6 +100,7 @@ import tsunomonWithDorimon from "../assets/sleeves/egg/BT24_007_TSUNOMON.png";
 import bowmon from "../assets/sleeves/egg/BT14_006_BOWMON.png";
 import yaamon from "../assets/sleeves/egg/ST14_01_YAAMON.png";
 import wanyamon from "../assets/sleeves/egg/P_148_WANYAMON.png";
+import negamon from "../assets/sleeves/main/negamon.png";
 
 import defaultBlack from "../assets/sleeves/main/cardBackBlack.jpg";
 import defaultWhite from "../assets/sleeves/main/cardBackWhite.jpg";
@@ -200,7 +202,6 @@ export const sleeves: Picture[] = [
     { name: "Gomamon", imagePath: gomamon, artist: "Drak" },
     { name: "Deputymon", imagePath: deputymon, artist: "TicoSanchezz" },
     { name: "Justimon", imagePath: justimon, artist: "TicoSanchezz" },
-    { name: "Negamon", imagePath: negamon, artist: "TicoSanchezz" },
     { name: "Sanzomon", imagePath: sanzomon, artist: "TicoSanchezz" },
     { name: "Vemmon", imagePath: vemmon, artist: "TicoSanchezz" },
     { name: "Belphemon Sleep Mode", imagePath: belphemonSleepMode, artist: "TicoSanchezz" },
@@ -209,6 +210,8 @@ export const sleeves: Picture[] = [
     { name: "Abbadomon Core", imagePath: abbadomonCore, artist: "TicoSanchezz" },
     { name: "Recomon", imagePath: recomon, artist: "TicoSanchezz" },
     { name: "Goblimon", imagePath: goblimon, artist: "TicoSanchezz" },
+    { name: "Aegiomon", imagePath: aegiomon, artist: "TicoSanchezz" },
+    { name: "Lucemon CM", imagePath: lucemoncm, artist: "TicoSanchezz" },
 ];
 
 export const eggSleeves: Picture[] = [
@@ -225,6 +228,7 @@ export const eggSleeves: Picture[] = [
     { name: "Bowmon", imagePath: bowmon, artist: "Drak" },
     { name: "Yaamon", imagePath: yaamon, artist: "Drak" },
     { name: "Wanyamon", imagePath: wanyamon, artist: "Drak" },
+    { name: "Negamon", imagePath: negamon, artist: "TicoSanchezz" },
 ];
 
 export function getSleeve(cardType: string, sleeveName?: string): string {
