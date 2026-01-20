@@ -114,9 +114,9 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/moveCard:")) handleSendMoveCard(gameRoom, session, roomMessage);
 
-        if(roomMessage.startsWith("/setModifiers:")) handleSendSetModifiers(gameRoom, session, roomMessage);
-
         if (roomMessage.startsWith("/moveCardToStack:")) handleSendMoveToStack(gameRoom, session, roomMessage);
+
+        if (roomMessage.startsWith("/setModifiers:")) handleSendSetModifiers(gameRoom, session, roomMessage);
 
         if (roomMessage.startsWith("/tiltCard:")) handleTiltCard(gameRoom, session, roomMessage);
 
@@ -199,98 +199,10 @@ public class GameWebSocket extends TextWebSocketHandler {
         };
     }
 
-    private String getPosition(String fromTo) {
-        return switch (fromTo) {
-            case "myDigi1" -> "opponentDigi1";
-            case "myDigi2" -> "opponentDigi2";
-            case "myDigi3" -> "opponentDigi3";
-            case "myDigi4" -> "opponentDigi4";
-            case "myDigi5" -> "opponentDigi5";
-            case "myDigi6" -> "opponentDigi6";
-            case "myDigi7" -> "opponentDigi7";
-            case "myDigi8" -> "opponentDigi8";
-            case "myDigi9" -> "opponentDigi9";
-            case "myDigi10" -> "opponentDigi10";
-            case "myDigi11" -> "opponentDigi11";
-            case "myDigi12" -> "opponentDigi12";
-            case "myDigi13" -> "opponentDigi13";
-            case "myDigi14" -> "opponentDigi14";
-            case "myDigi15" -> "opponentDigi15";
-            case "myDigi16" -> "opponentDigi16";
-            case "myDigi17" -> "opponentDigi17";
-            case "myDigi18" -> "opponentDigi18";
-            case "myDigi19" -> "opponentDigi19";
-            case "myDigi20" -> "opponentDigi20";
-            case "myDigi21" -> "opponentDigi21";
-            case "myLink1" -> "opponentLink1";
-            case "myLink2" -> "opponentLink2";
-            case "myLink3" -> "opponentLink3";
-            case "myLink4" -> "opponentLink4";
-            case "myLink5" -> "opponentLink5";
-            case "myLink6" -> "opponentLink6";
-            case "myLink7" -> "opponentLink7";
-            case "myLink8" -> "opponentLink8";
-            case "myLink9" -> "opponentLink9";
-            case "myLink10" -> "opponentLink10";
-            case "myLink11" -> "opponentLink11";
-            case "myLink12" -> "opponentLink12";
-            case "myLink13" -> "opponentLink13";
-            case "myLink14" -> "opponentLink14";
-            case "myLink15" -> "opponentLink15";
-            case "myLink16" -> "opponentLink16";
-            case "mySecurity" -> "opponentSecurity";
-            case "myHand" -> "opponentHand";
-            case "myDeckField" -> "opponentDeckField";
-            case "myEggDeck" -> "opponentEggDeck";
-            case "myBreedingArea" -> "opponentBreedingArea";
-            case "myTrash" -> "opponentTrash";
-            case "myReveal" -> "opponentReveal";
-            case "opponentDigi1" -> "myDigi1";
-            case "opponentDigi2" -> "myDigi2";
-            case "opponentDigi3" -> "myDigi3";
-            case "opponentDigi4" -> "myDigi4";
-            case "opponentDigi5" -> "myDigi5";
-            case "opponentDigi6" -> "myDigi6";
-            case "opponentDigi7" -> "myDigi7";
-            case "opponentDigi8" -> "myDigi8";
-            case "opponentDigi9" -> "myDigi9";
-            case "opponentDigi10" -> "myDigi10";
-            case "opponentDigi11" -> "myDigi11";
-            case "opponentDigi12" -> "myDigi12";
-            case "opponentDigi13" -> "myDigi13";
-            case "opponentDigi14" -> "myDigi14";
-            case "opponentDigi15" -> "myDigi15";
-            case "opponentDigi16" -> "myDigi16";
-            case "opponentDigi17" -> "myDigi17";
-            case "opponentDigi18" -> "myDigi18";
-            case "opponentDigi19" -> "myDigi19";
-            case "opponentDigi20" -> "myDigi20";
-            case "opponentDigi21" -> "myDigi21";
-            case "opponentLink1" -> "myLink1";
-            case "opponentLink2" -> "myLink2";
-            case "opponentLink3" -> "myLink3";
-            case "opponentLink4" -> "myLink4";
-            case "opponentLink5" -> "myLink5";
-            case "opponentLink6" -> "myLink6";
-            case "opponentLink7" -> "myLink7";
-            case "opponentLink8" -> "myLink8";
-            case "opponentLink9" -> "myLink9";
-            case "opponentLink10" -> "myLink10";
-            case "opponentLink11" -> "myLink11";
-            case "opponentLink12" -> "myLink12";
-            case "opponentLink13" -> "myLink13";
-            case "opponentLink14" -> "myLink14";
-            case "opponentLink15" -> "myLink15";
-            case "opponentLink16" -> "myLink16";
-            case "opponentSecurity" -> "mySecurity";
-            case "opponentHand" -> "myHand";
-            case "opponentDeckField" -> "myDeckField";
-            case "opponentEggDeck" -> "myEggDeck";
-            case "opponentBreedingArea" -> "myBreedingArea";
-            case "opponentTrash" -> "myTrash";
-            case "opponentReveal" -> "myReveal";
-            default -> "";
-        };
+    private String getOppositePosition(String fromTo) {
+        if (fromTo.startsWith("my")) return fromTo.replaceFirst("my", "opponent");
+        else if (fromTo.startsWith("opponent")) return fromTo.replaceFirst("opponent", "my");
+        return fromTo;
     }
 
     private GameRoom findGameRoomById(String gameId) {
@@ -330,11 +242,11 @@ public class GameWebSocket extends TextWebSocketHandler {
             case "myDigi14" -> isPlayer1 ? "player1Digi14" : "player2Digi14";
             case "myDigi15" -> isPlayer1 ? "player1Digi15" : "player2Digi15";
             case "myDigi16" -> isPlayer1 ? "player1Digi16" : "player2Digi16";
-            case "myDigi17" -> isPlayer1 ? "player1Digi17" : "player2Digi17";
-            case "myDigi18" -> isPlayer1 ? "player1Digi18" : "player2Digi18";
-            case "myDigi19" -> isPlayer1 ? "player1Digi19" : "player2Digi19";
-            case "myDigi20" -> isPlayer1 ? "player1Digi20" : "player2Digi20";
-            case "myDigi21" -> isPlayer1 ? "player1Digi21" : "player2Digi21";
+            case "myDigi17" -> isPlayer1 ? "player1Digi17" : "player2Digi17"; // Tamer
+            case "myDigi18" -> isPlayer1 ? "player1Digi18" : "player2Digi18"; // Tamer
+            case "myDigi19" -> isPlayer1 ? "player1Digi19" : "player2Digi19"; // Tamer
+            case "myDigi20" -> isPlayer1 ? "player1Digi20" : "player2Digi20"; // Tamer
+            case "myDigi21" -> isPlayer1 ? "player1Digi21" : "player2Digi21"; // Tamer
             case "myLink1" -> isPlayer1 ? "player1Link1" : "player2Link1";
             case "myLink2" -> isPlayer1 ? "player1Link2" : "player2Link2";
             case "myLink3" -> isPlayer1 ? "player1Link3" : "player2Link3";
@@ -354,354 +266,175 @@ public class GameWebSocket extends TextWebSocketHandler {
             default -> clientPosition; // Return as-is if not recognized
         };
     }
-    
-    private GameCard[] getBoardStatePosition(BoardState boardState, String position) {
-        return switch (position) {
-            case "player1Hand" -> boardState.getPlayer1Hand();
-            case "player1Deck" -> boardState.getPlayer1Deck();
-            case "player1EggDeck" -> boardState.getPlayer1EggDeck();
-            case "player1Trash" -> boardState.getPlayer1Trash();
-            case "player1Security" -> boardState.getPlayer1Security();
-            case "player1Reveal" -> boardState.getPlayer1Reveal();
-            case "player1BreedingArea" -> boardState.getPlayer1BreedingArea();
-            case "player1Digi1" -> boardState.getPlayer1Digi1();
-            case "player1Digi2" -> boardState.getPlayer1Digi2();
-            case "player1Digi3" -> boardState.getPlayer1Digi3();
-            case "player1Digi4" -> boardState.getPlayer1Digi4();
-            case "player1Digi5" -> boardState.getPlayer1Digi5();
-            case "player1Digi6" -> boardState.getPlayer1Digi6();
-            case "player1Digi7" -> boardState.getPlayer1Digi7();
-            case "player1Digi8" -> boardState.getPlayer1Digi8();
-            case "player1Digi9" -> boardState.getPlayer1Digi9();
-            case "player1Digi10" -> boardState.getPlayer1Digi10();
-            case "player1Digi11" -> boardState.getPlayer1Digi11();
-            case "player1Digi12" -> boardState.getPlayer1Digi12();
-            case "player1Digi13" -> boardState.getPlayer1Digi13();
-            case "player1Digi14" -> boardState.getPlayer1Digi14();
-            case "player1Digi15" -> boardState.getPlayer1Digi15();
-            case "player1Digi16" -> boardState.getPlayer1Digi16();
-            case "player1Digi17" -> boardState.getPlayer1Digi17();
-            case "player1Digi18" -> boardState.getPlayer1Digi18();
-            case "player1Digi19" -> boardState.getPlayer1Digi19();
-            case "player1Digi20" -> boardState.getPlayer1Digi20();
-            case "player1Digi21" -> boardState.getPlayer1Digi21();
-            case "player1Link1" -> boardState.getPlayer1Link1();
-            case "player1Link2" -> boardState.getPlayer1Link2();
-            case "player1Link3" -> boardState.getPlayer1Link3();
-            case "player1Link4" -> boardState.getPlayer1Link4();
-            case "player1Link5" -> boardState.getPlayer1Link5();
-            case "player1Link6" -> boardState.getPlayer1Link6();
-            case "player1Link7" -> boardState.getPlayer1Link7();
-            case "player1Link8" -> boardState.getPlayer1Link8();
-            case "player1Link9" -> boardState.getPlayer1Link9();
-            case "player1Link10" -> boardState.getPlayer1Link10();
-            case "player1Link11" -> boardState.getPlayer1Link11();
-            case "player1Link12" -> boardState.getPlayer1Link12();
-            case "player1Link13" -> boardState.getPlayer1Link13();
-            case "player1Link14" -> boardState.getPlayer1Link14();
-            case "player1Link15" -> boardState.getPlayer1Link15();
-            case "player1Link16" -> boardState.getPlayer1Link16();
-            case "player2Hand" -> boardState.getPlayer2Hand();
-            case "player2Deck" -> boardState.getPlayer2Deck();
-            case "player2EggDeck" -> boardState.getPlayer2EggDeck();
-            case "player2Trash" -> boardState.getPlayer2Trash();
-            case "player2Security" -> boardState.getPlayer2Security();
-            case "player2Reveal" -> boardState.getPlayer2Reveal();
-            case "player2BreedingArea" -> boardState.getPlayer2BreedingArea();
-            case "player2Digi1" -> boardState.getPlayer2Digi1();
-            case "player2Digi2" -> boardState.getPlayer2Digi2();
-            case "player2Digi3" -> boardState.getPlayer2Digi3();
-            case "player2Digi4" -> boardState.getPlayer2Digi4();
-            case "player2Digi5" -> boardState.getPlayer2Digi5();
-            case "player2Digi6" -> boardState.getPlayer2Digi6();
-            case "player2Digi7" -> boardState.getPlayer2Digi7();
-            case "player2Digi8" -> boardState.getPlayer2Digi8();
-            case "player2Digi9" -> boardState.getPlayer2Digi9();
-            case "player2Digi10" -> boardState.getPlayer2Digi10();
-            case "player2Digi11" -> boardState.getPlayer2Digi11();
-            case "player2Digi12" -> boardState.getPlayer2Digi12();
-            case "player2Digi13" -> boardState.getPlayer2Digi13();
-            case "player2Digi14" -> boardState.getPlayer2Digi14();
-            case "player2Digi15" -> boardState.getPlayer2Digi15();
-            case "player2Digi16" -> boardState.getPlayer2Digi16();
-            case "player2Digi17" -> boardState.getPlayer2Digi17();
-            case "player2Digi18" -> boardState.getPlayer2Digi18();
-            case "player2Digi19" -> boardState.getPlayer2Digi19();
-            case "player2Digi20" -> boardState.getPlayer2Digi20();
-            case "player2Digi21" -> boardState.getPlayer2Digi21();
-            case "player2Link1" -> boardState.getPlayer2Link1();
-            case "player2Link2" -> boardState.getPlayer2Link2();
-            case "player2Link3" -> boardState.getPlayer2Link3();
-            case "player2Link4" -> boardState.getPlayer2Link4();
-            case "player2Link5" -> boardState.getPlayer2Link5();
-            case "player2Link6" -> boardState.getPlayer2Link6();
-            case "player2Link7" -> boardState.getPlayer2Link7();
-            case "player2Link8" -> boardState.getPlayer2Link8();
-            case "player2Link9" -> boardState.getPlayer2Link9();
-            case "player2Link10" -> boardState.getPlayer2Link10();
-            case "player2Link11" -> boardState.getPlayer2Link11();
-            case "player2Link12" -> boardState.getPlayer2Link12();
-            case "player2Link13" -> boardState.getPlayer2Link13();
-            case "player2Link14" -> boardState.getPlayer2Link14();
-            case "player2Link15" -> boardState.getPlayer2Link15();
-            case "player2Link16" -> boardState.getPlayer2Link16();
-            default -> new GameCard[0]; // Return empty array if not found
-        };
-    }
-    
-    private void setBoardStatePosition(BoardState boardState, String position, GameCard[] cards) {
-        switch (position) {
-            case "player1Hand" -> boardState.setPlayer1Hand(cards);
-            case "player1Deck" -> boardState.setPlayer1Deck(cards);
-            case "player1EggDeck" -> boardState.setPlayer1EggDeck(cards);
-            case "player1Trash" -> boardState.setPlayer1Trash(cards);
-            case "player1Security" -> boardState.setPlayer1Security(cards);
-            case "player1Reveal" -> boardState.setPlayer1Reveal(cards);
-            case "player1BreedingArea" -> boardState.setPlayer1BreedingArea(cards);
-            case "player1Digi1" -> boardState.setPlayer1Digi1(cards);
-            case "player1Digi2" -> boardState.setPlayer1Digi2(cards);
-            case "player1Digi3" -> boardState.setPlayer1Digi3(cards);
-            case "player1Digi4" -> boardState.setPlayer1Digi4(cards);
-            case "player1Digi5" -> boardState.setPlayer1Digi5(cards);
-            case "player1Digi6" -> boardState.setPlayer1Digi6(cards);
-            case "player1Digi7" -> boardState.setPlayer1Digi7(cards);
-            case "player1Digi8" -> boardState.setPlayer1Digi8(cards);
-            case "player1Digi9" -> boardState.setPlayer1Digi9(cards);
-            case "player1Digi10" -> boardState.setPlayer1Digi10(cards);
-            case "player1Digi11" -> boardState.setPlayer1Digi11(cards);
-            case "player1Digi12" -> boardState.setPlayer1Digi12(cards);
-            case "player1Digi13" -> boardState.setPlayer1Digi13(cards);
-            case "player1Digi14" -> boardState.setPlayer1Digi14(cards);
-            case "player1Digi15" -> boardState.setPlayer1Digi15(cards);
-            case "player1Digi16" -> boardState.setPlayer1Digi16(cards);
-            case "player1Digi17" -> boardState.setPlayer1Digi17(cards);
-            case "player1Digi18" -> boardState.setPlayer1Digi18(cards);
-            case "player1Digi19" -> boardState.setPlayer1Digi19(cards);
-            case "player1Digi20" -> boardState.setPlayer1Digi20(cards);
-            case "player1Digi21" -> boardState.setPlayer1Digi21(cards);
-            case "player1Link1" -> boardState.setPlayer1Link1(cards);
-            case "player1Link2" -> boardState.setPlayer1Link2(cards);
-            case "player1Link3" -> boardState.setPlayer1Link3(cards);
-            case "player1Link4" -> boardState.setPlayer1Link4(cards);
-            case "player1Link5" -> boardState.setPlayer1Link5(cards);
-            case "player1Link6" -> boardState.setPlayer1Link6(cards);
-            case "player1Link7" -> boardState.setPlayer1Link7(cards);
-            case "player1Link8" -> boardState.setPlayer1Link8(cards);
-            case "player1Link9" -> boardState.setPlayer1Link9(cards);
-            case "player1Link10" -> boardState.setPlayer1Link10(cards);
-            case "player1Link11" -> boardState.setPlayer1Link11(cards);
-            case "player1Link12" -> boardState.setPlayer1Link12(cards);
-            case "player1Link13" -> boardState.setPlayer1Link13(cards);
-            case "player1Link14" -> boardState.setPlayer1Link14(cards);
-            case "player1Link15" -> boardState.setPlayer1Link15(cards);
-            case "player1Link16" -> boardState.setPlayer1Link16(cards);
-            case "player2Hand" -> boardState.setPlayer2Hand(cards);
-            case "player2Deck" -> boardState.setPlayer2Deck(cards);
-            case "player2EggDeck" -> boardState.setPlayer2EggDeck(cards);
-            case "player2Trash" -> boardState.setPlayer2Trash(cards);
-            case "player2Security" -> boardState.setPlayer2Security(cards);
-            case "player2Reveal" -> boardState.setPlayer2Reveal(cards);
-            case "player2BreedingArea" -> boardState.setPlayer2BreedingArea(cards);
-            case "player2Digi1" -> boardState.setPlayer2Digi1(cards);
-            case "player2Digi2" -> boardState.setPlayer2Digi2(cards);
-            case "player2Digi3" -> boardState.setPlayer2Digi3(cards);
-            case "player2Digi4" -> boardState.setPlayer2Digi4(cards);
-            case "player2Digi5" -> boardState.setPlayer2Digi5(cards);
-            case "player2Digi6" -> boardState.setPlayer2Digi6(cards);
-            case "player2Digi7" -> boardState.setPlayer2Digi7(cards);
-            case "player2Digi8" -> boardState.setPlayer2Digi8(cards);
-            case "player2Digi9" -> boardState.setPlayer2Digi9(cards);
-            case "player2Digi10" -> boardState.setPlayer2Digi10(cards);
-            case "player2Digi11" -> boardState.setPlayer2Digi11(cards);
-            case "player2Digi12" -> boardState.setPlayer2Digi12(cards);
-            case "player2Digi13" -> boardState.setPlayer2Digi13(cards);
-            case "player2Digi14" -> boardState.setPlayer2Digi14(cards);
-            case "player2Digi15" -> boardState.setPlayer2Digi15(cards);
-            case "player2Digi16" -> boardState.setPlayer2Digi16(cards);
-            case "player2Digi17" -> boardState.setPlayer2Digi17(cards);
-            case "player2Digi18" -> boardState.setPlayer2Digi18(cards);
-            case "player2Digi19" -> boardState.setPlayer2Digi19(cards);
-            case "player2Digi20" -> boardState.setPlayer2Digi20(cards);
-            case "player2Digi21" -> boardState.setPlayer2Digi21(cards);
-            case "player2Link1" -> boardState.setPlayer2Link1(cards);
-            case "player2Link2" -> boardState.setPlayer2Link2(cards);
-            case "player2Link3" -> boardState.setPlayer2Link3(cards);
-            case "player2Link4" -> boardState.setPlayer2Link4(cards);
-            case "player2Link5" -> boardState.setPlayer2Link5(cards);
-            case "player2Link6" -> boardState.setPlayer2Link6(cards);
-            case "player2Link7" -> boardState.setPlayer2Link7(cards);
-            case "player2Link8" -> boardState.setPlayer2Link8(cards);
-            case "player2Link9" -> boardState.setPlayer2Link9(cards);
-            case "player2Link10" -> boardState.setPlayer2Link10(cards);
-            case "player2Link11" -> boardState.setPlayer2Link11(cards);
-            case "player2Link12" -> boardState.setPlayer2Link12(cards);
-            case "player2Link13" -> boardState.setPlayer2Link13(cards);
-            case "player2Link14" -> boardState.setPlayer2Link14(cards);
-            case "player2Link15" -> boardState.setPlayer2Link15(cards);
-            case "player2Link16" -> boardState.setPlayer2Link16(cards);
-        }
-    }
-    
+
     private void updateBoardStateForStackMove(GameRoom gameRoom, String cardId, String fromClient, String toClient, String topOrBottom, String facing, String username) {
         BoardState boardState = gameRoom.getBoardState();
         if (boardState == null) return;
-        
+
         String fromServer = mapClientToServer(fromClient, username, gameRoom);
         String toServer = mapClientToServer(toClient, username, gameRoom);
-        
-        // Find and remove card from source position
-        GameCard[] fromArray = getBoardStatePosition(boardState, fromServer);
-        GameCard cardToMove = null;
-        List<GameCard> fromList = new ArrayList<>(Arrays.asList(fromArray));
-        
-        for (int i = 0; i < fromList.size(); i++) {
-            if (fromList.get(i).id().toString().equals(cardId)) {
-                cardToMove = fromList.get(i);
-                fromList.remove(i);
-                break;
-            }
-        }
-        
-        if (cardToMove == null) return; // Card not found
-        
-        // Update source position
-        setBoardStatePosition(boardState, fromServer, fromList.toArray(new GameCard[0]));
-        
-        // Check if it's a token being moved to a destroy location
-        if (DESTROY_TOKEN_LOCATIONS.contains(toServer) && cardToMove.uniqueCardNumber().contains("TOKEN")) {
-            // Token is destroyed - don't add to destination, just remove from source
+
+        // Find and remove card from source position using stream API
+        List<GameCard> fromList = boardState.getFieldByName(fromServer);
+        GameCard cardToMove = fromList.stream()
+                .filter(card -> card.getId().toString().equals(cardId))
+                .findFirst()
+                .orElse(null);
+
+        if (cardToMove == null) return;
+
+        fromList.remove(cardToMove);
+        boardState.setFieldByName(fromServer, fromList);
+
+        // Check if token being destroyed
+        if (DESTROY_TOKEN_LOCATIONS.contains(toServer) && cardToMove.getUniqueCardNumber().contains("TOKEN")) {
             return;
         }
-        
+
+        // Unsuspend if adding to top of stack
+        if (topOrBottom.equals("Top")) {
+            cardToMove.setIsTilted(false);
+        }
+
+        // Reset modifiers if moving to certain locations
+        if (shouldResetModifiersOnMove(toServer)) {
+            cardToMove.setModifiers(new Modifiers(0, 0, new ArrayList<>(), cardToMove.getColor()));
+        }
+
         // Handle face status based on facing parameter
         if (facing != null) {
-            boolean shouldBeFaceUp = facing.equals("up");
-            if (shouldBeFaceUp != cardToMove.isFaceUp()) {
-                cardToMove = new GameCard(
-                    cardToMove.uniqueCardNumber(), cardToMove.name(), cardToMove.imgUrl(), cardToMove.cardType(),
-                    cardToMove.color(), cardToMove.attribute(), cardToMove.cardNumber(), cardToMove.digivolveConditions(),
-                    cardToMove.specialDigivolve(), cardToMove.stage(), cardToMove.digiType(), cardToMove.dp(),
-                    cardToMove.playCost(), cardToMove.level(), cardToMove.mainEffect(), cardToMove.inheritedEffect(),
-                    cardToMove.aceEffect(), cardToMove.burstDigivolve(), cardToMove.digiXros(), cardToMove.dnaDigivolve(),
-                    cardToMove.securityEffect(), cardToMove.linkDP(), cardToMove.linkEffect(), cardToMove.linkRequirement(),
-                    cardToMove.assemblyEffect(), cardToMove.restrictions(), cardToMove.illustrator(), cardToMove.id(),
-                    cardToMove.modifiers(), cardToMove.isTilted(), shouldBeFaceUp
-                );
-            }
+            cardToMove.setIsFaceUp(facing.equals("up"));
         }
-        
-        // Add card to destination stack in correct position (top or bottom)
-        GameCard[] toArray = getBoardStatePosition(boardState, toServer);
-        List<GameCard> toList = new ArrayList<>(Arrays.asList(toArray));
-        
+
+        // Add card to destination stack
+        List<GameCard> toList = boardState.getFieldByName(toServer);
+
         if (topOrBottom.equals("Top")) {
-            toList.add(0, cardToMove); // Add to beginning (top of stack)
+            toList.add(0, cardToMove);
         } else {
-            toList.add(cardToMove); // Add to end (bottom of stack)
+            toList.add(cardToMove);
         }
-        
-        setBoardStatePosition(boardState, toServer, toList.toArray(new GameCard[0]));
+
+        boardState.setFieldByName(toServer, toList);
     }
 
     private void updateBoardStateForCardMove(GameRoom gameRoom, String cardId, String fromClient, String toClient, String username) {
         BoardState boardState = gameRoom.getBoardState();
         if (boardState == null) return;
-        
+
         String fromServer = mapClientToServer(fromClient, username, gameRoom);
         String toServer = mapClientToServer(toClient, username, gameRoom);
-        
+
         // Find and remove card from source position
-        GameCard[] fromArray = getBoardStatePosition(boardState, fromServer);
-        GameCard cardToMove = null;
-        List<GameCard> fromList = new ArrayList<>(Arrays.asList(fromArray));
-        
-        for (int i = 0; i < fromList.size(); i++) {
-            if (fromList.get(i).id().toString().equals(cardId)) {
-                cardToMove = fromList.get(i);
-                fromList.remove(i);
-                break;
-            }
-        }
-        
-        if (cardToMove == null) return; // Card not found
-        
-        // Update source position
-        setBoardStatePosition(boardState, fromServer, fromList.toArray(new GameCard[0]));
-        
-        // Check if it's a token being moved to a destroy location
-        if (DESTROY_TOKEN_LOCATIONS.contains(toServer) && cardToMove.uniqueCardNumber().contains("TOKEN")) {
-            // Token is destroyed - don't add to destination, just remove from source
+        List<GameCard> fromList = boardState.getFieldByName(fromServer);
+        GameCard cardToMove = fromList.stream()
+                .filter(card -> card.getId().toString().equals(cardId))
+                .findFirst()
+                .orElse(null);
+
+        if (cardToMove == null) return;
+
+        fromList.remove(cardToMove);
+        boardState.setFieldByName(fromServer, fromList);
+
+        // Check if token being destroyed
+        if (DESTROY_TOKEN_LOCATIONS.contains(toServer) && cardToMove.getUniqueCardNumber().contains("TOKEN")) {
             return;
         }
-        
-        // Determine correct face status for destination position
-        boolean shouldBeFaceUp = isFieldPosition(toServer);
-        boolean shouldBeFaceDown = shouldBeFaceDown(toServer);
-        
-        // Check if modifiers should be reset
-        boolean shouldResetModifiers = shouldResetModifiersOnMove(fromServer, toServer);
-        
-        // Update card if face status needs to change or modifiers need reset
-        boolean needsFaceStatusUpdate = (shouldBeFaceUp && !cardToMove.isFaceUp()) || 
-                                      (shouldBeFaceDown && cardToMove.isFaceUp());
-        
-        if (needsFaceStatusUpdate || shouldResetModifiers) {
-            // Create default modifiers for reset
-            Modifiers resetModifiers = shouldResetModifiers ?
-                new Modifiers(0, 0, new ArrayList<>(), cardToMove.color()) : cardToMove.modifiers();
-            
-            // Determine final face status
-            boolean finalFaceUp;
-            if (shouldBeFaceUp) {
-                finalFaceUp = true;
-            } else if (shouldBeFaceDown) {
-                finalFaceUp = false;
-            } else {
-                finalFaceUp = cardToMove.isFaceUp(); // Keep current status
-            }
-                
-            // Update card with new face status and/or reset modifiers
-            cardToMove = new GameCard(
-                cardToMove.uniqueCardNumber(), cardToMove.name(), cardToMove.imgUrl(), cardToMove.cardType(),
-                cardToMove.color(), cardToMove.attribute(), cardToMove.cardNumber(), cardToMove.digivolveConditions(),
-                cardToMove.specialDigivolve(), cardToMove.stage(), cardToMove.digiType(), cardToMove.dp(),
-                cardToMove.playCost(), cardToMove.level(), cardToMove.mainEffect(), cardToMove.inheritedEffect(),
-                cardToMove.aceEffect(), cardToMove.burstDigivolve(), cardToMove.digiXros(), cardToMove.dnaDigivolve(),
-                cardToMove.securityEffect(), cardToMove.linkDP(), cardToMove.linkEffect(), cardToMove.linkRequirement(),
-                cardToMove.assemblyEffect(), cardToMove.restrictions(), cardToMove.illustrator(), cardToMove.id(),
-                resetModifiers, cardToMove.isTilted(), finalFaceUp
-            );
+
+        // Reset modifiers if moving to certain locations
+        if (shouldResetModifiersOnMove(toServer)) {
+            cardToMove.setModifiers(new Modifiers(0, 0, new ArrayList<>(), cardToMove.getColor()));
         }
-        
-        // Add card to destination position
-        GameCard[] toArray = getBoardStatePosition(boardState, toServer);
-        List<GameCard> toList = new ArrayList<>(Arrays.asList(toArray));
+
+        // Determine face up/down status
+        if (shouldBeFaceDown(toServer)) {
+            cardToMove.setIsFaceUp(false);
+        } else if (shouldBeFaceUp(fromServer, toServer)) {
+            cardToMove.setIsFaceUp(true);
+        }
+        // else keep current face status
+
+        // Get destination list and check for stacking
+        List<GameCard> toList = boardState.getFieldByName(toServer);
+
+        if (!toList.isEmpty() && !fromServer.equals(toServer)) {
+            // Stacking cards - inherit modifiers and tilt from previous top card
+            GameCard prevTopCard = toList.get(toList.size() - 1);
+
+            // Tilt inheritance
+            if (prevTopCard.isTilted) {
+                prevTopCard.isTilted = false;
+                // Don't tilt if going to tamer location (Digi17-21)
+                cardToMove.setIsTilted(!(toServer.contains("Digi17") || toServer.contains("Digi18") ||
+                                       toServer.contains("Digi19") || toServer.contains("Digi20") ||
+                                       toServer.contains("Digi21")));
+            } else {
+                cardToMove.setIsTilted(false);
+            }
+
+            // Modifier inheritance - create new Modifiers instances since it's a record
+            Modifiers cardMods = cardToMove.getModifiers();
+            Modifiers prevMods = prevTopCard.getModifiers();
+
+            // Determine inherited values for the moving card
+            int newCardPlusDp = (cardMods.plusDp() == 0) ? prevMods.plusDp() : cardMods.plusDp();
+            int newCardPlusSecurityAttacks = (cardMods.plusSecurityAttacks() == 0) ? prevMods.plusSecurityAttacks() : cardMods.plusSecurityAttacks();
+            List<String> newCardKeywords = cardMods.keywords().isEmpty() ? new ArrayList<>(prevMods.keywords()) : cardMods.keywords();
+
+            // Create new Modifiers for the moving card with inherited values
+            Modifiers newCardModifiers = new Modifiers(
+                newCardPlusDp,
+                newCardPlusSecurityAttacks,
+                newCardKeywords,
+                cardMods.colors()
+            );
+
+            // Create new Modifiers for the previous top card with reset values
+            Modifiers newPrevModifiers = new Modifiers(
+                0,
+                0,
+                new ArrayList<>(),
+                prevTopCard.getColor()
+            );
+
+            cardToMove.setModifiers(newCardModifiers);
+            prevTopCard.setModifiers(newPrevModifiers);
+        } else if (fromServer.equals(toServer)) {
+            // Same location move - just reorder
+            cardToMove.setIsTilted(false);
+        }
+
         toList.add(cardToMove);
-        setBoardStatePosition(boardState, toServer, toList.toArray(new GameCard[0]));
+        boardState.setFieldByName(toServer, toList);
     }
     
-    private boolean isFieldPosition(String position) {
-        // Field positions where cards should be face-up
-        return position.startsWith("player1Digi") || position.startsWith("player2Digi") ||
-               position.startsWith("player1Link") || position.startsWith("player2Link") ||
-               position.equals("player1Reveal") || position.equals("player2Reveal") ||
-               position.equals("player1Trash") || position.equals("player2Trash") ||
-               position.equals("player1BreedingArea") || position.equals("player2BreedingArea");
+    private boolean shouldBeFaceUp(String fromField, String toField) {
+        // Cards from EggDeck are always face up
+        if (fromField.contains("EggDeck")) return true;
+
+        // Cards going to Reveal or Trash are face up
+        if (toField.contains("Reveal") || toField.contains("Trash")) return true;
+
+        // Cards from Hand (going to non-hand/deck locations) are face up
+        if (fromField.contains("Hand") &&
+            !toField.contains("Hand") && !toField.contains("Deck")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean shouldBeFaceDown(String toField) {
+        // Cards going to Hand or Deck are face down
+        return toField.contains("Hand") || toField.contains("Deck");
     }
     
-    private boolean shouldBeFaceDown(String position) {
-        // Positions where cards should be face-down (mirrors frontend logic)
-        return position.equals("player1Hand") || position.equals("player2Hand") ||
-               position.equals("player1Deck") || position.equals("player2Deck") ||
-               position.equals("player1Security") || position.equals("player2Security");
-    }
-    
-    private boolean shouldResetModifiersOnMove(String fromServer, String toServer) {
-        // Reset modifiers when moving to certain locations (mirroring frontend logic)
+    private boolean shouldResetModifiersOnMove(String toServer) {
+        // Reset modifiers for Hand, Deck, EggDeck, Trash (NOT Security, NOT BreedingArea)
         return toServer.equals("player1Hand") || toServer.equals("player2Hand") ||
                toServer.equals("player1Deck") || toServer.equals("player2Deck") ||
                toServer.equals("player1EggDeck") || toServer.equals("player2EggDeck") ||
-               toServer.equals("player1Security") || toServer.equals("player2Security") ||
                toServer.equals("player1Trash") || toServer.equals("player2Trash");
     }
 
@@ -811,43 +544,43 @@ public class GameWebSocket extends TextWebSocketHandler {
         Map<String, Object> completeBoardState = new HashMap<>();
         
         // Add all card positions
-        completeBoardState.put("player1Hand", Arrays.asList(boardState.getPlayer1Hand()));
-        completeBoardState.put("player1Deck", Arrays.asList(boardState.getPlayer1Deck()));
-        completeBoardState.put("player1EggDeck", Arrays.asList(boardState.getPlayer1EggDeck()));
-        completeBoardState.put("player1Security", Arrays.asList(boardState.getPlayer1Security()));
-        completeBoardState.put("player1Trash", Arrays.asList(boardState.getPlayer1Trash()));
-        completeBoardState.put("player1Reveal", Arrays.asList(boardState.getPlayer1Reveal()));
-        completeBoardState.put("player1BreedingArea", Arrays.asList(boardState.getPlayer1BreedingArea()));
+        completeBoardState.put("player1Hand", boardState.getPlayer1Hand());
+        completeBoardState.put("player1Deck", boardState.getPlayer1Deck());
+        completeBoardState.put("player1EggDeck", boardState.getPlayer1EggDeck());
+        completeBoardState.put("player1Security", boardState.getPlayer1Security());
+        completeBoardState.put("player1Trash", boardState.getPlayer1Trash());
+        completeBoardState.put("player1Reveal", boardState.getPlayer1Reveal());
+        completeBoardState.put("player1BreedingArea", boardState.getPlayer1BreedingArea());
         
         // Add all digimon field positions
         for (int i = 1; i <= 21; i++) {
-            GameCard[] cards = getBoardStatePosition(boardState, "player1Digi" + i);
-            completeBoardState.put("player1Digi" + i, Arrays.asList(cards));
+            List<GameCard> cards = boardState.getFieldByName("player1Digi" + i);
+            completeBoardState.put("player1Digi" + i, cards);
         }
         
         // Add all link positions
         for (int i = 1; i <= 16; i++) {
-            GameCard[] cards = getBoardStatePosition(boardState, "player1Link" + i);
-            completeBoardState.put("player1Link" + i, Arrays.asList(cards));
+            List<GameCard> cards = boardState.getFieldByName("player1Link" + i);
+            completeBoardState.put("player1Link" + i, cards);
         }
         
         // Add player2 positions
-        completeBoardState.put("player2Hand", Arrays.asList(boardState.getPlayer2Hand()));
-        completeBoardState.put("player2Deck", Arrays.asList(boardState.getPlayer2Deck()));
-        completeBoardState.put("player2EggDeck", Arrays.asList(boardState.getPlayer2EggDeck()));
-        completeBoardState.put("player2Security", Arrays.asList(boardState.getPlayer2Security()));
-        completeBoardState.put("player2Trash", Arrays.asList(boardState.getPlayer2Trash()));
-        completeBoardState.put("player2Reveal", Arrays.asList(boardState.getPlayer2Reveal()));
-        completeBoardState.put("player2BreedingArea", Arrays.asList(boardState.getPlayer2BreedingArea()));
+        completeBoardState.put("player2Hand", boardState.getPlayer2Hand());
+        completeBoardState.put("player2Deck", boardState.getPlayer2Deck());
+        completeBoardState.put("player2EggDeck", boardState.getPlayer2EggDeck());
+        completeBoardState.put("player2Security", boardState.getPlayer2Security());
+        completeBoardState.put("player2Trash", boardState.getPlayer2Trash());
+        completeBoardState.put("player2Reveal", boardState.getPlayer2Reveal());
+        completeBoardState.put("player2BreedingArea", boardState.getPlayer2BreedingArea());
         
         for (int i = 1; i <= 21; i++) {
-            GameCard[] cards = getBoardStatePosition(boardState, "player2Digi" + i);
-            completeBoardState.put("player2Digi" + i, Arrays.asList(cards));
+            List<GameCard> cards = boardState.getFieldByName("player2Digi" + i);
+            completeBoardState.put("player2Digi" + i, cards);
         }
         
         for (int i = 1; i <= 16; i++) {
-            GameCard[] cards = getBoardStatePosition(boardState, "player2Link" + i);
-            completeBoardState.put("player2Link" + i, Arrays.asList(cards));
+            List<GameCard> cards = boardState.getFieldByName("player2Link" + i);
+            completeBoardState.put("player2Link" + i, cards);
         }
 
         // Add memory values
@@ -864,7 +597,7 @@ public class GameWebSocket extends TextWebSocketHandler {
         String from = parts[1];
         String to = parts[2];
         String isEffect = parts[3];
-        gameRoom.sendMessageToOtherSessions(session,"[ATTACK]:" + getPosition(from) + ":" + getPosition(to) + ":" + isEffect);
+        gameRoom.sendMessageToOtherSessions(session,"[ATTACK]:" + getOppositePosition(from) + ":" + getOppositePosition(to) + ":" + isEffect);
     }
 
     private void handleSendMoveCard(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
@@ -882,7 +615,7 @@ public class GameWebSocket extends TextWebSocketHandler {
             updateBoardStateForCardMove(gameRoom, cardId, from, to, currentPlayer);
         }
 
-        gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD]:" + cardId + ":" + getPosition(from) + ":" + getPosition(to));
+        gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD]:" + cardId + ":" + getOppositePosition(from) + ":" + getOppositePosition(to));
     }
 
     private void handleSendSetModifiers(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
@@ -892,9 +625,9 @@ public class GameWebSocket extends TextWebSocketHandler {
         String location = parts[3];
         String modifiersJson = String.join(":", Arrays.copyOfRange(parts, 4, parts.length));
 
-        updateCardModifiers(gameRoom, cardId, location, modifiersJson);
+        updateCardModifiers(session, gameRoom, cardId, location, modifiersJson);
 
-        gameRoom.sendMessageToOtherSessions(session, "[SET_MODIFIERS]:" + cardId + ":" + getPosition(location) + ":" + modifiersJson);
+        gameRoom.sendMessageToOtherSessions(session, "[SET_MODIFIERS]:" + cardId + ":" + getOppositePosition(location) + ":" + modifiersJson);
     }
 
     private void handleSendMoveToStack(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
@@ -914,7 +647,7 @@ public class GameWebSocket extends TextWebSocketHandler {
             updateBoardStateForStackMove(gameRoom, cardId, from, to, topOrBottom, facing, currentPlayer);
         }
         
-        gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD_TO_STACK]:" + topOrBottom + ":" + cardId + ":" + getPosition(from) + ":" + getPosition(to) + ":" + facing);
+        gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD_TO_STACK]:" + topOrBottom + ":" + cardId + ":" + getOppositePosition(from) + ":" + getOppositePosition(to) + ":" + facing);
     }
 
     private void handleTiltCard(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
@@ -923,9 +656,9 @@ public class GameWebSocket extends TextWebSocketHandler {
         String cardId = parts[2];
         String location = parts[3];
 
-        updateCardTiltStatus(gameRoom, cardId, location);
+        updateCardTiltStatus(session, gameRoom, cardId, location);
         
-        gameRoom.sendMessageToOtherSessions(session, "[TILT_CARD]:" + cardId + ":" + getPosition(location));
+        gameRoom.sendMessageToOtherSessions(session, "[TILT_CARD]:" + cardId + ":" + getOppositePosition(location));
     }
 
     private void handleFlipCard(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
@@ -933,116 +666,53 @@ public class GameWebSocket extends TextWebSocketHandler {
         String[] parts = roomMessage.split(":", 3);
         String cardId = parts[1];
         String location = parts[2];
-        
-        // Update BoardState with face status
-        updateCardFaceStatus(gameRoom, cardId, location);
 
-        gameRoom.sendMessageToOtherSessions(session, "[FLIP_CARD]:" + cardId + ":" + getPosition(location));
+        updateCardFaceStatus(session, gameRoom, cardId, location);
+
+        gameRoom.sendMessageToOtherSessions(session, "[FLIP_CARD]:" + cardId + ":" + getOppositePosition(location));
     }
 
-    private void updateCardTiltStatus(GameRoom gameRoom, String cardId, String location) {
+    private void updateCardTiltStatus(WebSocketSession session, GameRoom gameRoom, String cardId, String location) {
         BoardState boardState = gameRoom.getBoardState();
         if (boardState == null) return;
-        
-        // Try both player1 and player2 mappings to find the card
-        String[] possibleLocations = {
-            mapClientToServer(location, gameRoom.getPlayer1().username(), gameRoom),
-            mapClientToServer(location, gameRoom.getPlayer2().username(), gameRoom)
-        };
-        
-        for (String serverLocation : possibleLocations) {
-            GameCard[] cards = getBoardStatePosition(boardState, serverLocation);
-            for (int i = 0; i < cards.length; i++) {
-                if (cards[i].id().toString().equals(cardId)) {
-                    // Toggle tilt status
-                    GameCard oldCard = cards[i];
-                    GameCard updatedCard = new GameCard(
-                        oldCard.uniqueCardNumber(), oldCard.name(), oldCard.imgUrl(), oldCard.cardType(),
-                        oldCard.color(), oldCard.attribute(), oldCard.cardNumber(), oldCard.digivolveConditions(),
-                        oldCard.specialDigivolve(), oldCard.stage(), oldCard.digiType(), oldCard.dp(),
-                        oldCard.playCost(), oldCard.level(), oldCard.mainEffect(), oldCard.inheritedEffect(),
-                        oldCard.aceEffect(), oldCard.burstDigivolve(), oldCard.digiXros(), oldCard.dnaDigivolve(),
-                        oldCard.securityEffect(), oldCard.linkDP(), oldCard.linkEffect(), oldCard.linkRequirement(),
-                        oldCard.assemblyEffect(), oldCard.restrictions(), oldCard.illustrator(), oldCard.id(),
-                        oldCard.modifiers(), !oldCard.isTilted(), oldCard.isFaceUp()
-                    );
-                    cards[i] = updatedCard;
-                    setBoardStatePosition(boardState, serverLocation, cards);
-                    return;
-                }
-            }
-        }
-    }
-    
-    private void updateCardFaceStatus(GameRoom gameRoom, String cardId, String location) {
-        BoardState boardState = gameRoom.getBoardState();
-        if (boardState == null) return;
-        
-        // Try both player1 and player2 mappings to find the card
-        String[] possibleLocations = {
-            mapClientToServer(location, gameRoom.getPlayer1().username(), gameRoom),
-            mapClientToServer(location, gameRoom.getPlayer2().username(), gameRoom)
-        };
-        
-        for (String serverLocation : possibleLocations) {
-            GameCard[] cards = getBoardStatePosition(boardState, serverLocation);
-            for (int i = 0; i < cards.length; i++) {
-                if (cards[i].id().toString().equals(cardId)) {
-                    // Toggle face status
-                    GameCard oldCard = cards[i];
-                    GameCard updatedCard = new GameCard(
-                        oldCard.uniqueCardNumber(), oldCard.name(), oldCard.imgUrl(), oldCard.cardType(),
-                        oldCard.color(), oldCard.attribute(), oldCard.cardNumber(), oldCard.digivolveConditions(),
-                        oldCard.specialDigivolve(), oldCard.stage(), oldCard.digiType(), oldCard.dp(),
-                        oldCard.playCost(), oldCard.level(), oldCard.mainEffect(), oldCard.inheritedEffect(),
-                        oldCard.aceEffect(), oldCard.burstDigivolve(), oldCard.digiXros(), oldCard.dnaDigivolve(),
-                        oldCard.securityEffect(), oldCard.linkDP(), oldCard.linkEffect(), oldCard.linkRequirement(),
-                        oldCard.assemblyEffect(), oldCard.restrictions(), oldCard.illustrator(), oldCard.id(),
-                        oldCard.modifiers(), oldCard.isTilted(), !oldCard.isFaceUp()
-                    );
-                    cards[i] = updatedCard;
-                    setBoardStatePosition(boardState, serverLocation, cards);
-                    return;
-                }
-            }
-        }
+        String username = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
+        if (username == null) return;
+
+        String serverLocation = mapClientToServer(location, username, gameRoom);
+
+        List<GameCard> cards = boardState.getFieldByName(serverLocation);
+        cards.stream().filter(c -> c.getId().toString().equals(cardId)).findFirst().ifPresent(GameCard::tilt);
+        boardState.setFieldByName(serverLocation, cards);
     }
 
-    private void updateCardModifiers(GameRoom gameRoom, String cardId, String location, String modifiersJson) {
+    private void updateCardFaceStatus(WebSocketSession session, GameRoom gameRoom, String cardId, String location) {
         BoardState boardState = gameRoom.getBoardState();
         if (boardState == null) return;
-        
+        String username = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
+        if (username == null) return;
+
+        String serverLocation = mapClientToServer(location, username, gameRoom);
+
+        List<GameCard> cards = boardState.getFieldByName(serverLocation);
+        cards.stream().filter(c -> c.getId().toString().equals(cardId)).findFirst().ifPresent(GameCard::flip);
+        boardState.setFieldByName(serverLocation, cards);
+    }
+
+    private void updateCardModifiers(WebSocketSession session, GameRoom gameRoom, String cardId, String location, String modifiersJson) {
+        BoardState boardState = gameRoom.getBoardState();
+        if (boardState == null) return;
+        String username = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
+        if (username == null) return;
+
+        String serverLocation = mapClientToServer(location, username, gameRoom);
+
         try {
             Modifiers newModifiers = objectMapper.readValue(modifiersJson, Modifiers.class);
-            
-            // Try both player1 and player2 mappings to find the card
-            String[] possibleLocations = {
-                mapClientToServer(location, gameRoom.getPlayer1().username(), gameRoom),
-                mapClientToServer(location, gameRoom.getPlayer2().username(), gameRoom)
-            };
-            
-            for (String serverLocation : possibleLocations) {
-                GameCard[] cards = getBoardStatePosition(boardState, serverLocation);
-                for (int i = 0; i < cards.length; i++) {
-                    if (cards[i].id().toString().equals(cardId)) {
-                        // Update modifiers
-                        GameCard oldCard = cards[i];
-                        GameCard updatedCard = new GameCard(
-                            oldCard.uniqueCardNumber(), oldCard.name(), oldCard.imgUrl(), oldCard.cardType(),
-                            oldCard.color(), oldCard.attribute(), oldCard.cardNumber(), oldCard.digivolveConditions(),
-                            oldCard.specialDigivolve(), oldCard.stage(), oldCard.digiType(), oldCard.dp(),
-                            oldCard.playCost(), oldCard.level(), oldCard.mainEffect(), oldCard.inheritedEffect(),
-                            oldCard.aceEffect(), oldCard.burstDigivolve(), oldCard.digiXros(), oldCard.dnaDigivolve(),
-                            oldCard.securityEffect(), oldCard.linkDP(), oldCard.linkEffect(), oldCard.linkRequirement(),
-                            oldCard.assemblyEffect(), oldCard.restrictions(), oldCard.illustrator(), oldCard.id(),
-                            newModifiers, oldCard.isTilted(), oldCard.isFaceUp()
-                        );
-                        cards[i] = updatedCard;
-                        setBoardStatePosition(boardState, serverLocation, cards);
-                        return;
-                    }
-                }
-            }
+
+            List<GameCard> cards = boardState.getFieldByName(serverLocation);
+            cards.stream().filter(c -> c.getId().toString().equals(cardId)).findFirst().ifPresent(c -> c.setModifiers(newModifiers));
+            boardState.setFieldByName(serverLocation, cards);
+
         } catch (Exception e) {
             // Log error or handle gracefully
         }
@@ -1060,36 +730,17 @@ public class GameWebSocket extends TextWebSocketHandler {
     private void unsuspendAllCardsInBoardState(GameRoom gameRoom, WebSocketSession session) {
         BoardState boardState = gameRoom.getBoardState();
         if (boardState == null) return;
-        
-        // Determine which player is performing the unsuspend (not the opponent)
-        String currentPlayer = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
-        
-        if (currentPlayer == null) return;
-        
-        boolean isPlayer1 = gameRoom.getPlayer1().username().equals(currentPlayer);
+        String username = session.getPrincipal() != null ? session.getPrincipal().getName() : null;
+        if (username == null) return;
+
+        boolean isPlayer1 = gameRoom.getPlayer1().username().equals(username);
         
         // Unsuspend all cards in Digi1-21 positions for the current player
         for (int i = 1; i <= 21; i++) {
             String digiPosition = isPlayer1 ? "player1Digi" + i : "player2Digi" + i;
-            GameCard[] cards = getBoardStatePosition(boardState, digiPosition);
-            
-            for (int j = 0; j < cards.length; j++) {
-                if (cards[j].isTilted()) {
-                    GameCard oldCard = cards[j];
-                    GameCard updatedCard = new GameCard(
-                        oldCard.uniqueCardNumber(), oldCard.name(), oldCard.imgUrl(), oldCard.cardType(),
-                        oldCard.color(), oldCard.attribute(), oldCard.cardNumber(), oldCard.digivolveConditions(),
-                        oldCard.specialDigivolve(), oldCard.stage(), oldCard.digiType(), oldCard.dp(),
-                        oldCard.playCost(), oldCard.level(), oldCard.mainEffect(), oldCard.inheritedEffect(),
-                        oldCard.aceEffect(), oldCard.burstDigivolve(), oldCard.digiXros(), oldCard.dnaDigivolve(),
-                        oldCard.securityEffect(), oldCard.linkDP(), oldCard.linkEffect(), oldCard.linkRequirement(),
-                        oldCard.assemblyEffect(), oldCard.restrictions(), oldCard.illustrator(), oldCard.id(),
-                        oldCard.modifiers(), false, oldCard.isFaceUp() // Set isTilted to false
-                    );
-                    cards[j] = updatedCard;
-                }
-            }
-            setBoardStatePosition(boardState, digiPosition, cards);
+            List<GameCard> cards = boardState.getFieldByName(digiPosition);
+            cards.stream().filter(c -> c.isTilted).forEach(GameCard::tilt);
+            boardState.setFieldByName(digiPosition, cards);
         }
     }
 
@@ -1110,11 +761,13 @@ public class GameWebSocket extends TextWebSocketHandler {
                 BoardState boardState = gameRoom.getBoardState();
                 if (boardState != null) {
                     String serverPosition = mapClientToServer(targetPosition, currentPlayer, gameRoom);
-                    setBoardStatePosition(boardState, serverPosition, new GameCard[]{card});
+                    List<GameCard> currentList = boardState.getFieldByName(serverPosition);
+                    currentList.add(card);
+                    boardState.setFieldByName(serverPosition, currentList);
                 }
 
                 gameRoom.sendMessageToOtherSessions(session, 
-                    "[CREATE_TOKEN]:" + card.id() + ":" + card.name() + ":" + getPosition(targetPosition));
+                    "[CREATE_TOKEN]:" + card.getId() + ":" + card.getName() + ":" + getOppositePosition(targetPosition));
                     
             } catch (Exception e) {
                 System.err.println("ERROR in handleCreateToken: " + e.getMessage());

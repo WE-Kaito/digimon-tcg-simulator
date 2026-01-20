@@ -63,13 +63,38 @@ public class CardJsonConverter {
 
         Modifiers modifiers = parseModifiers(cardNode.get("modifiers"));
 
-        return new GameCard(
-            uniqueCardNumber, name, imgUrl, cardType, color, attribute, cardNumber,
-            digivolveConditions, specialDigivolve, stage, digiType, dp, playCost, level,
-            mainEffect, inheritedEffect, aceEffect, burstDigivolve, digiXros, dnaDigivolve,
-            securityEffect, linkDP, linkEffect, linkRequirement, assemblyEffect,
-            restrictions, illustrator, cardId, modifiers, isTilted, isFaceUp
-        );
+        return GameCard.builder()
+                .uniqueCardNumber(uniqueCardNumber)
+                .name(name)
+                .imgUrl(imgUrl)
+                .cardType(cardType)
+                .color(color)
+                .attribute(attribute)
+                .cardNumber(cardNumber)
+                .digivolveConditions(digivolveConditions)
+                .specialDigivolve(specialDigivolve)
+                .stage(stage)
+                .digiType(digiType)
+                .dp(dp)
+                .playCost(playCost)
+                .level(level)
+                .mainEffect(mainEffect)
+                .inheritedEffect(inheritedEffect)
+                .aceEffect(aceEffect)
+                .burstDigivolve(burstDigivolve)
+                .digiXros(digiXros)
+                .dnaDigivolve(dnaDigivolve)
+                .securityEffect(securityEffect)
+                .linkDP(linkDP)
+                .linkEffect(linkEffect)
+                .linkRequirement(linkRequirement)
+                .assemblyEffect(assemblyEffect)
+                .restrictions(restrictions)
+                .illustrator(illustrator)
+                .id(cardId)
+                .modifiers(modifiers)
+                .isTilted(isTilted)
+                .isFaceUp(isFaceUp).build();
     }
     
     private String getStringField(JsonNode node, String fieldName, String defaultValue) {

@@ -19,7 +19,7 @@ import { CSSProperties } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
 import { convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
-import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
+import { tamerLocations, useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useSound } from "../../../hooks/useSound.ts";
 import { CardModifiers, CardTypeGame, FieldCardContextMenuItemProps } from "../../../utils/types.ts";
 import "react-contexify/dist/ReactContexify.css";
@@ -197,9 +197,10 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
 
     function handleTraining({ props }: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
-        moveCardToStack("Top", myDeckField[0].id, "myDeckField", props?.location, "down");
+        const topOrBottom = tamerLocations.includes(props?.location ?? "") ? "Bottom" : "Top";
+        moveCardToStack(topOrBottom, myDeckField[0].id, "myDeckField", props?.location, "down");
         sendMessage?.(
-            `${matchInfo?.gameId}:/moveCardToStack:${matchInfo?.opponentName}:Top:${myDeckField[0].id}:myDeckField:${props?.location}:down`
+            `${matchInfo?.gameId}:/moveCardToStack:${topOrBottom}:${myDeckField[0].id}:myDeckField:${props?.location}:down`
         );
         sendChatMessage?.(
             `[FIELD_UPDATE]≔【${contextCard?.name}】 at ${convertForLog(props?.location ?? "")}﹕➟ Training`

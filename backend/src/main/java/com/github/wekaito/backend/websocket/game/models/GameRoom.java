@@ -14,6 +14,7 @@ import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 @Setter
 @Getter
@@ -115,38 +116,39 @@ public class GameRoom {
         List<GameCard> gameDeck = new ArrayList<>();
 
         for (Card card : deck) {
-            GameCard newCard = new GameCard(
-                    card.uniqueCardNumber(),
-                    card.name(),
-                    card.imgUrl(),
-                    card.cardType(),
-                    card.color(),
-                    card.attribute(),
-                    card.cardNumber(),
-                    card.digivolveConditions(),
-                    card.specialDigivolve(),
-                    card.stage(),
-                    card.digiType(),
-                    card.dp(),
-                    card.playCost(),
-                    card.level(),
-                    card.mainEffect(),
-                    card.inheritedEffect(),
-                    card.aceEffect(),
-                    card.burstDigivolve(),
-                    card.digiXros(),
-                    card.dnaDigivolve(),
-                    card.securityEffect(),
-                    card.linkDP(),
-                    card.linkEffect(),
-                    card.linkRequirement(),
-                    card.assemblyEffect(),
-                    card.restrictions(),
-                    card.illustrator(),
-                    UUID.randomUUID(),
-                    new Modifiers(0,0, new ArrayList<>(), card.color()),
-                    false, // isTilted
-                    false); // isFaceUp (cards start face down by default)
+            GameCard newCard = GameCard.builder()
+                    .uniqueCardNumber(card.uniqueCardNumber())
+                    .name(card.name())
+                    .imgUrl(card.imgUrl())
+                    .cardType(card.cardType())
+                    .color(card.color())
+                    .attribute(card.attribute())
+                    .cardNumber(card.cardNumber())
+                    .digivolveConditions(card.digivolveConditions())
+                    .specialDigivolve(card.specialDigivolve())
+                    .stage(card.stage())
+                    .digiType(card.digiType())
+                    .dp(card.dp())
+                    .playCost(card.playCost())
+                    .level(card.level())
+                    .mainEffect(card.mainEffect())
+                    .inheritedEffect(card.inheritedEffect())
+                    .aceEffect(card.aceEffect())
+                    .burstDigivolve(card.burstDigivolve())
+                    .digiXros(card.digiXros())
+                    .dnaDigivolve(card.dnaDigivolve())
+                    .securityEffect(card.securityEffect())
+                    .linkDP(card.linkDP())
+                    .linkEffect(card.linkEffect())
+                    .linkRequirement(card.linkRequirement())
+                    .assemblyEffect(card.assemblyEffect())
+                    .restrictions(card.restrictions())
+                    .illustrator(card.illustrator())
+                    .id(UUID.randomUUID())
+                    .modifiers(new Modifiers(0,0, new ArrayList<>(), card.color()))
+                    .isTilted(false)
+                    .isFaceUp(false).build();
+
             gameDeck.add(newCard);
         }
 
@@ -204,18 +206,18 @@ public class GameRoom {
 
         // Initialize BoardState with original distribution for mulligan
         BoardState boardState = new BoardState();
-        boardState.setPlayer1OriginalHand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1OriginalDeck(mainDeck1.toArray(new GameCard[0]));
-        boardState.setPlayer2OriginalHand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2OriginalDeck(mainDeck2.toArray(new GameCard[0]));
+        boardState.setPlayer1OriginalHand(player1Hand);
+        boardState.setPlayer1OriginalDeck(mainDeck1);
+        boardState.setPlayer2OriginalHand(player2Hand);
+        boardState.setPlayer2OriginalDeck(mainDeck2);
 
         // Set current state including Security cards
-        boardState.setPlayer1Hand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1Deck(mainDeck1.toArray(new GameCard[0]));
-        boardState.setPlayer1EggDeck(eggDeck1.toArray(new GameCard[0]));
-        boardState.setPlayer2Hand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2Deck(mainDeck2.toArray(new GameCard[0]));
-        boardState.setPlayer2EggDeck(eggDeck2.toArray(new GameCard[0]));
+        boardState.setPlayer1Hand(player1Hand);
+        boardState.setPlayer1Deck(mainDeck1);
+        boardState.setPlayer1EggDeck(eggDeck1);
+        boardState.setPlayer2Hand(player2Hand);
+        boardState.setPlayer2Deck(mainDeck2);
+        boardState.setPlayer2EggDeck(eggDeck2);
 
         this.boardState = boardState;
 
@@ -241,33 +243,33 @@ public class GameRoom {
         List<GameCard> player1Hand, player1DeckField;
         if (this.player1Mulligan) {
             List<GameCard> allCards = new ArrayList<>();
-            allCards.addAll(Arrays.asList(boardState.getPlayer1OriginalHand()));
-            allCards.addAll(Arrays.asList(boardState.getPlayer1OriginalDeck()));
+            allCards.addAll(boardState.getPlayer1OriginalHand());
+            allCards.addAll(boardState.getPlayer1OriginalDeck());
 
             Collections.shuffle(allCards, secureRand);
 
-            player1Hand = allCards.stream().limit(5).toList();
+            player1Hand = allCards.stream().limit(5).collect(Collectors.toCollection(ArrayList::new));
             allCards.removeAll(player1Hand);
             player1DeckField = new ArrayList<>(allCards);
         } else {
-            player1Hand = new ArrayList<>(Arrays.asList(boardState.getPlayer1OriginalHand()));
-            player1DeckField = new ArrayList<>(Arrays.asList(boardState.getPlayer1OriginalDeck()));
+            player1Hand = new ArrayList<>(boardState.getPlayer1OriginalHand());
+            player1DeckField = new ArrayList<>(boardState.getPlayer1OriginalDeck());
         }
 
         List<GameCard> player2Hand, player2DeckField;
         if (this.player2Mulligan) {
             List<GameCard> allCards = new ArrayList<>();
-            allCards.addAll(Arrays.asList(boardState.getPlayer2OriginalHand()));
-            allCards.addAll(Arrays.asList(boardState.getPlayer2OriginalDeck()));
+            allCards.addAll(boardState.getPlayer2OriginalHand());
+            allCards.addAll(boardState.getPlayer2OriginalDeck());
 
             Collections.shuffle(allCards, secureRand);
 
-            player2Hand = allCards.stream().limit(5).toList();
+            player2Hand = allCards.stream().limit(5).collect(Collectors.toCollection(ArrayList::new));
             allCards.removeAll(player2Hand);
             player2DeckField = new ArrayList<>(allCards);
         } else {
-            player2Hand = new ArrayList<>(Arrays.asList(boardState.getPlayer2OriginalHand()));
-            player2DeckField = new ArrayList<>(Arrays.asList(boardState.getPlayer2OriginalDeck()));
+            player2Hand = new ArrayList<>(boardState.getPlayer2OriginalHand());
+            player2DeckField = new ArrayList<>(boardState.getPlayer2OriginalDeck());
         }
 
         // After mulligan decisions, draw security cards from final deck state
@@ -275,16 +277,16 @@ public class GameRoom {
         List<GameCard> player2Security = drawCards(player2DeckField);
 
         // Update BoardState with final distribution
-        boardState.setPlayer1Hand(player1Hand.toArray(new GameCard[0]));
-        boardState.setPlayer1Deck(player1DeckField.toArray(new GameCard[0]));
-        boardState.setPlayer1Security(player1Security.toArray(new GameCard[0]));
-        boardState.setPlayer2Hand(player2Hand.toArray(new GameCard[0]));
-        boardState.setPlayer2Deck(player2DeckField.toArray(new GameCard[0]));
-        boardState.setPlayer2Security(player2Security.toArray(new GameCard[0]));
+        boardState.setPlayer1Hand(player1Hand);
+        boardState.setPlayer1Deck(player1DeckField);
+        boardState.setPlayer1Security(player1Security);
+        boardState.setPlayer2Hand(player2Hand);
+        boardState.setPlayer2Deck(player2DeckField);
+        boardState.setPlayer2Security(player2Security);
 
         GameStart redistributedGame = new GameStart(
-                player1Hand, player1DeckField, Arrays.asList(boardState.getPlayer1EggDeck()), player1Security,
-                player2Hand, player2DeckField, Arrays.asList(boardState.getPlayer2EggDeck()), player2Security
+                player1Hand, player1DeckField, boardState.getPlayer1EggDeck(), player1Security,
+                player2Hand, player2DeckField, boardState.getPlayer2EggDeck(), player2Security
         );
 
         distributeCards(redistributedGame);
