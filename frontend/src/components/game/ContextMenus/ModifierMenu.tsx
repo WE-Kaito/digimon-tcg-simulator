@@ -50,6 +50,10 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
         )
     );
 
+    useEffect(() => {
+        console.log(cardToSend);
+    }, [cardToSend]);
+
     const [plusDp, setPlusDp] = useState<number>(0);
     const [plusSecurityAttacks, setPlusSecurityAttacks] = useState<number>(0);
     const [keywords, setKeywords] = useState<string[]>([]);
@@ -57,10 +61,10 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
 
     const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
 
-    const handleAddDp = () => setPlusDp((prev) => (prev < 30000 ? prev + 1000 : prev));
-    const handleSubDp = () => setPlusDp((prev) => (prev > -30000 ? prev - 1000 : prev));
-    const handleAddSec = () => setPlusSecurityAttacks((prev) => (prev < 9 ? prev + 1 : prev));
-    const handleSubSec = () => setPlusSecurityAttacks((prev) => (prev > -9 ? prev - 1 : prev));
+    const handleAddDp = () => setPlusDp((prev) => prev + 1000);
+    const handleSubDp = () => setPlusDp((prev) => prev - 1000);
+    const handleAddSec = () => setPlusSecurityAttacks((prev) => prev + 1);
+    const handleSubSec = () => setPlusSecurityAttacks((prev) => prev - 1);
 
     function handleSetColor(color: string) {
         if (colors.includes(color)) setColors(colors.filter((c) => c !== color));
