@@ -58,9 +58,28 @@ const digimonLocations = [
     "opponentDigi16",
 ];
 
+const myLinkLocations = [
+    "myLink1",
+    "myLink2",
+    "myLink3",
+    "myLink4",
+    "myLink5",
+    "myLink6",
+    "myLink7",
+    "myLink8",
+    "myLink9",
+    "myLink10",
+    "myLink11",
+    "myLink12",
+    "myLink13",
+    "myLink14",
+    "myLink15",
+    "myLink16",
+];
+
 const myTamerLocations = ["myDigi17", "myDigi18", "myDigi19", "myDigi20", "myDigi21"];
 
-const myBALocations = [...myDigimonLocations, ...myTamerLocations, "myBreedingArea"];
+const myBALocations = [...myDigimonLocations, ...myLinkLocations, ...myTamerLocations, "myBreedingArea"];
 
 const myCardLocations = [...myBALocations, "myTrash", "mySecurity", "myHand", "myReveal"];
 
