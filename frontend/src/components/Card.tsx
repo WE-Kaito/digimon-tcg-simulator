@@ -508,7 +508,7 @@ export default function Card(props: CardProps) {
                                     )}
                                     <KeywordWrapper>
                                         {modifiers?.keywords
-                                            .filter((w) => w !== "SICK")
+                                            .filter((w) => w !== "SICK" && w !== "TAUNT")
                                             .map((keyword) => (
                                                 <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
                                                     <span>{keyword}</span>
@@ -562,7 +562,7 @@ export default function Card(props: CardProps) {
                 )}
                 {card.modifiers.keywords.includes("TAUNT") && (
                     <CardAnimationContainer style={{ top: 0, left: 0, right: 0, bottom: 0 }}>
-                        <TauntPulseOverlay />
+                        <TauntPulseOverlay data-testid="taunt-pulse-overlay" />
                     </CardAnimationContainer>
                 )}
 
