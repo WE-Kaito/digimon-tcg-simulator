@@ -205,6 +205,7 @@ export default function Card(props: CardProps) {
 
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
     const moveCard = useGameBoardStates((state) => state.moveCard);
+    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
@@ -236,6 +237,7 @@ export default function Card(props: CardProps) {
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 
     const cachedImageUrl = useImageCache(card.imgUrl);
     const [cardImageUrl, setCardImageUrl] = useState(cachedImageUrl || card.imgUrl);
@@ -276,6 +278,49 @@ export default function Card(props: CardProps) {
                 target?.isContentEditable;
             const key = event.key.toLowerCase();
             const hasModifierKey = event.ctrlKey || event.metaKey || event.altKey;
+
+            if (
+                key === "b" &&
+                !isTyping &&
+                !hasModifierKey &&
+                [...myDigimonLocations, "myBreedingArea"].includes(location)
+            ) {
+                event.preventDefault();
+                const stack = [
+                    ...(useGameBoardStates.getState()[
+                        location as keyof ReturnType<typeof useGameBoardStates.getState>
+                    ] as CardTypeGame[]),
+                ];
+                const topCard = stack.at(-1);
+                if (!topCard || topCard.cardType === "Token" || topCard.id.startsWith("TOKEN")) return;
+                const remainingStack = stack.slice(0, -1);
+
+                moveCardToStack("Bottom", topCard.id, location, "myDeckField");
+                remainingStack.forEach((stackCard) => {
+                    moveCard(stackCard.id, location, "myTrash");
+                    wsUtils?.sendMoveCard(stackCard.id, location, "myTrash");
+                });
+                selectCard(null);
+                playPlaceCardSfx();
+                wsUtils?.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/moveCardToStack:Bottom:${topCard.id}:${location}:myDeckField:undefined`
+                );
+                wsUtils?.sendSfx("playPlaceCardSfx");
+                wsUtils?.sendChatMessage(
+                    `[FIELD_UPDATE]≔【${topCard.name}】﹕${convertForLog(location)} ➟ Deck Bottom`
+                );
+                if (remainingStack.length) {
+                    playTrashCardSfx();
+                    wsUtils?.sendSfx("playTrashCardSfx");
+                    const remainingCardNames = remainingStack
+                        .map((stackCard) => `【${stackCard.isFaceUp ? stackCard.name : "❔"}】`)
+                        .join("");
+                    wsUtils?.sendChatMessage(
+                        `[FIELD_UPDATE]≔${remainingCardNames}﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`
+                    );
+                }
+                return;
+            }
 
             if (key === "d" && !isTyping && !hasModifierKey && myBALocations.includes(location)) {
                 event.preventDefault();
@@ -333,7 +378,9 @@ export default function Card(props: CardProps) {
         isDirectlySelected,
         location,
         moveCard,
+        moveCardToStack,
         playModifyCardSfx,
+        playPlaceCardSfx,
         playTrashCardSfx,
         selectCard,
         setModifiers,
