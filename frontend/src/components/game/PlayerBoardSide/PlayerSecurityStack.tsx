@@ -29,6 +29,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const cardToSend = useGameBoardStates((state) => state.cardToSend);
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
+    const flipCard = useGameBoardStates((state) => state.flipCard);
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
     const cardIdWithTarget = useGameBoardStates((state) => state.cardIdWithTarget);
     const isEffectInSecurity = mySecurity.find((card) => card.id === cardIdWithEffect) !== undefined;
@@ -103,7 +104,24 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
                 target?.isContentEditable;
             const hasModifierKey = event.ctrlKey || event.metaKey || event.altKey;
             const key = event.key.toLowerCase();
-            if (!["r", "t"].includes(key) || isTyping || hasModifierKey) return;
+            if (!["f", "r", "t"].includes(key) || isTyping || hasModifierKey) return;
+
+            if (key === "f") {
+                const nextFaceDownCard = useGameBoardStates
+                    .getState()
+                    .mySecurity.find((securityCard) => !securityCard.isFaceUp);
+                if (!nextFaceDownCard) return;
+
+                event.preventDefault();
+                flipCard(nextFaceDownCard.id, "mySecurity");
+                wsUtils?.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/flipCard:${nextFaceDownCard.id}:mySecurity`
+                );
+                wsUtils?.sendChatMessage(
+                    `[FIELD_UPDATE]≔【${nextFaceDownCard.name}】 at ${convertForLog("mySecurity")}﹕➟ Face Up`
+                );
+                return;
+            }
 
             if (key === "r") {
                 const topDeckCard = useGameBoardStates.getState().myDeckField[0];
@@ -138,6 +156,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     }, [
         isDisabled,
         isSecuritySpanHovered,
+        flipCard,
         moveCard,
         moveCardToStack,
         playTrashCardSfx,
