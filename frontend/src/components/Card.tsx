@@ -2,7 +2,7 @@ import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
-import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
+import { convertForLog, getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useState } from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
@@ -204,6 +204,7 @@ export default function Card(props: CardProps) {
               : player1.mainSleeveName;
 
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
@@ -234,6 +235,7 @@ export default function Card(props: CardProps) {
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
 
     const cachedImageUrl = useImageCache(card.imgUrl);
     const [cardImageUrl, setCardImageUrl] = useState(cachedImageUrl || card.imgUrl);
@@ -247,21 +249,25 @@ export default function Card(props: CardProps) {
 
     const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
     const [renderTargetAnimation, setRenderTargetAnimation] = useState(false);
-    const isSelected = selectedCard?.id === card.id;
+    const isDirectlySelected = selectedCard?.id === card.id;
+    const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
+    const isFieldStack =
+        location.includes("Digi") || location.includes("Link") || location.includes("Breeding");
+    const isSelected = isDirectlySelected || (isFieldStack && selectedCardLocation === location);
 
     useEffect(() => {
-        if (!isSelected) return;
+        if (!isDirectlySelected) return;
 
         const clearSelection = () => selectCard(null);
         document.addEventListener("click", clearSelection);
 
         return () => document.removeEventListener("click", clearSelection);
-    }, [isSelected, selectCard]);
+    }, [isDirectlySelected, selectCard]);
 
     useEffect(() => {
-        if (!isSelected) return;
+        if (!isDirectlySelected) return;
 
-        const changeDpModifier = (event: KeyboardEvent) => {
+        const handleSelectedCardShortcut = (event: KeyboardEvent) => {
             const target = event.target as HTMLElement | null;
             const isTyping =
                 target instanceof HTMLInputElement ||
@@ -269,8 +275,34 @@ export default function Card(props: CardProps) {
                 target instanceof HTMLSelectElement ||
                 target?.isContentEditable;
             const key = event.key.toLowerCase();
+            const hasModifierKey = event.ctrlKey || event.metaKey || event.altKey;
 
-            if (!["p", "m"].includes(key) || isTyping || event.ctrlKey || event.metaKey || event.altKey) return;
+            if (key === "d" && !isTyping && !hasModifierKey && myBALocations.includes(location)) {
+                event.preventDefault();
+                const stack = [
+                    ...(useGameBoardStates.getState()[
+                        location as keyof ReturnType<typeof useGameBoardStates.getState>
+                    ] as CardTypeGame[]),
+                ];
+                if (!stack.length) return;
+
+                selectCard(null);
+                stack.forEach((stackCard) => {
+                    moveCard(stackCard.id, location, "myTrash");
+                    wsUtils?.sendMoveCard(stackCard.id, location, "myTrash");
+                });
+                playTrashCardSfx();
+                wsUtils?.sendSfx("playTrashCardSfx");
+                const cardNames = stack
+                    .map((stackCard) => `【${stackCard.isFaceUp ? stackCard.name : "❔"}】`)
+                    .join("");
+                wsUtils?.sendChatMessage(
+                    `[FIELD_UPDATE]≔${cardNames}﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`
+                );
+                return;
+            }
+
+            if (!["p", "m"].includes(key) || isTyping || hasModifierKey) return;
             if (card.cardType !== "Digimon" && !numbersWithModifiers.includes(card.cardNumber)) return;
 
             const currentCard = (
@@ -291,9 +323,22 @@ export default function Card(props: CardProps) {
             wsUtils?.sendSfx("playModifyCardSfx");
         };
 
-        document.addEventListener("keydown", changeDpModifier);
-        return () => document.removeEventListener("keydown", changeDpModifier);
-    }, [card.cardNumber, card.cardType, card.id, isSelected, location, playModifyCardSfx, setModifiers, wsUtils]);
+        document.addEventListener("keydown", handleSelectedCardShortcut);
+        return () => document.removeEventListener("keydown", handleSelectedCardShortcut);
+    }, [
+        card.cardNumber,
+        card.cardType,
+        card.id,
+        card.name,
+        isDirectlySelected,
+        location,
+        moveCard,
+        playModifyCardSfx,
+        playTrashCardSfx,
+        selectCard,
+        setModifiers,
+        wsUtils,
+    ]);
 
     const inTamerField = tamerLocations.includes(location);
 
@@ -394,7 +439,6 @@ export default function Card(props: CardProps) {
         }
     }
 
-    const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
     const locationCardsOfSelected = useGameBoardStates(
         (state) => state[selectedCardLocation as keyof typeof state] as CardTypeGame[]
     );
