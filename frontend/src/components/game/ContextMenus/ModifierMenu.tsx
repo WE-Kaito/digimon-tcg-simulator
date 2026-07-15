@@ -92,6 +92,11 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
         else setKeywords([...keywords, "SICK"]);
     }
 
+    function handleSetTaunt() {
+        if (keywords.includes("TAUNT")) setKeywords((prev) => prev.filter((kw) => kw !== "TAUNT"));
+        else setKeywords([...keywords, "TAUNT"]);
+    }
+
     // eslint-disable-next-line
     useEffect(() => resetValues(), [cardToSend]);
 
@@ -173,6 +178,20 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                             />
                             <label htmlFor="toggle" className="button">
                                 (Un)Mark as sick / stunned 💫
+                            </label>
+                        </div>
+                        <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
+                            <input
+                                type="checkbox"
+                                name="stackDrag"
+                                value="Toggle"
+                                id="toggle"
+                                className="button"
+                                checked={keywords.includes("TAUNT")}
+                                onChange={handleSetTaunt}
+                            />
+                            <label htmlFor="toggle" className="button">
+                                (Un)Mark as taunted💢
                             </label>
                         </div>
 
