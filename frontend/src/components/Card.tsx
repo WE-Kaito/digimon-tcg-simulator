@@ -245,6 +245,16 @@ export default function Card(props: CardProps) {
 
     const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
     const [renderTargetAnimation, setRenderTargetAnimation] = useState(false);
+    const isSelected = selectedCard?.id === card.id;
+
+    useEffect(() => {
+        if (!isSelected) return;
+
+        const clearSelection = () => selectCard(null);
+        document.addEventListener("click", clearSelection);
+
+        return () => document.removeEventListener("click", clearSelection);
+    }, [isSelected, selectCard]);
 
     const inTamerField = tamerLocations.includes(location);
 
@@ -568,6 +578,10 @@ export default function Card(props: CardProps) {
                             filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
                         }),
                         ...(markedCard === card.id && { outline: "3px solid red" }),
+                        ...(isSelected && {
+                            outline: "3px solid limegreen",
+                            outlineOffset: "-2px",
+                        }),
                     }}
                     className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                     onClick={handleClick}
