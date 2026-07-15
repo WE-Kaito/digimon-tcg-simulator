@@ -262,6 +262,7 @@ function isTrait(trait: string) {
         case "Beast Dragon":
         case "Beast Knight":
         case "Beastkin":
+        case "BEATBREAK":
         case "Bird":
         case "Bird Dragon":
         case "Birdkin":
@@ -284,6 +285,7 @@ function isTrait(trait: string) {
         case "Dark Knight":
         case "Dark Masters":
         case "Data":
+        case "DATA SQUAD":
         case "Demon":
         case "Demon Lord":
         case "Deva":
@@ -308,9 +310,11 @@ function isTrait(trait: string) {
         case "Food":
         case "Four Great Dragons":
         case "Four Sovereigns":
+        case "Game":
         case "General":
         case "Ghost":
         case "Giant Bird":
+        case "Glowing Dawn":
         case "God Beast":
         case "Grappling Agent":
         case "Ground Combat Agent":
@@ -385,6 +389,7 @@ function isTrait(trait: string) {
         case "Seven Great Demon Lords":
         case "Shaman":
         case "SoC":
+        case "Social":
         case "Sovereign":
         case "Skeleton":
         case "Sky Dragon":
@@ -394,6 +399,7 @@ function isTrait(trait: string) {
         case "Three Great Angels":
         case "Three Musketeers":
         case "Throne":
+        case "Tool":
         case "Tropical Fish":
         case "TS":
         case "Twilight":
