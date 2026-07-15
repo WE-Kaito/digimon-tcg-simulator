@@ -14,9 +14,9 @@ import PipeFox from "../assets/tokens/Fox_Token.webp";
 import UkaNoMitama from "../assets/tokens/Mitama_Token.webp";
 import AthoRenePor from "../assets/tokens/ARP_Token.webp";
 import Petrification from "../assets/tokens/Petrification_Token.webp";
-import Hinukamuy from "../assets/tokens/Hinukamuy.png";
-import Paishu from "../assets/tokens/Paishu_Token.webp";
-import Kotenken from "../assets/tokens/Kotenken_Token.webp";
+import Hinukamuy from "../assets/tokens/Hinukamuy_Token.png";
+import Paishu from "../assets/tokens/Paishu_Token.jpg";
+import Kotenken from "../assets/tokens/Kotenken_Token.jpg";
 
 import { CardType } from "./types.ts";
 
@@ -247,7 +247,7 @@ export const hinukamuyToken: CardType = {
     mainEffect: "＜Alliance＞ ＜Reboot＞ ＜Blocker＞\n" + tokenEffect("Hinukamuy"),
     name: "Hinukamuy",
     restrictions: emptyRestrictions,
-    illustrator: "",
+    illustrator: "765Nanami",
 };
 
 export const paishuToken: CardType = {
@@ -260,8 +260,8 @@ export const paishuToken: CardType = {
     mainEffect: "＜Guard＞ ＜Blocker＞\n" + tokenEffect("Paishu"),
     name: "Paishu",
     restrictions: emptyRestrictions,
-    illustrator: "",
-}
+    illustrator: "765Nanami",
+};
 
 export const kotenkenToken: CardType = {
     imgUrl: Kotenken,
@@ -273,8 +273,8 @@ export const kotenkenToken: CardType = {
     mainEffect: "＜Blocker＞\n" + tokenEffect("Kotenken"),
     name: "Kotenken",
     restrictions: emptyRestrictions,
-    illustrator: "",
-}
+    illustrator: "765Nanami",
+};
 
 export const generalToken: CardType = {
     imgUrl: HackmonToken,
@@ -297,6 +297,8 @@ export const tokenCollection = [
     gyuukimonToken,
     hinukamuyToken,
     koHagurumonToken,
+    kotenkenToken,
+    paishuToken,
     petrificationToken,
     pipeFoxToken,
     rapidmonToken,
@@ -305,8 +307,6 @@ export const tokenCollection = [
     umonToken,
     voleeToken,
     warGrowlmonToken,
-    paishuToken,
-    kotenkenToken
 ];
 
 export const findTokenByName = (name: string): CardType =>
