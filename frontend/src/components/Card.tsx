@@ -280,6 +280,47 @@ export default function Card(props: CardProps) {
             const hasModifierKey = event.ctrlKey || event.metaKey || event.altKey;
 
             if (
+                key === "s" &&
+                !isTyping &&
+                !hasModifierKey &&
+                [...myDigimonLocations, "myBreedingArea"].includes(location)
+            ) {
+                event.preventDefault();
+                const stack = [
+                    ...(useGameBoardStates.getState()[
+                        location as keyof ReturnType<typeof useGameBoardStates.getState>
+                    ] as CardTypeGame[]),
+                ];
+                const topCard = stack.at(-1);
+                if (!topCard || topCard.cardType === "Token" || topCard.id.startsWith("TOKEN")) return;
+                const remainingStack = stack.slice(0, -1);
+
+                moveCardToStack("Top", topCard.id, location, "mySecurity", "down");
+                remainingStack.forEach((stackCard) => {
+                    moveCard(stackCard.id, location, "myTrash");
+                    wsUtils?.sendMoveCard(stackCard.id, location, "myTrash");
+                });
+                selectCard(null);
+                wsUtils?.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/moveCardToStack:Top:${topCard.id}:${location}:mySecurity:down`
+                );
+                wsUtils?.sendChatMessage(
+                    `[FIELD_UPDATE]≔【${topCard.name}】﹕${convertForLog(location)} ➟ SS Top(face down)`
+                );
+                if (remainingStack.length) {
+                    playTrashCardSfx();
+                    wsUtils?.sendSfx("playTrashCardSfx");
+                    const remainingCardNames = remainingStack
+                        .map((stackCard) => `【${stackCard.isFaceUp ? stackCard.name : "❔"}】`)
+                        .join("");
+                    wsUtils?.sendChatMessage(
+                        `[FIELD_UPDATE]≔${remainingCardNames}﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`
+                    );
+                }
+                return;
+            }
+
+            if (
                 key === "b" &&
                 !isTyping &&
                 !hasModifierKey &&
