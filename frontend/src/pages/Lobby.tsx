@@ -37,6 +37,30 @@ import useQuery from "../hooks/useQuery.ts";
 import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 
+function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
+    return {
+        ...chatMessage,
+        timestamp: chatMessage.timestamp ?? new Date().toISOString(),
+    };
+}
+
+function parseChatMessage(messageJson: string): ChatMessage {
+    try {
+        return ensureChatTimestamp(JSON.parse(messageJson) as ChatMessage);
+    } catch {
+        const separatorIndex = messageJson.indexOf(":");
+        const author = separatorIndex >= 0 ? messageJson.substring(0, separatorIndex) : "【SERVER】";
+        const message = separatorIndex >= 0 ? messageJson.substring(separatorIndex + 1).trimStart() : messageJson;
+
+        return {
+            id: `${Date.now()}-${Math.random()}`,
+            author,
+            message,
+            timestamp: new Date().toISOString(),
+        };
+    }
+}
+
 type LobbyPlayer = {
     name: string;
     avatarName: string;
@@ -220,18 +244,18 @@ export default function Lobby() {
 
                 if (event.data.startsWith("[GLOBAL_CHAT]:")) {
                     const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as ChatMessage[];
-                    setMessages(messagesArray);
+                    setMessages(messagesArray.map(ensureChatTimestamp));
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE]:".length);
-                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    const chatMessage = parseChatMessage(messageJson);
                     setMessages((messages) => [...messages, chatMessage]);
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE_ROOM]:".length);
-                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    const chatMessage = parseChatMessage(messageJson);
                     setPrivateMessages((messages) => [...messages, chatMessage]);
                 }
 
