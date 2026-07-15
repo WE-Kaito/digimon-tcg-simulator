@@ -271,7 +271,7 @@ export const kotenkenToken: CardType = {
     color: ["Black"],
     dp: 9000,
     mainEffect: "＜Blocker＞\n" + tokenEffect("Kotenken"),
-    name: "Paishu",
+    name: "Kotenken",
     restrictions: emptyRestrictions,
     illustrator: "",
 }
