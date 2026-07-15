@@ -154,7 +154,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
 
                         <Stack direction={"row"} gap={0.5} maxWidth={"100%"} flexWrap={"wrap"}>
                             {keywords
-                                .filter((w) => w !== "SICK")
+                                .filter((w) => w !== "SICK" && w !== "TAUNT")
                                 .map((keyword) => (
                                     <ModifierSpan
                                         onClick={() => setKeywords((prev) => prev.filter((kw) => kw !== keyword))}
@@ -171,12 +171,12 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                                 type="checkbox"
                                 name="stackDrag"
                                 value="Toggle"
-                                id="toggle"
+                                id="toggleSick"
                                 className="button"
                                 checked={keywords.includes("SICK")}
                                 onChange={handleSetSick}
                             />
-                            <label htmlFor="toggle" className="button">
+                            <label htmlFor="toggleSick" className="button">
                                 (Un)Mark as sick / stunned 💫
                             </label>
                         </div>
@@ -185,12 +185,12 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                                 type="checkbox"
                                 name="stackDrag"
                                 value="Toggle"
-                                id="toggle"
+                                id="toggleTaunt"
                                 className="button"
                                 checked={keywords.includes("TAUNT")}
                                 onChange={handleSetTaunt}
                             />
-                            <label htmlFor="toggle" className="button">
+                            <label htmlFor="toggleTaunt" className="button">
                                 (Un)Mark as taunted💢
                             </label>
                         </div>
