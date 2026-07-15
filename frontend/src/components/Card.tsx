@@ -261,15 +261,16 @@ export default function Card(props: CardProps) {
     useEffect(() => {
         if (!isSelected) return;
 
-        const addDpModifier = (event: KeyboardEvent) => {
+        const changeDpModifier = (event: KeyboardEvent) => {
             const target = event.target as HTMLElement | null;
             const isTyping =
                 target instanceof HTMLInputElement ||
                 target instanceof HTMLTextAreaElement ||
                 target instanceof HTMLSelectElement ||
                 target?.isContentEditable;
+            const key = event.key.toLowerCase();
 
-            if (event.key.toLowerCase() !== "p" || isTyping || event.ctrlKey || event.metaKey || event.altKey) return;
+            if (!["p", "m"].includes(key) || isTyping || event.ctrlKey || event.metaKey || event.altKey) return;
             if (card.cardType !== "Digimon" && !numbersWithModifiers.includes(card.cardNumber)) return;
 
             const currentCard = (
@@ -279,7 +280,7 @@ export default function Card(props: CardProps) {
 
             const modifiers = {
                 ...currentCard.modifiers,
-                plusDp: currentCard.modifiers.plusDp + 1000,
+                plusDp: currentCard.modifiers.plusDp + (key === "p" ? 1000 : -1000),
             };
 
             setModifiers(card.id, location, modifiers);
@@ -290,8 +291,8 @@ export default function Card(props: CardProps) {
             wsUtils?.sendSfx("playModifyCardSfx");
         };
 
-        document.addEventListener("keydown", addDpModifier);
-        return () => document.removeEventListener("keydown", addDpModifier);
+        document.addEventListener("keydown", changeDpModifier);
+        return () => document.removeEventListener("keydown", changeDpModifier);
     }, [card.cardNumber, card.cardType, card.id, isSelected, location, playModifyCardSfx, setModifiers, wsUtils]);
 
     const inTamerField = tamerLocations.includes(location);
