@@ -36,6 +36,24 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
         }).format(date);
     }
 
+    function formatTimestampTitle(timestamp: string) {
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "";
+
+        const parts = new Intl.DateTimeFormat(undefined, {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        }).formatToParts(date);
+
+        const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+
+        return `${value("month")}/${value("day")}/${value("year")} ${value("hour")}:${value("minute")} ${value("dayPeriod")}`;
+    }
+
     function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!message.trim().length) return;
@@ -65,10 +83,10 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
                                 data-message-id={message.id}
                                 onContextMenu={(e) => handleContextMenu(e, message)}
                             >
-                            <StyledServerSpan>
-                                <span>Server </span>
-                                <span> </span>
-                                {message.message === "Join our Discord!" ? (
+                                <StyledServerSpan>
+                                    <span>Server </span>
+                                    <span> </span>
+                                    {message.message === "Join our Discord!" ? (
                                         <>
                                             <a
                                                 href="https://discord.gg/sBdByGAh2y"
@@ -99,7 +117,9 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
                             onContextMenu={(e) => handleContextMenu(e, message)}
                         >
                             <StyledSpan isMe={user === message.author}>
-                            <StyledTimestamp dateTime={message.timestamp}>[{formatTimestamp(message.timestamp)}]</StyledTimestamp>
+                                <StyledTimestamp dateTime={message.timestamp} title={formatTimestampTitle(message.timestamp)}>
+                                    [{formatTimestamp(message.timestamp)}]
+                                </StyledTimestamp>
                                 <span>{message.author + " "}</span>
                                 <span> </span>
                                 <span className={"text"}>{message.message}</span>
