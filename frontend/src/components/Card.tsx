@@ -214,6 +214,7 @@ export default function Card(props: CardProps) {
     const setLinkCardInfo = useGameBoardStates((state) => state.setLinkCardInfo);
     const getLinkCardsForLocation = useGameBoardStates((state) => state.getLinkCardsForLocation);
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
+    const setModifiers = useGameBoardStates((state) => state.setModifiers);
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
@@ -232,6 +233,7 @@ export default function Card(props: CardProps) {
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
+    const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
 
     const cachedImageUrl = useImageCache(card.imgUrl);
     const [cardImageUrl, setCardImageUrl] = useState(cachedImageUrl || card.imgUrl);
@@ -255,6 +257,42 @@ export default function Card(props: CardProps) {
 
         return () => document.removeEventListener("click", clearSelection);
     }, [isSelected, selectCard]);
+
+    useEffect(() => {
+        if (!isSelected) return;
+
+        const addDpModifier = (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement | null;
+            const isTyping =
+                target instanceof HTMLInputElement ||
+                target instanceof HTMLTextAreaElement ||
+                target instanceof HTMLSelectElement ||
+                target?.isContentEditable;
+
+            if (event.key.toLowerCase() !== "p" || isTyping || event.ctrlKey || event.metaKey || event.altKey) return;
+            if (card.cardType !== "Digimon" && !numbersWithModifiers.includes(card.cardNumber)) return;
+
+            const currentCard = (
+                useGameBoardStates.getState()[location as keyof ReturnType<typeof useGameBoardStates.getState>] as CardTypeGame[]
+            ).find((locationCard) => locationCard.id === card.id);
+            if (!currentCard) return;
+
+            const modifiers = {
+                ...currentCard.modifiers,
+                plusDp: currentCard.modifiers.plusDp + 1000,
+            };
+
+            setModifiers(card.id, location, modifiers);
+            playModifyCardSfx();
+            wsUtils?.sendMessage(
+                `${wsUtils.matchInfo.gameId}:/setModifiers:${wsUtils.matchInfo.opponentName}:${card.id}:${location}:${JSON.stringify(modifiers)}`
+            );
+            wsUtils?.sendSfx("playModifyCardSfx");
+        };
+
+        document.addEventListener("keydown", addDpModifier);
+        return () => document.removeEventListener("keydown", addDpModifier);
+    }, [card.cardNumber, card.cardType, card.id, isSelected, location, playModifyCardSfx, setModifiers, wsUtils]);
 
     const inTamerField = tamerLocations.includes(location);
 
