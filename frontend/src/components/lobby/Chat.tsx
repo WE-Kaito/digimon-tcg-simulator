@@ -9,6 +9,7 @@ export type ChatMessage = {
     id: string;
     message: string;
     author: string;
+    timestamp: string;
 };
 
 type Props = {
@@ -24,6 +25,16 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
     const { show: showChatMessageMenu } = useContextMenu({ id: "chat-message-menu" });
 
     const historyRef = useRef<HTMLDivElement>(null);
+
+    function formatTimestamp(timestamp: string) {
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "";
+
+        return new Intl.DateTimeFormat(undefined, {
+            hour: "numeric",
+            minute: "2-digit",
+        }).format(date);
+    }
 
     function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -54,10 +65,10 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
                                 data-message-id={message.id}
                                 onContextMenu={(e) => handleContextMenu(e, message)}
                             >
-                                <StyledServerSpan>
-                                    <span>Server </span>
-                                    <span> </span>
-                                    {message.message === "Join our Discord!" ? (
+                            <StyledServerSpan>
+                                <span>Server </span>
+                                <span> </span>
+                                {message.message === "Join our Discord!" ? (
                                         <>
                                             <a
                                                 href="https://discord.gg/sBdByGAh2y"
@@ -88,6 +99,7 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
                             onContextMenu={(e) => handleContextMenu(e, message)}
                         >
                             <StyledSpan isMe={user === message.author}>
+                            <StyledTimestamp dateTime={message.timestamp}>[{formatTimestamp(message.timestamp)}]</StyledTimestamp>
                                 <span>{message.author + " "}</span>
                                 <span> </span>
                                 <span className={"text"}>{message.message}</span>
@@ -170,6 +182,14 @@ const StyledServerSpan = styled.span`
         color: #31da75;
         border-bottom-right-radius: 4px;
     }
+`;
+
+const StyledTimestamp = styled.time`
+    color: rgba(255, 239, 213, 0.62);
+    font-family: "Cousine", monospace;
+    font-size: 0.6em;
+    margin-right: 6px;
+    white-space: nowrap;
 `;
 
 const StyledInput = styled.input`
