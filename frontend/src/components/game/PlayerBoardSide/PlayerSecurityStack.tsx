@@ -42,6 +42,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
     const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
+    const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
 
     const isReadyToSendCard = cardToSend && showSecuritySendButtons;
     const isDisabled = bootStage !== BootStage.GAME_IN_PROGRESS;
@@ -93,7 +94,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     useEffect(() => {
         if (!isSecuritySpanHovered || isDisabled) return;
 
-        const sendTopSecurityToTrash = (event: KeyboardEvent) => {
+        const handleSecurityShortcut = (event: KeyboardEvent) => {
             const target = event.target as HTMLElement | null;
             const isTyping =
                 target instanceof HTMLInputElement ||
@@ -101,7 +102,23 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
                 target instanceof HTMLSelectElement ||
                 target?.isContentEditable;
             const hasModifierKey = event.ctrlKey || event.metaKey || event.altKey;
-            if (event.key.toLowerCase() !== "t" || isTyping || hasModifierKey) return;
+            const key = event.key.toLowerCase();
+            if (!["r", "t"].includes(key) || isTyping || hasModifierKey) return;
+
+            if (key === "r") {
+                const topDeckCard = useGameBoardStates.getState().myDeckField[0];
+                if (!topDeckCard) return;
+
+                event.preventDefault();
+                moveCardToStack("Top", topDeckCard.id, "myDeckField", "mySecurity", "down");
+                playUnsuspendSfx();
+                wsUtils?.sendSfx("playUnsuspendCardSfx");
+                wsUtils?.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/moveCardToStack:Top:${topDeckCard.id}:myDeckField:mySecurity:down`
+                );
+                wsUtils?.sendChatMessage(`[FIELD_UPDATE]≔【Top Deck Card】﹕➟ Security Top`);
+                return;
+            }
 
             const topCard = useGameBoardStates.getState().mySecurity[0];
             if (!topCard) return;
@@ -116,9 +133,17 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
             wsUtils?.sendSfx("playTrashCardSfx");
         };
 
-        document.addEventListener("keydown", sendTopSecurityToTrash);
-        return () => document.removeEventListener("keydown", sendTopSecurityToTrash);
-    }, [isDisabled, isSecuritySpanHovered, moveCard, playTrashCardSfx, wsUtils]);
+        document.addEventListener("keydown", handleSecurityShortcut);
+        return () => document.removeEventListener("keydown", handleSecurityShortcut);
+    }, [
+        isDisabled,
+        isSecuritySpanHovered,
+        moveCard,
+        moveCardToStack,
+        playTrashCardSfx,
+        playUnsuspendSfx,
+        wsUtils,
+    ]);
 
     const { show: showSecurityStackMenu } = useContextMenu({ id: "securityStackMenu" });
 
