@@ -41,6 +41,7 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
 
     const playShuffleDeckSfx = useSound((state) => state.playShuffleDeckSfx);
     const playSecurityRevealSfx = useSound((state) => state.playSecurityRevealSfx);
+    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
 
     const isReadyToSendCard = cardToSend && showSecuritySendButtons;
     const isDisabled = bootStage !== BootStage.GAME_IN_PROGRESS;
@@ -87,7 +88,37 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
     const fontSize = useGeneralStates((state) => state.cardWidth / 2.25);
 
     const [isOpen, setIsOpen] = useState(false);
-    8;
+    const [isSecuritySpanHovered, setIsSecuritySpanHovered] = useState(false);
+
+    useEffect(() => {
+        if (!isSecuritySpanHovered || isDisabled) return;
+
+        const sendTopSecurityToTrash = (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement | null;
+            const isTyping =
+                target instanceof HTMLInputElement ||
+                target instanceof HTMLTextAreaElement ||
+                target instanceof HTMLSelectElement ||
+                target?.isContentEditable;
+            const hasModifierKey = event.ctrlKey || event.metaKey || event.altKey;
+            if (event.key.toLowerCase() !== "t" || isTyping || hasModifierKey) return;
+
+            const topCard = useGameBoardStates.getState().mySecurity[0];
+            if (!topCard) return;
+
+            event.preventDefault();
+            wsUtils?.sendChatMessage(
+                `[FIELD_UPDATE]≔【${topCard.name}】﹕Security Top ➟ ${convertForLog("myTrash")}`
+            );
+            moveCard(topCard.id, "mySecurity", "myTrash");
+            playTrashCardSfx();
+            wsUtils?.sendMoveCard(topCard.id, "mySecurity", "myTrash");
+            wsUtils?.sendSfx("playTrashCardSfx");
+        };
+
+        document.addEventListener("keydown", sendTopSecurityToTrash);
+        return () => document.removeEventListener("keydown", sendTopSecurityToTrash);
+    }, [isDisabled, isSecuritySpanHovered, moveCard, playTrashCardSfx, wsUtils]);
 
     const { show: showSecurityStackMenu } = useContextMenu({ id: "securityStackMenu" });
 
@@ -146,7 +177,11 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
                         >
                             <CloseIcon />
                         </Button>
-                        <SecuritySpan style={{ fontSize: fontSize * 0.8, pointerEvents: "none" }}>
+                        <SecuritySpan
+                            style={{ fontSize: fontSize * 0.8 }}
+                            onMouseEnter={() => setIsSecuritySpanHovered(true)}
+                            onMouseLeave={() => setIsSecuritySpanHovered(false)}
+                        >
                             {mySecurity.length}
                             <ShieldIcon
                                 style={{
@@ -233,6 +268,8 @@ export default function PlayerSecurityStack({ wsUtils }: { wsUtils?: WSUtils }) 
                             style={{ fontSize, cursor: isDisabled ? "not-allowed" : undefined }}
                             className={isDisabled ? undefined : "button"}
                             onClick={() => !isDisabled && sendSecurityReveal()}
+                            onMouseEnter={() => setIsSecuritySpanHovered(true)}
+                            onMouseLeave={() => setIsSecuritySpanHovered(false)}
                             onTouchStart={handleTouchStart}
                             onTouchEnd={handleTouchEnd}
                         >
