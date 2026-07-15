@@ -15,6 +15,8 @@ import UkaNoMitama from "../assets/tokens/Mitama_Token.webp";
 import AthoRenePor from "../assets/tokens/ARP_Token.webp";
 import Petrification from "../assets/tokens/Petrification_Token.webp";
 import Hinukamuy from "../assets/tokens/Hinukamuy.png";
+import Paishu from "../assets/tokens/Paishu_Token.webp";
+import Kotenken from "../assets/tokens/Kotenken_Token.webp";
 
 import { CardType } from "./types.ts";
 
@@ -248,6 +250,32 @@ export const hinukamuyToken: CardType = {
     illustrator: "",
 };
 
+export const paishuToken: CardType = {
+    imgUrl: Paishu,
+    uniqueCardNumber: "Paishu-TOKEN",
+    cardNumber: "",
+    cardType: "Digimon",
+    color: ["Yellow"],
+    dp: 6000,
+    mainEffect: "＜Guard＞ ＜Blocker＞\n" + tokenEffect("Paishu"),
+    name: "Paishu",
+    restrictions: emptyRestrictions,
+    illustrator: "",
+}
+
+export const kotenkenToken: CardType = {
+    imgUrl: Kotenken,
+    uniqueCardNumber: "Kotenken-TOKEN",
+    cardNumber: "",
+    cardType: "Digimon",
+    color: ["Black"],
+    dp: 9000,
+    mainEffect: "＜Blocker＞\n" + tokenEffect("Kotenken"),
+    name: "Kotenken",
+    restrictions: emptyRestrictions,
+    illustrator: "",
+}
+
 export const generalToken: CardType = {
     imgUrl: HackmonToken,
     uniqueCardNumber: "TOKEN",
@@ -277,6 +305,8 @@ export const tokenCollection = [
     umonToken,
     voleeToken,
     warGrowlmonToken,
+    paishuToken,
+    kotenkenToken
 ];
 
 export const findTokenByName = (name: string): CardType =>
