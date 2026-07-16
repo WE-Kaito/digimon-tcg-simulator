@@ -76,6 +76,10 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`);
     }
 
+    function handleAssembly() {
+        setOpenedCardDialog(OpenedCardDialog.MY_TRASH);
+    }
+
     function handleShuffleSecurity() {
         shuffleSecurity();
         playShuffleDeckSfx();
@@ -225,6 +229,11 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>{isHandHidden ? "Disable Stream Mode" : "Activate Stream Mode"}</span>
                         <StreamerModeIcon />
+                    </div>
+                </Item>
+                <Item onClick={handleAssembly}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Assembly</span>
                     </div>
                 </Item>
             </StyledMenu>
