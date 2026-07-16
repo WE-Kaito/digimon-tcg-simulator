@@ -47,6 +47,8 @@ function getExplanation(keyword: string) {
         return "When this Digimon attacks, by suspending 1 of your other Digimon, add the suspended Digimon's DP to this Digimon and it gains ＜Security Attack +1＞ for the attack.";
     if (keyword.startsWith("Armor"))
         return "When this Digimon would be deleted, you may trash the top card of this Digimon to prevent that deletion.";
+    if (keyword.startsWith("Ascension"))
+        return "When a Digimon card with ＜Ascension＞ is deleted, you may place that card as your top security card.";
     if (keyword.startsWith("Barrier"))
         return "When this Digimon would be deleted in battle, by trashing the top card of your security stack, prevent that deletion.";
     if (keyword.startsWith("Blast DNA")) return "Your Digimon may digivolve into this card without paying the cost.";
@@ -70,12 +72,16 @@ function getExplanation(keyword: string) {
     if (keyword.startsWith("Draw")) return "Draw X card(s) from your deck.";
     if (keyword.startsWith("Evade"))
         return "When this Digimon would be deleted, you may suspend it to prevent that deletion.";
+    if (keyword.startsWith("Engage"))
+        return "At the end of your turn, your Digimon with ＜Engage＞ may attack.";
     if (keyword.startsWith("Execute"))
         return "At the end of the turn, this Digimon may attack. At the end of that attack, delete this Digimon. Your opponent's unsuspended Digimon can also be attacked with this effect.";
     if (keyword.startsWith("Fortitude"))
         return "When this Digimon with Digivolution cards is deleted, play this card without paying the cost.";
     if (keyword.startsWith("Fragment"))
         return "When this Digimon would be deleted, by trashing any X of its digivolution cards, it isn't deleted.";
+    if (keyword.startsWith("Guard"))
+        return "When any of your other Digimon would leave the battle area by your opponent's effects, by deleting your Digimon with ＜Guard＞, they don't leave.";
     if (keyword.startsWith("Ice"))
         return "Other than against Security Digimon, compare the number of digivolution cards instead of DP in this Digimon's battles.";
     if (keyword.startsWith("Jamming")) return "This Digimon can't be deleted in battles against Security Digimon.";
