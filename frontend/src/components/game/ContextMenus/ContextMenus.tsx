@@ -18,6 +18,7 @@ import {
 import { CSSProperties, useState } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
 import AssemblyDialog from "../AssemblyDialog.tsx";
+import { assemblyFieldLocations, createAssemblyMoves, findEmptyAssemblyField, isAssemblyCard } from "../assembly.ts";
 import { convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
@@ -42,9 +43,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
     const hasEmptyDigimonField = useGameBoardStates((state) =>
-        Array.from({ length: 16 }, (_, index) => `myDigi${index + 1}`).some(
-            (location) => !(state[location as keyof typeof state] as CardTypeGame[]).length
-        )
+        assemblyFieldLocations.some((location) => !(state[location as keyof typeof state] as CardTypeGame[]).length)
     );
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
     const moveCard = useGameBoardStates((state) => state.moveCard);
@@ -101,24 +100,22 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
 
         const boardState = useGameBoardStates.getState();
         const handCard = boardState.myHand.find((card) => card.id === assemblyHandCardId);
-        const emptyField = Array.from({ length: 16 }, (_, index) => `myDigi${index + 1}`).find(
-            (location) => !(boardState[location as keyof typeof boardState] as CardTypeGame[]).length
+        const emptyField = findEmptyAssemblyField(
+            (location) => boardState[location as keyof typeof boardState] as CardTypeGame[]
         );
 
         if (!handCard || !emptyField) return;
 
-        const trashCardsInStackOrder = selectedTrashCards.slice().reverse();
-        trashCardsInStackOrder.forEach((card) => {
-            moveCard(card.id, "myTrash", emptyField);
-            sendMoveCard?.(card.id, "myTrash", emptyField);
+        const assemblyMoves = createAssemblyMoves(handCard, selectedTrashCards, emptyField);
+        assemblyMoves.forEach(({ card, from, to }) => {
+            moveCard(card.id, from, to);
+            sendMoveCard?.(card.id, from, to);
         });
-        moveCard(handCard.id, "myHand", emptyField);
-        sendMoveCard?.(handCard.id, "myHand", emptyField);
 
         playPlaceCardSfx();
         sendSfx?.("playPlaceCardSfx");
         sendChatMessage?.(
-            `[FIELD_UPDATE]≔${trashCardsInStackOrder.map((card) => `【${card.name}】`).join("")}【${handCard.name}】﹕Assembly ➟ ${convertForLog(emptyField)}`
+            `[FIELD_UPDATE]≔${assemblyMoves.map(({ card }) => `【${card.name}】`).join("")}﹕Assembly ➟ ${convertForLog(emptyField)}`
         );
         closeAssemblyDialog();
     }
@@ -274,11 +271,13 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <StreamerModeIcon />
                     </div>
                 </Item>
-                <Item onClick={handleAssembly}>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>Assembly</span>
-                    </div>
-                </Item>
+                {isAssemblyCard(contextCard) && (
+                    <Item onClick={handleAssembly}>
+                        <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                            <span>Assembly</span>
+                        </div>
+                    </Item>
+                )}
             </StyledMenu>
 
             <StyledMenu id={"fieldCardMenu"} theme="dark">
