@@ -1,5 +1,5 @@
 import { Item, ItemParams, Separator } from "react-contexify";
-import { DeleteForever as TrashIcon, Report as ReportIcon } from "@mui/icons-material";
+import { DeleteForever as TrashIcon, PersonAdd as InviteIcon, Report as ReportIcon } from "@mui/icons-material";
 import { StyledMenu } from "../game/ContextMenus/ContextMenus.tsx";
 import axios from "axios";
 import "react-contexify/dist/ReactContexify.css";
@@ -7,8 +7,15 @@ import { notifyError, notifySuccess } from "../../utils/toasts.ts";
 import { ChatMessage } from "./Chat.tsx";
 import useMutation from "../../hooks/useMutation.ts";
 import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
+import { SendMessage } from "react-use-websocket";
 
-export default function ChatContextMenu({ isAdmin }: { isAdmin: boolean }) {
+type Props = {
+    isAdmin: boolean;
+    sendMessage: SendMessage;
+    onInviteSent: (player: string) => void;
+};
+
+export default function ChatContextMenu({ isAdmin, sendMessage, onInviteSent }: Props) {
     const user = useGeneralStates((state) => state.user);
     const { mutate, isPending } = useMutation("/api/report", "POST");
 
@@ -39,6 +46,12 @@ export default function ChatContextMenu({ isAdmin }: { isAdmin: boolean }) {
         });
     }
 
+    function handleInviteToGame({ props }: ItemParams<ChatMessage>) {
+        if (props === undefined || props.author === user || props.author === "【SERVER】") return;
+        sendMessage(`/inviteToGame:${props.author}`);
+        onInviteSent(props.author);
+    }
+
     return (
         <StyledMenu id="chat-message-menu" theme="dark">
             {isAdmin && (
@@ -50,6 +63,16 @@ export default function ChatContextMenu({ isAdmin }: { isAdmin: boolean }) {
                 </Item>
             )}
             {isAdmin && <Separator />}
+            <Item
+                onClick={handleInviteToGame}
+                hidden={({ props }) => (props as ChatMessage | undefined)?.author === "【SERVER】"}
+            >
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                    <span>Invite to Game</span>
+                    <InviteIcon color="primary" />
+                </div>
+            </Item>
+            <Separator />
             <Item onClick={handleReportMessage}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                     <span>Report Message</span>

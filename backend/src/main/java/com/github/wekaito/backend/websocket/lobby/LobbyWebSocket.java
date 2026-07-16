@@ -164,6 +164,26 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (payload.startsWith("/chatMessage:")) handleChatMessage(session, payload);
 
         if (payload.startsWith("/roomChatMessage:")) handleRoomChatMessage(session, payload);
+
+        if (payload.startsWith("/inviteToGame:")) handleGameInvite(session, payload);
+    }
+
+    private void handleGameInvite(WebSocketSession session, String payload) throws IOException {
+        Principal principal = session.getPrincipal();
+        String[] parts = payload.split(":", 2);
+        if (principal == null || parts.length < 2) return;
+
+        String inviter = principal.getName();
+        String invitedPlayer = parts[1];
+        if (invitedPlayer.isBlank() || invitedPlayer.equals(inviter)) return;
+
+        for (WebSocketSession activeSession : globalActiveSessions) {
+            Principal activePrincipal = activeSession.getPrincipal();
+            if (activePrincipal != null && activePrincipal.getName().equals(invitedPlayer)) {
+                sendTextMessage(activeSession, "[GAME_INVITE]:" + inviter);
+                return;
+            }
+        }
     }
 
     private boolean tryReconnectToRoom(WebSocketSession session) throws IOException {
