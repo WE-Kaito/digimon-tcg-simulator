@@ -15,8 +15,9 @@ import {
     PreviewRounded as StreamerModeIcon,
     LabelImportant as MarkerIcon,
 } from "@mui/icons-material";
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
+import AssemblyDialog from "../AssemblyDialog.tsx";
 import { convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
@@ -28,6 +29,7 @@ import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIState
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const { sendMessage, sendChatMessage, sendSfx, matchInfo, sendMoveCard } = wsUtils ?? {};
+    const [isAssemblyDialogOpen, setIsAssemblyDialogOpen] = useState(false);
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
 
@@ -77,7 +79,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     }
 
     function handleAssembly() {
-        setOpenedCardDialog(OpenedCardDialog.MY_TRASH);
+        setIsAssemblyDialogOpen(true);
     }
 
     function handleShuffleSecurity() {
@@ -341,6 +343,12 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                     </div>
                 </Item>
             </StyledMenu>
+
+            <AssemblyDialog
+                open={isAssemblyDialogOpen}
+                onCancel={() => setIsAssemblyDialogOpen(false)}
+                onConfirm={() => setIsAssemblyDialogOpen(false)}
+            />
 
             <StyledMenu id={"opponentHandCardMenu"} theme="dark">
                 <Item onClick={activateTargetAnimation}>
