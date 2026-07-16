@@ -203,12 +203,24 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         boolean accepted = Boolean.parseBoolean(parts[2]);
         if (!pendingGameInvites.remove(new PendingGameInvite(inviter, invitedPlayer))) return;
 
+        WebSocketSession inviterSession = null;
         for (WebSocketSession activeSession : globalActiveSessions) {
             Principal activePrincipal = activeSession.getPrincipal();
             if (activePrincipal != null && activePrincipal.getName().equals(inviter)) {
-                sendTextMessage(activeSession, "[GAME_INVITE_RESPONSE]:" + invitedPlayer + ":" + accepted);
-                return;
+                inviterSession = activeSession;
+                break;
             }
+        }
+
+        if (inviterSession == null) return;
+        sendTextMessage(inviterSession, "[GAME_INVITE_RESPONSE]:" + invitedPlayer + ":" + accepted);
+
+        if (accepted) {
+            String gameId = inviter + "‗" + invitedPlayer;
+            sendTextMessage(inviterSession, "[COMPUTE_GAME]:" + gameId);
+            sendTextMessage(session, "[COMPUTE_GAME]:" + gameId);
+            lastPlayerRooms.remove(inviterSession);
+            lastPlayerRooms.remove(session);
         }
     }
 
