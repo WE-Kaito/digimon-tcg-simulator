@@ -43,7 +43,7 @@ type State = {
     deleteDeck: (id: string, navigate: NavigateFunction) => void;
     clearDeck: () => void;
 
-    importDeck: (decklist: string | string[], format: string) => void;
+    importDeck: (decklist: string | string[], format: string) => boolean;
     exportDeck: (exportFormat: string, deckname: string) => string;
 
     loadOrderedDecks: (setOrderedDecks: Dispatch<SetStateAction<DeckType[]>>) => void;
@@ -492,13 +492,18 @@ export const useDeckStates = create<State>((set, get) => ({
             }))
             .filter((card) => card.name !== undefined);
 
+        if (!cardsWithId.length) {
+            set({ isLoading: false });
+            return false;
+        }
+
         // --- check if deck is valid ---
         const eggCardLength = cardsWithId.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = cardsWithId.length - eggCardLength;
         if (eggCardLength > 5 || filteredLength > 50) {
             notifyError("Deck exceeds card limits!");
             set({ isLoading: false });
-            return;
+            return false;
         }
 
         for (const card of cardsWithId) {
@@ -506,7 +511,7 @@ export const useDeckStates = create<State>((set, get) => ({
             if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardNumber)) {
                 notifyError("Too many copies of a single card!");
                 set({ isLoading: false });
-                return;
+                return false;
             }
         }
         // ---
@@ -516,8 +521,8 @@ export const useDeckStates = create<State>((set, get) => ({
         const eggDeckCards = cardsWithId.filter((card) => card.cardType === "Digi-Egg");
 
         set({ mainDeckCards, eggDeckCards });
-        const timeout = setTimeout(() => set({ isLoading: false }), 700);
-        return () => clearTimeout(timeout);
+        setTimeout(() => set({ isLoading: false }), 700);
+        return true;
     },
 
     exportDeck: (exportFormat, deckname): string => {
