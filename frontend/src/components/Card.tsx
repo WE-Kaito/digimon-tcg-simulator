@@ -2,7 +2,7 @@ import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
-import { convertForLog, getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
+import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useState } from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
@@ -204,8 +204,6 @@ export default function Card(props: CardProps) {
               : player1.mainSleeveName;
 
     const tiltCard = useGameBoardStates((state) => state.tiltCard);
-    const moveCard = useGameBoardStates((state) => state.moveCard);
-    const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
     const cardIdWithEffect = useGameBoardStates((state) => state.cardIdWithEffect);
@@ -216,7 +214,6 @@ export default function Card(props: CardProps) {
     const setLinkCardInfo = useGameBoardStates((state) => state.setLinkCardInfo);
     const getLinkCardsForLocation = useGameBoardStates((state) => state.getLinkCardsForLocation);
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
-    const setModifiers = useGameBoardStates((state) => state.setModifiers);
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const isHandHidden = useGameBoardStates((state) => state.isHandHidden);
     const stackSliceIndex = useGameBoardStates((state) => state.stackSliceIndex);
@@ -235,9 +232,6 @@ export default function Card(props: CardProps) {
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
-    const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
-    const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
-    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 
     const cachedImageUrl = useImageCache(card.imgUrl);
     const [cardImageUrl, setCardImageUrl] = useState(cachedImageUrl || card.imgUrl);
@@ -251,182 +245,6 @@ export default function Card(props: CardProps) {
 
     const [renderEffectAnimation, setRenderEffectAnimation] = useState(false);
     const [renderTargetAnimation, setRenderTargetAnimation] = useState(false);
-    const isDirectlySelected = selectedCard?.id === card.id;
-    const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
-    const isFieldStack =
-        location.includes("Digi") || location.includes("Link") || location.includes("Breeding");
-    const isSelected = isDirectlySelected || (isFieldStack && selectedCardLocation === location);
-
-    useEffect(() => {
-        if (!isDirectlySelected) return;
-
-        const clearSelection = () => selectCard(null);
-        document.addEventListener("click", clearSelection);
-
-        return () => document.removeEventListener("click", clearSelection);
-    }, [isDirectlySelected, selectCard]);
-
-    useEffect(() => {
-        if (!isDirectlySelected) return;
-
-        const handleSelectedCardShortcut = (event: KeyboardEvent) => {
-            const target = event.target as HTMLElement | null;
-            const isTyping =
-                target instanceof HTMLInputElement ||
-                target instanceof HTMLTextAreaElement ||
-                target instanceof HTMLSelectElement ||
-                target?.isContentEditable;
-            const key = event.key.toLowerCase();
-            const hasModifierKey = event.ctrlKey || event.metaKey || event.altKey;
-
-            if (
-                key === "s" &&
-                !isTyping &&
-                !hasModifierKey &&
-                [...myDigimonLocations, "myBreedingArea"].includes(location)
-            ) {
-                event.preventDefault();
-                const stack = [
-                    ...(useGameBoardStates.getState()[
-                        location as keyof ReturnType<typeof useGameBoardStates.getState>
-                    ] as CardTypeGame[]),
-                ];
-                const topCard = stack.at(-1);
-                if (!topCard || topCard.cardType === "Token" || topCard.id.startsWith("TOKEN")) return;
-                const remainingStack = stack.slice(0, -1);
-
-                moveCardToStack("Top", topCard.id, location, "mySecurity", "down");
-                remainingStack.forEach((stackCard) => {
-                    moveCard(stackCard.id, location, "myTrash");
-                    wsUtils?.sendMoveCard(stackCard.id, location, "myTrash");
-                });
-                selectCard(null);
-                wsUtils?.sendMessage(
-                    `${wsUtils.matchInfo.gameId}:/moveCardToStack:Top:${topCard.id}:${location}:mySecurity:down`
-                );
-                wsUtils?.sendChatMessage(
-                    `[FIELD_UPDATE]≔【${topCard.name}】﹕${convertForLog(location)} ➟ SS Top(face down)`
-                );
-                if (remainingStack.length) {
-                    playTrashCardSfx();
-                    wsUtils?.sendSfx("playTrashCardSfx");
-                    const remainingCardNames = remainingStack
-                        .map((stackCard) => `【${stackCard.isFaceUp ? stackCard.name : "❔"}】`)
-                        .join("");
-                    wsUtils?.sendChatMessage(
-                        `[FIELD_UPDATE]≔${remainingCardNames}﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`
-                    );
-                }
-                return;
-            }
-
-            if (
-                key === "b" &&
-                !isTyping &&
-                !hasModifierKey &&
-                [...myDigimonLocations, "myBreedingArea"].includes(location)
-            ) {
-                event.preventDefault();
-                const stack = [
-                    ...(useGameBoardStates.getState()[
-                        location as keyof ReturnType<typeof useGameBoardStates.getState>
-                    ] as CardTypeGame[]),
-                ];
-                const topCard = stack.at(-1);
-                if (!topCard || topCard.cardType === "Token" || topCard.id.startsWith("TOKEN")) return;
-                const remainingStack = stack.slice(0, -1);
-
-                moveCardToStack("Bottom", topCard.id, location, "myDeckField");
-                remainingStack.forEach((stackCard) => {
-                    moveCard(stackCard.id, location, "myTrash");
-                    wsUtils?.sendMoveCard(stackCard.id, location, "myTrash");
-                });
-                selectCard(null);
-                playPlaceCardSfx();
-                wsUtils?.sendMessage(
-                    `${wsUtils.matchInfo.gameId}:/moveCardToStack:Bottom:${topCard.id}:${location}:myDeckField:undefined`
-                );
-                wsUtils?.sendSfx("playPlaceCardSfx");
-                wsUtils?.sendChatMessage(
-                    `[FIELD_UPDATE]≔【${topCard.name}】﹕${convertForLog(location)} ➟ Deck Bottom`
-                );
-                if (remainingStack.length) {
-                    playTrashCardSfx();
-                    wsUtils?.sendSfx("playTrashCardSfx");
-                    const remainingCardNames = remainingStack
-                        .map((stackCard) => `【${stackCard.isFaceUp ? stackCard.name : "❔"}】`)
-                        .join("");
-                    wsUtils?.sendChatMessage(
-                        `[FIELD_UPDATE]≔${remainingCardNames}﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`
-                    );
-                }
-                return;
-            }
-
-            if (key === "d" && !isTyping && !hasModifierKey && myBALocations.includes(location)) {
-                event.preventDefault();
-                const stack = [
-                    ...(useGameBoardStates.getState()[
-                        location as keyof ReturnType<typeof useGameBoardStates.getState>
-                    ] as CardTypeGame[]),
-                ];
-                if (!stack.length) return;
-
-                selectCard(null);
-                stack.forEach((stackCard) => {
-                    moveCard(stackCard.id, location, "myTrash");
-                    wsUtils?.sendMoveCard(stackCard.id, location, "myTrash");
-                });
-                playTrashCardSfx();
-                wsUtils?.sendSfx("playTrashCardSfx");
-                const cardNames = stack
-                    .map((stackCard) => `【${stackCard.isFaceUp ? stackCard.name : "❔"}】`)
-                    .join("");
-                wsUtils?.sendChatMessage(
-                    `[FIELD_UPDATE]≔${cardNames}﹕${convertForLog(location)} ➟ ${convertForLog("myTrash")}`
-                );
-                return;
-            }
-
-            if (!["p", "m"].includes(key) || isTyping || hasModifierKey) return;
-            if (card.cardType !== "Digimon" && !numbersWithModifiers.includes(card.cardNumber)) return;
-
-            const currentCard = (
-                useGameBoardStates.getState()[location as keyof ReturnType<typeof useGameBoardStates.getState>] as CardTypeGame[]
-            ).find((locationCard) => locationCard.id === card.id);
-            if (!currentCard) return;
-
-            const modifiers = {
-                ...currentCard.modifiers,
-                plusDp: currentCard.modifiers.plusDp + (key === "p" ? 1000 : -1000),
-            };
-
-            setModifiers(card.id, location, modifiers);
-            playModifyCardSfx();
-            wsUtils?.sendMessage(
-                `${wsUtils.matchInfo.gameId}:/setModifiers:${wsUtils.matchInfo.opponentName}:${card.id}:${location}:${JSON.stringify(modifiers)}`
-            );
-            wsUtils?.sendSfx("playModifyCardSfx");
-        };
-
-        document.addEventListener("keydown", handleSelectedCardShortcut);
-        return () => document.removeEventListener("keydown", handleSelectedCardShortcut);
-    }, [
-        card.cardNumber,
-        card.cardType,
-        card.id,
-        card.name,
-        isDirectlySelected,
-        location,
-        moveCard,
-        moveCardToStack,
-        playModifyCardSfx,
-        playPlaceCardSfx,
-        playTrashCardSfx,
-        selectCard,
-        setModifiers,
-        wsUtils,
-    ]);
 
     const inTamerField = tamerLocations.includes(location);
 
@@ -527,6 +345,7 @@ export default function Card(props: CardProps) {
         }
     }
 
+    const selectedCardLocation = getCardLocationById(selectedCard?.id ?? "");
     const locationCardsOfSelected = useGameBoardStates(
         (state) => state[selectedCardLocation as keyof typeof state] as CardTypeGame[]
     );
@@ -749,10 +568,6 @@ export default function Card(props: CardProps) {
                             filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
                         }),
                         ...(markedCard === card.id && { outline: "3px solid red" }),
-                        ...(isSelected && {
-                            outline: "3px solid limegreen",
-                            outlineOffset: "-2px",
-                        }),
                     }}
                     className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                     onClick={handleClick}
