@@ -41,6 +41,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     private final Set<WebSocketSession> globalActiveSessions = ConcurrentHashMap.newKeySet();
     private final Set<Room> rooms = ConcurrentHashMap.newKeySet();
+    private final Set<PendingGameInvite> pendingGameInvites = ConcurrentHashMap.newKeySet();
 
     private final Map<String, Long> emptyRoomTimestamps = new ConcurrentHashMap<>();
     private final Map<WebSocketSession, String> lastPlayerRooms = new ConcurrentHashMap<>(); // username -> roomId
@@ -166,6 +167,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (payload.startsWith("/roomChatMessage:")) handleRoomChatMessage(session, payload);
 
         if (payload.startsWith("/inviteToGame:")) handleGameInvite(session, payload);
+
+        if (payload.startsWith("/gameInviteResponse:")) handleGameInviteResponse(session, payload);
     }
 
     private void handleGameInvite(WebSocketSession session, String payload) throws IOException {
@@ -177,14 +180,39 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         String invitedPlayer = parts[1];
         if (invitedPlayer.isBlank() || invitedPlayer.equals(inviter)) return;
 
+        PendingGameInvite invite = new PendingGameInvite(inviter, invitedPlayer);
         for (WebSocketSession activeSession : globalActiveSessions) {
             Principal activePrincipal = activeSession.getPrincipal();
             if (activePrincipal != null && activePrincipal.getName().equals(invitedPlayer)) {
+                if (!pendingGameInvites.add(invite)) return;
                 sendTextMessage(activeSession, "[GAME_INVITE]:" + inviter);
                 return;
             }
         }
+
+        sendTextMessage(session, "[GAME_INVITE_RESPONSE]:" + invitedPlayer + ":false");
     }
+
+    private void handleGameInviteResponse(WebSocketSession session, String payload) throws IOException {
+        Principal principal = session.getPrincipal();
+        String[] parts = payload.split(":", 3);
+        if (principal == null || parts.length < 3) return;
+
+        String invitedPlayer = principal.getName();
+        String inviter = parts[1];
+        boolean accepted = Boolean.parseBoolean(parts[2]);
+        if (!pendingGameInvites.remove(new PendingGameInvite(inviter, invitedPlayer))) return;
+
+        for (WebSocketSession activeSession : globalActiveSessions) {
+            Principal activePrincipal = activeSession.getPrincipal();
+            if (activePrincipal != null && activePrincipal.getName().equals(inviter)) {
+                sendTextMessage(activeSession, "[GAME_INVITE_RESPONSE]:" + invitedPlayer + ":" + accepted);
+                return;
+            }
+        }
+    }
+
+    private record PendingGameInvite(String inviter, String invitedPlayer) {}
 
     private boolean tryReconnectToRoom(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();

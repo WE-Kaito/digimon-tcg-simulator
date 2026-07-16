@@ -13,9 +13,10 @@ type Props = {
     isAdmin: boolean;
     sendMessage: SendMessage;
     onInviteSent: (player: string) => void;
+    pendingGameInvites: Set<string>;
 };
 
-export default function ChatContextMenu({ isAdmin, sendMessage, onInviteSent }: Props) {
+export default function ChatContextMenu({ isAdmin, sendMessage, onInviteSent, pendingGameInvites }: Props) {
     const user = useGeneralStates((state) => state.user);
     const { mutate, isPending } = useMutation("/api/report", "POST");
 
@@ -47,7 +48,13 @@ export default function ChatContextMenu({ isAdmin, sendMessage, onInviteSent }: 
     }
 
     function handleInviteToGame({ props }: ItemParams<ChatMessage>) {
-        if (props === undefined || props.author === user || props.author === "【SERVER】") return;
+        if (
+            props === undefined ||
+            props.author === user ||
+            props.author === "【SERVER】" ||
+            pendingGameInvites.has(props.author)
+        )
+            return;
         sendMessage(`/inviteToGame:${props.author}`);
         onInviteSent(props.author);
     }
@@ -66,6 +73,9 @@ export default function ChatContextMenu({ isAdmin, sendMessage, onInviteSent }: 
             <Item
                 onClick={handleInviteToGame}
                 hidden={({ props }) => (props as ChatMessage | undefined)?.author === "【SERVER】"}
+                disabled={({ props }) =>
+                    pendingGameInvites.has((props as ChatMessage | undefined)?.author ?? "")
+                }
             >
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                     <span>Invite to Game</span>
