@@ -7,11 +7,12 @@ import { CardTypeGame } from "../../utils/types.ts";
 
 type Props = {
     open: boolean;
+    hasEmptyField: boolean;
     onCancel: () => void;
     onConfirm: (cards: CardTypeGame[]) => void;
 };
 
-export default function AssemblyDialog({ open, onCancel, onConfirm }: Props) {
+export default function AssemblyDialog({ open, hasEmptyField, onCancel, onConfirm }: Props) {
     const myTrash = useGameBoardStates((state) => state.myTrash);
     const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
 
@@ -83,10 +84,15 @@ export default function AssemblyDialog({ open, onCancel, onConfirm }: Props) {
                 </CardGrid>
             </DialogContent>
             <DialogActions sx={{ padding: 2 }}>
+                {!hasEmptyField && <FieldWarning>An empty Digimon field is required.</FieldWarning>}
                 <Button color="inherit" variant="outlined" onClick={onCancel}>
                     Cancel
                 </Button>
-                <Button variant="contained" disabled={!selectedCardIds.length} onClick={handleConfirm}>
+                <Button
+                    variant="contained"
+                    disabled={!selectedCardIds.length || !hasEmptyField}
+                    onClick={handleConfirm}
+                >
                     Confirm
                 </Button>
             </DialogActions>
@@ -152,5 +158,11 @@ const EmptyTrash = styled.p`
     grid-column: 1 / -1;
     place-self: center;
     color: rgba(255, 255, 255, 0.7);
+    font-family: "League Spartan", sans-serif;
+`;
+
+const FieldWarning = styled.span`
+    margin-right: auto;
+    color: #ffb4ab;
     font-family: "League Spartan", sans-serif;
 `;

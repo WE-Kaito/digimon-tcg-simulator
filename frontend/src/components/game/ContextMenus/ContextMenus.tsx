@@ -30,6 +30,7 @@ import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIState
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const { sendMessage, sendChatMessage, sendSfx, matchInfo, sendMoveCard } = wsUtils ?? {};
     const [isAssemblyDialogOpen, setIsAssemblyDialogOpen] = useState(false);
+    const [assemblyHandCardId, setAssemblyHandCardId] = useState<string | null>(null);
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
 
@@ -40,6 +41,11 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const cardToSend = useGameBoardStates((state) => state.cardToSend);
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
     const myDeckField = useGameBoardStates((state) => state.myDeckField);
+    const hasEmptyDigimonField = useGameBoardStates((state) =>
+        Array.from({ length: 16 }, (_, index) => `myDigi${index + 1}`).some(
+            (location) => !(state[location as keyof typeof state] as CardTypeGame[]).length
+        )
+    );
     const shuffleSecurity = useGameBoardStates((state) => state.shuffleSecurity);
     const moveCard = useGameBoardStates((state) => state.moveCard);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
@@ -67,6 +73,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const playActivateEffectSfx = useSound((state) => state.playActivateEffectSfx);
     const playTargetCardSfx = useSound((state) => state.playTargetCardSfx);
     const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
+    const playPlaceCardSfx = useSound((state) => state.playPlaceCardSfx);
 
     const hasModifierMenu =
         contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
@@ -78,8 +85,42 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         sendChatMessage?.(`[FIELD_UPDATE]≔【Opened Security】`);
     }
 
-    function handleAssembly() {
+    function handleAssembly({ props }: ItemParams<FieldCardContextMenuItemProps>) {
+        if (!props || props.location !== "myHand") return;
+        setAssemblyHandCardId(props.id);
         setIsAssemblyDialogOpen(true);
+    }
+
+    function closeAssemblyDialog() {
+        setIsAssemblyDialogOpen(false);
+        setAssemblyHandCardId(null);
+    }
+
+    function confirmAssembly(selectedTrashCards: CardTypeGame[]) {
+        if (!assemblyHandCardId || !selectedTrashCards.length) return;
+
+        const boardState = useGameBoardStates.getState();
+        const handCard = boardState.myHand.find((card) => card.id === assemblyHandCardId);
+        const emptyField = Array.from({ length: 16 }, (_, index) => `myDigi${index + 1}`).find(
+            (location) => !(boardState[location as keyof typeof boardState] as CardTypeGame[]).length
+        );
+
+        if (!handCard || !emptyField) return;
+
+        const trashCardsInStackOrder = selectedTrashCards.slice().reverse();
+        trashCardsInStackOrder.forEach((card) => {
+            moveCard(card.id, "myTrash", emptyField);
+            sendMoveCard?.(card.id, "myTrash", emptyField);
+        });
+        moveCard(handCard.id, "myHand", emptyField);
+        sendMoveCard?.(handCard.id, "myHand", emptyField);
+
+        playPlaceCardSfx();
+        sendSfx?.("playPlaceCardSfx");
+        sendChatMessage?.(
+            `[FIELD_UPDATE]≔${trashCardsInStackOrder.map((card) => `【${card.name}】`).join("")}【${handCard.name}】﹕Assembly ➟ ${convertForLog(emptyField)}`
+        );
+        closeAssemblyDialog();
     }
 
     function handleShuffleSecurity() {
@@ -346,8 +387,9 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
 
             <AssemblyDialog
                 open={isAssemblyDialogOpen}
-                onCancel={() => setIsAssemblyDialogOpen(false)}
-                onConfirm={() => setIsAssemblyDialogOpen(false)}
+                hasEmptyField={hasEmptyDigimonField}
+                onCancel={closeAssemblyDialog}
+                onConfirm={confirmAssembly}
             />
 
             <StyledMenu id={"opponentHandCardMenu"} theme="dark">
