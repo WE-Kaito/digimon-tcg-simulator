@@ -35,6 +35,10 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
     }
 
     function handleContextMenu(e: React.MouseEvent, message: ChatMessage) {
+        if (message.author === user) {
+            e.preventDefault();
+            return;
+        }
         showChatMessageMenu({ event: e, props: message });
     }
 
