@@ -83,6 +83,17 @@ export default function CardDetails() {
     const inheritCardInfo = useGameBoardStates((state) => state.inheritCardInfo);
     const linkCardInfo = useGameBoardStates((state) => state.linkCardInfo);
     const details = useSettingStates((state) => state.details);
+    const displayedCardId = hoverCard?.id ?? selectedCard?.id ?? "";
+    const isInDigimonStack = useGameBoardStates((state) => {
+        if (!displayedCardId) return false;
+
+        const cardLocation = state.getCardLocationById(displayedCardId);
+        const isDigimonBattleArea = /^(?:my|opponent)Digi(?:[1-9]|1[0-6])$/.test(cardLocation);
+        if (!isDigimonBattleArea) return false;
+
+        const cardsAtLocation = state[cardLocation as keyof typeof state];
+        return Array.isArray(cardsAtLocation) && cardsAtLocation.length > 1;
+    });
 
     const name = hoverCard?.name ?? selectedCard?.name;
     const cardType = hoverCard?.cardType ?? selectedCard?.cardType;
@@ -325,7 +336,7 @@ export default function CardDetails() {
                             </EffectCard>
                         )}
 
-                        {optionCardEffectText && (
+                        {optionCardEffectText && !isInDigimonStack && (
                             <EffectCard variant={EffectVariant.OPTION} key={`${cardNumber}_option`}>
                                 <HighlightedKeyWords text={optionCardEffectText} />
                             </EffectCard>
