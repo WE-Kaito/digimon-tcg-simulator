@@ -51,7 +51,10 @@ public class CardJsonConverter {
         Integer linkDP = getIntegerField(cardNode, "linkDP");
         String linkEffect = getStringField(cardNode, "linkEffect", null);
         String linkRequirement = getStringField(cardNode, "linkRequirement", null);
-        String assemblyEffect = getStringField(cardNode, "assemblyEffect", null);
+        String assembly = getStringField(cardNode, "assembly", null);
+        String dualEffect = getStringField(cardNode, "dualEffect", null);
+        String optionCardColorRequirement = getStringField(cardNode, "optionCardColorRequirement", null);
+        String optionCardEffect = getStringField(cardNode, "optionCardEffect", null);
         String illustrator = getStringField(cardNode, "illustrator", "");
 
         Boolean isTilted = getBooleanField(cardNode, "isTilted", false);
@@ -88,7 +91,10 @@ public class CardJsonConverter {
                 .linkDP(linkDP)
                 .linkEffect(linkEffect)
                 .linkRequirement(linkRequirement)
-                .assemblyEffect(assemblyEffect)
+                .assembly(assembly)
+                .dualEffect(dualEffect)
+                .optionCardColorRequirement(optionCardColorRequirement)
+                .optionCardEffect(optionCardEffect)
                 .restrictions(restrictions)
                 .illustrator(illustrator)
                 .id(cardId)
