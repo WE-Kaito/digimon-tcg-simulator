@@ -102,6 +102,7 @@ function compareCardTypes(a: CardTypeWithId, b: CardTypeWithId) {
         Option: 1,
         Tamer: 2,
         Digimon: 3,
+        "Digimon/Option": 3,
     };
     const aTypeOrder = typeOrder[a.cardType];
     const bTypeOrder = typeOrder[b.cardType];
@@ -125,7 +126,10 @@ function compareEffectText(searchText: string, card: CardTypeWithId): boolean {
     const linkEffectMatch = card.linkEffect?.toUpperCase().includes(text) ?? false;
     const aceEffectMatch = card.aceEffect?.toUpperCase().includes(text) ?? false;
     const ruleEffectMatch = card.rule?.toUpperCase().includes(text) ?? false;
-    const assemblyEffectMatch = card.assemblyEffect?.toUpperCase().includes(text) ?? false;
+    const assemblyEffectMatch = card.assembly?.toUpperCase().includes(text) ?? false;
+    const dualEffectMatch = card.dualEffect?.toUpperCase().includes(text) ?? false;
+    const optionCardColorRequirementMatch = card.optionCardColorRequirement?.toUpperCase().includes(text) ?? false;
+    const optionCardEffectMatch = card.optionCardEffect?.toUpperCase().includes(text) ?? false;
 
     return (
         mainEffectMatch ||
@@ -138,7 +142,10 @@ function compareEffectText(searchText: string, card: CardTypeWithId): boolean {
         linkEffectMatch ||
         aceEffectMatch ||
         ruleEffectMatch ||
-        assemblyEffectMatch
+        assemblyEffectMatch ||
+        dualEffectMatch ||
+        optionCardColorRequirementMatch ||
+        optionCardEffectMatch
     );
 }
 
