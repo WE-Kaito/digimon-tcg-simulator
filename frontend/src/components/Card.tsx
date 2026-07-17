@@ -173,10 +173,11 @@ type CardProps = {
     setImageError?: (imageError: boolean) => void;
     style?: CSSProperties;
     onContextMenu?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+    disableDragging?: boolean;
 };
 
 export default function Card(props: CardProps) {
-    const { card, location, index, setImageError, style, onContextMenu, wsUtils } = props;
+    const { card, location, index, setImageError, style, onContextMenu, wsUtils, disableDragging = false } = props;
 
     const username = useGeneralStates((state) => state.user);
     const cardWidth = useGeneralStates((state) => state.cardWidth);
@@ -268,12 +269,12 @@ export default function Card(props: CardProps) {
                 type: "card",
                 content: { location, card },
             },
-            canDrag: !opponentFieldLocations.includes(location) && gameHasStarted,
+            canDrag: !disableDragging && !opponentFieldLocations.includes(location) && gameHasStarted,
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
         }),
-        [location, card, opponentFieldLocations, gameHasStarted]
+        [location, card, disableDragging, opponentFieldLocations, gameHasStarted]
     );
 
     // Separate drag logic for stack icon - always drags as card-stack
@@ -288,7 +289,8 @@ export default function Card(props: CardProps) {
                 type: "card-stack",
                 content: { location, cards: stackCards },
             },
-            canDrag: !opponentFieldLocations.includes(location) && stackDraggedLocation === null,
+            canDrag:
+                !disableDragging && !opponentFieldLocations.includes(location) && stackDraggedLocation === null,
             end: () => {
                 setStackSliceIndex(0);
                 setStackDragIcon(null);
@@ -298,7 +300,7 @@ export default function Card(props: CardProps) {
                 isDragging: monitor.isDragging(),
             }),
         };
-    }, [location, locationCards, index, inTamerField, opponentFieldLocations]);
+    }, [location, locationCards, index, inTamerField, disableDragging, opponentFieldLocations]);
 
     useEffect(() => setStackDraggedLocation(isStackDragging ? location : null), [isStackDragging]);
 
@@ -464,6 +466,7 @@ export default function Card(props: CardProps) {
                 {((index !== 0 && (myDigimonLocations.includes(location) || location === "myBreedingArea")) ||
                     (index !== locationCards.length - 1 && myTamerLocations.includes(location))) &&
                     (isHovered || isDragIconHovered || hoveredId === card.id) &&
+                    !disableDragging &&
                     !useToggleForStacks && (
                         <DragStackIconDiv
                             ref={stackDragRef as any}

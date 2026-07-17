@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { LibraryAddCheckTwoTone as SelectStackIcon } from "@mui/icons-material";
 import { useContextMenu } from "react-contexify";
 import { useEffect, useState } from "react";
 import Card from "../Card.tsx";
@@ -47,6 +48,13 @@ export default function StackDialog({ wsUtils }: { wsUtils?: WSUtils }) {
         setSelectedCardIds((currentIds) =>
             currentIds.includes(cardId) ? currentIds.filter((id) => id !== cardId) : [...currentIds, cardId]
         );
+    }
+
+    function selectCardAndFollowing(cardId: string) {
+        if (!isOwnStack) return;
+        const cardIndex = cardsToRender.findIndex((card) => card.id === cardId);
+        if (cardIndex === -1) return;
+        setSelectedCardIds(cardsToRender.slice(cardIndex).map((card) => card.id));
     }
 
     function trashSelectedCards() {
@@ -100,7 +108,10 @@ export default function StackDialog({ wsUtils }: { wsUtils?: WSUtils }) {
                                 key={card.id}
                                 isSelected={isSelected}
                                 isSelectable={isOwnStack}
-                                onClickCapture={() => toggleCard(card.id)}
+                                onClickCapture={(event) => {
+                                    if ((event.target as Element).closest("[data-select-stack]")) return;
+                                    toggleCard(card.id);
+                                }}
                                 onKeyDown={(event) => {
                                     if (event.key === "Enter" || event.key === " ") toggleCard(card.id);
                                 }}
@@ -114,6 +125,7 @@ export default function StackDialog({ wsUtils }: { wsUtils?: WSUtils }) {
                                     location={stackDialog}
                                     style={{ width: "100%" }}
                                     index={index}
+                                    disableDragging
                                     onContextMenu={(event) =>
                                         showCardMenu({
                                             event,
@@ -126,6 +138,20 @@ export default function StackDialog({ wsUtils }: { wsUtils?: WSUtils }) {
                                         })
                                     }
                                 />
+                                {isOwnStack && (
+                                    <SelectFollowingButton
+                                        type="button"
+                                        data-select-stack
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            selectCardAndFollowing(card.id);
+                                        }}
+                                        aria-label={`Select ${card.name} and all cards beneath it`}
+                                        title="Select this card and all cards beneath it"
+                                    >
+                                        <SelectStackIcon sx={{ fontSize: 25 }} />
+                                    </SelectFollowingButton>
+                                )}
                                 {isSelected && <SelectionOrder>{selectionIndex + 1}</SelectionOrder>}
                             </CardContainer>
                         );
@@ -192,4 +218,29 @@ const SelectionOrder = styled.span`
     font-weight: 700;
     box-shadow: 0 2px 5px black;
     pointer-events: none;
+`;
+
+const SelectFollowingButton = styled.button`
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 4px;
+    background: rgba(12, 21, 16, 0.82);
+    color: ghostwhite;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(65, 135, 211, 0.92);
+    }
+
+    &:focus-visible {
+        outline: 3px solid dodgerblue;
+        outline-offset: 2px;
+    }
 `;
