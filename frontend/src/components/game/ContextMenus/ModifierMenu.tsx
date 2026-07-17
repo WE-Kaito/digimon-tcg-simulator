@@ -99,6 +99,11 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
         else setKeywords([...keywords, "SICK"]);
     }
 
+    function handleSetTaunt() {
+        if (keywords.includes("TAUNT")) setKeywords((prev) => prev.filter((kw) => kw !== "TAUNT"));
+        else setKeywords([...keywords, "TAUNT"]);
+    }
+
     // eslint-disable-next-line
     useEffect(() => resetValues(), [cardToSend]);
 
@@ -156,7 +161,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
 
                         <Stack direction={"row"} gap={0.5} maxWidth={"100%"} flexWrap={"wrap"}>
                             {keywords
-                                .filter((w) => w !== "SICK")
+                                .filter((w) => w !== "SICK" && w !== "TAUNT")
                                 .map((keyword) => (
                                     <ModifierSpan
                                         onClick={() => setKeywords((prev) => prev.filter((kw) => kw !== keyword))}
@@ -173,13 +178,27 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                                 type="checkbox"
                                 name="stackDrag"
                                 value="Toggle"
-                                id="toggle"
+                                id="toggleSick"
                                 className="button"
                                 checked={keywords.includes("SICK")}
                                 onChange={handleSetSick}
                             />
-                            <label htmlFor="toggle" className="button">
+                            <label htmlFor="toggleSick" className="button">
                                 (Un)Mark as sick / stunned 💫
+                            </label>
+                        </div>
+                        <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
+                            <input
+                                type="checkbox"
+                                name="stackDrag"
+                                value="Toggle"
+                                id="toggleTaunt"
+                                className="button"
+                                checked={keywords.includes("TAUNT")}
+                                onChange={handleSetTaunt}
+                            />
+                            <label htmlFor="toggleTaunt" className="button">
+                                (Un)Mark as taunted💢
                             </label>
                         </div>
 
