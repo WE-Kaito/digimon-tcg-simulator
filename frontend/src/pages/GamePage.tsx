@@ -220,7 +220,7 @@ export default function GamePage() {
             <ChatAndCardDialogContainerDiv>
                 {!stackDialog && !openedCardDialog && <GameChatLog {...wsUtils} />}
                 {!!openedCardDialog && <CardDialog />}
-                {!!stackDialog && <StackDialog />}
+                {!!stackDialog && <StackDialog wsUtils={wsUtils} />}
             </ChatAndCardDialogContainerDiv>
 
             <RevealArea />
