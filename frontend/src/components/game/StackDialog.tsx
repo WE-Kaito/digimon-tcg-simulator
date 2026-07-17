@@ -1,15 +1,14 @@
 import styled from "@emotion/styled";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { useContextMenu } from "react-contexify";
+import { useEffect } from "react";
 import Card from "../Card.tsx";
 import { tamerLocations, useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
-import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
-import { CardTypeGame } from "../../utils/types.ts";
-import { useContextMenu } from "react-contexify";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import { CardTypeGame } from "../../utils/types.ts";
 
 /**
- * Dialog that shows the stack of cards in a location and closes automatically if the trash or security is opened.
- * It is only an alternative display of the cards in the location and similar to the CardDialog but maintains stack-dragging functionality.
+ * Displays all cards in a field stack in a centered dialog.
  */
 export default function StackDialog() {
     const stackDialog = useGameUIStates((state) => state.stackDialog);
@@ -19,71 +18,88 @@ export default function StackDialog() {
         stackDialog ? (state[stackDialog as keyof typeof state] as CardTypeGame[]) : []
     );
 
-    const cardWidth = useGeneralStates((state) => state.cardWidth);
-
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [width, setWidth] = useState(cardWidth);
-
-    const reverse = !(!!stackDialog && tamerLocations.includes(stackDialog));
-
     const { show: showCardMenu } = useContextMenu({
         id: stackDialog !== false && stackDialog.includes("opponent") ? "dialogMenuOpponent" : "dialogMenu",
         props: { index: -1, location: "", id: "" },
     });
 
-    useLayoutEffect(() => {
-        if (containerRef.current) setWidth(containerRef.current.clientWidth / 4.4); //3.25 = 3 cards; 4.4 = 4 cards
-    }, [containerRef.current?.clientWidth]);
-
     useEffect(() => {
-        if (stackDialog && !locationCards.length) setStackDialog(false); // correctly close the dialog if there are no cards
+        if (stackDialog && !locationCards.length) setStackDialog(false);
     }, [locationCards, stackDialog, setStackDialog]);
 
-    if (!stackDialog) return <></>;
+    if (!stackDialog) return null;
+
+    const cardsToRender = tamerLocations.includes(stackDialog)
+        ? locationCards
+        : locationCards.slice().reverse();
 
     return (
-        <Container
-            reverse={reverse}
-            ref={containerRef}
-            id={stackDialog + "_stackModal"}
-            onMouseOver={(e) => e.stopPropagation()}
+        <Dialog
+            open
+            onClose={() => setStackDialog(false)}
+            fullWidth
+            maxWidth="md"
+            slotProps={{
+                paper: {
+                    sx: {
+                        background: "#173638",
+                        backgroundImage: "linear-gradient(rgba(255,255,255,0.025), rgba(0,0,0,0.06))",
+                        border: "1px solid rgba(210, 210, 190, 0.4)",
+                        color: "ghostwhite",
+                        minHeight: "50vh",
+                        maxHeight: "85vh",
+                    },
+                },
+            }}
         >
-            {locationCards.map((card, index) => (
-                <Card
-                    card={card}
-                    location={stackDialog}
-                    style={{ width }}
-                    key={card.id}
-                    index={index}
-                    onContextMenu={(e) => {
-                        showCardMenu?.({
-                            event: e,
-                            props: { index, location: stackDialog, id: card.id, name: card.name },
-                        });
-                    }}
-                />
-            ))}
-        </Container>
+            <DialogTitle sx={{ fontFamily: "Naston, sans-serif" }}>Show Stack</DialogTitle>
+            <DialogContent dividers>
+                <CardGrid>
+                    {cardsToRender.map((card) => {
+                        const index = locationCards.findIndex((locationCard) => locationCard.id === card.id);
+                        return (
+                            <CardContainer key={card.id}>
+                                <Card
+                                    card={card}
+                                    location={stackDialog}
+                                    style={{ width: "100%" }}
+                                    index={index}
+                                    onContextMenu={(event) =>
+                                        showCardMenu({
+                                            event,
+                                            props: {
+                                                index,
+                                                location: stackDialog,
+                                                id: card.id,
+                                                name: card.name,
+                                            },
+                                        })
+                                    }
+                                />
+                            </CardContainer>
+                        );
+                    })}
+                </CardGrid>
+            </DialogContent>
+            <DialogActions sx={{ padding: 2 }}>
+                <Button color="inherit" variant="outlined" onClick={() => setStackDialog(false)}>
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 }
 
-const Container = styled.div<{ reverse: boolean }>`
+const CardGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    align-content: start;
+    gap: 14px;
+    min-height: 38vh;
+`;
+
+const CardContainer = styled.div`
     position: relative;
     width: 100%;
-    flex: 1;
-    padding: 6px 4px 6px 6px;
-    display: flex;
-    flex-flow: ${({ reverse }) => (reverse ? "row-reverse wrap-reverse" : "row wrap")};
-    place-content: ${({ reverse }) => (reverse ? "flex-start" : "flex-end")};
-    gap: 1.5%;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    border-radius: 3px;
-
-    scrollbar-width: none;
-
-    ::-webkit-scrollbar {
-        visibility: hidden;
-        width: 0;
-    }
+    aspect-ratio: 7 / 9.75;
 `;
