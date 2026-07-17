@@ -97,6 +97,7 @@ export default function CardDetails() {
 
     const name = hoverCard?.name ?? selectedCard?.name;
     const cardType = hoverCard?.cardType ?? selectedCard?.cardType;
+    const isOptionCard = cardType?.split("/").includes("Option") ?? false;
 
     const isNameLong = Boolean(
         hoverCard ? hoverCard.name?.length >= 30 : selectedCard && selectedCard?.name.length >= 30
@@ -269,7 +270,7 @@ export default function CardDetails() {
                         >
                             {cardType !== "Digi-Egg" && (
                                 <DetailText>
-                                    {cardType === "Option" ? "Use: " : "Play: "}
+                                    {isOptionCard ? "Use: " : "Play: "}
                                     <DetailMetric>{playCost}</DetailMetric>
                                 </DetailText>
                             )}
