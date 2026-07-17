@@ -28,6 +28,7 @@ public class GameCard {
     public Integer playCost;
     public Integer level;
     public String mainEffect;
+    public String optionCardEffect;
     public String inheritedEffect;
     public String aceEffect;
     public String burstDigivolve;
@@ -53,4 +54,3 @@ public class GameCard {
         this.isFaceUp = !this.isFaceUp;
     }
 }
-

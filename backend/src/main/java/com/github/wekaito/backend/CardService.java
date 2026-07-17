@@ -59,6 +59,7 @@ public class CardService {
             null,
             null,
             null,
+            null,
             new Restrictions("","","",""),
             null
     );
@@ -153,6 +154,7 @@ public class CardService {
                         (card.playCost().equals("-")) ? null : safeParseInt(card.playCost()),
                         (card.cardLv().equals("-")) ? null : safeParseInt(card.cardLv().split("\\.")[1]),
                         (card.effect().equals("-")) ? null : card.effect(),
+                        (card.optionCardEffect() == null || card.optionCardEffect().equals("-")) ? null : card.optionCardEffect(),
                         (card.digivolveEffect().equals("-")) ? null : card.digivolveEffect(),
                         (card.aceEffect().equals("-")) ? null : card.aceEffect(),
                         (card.burstDigivolve().equals("-")) ? null : card.burstDigivolve(),

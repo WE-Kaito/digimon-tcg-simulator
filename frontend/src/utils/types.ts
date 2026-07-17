@@ -14,6 +14,7 @@ export type CardType = {
     playCost?: number;
     level?: number;
     mainEffect?: string;
+    optionCardEffect?: string;
     inheritedEffect?: string;
     aceEffect?: string;
     burstDigivolve?: string;

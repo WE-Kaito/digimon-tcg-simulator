@@ -1,5 +1,6 @@
 export enum EffectVariant {
     MAIN = "main",
+    OPTION = "option",
     INHERITED = "inherited",
     SECURITY = "security",
     SPECIAL = "special",

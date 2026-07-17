@@ -18,6 +18,7 @@ public record Card(
         Integer playCost,
         Integer level,
         String mainEffect,
+        String optionCardEffect,
         String inheritedEffect,
         String aceEffect,
         String burstDigivolve,
@@ -35,4 +36,3 @@ public record Card(
 ) {
 
 }
-

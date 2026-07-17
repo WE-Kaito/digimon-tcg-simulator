@@ -95,6 +95,8 @@ export default function CardDetails() {
 
     // effect texts
     const mainEffectText = hoverCard?.mainEffect ?? (!hoverCard ? (selectedCard?.mainEffect ?? "") : "");
+    const optionCardEffectText =
+        hoverCard?.optionCardEffect ?? (!hoverCard ? (selectedCard?.optionCardEffect ?? "") : "");
     const inheritedEffectText = hoverCard?.inheritedEffect ?? (!hoverCard ? (selectedCard?.inheritedEffect ?? "") : "");
     const securityEffectText = hoverCard?.securityEffect ?? (!hoverCard ? (selectedCard?.securityEffect ?? "") : "");
     const specialDigivolveText =
@@ -320,6 +322,12 @@ export default function CardDetails() {
                         {mainEffectText && (
                             <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
                                 <HighlightedKeyWords text={mainEffectText} />
+                            </EffectCard>
+                        )}
+
+                        {optionCardEffectText && (
+                            <EffectCard variant={EffectVariant.OPTION} key={`${cardNumber}_option`}>
+                                <HighlightedKeyWords text={optionCardEffectText} />
                             </EffectCard>
                         )}
 

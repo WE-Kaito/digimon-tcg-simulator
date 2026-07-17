@@ -18,6 +18,7 @@ public record FetchCard(
         String playCost,
         String cardLv,
         String effect,
+        String optionCardEffect,
         String digivolveEffect,
         String aceEffect,
         String burstDigivolve,

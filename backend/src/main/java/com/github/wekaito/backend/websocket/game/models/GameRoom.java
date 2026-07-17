@@ -132,6 +132,7 @@ public class GameRoom {
                     .playCost(card.playCost())
                     .level(card.level())
                     .mainEffect(card.mainEffect())
+                    .optionCardEffect(card.optionCardEffect())
                     .inheritedEffect(card.inheritedEffect())
                     .aceEffect(card.aceEffect())
                     .burstDigivolve(card.burstDigivolve())

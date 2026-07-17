@@ -42,6 +42,7 @@ public class CardJsonConverter {
         Integer playCost = getIntegerField(cardNode, "playCost");
         Integer level = getIntegerField(cardNode, "level");
         String mainEffect = getStringField(cardNode, "mainEffect", null);
+        String optionCardEffect = getStringField(cardNode, "optionCardEffect", null);
         String inheritedEffect = getStringField(cardNode, "inheritedEffect", null);
         String aceEffect = getStringField(cardNode, "aceEffect", null);
         String burstDigivolve = getStringField(cardNode, "burstDigivolve", null);
@@ -79,6 +80,7 @@ public class CardJsonConverter {
                 .playCost(playCost)
                 .level(level)
                 .mainEffect(mainEffect)
+                .optionCardEffect(optionCardEffect)
                 .inheritedEffect(inheritedEffect)
                 .aceEffect(aceEffect)
                 .burstDigivolve(burstDigivolve)

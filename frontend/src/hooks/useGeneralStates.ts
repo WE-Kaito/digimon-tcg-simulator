@@ -25,7 +25,7 @@ type State = {
 
     selectedCard: CardTypeWithId | CardTypeGame | null;
     selectCard: (card: CardTypeWithId | CardTypeGame | null) => void;
-    hoverCard: CardTypeWithId | null;
+    hoverCard: CardTypeWithId | CardTypeGame | null;
     setHoverCard: (card: CardTypeWithId | CardTypeGame | null) => void;
 
     user: string;
@@ -80,7 +80,9 @@ export const useGeneralStates = create<State>((set, get) => ({
 
     selectCard: (card) => set({ selectedCard: card }),
 
-    setHoverCard: (card) => set({ hoverCard: card }),
+    setHoverCard: (card) => {
+        set({ hoverCard: card });
+    },
 
     login: (userName: string, password: string, navigate: NavigateFunction) => {
         axios
