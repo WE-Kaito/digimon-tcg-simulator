@@ -65,6 +65,8 @@ function getExplanation(keyword: string) {
         return "When your opponent's effects would delete any of your other X Digimon, by deleting this Digimon, 1 of those Digimon isn't deleted.";
     if (keyword.startsWith("Delay"))
         return "After this card is placed, by trashing it next turn or later, activate the effect below.";
+    if (keyword.startsWith("Detach"))
+        return "When your Digimon with ＜Detach＞ would leave the battle area other than by your effects, by trashing 1 of its specified link cards, it doesn't leave.";
     if (keyword.startsWith("Digi-Burst"))
         return "Trash X of this Digimon's digivolution cards to activate the effect below.";
     if (keyword.startsWith("Digisorption"))
