@@ -8,6 +8,7 @@ import styled from "@emotion/styled";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useRef, useState } from "react";
+import { ReactNode } from "react";
 
 export type AppNotification = {
     id: string;
@@ -19,7 +20,9 @@ export type AppNotification = {
 
 type NotificationAction = {
     label: string;
-    variant?: "primary" | "secondary";
+    ariaLabel?: string;
+    icon?: ReactNode;
+    variant?: "primary" | "secondary" | "danger";
     onClick: () => void;
 };
 
@@ -82,21 +85,23 @@ export function NotificationBell({ notifications }: NotificationBellProps) {
                                             )}
                                             {notification.message}
                                         </NotificationMessage>
-                                        {!!notification.actions?.length && (
-                                            <NotificationActions>
-                                                {notification.actions.map((action) => (
-                                                    <NotificationActionButton
-                                                        key={action.label}
-                                                        type="button"
-                                                        variant={action.variant}
-                                                        onClick={action.onClick}
-                                                    >
-                                                        {action.label}
-                                                    </NotificationActionButton>
-                                                ))}
-                                            </NotificationActions>
-                                        )}
                                     </NotificationDetails>
+                                    {!!notification.actions?.length && (
+                                        <NotificationActions>
+                                            {notification.actions.map((action) => (
+                                                <NotificationActionButton
+                                                    key={action.label}
+                                                    type="button"
+                                                    variant={action.variant}
+                                                    aria-label={action.ariaLabel ?? action.label}
+                                                    title={action.ariaLabel ?? action.label}
+                                                    onClick={action.onClick}
+                                                >
+                                                    {action.icon ?? action.label}
+                                                </NotificationActionButton>
+                                            ))}
+                                        </NotificationActions>
+                                    )}
                                 </NotificationItem>
                             ))}
                         </NotificationList>
@@ -200,7 +205,7 @@ const NotificationList = styled.ul`
 
 const NotificationItem = styled.li`
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 16px;
 `;
 
@@ -252,18 +257,20 @@ const StatusIndicator = styled.span<{ color: string }>`
 
 const NotificationActions = styled.div`
     display: flex;
+    flex: 0 0 auto;
     gap: 8px;
-    margin-top: 10px;
 `;
 
-const NotificationActionButton = styled.button<{ variant?: "primary" | "secondary" }>`
-    padding: 6px 12px;
+const NotificationActionButton = styled.button<{ variant?: "primary" | "secondary" | "danger" }>`
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    padding: 0;
     border: 1px solid transparent;
-    border-radius: 3px;
+    border-radius: 50%;
     color: white;
-    font:
-        600 13px "League Spartan",
-        sans-serif;
+    font-size: 16px;
 
     ${({ variant }) =>
         variant === "primary"
@@ -271,7 +278,12 @@ const NotificationActionButton = styled.button<{ variant?: "primary" | "secondar
                 background: #347c43;
                 &:hover, &:focus-visible { background: #409a52; }
             `
-            : `
+            : variant === "danger"
+              ? `
+                background: #8c2f3d;
+                &:hover, &:focus-visible { background: #ad3a4b; }
+            `
+              : `
                 border-color: #626262;
                 background: transparent;
                 &:hover, &:focus-visible {
