@@ -963,10 +963,9 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setModifiers: (cardId, location, modifiers) => {
         set((state) => {
             return {
-                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
-                    if (card.id === cardId) card.modifiers = modifiers;
-                    return card;
-                }),
+                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) =>
+                    card.id === cardId ? { ...card, modifiers } : card
+                ),
             };
         });
     },

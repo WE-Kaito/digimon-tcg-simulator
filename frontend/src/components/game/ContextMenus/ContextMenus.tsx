@@ -68,6 +68,8 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const hasModifierMenu =
         contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
+    const isTamer = contextCard?.cardType.includes("Tamer") ?? false;
+    const isStunned = contextCard?.modifiers.keywords.includes("SICK") ?? false;
     const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute" };
 
     function handleOpenSecurity() {
@@ -185,6 +187,19 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         sendSetModifiers(props?.id, props?.location, modifiers);
     }
 
+    function toggleTamerStun() {
+        if (!cardToSend || !contextCard || !isTamer) return;
+
+        const keywords = isStunned
+            ? contextCard.modifiers.keywords.filter((keyword) => keyword !== "SICK")
+            : [...contextCard.modifiers.keywords, "SICK"];
+        const modifiers = { ...contextCard.modifiers, keywords };
+
+        setModifiers(cardToSend.card.id, cardToSend.location, modifiers);
+        playModifyCardSfx();
+        sendSetModifiers(cardToSend.card.id, cardToSend.location, modifiers);
+    }
+
     function handleFlipCard({ props }: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
         flipCard(props?.id, props?.location);
@@ -240,6 +255,17 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                         <span>Target Card</span> <TargetIcon />
                     </div>
                 </Item>
+                {isTamer && (
+                    <>
+                        <Separator />
+                        <Item onClick={toggleTamerStun}>
+                            <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                                <span>{isStunned ? "Unmark Stun" : "Mark as Stun"}</span>
+                                <MarkerIcon />
+                            </div>
+                        </Item>
+                    </>
+                )}
                 {hasModifierMenu && <Separator />}
                 <Item onClick={resetModifiers} style={hideMenuItemStyle as CSSProperties | undefined}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
