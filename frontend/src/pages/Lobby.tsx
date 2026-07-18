@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useState } from "react";
 import {
     ErrorRounded as WarningIcon,
     HttpsOutlined as PrivateIcon,
@@ -21,7 +21,7 @@ import axios from "axios";
 import MenuDialog from "../components/MenuDialog.tsx";
 import Chat, { ChatMessage } from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
-import { Checkbox, Dialog, DialogContent, FormControlLabel, useMediaQuery } from "@mui/material";
+import { Checkbox, Dialog, DialogContent, FormControlLabel, Popover, useMediaQuery } from "@mui/material";
 import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
@@ -84,6 +84,8 @@ export default function Lobby() {
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
+    const [lobbyPlayers, setLobbyPlayers] = useState<string[]>([]);
+    const [onlineUsersAnchor, setOnlineUsersAnchor] = useState<HTMLButtonElement | null>(null);
     const [userCountQuickPlay, setUserCountQuickPlay] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -115,6 +117,10 @@ export default function Lobby() {
         setIsOpponentOnline(true);
         setIsLoading(false);
         navigate("/game");
+    }
+
+    function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
+        setOnlineUsersAnchor((anchor) => (anchor ? null : event.currentTarget));
     }
 
     function setIsLoadingWithDebounce() {
@@ -150,6 +156,10 @@ export default function Lobby() {
 
                 if (event.data.startsWith("[USER_COUNT_QUICK_PLAY]:")) {
                     setUserCountQuickPlay(parseInt(event.data.substring("[USER_COUNT_QUICK_PLAY]:".length)));
+                }
+
+                if (event.data.startsWith("[LOBBY_PLAYERS]:")) {
+                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as string[]);
                 }
 
                 if (event.data.startsWith("[ROOMS]:")) {
@@ -407,12 +417,47 @@ export default function Lobby() {
 
                 {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
 
-                <OnlineUsers>
+                <OnlineUsers
+                    type="button"
+                    onClick={handleOnlineUsersClick}
+                    aria-haspopup="true"
+                    aria-expanded={!!onlineUsersAnchor}
+                >
                     {isAlreadyOpenedInOtherTab && <WarningIcon fontSize={"large"} color={"warning"} />}
                     {[0, 3].includes(websocket.readyState) && <OfflineIcon fontSize={"large"} color={"error"} />}
                     <PopulationIcon sx={{ color: "whitesmoke", opacity: 0.8 }} fontSize={"large"} />
                     <span style={{ color: "whitesmoke", opacity: 0.8, lineHeight: 1 }}>{userCount}</span>
                 </OnlineUsers>
+                <Popover
+                    open={!!onlineUsersAnchor}
+                    anchorEl={onlineUsersAnchor}
+                    onClose={() => setOnlineUsersAnchor(null)}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                    transformOrigin={{ vertical: "top", horizontal: "center" }}
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                mt: 1,
+                                minWidth: 220,
+                                maxHeight: 320,
+                                background: "#111",
+                                border: "1px solid rgba(124, 124, 118, 0.45)",
+                                color: "ghostwhite",
+                            },
+                        },
+                    }}
+                >
+                    <LobbyPlayerList aria-label="Players Online">
+                        <LobbyPlayerListHeading>Players Online</LobbyPlayerListHeading>
+                        {lobbyPlayers.length ? (
+                            lobbyPlayers.map((player) => (
+                                <LobbyPlayerListItem key={player}>{player}</LobbyPlayerListItem>
+                            ))
+                        ) : (
+                            <LobbyPlayerListItem>No players online</LobbyPlayerListItem>
+                        )}
+                    </LobbyPlayerList>
+                </Popover>
 
                 {!isFetchingIsAdmin && isAdmin && (
                     <ButtonCard
@@ -603,7 +648,6 @@ export default function Lobby() {
                         )}
 
                         <Card style={isMobile ? { order: 99, width: "100%" } : {}}>
-                            {/*<CardTitle>Deck Selection</CardTitle>*/}
                             <Select
                                 value={activeDeckId}
                                 onChange={handleDeckChange}
@@ -721,15 +765,47 @@ const ContentDiv = styled.div`
     }
 `;
 
-const OnlineUsers = styled.div`
+const OnlineUsers = styled.button`
     display: flex;
     align-items: flex-end;
     gap: 0.5rem;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
     color: ghostwhite;
     font-size: 28px;
     font-family:
         League Spartan,
         sans-serif;
+
+    &:hover,
+    &:focus-visible {
+        border-color: rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.06);
+        outline: none;
+    }
+`;
+
+const LobbyPlayerList = styled.ul`
+    min-width: 220px;
+    margin: 0;
+    padding: 8px 0;
+    list-style: none;
+    font-family: "League Spartan", sans-serif;
+`;
+
+const LobbyPlayerListHeading = styled.li`
+    padding: 8px 16px 10px;
+    border-bottom: 1px solid rgba(124, 124, 118, 0.3);
+    color: var(--lobby-accent);
+    font-size: 19px;
+`;
+
+const LobbyPlayerListItem = styled.li`
+    padding: 9px 16px;
+    color: ghostwhite;
+    font-size: 17px;
 `;
 
 const LeftColumn = styled.div`
