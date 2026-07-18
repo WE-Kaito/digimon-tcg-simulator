@@ -43,7 +43,7 @@ type State = {
     deleteDeck: (id: string, navigate: NavigateFunction) => void;
     clearDeck: () => void;
 
-    importDeck: (decklist: string | string[], format: string) => void;
+    importDeck: (decklist: string | string[], format: string) => boolean;
     exportDeck: (exportFormat: string, deckname: string) => string;
 
     loadOrderedDecks: (setOrderedDecks: Dispatch<SetStateAction<DeckType[]>>) => void;
@@ -102,6 +102,7 @@ function compareCardTypes(a: CardTypeWithId, b: CardTypeWithId) {
         Option: 1,
         Tamer: 2,
         Digimon: 3,
+        "Digimon/Option": 3,
     };
     const aTypeOrder = typeOrder[a.cardType];
     const bTypeOrder = typeOrder[b.cardType];
@@ -125,7 +126,10 @@ function compareEffectText(searchText: string, card: CardTypeWithId): boolean {
     const linkEffectMatch = card.linkEffect?.toUpperCase().includes(text) ?? false;
     const aceEffectMatch = card.aceEffect?.toUpperCase().includes(text) ?? false;
     const ruleEffectMatch = card.rule?.toUpperCase().includes(text) ?? false;
-    const assemblyEffectMatch = card.assemblyEffect?.toUpperCase().includes(text) ?? false;
+    const assemblyEffectMatch = card.assembly?.toUpperCase().includes(text) ?? false;
+    const dualEffectMatch = card.dualEffect?.toUpperCase().includes(text) ?? false;
+    const optionCardColorRequirementMatch = card.optionCardColorRequirement?.toUpperCase().includes(text) ?? false;
+    const optionCardEffectMatch = card.optionCardEffect?.toUpperCase().includes(text) ?? false;
 
     return (
         mainEffectMatch ||
@@ -138,7 +142,10 @@ function compareEffectText(searchText: string, card: CardTypeWithId): boolean {
         linkEffectMatch ||
         aceEffectMatch ||
         ruleEffectMatch ||
-        assemblyEffectMatch
+        assemblyEffectMatch ||
+        dualEffectMatch ||
+        optionCardColorRequirementMatch ||
+        optionCardEffectMatch
     );
 }
 
@@ -492,13 +499,18 @@ export const useDeckStates = create<State>((set, get) => ({
             }))
             .filter((card) => card.name !== undefined);
 
+        if (!cardsWithId.length) {
+            set({ isLoading: false });
+            return false;
+        }
+
         // --- check if deck is valid ---
         const eggCardLength = cardsWithId.filter((card) => card.cardType === "Digi-Egg").length;
         const filteredLength = cardsWithId.length - eggCardLength;
         if (eggCardLength > 5 || filteredLength > 50) {
             notifyError("Deck exceeds card limits!");
             set({ isLoading: false });
-            return;
+            return false;
         }
 
         for (const card of cardsWithId) {
@@ -506,7 +518,7 @@ export const useDeckStates = create<State>((set, get) => ({
             if (cardOfIdInDeck > 4 && !cardsWithoutLimit.includes(card.cardNumber)) {
                 notifyError("Too many copies of a single card!");
                 set({ isLoading: false });
-                return;
+                return false;
             }
         }
         // ---
@@ -516,8 +528,8 @@ export const useDeckStates = create<State>((set, get) => ({
         const eggDeckCards = cardsWithId.filter((card) => card.cardType === "Digi-Egg");
 
         set({ mainDeckCards, eggDeckCards });
-        const timeout = setTimeout(() => set({ isLoading: false }), 700);
-        return () => clearTimeout(timeout);
+        setTimeout(() => set({ isLoading: false }), 700);
+        return true;
     },
 
     exportDeck: (exportFormat, deckname): string => {

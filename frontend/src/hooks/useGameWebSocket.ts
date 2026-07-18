@@ -7,11 +7,8 @@ import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 
-const currentPort = window.location.port;
-const currentUrl = window.location.origin.replace("https://", "");
-// TODO: using www.project-drasil.online as the domain is not working, need a fix
-const websocketURL =
-    currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/game" : "wss://" + currentUrl + "/api/ws/game";
+const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
 
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;
@@ -138,6 +135,18 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
+            if (event.data.startsWith("[BOARD_STATE]:")) {
+                const boardStateJson = event.data.substring("[BOARD_STATE]:".length);
+                distributeCards(user, boardStateJson, () => undefined);
+                setOpenedCardDialog(false);
+                return;
+            }
+
+            if (event.data.startsWith("[COMMAND_REJECTED]:")) {
+                notifyInfo("A game action could not be applied. Your board is being resynchronized.");
+                return;
+            }
+
             if (event.data.startsWith("[PLAYER_INFO]:")) {
                 const playersJson = event.data.substring("[PLAYER_INFO]:".length);
                 const players: Player[] = JSON.parse(playersJson);
@@ -180,8 +189,28 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
+            if (event.data.startsWith("[MOVE_CARD_CONFIRMED]:")) {
+                const parts = event.data.substring("[MOVE_CARD_CONFIRMED]:".length).split(":");
+                const cardId = parts?.[0];
+                const from = parts?.[1];
+                const to = parts?.[2];
+                if (cardId && from && to) moveCard(cardId, from, to);
+                return;
+            }
+
             if (event.data.startsWith("[MOVE_CARD_TO_STACK]:")) {
                 const parts = event.data.substring("[MOVE_CARD_TO_STACK]:".length).split(":");
+                const topOrBottom = parts?.[0];
+                const cardId = parts?.[1];
+                const from = parts?.[2];
+                const to = parts?.[3];
+                const facing = parts?.[4] === "undefined" ? undefined : parts?.[4];
+                if (topOrBottom && cardId && from && to) moveCardToStack(topOrBottom, cardId, from, to, facing);
+                return;
+            }
+
+            if (event.data.startsWith("[MOVE_CARD_TO_STACK_CONFIRMED]:")) {
+                const parts = event.data.substring("[MOVE_CARD_TO_STACK_CONFIRMED]:".length).split(":");
                 const topOrBottom = parts?.[0];
                 const cardId = parts?.[1];
                 const from = parts?.[2];
