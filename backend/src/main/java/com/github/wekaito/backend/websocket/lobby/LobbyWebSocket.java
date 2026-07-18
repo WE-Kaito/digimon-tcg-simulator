@@ -186,6 +186,11 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             if (activePrincipal != null && activePrincipal.getName().equals(invitedPlayer)) {
                 if (!pendingGameInvites.add(invite)) return;
                 sendTextMessage(activeSession, "[GAME_INVITE]:" + inviter);
+                ChatMessage confirmation = new ChatMessage(
+                        "You have invited " + invitedPlayer + " to a match. Please wait for the other player to respond.",
+                        "【SERVER】"
+                );
+                sendTextMessage(session, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(confirmation));
                 return;
             }
         }
