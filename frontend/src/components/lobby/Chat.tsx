@@ -9,6 +9,8 @@ export type ChatMessage = {
     id: string;
     message: string;
     author: string;
+    isPrivateNotice?: boolean;
+    timestamp: string;
 };
 
 type Props = {
@@ -25,6 +27,34 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
 
     const historyRef = useRef<HTMLDivElement>(null);
 
+    function formatTimestamp(timestamp: string) {
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "";
+
+        return new Intl.DateTimeFormat(undefined, {
+            hour: "numeric",
+            minute: "2-digit",
+        }).format(date);
+    }
+
+    function formatTimestampTitle(timestamp: string) {
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "";
+
+        const parts = new Intl.DateTimeFormat(undefined, {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        }).formatToParts(date);
+
+        const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+
+        return `${value("month")}/${value("day")}/${value("year")} ${value("hour")}:${value("minute")} ${value("dayPeriod")}`;
+    }
+
     function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!message.trim().length) return;
@@ -35,6 +65,10 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
     }
 
     function handleContextMenu(e: React.MouseEvent, message: ChatMessage) {
+        if (message.author === user || message.author === "【SERVER】") {
+            e.preventDefault();
+            return;
+        }
         showChatMessageMenu({ event: e, props: message });
     }
 
@@ -47,6 +81,14 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
             {!!roomId && <StyledPrivateSpan>PRIVATE ROOM CHAT</StyledPrivateSpan>}
             <History ref={historyRef}>
                 {messages.map((message) => {
+                    if (message.isPrivateNotice) {
+                        return (
+                            <MessageContainer key={message.id} data-message-id={message.id}>
+                                <PrivateNotice>{message.message}</PrivateNotice>
+                            </MessageContainer>
+                        );
+                    }
+
                     if (message.author === "【SERVER】") {
                         return (
                             <MessageContainer
@@ -88,6 +130,9 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
                             onContextMenu={(e) => handleContextMenu(e, message)}
                         >
                             <StyledSpan isMe={user === message.author}>
+                                <StyledTimestamp dateTime={message.timestamp} title={formatTimestampTitle(message.timestamp)}>
+                                    [{formatTimestamp(message.timestamp)}]
+                                </StyledTimestamp>
                                 <span>{message.author + " "}</span>
                                 <span> </span>
                                 <span className={"text"}>{message.message}</span>
@@ -170,6 +215,25 @@ const StyledServerSpan = styled.span`
         color: #31da75;
         border-bottom-right-radius: 4px;
     }
+`;
+
+const PrivateNotice = styled.span`
+    display: block;
+    width: 100%;
+    color: white;
+    font-family: "League Spartan", sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-align: center;
+    white-space: pre-line;
+`;
+
+const StyledTimestamp = styled.time`
+    color: rgba(255, 239, 213, 0.62);
+    font-family: "Cousine", monospace;
+    font-size: 0.6em;
+    margin-right: 6px;
+    white-space: nowrap;
 `;
 
 const StyledInput = styled.input`
