@@ -179,7 +179,7 @@ public class GameRoom {
                     .linkDP(card.linkDP())
                     .linkEffect(card.linkEffect())
                     .linkRequirement(card.linkRequirement())
-                    .assemblyEffect(card.assemblyEffect())
+                    .assembly(card.assembly())
                     .restrictions(card.restrictions())
                     .illustrator(card.illustrator())
                     .id(UUID.randomUUID())
