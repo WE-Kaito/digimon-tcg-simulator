@@ -685,7 +685,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private void handleChatMessage(WebSocketSession session, String payload) throws IOException {
         if (payload.substring("/chatMessage:".length()).trim().isEmpty()) return;
 
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        Principal principal = session.getPrincipal();
+        if (principal == null) return;
+
+        String username = principal.getName();
 
         String messageContent = payload.substring("/chatMessage:".length());
         ChatMessage chatMessage = new ChatMessage(messageContent, username);
@@ -701,15 +704,20 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     private void handleRoomChatMessage(WebSocketSession session, String payload) throws IOException {
         String[] parts = payload.split(":", 3);
-        String chatMessage = parts[1];
+        String messageContent = parts[1];
         String roomId = parts[2];
-        String userName = Objects.requireNonNull(session.getPrincipal()).getName();
+        Principal principal = session.getPrincipal();
+        if (principal == null) return;
+
+        String userName = principal.getName();
 
         Room room = getRoomById(roomId);
         if (room == null) return;
 
+        ChatMessage chatMessage = new ChatMessage(messageContent, userName);
+
         for (LobbyPlayer player : room.getPlayers()) {
-            sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + userName + ": " + chatMessage);
+            sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + objectMapper.writeValueAsString(chatMessage));
         }
     }
 
