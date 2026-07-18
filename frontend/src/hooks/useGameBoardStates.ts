@@ -49,6 +49,9 @@ const battleAreaLocations = [
 
 export const digimonLocations = ["myBreedingArea", "opponentBreedingArea", ...battleAreaLocations];
 
+const isSickStack = (cards: CardTypeGame[]) =>
+    cards.at(-1)?.modifiers?.keywords?.includes("SICK") ?? false;
+
 export const tamerLocations = [
     "myDigi17",
     "myDigi18",
@@ -871,20 +874,29 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         for (let i = 1; i <= 21; i++) {
             set((state) => {
                 const digiKey = `${side}Digi${i}` as keyof State;
+                const cards = state[digiKey] as CardTypeGame[];
                 return {
-                    [digiKey]: (state[digiKey] as CardTypeGame[]).map((card) => {
-                        card.isTilted = false;
-                        return card;
-                    }),
+                    [digiKey]: isSickStack(cards)
+                        ? cards
+                        : cards.map((card) => ({
+                              ...card,
+                              isTilted: false,
+                          })),
                 };
             });
         }
-        set((state) => ({
-            myBreedingArea: (state.myBreedingArea as CardTypeGame[]).map((card) => ({
-                ...card,
-                isTilted: false,
-            })),
-        }));
+        set((state) => {
+            const breedingAreaKey = `${side}BreedingArea` as keyof State;
+            const cards = state[breedingAreaKey] as CardTypeGame[];
+            return {
+                [breedingAreaKey]: isSickStack(cards)
+                    ? cards
+                    : cards.map((card) => ({
+                          ...card,
+                          isTilted: false,
+                      })),
+            };
+        });
     },
 
     getIsMyTurn: (username) => get().usernameTurn === username,

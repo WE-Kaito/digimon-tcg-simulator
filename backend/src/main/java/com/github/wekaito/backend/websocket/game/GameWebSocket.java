@@ -159,15 +159,9 @@ public class GameWebSocket extends TextWebSocketHandler {
             return;
         }
 
-        if (roomMessage.startsWith("/unsuspendAll:")) {
-            handleUnsuspendAll(gameRoom, session);
-            return;
-        }
+        if (roomMessage.equals("/unsuspendAll")) handleUnsuspendAll(gameRoom, session);
 
-        if(Arrays.stream(simpleIdCommands).anyMatch(roomMessage::startsWith)) {
-            handleCommandWithId(gameRoom, session, roomMessage);
-            return;
-        }
+        else if(Arrays.stream(simpleIdCommands).anyMatch(roomMessage::startsWith)) handleCommandWithId(gameRoom, session, roomMessage);
 
         String command = roomMessage.split(":", 2)[0];
         if (command.equals("/updatePhase")) {
@@ -810,12 +804,30 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         boolean isPlayer1 = gameRoom.getPlayer1().username().equals(username);
         
-        // Unsuspend all cards in Digi1-21 positions for the current player
+        // Unsuspend all cards in Digi1-21 positions for the current player, except sick stacks.
         for (int i = 1; i <= 21; i++) {
             String digiPosition = isPlayer1 ? "player1Digi" + i : "player2Digi" + i;
             List<GameCard> cards = boardState.getFieldByName(digiPosition);
-            cards.stream().filter(c -> c.isTilted).forEach(GameCard::tilt);
+            unsuspendStackUnlessSick(cards);
             boardState.setFieldByName(digiPosition, cards);
+        }
+
+        String breedingAreaPosition = isPlayer1 ? "player1BreedingArea" : "player2BreedingArea";
+        List<GameCard> breedingAreaCards = boardState.getFieldByName(breedingAreaPosition);
+        unsuspendStackUnlessSick(breedingAreaCards);
+        boardState.setFieldByName(breedingAreaPosition, breedingAreaCards);
+    }
+
+    private void unsuspendStackUnlessSick(List<GameCard> cards) {
+        if (cards.isEmpty()) return;
+
+        GameCard topCard = cards.get(cards.size() - 1);
+        boolean isSick = topCard.getModifiers() != null
+                && topCard.getModifiers().keywords() != null
+                && topCard.getModifiers().keywords().contains("SICK");
+
+        if (!isSick) {
+            cards.stream().filter(c -> Boolean.TRUE.equals(c.getIsTilted())).forEach(GameCard::tilt);
         }
     }
 
