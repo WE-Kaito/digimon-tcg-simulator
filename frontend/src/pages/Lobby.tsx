@@ -385,7 +385,6 @@ export default function Lobby() {
         id: `game-invite:${inviter}`,
         title: inviter,
         message: `${inviter} is requesting for a match.`,
-        indicatorColor: "#56bd68",
         actions: [
             {
                 label: "Accept",
