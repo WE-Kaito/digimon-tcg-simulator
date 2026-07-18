@@ -37,8 +37,8 @@ import useQuery from "../hooks/useQuery.ts";
 import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 import { AppNotification, NotificationBell } from "./MainMenu.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
 
 type LobbyPlayer = {
     name: string;
@@ -60,7 +60,7 @@ export default function Lobby() {
     const currentUrl = window.location.origin.replace("https://", "");
     //TODO: using www.project-drasil.online as the domain is not working, need a fix
     const websocketURL =
-        currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/lobby" : "wss://" + currentUrl + "/api/ws/lobby";
+        currentPort === "5173" ? "ws://localhost:8080/api/ws/lobby" : "wss://" + currentUrl + "/api/ws/lobby";
 
     const user = useGeneralStates((state) => state.user);
     const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
@@ -389,14 +389,14 @@ export default function Lobby() {
             {
                 label: "Accept",
                 ariaLabel: `Accept match request from ${inviter}`,
-                icon: <FontAwesomeIcon icon={faCheck} />,
+                icon: <CheckIcon fontSize="small" />,
                 variant: "primary",
                 onClick: () => handleGameInviteResponse(inviter, true),
             },
             {
                 label: "Decline",
                 ariaLabel: `Decline match request from ${inviter}`,
-                icon: <FontAwesomeIcon icon={faXmark} />,
+                icon: <CloseIcon fontSize="small" />,
                 variant: "danger",
                 onClick: () => handleGameInviteResponse(inviter, false),
             },

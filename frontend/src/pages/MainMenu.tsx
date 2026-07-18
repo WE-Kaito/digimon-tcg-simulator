@@ -5,8 +5,7 @@ import { Stack } from "@mui/material";
 import SoundBar from "../components/SoundBar.tsx";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import styled from "@emotion/styled";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell } from "@fortawesome/free-solid-svg-icons";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useEffect, useRef, useState } from "react";
 import { ReactNode } from "react";
 
@@ -61,7 +60,7 @@ export function NotificationBell({ notifications }: NotificationBellProps) {
                 aria-haspopup="dialog"
                 onClick={() => setIsOpen((open) => !open)}
             >
-                <FontAwesomeIcon icon={faBell} />
+                <NotificationsIcon fontSize="inherit" />
                 {!!notifications.length && <NotificationCount>{notifications.length}</NotificationCount>}
             </BellButton>
 
