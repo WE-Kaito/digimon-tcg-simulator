@@ -9,6 +9,7 @@ export type ChatMessage = {
     id: string;
     message: string;
     author: string;
+    isPrivateNotice?: boolean;
     timestamp: string;
 };
 
@@ -64,6 +65,10 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
     }
 
     function handleContextMenu(e: React.MouseEvent, message: ChatMessage) {
+        if (message.author === user || message.author === "【SERVER】") {
+            e.preventDefault();
+            return;
+        }
         showChatMessageMenu({ event: e, props: message });
     }
 
@@ -76,6 +81,14 @@ export default function Chat({ sendMessage, messages, roomId }: Props) {
             {!!roomId && <StyledPrivateSpan>PRIVATE ROOM CHAT</StyledPrivateSpan>}
             <History ref={historyRef}>
                 {messages.map((message) => {
+                    if (message.isPrivateNotice) {
+                        return (
+                            <MessageContainer key={message.id} data-message-id={message.id}>
+                                <PrivateNotice>{message.message}</PrivateNotice>
+                            </MessageContainer>
+                        );
+                    }
+
                     if (message.author === "【SERVER】") {
                         return (
                             <MessageContainer
@@ -202,6 +215,17 @@ const StyledServerSpan = styled.span`
         color: #31da75;
         border-bottom-right-radius: 4px;
     }
+`;
+
+const PrivateNotice = styled.span`
+    display: block;
+    width: 100%;
+    color: white;
+    font-family: "League Spartan", sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-align: center;
+    white-space: pre-line;
 `;
 
 const StyledTimestamp = styled.time`
