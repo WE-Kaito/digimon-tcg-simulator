@@ -120,7 +120,8 @@ export default function Lobby() {
     }
 
     function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
-        setOnlineUsersAnchor((anchor) => (anchor ? null : event.currentTarget));
+        const button = event.currentTarget;
+        setOnlineUsersAnchor((anchor) => (anchor ? null : button));
     }
 
     function setIsLoadingWithDebounce() {
