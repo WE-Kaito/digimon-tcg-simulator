@@ -48,7 +48,7 @@ function getExplanation(keyword: string) {
     if (keyword.startsWith("Armor"))
         return "When this Digimon would be deleted, you may trash the top card of this Digimon to prevent that deletion.";
     if (keyword.startsWith("Ascension"))
-        return "When a Digimon card with ＜Ascension＞ is deleted, you may place that card as your top security card.";
+        return "When this Digimon with ＜Ascension＞ is deleted, you may place that card as your top security card.";
     if (keyword.startsWith("Barrier"))
         return "When this Digimon would be deleted in battle, by trashing the top card of your security stack, prevent that deletion.";
     if (keyword.startsWith("Blast DNA")) return "Your Digimon may digivolve into this card without paying the cost.";
