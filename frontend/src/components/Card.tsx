@@ -508,7 +508,7 @@ export default function Card(props: CardProps) {
                                     )}
                                     <KeywordWrapper>
                                         {modifiers?.keywords
-                                            .filter((w) => w !== "SICK")
+                                            .filter((w) => w !== "SICK" && w !== "TAUNT")
                                             .map((keyword) => (
                                                 <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
                                                     <span>{keyword}</span>
@@ -558,6 +558,11 @@ export default function Card(props: CardProps) {
                             alt={"suspended"}
                             src={suspendedAPNG}
                         />
+                    </CardAnimationContainer>
+                )}
+                {card.modifiers.keywords.includes("TAUNT") && (
+                    <CardAnimationContainer style={{ top: 0, left: 0, right: 0, bottom: 0 }}>
+                        <TauntPulseOverlay data-testid="taunt-pulse-overlay" />
                     </CardAnimationContainer>
                 )}
 
@@ -696,6 +701,28 @@ const StyledImage = styled.img<StyledImageProps>`
         }
         70% {
             filter: drop-shadow(0 0 4px #e51042) brightness(0.5) saturate(1.1);
+        }
+    }
+`;
+
+const TauntPulseOverlay = styled.div`
+    position: absolute;
+    inset: 0;
+    border-radius: 5px;
+    pointer-events: none;
+    animation: taunt-pulse 1.2s ease-in-out infinite;
+
+    @keyframes taunt-pulse {
+        0%,
+        100% {
+            box-shadow:
+                0 0 6px 2px rgba(255, 0, 0, 0.4),
+                inset 0 0 8px 2px rgba(255, 0, 0, 0.3);
+        }
+        50% {
+            box-shadow:
+                0 0 18px 6px rgba(255, 0, 0, 0.95),
+                inset 0 0 14px 4px rgba(255, 0, 0, 0.75);
         }
     }
 `;
