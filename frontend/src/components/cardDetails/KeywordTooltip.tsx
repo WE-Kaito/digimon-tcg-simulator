@@ -48,7 +48,7 @@ function getExplanation(keyword: string) {
     if (keyword.startsWith("Armor"))
         return "When this Digimon would be deleted, you may trash the top card of this Digimon to prevent that deletion.";
     if (keyword.startsWith("Ascension"))
-        return "When this Digimon with ＜Ascension＞ is deleted, you may place that card as your top security card.";
+        return "When this Digimon is deleted, you may place that card as your top security card.";
     if (keyword.startsWith("Barrier"))
         return "When this Digimon would be deleted in battle, by trashing the top card of your security stack, prevent that deletion.";
     if (keyword.startsWith("Blast DNA")) return "Your Digimon may digivolve into this card without paying the cost.";
@@ -66,7 +66,7 @@ function getExplanation(keyword: string) {
     if (keyword.startsWith("Delay"))
         return "After this card is placed, by trashing it next turn or later, activate the effect below.";
     if (keyword.startsWith("Detach"))
-        return "When your Digimon with ＜Detach＞ would leave the battle area other than by your effects, by trashing 1 of its specified link cards, it doesn't leave.";
+        return "When this Digimon would leave the battle area other than by your effects, by trashing 1 of its specified link cards, it doesn't leave.";
     if (keyword.startsWith("Digi-Burst"))
         return "Trash X of this Digimon's digivolution cards to activate the effect below.";
     if (keyword.startsWith("Digisorption"))
@@ -75,7 +75,7 @@ function getExplanation(keyword: string) {
     if (keyword.startsWith("Evade"))
         return "When this Digimon would be deleted, you may suspend it to prevent that deletion.";
     if (keyword.startsWith("Engage"))
-        return "At the end of your turn, your Digimon with ＜Engage＞ may attack.";
+        return "At the end of your turn, this Digimon may attack.";
     if (keyword.startsWith("Execute"))
         return "At the end of the turn, this Digimon may attack. At the end of that attack, delete this Digimon. Your opponent's unsuspended Digimon can also be attacked with this effect.";
     if (keyword.startsWith("Fortitude"))
@@ -83,7 +83,7 @@ function getExplanation(keyword: string) {
     if (keyword.startsWith("Fragment"))
         return "When this Digimon would be deleted, by trashing any X of its digivolution cards, it isn't deleted.";
     if (keyword.startsWith("Guard"))
-        return "When any of your other Digimon would leave the battle area by your opponent's effects, by deleting your Digimon with ＜Guard＞, they don't leave.";
+        return "When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.";
     if (keyword.startsWith("Ice"))
         return "Other than against Security Digimon, compare the number of digivolution cards instead of DP in this Digimon's battles.";
     if (keyword.startsWith("Jamming")) return "This Digimon can't be deleted in battles against Security Digimon.";
