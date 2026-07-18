@@ -36,6 +36,33 @@ import { Button } from "../components/Button.tsx";
 import useQuery from "../hooks/useQuery.ts";
 import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
+import { AppNotification, NotificationBell } from "./MainMenu.tsx";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+
+function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
+    return {
+        ...chatMessage,
+        timestamp: chatMessage.timestamp ?? new Date().toISOString(),
+    };
+}
+
+function parseChatMessage(messageJson: string): ChatMessage {
+    try {
+        return ensureChatTimestamp(JSON.parse(messageJson) as ChatMessage);
+    } catch {
+        const separatorIndex = messageJson.indexOf(":");
+        const author = separatorIndex >= 0 ? messageJson.substring(0, separatorIndex) : "【SERVER】";
+        const message = separatorIndex >= 0 ? messageJson.substring(separatorIndex + 1).trimStart() : messageJson;
+
+        return {
+            id: `${Date.now()}-${Math.random()}`,
+            author,
+            message,
+            timestamp: new Date().toISOString(),
+        };
+    }
+}
 
 type LobbyPlayer = {
     name: string;
@@ -53,11 +80,8 @@ type Room = {
 };
 
 export default function Lobby() {
-    const currentPort = window.location.port;
-    const currentUrl = window.location.origin.replace("https://", "");
-    //TODO: using www.project-drasil.online as the domain is not working, need a fix
-    const websocketURL =
-        currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/lobby" : "wss://" + currentUrl + "/api/ws/lobby";
+    const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/lobby`;
 
     const user = useGeneralStates((state) => state.user);
     const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
@@ -93,6 +117,8 @@ export default function Lobby() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<ChatMessage[]>([]);
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [incomingGameInvites, setIncomingGameInvites] = useState<string[]>([]);
+    const [pendingGameInvites, setPendingGameInvites] = useState<Set<string>>(() => new Set());
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
@@ -204,6 +230,22 @@ export default function Lobby() {
                     startGameSequence(gameId);
                 }
 
+                if (event.data.startsWith("[GAME_INVITE]:")) {
+                    const inviter = event.data.substring("[GAME_INVITE]:".length);
+                    setIncomingGameInvites((inviters) =>
+                        inviters.includes(inviter) ? inviters : [...inviters, inviter]
+                    );
+                }
+
+                if (event.data.startsWith("[GAME_INVITE_RESPONSE]:")) {
+                    const [, invitedPlayer] = event.data.split(":");
+                    setPendingGameInvites((players) => {
+                        const nextPlayers = new Set(players);
+                        nextPlayers.delete(invitedPlayer);
+                        return nextPlayers;
+                    });
+                }
+
                 if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
                     const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
                     setIsRejoinable(matchingRoomId === gameId);
@@ -220,18 +262,18 @@ export default function Lobby() {
 
                 if (event.data.startsWith("[GLOBAL_CHAT]:")) {
                     const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as ChatMessage[];
-                    setMessages(messagesArray);
+                    setMessages(messagesArray.map(ensureChatTimestamp));
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE]:".length);
-                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    const chatMessage = parseChatMessage(messageJson);
                     setMessages((messages) => [...messages, chatMessage]);
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE_ROOM]:".length);
-                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    const chatMessage = parseChatMessage(messageJson);
                     setPrivateMessages((messages) => [...messages, chatMessage]);
                 }
 
@@ -322,6 +364,15 @@ export default function Lobby() {
         }
     }
 
+    function handleInviteSent(player: string) {
+        setPendingGameInvites((players) => new Set(players).add(player));
+    }
+
+    function handleGameInviteResponse(inviter: string, accepted: boolean) {
+        websocket.sendMessage(`/gameInviteResponse:${inviter}:${accepted}`);
+        setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
+    }
+
     const initialFetch = useCallback(() => {
         getActiveDeck();
     }, [getActiveDeck]);
@@ -351,6 +402,27 @@ export default function Lobby() {
                 (joinedRoom.restrictionsApplied && activeDeckReadyState === DeckReadySate.VIOLATES_RESTRICTIONS)));
 
     const isMobile = useMediaQuery("(max-width:499px)");
+    const notifications: AppNotification[] = incomingGameInvites.map((inviter) => ({
+        id: `game-invite:${inviter}`,
+        title: inviter,
+        message: `${inviter} is requesting for a match.`,
+        actions: [
+            {
+                label: "Accept",
+                ariaLabel: `Accept match request from ${inviter}`,
+                icon: <CheckIcon fontSize="small" />,
+                variant: "primary",
+                onClick: () => handleGameInviteResponse(inviter, true),
+            },
+            {
+                label: "Decline",
+                ariaLabel: `Decline match request from ${inviter}`,
+                icon: <CloseIcon fontSize="small" />,
+                variant: "danger",
+                onClick: () => handleGameInviteResponse(inviter, false),
+            },
+        ],
+    }));
 
     return (
         <MenuBackgroundWrapper>
@@ -414,26 +486,28 @@ export default function Lobby() {
                     <span style={{ color: "whitesmoke", opacity: 0.8, lineHeight: 1 }}>{userCount}</span>
                 </OnlineUsers>
 
-                {!isFetchingIsAdmin && isAdmin && (
-                    <ButtonCard
-                        style={{
-                            width: "fit-content",
-                            height: "38px",
-                            padding: "0 1px 1px 6px",
-                            fontSize: "22px",
-                            fontFamily: "Pixel Digivolve, sans-serif",
-                        }}
-                        onClick={() => {
-                            navigate("/administration");
-                            setJoinedRoom(null);
-                        }}
-                        className={"button"}
-                    >
-                        <span>ADMIN⚙️</span>
-                    </ButtonCard>
-                )}
-
-                <LogoutButton />
+                <HeaderActions>
+                    {!isFetchingIsAdmin && isAdmin && (
+                        <ButtonCard
+                            style={{
+                                width: "fit-content",
+                                height: "38px",
+                                padding: "0 1px 1px 6px",
+                                fontSize: "22px",
+                                fontFamily: "Pixel Digivolve, sans-serif",
+                            }}
+                            onClick={() => {
+                                navigate("/administration");
+                                setJoinedRoom(null);
+                            }}
+                            className={"button"}
+                        >
+                            <span>ADMIN⚙️</span>
+                        </ButtonCard>
+                    )}
+                    <NotificationBell notifications={notifications} />
+                    <LogoutButton />
+                </HeaderActions>
             </Header>
 
             <ContentDiv>
@@ -688,7 +762,12 @@ export default function Lobby() {
                 />
             </ContentDiv>
             <PatchnotesLink />
-            <ChatContextMenu isAdmin={!!isAdmin} />
+            <ChatContextMenu
+                isAdmin={!!isAdmin}
+                sendMessage={websocket.sendMessage}
+                onInviteSent={handleInviteSent}
+                pendingGameInvites={pendingGameInvites}
+            />
         </MenuBackgroundWrapper>
     );
 }
@@ -700,6 +779,12 @@ const Header = styled.header`
     align-items: center;
     flex-wrap: wrap;
     padding: 16px;
+`;
+
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
 `;
 
 const ContentDiv = styled.div`

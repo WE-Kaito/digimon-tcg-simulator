@@ -24,7 +24,10 @@ export type CardType = {
     linkDP?: number;
     linkEffect?: string;
     linkRequirement?: string;
-    assemblyEffect?: string;
+    assembly?: string;
+    dualEffect?: string;
+    optionCardColorRequirement?: string;
+    optionCardEffect?: string;
     restrictions: Restrictions;
     illustrator: string;
 };

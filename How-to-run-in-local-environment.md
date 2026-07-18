@@ -5,12 +5,39 @@ However, Project Drasil can also be run outside of docker if required (see [Manu
 
 ## Docker compose
 
-Run `docker compose up -d` to create all required containers.
-NOTE: Windows users will need to share the root directory of the repo with Docker by going to `Settings > Resources > File Sharing`, adding the repo directory path and hitting `Apply & Restart`
+The setup script provides two modes. Both build the required images and start MongoDB automatically.
 
-The application will be available at [http://localhost:5173](http://localhost:5173). Vite's hot reload should work out of the box. Any changes to the backend won't be applied until the container is re-created, which can be done by running `./compile-backend.sh`. All database data is stored in an external volume, so bringing down the mongodb container will not delete database data, but dropping volumes <b>will</b>.
+### Production mode
 
-If you're testing on an external device, you can specify the websocket URL (default: `ws://localhost:8080`). Set the WEBSOCKET_URL env var before running `docker compose up -d` for that change to be applied. `WEBSOCKET_URL="ws://192.168.1.2:8080/" docker compose up -d` for linux, and `$env:WEBSOCKET_URL="ws://192.168.1.2:8080/"; docker compose up -d` for windows powershell. Make sure to replace the IP with your host machine's local network IP.
+```bash
+python3 run.py start
+```
+
+This creates an optimized frontend build served by Nginx, the Spring Boot backend, and MongoDB. No source directories are mounted into containers. Open [http://localhost:3000](http://localhost:3000).
+
+To use another public port:
+
+```bash
+APP_PORT=8080 python3 run.py start
+```
+
+### Developer mode
+
+```bash
+python3 run.py dev
+```
+
+This mounts the frontend source and runs Vite with hot reload. Open [http://localhost:5173](http://localhost:5173). The backend and MongoDB are also exposed on ports `8080` and `27017`.
+
+Backend changes require rebuilding the stack by running the same command again. Add `--no-build` when no image rebuild is needed, or `--foreground` to attach to logs.
+
+To stop either stack and keep MongoDB data:
+
+```bash
+docker compose --project-name project-drasil down
+```
+
+MongoDB data is stored in a named Docker volume. It remains after containers stop and is deleted only when Compose is brought down with `--volumes`.
 
 ## Manual Setup
 

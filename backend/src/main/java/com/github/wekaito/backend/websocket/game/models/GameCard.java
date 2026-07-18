@@ -37,7 +37,10 @@ public class GameCard {
     public Integer linkDP;
     public String linkEffect;
     public String linkRequirement;
-    public String assemblyEffect;
+    public String assembly;
+    public String dualEffect;
+    public String optionCardColorRequirement;
+    public String optionCardEffect;
     public Restrictions restrictions;
     public String illustrator;
     public UUID id;
