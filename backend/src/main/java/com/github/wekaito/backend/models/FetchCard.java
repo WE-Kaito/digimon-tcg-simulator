@@ -29,6 +29,9 @@ public record FetchCard(
         String linkEffect,
         String linkRequirement,
         String assembly,
+        String dualEffect,
+        String optionCardColourRequirement,
+        String optionCardEffect,
         Restrictions restrictions,
         String illustrator) {
 }

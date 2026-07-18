@@ -151,6 +151,7 @@ export default function SearchForm() {
                 <TypeSelect value={type ?? "Type"} onChange={(e) => setType(e.target.value ?? "")}>
                     <option value={""}>Type</option>
                     <option>Digimon</option>
+                    <option>Digimon/Option</option>
                     <option>Digi-Egg</option>
                     <option>Option</option>
                     <option>Tamer</option>
