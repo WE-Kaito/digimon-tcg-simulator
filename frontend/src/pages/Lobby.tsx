@@ -5,6 +5,7 @@ import {
     HttpsOutlined as PrivateIcon,
     Rule as RestrictionsAppliedIcon,
     PeopleAlt as PopulationIcon,
+    Search as SearchIcon,
     WifiOffRounded as OfflineIcon,
 } from "@mui/icons-material";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
@@ -21,7 +22,16 @@ import axios from "axios";
 import MenuDialog from "../components/MenuDialog.tsx";
 import Chat, { ChatMessage } from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
-import { Checkbox, Dialog, DialogContent, FormControlLabel, Popover, useMediaQuery } from "@mui/material";
+import {
+    Checkbox,
+    Dialog,
+    DialogContent,
+    FormControlLabel,
+    IconButton,
+    InputBase,
+    Popover,
+    useMediaQuery,
+} from "@mui/material";
 import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
@@ -86,6 +96,9 @@ export default function Lobby() {
     const [userCount, setUserCount] = useState<number>(0);
     const [lobbyPlayers, setLobbyPlayers] = useState<string[]>([]);
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState<HTMLButtonElement | null>(null);
+    const [isPlayerSearchOpen, setIsPlayerSearchOpen] = useState(false);
+    const [playerSearch, setPlayerSearch] = useState("");
+    const [debouncedPlayerSearch, setDebouncedPlayerSearch] = useState("");
     const [userCountQuickPlay, setUserCountQuickPlay] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -339,6 +352,11 @@ export default function Lobby() {
     useEffect(() => initialFetch(), [initialFetch]);
 
     useEffect(() => {
+        const timeout = window.setTimeout(() => setDebouncedPlayerSearch(playerSearch), 250);
+        return () => window.clearTimeout(timeout);
+    }, [playerSearch]);
+
+    useEffect(() => {
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }, [activeDeckId]);
 
@@ -362,6 +380,9 @@ export default function Lobby() {
                 (joinedRoom.restrictionsApplied && activeDeckReadyState === DeckReadySate.VIOLATES_RESTRICTIONS)));
 
     const isMobile = useMediaQuery("(max-width:499px)");
+    const filteredLobbyPlayers = lobbyPlayers.filter((player) =>
+        player.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
+    );
 
     return (
         <MenuBackgroundWrapper>
@@ -432,7 +453,12 @@ export default function Lobby() {
                 <Popover
                     open={!!onlineUsersAnchor}
                     anchorEl={onlineUsersAnchor}
-                    onClose={() => setOnlineUsersAnchor(null)}
+                    onClose={() => {
+                        setOnlineUsersAnchor(null);
+                        setIsPlayerSearchOpen(false);
+                        setPlayerSearch("");
+                        setDebouncedPlayerSearch("");
+                    }}
                     anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
                     transformOrigin={{ vertical: "top", horizontal: "center" }}
                     slotProps={{
@@ -449,13 +475,42 @@ export default function Lobby() {
                     }}
                 >
                     <LobbyPlayerList aria-label="Players Online">
-                        <LobbyPlayerListHeading>Players Online</LobbyPlayerListHeading>
-                        {lobbyPlayers.length ? (
-                            lobbyPlayers.map((player) => (
+                        <LobbyPlayerListHeading>
+                            <span>Players Online</span>
+                            <IconButton
+                                size="small"
+                                color="inherit"
+                                aria-label={isPlayerSearchOpen ? "Close player search" : "Search players"}
+                                aria-expanded={isPlayerSearchOpen}
+                                onClick={() => {
+                                    setIsPlayerSearchOpen((open) => !open);
+                                    if (isPlayerSearchOpen) {
+                                        setPlayerSearch("");
+                                        setDebouncedPlayerSearch("");
+                                    }
+                                }}
+                            >
+                                <SearchIcon fontSize="small" />
+                            </IconButton>
+                            {isPlayerSearchOpen && (
+                                <PlayerSearchInput
+                                    autoFocus
+                                    fullWidth
+                                    value={playerSearch}
+                                    placeholder="Search username"
+                                    inputProps={{ "aria-label": "Search username" }}
+                                    onChange={(event) => setPlayerSearch(event.target.value)}
+                                />
+                            )}
+                        </LobbyPlayerListHeading>
+                        {filteredLobbyPlayers.length ? (
+                            filteredLobbyPlayers.map((player) => (
                                 <LobbyPlayerListItem key={player}>{player}</LobbyPlayerListItem>
                             ))
                         ) : (
-                            <LobbyPlayerListItem>No players online</LobbyPlayerListItem>
+                            <LobbyPlayerListItem>
+                                {lobbyPlayers.length ? "No matching players" : "No players online"}
+                            </LobbyPlayerListItem>
                         )}
                     </LobbyPlayerList>
                 </Popover>
@@ -797,10 +852,29 @@ const LobbyPlayerList = styled.ul`
 `;
 
 const LobbyPlayerListHeading = styled.li`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
     padding: 8px 16px 10px;
     border-bottom: 1px solid rgba(124, 124, 118, 0.3);
     color: var(--lobby-accent);
     font-size: 19px;
+`;
+
+const PlayerSearchInput = styled(InputBase)`
+    flex-basis: 100%;
+    margin-top: 6px;
+    padding: 2px 8px;
+    border: 1px solid rgba(124, 124, 118, 0.5);
+    border-radius: 3px;
+    color: ghostwhite;
+    font-size: 15px;
+
+    &.Mui-focused {
+        border-color: var(--lobby-accent);
+    }
 `;
 
 const LobbyPlayerListItem = styled.li`
