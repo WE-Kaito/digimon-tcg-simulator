@@ -36,6 +36,9 @@ import { Button } from "../components/Button.tsx";
 import useQuery from "../hooks/useQuery.ts";
 import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
+import { AppNotification, NotificationBell } from "./MainMenu.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 type LobbyPlayer = {
     name: string;
@@ -93,6 +96,8 @@ export default function Lobby() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<ChatMessage[]>([]);
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [incomingGameInvites, setIncomingGameInvites] = useState<string[]>([]);
+    const [pendingGameInvites, setPendingGameInvites] = useState<Set<string>>(() => new Set());
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
@@ -202,6 +207,22 @@ export default function Lobby() {
                     localStorage.removeItem("boardStore");
                     const gameId = event.data.substring("[COMPUTE_GAME]:".length);
                     startGameSequence(gameId);
+                }
+
+                if (event.data.startsWith("[GAME_INVITE]:")) {
+                    const inviter = event.data.substring("[GAME_INVITE]:".length);
+                    setIncomingGameInvites((inviters) =>
+                        inviters.includes(inviter) ? inviters : [...inviters, inviter]
+                    );
+                }
+
+                if (event.data.startsWith("[GAME_INVITE_RESPONSE]:")) {
+                    const [, invitedPlayer] = event.data.split(":");
+                    setPendingGameInvites((players) => {
+                        const nextPlayers = new Set(players);
+                        nextPlayers.delete(invitedPlayer);
+                        return nextPlayers;
+                    });
                 }
 
                 if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
@@ -322,6 +343,15 @@ export default function Lobby() {
         }
     }
 
+    function handleInviteSent(player: string) {
+        setPendingGameInvites((players) => new Set(players).add(player));
+    }
+
+    function handleGameInviteResponse(inviter: string, accepted: boolean) {
+        websocket.sendMessage(`/gameInviteResponse:${inviter}:${accepted}`);
+        setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
+    }
+
     const initialFetch = useCallback(() => {
         getActiveDeck();
     }, [getActiveDeck]);
@@ -351,6 +381,28 @@ export default function Lobby() {
                 (joinedRoom.restrictionsApplied && activeDeckReadyState === DeckReadySate.VIOLATES_RESTRICTIONS)));
 
     const isMobile = useMediaQuery("(max-width:499px)");
+    const notifications: AppNotification[] = incomingGameInvites.map((inviter) => ({
+        id: `game-invite:${inviter}`,
+        title: inviter,
+        message: `${inviter} is requesting for a match.`,
+        indicatorColor: "#56bd68",
+        actions: [
+            {
+                label: "Accept",
+                ariaLabel: `Accept match request from ${inviter}`,
+                icon: <FontAwesomeIcon icon={faCheck} />,
+                variant: "primary",
+                onClick: () => handleGameInviteResponse(inviter, true),
+            },
+            {
+                label: "Decline",
+                ariaLabel: `Decline match request from ${inviter}`,
+                icon: <FontAwesomeIcon icon={faXmark} />,
+                variant: "danger",
+                onClick: () => handleGameInviteResponse(inviter, false),
+            },
+        ],
+    }));
 
     return (
         <MenuBackgroundWrapper>
@@ -414,26 +466,28 @@ export default function Lobby() {
                     <span style={{ color: "whitesmoke", opacity: 0.8, lineHeight: 1 }}>{userCount}</span>
                 </OnlineUsers>
 
-                {!isFetchingIsAdmin && isAdmin && (
-                    <ButtonCard
-                        style={{
-                            width: "fit-content",
-                            height: "38px",
-                            padding: "0 1px 1px 6px",
-                            fontSize: "22px",
-                            fontFamily: "Pixel Digivolve, sans-serif",
-                        }}
-                        onClick={() => {
-                            navigate("/administration");
-                            setJoinedRoom(null);
-                        }}
-                        className={"button"}
-                    >
-                        <span>ADMIN⚙️</span>
-                    </ButtonCard>
-                )}
-
-                <LogoutButton />
+                <HeaderActions>
+                    {!isFetchingIsAdmin && isAdmin && (
+                        <ButtonCard
+                            style={{
+                                width: "fit-content",
+                                height: "38px",
+                                padding: "0 1px 1px 6px",
+                                fontSize: "22px",
+                                fontFamily: "Pixel Digivolve, sans-serif",
+                            }}
+                            onClick={() => {
+                                navigate("/administration");
+                                setJoinedRoom(null);
+                            }}
+                            className={"button"}
+                        >
+                            <span>ADMIN⚙️</span>
+                        </ButtonCard>
+                    )}
+                    <NotificationBell notifications={notifications} />
+                    <LogoutButton />
+                </HeaderActions>
             </Header>
 
             <ContentDiv>
@@ -688,7 +742,12 @@ export default function Lobby() {
                 />
             </ContentDiv>
             <PatchnotesLink />
-            <ChatContextMenu isAdmin={!!isAdmin} />
+            <ChatContextMenu
+                isAdmin={!!isAdmin}
+                sendMessage={websocket.sendMessage}
+                onInviteSent={handleInviteSent}
+                pendingGameInvites={pendingGameInvites}
+            />
         </MenuBackgroundWrapper>
     );
 }
@@ -700,6 +759,12 @@ const Header = styled.header`
     align-items: center;
     flex-wrap: wrap;
     padding: 16px;
+`;
+
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
 `;
 
 const ContentDiv = styled.div`
