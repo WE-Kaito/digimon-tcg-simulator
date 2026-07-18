@@ -1,5 +1,7 @@
 import styled from "@emotion/styled";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from "@mui/material";
+import MinimizeIcon from "@mui/icons-material/Minimize";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import { useEffect, useState } from "react";
 import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { handleImageError } from "../../utils/functions.ts";
@@ -15,9 +17,13 @@ type Props = {
 export default function AssemblyDialog({ open, hasEmptyField, onCancel, onConfirm }: Props) {
     const myTrash = useGameBoardStates((state) => state.myTrash);
     const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
+    const [isMinimized, setIsMinimized] = useState(false);
 
     useEffect(() => {
-        if (!open) setSelectedCardIds([]);
+        if (!open) {
+            setSelectedCardIds([]);
+            setIsMinimized(false);
+        }
     }, [open]);
 
     function toggleCard(cardId: string) {
@@ -34,71 +40,130 @@ export default function AssemblyDialog({ open, hasEmptyField, onCancel, onConfir
     }
 
     return (
-        <Dialog
-            open={open}
-            onClose={onCancel}
-            fullWidth
-            maxWidth="md"
-            slotProps={{
-                paper: {
-                    sx: {
-                        background: "#173638",
-                        backgroundImage: "linear-gradient(rgba(255,255,255,0.025), rgba(0,0,0,0.06))",
-                        border: "1px solid rgba(210, 210, 190, 0.4)",
-                        color: "ghostwhite",
-                        minHeight: "50vh",
-                        maxHeight: "85vh",
+        <>
+            <Dialog
+                open={open && !isMinimized}
+                onClose={(_, reason) => {
+                    if (reason === "backdropClick") {
+                        setIsMinimized(true);
+                        return;
+                    }
+                    onCancel();
+                }}
+                fullWidth
+                maxWidth="md"
+                slotProps={{
+                    paper: {
+                        sx: {
+                            background: "#173638",
+                            backgroundImage: "linear-gradient(rgba(255,255,255,0.025), rgba(0,0,0,0.06))",
+                            border: "1px solid rgba(210, 210, 190, 0.4)",
+                            color: "ghostwhite",
+                            minHeight: "50vh",
+                            maxHeight: "85vh",
+                        },
                     },
-                },
-            }}
-        >
-            <DialogTitle sx={{ fontFamily: "Naston, sans-serif" }}>Assembly</DialogTitle>
-            <DialogContent dividers>
-                <CardGrid>
-                    {myTrash
-                        .slice()
-                        .reverse()
-                        .map((card) => {
-                            const selectionIndex = selectedCardIds.indexOf(card.id);
-                            const isSelected = selectionIndex !== -1;
-
-                            return (
-                                <CardButton
-                                    key={card.id}
-                                    type="button"
-                                    isSelected={isSelected}
-                                    onClick={() => toggleCard(card.id)}
-                                    aria-pressed={isSelected}
-                                    aria-label={`${isSelected ? "Deselect" : "Select"} ${card.name}`}
-                                >
-                                    <CardImage
-                                        src={card.imgUrl}
-                                        alt={`${card.name} ${card.uniqueCardNumber}`}
-                                        onError={handleImageError}
-                                    />
-                                    {isSelected && <SelectionOrder>{selectionIndex + 1}</SelectionOrder>}
-                                </CardButton>
-                            );
-                        })}
-                    {!myTrash.length && <EmptyTrash>Your trash is empty.</EmptyTrash>}
-                </CardGrid>
-            </DialogContent>
-            <DialogActions sx={{ padding: 2 }}>
-                {!hasEmptyField && <FieldWarning>An empty Digimon field is required.</FieldWarning>}
-                <Button color="inherit" variant="outlined" onClick={onCancel}>
-                    Cancel
-                </Button>
-                <Button
-                    variant="contained"
-                    disabled={!selectedCardIds.length || !hasEmptyField}
-                    onClick={handleConfirm}
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        fontFamily: "Naston, sans-serif",
+                    }}
                 >
-                    Confirm
-                </Button>
-            </DialogActions>
-        </Dialog>
+                    Assembly
+                    <IconButton
+                        aria-label="Minimize Assembly dialog"
+                        title="Minimize"
+                        color="inherit"
+                        onClick={() => setIsMinimized(true)}
+                    >
+                        <MinimizeIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
+                    <CardGrid>
+                        {myTrash
+                            .slice()
+                            .reverse()
+                            .map((card) => {
+                                const selectionIndex = selectedCardIds.indexOf(card.id);
+                                const isSelected = selectionIndex !== -1;
+
+                                return (
+                                    <CardButton
+                                        key={card.id}
+                                        type="button"
+                                        isSelected={isSelected}
+                                        onClick={() => toggleCard(card.id)}
+                                        aria-pressed={isSelected}
+                                        aria-label={`${isSelected ? "Deselect" : "Select"} ${card.name}`}
+                                    >
+                                        <CardImage
+                                            src={card.imgUrl}
+                                            alt={`${card.name} ${card.uniqueCardNumber}`}
+                                            onError={handleImageError}
+                                        />
+                                        {isSelected && <SelectionOrder>{selectionIndex + 1}</SelectionOrder>}
+                                    </CardButton>
+                                );
+                            })}
+                        {!myTrash.length && <EmptyTrash>Your trash is empty.</EmptyTrash>}
+                    </CardGrid>
+                </DialogContent>
+                <DialogActions sx={{ padding: 2 }}>
+                    {!hasEmptyField && <FieldWarning>An empty Digimon field is required.</FieldWarning>}
+                    <Button color="inherit" variant="outlined" onClick={onCancel}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        disabled={!selectedCardIds.length || !hasEmptyField}
+                        onClick={handleConfirm}
+                    >
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            {open && isMinimized && (
+                <>
+                    <InteractionLock aria-hidden="true" onContextMenu={(event) => event.preventDefault()} />
+                    <MinimizedAssemblyButton
+                        variant="contained"
+                        startIcon={<OpenInFullIcon />}
+                        onClick={() => setIsMinimized(false)}
+                    >
+                        Resume Assembly
+                    </MinimizedAssemblyButton>
+                </>
+            )}
+        </>
     );
 }
+
+const InteractionLock = styled.div`
+    position: fixed;
+    inset: 0;
+    z-index: 1299;
+    background: transparent;
+`;
+
+const MinimizedAssemblyButton = styled(Button)`
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1300;
+    background: #173638;
+    color: ghostwhite;
+    font-family: "Naston", sans-serif;
+    border: 1px solid rgba(210, 210, 190, 0.4);
+
+    &:hover {
+        background: #21494c;
+    }
+`;
 
 const CardGrid = styled.div`
     display: grid;
@@ -117,7 +182,9 @@ const CardButton = styled.button<{ isSelected: boolean }>`
     background: transparent;
     cursor: pointer;
     overflow: hidden;
-    transition: border-color 0.12s ease-in-out, transform 0.12s ease-in-out;
+    transition:
+        border-color 0.12s ease-in-out,
+        transform 0.12s ease-in-out;
 
     &:hover {
         transform: translateY(-2px);
