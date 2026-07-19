@@ -222,7 +222,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                                 className="button"
                                 style={{ display: "flex", alignItems: "center", gap: 4 }}
                             >
-                                (Un)Mark as unaffected by effects
+                                (Un)Mark as immune
                                 <AddModeratorIcon fontSize="small" />
                             </label>
                         </div>
