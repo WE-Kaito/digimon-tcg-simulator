@@ -83,14 +83,7 @@ public class GameRoom {
         }
     }
 
-    private static final long HEARTBEAT_TIMEOUT_MS = 45000;
     private static final long ROOM_EXPIRY_MS = 300000;
-
-    public boolean hasFullConnection() {
-        long now = System.currentTimeMillis();
-        return (now - lastHeartBeatReceivedPlayer1 < HEARTBEAT_TIMEOUT_MS) &&
-                (now - lastHeartBeatReceivedPlayer2 < HEARTBEAT_TIMEOUT_MS);
-    }
 
     public boolean isEmpty() {
         long now = System.currentTimeMillis();
@@ -179,7 +172,10 @@ public class GameRoom {
                     .linkDP(card.linkDP())
                     .linkEffect(card.linkEffect())
                     .linkRequirement(card.linkRequirement())
-                    .assemblyEffect(card.assemblyEffect())
+                    .assembly(card.assembly())
+                    .dualEffect(card.dualEffect())
+                    .optionCardColorRequirement(card.optionCardColorRequirement())
+                    .optionCardEffect(card.optionCardEffect())
                     .restrictions(card.restrictions())
                     .illustrator(card.illustrator())
                     .id(UUID.randomUUID())
