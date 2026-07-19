@@ -452,9 +452,18 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private void broadcastUserCount() throws IOException {
+        List<String> lobbyPlayers = globalActiveSessions.stream()
+                .map(WebSocketSession::getPrincipal)
+                .filter(Objects::nonNull)
+                .map(Principal::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+        String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(lobbyPlayers);
+
         for (WebSocketSession session : globalActiveSessions) {
             sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
             sendTextMessage(session, "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size());
+            sendTextMessage(session, lobbyPlayersMessage);
         }
     }
 
