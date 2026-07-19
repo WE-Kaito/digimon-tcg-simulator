@@ -7,6 +7,24 @@ Thx to [@alessandrostagni](https://github.com/alessandrostagni) for maintaining 
 
 Join our [discord community](https://discord.gg/sBdByGAh2y)! 
 
+## Run locally
+
+Install Docker, clone the repository, then choose one command:
+
+```bash
+# Self-contained production build
+python3 run.py start
+
+# Developer build with frontend hot reload
+python3 run.py dev
+```
+
+The production build runs at [http://localhost:3000](http://localhost:3000). The developer build runs at [http://localhost:5173](http://localhost:5173).
+
+Set `APP_PORT` to publish the production frontend on another port, for example `APP_PORT=8080 python3 run.py start`. Add `--foreground` to either command to attach to container logs.
+
+See [How to run in a local environment](How-to-run-in-local-environment.md) for manual setup and troubleshooting.
+
   ---
 
 **Feature Overview**:

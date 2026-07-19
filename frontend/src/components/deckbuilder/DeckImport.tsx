@@ -16,38 +16,63 @@ export default function DeckImport({ deckName }: { deckName: string }) {
     const importDeck = useDeckStates((state) => state.importDeck);
     const exportDeck = useDeckStates((state) => state.exportDeck);
     const [copyButton, setCopyButton] = useState<boolean>(false);
-    const [invalidButton, setInvalidButton] = useState<boolean>(false);
+    const [importStatus, setImportStatus] = useState<"idle" | "invalid" | "imported">("idle");
     const fetchedCards = useDeckStates((state) => state.fetchedCards);
     const [exportFormat, setExportFormat] = useState("pd");
 
     function handleImport() {
         if (exportFormat === "text") {
-            importDeck(deckString, exportFormat);
+            importDeck(deckString, exportFormat) ? successfulImport() : invalidImport();
             return;
         }
 
         try {
             const deckToImport = JSON.parse(deckString);
-            if (
-                !deckToImport.every((cardNumber: string) => fetchedCards.some((card) => card.cardNumber === cardNumber))
-            ) {
+            if (!Array.isArray(deckToImport) || !deckToImport.every((item) => typeof item === "string")) {
                 invalidImport();
+                return;
             }
-            if (Array.isArray(deckToImport) && deckToImport.every((item) => typeof item === "string")) {
-                importDeck(deckToImport, exportFormat);
-                setDeckString("");
-            } else {
+
+            const normalizedDeck = deckToImport[0]?.startsWith("Exported from ")
+                ? deckToImport.slice(1)
+                : deckToImport;
+            if (!normalizedDeck.length) {
                 invalidImport();
+                return;
             }
+
+            const allCardsExist = normalizedDeck.every((cardNumber: string) =>
+                fetchedCards.some((card) =>
+                    exportFormat === "pd"
+                        ? card.uniqueCardNumber === cardNumber
+                        : card.cardNumber === cardNumber
+                )
+            );
+            if (!allCardsExist || !importDeck(normalizedDeck, exportFormat)) {
+                invalidImport();
+                return;
+            }
+
+            setDeckString("");
+            successfulImport();
         } catch (error) {
             invalidImport();
         }
     }
 
     function invalidImport() {
-        setInvalidButton(true);
+        showTemporaryImportStatus("invalid");
+    }
+
+    function successfulImport() {
+        setDeckString("");
+        showTemporaryImportStatus("imported");
+    }
+
+    function showTemporaryImportStatus(status: "invalid" | "imported") {
+        setImportStatus(status);
         const timer = setTimeout(() => {
-            setInvalidButton(false);
+            setImportStatus("idle");
         }, 3500);
         return () => clearTimeout(timer);
     }
@@ -78,14 +103,17 @@ export default function DeckImport({ deckName }: { deckName: string }) {
                     width: "calc(100% - 16px)",
                 }}
             >
-                {!invalidButton && (
+                {importStatus === "idle" && (
                     <ImportButton className={"button"} onClick={handleImport}>
                         {!isMobile && <UpIcon />}
                         <span>IMPORT</span>
                         {!isMobile && <UpIcon />}
                     </ImportButton>
                 )}
-                {invalidButton && <ImportButton style={{ background: "crimson" }}>INVALID!</ImportButton>}
+                {importStatus === "invalid" && <ImportButton style={{ background: "crimson" }}>INVALID!</ImportButton>}
+                {importStatus === "imported" && (
+                    <ImportButton style={{ background: "#32e7b7" }}>Imported</ImportButton>
+                )}
 
                 <div style={{ display: "flex", width: 250, justifyContent: "space-between" }}>
                     <div style={{ display: "flex" }}>

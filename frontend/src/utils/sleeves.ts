@@ -78,7 +78,7 @@ import gomamon from "../assets/sleeves/main/BT7_018_GOMAMON.png";
 import justimon from "../assets/sleeves/main/justimon.png";
 import sanzomon from "../assets/sleeves/main/sanzomon.png";
 import vemmon from "../assets/sleeves/main/vemmon.png";
-import belphemonSleepMode from "../assets/sleeves/main/belphemon_sleep_mode.png";
+import belphemonSleepMode from "../assets/sleeves/main/EX10_021_BELPHEMON_SLEEPMODE.png";
 import tentomon from "../assets/sleeves/main/tentomon.png";
 import medusamon from "../assets/sleeves/main/medusamon.png";
 import abbadomonCore from "../assets/sleeves/main/abbadomoncore.png";
@@ -87,6 +87,27 @@ import goblimon from "../assets/sleeves/main/goblimon.png";
 import deputymon from "../assets/sleeves/main/deputymon.png";
 import aegiomon from "../assets/sleeves/main/aegiomon.png";
 import lucemoncm from "../assets/sleeves/main/lucemoncm.png";
+import pillomon from "../assets/sleeves/main/BT5_073_PILLOMON.png";
+import elecmon from "../assets/sleeves/main/ST16_02_ELECMON.png";
+import digitamamon from "../assets/sleeves/main/digitamamon.png";
+import kazemon from "../assets/sleeves/main/kazemon.png";
+import invisimon from "../assets/sleeves/main/invisimon.png";
+import darcmon from "../assets/sleeves/main/darcmon.png";
+import alturBallistamon8bit from "../assets/sleeves/main/AlturBallistamon_8bits.png";
+import chiropmon8bit from "../assets/sleeves/main/Chiropmon_8bits.png";
+import jellymon8bit from "../assets/sleeves/main/Jellymon_8bits.png";
+import kakamon8bit from "../assets/sleeves/main/Kakamon_8bits.png";
+import minervamon8bit from "../assets/sleeves/main/Minervamon_8bits.png";
+import murasamemon8bit from "../assets/sleeves/main/Murasamemon_8bits.png";
+import parasaurmon8bit from "../assets/sleeves/main/Parasaurmon_8bits.png";
+import pawnchessmon8bit from "../assets/sleeves/main/Pawnchessmon_8bits.png";
+import phoenixmon8bit from "../assets/sleeves/main/Phoenixmon_8bits.png";
+import pristimon8bit from "../assets/sleeves/main/Pristimon_8bits.png";
+import ranamon8bit from "../assets/sleeves/main/Ranamon_8bits.png";
+import rapidmon8bit from "../assets/sleeves/main/Rapidmon_8bits.png";
+import sharkmon8bit from "../assets/sleeves/main/Sharkmon_8bits.png";
+import suijinmon8bit from "../assets/sleeves/main/Suijinmon_8bits.png";
+import wolvermon8bit from "../assets/sleeves/main/Wolvermon_8bits.png";
 
 import koromon from "../assets/sleeves/egg/ST1_01_KOROMON.png";
 import tsunomon from "../assets/sleeves/egg/BT6_006_TSUNOMON.png";
@@ -204,7 +225,6 @@ export const sleeves: Picture[] = [
     { name: "Justimon", imagePath: justimon, artist: "TicoSanchezz" },
     { name: "Sanzomon", imagePath: sanzomon, artist: "TicoSanchezz" },
     { name: "Vemmon", imagePath: vemmon, artist: "TicoSanchezz" },
-    { name: "Belphemon Sleep Mode", imagePath: belphemonSleepMode, artist: "TicoSanchezz" },
     { name: "Tentomon", imagePath: tentomon, artist: "TicoSanchezz" },
     { name: "Medusamon", imagePath: medusamon, artist: "TicoSanchezz" },
     { name: "Abbadomon Core", imagePath: abbadomonCore, artist: "TicoSanchezz" },
@@ -212,6 +232,28 @@ export const sleeves: Picture[] = [
     { name: "Goblimon", imagePath: goblimon, artist: "TicoSanchezz" },
     { name: "Aegiomon", imagePath: aegiomon, artist: "TicoSanchezz" },
     { name: "Lucemon CM", imagePath: lucemoncm, artist: "TicoSanchezz" },
+    { name: "Digitamamon", imagePath: digitamamon, artist: "TicoSanchezz" },
+    { name: "Kazemon", imagePath: kazemon, artist: "TicoSanchezz" },
+    { name: "Invisimon", imagePath: invisimon, artist: "TicoSanchezz" },
+    { name: "Darcmon", imagePath: darcmon, artist: "TicoSanchezz" },
+    { name: "Belphemon Sleep Mode", imagePath: belphemonSleepMode, artist: "Drak" },
+    { name: "Elecmon", imagePath: elecmon, artist: "Drak" },
+    { name: "Pillomon", imagePath: pillomon, artist: "Drak" },
+    { name: "AlturBallistamon", imagePath: alturBallistamon8bit, artist: "gigadrillx" },
+    { name: "Jellymon", imagePath: jellymon8bit, artist: "gigadrillx" },
+    { name: "Kakamon", imagePath: kakamon8bit, artist: "gigadrillx" },
+    { name: "Minervamon", imagePath: minervamon8bit, artist: "gigadrillx" },
+    { name: "Parasaurmon", imagePath: parasaurmon8bit, artist: "gigadrillx" },
+    { name: "Pawnchessmon", imagePath: pawnchessmon8bit, artist: "gigadrillx" },
+    { name: "Suijinmon", imagePath: suijinmon8bit, artist: "gigadrillx" },
+    { name: "Phoenixmon", imagePath: phoenixmon8bit, artist: "gigadrillx" },
+    { name: "Ranamon", imagePath: ranamon8bit, artist: "gigadrillx" },
+    { name: "Rapidmon", imagePath: rapidmon8bit, artist: "gigadrillx" },
+    { name: "Sharkmon", imagePath: sharkmon8bit, artist: "gigadrillx" },
+    { name: "Chiropmon", imagePath: chiropmon8bit, artist: "gigadrillx" },
+    { name: "Pristimon", imagePath: pristimon8bit, artist: "gigadrillx" },
+    { name: "Wolvermon", imagePath: wolvermon8bit, artist: "gigadrillx" },
+    { name: "Murasamemon", imagePath: murasamemon8bit, artist: "gigadrillx" },
 ];
 
 export const eggSleeves: Picture[] = [
