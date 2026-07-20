@@ -241,6 +241,19 @@ public class GameWebSocket extends TextWebSocketHandler {
         return gameRooms.get(gameId);
     }
 
+    /**
+     * Retires any previous match using this ID before the lobby starts a new match.
+     * Game IDs are based on player order, so the same host and opponent can otherwise
+     * reconnect to the previous board instead of loading their currently selected decks.
+     */
+    public void prepareNewGame(String gameId) {
+        GameRoom previousRoom = gameRooms.remove(gameId);
+        if (previousRoom != null) {
+            previousRoom.cancelAllScheduledTasks();
+        }
+        roomIdBySessionId.entrySet().removeIf(entry -> gameId.equals(entry.getValue()));
+    }
+
     public Optional<GameRoom> findGameRoomBySession(WebSocketSession session) {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         return gameRooms.values().stream().filter(room ->
