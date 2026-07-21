@@ -15,6 +15,7 @@ import ReportButton from "../ReportButton.tsx";
 import { Flag as SurrenderIcon, RestartAlt as RestartIcon } from "@mui/icons-material";
 import KeyboardReturnTwoToneIcon from "@mui/icons-material/KeyboardReturnTwoTone";
 import RestartRequestModal from "../ModalDialog/RestartRequestModal.tsx";
+import ReturnToGameLobbyModal from "../ModalDialog/ReturnToGameLobbyModal.tsx";
 import SurrenderModal from "../ModalDialog/SurrenderModal.tsx";
 import { useState } from "react";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
@@ -29,9 +30,11 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
 
     const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
     const [surrenderModal, setSurrenderModal] = useState<boolean>(false);
+    const [returnToGameLobbyModal, setReturnToGameLobbyModal] = useState<boolean>(false);
 
     function returnToGameLobby() {
         if (!wsUtils || !gameLobbyRoomId) return;
+        setReturnToGameLobbyModal(false);
         wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/surrender`);
         setGameId("");
         navigate("/lobby");
@@ -45,12 +48,18 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
                         <RestartRequestModal setRestartRequestModal={setRestartRequestModal} wsUtils={wsUtils} />
                     )}
                     {surrenderModal && <SurrenderModal setSurrenderModal={setSurrenderModal} wsUtils={wsUtils} />}
+                    {returnToGameLobbyModal && (
+                        <ReturnToGameLobbyModal
+                            onConfirm={returnToGameLobby}
+                            onCancel={() => setReturnToGameLobbyModal(false)}
+                        />
+                    )}
                     <ReportButton matchInfo={wsUtils.matchInfo} iconFontSize={`${iconWidth - 5}px`} />
 
                     {gameLobbyRoomId ? (
                         <PanelButton
                             className="button"
-                            onClick={returnToGameLobby}
+                            onClick={() => setReturnToGameLobbyModal(true)}
                             title="Return to Game Lobby"
                             aria-label="Return to Game Lobby"
                             style={{ gridArea: "surrender", transform: `translate(-4px, -1px)` }}
