@@ -80,6 +80,11 @@ type LobbyPlayer = {
     ready: boolean;
 };
 
+type OnlinePlayer = {
+    name: string;
+    status: string;
+};
+
 type Room = {
     id: string;
     name: string;
@@ -118,7 +123,7 @@ export default function Lobby() {
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
-    const [lobbyPlayers, setLobbyPlayers] = useState<string[]>([]);
+    const [lobbyPlayers, setLobbyPlayers] = useState<OnlinePlayer[]>([]);
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState<HTMLButtonElement | null>(null);
     const [isPlayerSearchOpen, setIsPlayerSearchOpen] = useState(false);
     const [playerSearch, setPlayerSearch] = useState("");
@@ -199,7 +204,7 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[LOBBY_PLAYERS]:")) {
-                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as string[]);
+                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as OnlinePlayer[]);
                 }
 
                 if (event.data.startsWith("[ROOMS]:")) {
@@ -408,6 +413,7 @@ export default function Lobby() {
     }, [playerSearch]);
 
     useEffect(() => {
+        if (!activeDeckId) return;
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }, [activeDeckId]);
 
@@ -432,7 +438,7 @@ export default function Lobby() {
 
     const isMobile = useMediaQuery("(max-width:499px)");
     const filteredLobbyPlayers = lobbyPlayers.filter((player) =>
-        player.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
+        player.name.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
     );
     const notifications: AppNotification[] = incomingGameInvites.map((inviter) => ({
         id: `game-invite:${inviter}`,
@@ -577,7 +583,10 @@ export default function Lobby() {
                         </LobbyPlayerListHeading>
                         {filteredLobbyPlayers.length ? (
                             filteredLobbyPlayers.map((player) => (
-                                <LobbyPlayerListItem key={player}>{player}</LobbyPlayerListItem>
+                                <LobbyPlayerListItem key={player.name}>
+                                    {player.name}
+                                    <LobbyPlayerStatus>{player.status}</LobbyPlayerStatus>
+                                </LobbyPlayerListItem>
                             ))
                         ) : (
                             <LobbyPlayerListItem>
@@ -966,6 +975,15 @@ const LobbyPlayerListItem = styled.li`
     padding: 9px 16px;
     color: ghostwhite;
     font-size: 17px;
+`;
+
+const LobbyPlayerStatus = styled.span`
+    display: block;
+    color: rgba(255, 239, 213, 0.62);
+    font-family: "Cousine", monospace;
+    font-size: 0.6em;
+    margin-right: 6px;
+    white-space: nowrap;
 `;
 
 const LeftColumn = styled.div`
