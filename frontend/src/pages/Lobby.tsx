@@ -270,6 +270,11 @@ export default function Lobby() {
                     });
                 }
 
+                if (event.data.startsWith("[GAME_INVITE_CANCELLED]:")) {
+                    const inviter = event.data.substring("[GAME_INVITE_CANCELLED]:".length);
+                    setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
+                }
+
                 if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
                     const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
                     setIsRejoinable(matchingRoomId === gameId);
@@ -390,6 +395,21 @@ export default function Lobby() {
 
     function handleInviteSent(player: string) {
         setPendingGameInvites((players) => new Set(players).add(player));
+    }
+
+    function handlePlayerInvite(player: string) {
+        if (pendingGameInvites.has(player)) {
+            websocket.sendMessage(`/cancelGameInvite:${player}`);
+            setPendingGameInvites((players) => {
+                const nextPlayers = new Set(players);
+                nextPlayers.delete(player);
+                return nextPlayers;
+            });
+            return;
+        }
+
+        websocket.sendMessage(`/inviteToGame:${player}`);
+        handleInviteSent(player);
     }
 
     function handleGameInviteResponse(inviter: string, accepted: boolean) {
@@ -577,7 +597,18 @@ export default function Lobby() {
                         </LobbyPlayerListHeading>
                         {filteredLobbyPlayers.length ? (
                             filteredLobbyPlayers.map((player) => (
-                                <LobbyPlayerListItem key={player}>{player}</LobbyPlayerListItem>
+                                <LobbyPlayerListItem key={player}>
+                                    <span>{player}</span>
+                                    {player !== user && (
+                                        <PlayerInviteButton
+                                            type="button"
+                                            pending={pendingGameInvites.has(player)}
+                                            onClick={() => handlePlayerInvite(player)}
+                                        >
+                                            {pendingGameInvites.has(player) ? "cancel invite" : "invite to play"}
+                                        </PlayerInviteButton>
+                                    )}
+                                </LobbyPlayerListItem>
                             ))
                         ) : (
                             <LobbyPlayerListItem>
@@ -963,9 +994,35 @@ const PlayerSearchInput = styled(InputBase)`
 `;
 
 const LobbyPlayerListItem = styled.li`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     padding: 9px 16px;
     color: ghostwhite;
     font-size: 17px;
+`;
+
+const PlayerInviteButton = styled.button<{ pending: boolean }>`
+    flex-shrink: 0;
+    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    background: var(${({ pending }) => (pending ? "--orange-button-bg" : "--blue-button-bg")});
+    color: ghostwhite;
+    font: 600 12px/1 "League Spartan", sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-hover" : "--blue-button-bg-hover")});
+        outline: none;
+    }
+
+    &:active {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-active" : "--blue-button-bg-active")});
+    }
 `;
 
 const LeftColumn = styled.div`

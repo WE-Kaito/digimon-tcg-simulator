@@ -168,6 +168,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (payload.startsWith("/inviteToGame:")) handleGameInvite(session, payload);
 
+        if (payload.startsWith("/cancelGameInvite:")) handleCancelGameInvite(session, payload);
+
         if (payload.startsWith("/gameInviteResponse:")) handleGameInviteResponse(session, payload);
     }
 
@@ -201,6 +203,24 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         sendTextMessage(session, "[GAME_INVITE_RESPONSE]:" + invitedPlayer + ":false");
+    }
+
+    private void handleCancelGameInvite(WebSocketSession session, String payload) throws IOException {
+        Principal principal = session.getPrincipal();
+        String[] parts = payload.split(":", 2);
+        if (principal == null || parts.length < 2) return;
+
+        String inviter = principal.getName();
+        String invitedPlayer = parts[1];
+        if (!pendingGameInvites.remove(new PendingGameInvite(inviter, invitedPlayer))) return;
+
+        for (WebSocketSession activeSession : globalActiveSessions) {
+            Principal activePrincipal = activeSession.getPrincipal();
+            if (activePrincipal != null && activePrincipal.getName().equals(invitedPlayer)) {
+                sendTextMessage(activeSession, "[GAME_INVITE_CANCELLED]:" + inviter);
+                break;
+            }
+        }
     }
 
     private void handleGameInviteResponse(WebSocketSession session, String payload) throws IOException {
