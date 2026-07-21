@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +30,9 @@ class LobbyWebSocketTest {
     @BeforeEach
     void setUp() {
         userDetailsService = new TestUserDetailsService();
-        gameWebSocket = new GameWebSocket(null, null, null, event -> { });
-        lobbyWebSocket = new LobbyWebSocket(userDetailsService, new TestDeckService(), null, gameWebSocket);
+        TestDeckService deckService = new TestDeckService();
+        gameWebSocket = new GameWebSocket(userDetailsService, deckService, null, event -> { });
+        lobbyWebSocket = new LobbyWebSocket(userDetailsService, deckService, null, gameWebSocket);
     }
 
     @Test
@@ -101,6 +103,53 @@ class LobbyWebSocketTest {
                 .containsExactly("other-user", "【SERVER】");
     }
 
+    @Test
+    void matchesImmediatelyWhenSecondPlayerJoinsQuickPlay() throws Exception {
+        TestWebSocketSession playerOne = new TestWebSocketSession("qp-1", "player-one");
+        TestWebSocketSession playerTwo = new TestWebSocketSession("qp-2", "player-two");
+        lobbyWebSocket.getGlobalActiveSessions().add(playerOne);
+        lobbyWebSocket.getGlobalActiveSessions().add(playerTwo);
+
+        lobbyWebSocket.handleTextMessage(playerOne, new TextMessage("/quickPlay"));
+
+        assertThat(lobbyWebSocket.getQuickPlayQueue()).hasSize(1);
+        assertThat(playerOne.getMessages()).contains("[QUICK_PLAY_QUEUED]", "[USER_COUNT_QUICK_PLAY]:1");
+
+        lobbyWebSocket.handleTextMessage(playerTwo, new TextMessage("/quickPlay"));
+
+        assertThat(lobbyWebSocket.getQuickPlayQueue()).isEmpty();
+        assertThat(playerOne.getMessages()).anyMatch(message ->
+                message.equals("[COMPUTE_GAME]:player-one‗player-two") ||
+                        message.equals("[COMPUTE_GAME]:player-two‗player-one"));
+        assertThat(playerTwo.getMessages()).anyMatch(message ->
+                message.equals("[COMPUTE_GAME]:player-one‗player-two") ||
+                        message.equals("[COMPUTE_GAME]:player-two‗player-one"));
+    }
+
+    @Test
+    void cancelRemovesPlayerAndBroadcastsUpdatedCountImmediately() throws Exception {
+        TestWebSocketSession player = new TestWebSocketSession("qp-1", "player-one");
+        lobbyWebSocket.getGlobalActiveSessions().add(player);
+
+        lobbyWebSocket.handleTextMessage(player, new TextMessage("/quickPlay"));
+        lobbyWebSocket.handleTextMessage(player, new TextMessage("/cancelQuickPlay"));
+
+        assertThat(lobbyWebSocket.getQuickPlayQueue()).isEmpty();
+        assertThat(player.getMessages()).contains("[QUICK_PLAY_CANCELLED]", "[USER_COUNT_QUICK_PLAY]:0");
+    }
+
+    @Test
+    void duplicateUsernameSessionsOnlyOccupyOneQueuePosition() throws Exception {
+        TestWebSocketSession oldSession = new TestWebSocketSession("qp-1", "player-one");
+        TestWebSocketSession newSession = new TestWebSocketSession("qp-2", "player-one");
+
+        lobbyWebSocket.handleTextMessage(oldSession, new TextMessage("/quickPlay"));
+        lobbyWebSocket.handleTextMessage(newSession, new TextMessage("/quickPlay"));
+
+        assertThat(lobbyWebSocket.getQuickPlayQueue()).hasSize(1);
+        assertThat(lobbyWebSocket.getQuickPlayQueue()).contains(newSession);
+    }
+
     private GameRoom gameRoom(String playerOne, String playerTwo) {
         return new GameRoom(
                 playerOne + "‗" + playerTwo,
@@ -130,8 +179,26 @@ class LobbyWebSocketTest {
         }
 
         @Override
+        public String getAvatar(String username) {
+            return "avatar";
+        }
+
+        @Override
         public List<String> getBlockedAccounts(String username) {
             return blockedAccounts.getOrDefault(username, List.of());
+        }
+
+        @Override
+        public boolean checkBlockedByWebSocketSessions(WebSocketSession player1, WebSocketSession player2) {
+            String username1 = (player1 != null && player1.getPrincipal() != null)
+                    ? player1.getPrincipal().getName()
+                    : null;
+            String username2 = (player2 != null && player2.getPrincipal() != null)
+                    ? player2.getPrincipal().getName()
+                    : null;
+            if (username1 == null || username2 == null) return false;
+            return getBlockedAccounts(username1).contains(username2)
+                    || getBlockedAccounts(username2).contains(username1);
         }
     }
 
@@ -148,6 +215,21 @@ class LobbyWebSocketTest {
         @Override
         public List<Card> getMainDeckCardsById(String id) {
             return List.of();
+        }
+
+        @Override
+        public List<Card> getEggDeckCardsById(String id) {
+            return List.of();
+        }
+
+        @Override
+        public String getDeckSleeveById(String id) {
+            return "";
+        }
+
+        @Override
+        public String getEggDeckSleeveById(String id) {
+            return "";
         }
     }
 }

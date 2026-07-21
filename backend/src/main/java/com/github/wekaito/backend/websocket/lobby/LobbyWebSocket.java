@@ -97,6 +97,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             return;
         }
 
+        synchronized (quickPlayLock) {
+            quickPlayQueue.removeIf(queuedSession -> hasUsername(queuedSession, username));
+        }
         registerActiveSession(session, username, PlayerStatus.LOBBY);
         broadcastUserCount();
         if (tryReconnectToRoom(session)) {
@@ -114,6 +117,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         sendTextMessage(session, "[ROOMS]:" + objectMapper.writeValueAsString(openRoomsDTO));
         sendGlobalChatHistory(session);
+        synchronized (quickPlayLock) {
+            pruneQuickPlayQueue();
+            sendTextMessage(session, "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size());
+        }
         sendReconnectStatus(session);
     }
 
@@ -152,11 +159,12 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         lastHeartbeatTimestamps.remove(session);
-
-        quickPlayQueue.remove(session);
-
         globalActiveSessions.remove(session);
         playerStatuses.remove(session);
+
+        synchronized (quickPlayLock) {
+            if (quickPlayQueue.remove(session)) broadcastQuickPlayCount();
+        }
         broadcastUserCount();
     }
 
@@ -192,9 +200,15 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (payload.startsWith("/toggleReady:")) toggleReady(session, payload.split(":")[1]);
 
-        if (payload.startsWith("/quickPlay")) quickPlayQueue.add(session); // manage representation in Frontend
+        if (payload.equals("/quickPlay")) {
+            joinQuickPlayQueue(session);
+            return;
+        }
 
-        if (payload.startsWith("/cancelQuickPlay")) quickPlayQueue.remove(session); // manage representation in Frontend
+        if (payload.equals("/cancelQuickPlay")) {
+            cancelQuickPlayQueue(session);
+            return;
+        }
 
         if (payload.startsWith("/startGame:")) startGame(session, payload);
 
@@ -443,7 +457,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     @Scheduled(fixedRate = 30000) // 30 seconds
     private void longIntervalOperations() throws IOException {
         checkConnectionAndCleanup();
-        assignQuickPlay();
+        reconcileQuickPlayQueue();
     }
 
     private void checkConnectionAndCleanup() throws IOException {
@@ -459,12 +473,66 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
     }
 
+    private void joinQuickPlayQueue(WebSocketSession session) throws IOException {
+        synchronized (quickPlayLock) {
+            pruneQuickPlayQueue();
+
+            Principal principal = session.getPrincipal();
+            if (principal == null || !session.isOpen()) return;
+
+            String username = principal.getName();
+            quickPlayQueue.removeIf(queuedSession -> hasUsername(queuedSession, username));
+            quickPlayQueue.add(session);
+            sendTextMessage(session, "[QUICK_PLAY_QUEUED]");
+
+            assignQuickPlay();
+            broadcastQuickPlayCount();
+        }
+    }
+
+    private void cancelQuickPlayQueue(WebSocketSession session) throws IOException {
+        synchronized (quickPlayLock) {
+            Principal principal = session.getPrincipal();
+            if (principal != null) {
+                String username = principal.getName();
+                quickPlayQueue.removeIf(queuedSession -> hasUsername(queuedSession, username));
+            } else {
+                quickPlayQueue.remove(session);
+            }
+            sendTextMessage(session, "[QUICK_PLAY_CANCELLED]");
+            broadcastQuickPlayCount();
+        }
+    }
+
+    private void reconcileQuickPlayQueue() throws IOException {
+        synchronized (quickPlayLock) {
+            pruneQuickPlayQueue();
+            assignQuickPlay();
+            broadcastQuickPlayCount();
+        }
+    }
+
+    private void pruneQuickPlayQueue() {
+        quickPlayQueue.removeIf(session -> !session.isOpen() || session.getPrincipal() == null);
+
+        Set<String> queuedUsernames = new HashSet<>();
+        quickPlayQueue.removeIf(session -> !queuedUsernames.add(session.getPrincipal().getName()));
+    }
+
+    private boolean hasUsername(WebSocketSession session, String username) {
+        Principal principal = session.getPrincipal();
+        return principal != null && principal.getName().equals(username);
+    }
+
+    private void broadcastQuickPlayCount() throws IOException {
+        String message = "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size();
+        for (WebSocketSession activeSession : globalActiveSessions) sendTextMessage(activeSession, message);
+    }
+
     private void assignQuickPlay() {
         List<WebSocketSession> players = new ArrayList<>(quickPlayQueue);
 
         if (players.size() < 2) return; // Not enough players to form a match
-
-        if (players.size() % 2 != 0) players.remove(players.size() - 1); // Make even number of players
 
         Collections.shuffle(players);
 
