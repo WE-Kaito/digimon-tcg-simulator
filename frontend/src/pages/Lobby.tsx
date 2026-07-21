@@ -49,6 +49,7 @@ import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 import { AppNotification, NotificationBell } from "./MainMenu.tsx";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import OnlinePlayerListItem from "../components/lobby/OnlinePlayerListItem.tsx";
 
 function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
     return {
@@ -583,10 +584,7 @@ export default function Lobby() {
                         </LobbyPlayerListHeading>
                         {filteredLobbyPlayers.length ? (
                             filteredLobbyPlayers.map((player) => (
-                                <LobbyPlayerListItem key={player.name}>
-                                    {player.name}
-                                    <LobbyPlayerStatus>{player.status}</LobbyPlayerStatus>
-                                </LobbyPlayerListItem>
+                                <OnlinePlayerListItem key={player.name} name={player.name} status={player.status} />
                             ))
                         ) : (
                             <LobbyPlayerListItem>
@@ -975,15 +973,6 @@ const LobbyPlayerListItem = styled.li`
     padding: 9px 16px;
     color: ghostwhite;
     font-size: 17px;
-`;
-
-const LobbyPlayerStatus = styled.span`
-    display: block;
-    color: rgba(255, 239, 213, 0.62);
-    font-family: "Cousine", monospace;
-    font-size: 0.6em;
-    margin-right: 6px;
-    white-space: nowrap;
 `;
 
 const LeftColumn = styled.div`
