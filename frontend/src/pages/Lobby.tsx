@@ -49,6 +49,7 @@ import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 import { AppNotification, NotificationBell } from "./MainMenu.tsx";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import useInviteCooldowns from "../hooks/useInviteCooldowns.ts";
 
 function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
     return {
@@ -134,6 +135,12 @@ export default function Lobby() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [incomingGameInvites, setIncomingGameInvites] = useState<string[]>([]);
     const [pendingGameInvites, setPendingGameInvites] = useState<Set<string>>(() => new Set());
+    const {
+        getInviteCooldownSeconds,
+        inviteCooldownPlayers,
+        isInviteCoolingDown,
+        startInviteCooldown,
+    } = useInviteCooldowns();
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
@@ -403,6 +410,7 @@ export default function Lobby() {
             nextPlayers.delete(player);
             return nextPlayers;
         });
+        startInviteCooldown(player);
     }
 
     function handlePlayerInvite(player: string) {
@@ -411,6 +419,8 @@ export default function Lobby() {
             handleInviteCancelled(player);
             return;
         }
+
+        if (isInviteCoolingDown(player)) return;
 
         websocket.sendMessage(`/inviteToGame:${player}`);
         handleInviteSent(player);
@@ -607,9 +617,14 @@ export default function Lobby() {
                                         <PlayerInviteButton
                                             type="button"
                                             pending={pendingGameInvites.has(player)}
+                                            disabled={isInviteCoolingDown(player)}
                                             onClick={() => handlePlayerInvite(player)}
                                         >
-                                            {pendingGameInvites.has(player) ? "cancel invite" : "invite to play"}
+                                            {pendingGameInvites.has(player)
+                                                ? "cancel invite"
+                                                : isInviteCoolingDown(player)
+                                                  ? `invite in ${getInviteCooldownSeconds(player)}s`
+                                                  : "invite to play"}
                                         </PlayerInviteButton>
                                     )}
                                 </LobbyPlayerListItem>
@@ -903,6 +918,7 @@ export default function Lobby() {
                 onInviteSent={handleInviteSent}
                 onInviteCancelled={handleInviteCancelled}
                 pendingGameInvites={pendingGameInvites}
+                inviteCooldownPlayers={inviteCooldownPlayers}
             />
         </MenuBackgroundWrapper>
     );
@@ -1027,6 +1043,12 @@ const PlayerInviteButton = styled.button<{ pending: boolean }>`
 
     &:active {
         background: var(${({ pending }) => (pending ? "--orange-button-bg-active" : "--blue-button-bg-active")});
+    }
+
+    &:disabled {
+        filter: grayscale(0.65);
+        opacity: 0.65;
+        cursor: not-allowed;
     }
 `;
 

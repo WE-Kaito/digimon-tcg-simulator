@@ -21,13 +21,15 @@ vi.mock("react-contexify", () => ({
         children,
         hidden,
         onClick,
+        disabled,
     }: {
         children: ReactNode;
         hidden?: (params: { props: ChatMessage }) => boolean;
         onClick?: (params: { props: ChatMessage }) => void;
+        disabled?: boolean;
     }) => {
         if (hidden?.({ props: contextMenuMock.message })) return null;
-        return <div onClick={() => onClick?.({ props: contextMenuMock.message })}>{children}</div>;
+        return <div onClick={disabled ? undefined : () => onClick?.({ props: contextMenuMock.message })}>{children}</div>;
     },
     Separator: () => <hr />,
 }));
@@ -42,7 +44,7 @@ vi.mock("../../hooks/useMutation.ts", () => ({
 
 import ChatContextMenu from "./ChatContextMenu.tsx";
 
-function renderMenu(pendingGameInvites = new Set<string>()) {
+function renderMenu(pendingGameInvites = new Set<string>(), inviteCooldownPlayers = new Set<string>()) {
     const sendMessage = vi.fn();
     const onInviteSent = vi.fn();
     const onInviteCancelled = vi.fn();
@@ -54,6 +56,7 @@ function renderMenu(pendingGameInvites = new Set<string>()) {
             onInviteSent={onInviteSent}
             onInviteCancelled={onInviteCancelled}
             pendingGameInvites={pendingGameInvites}
+            inviteCooldownPlayers={inviteCooldownPlayers}
         />
     );
 
@@ -96,6 +99,18 @@ describe("ChatContextMenu game invitations", () => {
 
         expect(sendMessage).toHaveBeenCalledWith("/cancelGameInvite:other-player");
         expect(onInviteCancelled).toHaveBeenCalledWith("other-player");
+        expect(onInviteSent).not.toHaveBeenCalled();
+    });
+
+    it("disables invitations while the player is in cooldown", () => {
+        const { sendMessage, onInviteSent } = renderMenu(new Set(), new Set(["other-player"]));
+
+        expect(screen.getByText("Invite Cooldown")).toBeInTheDocument();
+        expect(screen.queryByText("Invite to Game")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByText("Invite Cooldown"));
+
+        expect(sendMessage).not.toHaveBeenCalled();
         expect(onInviteSent).not.toHaveBeenCalled();
     });
 

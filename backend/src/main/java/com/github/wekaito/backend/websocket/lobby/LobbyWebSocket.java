@@ -42,6 +42,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private final Set<WebSocketSession> globalActiveSessions = ConcurrentHashMap.newKeySet();
     private final Set<Room> rooms = ConcurrentHashMap.newKeySet();
     private final Set<PendingGameInvite> pendingGameInvites = ConcurrentHashMap.newKeySet();
+    private final Map<PendingGameInvite, Long> gameInviteCooldowns = new ConcurrentHashMap<>();
+
+    private static final long GAME_INVITE_COOLDOWN_MS = 10_000;
 
     private final Map<String, Long> emptyRoomTimestamps = new ConcurrentHashMap<>();
     private final Map<WebSocketSession, String> lastPlayerRooms = new ConcurrentHashMap<>(); // username -> roomId
@@ -183,6 +186,12 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (invitedPlayer.isBlank() || invitedPlayer.equals(inviter)) return;
 
         PendingGameInvite invite = new PendingGameInvite(inviter, invitedPlayer);
+        Long cooldownExpiresAt = gameInviteCooldowns.get(invite);
+        if (cooldownExpiresAt != null) {
+            if (cooldownExpiresAt > System.currentTimeMillis()) return;
+            gameInviteCooldowns.remove(invite, cooldownExpiresAt);
+        }
+
         for (WebSocketSession activeSession : globalActiveSessions) {
             Principal activePrincipal = activeSession.getPrincipal();
             if (activePrincipal != null && activePrincipal.getName().equals(invitedPlayer)) {
@@ -212,7 +221,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         String inviter = principal.getName();
         String invitedPlayer = parts[1];
-        if (!pendingGameInvites.remove(new PendingGameInvite(inviter, invitedPlayer))) return;
+        PendingGameInvite invite = new PendingGameInvite(inviter, invitedPlayer);
+        if (!pendingGameInvites.remove(invite)) return;
+        gameInviteCooldowns.put(invite, System.currentTimeMillis() + GAME_INVITE_COOLDOWN_MS);
 
         for (WebSocketSession activeSession : globalActiveSessions) {
             Principal activePrincipal = activeSession.getPrincipal();
@@ -310,6 +321,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     @Scheduled(fixedRate = 5000) // 5 seconds
     private void shortIntervalOperations() throws IOException {
+        long now = System.currentTimeMillis();
+        gameInviteCooldowns.entrySet().removeIf(entry -> entry.getValue() <= now);
         broadcastUserCount();
         checkForRejoinableGameRoom();
         broadcastRooms();

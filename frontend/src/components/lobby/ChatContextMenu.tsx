@@ -20,6 +20,7 @@ type Props = {
     onInviteSent: (player: string) => void;
     onInviteCancelled: (player: string) => void;
     pendingGameInvites: Set<string>;
+    inviteCooldownPlayers: Set<string>;
 };
 
 export default function ChatContextMenu({
@@ -28,6 +29,7 @@ export default function ChatContextMenu({
     onInviteSent,
     onInviteCancelled,
     pendingGameInvites,
+    inviteCooldownPlayers,
 }: Props) {
     const user = useGeneralStates((state) => state.user);
     const { mutate, isPending } = useMutation("/api/report", "POST");
@@ -62,6 +64,8 @@ export default function ChatContextMenu({
     function handleInviteToGame({ props }: ItemParams<ChatMessage>) {
         if (props === undefined || props.author === user || props.author === "【SERVER】") return;
 
+        if (inviteCooldownPlayers.has(props.author)) return;
+
         if (pendingGameInvites.has(props.author)) {
             sendMessage(`/cancelGameInvite:${props.author}`);
             onInviteCancelled(props.author);
@@ -87,12 +91,28 @@ export default function ChatContextMenu({
                 onClick={handleInviteToGame}
                 hidden={({ props }) => {
                     const player = (props as ChatMessage | undefined)?.author ?? "";
-                    return ["【SERVER】", user].includes(player) || pendingGameInvites.has(player);
+                    return (
+                        ["【SERVER】", user].includes(player) ||
+                        pendingGameInvites.has(player) ||
+                        inviteCooldownPlayers.has(player)
+                    );
                 }}
             >
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                     <span>Invite to Game</span>
                     <InviteIcon color="primary" />
+                </div>
+            </Item>
+            <Item
+                disabled
+                hidden={({ props }) => {
+                    const player = (props as ChatMessage | undefined)?.author ?? "";
+                    return ["【SERVER】", user].includes(player) || !inviteCooldownPlayers.has(player);
+                }}
+            >
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                    <span>Invite Cooldown</span>
+                    <InviteIcon color="disabled" />
                 </div>
             </Item>
             <Item
