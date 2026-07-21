@@ -118,7 +118,12 @@ public class GameWebSocket extends TextWebSocketHandler {
         }
 
         if (roomMessage.equals("/returnToLobby")) {
-            destroyGameRoom(gameRoom, session);
+            String username = Objects.requireNonNull(session.getPrincipal()).getName();
+            String returnMessage = username + " has returned to the lobby.";
+            gameRoom.sendMessagesToAll("[CHAT_MESSAGE]:【SERVER】﹕" + returnMessage);
+            gameRoom.sendMessageToOtherSessions(session, "[PLAYER_RETURNED_TO_LOBBY]:" + username);
+            gameRoom.sendMessage(session, "[RETURN_TO_LOBBY]");
+            removeGameRoom(gameRoom);
             return;
         }
 
@@ -185,6 +190,10 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (returningSession == null) gameRoom.sendMessagesToAll("[SURRENDER]");
         else gameRoom.sendMessageToOtherSessions(returningSession, "[SURRENDER]");
 
+        removeGameRoom(gameRoom);
+    }
+
+    private void removeGameRoom(GameRoom gameRoom) {
         if (gameRooms.remove(gameRoom.getRoomId(), gameRoom)) {
             gameRoom.cancelAllScheduledTasks();
         }

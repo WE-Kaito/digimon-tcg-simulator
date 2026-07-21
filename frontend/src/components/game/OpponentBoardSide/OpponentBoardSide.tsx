@@ -17,30 +17,35 @@ import KeyboardReturnTwoToneIcon from "@mui/icons-material/KeyboardReturnTwoTone
 import RestartRequestModal from "../ModalDialog/RestartRequestModal.tsx";
 import ReturnToGameLobbyModal from "../ModalDialog/ReturnToGameLobbyModal.tsx";
 import SurrenderModal from "../ModalDialog/SurrenderModal.tsx";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
-import { useNavigate } from "react-router-dom";
+import { notifyError } from "../../../utils/toasts.ts";
 
 export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const gameLobbyRoomId = useGameBoardStates((state) => state.gameLobbyRoomId);
-    const setGameId = useGameBoardStates((state) => state.setGameId);
-    const clearBoard = useGameBoardStates((state) => state.clearBoard);
-    const navigate = useNavigate();
 
     const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
     const [surrenderModal, setSurrenderModal] = useState<boolean>(false);
     const [returnToGameLobbyModal, setReturnToGameLobbyModal] = useState<boolean>(false);
+    const returnTimeoutRef = useRef<number | null>(null);
+
+    useEffect(
+        () => () => {
+            if (returnTimeoutRef.current !== null) window.clearTimeout(returnTimeoutRef.current);
+        },
+        []
+    );
 
     function returnToGameLobby() {
         if (!wsUtils || !gameLobbyRoomId) return;
         setReturnToGameLobbyModal(false);
         wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/returnToLobby`);
-        clearBoard();
-        localStorage.removeItem("boardStore");
-        setGameId("");
-        navigate("/lobby");
+        returnTimeoutRef.current = window.setTimeout(() => {
+            notifyError("The server did not confirm returning to the lobby. Please restart the backend and try again.");
+            returnTimeoutRef.current = null;
+        }, 3000);
     }
 
     return (

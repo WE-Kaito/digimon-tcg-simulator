@@ -22,7 +22,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUt
                 {messages.map((message, index) => {
                     if (message.startsWith("[STARTING_PLAYER]≔")) {
                         return (
-                            <UpdateMessage style={{ background: "rgba(255, 215, 0, 0.25)" }}>
+                            <UpdateMessage key={`starting-player-${index}`} style={{ background: "rgba(255, 215, 0, 0.25)" }}>
                                 <p>FIRST TURN: {message.split("≔")[1]}</p>
                             </UpdateMessage>
                         );
