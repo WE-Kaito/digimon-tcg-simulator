@@ -397,14 +397,18 @@ export default function Lobby() {
         setPendingGameInvites((players) => new Set(players).add(player));
     }
 
+    function handleInviteCancelled(player: string) {
+        setPendingGameInvites((players) => {
+            const nextPlayers = new Set(players);
+            nextPlayers.delete(player);
+            return nextPlayers;
+        });
+    }
+
     function handlePlayerInvite(player: string) {
         if (pendingGameInvites.has(player)) {
             websocket.sendMessage(`/cancelGameInvite:${player}`);
-            setPendingGameInvites((players) => {
-                const nextPlayers = new Set(players);
-                nextPlayers.delete(player);
-                return nextPlayers;
-            });
+            handleInviteCancelled(player);
             return;
         }
 
@@ -897,6 +901,7 @@ export default function Lobby() {
                 isAdmin={!!isAdmin}
                 sendMessage={websocket.sendMessage}
                 onInviteSent={handleInviteSent}
+                onInviteCancelled={handleInviteCancelled}
                 pendingGameInvites={pendingGameInvites}
             />
         </MenuBackgroundWrapper>
