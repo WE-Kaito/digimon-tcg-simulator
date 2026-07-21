@@ -87,6 +87,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
         if (tryReconnectToRoom(session)) {
             globalActiveSessions.add(session);
+            sendReconnectStatus(session);
             return;
         }
 
@@ -103,6 +104,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
 
         globalActiveSessions.add(session);
+        sendReconnectStatus(session);
     }
 
     @Override
@@ -260,7 +262,11 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                     boolean isHost = gameLobbyRoom.getHostName().equals(username);
                     gameLobbyRoom.getPlayers().add(new LobbyPlayer(session, username, isHost));
                 }
-                roomsWithActiveGames.remove(gameLobbyRoomId);
+                if (gameWebSocket.findGameRoomBySession(session).isPresent()) {
+                    roomsWithActiveGames.add(gameLobbyRoomId);
+                } else {
+                    roomsWithActiveGames.remove(gameLobbyRoomId);
+                }
                 sendTextMessage(session, "[JOIN_ROOM]:" + objectMapper.writeValueAsString(getRoomDTO(gameLobbyRoom)));
                 sendRoomUpdate(gameLobbyRoom);
                 return true;
@@ -499,10 +505,14 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     private void checkForRejoinableGameRoom() throws IOException {
         for (WebSocketSession session : globalActiveSessions) {
-            Optional<GameRoom> room = gameWebSocket.findGameRoomBySession(session);
-            if (room.isPresent()) sendTextMessage(session, "[RECONNECT_ENABLED]:" + room.get().getRoomId());
-            else sendTextMessage(session, "[RECONNECT_DISABLED]");
+            sendReconnectStatus(session);
         }
+    }
+
+    private void sendReconnectStatus(WebSocketSession session) throws IOException {
+        Optional<GameRoom> room = gameWebSocket.findGameRoomBySession(session);
+        if (room.isPresent()) sendTextMessage(session, "[RECONNECT_ENABLED]:" + room.get().getRoomId());
+        else sendTextMessage(session, "[RECONNECT_DISABLED]");
     }
 
     private int getTotalSessionCount() {
