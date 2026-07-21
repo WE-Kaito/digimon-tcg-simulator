@@ -13,16 +13,29 @@ import { WSUtils } from "../../../pages/GamePage.tsx";
 import PlayerCard from "../PlayerCard.tsx";
 import ReportButton from "../ReportButton.tsx";
 import { Flag as SurrenderIcon, RestartAlt as RestartIcon } from "@mui/icons-material";
+import KeyboardReturnTwoToneIcon from "@mui/icons-material/KeyboardReturnTwoTone";
 import RestartRequestModal from "../ModalDialog/RestartRequestModal.tsx";
 import SurrenderModal from "../ModalDialog/SurrenderModal.tsx";
 import { useState } from "react";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
+import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
+import { useNavigate } from "react-router-dom";
 
 export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
+    const gameLobbyRoomId = useGameBoardStates((state) => state.gameLobbyRoomId);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
+    const navigate = useNavigate();
 
     const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
     const [surrenderModal, setSurrenderModal] = useState<boolean>(false);
+
+    function returnToGameLobby() {
+        if (!wsUtils || !gameLobbyRoomId) return;
+        wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/surrender`);
+        setGameId("");
+        navigate("/lobby");
+    }
 
     return (
         <LayoutContainer>
@@ -34,13 +47,28 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
                     {surrenderModal && <SurrenderModal setSurrenderModal={setSurrenderModal} wsUtils={wsUtils} />}
                     <ReportButton matchInfo={wsUtils.matchInfo} iconFontSize={`${iconWidth - 5}px`} />
 
-                    <PanelButton
-                        className={"button"}
-                        onClick={() => setSurrenderModal(true)}
-                        style={{ gridArea: "surrender", transform: `translate(-4px, -1px)` }}
-                    >
-                        <SurrenderIcon className={"button"} sx={{ fontSize: iconWidth - 5, color: "blanchedalmond" }} />
-                    </PanelButton>
+                    {gameLobbyRoomId ? (
+                        <PanelButton
+                            className="button"
+                            onClick={returnToGameLobby}
+                            title="Return to Game Lobby"
+                            aria-label="Return to Game Lobby"
+                            style={{ gridArea: "surrender", transform: `translate(-4px, -1px)` }}
+                        >
+                            <KeyboardReturnTwoToneIcon sx={{ fontSize: iconWidth - 5, color: "white" }} />
+                        </PanelButton>
+                    ) : (
+                        <PanelButton
+                            className={"button"}
+                            onClick={() => setSurrenderModal(true)}
+                            style={{ gridArea: "surrender", transform: `translate(-4px, -1px)` }}
+                        >
+                            <SurrenderIcon
+                                className={"button"}
+                                sx={{ fontSize: iconWidth - 5, color: "blanchedalmond" }}
+                            />
+                        </PanelButton>
+                    )}
                     <PanelButton
                         className={"button"}
                         onClick={() => setRestartRequestModal(true)}

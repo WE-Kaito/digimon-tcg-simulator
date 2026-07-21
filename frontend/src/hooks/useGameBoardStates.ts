@@ -181,6 +181,7 @@ type GameDistribution = {
 
 export type State = BoardState & {
     gameId: string;
+    gameLobbyRoomId: string;
 
     cardIdWithEffect: string;
     cardIdWithTarget: string;
@@ -254,6 +255,7 @@ export type State = BoardState & {
     setCardToSend: (cardToSend: { card: CardTypeGame; location: string } | null) => void;
     setBootStage: (phase: BootStage) => void;
     setGameId: (gameId: string) => void;
+    setGameLobbyRoomId: (roomId: string) => void;
     setInheritCardInfo: (inheritedEffects: string[]) => void;
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;
     getCardLocationById: (id: string) => string;
@@ -418,6 +420,7 @@ const fieldDefaultValues = {
 
 export const useGameBoardStates = create<State>()((set, get) => ({
     gameId: localStorage.getItem("gameId") || "",
+    gameLobbyRoomId: localStorage.getItem("gameLobbyRoomId") || "",
 
     cardIdWithEffect: "",
     cardIdWithTarget: "",
@@ -936,6 +939,12 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setGameId: (gameId) => {
         localStorage.setItem("gameId", gameId);
         set({ gameId });
+    },
+
+    setGameLobbyRoomId: (roomId) => {
+        if (roomId) localStorage.setItem("gameLobbyRoomId", roomId);
+        else localStorage.removeItem("gameLobbyRoomId");
+        set({ gameLobbyRoomId: roomId });
     },
 
     setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),

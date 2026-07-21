@@ -105,6 +105,7 @@ export default function Lobby() {
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
+    const setGameLobbyRoomId = useGameBoardStates((state) => state.setGameLobbyRoomId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
 
@@ -227,6 +228,7 @@ export default function Lobby() {
 
                 if (event.data === "[LEAVE_ROOM]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     setIsLoading(false);
                     playJoinSfx(); // new sound?
@@ -234,6 +236,7 @@ export default function Lobby() {
 
                 if (event.data === "[KICKED]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     playKickSfx();
                 }
@@ -251,6 +254,15 @@ export default function Lobby() {
                     localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
                     localStorage.removeItem("boardStore");
                     const gameId = event.data.substring("[COMPUTE_GAME]:".length);
+                    setGameLobbyRoomId("");
+                    startGameSequence(gameId);
+                }
+
+                if (event.data.startsWith("[COMPUTE_ROOM_GAME]:")) {
+                    localStorage.setItem("isReported", JSON.stringify(false));
+                    localStorage.removeItem("boardStore");
+                    const [gameId, roomId] = event.data.substring("[COMPUTE_ROOM_GAME]:".length).split(":", 2);
+                    setGameLobbyRoomId(roomId);
                     startGameSequence(gameId);
                 }
 

@@ -45,6 +45,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     private final Map<String, Long> emptyRoomTimestamps = new ConcurrentHashMap<>();
     private final Map<WebSocketSession, String> lastPlayerRooms = new ConcurrentHashMap<>(); // username -> roomId
+    private final Map<String, String> gameLobbyRoomByUsername = new ConcurrentHashMap<>();
+    private final Set<String> roomsWithActiveGames = ConcurrentHashMap.newKeySet();
 
     private final Object quickPlayLock = new Object();
 
@@ -83,7 +85,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
-        if (tryReconnectToRoom(session)) return; // Try to reconnect first
+        if (tryReconnectToRoom(session)) {
+            globalActiveSessions.add(session);
+            return;
+        }
 
         List<String> userBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(username);
 
@@ -112,6 +117,13 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                     .orElse(null);
 
             if (playerRoom != null) {
+                if (roomsWithActiveGames.contains(playerRoom.getId())) {
+                    lastHeartbeatTimestamps.remove(session);
+                    quickPlayQueue.remove(session);
+                    globalActiveSessions.remove(session);
+                    return;
+                }
+
                 synchronized (playerRoom) {
                     // Store which room the player was in for potential reconnect
                     lastPlayerRooms.put(session, playerRoom.getId());
@@ -239,6 +251,23 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private boolean tryReconnectToRoom(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
+        String gameLobbyRoomId = gameLobbyRoomByUsername.get(username);
+        if (gameLobbyRoomId != null) {
+            Room gameLobbyRoom = getRoomById(gameLobbyRoomId);
+            if (gameLobbyRoom != null) {
+                synchronized (gameLobbyRoom) {
+                    gameLobbyRoom.getPlayers().removeIf(player -> player.getName().equals(username));
+                    boolean isHost = gameLobbyRoom.getHostName().equals(username);
+                    gameLobbyRoom.getPlayers().add(new LobbyPlayer(session, username, isHost));
+                }
+                roomsWithActiveGames.remove(gameLobbyRoomId);
+                sendTextMessage(session, "[JOIN_ROOM]:" + objectMapper.writeValueAsString(getRoomDTO(gameLobbyRoom)));
+                sendRoomUpdate(gameLobbyRoom);
+                return true;
+            }
+            gameLobbyRoomByUsername.remove(username, gameLobbyRoomId);
+        }
+
         // Check if player was previously in a room using lastPlayerRooms map
         String previousRoomId = lastPlayerRooms.get(session);
         if (previousRoomId != null) {
@@ -281,11 +310,12 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (room == null) return;
 
         for (LobbyPlayer player : room.getPlayers()) {
-            sendTextMessage(player.getSession(), "[COMPUTE_GAME]:" + gameId);
+            gameLobbyRoomByUsername.put(player.getName(), roomId);
+            sendTextMessage(player.getSession(), "[COMPUTE_ROOM_GAME]:" + gameId + ":" + roomId);
             lastPlayerRooms.remove(player.getSession());
         }
 
-        rooms.remove(room);
+        roomsWithActiveGames.add(roomId);
     }
 
     @Scheduled(fixedRate = 5000) // 5 seconds
@@ -601,6 +631,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (shouldCleanLastRoom.equals("false")) return;
 
         lastPlayerRooms.remove(session);
+        gameLobbyRoomByUsername.remove(userName);
 
         Room room = getRoomById(roomId);
         if (room == null) {
@@ -677,6 +708,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
             room.getPlayers().remove(player);
             lastPlayerRooms.remove(session);
+            gameLobbyRoomByUsername.remove(userName);
         }
 
         sendRoomUpdate(room);
