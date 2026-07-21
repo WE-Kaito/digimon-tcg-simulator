@@ -582,6 +582,9 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                 // Set memory values
                 myMemory: isPlayer1 ? boardState.player1Memory : boardState.player2Memory,
                 opponentMemory: isPlayer1 ? boardState.player2Memory : boardState.player1Memory,
+                ...(boardState.phase && { phase: boardState.phase }),
+                ...(boardState.usernameTurn && { usernameTurn: boardState.usernameTurn }),
+                ...(boardState.bootStage !== undefined && { bootStage: boardState.bootStage }),
             });
         } else {
             // Handle GameStart format (initial distribution)

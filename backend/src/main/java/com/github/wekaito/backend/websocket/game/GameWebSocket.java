@@ -180,7 +180,9 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (command.equals("/updatePhase")) {
             synchronized (gameRoom.getMutationLock()) {
                 gameRoom.progressPhase();
+                broadcastAuthoritativeBoardState(gameRoom);
             }
+            return;
         }
         String convertedCommand = convertCommand(command);
         if (!convertedCommand.isEmpty()) gameRoom.sendMessageToOtherSessions(session, convertedCommand);
@@ -684,9 +686,26 @@ public class GameWebSocket extends TextWebSocketHandler {
         // Add memory values
         completeBoardState.put("player1Memory", boardState.getPlayer1Memory());
         completeBoardState.put("player2Memory", boardState.getPlayer2Memory());
+        completeBoardState.put("phase", gameRoom.getPhase());
+        completeBoardState.put("usernameTurn", gameRoom.getUsernameTurn());
+        completeBoardState.put("bootStage", gameRoom.getBootStage());
 
         String boardStateJson = objectMapper.writeValueAsString(completeBoardState);
         gameRoom.sendMessage(session, "[BOARD_STATE]:" + boardStateJson);
+    }
+
+    private void broadcastAuthoritativeBoardState(GameRoom gameRoom) {
+        BoardState boardState = gameRoom.getBoardState();
+        if (boardState == null) return;
+
+        for (WebSocketSession connectedSession : gameRoom.getSessions()) {
+            if (!connectedSession.isOpen()) continue;
+            try {
+                distributeBoardStateCards(gameRoom, boardState, connectedSession);
+            } catch (IOException e) {
+                System.err.println("Failed to broadcast board state for room " + gameRoom.getRoomId() + ": " + e.getMessage());
+            }
+        }
     }
 
     private void handleAttack(GameRoom gameRoom, WebSocketSession session, String message) {
@@ -717,8 +736,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                 return;
             }
 
-            gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD]:" + cardId + ":" + getOppositePosition(from) + ":" + getOppositePosition(to));
-            gameRoom.sendMessage(session, "[MOVE_CARD_CONFIRMED]:" + cardId + ":" + from + ":" + to);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -731,7 +749,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         synchronized (gameRoom.getMutationLock()) {
             updateCardModifiers(session, gameRoom, cardId, location, modifiersJson);
-            gameRoom.sendMessageToOtherSessions(session, "[SET_MODIFIERS]:" + cardId + ":" + getOppositePosition(location) + ":" + modifiersJson);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -756,8 +774,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                 return;
             }
 
-            gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD_TO_STACK]:" + topOrBottom + ":" + cardId + ":" + getOppositePosition(from) + ":" + getOppositePosition(to) + ":" + facing);
-            gameRoom.sendMessage(session, "[MOVE_CARD_TO_STACK_CONFIRMED]:" + topOrBottom + ":" + cardId + ":" + from + ":" + to + ":" + facing);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -778,7 +795,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         synchronized (gameRoom.getMutationLock()) {
             updateCardTiltStatus(session, gameRoom, cardId, location);
-            gameRoom.sendMessageToOtherSessions(session, "[TILT_CARD]:" + cardId + ":" + getOppositePosition(location));
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -790,7 +807,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         synchronized (gameRoom.getMutationLock()) {
             updateCardFaceStatus(session, gameRoom, cardId, location);
-            gameRoom.sendMessageToOtherSessions(session, "[FLIP_CARD]:" + cardId + ":" + getOppositePosition(location));
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -843,7 +860,7 @@ public class GameWebSocket extends TextWebSocketHandler {
     private void handleUnsuspendAll(GameRoom gameRoom, WebSocketSession session) {
         synchronized (gameRoom.getMutationLock()) {
             unsuspendAllCardsInBoardState(gameRoom, session);
-            gameRoom.sendMessageToOtherSessions(session, "[UNSUSPEND_ALL]");
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
     
@@ -903,8 +920,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                     currentList.add(card);
                     boardState.setFieldByName(serverPosition, currentList);
 
-                    gameRoom.sendMessageToOtherSessions(session,
-                        "[CREATE_TOKEN]:" + card.getId() + ":" + card.getName() + ":" + getOppositePosition(targetPosition));
+                    broadcastAuthoritativeBoardState(gameRoom);
                 }
                     
             } catch (Exception e) {
@@ -935,7 +951,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                     boardState.setPlayer2Memory(newMemory);
                 }
             }
-            gameRoom.sendMessageToOtherSessions(session, "[UPDATE_MEMORY]:" + memory);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
     }
