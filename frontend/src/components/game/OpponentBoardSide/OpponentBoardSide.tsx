@@ -26,6 +26,7 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const gameLobbyRoomId = useGameBoardStates((state) => state.gameLobbyRoomId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
+    const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const navigate = useNavigate();
 
     const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
@@ -35,7 +36,9 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     function returnToGameLobby() {
         if (!wsUtils || !gameLobbyRoomId) return;
         setReturnToGameLobbyModal(false);
-        wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/surrender`);
+        wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/returnToLobby`);
+        clearBoard();
+        localStorage.removeItem("boardStore");
         setGameId("");
         navigate("/lobby");
     }

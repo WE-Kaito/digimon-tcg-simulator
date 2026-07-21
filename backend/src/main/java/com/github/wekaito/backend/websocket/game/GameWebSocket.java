@@ -33,8 +33,10 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> roomIdBySessionId = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ScheduledFuture<?>> disconnectCleanupTasks = new ConcurrentHashMap<>();
     
     private static final ScheduledExecutorService SHARED_SCHEDULER = Executors.newScheduledThreadPool(10);
+    private static final long RECONNECT_WINDOW_MINUTES = 2;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -62,6 +64,7 @@ public class GameWebSocket extends TextWebSocketHandler {
             gameRoom.removeSession(session);
             if (!gameRoom.hasOpenSessionFor(principal.getName())) {
                 gameRoom.sendMessageToOtherSessions(session, "[OPPONENT_DISCONNECTED]");
+                scheduleDisconnectCleanup(gameRoom, principal.getName());
             }
 
             // Use isEmpty method that checks for actually open sessions
@@ -111,6 +114,11 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/heartbeat")) {
             gameRoom.updateLastHearBeat(session);
+            return;
+        }
+
+        if (roomMessage.equals("/returnToLobby")) {
+            destroyGameRoom(gameRoom, session);
             return;
         }
 
@@ -171,6 +179,39 @@ public class GameWebSocket extends TextWebSocketHandler {
         }
         String convertedCommand = convertCommand(command);
         if (!convertedCommand.isEmpty()) gameRoom.sendMessageToOtherSessions(session, convertedCommand);
+    }
+
+    private void destroyGameRoom(GameRoom gameRoom, WebSocketSession returningSession) {
+        if (returningSession == null) gameRoom.sendMessagesToAll("[SURRENDER]");
+        else gameRoom.sendMessageToOtherSessions(returningSession, "[SURRENDER]");
+
+        if (gameRooms.remove(gameRoom.getRoomId(), gameRoom)) {
+            gameRoom.cancelAllScheduledTasks();
+        }
+        roomIdBySessionId.entrySet().removeIf(entry -> entry.getValue().equals(gameRoom.getRoomId()));
+        disconnectCleanupTasks.entrySet().removeIf(entry -> {
+            if (!entry.getKey().startsWith(gameRoom.getRoomId() + ":")) return false;
+            entry.getValue().cancel(false);
+            return true;
+        });
+    }
+
+    private void scheduleDisconnectCleanup(GameRoom gameRoom, String username) {
+        String cleanupKey = gameRoom.getRoomId() + ":" + username;
+        ScheduledFuture<?> cleanupTask = SHARED_SCHEDULER.schedule(() -> {
+            disconnectCleanupTasks.remove(cleanupKey);
+            if (gameRooms.get(gameRoom.getRoomId()) == gameRoom && !gameRoom.hasOpenSessionFor(username)) {
+                destroyGameRoom(gameRoom, null);
+            }
+        }, RECONNECT_WINDOW_MINUTES, TimeUnit.MINUTES);
+
+        ScheduledFuture<?> previousTask = disconnectCleanupTasks.put(cleanupKey, cleanupTask);
+        if (previousTask != null) previousTask.cancel(false);
+    }
+
+    private void cancelDisconnectCleanup(String gameId, String username) {
+        ScheduledFuture<?> cleanupTask = disconnectCleanupTasks.remove(gameId + ":" + username);
+        if (cleanupTask != null) cleanupTask.cancel(false);
     }
 
     private void sendChatMessage(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
@@ -533,6 +574,7 @@ public class GameWebSocket extends TextWebSocketHandler {
             return;
         }
 
+        cancelDisconnectCleanup(gameId, joiningUsername);
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
 
