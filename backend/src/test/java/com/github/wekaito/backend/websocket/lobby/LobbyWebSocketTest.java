@@ -150,6 +150,47 @@ class LobbyWebSocketTest {
         assertThat(lobbyWebSocket.getQuickPlayQueue()).contains(newSession);
     }
 
+    @Test
+    void avoidsTheLastOpponentWhenMultiplePlayersAreWaiting() throws Exception {
+        TestWebSocketSession returningPlayer = new TestWebSocketSession("qp-1", "returning-player");
+        TestWebSocketSession previousOpponent = new TestWebSocketSession("qp-2", "previous-opponent");
+        TestWebSocketSession differentOpponent = new TestWebSocketSession("qp-3", "different-opponent");
+
+        lobbyWebSocket.getLastQuickPlayOpponents().put("returning-player", "previous-opponent");
+        lobbyWebSocket.getLastQuickPlayOpponents().put("previous-opponent", "returning-player");
+        lobbyWebSocket.getQuickPlayQueue().add(previousOpponent);
+        lobbyWebSocket.getQuickPlayQueue().add(differentOpponent);
+
+        lobbyWebSocket.handleTextMessage(returningPlayer, new TextMessage("/quickPlay"));
+
+        assertThat(hasGameWith(returningPlayer, "different-opponent")).isTrue();
+        assertThat(hasGameWith(differentOpponent, "returning-player")).isTrue();
+        assertThat(hasGameWith(returningPlayer, "previous-opponent")).isFalse();
+        assertThat(lobbyWebSocket.getQuickPlayQueue()).contains(previousOpponent);
+    }
+
+    @Test
+    void rematchesTheLastOpponentImmediatelyWhenTheyAreTheOnlyPlayerWaiting() throws Exception {
+        TestWebSocketSession returningPlayer = new TestWebSocketSession("qp-1", "returning-player");
+        TestWebSocketSession previousOpponent = new TestWebSocketSession("qp-2", "previous-opponent");
+
+        lobbyWebSocket.getLastQuickPlayOpponents().put("returning-player", "previous-opponent");
+        lobbyWebSocket.getLastQuickPlayOpponents().put("previous-opponent", "returning-player");
+        lobbyWebSocket.getQuickPlayQueue().add(previousOpponent);
+
+        lobbyWebSocket.handleTextMessage(returningPlayer, new TextMessage("/quickPlay"));
+
+        assertThat(hasGameWith(returningPlayer, "previous-opponent")).isTrue();
+        assertThat(hasGameWith(previousOpponent, "returning-player")).isTrue();
+        assertThat(lobbyWebSocket.getQuickPlayQueue()).isEmpty();
+    }
+
+    private boolean hasGameWith(TestWebSocketSession player, String opponent) {
+        return player.getMessages().stream()
+                .filter(message -> message.startsWith("[COMPUTE_GAME]:"))
+                .anyMatch(message -> message.contains(opponent));
+    }
+
     private GameRoom gameRoom(String playerOne, String playerTwo) {
         return new GameRoom(
                 playerOne + "‗" + playerTwo,
