@@ -119,6 +119,11 @@ public class GameWebSocket extends TextWebSocketHandler {
             return;
         }
 
+        if (roomMessage.equals("/surrender")) {
+            destroyGameRoom(gameRoom, session);
+            return;
+        }
+
         if (roomMessage.equals("/returnToLobby")) {
             String username = Objects.requireNonNull(session.getPrincipal()).getName();
             Set<String> disconnectedUsernames = Set.of(
@@ -312,6 +317,13 @@ public class GameWebSocket extends TextWebSocketHandler {
         return gameRooms.values().stream().filter(room ->
                 room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
         ).findFirst();
+    }
+
+    public Optional<GameRoom> findReconnectableGameRoomBySession(WebSocketSession session) {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        return findGameRoomBySession(session).filter(room ->
+                disconnectCleanupTasks.containsKey(room.getRoomId() + ":" + username)
+        );
     }
     
     private String mapClientToServer(String clientPosition, String username, GameRoom gameRoom) {

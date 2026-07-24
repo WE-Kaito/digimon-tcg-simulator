@@ -1,5 +1,7 @@
 package com.github.wekaito.backend.websocket.game;
 
+import com.github.wekaito.backend.websocket.game.models.GameRoom;
+import com.github.wekaito.backend.websocket.game.models.Player;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -38,6 +40,32 @@ class GameWebSocketJoinTest {
         assertEquals(List.of("[RETURN_TO_LOBBY]"), messages);
     }
 
+    @Test
+    void surrenderDestroysGameAndNotifiesOpponent() throws Exception {
+        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null, event -> {});
+        List<String> surrenderingPlayerMessages = new ArrayList<>();
+        List<String> opponentMessages = new ArrayList<>();
+        WebSocketSession surrenderingPlayer = createSession("player", surrenderingPlayerMessages);
+        WebSocketSession opponent = createSession("opponent", opponentMessages);
+        GameRoom room = new GameRoom(
+                "game",
+                new Player("player", "", "", ""),
+                List.of(),
+                List.of(),
+                new Player("opponent", "", "", ""),
+                List.of(),
+                List.of()
+        );
+        room.addSession(surrenderingPlayer);
+        room.addSession(opponent);
+        gameWebSocket.getGameRooms().put("game", room);
+
+        gameWebSocket.handleTextMessage(surrenderingPlayer, new TextMessage("game:/surrender"));
+
+        assertTrue(gameWebSocket.getGameRooms().isEmpty());
+        assertEquals(List.of("[SURRENDER]"), opponentMessages);
+    }
+
     private WebSocketSession createSession(String username, List<String> messages) {
         Principal principal = () -> username;
         return (WebSocketSession) Proxy.newProxyInstance(
@@ -45,6 +73,7 @@ class GameWebSocketJoinTest {
                 new Class<?>[]{WebSocketSession.class},
                 (proxy, method, args) -> switch (method.getName()) {
                     case "getPrincipal" -> principal;
+                    case "getId" -> username + "-session";
                     case "isOpen" -> true;
                     case "sendMessage" -> {
                         WebSocketMessage<?> message = (WebSocketMessage<?>) args[0];

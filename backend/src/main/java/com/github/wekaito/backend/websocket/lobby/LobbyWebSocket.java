@@ -565,7 +565,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private void sendReconnectStatus(WebSocketSession session) throws IOException {
-        Optional<GameRoom> room = gameWebSocket.findGameRoomBySession(session);
+        Optional<GameRoom> room = gameWebSocket.findReconnectableGameRoomBySession(session);
         if (room.isPresent()) sendTextMessage(session, "[RECONNECT_ENABLED]:" + room.get().getRoomId());
         else sendTextMessage(session, "[RECONNECT_DISABLED]");
     }
