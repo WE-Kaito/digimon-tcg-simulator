@@ -10,7 +10,6 @@ import com.github.wekaito.backend.websocket.game.GameWebSocket;
 import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
@@ -54,8 +53,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     public final LinkedList<ChatMessage> globalChatMessages = new LinkedList<>(List.of(new ChatMessage("Join our Discord!", "【SERVER】")));
 
-    @Autowired
-    private GameWebSocket gameWebSocket;
+    private final GameWebSocket gameWebSocket;
 
     private void sendTextMessage(WebSocketSession session, String message) throws IOException {
         if (session == null || !session.isOpen()) return;
@@ -174,7 +172,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (payload.startsWith("/cancelQuickPlay")) quickPlayQueue.remove(session); // manage representation in Frontend
 
-        if (payload.startsWith("/startGame:")) startGame(payload);
+        if (payload.startsWith("/startGame:")) startGame(session, payload);
 
         if (payload.startsWith("/chatMessage:")) handleChatMessage(session, payload);
 
@@ -241,6 +239,11 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (accepted) {
             String gameId = inviter + "‗" + invitedPlayer;
+            if (!gameWebSocket.createGameRoom(gameId, inviter, invitedPlayer)) {
+                sendTextMessage(inviterSession, "[CHAT_MESSAGE]:【SERVER】: Unable to create the game.");
+                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Unable to create the game.");
+                return;
+            }
             sendTextMessage(inviterSession, "[COMPUTE_GAME]:" + gameId);
             sendTextMessage(session, "[COMPUTE_GAME]:" + gameId);
             lastPlayerRooms.remove(inviterSession);
@@ -307,13 +310,25 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         return false; // No reconnection happened
     }
 
-    private void startGame(String payload) throws IOException {
+    private void startGame(WebSocketSession session, String payload) throws IOException {
         String[] parts = payload.split(":", 3);
+        if (parts.length < 3 || session.getPrincipal() == null) return;
+
         String roomId = parts[1];
-        String gameId = parts[2];
 
         Room room = getRoomById(roomId);
-        if (room == null) return;
+        if (room == null || room.getPlayers().size() != 2) return;
+        if (!room.getHostName().equals(session.getPrincipal().getName())) return;
+
+        List<String> usernames = room.getPlayers().stream().map(LobbyPlayer::getName).toList();
+        String requestedGameId = parts[2];
+        String gameId = usernames.get(0) + "‗" + usernames.get(1);
+        boolean requestedPlayersMatch = new HashSet<>(Arrays.asList(requestedGameId.split("‗")))
+                .equals(new HashSet<>(usernames));
+        if (!requestedPlayersMatch || !gameWebSocket.createGameRoom(gameId, usernames.get(0), usernames.get(1))) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Unable to create the game.");
+            return;
+        }
 
         for (LobbyPlayer player : room.getPlayers()) {
             gameLobbyRoomByUsername.put(player.getName(), roomId);
@@ -399,6 +414,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             }
 
             String newGameId = username1 + "‗" + username2;
+
+            if (!gameWebSocket.createGameRoom(newGameId, username1, username2)) {
+                continue;
+            }
 
             quickPlayQueue.remove(p1);
             quickPlayQueue.remove(p2);

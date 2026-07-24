@@ -214,6 +214,7 @@ export type State = BoardState & {
     setAllMessages: (messages: string[]) => void;
     stackSliceIndex: number;
     isOpponentOnline: boolean;
+    opponentReconnectDeadline: number | null;
     startingPlayer: string;
 
     // --------------------------------------------------------
@@ -262,6 +263,7 @@ export type State = BoardState & {
     toggleIsHandHidden: () => void;
     setStackSliceIndex: (index: number) => void;
     setIsOpponentOnline: (isOpponentOnline: boolean) => void;
+    setOpponentReconnectDeadline: (deadline: number | null) => void;
     setStartingPlayer: (side: SIDE | "") => void;
 
     flipCard: (cardId: string, location: string) => void;
@@ -446,6 +448,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     messages: [],
     stackSliceIndex: 0,
     isOpponentOnline: true,
+    opponentReconnectDeadline: null,
     startingPlayer: "",
 
     hasDecidedMulligan: false,
@@ -468,6 +471,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             myAttackPhase: false,
             bootStage: BootStage.CLEAR,
             isOpponentOnline: true,
+            opponentReconnectDeadline: null,
             hasDecidedMulligan: false,
             messages: [],
             player1: { avatarName: "", mainSleeveName: "", eggSleeveName: "", username: "" },
@@ -988,6 +992,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
 
     setIsOpponentOnline: (isOpponentOnline) => set({ isOpponentOnline }),
+
+    setOpponentReconnectDeadline: (opponentReconnectDeadline) => set({ opponentReconnectDeadline }),
 
     setStartingPlayer: (startingPlayer) => set({ startingPlayer }),
 

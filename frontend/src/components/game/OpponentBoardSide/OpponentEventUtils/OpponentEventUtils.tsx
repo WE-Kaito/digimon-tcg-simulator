@@ -6,12 +6,13 @@ import firstAnimation from "../../../../assets/lotties/net-ball.json";
 import Lottie from "lottie-react";
 import { WifiOffRounded as OfflineIcon } from "@mui/icons-material";
 import { useGameUIStates } from "../../../../hooks/useGameUIStates.ts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EmoteRender from "../../EmoteRender.tsx";
 
 export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const bootStage = useGameBoardStates((state) => state.bootStage);
     const isOpponentOnline = useGameBoardStates((state) => state.isOpponentOnline);
+    const opponentReconnectDeadline = useGameBoardStates((state) => state.opponentReconnectDeadline);
     const startingPlayer = useGameBoardStates((state) => state.startingPlayer);
 
     const opponentEmote = useGameUIStates((state) => state.opponentEmote);
@@ -19,6 +20,17 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const isFirst = startingPlayer === wsUtils?.matchInfo.opponentName;
 
     const [hasChildren, setHasChildren] = useState(false);
+    const [now, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        if (isOpponentOnline || opponentReconnectDeadline === null) return;
+        setNow(Date.now());
+        const interval = window.setInterval(() => setNow(Date.now()), 250);
+        return () => window.clearInterval(interval);
+    }, [isOpponentOnline, opponentReconnectDeadline]);
+
+    const remainingSeconds = Math.max(0, Math.ceil(((opponentReconnectDeadline ?? now) - now) / 1000));
+    const reconnectTime = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
 
     return (
         <Container
@@ -33,7 +45,10 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
             ) : (
                 <>
                     {!isOpponentOnline ? (
-                        <OfflineIcon fontSize={"large"} color={"error"} />
+                        <ReconnectStatus>
+                            <OfflineIcon fontSize={"large"} color={"error"} />
+                            <span>Waiting for player to reconnect {reconnectTime}</span>
+                        </ReconnectStatus>
                     ) : (
                         <>
                             {bootStage === BootStage.SHOW_STARTING_PLAYER && (
@@ -109,4 +124,16 @@ const Container = styled.div<{ hasChildren: boolean }>`
             box-shadow: inset 0 0 3px 1px rgba(146, 255, 245, 0.15);
         }
     }
+`;
+
+const ReconnectStatus = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    color: papayawhip;
+    font-family: Cousine, sans-serif;
+    font-size: clamp(12px, 1.1vw, 18px);
+    text-align: center;
 `;

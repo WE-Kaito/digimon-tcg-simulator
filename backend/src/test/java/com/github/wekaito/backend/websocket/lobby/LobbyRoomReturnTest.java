@@ -1,5 +1,6 @@
 package com.github.wekaito.backend.websocket.lobby;
 
+import com.github.wekaito.backend.websocket.game.GameWebSocket;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -17,7 +18,13 @@ class LobbyRoomReturnTest {
 
     @Test
     void roomCreatedMatchPreservesRoomAndMarksBothPlayersForReturn() throws Exception {
-        LobbyWebSocket lobbyWebSocket = new LobbyWebSocket(null, null, null);
+        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null) {
+            @Override
+            public boolean createGameRoom(String gameId, String username1, String username2) {
+                return true;
+            }
+        };
+        LobbyWebSocket lobbyWebSocket = new LobbyWebSocket(null, null, null, gameWebSocket);
         TestSession host = new TestSession("host");
         TestSession guest = new TestSession("guest");
         Room room = new Room(

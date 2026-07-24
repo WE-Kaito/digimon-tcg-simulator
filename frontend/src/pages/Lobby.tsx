@@ -103,7 +103,6 @@ export default function Lobby() {
 
     const decks = useDeckStates((state) => state.decks);
 
-    const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
     const setGameLobbyRoomId = useGameBoardStates((state) => state.setGameLobbyRoomId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
@@ -153,10 +152,10 @@ export default function Lobby() {
 
     const navigate = useNavigate();
 
-    function handleReconnect() {
+    function handleReturnToGame() {
         setIsOpponentOnline(true);
         setIsLoading(false);
-        navigate("/game");
+        navigate("/game", { state: { gameEntryConfirmed: true } });
     }
 
     function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
@@ -283,9 +282,9 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
-                    const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
-                    setIsRejoinable(matchingRoomId === gameId);
-                    // gameId could be set to older matching room id here, but not sure if this makes sense
+                    const reconnectGameId = event.data.substring("[RECONNECT_ENABLED]:".length);
+                    setGameId(reconnectGameId);
+                    setIsRejoinable(true);
                 }
 
                 if (event.data === "[RECONNECT_DISABLED]") {
@@ -381,7 +380,7 @@ export default function Lobby() {
             clearBoard();
             setIsLoading(false);
             setJoinedRoom(null);
-            navigate("/game");
+            navigate("/game", { state: { gameEntryConfirmed: true } });
         }, 3150);
         return () => clearTimeout(timer);
     }
@@ -412,7 +411,9 @@ export default function Lobby() {
     const initialFetch = useCallback(() => {
         getActiveDeck();
     }, [getActiveDeck]);
-    useEffect(() => initialFetch(), [initialFetch]);
+    useEffect(() => {
+        initialFetch();
+    }, [initialFetch]);
 
     useEffect(() => {
         const timeout = window.setTimeout(() => setDebouncedPlayerSearch(playerSearch), 250);
@@ -420,7 +421,12 @@ export default function Lobby() {
     }, [playerSearch]);
 
     useEffect(() => {
-        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
+        if (!activeDeckId) return;
+
+        axios
+            .get(`/api/profile/decks/${activeDeckId}`)
+            .then((res) => setDeckObject(res.data as DeckType))
+            .catch(console.error);
     }, [activeDeckId]);
 
     useEffect(() => {
@@ -520,8 +526,6 @@ export default function Lobby() {
                 <SoundBar opened />
 
                 {/*TODO: Add own name plate here*/}
-
-                {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
 
                 <OnlineUsers
                     type="button"
@@ -630,7 +634,9 @@ export default function Lobby() {
                             <CardTitle style={{ marginBottom: 0 }}>{joinedRoom?.name ?? "Room"}</CardTitle>
                             <CardTitle style={{ color: "var(--lobby-accent)" }}>{joinedRoom ? "" : "Host"}</CardTitle>
                             <CardTitle style={{ gridColumn: "span 2" }}>{joinedRoom ? "" : "Settings"}</CardTitle>
-                            {joinedRoom ? (
+                            {isRejoinable ? (
+                                <Button onClick={handleReturnToGame}>RETURN TO GAME</Button>
+                            ) : joinedRoom ? (
                                 user === joinedRoom.hostName ? (
                                     <Button disabled={startGameDisabled} onClick={handleStartGame}>
                                         START GAME

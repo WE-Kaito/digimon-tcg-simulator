@@ -63,17 +63,10 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (gameRoom != null) {
             gameRoom.removeSession(session);
             if (!gameRoom.hasOpenSessionFor(principal.getName())) {
-                gameRoom.sendMessageToOtherSessions(session, "[OPPONENT_DISCONNECTED]");
-                scheduleDisconnectCleanup(gameRoom, principal.getName());
+                long reconnectDeadline = scheduleDisconnectCleanup(gameRoom, principal.getName());
+                gameRoom.sendMessageToOtherSessions(session, "[OPPONENT_DISCONNECTED]:" + reconnectDeadline);
             }
 
-            // Use isEmpty method that checks for actually open sessions
-            if (gameRoom.isEmpty()) {
-                GameRoom removed = gameRooms.remove(gameRoom.getRoomId());
-                if (removed != null) {
-                    removed.cancelAllScheduledTasks();
-                }
-            }
         }
     }
 
@@ -84,7 +77,7 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (parts.length < 2) return;
 
         if (parts[0].equals("/joinGame")) {
-            computeGameRoom(session, parts[1]);
+            joinGameRoom(session, parts[1]);
             return;
         }
 
@@ -207,8 +200,9 @@ public class GameWebSocket extends TextWebSocketHandler {
         });
     }
 
-    private void scheduleDisconnectCleanup(GameRoom gameRoom, String username) {
+    private long scheduleDisconnectCleanup(GameRoom gameRoom, String username) {
         String cleanupKey = gameRoom.getRoomId() + ":" + username;
+        long reconnectDeadline = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(RECONNECT_WINDOW_MINUTES);
         ScheduledFuture<?> cleanupTask = SHARED_SCHEDULER.schedule(() -> {
             disconnectCleanupTasks.remove(cleanupKey);
             if (gameRooms.get(gameRoom.getRoomId()) == gameRoom && !gameRoom.hasOpenSessionFor(username)) {
@@ -218,6 +212,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         ScheduledFuture<?> previousTask = disconnectCleanupTasks.put(cleanupKey, cleanupTask);
         if (previousTask != null) previousTask.cancel(false);
+        return reconnectDeadline;
     }
 
     private void cancelDisconnectCleanup(String gameId, String username) {
@@ -526,68 +521,72 @@ public class GameWebSocket extends TextWebSocketHandler {
                toServer.equals("player1Trash") || toServer.equals("player2Trash");
     }
 
-    private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
-        GameRoom gameRoom = gameRooms.get(gameId);
-        boolean shouldStartScheduledTasks = false;
-
-        if (gameRoom == null) {
-            String[] usernames = gameId.split("‗");
-            String joiningUsername = session.getPrincipal() == null ? null : session.getPrincipal().getName();
-            if (usernames.length != 2 || joiningUsername == null || Arrays.stream(usernames).noneMatch(joiningUsername::equals)) {
-                return;
-            }
-
-            try {
-                String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
-                String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
-
-                String deckId1 = mongoUserDetailsService.getActiveDeck(usernames[0]);
-                String deckId2 = mongoUserDetailsService.getActiveDeck(usernames[1]);
-
-                String mainSleeve1 = deckService.getDeckSleeveById(deckId1);
-                String mainSleeve2 = deckService.getDeckSleeveById(deckId2);
-
-                String eggSleeve1 = deckService.getEggDeckSleeveById(deckId1);
-                String eggSleeve2 = deckService.getEggDeckSleeveById(deckId2);
-
-                Player player1 = new Player(usernames[0], avatar1, mainSleeve1, eggSleeve1);
-                Player player2 = new Player(usernames[1], avatar2, mainSleeve2, eggSleeve2);
-
-                List<Card> player1MainDeck = deckService.getMainDeckCardsById(deckId1);
-                List<Card> player1EggDeck = deckService.getEggDeckCardsById(deckId1);
-
-                List<Card> player2MainDeck = deckService.getMainDeckCardsById(deckId2);
-                List<Card> player2EggDeck = deckService.getEggDeckCardsById(deckId2);
-
-                GameRoom newGameRoom = new GameRoom(gameId, player1, player1MainDeck, player1EggDeck, player2, player2MainDeck, player2EggDeck);
-                newGameRoom.setChat(new String[0]);
-
-                GameRoom existingRoom = gameRooms.putIfAbsent(gameId, newGameRoom);
-                if (existingRoom == null) {
-                    gameRoom = newGameRoom;
-                    shouldStartScheduledTasks = true;
-                } else {
-                    gameRoom = existingRoom; // Another thread created it first
-                }
-            } catch (Exception e) {
-                return;
-            }
+    public boolean createGameRoom(String gameId, String username1, String username2) {
+        if (gameId == null || gameId.isBlank() || username1 == null || username2 == null || username1.equals(username2)) {
+            return false;
         }
 
-        if (shouldStartScheduledTasks) {
+        try {
+            String avatar1 = mongoUserDetailsService.getAvatar(username1);
+            String avatar2 = mongoUserDetailsService.getAvatar(username2);
+
+            String deckId1 = mongoUserDetailsService.getActiveDeck(username1);
+            String deckId2 = mongoUserDetailsService.getActiveDeck(username2);
+
+            String mainSleeve1 = deckService.getDeckSleeveById(deckId1);
+            String mainSleeve2 = deckService.getDeckSleeveById(deckId2);
+
+            String eggSleeve1 = deckService.getEggDeckSleeveById(deckId1);
+            String eggSleeve2 = deckService.getEggDeckSleeveById(deckId2);
+
+            Player player1 = new Player(username1, avatar1, mainSleeve1, eggSleeve1);
+            Player player2 = new Player(username2, avatar2, mainSleeve2, eggSleeve2);
+
+            List<Card> player1MainDeck = deckService.getMainDeckCardsById(deckId1);
+            List<Card> player1EggDeck = deckService.getEggDeckCardsById(deckId1);
+
+            List<Card> player2MainDeck = deckService.getMainDeckCardsById(deckId2);
+            List<Card> player2EggDeck = deckService.getEggDeckCardsById(deckId2);
+
+            GameRoom gameRoom = new GameRoom(
+                    gameId,
+                    player1,
+                    player1MainDeck,
+                    player1EggDeck,
+                    player2,
+                    player2MainDeck,
+                    player2EggDeck
+            );
+            gameRoom.setChat(new String[0]);
+
+            if (gameRooms.putIfAbsent(gameId, gameRoom) != null) return false;
             startGameRoomScheduledTasks(gameRoom);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Unable to create game room " + gameId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    private void joinGameRoom(WebSocketSession session, String gameId) throws IOException {
+        GameRoom gameRoom = gameRooms.get(gameId);
+        if (gameRoom == null) {
+            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
+            return;
         }
 
         String joiningUsername = session.getPrincipal() == null ? null : session.getPrincipal().getName();
         if (joiningUsername == null ||
                 (!gameRoom.getPlayer1().username().equals(joiningUsername) &&
                  !gameRoom.getPlayer2().username().equals(joiningUsername))) {
+            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
             return;
         }
 
         cancelDisconnectCleanup(gameId, joiningUsername);
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
+        session.sendMessage(new TextMessage("[GAME_JOINED]"));
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency
 
@@ -991,7 +990,9 @@ public class GameWebSocket extends TextWebSocketHandler {
                 return; // Early exit if room no longer exists
             }
             try {
-                if (gameRoom.isEmpty()) {
+                boolean reconnectPending = disconnectCleanupTasks.keySet().stream()
+                        .anyMatch(key -> key.startsWith(gameRoom.getRoomId() + ":"));
+                if (gameRoom.isEmpty() && !reconnectPending) {
                     GameRoom removed = gameRooms.remove(gameRoom.getRoomId());
                     if (removed != null) {
                         removed.cancelAllScheduledTasks();

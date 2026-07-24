@@ -6,6 +6,8 @@ import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
@@ -17,6 +19,7 @@ type UseGameWebSocketProps = {
 
 type UseGameWebSocketReturn = {
     sendMessage: SendMessage;
+    isGameReady: boolean;
 };
 
 function getValidOffset(fieldNumber: number, currentOffset: number) {
@@ -44,6 +47,8 @@ function getValidOffset(fieldNumber: number, currentOffset: number) {
  */
 export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameWebSocketReturn {
     const { clearAttackAnimation, restartAttackAnimation } = props;
+    const navigate = useNavigate();
+    const [isGameReady, setIsGameReady] = useState(false);
 
     const user = useGeneralStates((state) => state.user);
 
@@ -57,6 +62,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
 
     const gameId = useGameBoardStates((state) => state.gameId);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
     const setPlayers = useGameBoardStates((state) => state.setPlayers);
     const setPhase = useGameBoardStates((state) => state.setPhase);
@@ -80,6 +86,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
     const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
+    const setOpponentReconnectDeadline = useGameBoardStates((state) => state.setOpponentReconnectDeadline);
     const flipCard = useGameBoardStates((state) => state.flipCard);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
@@ -121,6 +128,20 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         onOpen: () => websocket.sendMessage("/joinGame:" + gameId),
 
         onMessage: (event) => {
+            if (event.data === "[GAME_JOINED]") {
+                setIsGameReady(true);
+                return;
+            }
+
+            if (event.data === "[GAME_JOIN_REJECTED]") {
+                setIsGameReady(false);
+                clearBoard();
+                setGameId("");
+                notifyInfo("That game is no longer available. Return to the lobby to start or rejoin a match.");
+                navigate("/", { replace: true });
+                return;
+            }
+
             if (event.data === "[START_GAME]") {
                 setStartingPlayer("");
                 setMyAttackPhase(false);
@@ -392,6 +413,13 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     setEndDialogText("🎉 Your opponent surrendered!");
                     break;
                 }
+                case "[RETURN_TO_LOBBY]": {
+                    clearBoard();
+                    localStorage.removeItem("boardStore");
+                    setGameId("");
+                    navigate("/lobby");
+                    break;
+                }
                 case "[SECURITY_VIEWED]": {
                     notifyInfo("Opponent opened Security Stack!");
                     break;
@@ -427,20 +455,29 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     unsuspendAll(SIDE.OPPONENT);
                     break;
                 }
-                case "[OPPONENT_DISCONNECTED]": {
-                    setIsOpponentOnline(false);
-                    break;
-                }
                 case "[OPPONENT_RECONNECTED]": {
                     setIsOpponentOnline(true);
+                    setOpponentReconnectDeadline(null);
                     break;
                 }
                 default: {
+                    if (event.data.startsWith("[OPPONENT_DISCONNECTED]")) {
+                        const deadline = Number(event.data.split(":", 2)[1]);
+                        setIsOpponentOnline(false);
+                        setOpponentReconnectDeadline(
+                            Number.isFinite(deadline) ? deadline : Date.now() + 2 * 60 * 1000
+                        );
+                    }
+                    if (event.data.startsWith("[PLAYER_RETURNED_TO_LOBBY]:")) {
+                        const player = event.data.substring("[PLAYER_RETURNED_TO_LOBBY]:".length);
+                        setIsEndDialogOpen(true);
+                        setEndDialogText(`${player} has returned to the lobby.`);
+                    }
                     break;
                 }
             }
         },
     });
 
-    return { sendMessage: websocket.sendMessage };
+    return { sendMessage: websocket.sendMessage, isGameReady };
 }
