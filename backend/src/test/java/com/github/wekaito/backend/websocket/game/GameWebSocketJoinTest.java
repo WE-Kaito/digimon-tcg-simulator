@@ -27,6 +27,17 @@ class GameWebSocketJoinTest {
         assertEquals(List.of("[GAME_JOIN_REJECTED]"), messages);
     }
 
+    @Test
+    void returningFromMissingGameStillAcknowledgesLobbyNavigation() throws Exception {
+        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null);
+        List<String> messages = new ArrayList<>();
+        WebSocketSession session = createSession("player", messages);
+
+        gameWebSocket.handleTextMessage(session, new TextMessage("expired-game:/returnToLobby"));
+
+        assertEquals(List.of("[RETURN_TO_LOBBY]"), messages);
+    }
+
     private WebSocketSession createSession(String username, List<String> messages) {
         Principal principal = () -> username;
         return (WebSocketSession) Proxy.newProxyInstance(

@@ -86,6 +86,12 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         GameRoom gameRoom = findGameRoomById(gameId);
 
+        if (roomMessage.equals("/returnToLobby") &&
+                (gameRoom == null || !gameRoom.getSessions().contains(session))) {
+            session.sendMessage(new TextMessage("[RETURN_TO_LOBBY]"));
+            return;
+        }
+
         if (gameRoom == null || !gameRoom.getSessions().contains(session)) return;
 
         if(roomMessage.startsWith("/mulligan:")) {

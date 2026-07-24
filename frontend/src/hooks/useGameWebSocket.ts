@@ -8,6 +8,7 @@ import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { returnToLobby } from "../utils/returnToLobby.ts";
 
 const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
@@ -414,10 +415,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[RETURN_TO_LOBBY]": {
-                    clearBoard();
-                    localStorage.removeItem("boardStore");
-                    setGameId("");
-                    navigate("/lobby");
+                    returnToLobby(navigate);
                     break;
                 }
                 case "[SECURITY_VIEWED]": {
