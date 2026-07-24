@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -30,6 +31,8 @@ public class GameWebSocket extends TextWebSocketHandler {
     private final DeckService deckService;
     
     private final CardJsonConverter cardJsonConverter;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> roomIdBySessionId = new ConcurrentHashMap<>();
@@ -118,6 +121,16 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.equals("/returnToLobby")) {
             String username = Objects.requireNonNull(session.getPrincipal()).getName();
+            Set<String> disconnectedUsernames = Set.of(
+                            gameRoom.getPlayer1().username(),
+                            gameRoom.getPlayer2().username()
+                    ).stream()
+                    .filter(player -> !player.equals(username))
+                    .filter(player -> !gameRoom.hasOpenSessionFor(player))
+                    .collect(java.util.stream.Collectors.toSet());
+
+            eventPublisher.publishEvent(new GameLobbyReturnEvent(username, disconnectedUsernames));
+
             String returnMessage = username + " has returned to the lobby.";
             gameRoom.sendMessagesToAll("[CHAT_MESSAGE]:【SERVER】﹕" + returnMessage);
             gameRoom.sendMessageToOtherSessions(session, "[PLAYER_RETURNED_TO_LOBBY]:" + username);

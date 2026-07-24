@@ -17,7 +17,7 @@ class GameWebSocketJoinTest {
 
     @Test
     void joiningMissingGameIsRejectedWithoutCreatingRoom() throws Exception {
-        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null);
+        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null, event -> {});
         List<String> messages = new ArrayList<>();
         WebSocketSession session = createSession("player", messages);
 
@@ -29,7 +29,7 @@ class GameWebSocketJoinTest {
 
     @Test
     void returningFromMissingGameStillAcknowledgesLobbyNavigation() throws Exception {
-        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null);
+        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null, event -> {});
         List<String> messages = new ArrayList<>();
         WebSocketSession session = createSession("player", messages);
 

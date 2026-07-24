@@ -7,10 +7,12 @@ import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
 import com.github.wekaito.backend.websocket.game.GameWebSocket;
+import com.github.wekaito.backend.websocket.game.GameLobbyReturnEvent;
 import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -253,6 +255,25 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     private record PendingGameInvite(String inviter, String invitedPlayer) {}
 
+    @EventListener
+    public void handleGameLobbyReturn(GameLobbyReturnEvent event) {
+        String roomId = gameLobbyRoomByUsername.get(event.returningUsername());
+        Room room = roomId == null ? null : getRoomById(roomId);
+        if (room == null || !room.getHostName().equals(event.returningUsername())) return;
+
+        synchronized (room) {
+            room.getPlayers().removeIf(player -> event.disconnectedUsernames().contains(player.getName()));
+            event.disconnectedUsernames().forEach(username -> gameLobbyRoomByUsername.remove(username, roomId));
+        }
+
+        roomsWithActiveGames.remove(roomId);
+        try {
+            sendRoomUpdate(room);
+        } catch (IOException e) {
+            System.err.println("Unable to broadcast lobby cleanup for room " + roomId + ": " + e.getMessage());
+        }
+    }
+
     private boolean tryReconnectToRoom(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
@@ -260,12 +281,27 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (gameLobbyRoomId != null) {
             Room gameLobbyRoom = getRoomById(gameLobbyRoomId);
             if (gameLobbyRoom != null) {
+                boolean gameIsActive = gameWebSocket.findGameRoomBySession(session).isPresent();
+                boolean returningPlayerIsHost = gameLobbyRoom.getHostName().equals(username);
+
                 synchronized (gameLobbyRoom) {
                     gameLobbyRoom.getPlayers().removeIf(player -> player.getName().equals(username));
-                    boolean isHost = gameLobbyRoom.getHostName().equals(username);
-                    gameLobbyRoom.getPlayers().add(new LobbyPlayer(session, username, isHost));
+                    gameLobbyRoom.getPlayers().add(new LobbyPlayer(session, username, returningPlayerIsHost));
+
+                    if (returningPlayerIsHost && !gameIsActive) {
+                        List<LobbyPlayer> disconnectedPlayers = gameLobbyRoom.getPlayers().stream()
+                                .filter(player -> !player.getName().equals(username))
+                                .filter(player -> !player.getSession().isOpen())
+                                .toList();
+
+                        gameLobbyRoom.getPlayers().removeAll(disconnectedPlayers);
+                        disconnectedPlayers.forEach(player -> {
+                            gameLobbyRoomByUsername.remove(player.getName(), gameLobbyRoomId);
+                            lastPlayerRooms.remove(player.getSession());
+                        });
+                    }
                 }
-                if (gameWebSocket.findGameRoomBySession(session).isPresent()) {
+                if (gameIsActive) {
                     roomsWithActiveGames.add(gameLobbyRoomId);
                 } else {
                     roomsWithActiveGames.remove(gameLobbyRoomId);
