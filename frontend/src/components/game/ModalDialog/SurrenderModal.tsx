@@ -16,9 +16,13 @@ export default function SurrenderModal({ setSurrenderModal, wsUtils }: Props) {
 
     const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
     const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
+    const setEndedBySurrender = useGameUIStates((state) => state.setEndedBySurrender);
+    const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
 
     function handleSurrender() {
         setSurrenderModal(false);
+        setRestartPromptModal(false);
+        setEndedBySurrender(true);
         setIsEndDialogOpen(true);
         setEndDialogText("🏳️ You surrendered.");
         sendMessage(`${gameId}:/surrender`);

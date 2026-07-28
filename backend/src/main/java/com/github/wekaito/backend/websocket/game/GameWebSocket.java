@@ -98,6 +98,19 @@ public class GameWebSocket extends TextWebSocketHandler {
             return;
         }
 
+        if (roomMessage.equals("/surrender")) {
+            gameRoom.setEndedBySurrender(true);
+            gameRoom.sendMessageToOtherSessions(session, "[SURRENDER]");
+            return;
+        }
+
+        if (gameRoom.isEndedBySurrender() &&
+                (roomMessage.startsWith("/restartRequest") ||
+                        roomMessage.equals("/acceptRestart") ||
+                        roomMessage.startsWith("/restartGame:"))) {
+            return;
+        }
+
         if (roomMessage.startsWith("/restartGame:")) {
             boolean isThisPlayerStarting = roomMessage.split(":")[1].equals("first");
             String username = Objects.requireNonNull(session.getPrincipal()).getName();
@@ -204,7 +217,6 @@ public class GameWebSocket extends TextWebSocketHandler {
     /* These actions do not alter the board state, therefore do not need a separate handler */
     private String convertCommand(String command) {
         return switch (command) {
-            case "/surrender" -> "[SURRENDER]";
             case "/restartRequestAsFirst" -> "[RESTART_AS_FIRST]";
             case "/restartRequestAsSecond" -> "[RESTART_AS_SECOND]";
             case "/acceptRestart" -> "[ACCEPT_RESTART]";
