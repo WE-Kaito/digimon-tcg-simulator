@@ -229,6 +229,8 @@ export default function Card(props: CardProps) {
     const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
     const stackDraggedLocation = useGameUIStates((state) => state.stackDraggedLocation);
     const setStackDraggedLocation = useGameUIStates((state) => state.setStackDraggedLocation);
+    const effectTargeting = useGameUIStates((state) => state.effectTargeting);
+    const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -317,11 +319,25 @@ export default function Card(props: CardProps) {
 
     const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
     const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
+    const isTopFieldCard = tamerLocations.includes(location)
+        ? index === 0
+        : index === locationCards.length - 1;
+    const isEffectTargetCandidate =
+        Boolean(effectTargeting) &&
+        isTopFieldCard &&
+        !isCardFaceDown &&
+        [...digimonLocations, ...tamerLocations, "myBreedingArea", "opponentBreedingArea"].includes(location);
+    const isEffectSource = effectTargeting?.sourceCardId === card.id;
 
     const linkCardsForLocation = getLinkCardsForLocation(location);
     const linkCardInfo = topCardInfoLink(linkCardsForLocation);
 
     function handleClick(event: React.MouseEvent) {
+        if (effectTargeting) {
+            event.stopPropagation();
+            if (isEffectTargetCandidate) cancelEffectTargeting();
+            return;
+        }
         if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;
         event.stopPropagation();
         selectCard(card);
@@ -573,7 +589,18 @@ export default function Card(props: CardProps) {
                             filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
                         }),
                         ...(markedCard === card.id && { outline: "3px solid red" }),
+                        ...(isEffectSource && {
+                            outline: "3px solid #ff1744",
+                            filter: "brightness(1.12) drop-shadow(0 0 8px #ff1744)",
+                        }),
+                        ...(isEffectTargetCandidate &&
+                            isHovered && {
+                                outline: "3px solid #ff5252",
+                                filter: "brightness(1.1) drop-shadow(0 0 7px #ff1744)",
+                            }),
                     }}
+                    data-effect-source={isEffectSource || undefined}
+                    data-effect-target-card={isEffectTargetCandidate || undefined}
                     className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                     onClick={handleClick}
                     onTouchStartCapture={() => index !== undefined && isStackDragMode && setStackSliceIndex(index)}

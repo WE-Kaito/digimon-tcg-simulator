@@ -16,6 +16,14 @@ export enum Emote {
     BAFFLED = "baffled",
 }
 
+export type EffectTargeting = {
+    sourceCardId: string;
+    sourceLocation: string;
+    sourceName: string;
+    timing: string;
+    effectText: string;
+};
+
 type State = {
     isStackDragMode: boolean;
     setIsStackDragMode: (isStackDragMode: boolean) => void;
@@ -79,6 +87,10 @@ type State = {
 
     showSecuritySendButtons: boolean;
     setShowSecuritySendButtons: (show: boolean) => void;
+
+    effectTargeting: EffectTargeting | null;
+    startEffectTargeting: (targeting: EffectTargeting) => void;
+    cancelEffectTargeting: () => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
@@ -144,4 +156,8 @@ export const useGameUIStates = create<State>((set) => ({
 
     showSecuritySendButtons: false,
     setShowSecuritySendButtons: (showSecuritySendButtons) => set({ showSecuritySendButtons }),
+
+    effectTargeting: null,
+    startEffectTargeting: (effectTargeting) => set({ effectTargeting }),
+    cancelEffectTargeting: () => set({ effectTargeting: null }),
 }));
