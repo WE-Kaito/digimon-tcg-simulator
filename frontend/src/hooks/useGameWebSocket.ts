@@ -6,7 +6,7 @@ import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
-import { EffectTargetEvent, orientEffectLocation } from "../utils/effectTargeting.ts";
+import { EffectTargetEvent, isSelfEffectTarget, orientEffectLocation } from "../utils/effectTargeting.ts";
 
 const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
@@ -280,10 +280,16 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     playTargetCardSfx();
 
                     clearAttackAnimation?.();
-                    setArrowFrom(sourceLocation);
-                    setArrowTo(targetLocation);
-                    setIsEffectArrow(true);
-                    restartAttackAnimation(true);
+                    if (isSelfEffectTarget(effectTargetEvent)) {
+                        setArrowFrom("");
+                        setArrowTo("");
+                        setIsEffectArrow(false);
+                    } else {
+                        setArrowFrom(sourceLocation);
+                        setArrowTo(targetLocation);
+                        setIsEffectArrow(true);
+                        restartAttackAnimation(true);
+                    }
 
                     const sourceMatch = sourceLocation.match(/\d+/);
                     const targetMatch = targetLocation.match(/\d+/);
