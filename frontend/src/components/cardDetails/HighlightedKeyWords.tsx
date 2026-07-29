@@ -15,7 +15,13 @@ import type { CardTypeGame } from "../../utils/types.ts";
 
 const EMPTY_SOURCE_CARDS: CardTypeGame[] = [];
 
-export default function HighlightedKeyWords({ text }: { text: string }): JSX.Element | JSX.Element[] {
+export default function HighlightedKeyWords({
+    text,
+    effectSourceCardId,
+}: {
+    text: string;
+    effectSourceCardId?: string;
+}): JSX.Element | JSX.Element[] {
     const location = useLocation();
     const selectedCard = useGeneralStates((state) => state.selectedCard);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
@@ -51,12 +57,14 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
 
     function handleTimingSelection(group: EffectTimingGroup, timing: string) {
         if (!canStartTargeting || !selectedCard) return;
-        const effectSourceCard = sourceCards.find(
-            (card) =>
-                card.id !== selectedCard.id &&
-                card.isFaceUp &&
-                card.inheritedEffect === text
-        );
+        const effectSourceCard = effectSourceCardId
+            ? sourceCards.find((card) => card.id === effectSourceCardId && card.isFaceUp)
+            : sourceCards.find(
+                  (card) =>
+                      card.id !== selectedCard.id &&
+                      card.isFaceUp &&
+                      card.inheritedEffect === text
+              );
 
         if (
             effectTargeting?.sourceCardId === selectedCard.id &&

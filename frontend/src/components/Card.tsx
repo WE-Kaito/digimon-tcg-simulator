@@ -1,7 +1,11 @@
 import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
-import { tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
+import {
+    InheritedCardInfo,
+    tamerLocations,
+    useGameBoardStates,
+} from "../hooks/useGameBoardStates.ts";
 import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useState } from "react";
 import Lottie from "lottie-react";
@@ -139,15 +143,18 @@ const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea", ..
 
 const locationsWithAdditionalInfo = [...locationsWithInheritedInfo, ...tamerLocations];
 
-function topCardInfo(locationCards: CardTypeGame[]) {
-    if (locationCards.length <= 1) return "";
-    const effectInfo = [""];
-    locationCards.forEach((card, index) => {
-        if (index === locationCards.length - 1 || !card.inheritedEffect || !card.isFaceUp) return;
-        effectInfo.push(card.inheritedEffect);
-    });
-    effectInfo.reverse();
-    return effectInfo.join("\n");
+function topCardInfo(locationCards: CardTypeGame[]): InheritedCardInfo[] {
+    if (locationCards.length <= 1) return [];
+    return locationCards
+        .slice(0, -1)
+        .filter((card) => Boolean(card.inheritedEffect && card.isFaceUp))
+        .map((card) => ({
+            id: card.id,
+            name: card.name,
+            level: card.level,
+            effect: card.inheritedEffect!,
+        }))
+        .reverse();
 }
 
 function topCardInfoLink(locationCards: CardTypeGame[]) {
@@ -318,7 +325,7 @@ export default function Card(props: CardProps) {
     }
     const [hoveredId, setHoveredId] = useState<string>("");
 
-    const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
+    const inheritedEffects = topCardInfo(locationCards ?? []);
     const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
     const isTopFieldCard = tamerLocations.includes(location)
         ? index === 0
@@ -389,11 +396,11 @@ export default function Card(props: CardProps) {
             setLinkCardInfo([]);
             return;
         }
-        const inhEff = topCardInfo(locationCardsOfSelected).split("\n");
+        const inhEff = topCardInfo(locationCardsOfSelected);
         const inhAll =
             selectedCard.id === locationCardsOfSelected.at(-1)?.id &&
             locationsWithInheritedInfo.includes(selectedCardLocation);
-        if (!inhEff[0].length) setInheritCardInfo([]);
+        if (!inhEff.length) setInheritCardInfo([]);
         else if (inhAll) setInheritCardInfo(inhEff);
 
         const linkInfo = topCardInfoLink(getLinkCardsForLocation(selectedCardLocation));
