@@ -18,6 +18,7 @@ import { OpenedCardDialog, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
+import { EffectTargetPayload } from "../utils/effectTargeting.ts";
 
 const myDigimonLocations = [
     "myDigi1",
@@ -335,7 +336,20 @@ export default function Card(props: CardProps) {
     function handleClick(event: React.MouseEvent) {
         if (effectTargeting) {
             event.stopPropagation();
-            if (isEffectTargetCandidate) cancelEffectTargeting();
+            if (isEffectTargetCandidate && wsUtils) {
+                const payload: EffectTargetPayload = {
+                    sourceCardId: effectTargeting.sourceCardId,
+                    targetCardId: card.id,
+                    sourceLocation: effectTargeting.sourceLocation,
+                    targetLocation: location,
+                    timing: effectTargeting.timing,
+                    effectText: effectTargeting.effectText,
+                };
+                wsUtils.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`
+                );
+                cancelEffectTargeting();
+            }
             return;
         }
         if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;

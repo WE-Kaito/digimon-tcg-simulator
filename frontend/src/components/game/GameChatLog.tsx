@@ -3,6 +3,7 @@ import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import styled from "@emotion/styled";
 import sendIcon from "../../assets/sendIcon.svg";
 import { WSUtils } from "../../pages/GamePage.tsx";
+import { EffectTargetEvent, formatEffectTargetMessage } from "../../utils/effectTargeting.ts";
 
 export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUtils>) {
     const messages = useGameBoardStates((state) => state.messages);
@@ -75,6 +76,21 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUt
                         );
                     }
 
+                    if (chatMessage?.startsWith("[EFFECT_TARGET]≔")) {
+                        try {
+                            const effectTargetEvent: EffectTargetEvent = JSON.parse(
+                                chatMessage.substring("[EFFECT_TARGET]≔".length)
+                            );
+                            return (
+                                <EffectTargetMessage isMyMessage={isMyMessage} key={"msx_" + index}>
+                                    <p>{formatEffectTargetMessage(effectTargetEvent)}</p>
+                                </EffectTargetMessage>
+                            );
+                        } catch {
+                            return null;
+                        }
+                    }
+
                     return (
                         <Message isMyMessage={isMyMessage} key={"msx_" + index}>
                             <p>{chatMessage}</p>
@@ -130,6 +146,13 @@ const Message = styled.div<{ isMyMessage: boolean }>`
         max-width: 100%;
         word-break: break-word;
     }
+`;
+
+const EffectTargetMessage = styled(Message)`
+    max-width: 96%;
+    background: rgba(100, 12, 30, 0.42);
+    border-color: rgba(255, 82, 82, 0.8);
+    box-shadow: inset 3px 0 0 #ff1744;
 `;
 
 const History = styled.div`
