@@ -49,5 +49,8 @@ export function getSameSideDirection(
 }
 
 export function formatEffectTargetMessage(event: EffectTargetEvent): string {
+    if (isSelfEffectTarget(event)) {
+        return `${event.sourceOwner}'s ${event.sourceName} is targeting itself with [${event.timing}]: ${event.effectText}`;
+    }
     return `${event.sourceOwner}'s ${event.sourceName} is targeting ${event.targetOwner}'s ${event.targetName} with [${event.timing}]: ${event.effectText}`;
 }

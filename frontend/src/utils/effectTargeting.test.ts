@@ -60,4 +60,18 @@ describe("effect target multiplayer helpers", () => {
                 "Delete all of your opponent's Digimon with the lowest level."
         );
     });
+
+    it("formats a self-targeted effect using itself", () => {
+        expect(
+            formatEffectTargetMessage({
+                ...event,
+                targetCardId: event.sourceCardId,
+                targetOwner: event.sourceOwner,
+                targetName: event.sourceName,
+            })
+        ).toBe(
+            "Test's Titamon + SkullBaluchimon is targeting itself with [On Play]: " +
+                "Delete all of your opponent's Digimon with the lowest level."
+        );
+    });
 });
