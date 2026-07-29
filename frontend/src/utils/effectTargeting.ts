@@ -1,5 +1,6 @@
 export type EffectTargetPayload = {
     sourceCardId: string;
+    effectSourceCardId?: string | null;
     targetCardId: string;
     sourceLocation: string;
     targetLocation: string;
@@ -12,6 +13,7 @@ export type EffectTargetEvent = EffectTargetPayload & {
     sourceOwner: string;
     targetOwner: string;
     sourceName: string;
+    effectSourceName?: string | null;
     targetName: string;
 };
 
@@ -49,8 +51,11 @@ export function getSameSideDirection(
 }
 
 export function formatEffectTargetMessage(event: EffectTargetEvent): string {
-    if (isSelfEffectTarget(event)) {
-        return `${event.sourceOwner}'s ${event.sourceName} is targeting itself with [${event.timing}]: ${event.effectText}`;
-    }
-    return `${event.sourceOwner}'s ${event.sourceName} is targeting ${event.targetOwner}'s ${event.targetName} with [${event.timing}]: ${event.effectText}`;
+    const target = isSelfEffectTarget(event)
+        ? "itself"
+        : `${event.targetOwner}'s ${event.targetName}`;
+    const action = event.effectSourceName
+        ? `is using ${event.effectSourceName} to target`
+        : "is targeting";
+    return `${event.sourceOwner}'s ${event.sourceName} ${action} ${target} with [${event.timing}]: ${event.effectText}`;
 }

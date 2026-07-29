@@ -240,16 +240,26 @@ public class GameWebSocket extends TextWebSocketHandler {
                 rejectEffectTarget(gameRoom, session);
                 return;
             }
+            GameCard effectSourceCard = null;
+            if (!isBlank(payload.effectSourceCardId())) {
+                effectSourceCard = findCardInField(boardState, sourceField, payload.effectSourceCardId());
+                if (effectSourceCard == null) {
+                    rejectEffectTarget(gameRoom, session);
+                    return;
+                }
+            }
 
             EffectTargetEvent event = new EffectTargetEvent(
                     username,
                     payload.sourceCardId(),
+                    payload.effectSourceCardId(),
                     payload.targetCardId(),
                     payload.sourceLocation(),
                     payload.targetLocation(),
                     getFieldOwner(sourceField, gameRoom),
                     getFieldOwner(targetField, gameRoom),
                     sourceCard.getName(),
+                    effectSourceCard == null ? null : effectSourceCard.getName(),
                     targetCard.getName(),
                     payload.timing().trim(),
                     payload.effectText().trim()
@@ -282,6 +292,9 @@ public class GameWebSocket extends TextWebSocketHandler {
         try {
             UUID.fromString(payload.sourceCardId());
             UUID.fromString(payload.targetCardId());
+            if (!isBlank(payload.effectSourceCardId())) {
+                UUID.fromString(payload.effectSourceCardId());
+            }
             return true;
         } catch (IllegalArgumentException ignored) {
             return false;

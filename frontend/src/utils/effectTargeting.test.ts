@@ -74,4 +74,17 @@ describe("effect target multiplayer helpers", () => {
                 "Delete all of your opponent's Digimon with the lowest level."
         );
     });
+
+    it("names the evolution source card supplying an inherited effect", () => {
+        expect(
+            formatEffectTargetMessage({
+                ...event,
+                effectSourceCardId: "inherited-source-id",
+                effectSourceName: "Koromon",
+            })
+        ).toBe(
+            "Test's Titamon + SkullBaluchimon is using Koromon to target Test2's ClearAgumon with [On Play]: " +
+                "Delete all of your opponent's Digimon with the lowest level."
+        );
+    });
 });

@@ -18,6 +18,7 @@ export enum Emote {
 
 export type EffectTargeting = {
     sourceCardId: string;
+    effectSourceCardId?: string;
     sourceLocation: string;
     sourceName: string;
     timing: string;

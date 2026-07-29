@@ -339,6 +339,7 @@ export default function Card(props: CardProps) {
             if (isEffectTargetCandidate && wsUtils) {
                 const payload: EffectTargetPayload = {
                     sourceCardId: effectTargeting.sourceCardId,
+                    effectSourceCardId: effectTargeting.effectSourceCardId,
                     targetCardId: card.id,
                     sourceLocation: effectTargeting.sourceLocation,
                     targetLocation: location,

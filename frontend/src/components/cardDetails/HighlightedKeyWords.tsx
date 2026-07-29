@@ -11,8 +11,9 @@ import {
     EffectTimingGroup,
     parseEffectTimingGroups,
 } from "../../utils/effectTiming.ts";
+import type { CardTypeGame } from "../../utils/types.ts";
 
-const EMPTY_SOURCE_CARDS: Array<{ id: string }> = [];
+const EMPTY_SOURCE_CARDS: CardTypeGame[] = [];
 
 export default function HighlightedKeyWords({ text }: { text: string }): JSX.Element | JSX.Element[] {
     const location = useLocation();
@@ -28,7 +29,7 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
         (state) =>
             (sourceLocation
                 ? (state[sourceLocation as keyof typeof state] as unknown)
-                : EMPTY_SOURCE_CARDS) as Array<{ id: string }>
+                : EMPTY_SOURCE_CARDS) as CardTypeGame[]
     );
     const sourceIsTamer = tamerLocations.includes(sourceLocation);
     const sourceIsTopCard =
@@ -50,6 +51,12 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
 
     function handleTimingSelection(group: EffectTimingGroup, timing: string) {
         if (!canStartTargeting || !selectedCard) return;
+        const effectSourceCard = sourceCards.find(
+            (card) =>
+                card.id !== selectedCard.id &&
+                card.isFaceUp &&
+                card.inheritedEffect === text
+        );
 
         if (
             effectTargeting?.sourceCardId === selectedCard.id &&
@@ -62,6 +69,7 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
 
         startEffectTargeting({
             sourceCardId: selectedCard.id,
+            effectSourceCardId: effectSourceCard?.id,
             sourceLocation,
             sourceName: selectedCard.name,
             timing,

@@ -32,6 +32,7 @@ class GameWebSocketEffectTargetTest {
     private List<String> player1Messages;
     private List<String> player2Messages;
     private GameCard sourceCard;
+    private GameCard effectSourceCard;
     private GameCard targetCard;
 
     @BeforeEach
@@ -48,9 +49,10 @@ class GameWebSocketEffectTargetTest {
         );
 
         sourceCard = gameCard("Source Digimon");
+        effectSourceCard = gameCard("Inherited Digimon");
         targetCard = gameCard("Target Digimon");
         BoardState boardState = new BoardState();
-        boardState.setPlayer1Digi1(List.of(sourceCard));
+        boardState.setPlayer1Digi1(List.of(effectSourceCard, sourceCard));
         boardState.setPlayer2Digi2(List.of(targetCard));
         gameRoom.setBoardState(boardState);
 
@@ -69,6 +71,7 @@ class GameWebSocketEffectTargetTest {
     void broadcastsValidatedEffectTargetAndStoresStructuredHistory() throws Exception {
         EffectTargetPayload payload = new EffectTargetPayload(
                 sourceCard.getId().toString(),
+                null,
                 targetCard.getId().toString(),
                 "myDigi1",
                 "opponentDigi2",
@@ -94,9 +97,53 @@ class GameWebSocketEffectTargetTest {
     }
 
     @Test
+    void derivesTheEffectSourceNameFromTheValidatedSourceStack() throws Exception {
+        EffectTargetPayload payload = new EffectTargetPayload(
+                sourceCard.getId().toString(),
+                effectSourceCard.getId().toString(),
+                targetCard.getId().toString(),
+                "myDigi1",
+                "opponentDigi2",
+                "Your Turn",
+                "When this Digimon attacks, you may unsuspend it."
+        );
+
+        gameWebSocket.handleTextMessage(
+                player1Session,
+                new TextMessage(ROOM_ID + ":/effectTarget:" + OBJECT_MAPPER.writeValueAsString(payload))
+        );
+
+        assertThat(player1Messages).singleElement().satisfies(message -> assertThat(message)
+                .contains("\"effectSourceCardId\":\"" + effectSourceCard.getId() + "\"")
+                .contains("\"effectSourceName\":\"Inherited Digimon\""));
+    }
+
+    @Test
+    void rejectsAnEffectSourceCardThatIsNotInTheClaimedSourceStack() throws Exception {
+        EffectTargetPayload payload = new EffectTargetPayload(
+                sourceCard.getId().toString(),
+                UUID.randomUUID().toString(),
+                targetCard.getId().toString(),
+                "myDigi1",
+                "opponentDigi2",
+                "Your Turn",
+                "When this Digimon attacks, you may unsuspend it."
+        );
+
+        gameWebSocket.handleTextMessage(
+                player1Session,
+                new TextMessage(ROOM_ID + ":/effectTarget:" + OBJECT_MAPPER.writeValueAsString(payload))
+        );
+
+        assertThat(player1Messages).containsExactly("[COMMAND_REJECTED]:effectTarget");
+        assertThat(player2Messages).isEmpty();
+    }
+
+    @Test
     void rejectsTargetIdThatDoesNotExistAtClaimedLocation() throws Exception {
         EffectTargetPayload payload = new EffectTargetPayload(
                 sourceCard.getId().toString(),
+                null,
                 UUID.randomUUID().toString(),
                 "myDigi1",
                 "opponentDigi2",
@@ -118,6 +165,7 @@ class GameWebSocketEffectTargetTest {
     void rejectsSourceCardClaimedAtTheWrongLocation() throws Exception {
         EffectTargetPayload payload = new EffectTargetPayload(
                 sourceCard.getId().toString(),
+                null,
                 targetCard.getId().toString(),
                 "myDigi2",
                 "opponentDigi2",
