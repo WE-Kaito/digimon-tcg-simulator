@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
 import Lottie from "lottie-react";
 import activateEffectAnimation from "../assets/lotties/activate-effect-animation.json";
 import targetAnimation from "../assets/lotties/target-animation.json";
@@ -18,6 +18,7 @@ import { OpenedCardDialog, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
+import { extractStandaloneEffectKeywords } from "../utils/effectKeywords.ts";
 
 const myDigimonLocations = [
     "myDigi1",
@@ -379,6 +380,10 @@ export default function Card(props: CardProps) {
         [...myBALocations, ...opponentBALocations].includes(location) &&
         (card.cardType.includes("Digimon") || isTamerWithDP);
     const modifiers = isModifiersAllowed ? card.modifiers : undefined;
+    const displayedKeywords = useMemo(
+        () => [...new Set([...extractStandaloneEffectKeywords(card.mainEffect), ...(modifiers?.keywords ?? [])])],
+        [card.mainEffect, modifiers?.keywords]
+    );
 
     const linkDP = linkCardsForLocation.reduce((sum, card) => sum + (card.linkDP ?? 0), 0);
 
@@ -507,7 +512,7 @@ export default function Card(props: CardProps) {
                                         </ColorStack>
                                     )}
                                     <KeywordWrapper>
-                                        {modifiers?.keywords
+                                        {displayedKeywords
                                             .filter((w) => w !== "SICK" && w !== "TAUNT")
                                             .map((keyword) => (
                                                 <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
