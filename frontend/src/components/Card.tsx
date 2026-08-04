@@ -380,9 +380,24 @@ export default function Card(props: CardProps) {
         [...myBALocations, ...opponentBALocations].includes(location) &&
         (card.cardType.includes("Digimon") || isTamerWithDP);
     const modifiers = isModifiersAllowed ? card.modifiers : undefined;
+    const inheritedKeywords = useMemo(() => {
+        const isTopStackCard = index === locationCards.length - 1;
+        if (!isTopStackCard || !locationsWithInheritedInfo.includes(location)) return [];
+
+        return locationCards
+            .slice(0, -1)
+            .filter((sourceCard) => sourceCard.isFaceUp)
+            .flatMap((sourceCard) => extractStandaloneEffectKeywords(sourceCard.inheritedEffect));
+    }, [index, location, locationCards]);
     const displayedKeywords = useMemo(
-        () => [...new Set([...extractStandaloneEffectKeywords(card.mainEffect), ...(modifiers?.keywords ?? [])])],
-        [card.mainEffect, modifiers?.keywords]
+        () => [
+            ...new Set([
+                ...extractStandaloneEffectKeywords(card.mainEffect),
+                ...inheritedKeywords,
+                ...(modifiers?.keywords ?? []),
+            ]),
+        ],
+        [card.mainEffect, inheritedKeywords, modifiers?.keywords]
     );
 
     const linkDP = linkCardsForLocation.reduce((sum, card) => sum + (card.linkDP ?? 0), 0);
