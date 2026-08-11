@@ -53,7 +53,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
     const setModifiers = useGameBoardStates((state) => state.setModifiers);
 
     const card = useGameBoardStates((state) =>
-        (state[cardToSend?.location as keyof typeof state] as CardTypeGame[]).find(
+        (state[cardToSend?.location as keyof typeof state] as CardTypeGame[] | undefined)?.find(
             (card) => card.id === cardToSend?.card.id
         )
     );
@@ -236,7 +236,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                             arrow={<StyledLottie style={{ marginLeft: 60 }} animationData={arrowsAnimation} />}
                         >
                             <StyledFieldset>
-                                <Stack maxHeight={432} flexWrap={"wrap"}>
+                                <KeywordList data-testid="keyword-list">
                                     {battleKeywords.map(
                                         (keyword) =>
                                             !keywords.includes(keyword) && (
@@ -256,7 +256,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                                                 </Item>
                                             )
                                     )}
-                                </Stack>
+                                </KeywordList>
                             </StyledFieldset>
                         </Submenu>
                         <SubmitItem disabled={!haveModifiersChanged} onClick={handleSubmit}>
@@ -286,6 +286,15 @@ const StyledFieldset = styled.fieldset`
     background: #0c0c0c;
     border-radius: 5px;
     margin: 0;
+`;
+
+const KeywordList = styled.div`
+    display: flex;
+    flex-direction: column;
+    max-height: min(432px, calc(100vh - 48px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 `;
 
 const NumericStack = styled(Stack)`
