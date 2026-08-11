@@ -8,7 +8,7 @@ import { AddCircleOutlined, RemoveCircleOutlined } from "@mui/icons-material";
 import AddModeratorIcon from "@mui/icons-material/AddModerator";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { CardModifiers, CardTypeGame } from "../../../utils/types.ts";
-import { getNumericModifier, numbersWithModifiers } from "../../../utils/functions.ts";
+import { cardTypesWithModifiers, getNumericModifier, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useSound } from "../../../hooks/useSound.ts";
 
 type ModifierMenuProps = {
@@ -123,7 +123,11 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
             card?.modifiers.keywords !== keywords ||
             card?.modifiers.colors !== colors);
 
-    if (card?.cardType !== "Digimon" && !numbersWithModifiers.includes(String(card?.cardNumber))) return <></>;
+    if (
+        !cardTypesWithModifiers.includes(String(card?.cardType)) &&
+        !numbersWithModifiers.includes(String(card?.cardNumber))
+    )
+        return <></>;
 
     return (
         <StyledSubmenu label={"Set Modifiers"} arrow={<StyledLottie animationData={arrowsAnimation} />}>
