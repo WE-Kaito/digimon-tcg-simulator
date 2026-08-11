@@ -49,6 +49,7 @@ import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 import { AppNotification, NotificationBell } from "./MainMenu.tsx";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import { handleReconnectStatus } from "../utils/reconnectStatus.ts";
 
 function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
     return {
@@ -270,15 +271,7 @@ export default function Lobby() {
                     });
                 }
 
-                if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
-                    const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
-                    setIsRejoinable(matchingRoomId === gameId);
-                    // gameId could be set to older matching room id here, but not sure if this makes sense
-                }
-
-                if (event.data === "[RECONNECT_DISABLED]") {
-                    setIsRejoinable(false);
-                }
+                handleReconnectStatus(event.data, gameId, setIsRejoinable, setGameId);
 
                 if (event.data === "[SESSION_ALREADY_CONNECTED]") {
                     setIsAlreadyOpenedInOtherTab(true);
@@ -408,6 +401,11 @@ export default function Lobby() {
     }, [playerSearch]);
 
     useEffect(() => {
+        if (!gameId) setIsRejoinable(false);
+    }, [gameId]);
+
+    useEffect(() => {
+        if (!activeDeckId || activeDeckId.includes("<html")) return;
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }, [activeDeckId]);
 

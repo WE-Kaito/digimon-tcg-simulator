@@ -17,7 +17,7 @@ import {
 } from "@mui/icons-material";
 import { CSSProperties } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
-import { convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
+import { cardTypesWithModifiers, convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useSound } from "../../../hooks/useSound.ts";
@@ -67,7 +67,8 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
 
     const hasModifierMenu =
-        contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
+        cardTypesWithModifiers.includes(String(contextCard?.cardType)) ||
+        numbersWithModifiers.includes(String(contextCard?.cardNumber));
     const isTamer = contextCard?.cardType.includes("Tamer") ?? false;
     const isStunned = contextCard?.modifiers.keywords.includes("SICK") ?? false;
     const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute" };
