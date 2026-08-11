@@ -33,6 +33,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> roomIdBySessionId = new ConcurrentHashMap<>();
+    private final Set<String> blockedReconnectGameIds = ConcurrentHashMap.newKeySet();
     
     private static final ScheduledExecutorService SHARED_SCHEDULER = Executors.newScheduledThreadPool(10);
 
@@ -91,6 +92,11 @@ public class GameWebSocket extends TextWebSocketHandler {
         GameRoom gameRoom = findGameRoomById(gameId);
 
         if (gameRoom == null || !gameRoom.getSessions().contains(session)) return;
+
+        if (roomMessage.equals("/surrender")) {
+            handleSurrender(gameRoom, session);
+            return;
+        }
 
         if(roomMessage.startsWith("/mulligan:")) {
             boolean currentPlayerDecision = roomMessage.split(":")[1].equals("true");
@@ -204,7 +210,6 @@ public class GameWebSocket extends TextWebSocketHandler {
     /* These actions do not alter the board state, therefore do not need a separate handler */
     private String convertCommand(String command) {
         return switch (command) {
-            case "/surrender" -> "[SURRENDER]";
             case "/restartRequestAsFirst" -> "[RESTART_AS_FIRST]";
             case "/restartRequestAsSecond" -> "[RESTART_AS_SECOND]";
             case "/acceptRestart" -> "[ACCEPT_RESTART]";
@@ -239,6 +244,21 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     private GameRoom findGameRoomById(String gameId) {
         return gameRooms.get(gameId);
+    }
+
+    public void prepareGame(String gameId) {
+        blockedReconnectGameIds.remove(gameId);
+    }
+
+    private void handleSurrender(GameRoom gameRoom, WebSocketSession surrenderingSession) {
+        String gameId = gameRoom.getRoomId();
+        blockedReconnectGameIds.add(gameId);
+        gameRoom.sendMessageToOtherSessions(surrenderingSession, "[SURRENDER]");
+
+        if (gameRooms.remove(gameId, gameRoom)) {
+            gameRoom.cancelAllScheduledTasks();
+            roomIdBySessionId.entrySet().removeIf(entry -> gameId.equals(entry.getValue()));
+        }
     }
 
     public Optional<GameRoom> findGameRoomBySession(WebSocketSession session) {
@@ -479,6 +499,8 @@ public class GameWebSocket extends TextWebSocketHandler {
         boolean shouldStartScheduledTasks = false;
 
         if (gameRoom == null) {
+            if (blockedReconnectGameIds.contains(gameId)) return;
+
             String[] usernames = gameId.split("‗");
             String joiningUsername = session.getPrincipal() == null ? null : session.getPrincipal().getName();
             if (usernames.length != 2 || joiningUsername == null || Arrays.stream(usernames).noneMatch(joiningUsername::equals)) {
