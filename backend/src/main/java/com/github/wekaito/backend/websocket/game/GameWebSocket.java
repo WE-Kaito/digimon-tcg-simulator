@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import com.github.wekaito.backend.websocket.OnlinePlayerCountChangedEvent;
 import com.github.wekaito.backend.websocket.game.models.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -30,6 +32,8 @@ public class GameWebSocket extends TextWebSocketHandler {
     private final DeckService deckService;
     
     private final CardJsonConverter cardJsonConverter;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> roomIdBySessionId = new ConcurrentHashMap<>();
@@ -73,6 +77,8 @@ public class GameWebSocket extends TextWebSocketHandler {
                 }
             }
         }
+
+        eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
     }
 
     @Override
@@ -557,6 +563,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
+        eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency
 
