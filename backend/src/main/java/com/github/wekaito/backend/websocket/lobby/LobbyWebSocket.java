@@ -234,6 +234,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (accepted) {
             String gameId = inviter + "‗" + invitedPlayer;
+            gameWebSocket.prepareGame(gameId);
             sendTextMessage(inviterSession, "[COMPUTE_GAME]:" + gameId);
             sendTextMessage(session, "[COMPUTE_GAME]:" + gameId);
             lastPlayerRooms.remove(inviterSession);
@@ -286,6 +287,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         Room room = getRoomById(roomId);
         if (room == null) return;
+
+        gameWebSocket.prepareGame(gameId);
 
         for (LobbyPlayer player : room.getPlayers()) {
             sendTextMessage(player.getSession(), "[COMPUTE_GAME]:" + gameId);
@@ -374,6 +377,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             }
 
             String newGameId = username1 + "‗" + username2;
+            gameWebSocket.prepareGame(newGameId);
 
             quickPlayQueue.remove(p1);
             quickPlayQueue.remove(p2);
