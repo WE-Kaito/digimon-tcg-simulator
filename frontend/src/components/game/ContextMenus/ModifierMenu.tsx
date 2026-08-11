@@ -5,9 +5,10 @@ import styled from "@emotion/styled";
 import Lottie from "lottie-react";
 import { useEffect, useState } from "react";
 import { AddCircleOutlined, RemoveCircleOutlined } from "@mui/icons-material";
+import AddModeratorIcon from "@mui/icons-material/AddModerator";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { CardModifiers, CardTypeGame } from "../../../utils/types.ts";
-import { getNumericModifier, numbersWithModifiers } from "../../../utils/functions.ts";
+import { cardTypesWithModifiers, getNumericModifier, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useSound } from "../../../hooks/useSound.ts";
 
 type ModifierMenuProps = {
@@ -104,6 +105,11 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
         else setKeywords([...keywords, "TAUNT"]);
     }
 
+    function handleSetImmune() {
+        if (keywords.includes("IMMUNE")) setKeywords((prev) => prev.filter((kw) => kw !== "IMMUNE"));
+        else setKeywords([...keywords, "IMMUNE"]);
+    }
+
     // eslint-disable-next-line
     useEffect(() => resetValues(), [cardToSend]);
 
@@ -117,7 +123,11 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
             card?.modifiers.keywords !== keywords ||
             card?.modifiers.colors !== colors);
 
-    if (card?.cardType !== "Digimon" && !numbersWithModifiers.includes(String(card?.cardNumber))) return <></>;
+    if (
+        !cardTypesWithModifiers.includes(String(card?.cardType)) &&
+        !numbersWithModifiers.includes(String(card?.cardNumber))
+    )
+        return <></>;
 
     return (
         <StyledSubmenu label={"Set Modifiers"} arrow={<StyledLottie animationData={arrowsAnimation} />}>
@@ -161,7 +171,7 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
 
                         <Stack direction={"row"} gap={0.5} maxWidth={"100%"} flexWrap={"wrap"}>
                             {keywords
-                                .filter((w) => w !== "SICK" && w !== "TAUNT")
+                                .filter((w) => w !== "SICK" && w !== "TAUNT" && w !== "IMMUNE")
                                 .map((keyword) => (
                                     <ModifierSpan
                                         onClick={() => setKeywords((prev) => prev.filter((kw) => kw !== keyword))}
@@ -199,6 +209,25 @@ export default function ModifierMenu({ sendSetModifiers }: ModifierMenuProps) {
                             />
                             <label htmlFor="toggleTaunt" className="button">
                                 (Un)Mark as taunted💢
+                            </label>
+                        </div>
+                        <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
+                            <input
+                                type="checkbox"
+                                name="stackDrag"
+                                value="Toggle"
+                                id="toggleImmune"
+                                className="button"
+                                checked={keywords.includes("IMMUNE")}
+                                onChange={handleSetImmune}
+                            />
+                            <label
+                                htmlFor="toggleImmune"
+                                className="button"
+                                style={{ display: "flex", alignItems: "center", gap: 4 }}
+                            >
+                                (Un)Mark as immune
+                                <AddModeratorIcon fontSize="small" />
                             </label>
                         </div>
 
