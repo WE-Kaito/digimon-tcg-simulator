@@ -941,7 +941,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setBootStage: (stage) => set({ bootStage: stage }),
 
     setGameId: (gameId) => {
-        localStorage.setItem("gameId", gameId);
+        if (gameId) localStorage.setItem("gameId", gameId);
+        else localStorage.removeItem("gameId");
         set({ gameId });
     },
 

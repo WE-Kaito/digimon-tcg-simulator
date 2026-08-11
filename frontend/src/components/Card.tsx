@@ -13,6 +13,7 @@ import activateEffectAnimation from "../assets/lotties/activate-effect-animation
 import targetAnimation from "../assets/lotties/target-animation.json";
 import suspendedAPNG from "../assets/lotties/square-sparkle-apng.png";
 import { ContentCopyTwoTone as DragStackIcon, Shield as ShieldIcon } from "@mui/icons-material";
+import AddModeratorIcon from "@mui/icons-material/AddModerator";
 import cardBackSrc from "../assets/cardBack.jpg";
 import { useSound } from "../hooks/useSound.ts";
 import { getSleeve } from "../utils/sleeves.ts";
@@ -546,7 +547,7 @@ export default function Card(props: CardProps) {
                                     )}
                                     <KeywordWrapper>
                                         {modifiers?.keywords
-                                            .filter((w) => w !== "SICK" && w !== "TAUNT")
+                                            .filter((w) => w !== "SICK" && w !== "TAUNT" && w !== "IMMUNE")
                                             .map((keyword) => (
                                                 <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
                                                     <span>{keyword}</span>
@@ -602,6 +603,11 @@ export default function Card(props: CardProps) {
                     <CardAnimationContainer style={{ top: 0, left: 0, right: 0, bottom: 0 }}>
                         <TauntPulseOverlay data-testid="taunt-pulse-overlay" />
                     </CardAnimationContainer>
+                )}
+                {card.modifiers.keywords.includes("IMMUNE") && (
+                    <ImmuneIconOverlay data-testid="immune-icon-overlay" title="Unaffected by effects">
+                        <AddModeratorIcon fontSize="small" />
+                    </ImmuneIconOverlay>
                 )}
 
                 <StyledImage
@@ -772,6 +778,39 @@ const TauntPulseOverlay = styled.div`
             box-shadow:
                 0 0 18px 6px rgba(255, 0, 0, 0.95),
                 inset 0 0 14px 4px rgba(255, 0, 0, 0.75);
+        }
+    }
+`;
+
+const ImmuneIconOverlay = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 16000;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid rgba(190, 235, 255, 0.9);
+    border-radius: 50%;
+    background: rgba(8, 31, 48, 0.88);
+    color: #9fe4ff;
+    pointer-events: none;
+    animation: immune-pulse 1.25s ease-in-out infinite;
+
+    @keyframes immune-pulse {
+        0%,
+        100% {
+            transform: translate(-50%, -50%) scale(0.92);
+            box-shadow: 0 0 4px 1px rgba(71, 190, 255, 0.45);
+            filter: brightness(0.9);
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.08);
+            box-shadow:
+                0 0 10px 3px rgba(71, 190, 255, 0.95),
+                0 0 18px 5px rgba(71, 190, 255, 0.35);
+            filter: brightness(1.25);
         }
     }
 `;

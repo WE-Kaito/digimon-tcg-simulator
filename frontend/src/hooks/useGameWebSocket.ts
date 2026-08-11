@@ -58,6 +58,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
 
     const gameId = useGameBoardStates((state) => state.gameId);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
     const setPlayers = useGameBoardStates((state) => state.setPlayers);
     const setPhase = useGameBoardStates((state) => state.setPhase);
@@ -455,6 +456,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[SURRENDER]": {
+                    setGameId("");
                     setIsEndDialogOpen(true);
                     setEndDialogText("🎉 Your opponent surrendered!");
                     break;

@@ -586,7 +586,9 @@ export default function DeckTest() {
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
-    useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
+    useEffect(() => {
+        window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0);
+    }, []);
 
     // Determine backend based on touch capability
     const backend = "ontouchstart" in window ? TouchBackend : HTML5Backend;
