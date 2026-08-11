@@ -6,6 +6,7 @@ import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
+import { EffectTargetEvent, isSelfEffectTarget, orientEffectLocation } from "../utils/effectTargeting.ts";
 
 const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
@@ -87,6 +88,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
     const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
     const fieldOffset = useGameUIStates((state) => state.fieldOffset);
+    const opponentFieldOffset = useGameUIStates((state) => state.opponentFieldOffset);
     const setFieldOffset = useGameUIStates((state) => state.setFieldOffset);
     const setOpponentFieldOffset = useGameUIStates((state) => state.setOpponentFieldOffset);
 
@@ -105,6 +107,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playRematchSfx = useSound((state) => state.playRematchSfx);
+    const playActivateEffectSfx = useSound((state) => state.playActivateEffectSfx);
+    const playTargetCardSfx = useSound((state) => state.playTargetCardSfx);
 
     function clearCardEffect() {
         const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
@@ -250,6 +254,69 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 const id = event.data.substring("[ACTIVATE_TARGET]:".length);
                 setCardIdWithTarget(id);
                 clearCardTarget();
+                return;
+            }
+
+            if (event.data.startsWith("[EFFECT_TARGET]:")) {
+                try {
+                    const effectTargetEvent: EffectTargetEvent = JSON.parse(
+                        event.data.substring("[EFFECT_TARGET]:".length)
+                    );
+                    const sourceLocation = orientEffectLocation(
+                        effectTargetEvent.sourceLocation,
+                        effectTargetEvent.sender,
+                        user
+                    );
+                    const targetLocation = orientEffectLocation(
+                        effectTargetEvent.targetLocation,
+                        effectTargetEvent.sender,
+                        user
+                    );
+
+                    setCardIdWithEffect(effectTargetEvent.sourceCardId);
+                    setCardIdWithTarget(effectTargetEvent.targetCardId);
+                    clearCardEffect();
+                    clearCardTarget();
+                    playActivateEffectSfx();
+                    playTargetCardSfx();
+
+                    clearAttackAnimation?.();
+                    if (isSelfEffectTarget(effectTargetEvent)) {
+                        setArrowFrom("");
+                        setArrowTo("");
+                        setIsEffectArrow(false);
+                    } else {
+                        setArrowFrom(sourceLocation);
+                        setArrowTo(targetLocation);
+                        setIsEffectArrow(true);
+                        restartAttackAnimation(true);
+                    }
+
+                    const sourceMatch = sourceLocation.match(/\d+/);
+                    const targetMatch = targetLocation.match(/\d+/);
+                    if (sourceMatch?.[0]) {
+                        const sourceField = Number(sourceMatch[0]);
+                        if (sourceLocation.startsWith("opponent")) {
+                            setOpponentFieldOffset(getValidOffset(sourceField, opponentFieldOffset));
+                        } else {
+                            setFieldOffset(getValidOffset(sourceField, fieldOffset));
+                        }
+                    }
+                    if (targetMatch?.[0]) {
+                        const targetField = Number(targetMatch[0]);
+                        if (targetLocation.startsWith("opponent")) {
+                            setOpponentFieldOffset(getValidOffset(targetField, opponentFieldOffset));
+                        } else {
+                            setFieldOffset(getValidOffset(targetField, fieldOffset));
+                        }
+                    }
+
+                    setMessages(
+                        `${effectTargetEvent.sender}﹕[EFFECT_TARGET]≔${JSON.stringify(effectTargetEvent)}`
+                    );
+                } catch (error) {
+                    console.warn("Failed to parse effect target event:", error);
+                }
                 return;
             }
 
