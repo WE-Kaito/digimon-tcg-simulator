@@ -54,7 +54,7 @@ function renderMenu(card: CardTypeGame) {
     return { sendSetModifiers };
 }
 
-describe("ModifierMenu SICK / TAUNT toggles", () => {
+describe("ModifierMenu status toggles", () => {
     beforeEach(() => {
         useGameBoardStates.setState({ [LOCATION]: [], cardToSend: null } as never);
     });
@@ -139,6 +139,47 @@ describe("ModifierMenu SICK / TAUNT toggles", () => {
 
         await user.click(tauntCheckbox);
         expect(tauntCheckbox.checked).toBe(false);
+
+        await user.click(screen.getByText("SAVE VALUES"));
+        expect(sendSetModifiers).toHaveBeenCalledWith(
+            card.id,
+            LOCATION,
+            expect.objectContaining({ keywords: [] })
+        );
+    });
+
+    it("toggles IMMUNE without affecting the other status modifiers", async () => {
+        const user = userEvent.setup();
+        const card = makeCard([]);
+        const { sendSetModifiers } = renderMenu(card);
+
+        const immuneCheckbox = screen.getByLabelText("(Un)Mark as unaffected by effects") as HTMLInputElement;
+        const sickCheckbox = screen.getByLabelText("(Un)Mark as sick / stunned 💫") as HTMLInputElement;
+        const tauntCheckbox = screen.getByLabelText("(Un)Mark as taunted💢") as HTMLInputElement;
+
+        await user.click(immuneCheckbox);
+        expect(immuneCheckbox.checked).toBe(true);
+        expect(sickCheckbox.checked).toBe(false);
+        expect(tauntCheckbox.checked).toBe(false);
+
+        await user.click(screen.getByText("SAVE VALUES"));
+        expect(sendSetModifiers).toHaveBeenCalledWith(
+            card.id,
+            LOCATION,
+            expect.objectContaining({ keywords: ["IMMUNE"] })
+        );
+    });
+
+    it("unchecking IMMUNE removes it from the saved keywords", async () => {
+        const user = userEvent.setup();
+        const card = makeCard(["IMMUNE"]);
+        const { sendSetModifiers } = renderMenu(card);
+
+        const immuneCheckbox = screen.getByLabelText("(Un)Mark as unaffected by effects") as HTMLInputElement;
+        expect(immuneCheckbox.checked).toBe(true);
+
+        await user.click(immuneCheckbox);
+        expect(immuneCheckbox.checked).toBe(false);
 
         await user.click(screen.getByText("SAVE VALUES"));
         expect(sendSetModifiers).toHaveBeenCalledWith(
