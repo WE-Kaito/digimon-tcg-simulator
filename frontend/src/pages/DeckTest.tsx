@@ -589,7 +589,7 @@ export default function DeckTest() {
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0);
     }, []);
 

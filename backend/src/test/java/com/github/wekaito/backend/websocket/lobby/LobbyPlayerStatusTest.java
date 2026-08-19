@@ -22,7 +22,7 @@ class LobbyPlayerStatusTest {
     @BeforeEach
     void setUp() throws Exception {
         lobbyWebSocket = new LobbyWebSocket(null, null, null);
-        gameWebSocket = new GameWebSocket(null, null, null);
+        gameWebSocket = new GameWebSocket(null, null, null, event -> { });
 
         Field gameWebSocketField = LobbyWebSocket.class.getDeclaredField("gameWebSocket");
         gameWebSocketField.setAccessible(true);
