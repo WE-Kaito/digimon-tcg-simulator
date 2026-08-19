@@ -6,13 +6,15 @@ import com.github.wekaito.backend.models.ChatMessage;
 import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import com.github.wekaito.backend.websocket.OnlinePlayerCountChangedEvent;
 import com.github.wekaito.backend.websocket.game.GameWebSocket;
 import com.github.wekaito.backend.websocket.game.GameLobbyReturnEvent;
 import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -85,8 +87,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
+        globalActiveSessions.add(session);
+        broadcastUserCount();
         if (tryReconnectToRoom(session)) {
-            globalActiveSessions.add(session);
             sendReconnectStatus(session);
             return;
         }
@@ -101,9 +104,6 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         sendTextMessage(session, "[ROOMS]:" + objectMapper.writeValueAsString(openRoomsDTO));
         sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
-        sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
-
-        globalActiveSessions.add(session);
         sendReconnectStatus(session);
     }
 
@@ -146,6 +146,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         quickPlayQueue.remove(session);
 
         globalActiveSessions.remove(session);
+        broadcastUserCount();
     }
 
 
@@ -155,6 +156,11 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (payload.equals("/heartbeat/")) {
             lastHeartbeatTimestamps.put(session, System.currentTimeMillis());
+            return;
+        }
+
+        if (payload.equals("/requestUserCount")) {
+            broadcastUserCount();
             return;
         }
 
@@ -366,6 +372,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             return;
         }
 
+        gameWebSocket.prepareGame(gameId);
+
         for (LobbyPlayer player : room.getPlayers()) {
             gameLobbyRoomByUsername.put(player.getName(), roomId);
             sendTextMessage(player.getSession(), "[COMPUTE_ROOM_GAME]:" + gameId + ":" + roomId);
@@ -377,9 +385,13 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     @Scheduled(fixedRate = 5000) // 5 seconds
     private void shortIntervalOperations() throws IOException {
-        broadcastUserCount();
         checkForRejoinableGameRoom();
         broadcastRooms();
+    }
+
+    @Scheduled(fixedRate = 5000) // fallback in case a WebSocket lifecycle event is missed
+    private void userCountFallback() throws IOException {
+        broadcastUserCount();
     }
 
     @Scheduled(fixedRate = 30000) // 30 seconds
@@ -450,6 +462,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             }
 
             String newGameId = username1 + "‗" + username2;
+            gameWebSocket.prepareGame(newGameId);
 
             if (!gameWebSocket.createGameRoom(newGameId, username1, username2)) {
                 continue;
@@ -547,14 +560,26 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 .map(WebSocketSession::getPrincipal)
                 .filter(Objects::nonNull)
                 .map(Principal::getName)
+                .distinct()
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .toList();
         String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(lobbyPlayers);
+        String userCountMessage = "[USER_COUNT]:" + getTotalSessionCount();
+        String quickPlayCountMessage = "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size();
 
         for (WebSocketSession session : globalActiveSessions) {
-            sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
-            sendTextMessage(session, "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size());
+            sendTextMessage(session, userCountMessage);
+            sendTextMessage(session, quickPlayCountMessage);
             sendTextMessage(session, lobbyPlayersMessage);
+        }
+    }
+
+    @EventListener
+    public void handleOnlinePlayerCountChanged(OnlinePlayerCountChangedEvent ignored) {
+        try {
+            broadcastUserCount();
+        } catch (IOException e) {
+            System.err.println("Failed to broadcast online player count: " + e.getMessage());
         }
     }
 
@@ -571,8 +596,23 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private int getTotalSessionCount() {
-        int inGameSessionCount = gameWebSocket.gameRooms.size() * 2;
-        return globalActiveSessions.size() + inGameSessionCount;
+        Set<String> activePlayerNames = new HashSet<>();
+
+        globalActiveSessions.stream()
+                .map(WebSocketSession::getPrincipal)
+                .filter(Objects::nonNull)
+                .map(Principal::getName)
+                .forEach(activePlayerNames::add);
+
+        gameWebSocket.gameRooms.values().stream()
+                .flatMap(gameRoom -> gameRoom.getSessions().stream())
+                .filter(WebSocketSession::isOpen)
+                .map(WebSocketSession::getPrincipal)
+                .filter(Objects::nonNull)
+                .map(Principal::getName)
+                .forEach(activePlayerNames::add);
+
+        return activePlayerNames.size();
     }
 
     private RoomDTO getRoomDTO(Room room) {

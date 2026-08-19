@@ -193,7 +193,7 @@ export type State = BoardState & {
      * Should be refactored.
      */
     cardToSend: { card: CardTypeGame; location: string } | null;
-    inheritCardInfo: string[];
+    inheritCardInfo: InheritedCardInfo[];
     linkCardInfo: { dp: number; effect: string }[];
     setLinkCardInfo: (linkCardInfo: { dp: number; effect: string }[]) => void;
     getLinkCardsForLocation: (location: string) => CardTypeGame[];
@@ -257,7 +257,7 @@ export type State = BoardState & {
     setBootStage: (phase: BootStage) => void;
     setGameId: (gameId: string) => void;
     setGameLobbyRoomId: (roomId: string) => void;
-    setInheritCardInfo: (inheritedEffects: string[]) => void;
+    setInheritCardInfo: (inheritedEffects: InheritedCardInfo[]) => void;
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;
     getCardLocationById: (id: string) => string;
     toggleIsHandHidden: () => void;
@@ -273,6 +273,13 @@ export type State = BoardState & {
 
     markedCard: string;
     setMarkedCard: (cardId: string) => void;
+};
+
+export type InheritedCardInfo = {
+    id: string;
+    name: string;
+    level?: number;
+    effect: string;
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];

@@ -181,9 +181,13 @@ export const useDeckStates = create<State>((set, get) => ({
         set({ isLoading: true });
         axios
             .get("/api/profile/decks")
-            .then((res) => {
-                if (!Array.isArray(res.data)) throw new Error("Deck API returned a non-array response");
-                set({ decks: res.data });
+            .then((res) => res.data)
+            .catch((error) => {
+                console.error(error);
+                return [];
+            })
+            .then((data) => {
+                set({ decks: data });
             })
             .catch(console.error)
             .finally(() => set({ isLoading: false }));
