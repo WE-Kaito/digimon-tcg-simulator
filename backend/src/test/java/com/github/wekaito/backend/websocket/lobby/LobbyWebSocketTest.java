@@ -1,107 +1,158 @@
 package com.github.wekaito.backend.websocket.lobby;
 
+import com.github.wekaito.backend.DeckService;
+import com.github.wekaito.backend.StarterDeckService;
+import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.models.ChatMessage;
+import com.github.wekaito.backend.models.Deck;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import com.github.wekaito.backend.websocket.TestWebSocketSession;
+import com.github.wekaito.backend.websocket.game.GameWebSocket;
+import com.github.wekaito.backend.websocket.game.models.GameRoom;
+import com.github.wekaito.backend.websocket.game.models.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
-import org.springframework.web.socket.WebSocketSession;
 
-import java.lang.reflect.Proxy;
-import java.security.Principal;
-import java.util.ArrayList;
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class LobbyWebSocketTest {
-
-    private MongoUserDetailsService userDetailsService;
     private LobbyWebSocket lobbyWebSocket;
+    private GameWebSocket gameWebSocket;
+    private TestUserDetailsService userDetailsService;
 
     @BeforeEach
-    void setUp() {
-        userDetailsService = mock(MongoUserDetailsService.class);
-        lobbyWebSocket = new LobbyWebSocket(userDetailsService, null, null);
+    void setUp() throws Exception {
+        userDetailsService = new TestUserDetailsService();
+        lobbyWebSocket = new LobbyWebSocket(userDetailsService, new TestDeckService(), null);
+        gameWebSocket = new GameWebSocket(null, null, null, event -> { });
+
+        Field gameWebSocketField = LobbyWebSocket.class.getDeclaredField("gameWebSocket");
+        gameWebSocketField.setAccessible(true);
+        gameWebSocketField.set(lobbyWebSocket, gameWebSocket);
+    }
+
+    @Test
+    void enteringLobbyImmediatelyBroadcastsTheUpdatedCount() throws Exception {
+        TestWebSocketSession session = new TestWebSocketSession("lobby-1", "Aaron");
+
+        lobbyWebSocket.afterConnectionEstablished(session);
+
+        assertThat(session.getMessages())
+                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[\"Aaron\"]");
+    }
+
+    @Test
+    void countRequestBroadcastsDistinctLobbyAndGamePlayers() throws Exception {
+        TestWebSocketSession lobbySession = new TestWebSocketSession("lobby-1", "Aaron");
+        lobbyWebSocket.getGlobalActiveSessions().add(lobbySession);
+
+        GameRoom gameRoom = gameRoom("Aaron", "Beatrice");
+        gameRoom.addSession(new TestWebSocketSession("game-1", "Aaron"));
+        gameRoom.addSession(new TestWebSocketSession("game-2", "Beatrice"));
+        gameWebSocket.getGameRooms().put(gameRoom.getRoomId(), gameRoom);
+
+        lobbyWebSocket.handleTextMessage(lobbySession, new TextMessage("/requestUserCount"));
+
+        assertThat(lobbySession.getMessages()).contains("[USER_COUNT]:2");
+    }
+
+    @Test
+    void leavingLobbyImmediatelyBroadcastsTheUpdatedCount() throws Exception {
+        TestWebSocketSession leavingSession = new TestWebSocketSession("lobby-1", "Aaron");
+        TestWebSocketSession remainingSession = new TestWebSocketSession("lobby-2", "Beatrice");
+        lobbyWebSocket.getGlobalActiveSessions().add(leavingSession);
+        lobbyWebSocket.getGlobalActiveSessions().add(remainingSession);
+
+        lobbyWebSocket.afterConnectionClosed(leavingSession, CloseStatus.NORMAL);
+
+        assertThat(remainingSession.getMessages())
+                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[\"Beatrice\"]");
     }
 
     @Test
     void blockedAuthorsAreMutedForTheBlockingUserOnly() throws Exception {
-        TestSession author = new TestSession("blocked-user");
-        TestSession blocker = new TestSession("blocking-user");
-        TestSession otherUser = new TestSession("other-user");
-        when(userDetailsService.getBlockedAccounts("blocking-user")).thenReturn(List.of("blocked-user"));
-        when(userDetailsService.getBlockedAccounts("blocked-user")).thenReturn(List.of());
-        when(userDetailsService.getBlockedAccounts("other-user")).thenReturn(List.of());
-        lobbyWebSocket.getGlobalActiveSessions().addAll(
-                List.of(author.session(), blocker.session(), otherUser.session())
-        );
+        TestWebSocketSession author = new TestWebSocketSession("lobby-1", "blocked-user");
+        TestWebSocketSession blocker = new TestWebSocketSession("lobby-2", "blocking-user");
+        TestWebSocketSession otherUser = new TestWebSocketSession("lobby-3", "other-user");
+        userDetailsService.block("blocking-user", "blocked-user");
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(author, blocker, otherUser));
 
-        lobbyWebSocket.handleTextMessage(author.session(), new TextMessage("/chatMessage:hidden message"));
+        lobbyWebSocket.handleTextMessage(author, new TextMessage("/chatMessage:hidden message"));
 
-        assertFalse(hasChatMessage(blocker, "hidden message"));
-        assertTrue(hasChatMessage(author, "hidden message"));
-        assertTrue(hasChatMessage(otherUser, "hidden message"));
+        assertThat(blocker.getMessages()).noneMatch(message -> message.contains("hidden message"));
+        assertThat(author.getMessages()).anyMatch(message -> message.contains("hidden message"));
+        assertThat(otherUser.getMessages()).anyMatch(message -> message.contains("hidden message"));
     }
 
     @Test
     void blockedAuthorsAreRemovedFromChatHistoryButServerMessagesRemain() {
-        TestSession blocker = new TestSession("blocking-user");
-        when(userDetailsService.getBlockedAccounts("blocking-user")).thenReturn(List.of("blocked-user"));
+        TestWebSocketSession blocker = new TestWebSocketSession("lobby-1", "blocking-user");
+        userDetailsService.block("blocking-user", "blocked-user");
         lobbyWebSocket.getGlobalChatMessages().clear();
         lobbyWebSocket.getGlobalChatMessages().add(new ChatMessage("hidden message", "blocked-user"));
         lobbyWebSocket.getGlobalChatMessages().add(new ChatMessage("visible message", "other-user"));
         lobbyWebSocket.getGlobalChatMessages().add(new ChatMessage("server message", "【SERVER】"));
 
-        List<ChatMessage> visibleMessages = lobbyWebSocket.getVisibleGlobalChatMessages(blocker.session());
+        List<ChatMessage> visibleMessages = lobbyWebSocket.getVisibleGlobalChatMessages(blocker);
 
-        assertEquals(2, visibleMessages.size());
-        assertFalse(visibleMessages.stream().anyMatch(message -> message.author().equals("blocked-user")));
-        assertTrue(visibleMessages.stream().anyMatch(message -> message.author().equals("other-user")));
-        assertTrue(visibleMessages.stream().anyMatch(message -> message.author().equals("【SERVER】")));
+        assertThat(visibleMessages).extracting(ChatMessage::author)
+                .containsExactly("other-user", "【SERVER】");
     }
 
-    private boolean hasChatMessage(TestSession session, String message) {
-        return session.messages().stream()
-                .anyMatch(payload -> payload.startsWith("[CHAT_MESSAGE]:") && payload.contains(message));
+    private GameRoom gameRoom(String playerOne, String playerTwo) {
+        return new GameRoom(
+                playerOne + "‗" + playerTwo,
+                new Player(playerOne, "", "", ""),
+                List.of(),
+                List.of(),
+                new Player(playerTwo, "", "", ""),
+                List.of(),
+                List.of()
+        );
     }
 
-    private record TestSession(WebSocketSession session, List<String> messages) {
-        TestSession(String username) {
-            this(createSession(username));
+    private static class TestUserDetailsService extends MongoUserDetailsService {
+        private final Map<String, List<String>> blockedAccounts = new HashMap<>();
+
+        TestUserDetailsService() {
+            super(null, (StarterDeckService) null);
         }
 
-        private TestSession(SessionFixture fixture) {
-            this(fixture.session(), fixture.messages());
+        void block(String username, String blockedUsername) {
+            blockedAccounts.put(username, List.of(blockedUsername));
         }
 
-        private static SessionFixture createSession(String username) {
-            List<String> messages = new ArrayList<>();
-            Principal principal = () -> username;
-            WebSocketSession session = (WebSocketSession) Proxy.newProxyInstance(
-                    WebSocketSession.class.getClassLoader(),
-                    new Class<?>[]{WebSocketSession.class},
-                    (proxy, method, args) -> switch (method.getName()) {
-                        case "getPrincipal" -> principal;
-                        case "isOpen" -> true;
-                        case "sendMessage" -> {
-                            WebSocketMessage<?> message = (WebSocketMessage<?>) args[0];
-                            messages.add(message.getPayload().toString());
-                            yield null;
-                        }
-                        case "hashCode" -> System.identityHashCode(proxy);
-                        case "equals" -> proxy == args[0];
-                        default -> null;
-                    }
-            );
-            return new SessionFixture(session, messages);
+        @Override
+        public String getActiveDeck(String username) {
+            return "deck-id";
+        }
+
+        @Override
+        public List<String> getBlockedAccounts(String username) {
+            return blockedAccounts.getOrDefault(username, List.of());
         }
     }
 
-    private record SessionFixture(WebSocketSession session, List<String> messages) {}
+    private static class TestDeckService extends DeckService {
+        TestDeckService() {
+            super(null, null, null);
+        }
+
+        @Override
+        public Deck getDeckById(String id) {
+            return new Deck(id, "Test", List.of(), List.of(), "", "", "", "Aaron");
+        }
+
+        @Override
+        public List<Card> getMainDeckCardsById(String id) {
+            return List.of();
+        }
+    }
 }

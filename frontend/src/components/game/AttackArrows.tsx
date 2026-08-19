@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 // @ts-expect-error cannot find module 'react-arrows', installing dev dependencies didn't help
 import Arrow, { DIRECTION, HEAD } from "react-arrows";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import { getSameSideDirection } from "../../utils/effectTargeting.ts";
 
 const opponentBALocations = [
     "opponentDigi1",
@@ -28,6 +29,23 @@ export default function AttackArrows() {
     const isEffectArrow = useGameUIStates((state) => state.isEffectArrow);
 
     const isFromOpponent = opponentBALocations.includes(arrowFrom);
+    const sameSideDirection = isEffectArrow
+        ? getSameSideDirection(arrowFrom, arrowTo)
+        : null;
+    const fromDirection = sameSideDirection
+        ? sameSideDirection === "right"
+            ? DIRECTION.RIGHT
+            : DIRECTION.LEFT
+        : isFromOpponent
+          ? DIRECTION.BOTTOM
+          : DIRECTION.TOP;
+    const toDirection = sameSideDirection
+        ? sameSideDirection === "right"
+            ? DIRECTION.LEFT
+            : DIRECTION.RIGHT
+        : isFromOpponent
+          ? DIRECTION.TOP
+          : DIRECTION.BOTTOM;
 
     if (!arrowFrom || !arrowTo) return <></>;
 
@@ -36,13 +54,19 @@ export default function AttackArrows() {
             isFromOpponent={isFromOpponent}
             isEffect={isEffectArrow}
             from={{
-                direction: isFromOpponent ? DIRECTION.BOTTOM : DIRECTION.TOP,
-                node: () => document.getElementById(arrowFrom),
+                direction: fromDirection,
+                node: () =>
+                    document.getElementById(
+                        sameSideDirection ? `${arrowFrom}-effect-anchor` : arrowFrom
+                    ),
                 translation: [0, 0],
             }}
             to={{
-                direction: isFromOpponent ? DIRECTION.TOP : DIRECTION.BOTTOM,
-                node: () => document.getElementById(arrowTo),
+                direction: toDirection,
+                node: () =>
+                    document.getElementById(
+                        sameSideDirection ? `${arrowTo}-effect-anchor` : arrowTo
+                    ),
                 translation: [0, 0],
             }}
             head={HEAD.NONE}
