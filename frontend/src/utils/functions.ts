@@ -124,3 +124,4 @@ export function getNumericModifier(value: number, isSetting?: boolean) {
 }
 
 export const numbersWithModifiers = ["BT12-092", "BT17-087", "BT13-095", "BT13-099", "EX2-007", "BT21-086"];
+export const cardTypesWithModifiers = ["Digimon", "Digimon/Option"];

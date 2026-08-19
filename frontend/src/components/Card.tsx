@@ -1,7 +1,11 @@
 import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
-import { tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
+import {
+    InheritedCardInfo,
+    tamerLocations,
+    useGameBoardStates,
+} from "../hooks/useGameBoardStates.ts";
 import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import Lottie from "lottie-react";
@@ -9,6 +13,7 @@ import activateEffectAnimation from "../assets/lotties/activate-effect-animation
 import targetAnimation from "../assets/lotties/target-animation.json";
 import suspendedAPNG from "../assets/lotties/square-sparkle-apng.png";
 import { ContentCopyTwoTone as DragStackIcon, Shield as ShieldIcon } from "@mui/icons-material";
+import AddModeratorIcon from "@mui/icons-material/AddModerator";
 import cardBackSrc from "../assets/cardBack.jpg";
 import { useSound } from "../hooks/useSound.ts";
 import { getSleeve } from "../utils/sleeves.ts";
@@ -19,6 +24,7 @@ import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
 import { extractStandaloneEffectKeywords } from "../utils/effectKeywords.ts";
+import { EffectTargetPayload } from "../utils/effectTargeting.ts";
 
 const myDigimonLocations = [
     "myDigi1",
@@ -139,15 +145,18 @@ const locationsWithInheritedInfo = ["myBreedingArea", "opponentBreedingArea", ..
 
 const locationsWithAdditionalInfo = [...locationsWithInheritedInfo, ...tamerLocations];
 
-function topCardInfo(locationCards: CardTypeGame[]) {
-    if (locationCards.length <= 1) return "";
-    const effectInfo = [""];
-    locationCards.forEach((card, index) => {
-        if (index === locationCards.length - 1 || !card.inheritedEffect || !card.isFaceUp) return;
-        effectInfo.push(card.inheritedEffect);
-    });
-    effectInfo.reverse();
-    return effectInfo.join("\n");
+function topCardInfo(locationCards: CardTypeGame[]): InheritedCardInfo[] {
+    if (locationCards.length <= 1) return [];
+    return locationCards
+        .slice(0, -1)
+        .filter((card) => Boolean(card.inheritedEffect && card.isFaceUp))
+        .map((card) => ({
+            id: card.id,
+            name: card.name,
+            level: card.level,
+            effect: card.inheritedEffect!,
+        }))
+        .reverse();
 }
 
 function topCardInfoLink(locationCards: CardTypeGame[]) {
@@ -230,6 +239,8 @@ export default function Card(props: CardProps) {
     const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
     const stackDraggedLocation = useGameUIStates((state) => state.stackDraggedLocation);
     const setStackDraggedLocation = useGameUIStates((state) => state.setStackDraggedLocation);
+    const effectTargeting = useGameUIStates((state) => state.effectTargeting);
+    const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -316,13 +327,41 @@ export default function Card(props: CardProps) {
     }
     const [hoveredId, setHoveredId] = useState<string>("");
 
-    const inheritedEffects = topCardInfo(locationCards ?? []).split("\n");
+    const inheritedEffects = topCardInfo(locationCards ?? []);
     const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
+    const isTopFieldCard = tamerLocations.includes(location)
+        ? index === 0
+        : index === locationCards.length - 1;
+    const isEffectTargetCandidate =
+        Boolean(effectTargeting) &&
+        isTopFieldCard &&
+        !isCardFaceDown &&
+        [...digimonLocations, ...tamerLocations, "myBreedingArea", "opponentBreedingArea"].includes(location);
+    const isEffectSource = effectTargeting?.sourceCardId === card.id;
 
     const linkCardsForLocation = getLinkCardsForLocation(location);
     const linkCardInfo = topCardInfoLink(linkCardsForLocation);
 
     function handleClick(event: React.MouseEvent) {
+        if (effectTargeting) {
+            event.stopPropagation();
+            if (isEffectTargetCandidate && wsUtils) {
+                const payload: EffectTargetPayload = {
+                    sourceCardId: effectTargeting.sourceCardId,
+                    effectSourceCardId: effectTargeting.effectSourceCardId,
+                    targetCardId: card.id,
+                    sourceLocation: effectTargeting.sourceLocation,
+                    targetLocation: location,
+                    timing: effectTargeting.timing,
+                    effectText: effectTargeting.effectText,
+                };
+                wsUtils.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`
+                );
+                cancelEffectTargeting();
+            }
+            return;
+        }
         if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;
         event.stopPropagation();
         selectCard(card);
@@ -359,11 +398,11 @@ export default function Card(props: CardProps) {
             setLinkCardInfo([]);
             return;
         }
-        const inhEff = topCardInfo(locationCardsOfSelected).split("\n");
+        const inhEff = topCardInfo(locationCardsOfSelected);
         const inhAll =
             selectedCard.id === locationCardsOfSelected.at(-1)?.id &&
             locationsWithInheritedInfo.includes(selectedCardLocation);
-        if (!inhEff[0].length) setInheritCardInfo([]);
+        if (!inhEff.length) setInheritCardInfo([]);
         else if (inhAll) setInheritCardInfo(inhEff);
 
         const linkInfo = topCardInfoLink(getLinkCardsForLocation(selectedCardLocation));
@@ -528,7 +567,7 @@ export default function Card(props: CardProps) {
                                     )}
                                     <KeywordWrapper>
                                         {displayedKeywords
-                                            .filter((w) => w !== "SICK" && w !== "TAUNT")
+                                            .filter((w) => w !== "SICK" && w !== "TAUNT" && w !== "IMMUNE")
                                             .map((keyword) => (
                                                 <ModifierSpan keyword={keyword} key={`${keyword}_${card.id}`}>
                                                     <span>{keyword}</span>
@@ -585,6 +624,11 @@ export default function Card(props: CardProps) {
                         <TauntPulseOverlay data-testid="taunt-pulse-overlay" />
                     </CardAnimationContainer>
                 )}
+                {card.modifiers.keywords.includes("IMMUNE") && (
+                    <ImmuneIconOverlay data-testid="immune-icon-overlay" title="Unaffected by effects">
+                        <AddModeratorIcon fontSize="small" />
+                    </ImmuneIconOverlay>
+                )}
 
                 <StyledImage
                     style={{
@@ -593,7 +637,18 @@ export default function Card(props: CardProps) {
                             filter: "brightness(0.5) saturate(1.25) hue-rotate(30deg)",
                         }),
                         ...(markedCard === card.id && { outline: "3px solid red" }),
+                        ...(isEffectSource && {
+                            outline: "3px solid #ff1744",
+                            filter: "brightness(1.12) drop-shadow(0 0 8px #ff1744)",
+                        }),
+                        ...(isEffectTargetCandidate &&
+                            isHovered && {
+                                outline: "3px solid #ff5252",
+                                filter: "brightness(1.1) drop-shadow(0 0 7px #ff1744)",
+                            }),
                     }}
+                    data-effect-source={isEffectSource || undefined}
+                    data-effect-target-card={isEffectTargetCandidate || undefined}
                     className={opponentFieldLocations?.includes(location) ? undefined : "custom-hand-cursor"}
                     onClick={handleClick}
                     onTouchStartCapture={() => index !== undefined && isStackDragMode && setStackSliceIndex(index)}
@@ -743,6 +798,39 @@ const TauntPulseOverlay = styled.div`
             box-shadow:
                 0 0 18px 6px rgba(255, 0, 0, 0.95),
                 inset 0 0 14px 4px rgba(255, 0, 0, 0.75);
+        }
+    }
+`;
+
+const ImmuneIconOverlay = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 16000;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid rgba(190, 235, 255, 0.9);
+    border-radius: 50%;
+    background: rgba(8, 31, 48, 0.88);
+    color: #9fe4ff;
+    pointer-events: none;
+    animation: immune-pulse 1.25s ease-in-out infinite;
+
+    @keyframes immune-pulse {
+        0%,
+        100% {
+            transform: translate(-50%, -50%) scale(0.92);
+            box-shadow: 0 0 4px 1px rgba(71, 190, 255, 0.45);
+            filter: brightness(0.9);
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.08);
+            box-shadow:
+                0 0 10px 3px rgba(71, 190, 255, 0.95),
+                0 0 18px 5px rgba(71, 190, 255, 0.35);
+            filter: brightness(1.25);
         }
     }
 `;

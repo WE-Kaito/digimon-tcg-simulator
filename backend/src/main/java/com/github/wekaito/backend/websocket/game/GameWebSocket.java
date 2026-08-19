@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wekaito.backend.models.Card;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import com.github.wekaito.backend.websocket.OnlinePlayerCountChangedEvent;
 import com.github.wekaito.backend.websocket.game.models.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -31,8 +33,11 @@ public class GameWebSocket extends TextWebSocketHandler {
     
     private final CardJsonConverter cardJsonConverter;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> roomIdBySessionId = new ConcurrentHashMap<>();
+    private final Set<String> blockedReconnectGameIds = ConcurrentHashMap.newKeySet();
     
     private static final ScheduledExecutorService SHARED_SCHEDULER = Executors.newScheduledThreadPool(10);
 
@@ -44,6 +49,8 @@ public class GameWebSocket extends TextWebSocketHandler {
         "player1Hand", "player1Deck", "player1EggDeck", "player1Trash", "player1Security", "player1BreedingArea",
         "player2Hand", "player2Deck", "player2EggDeck", "player2Trash", "player2Security", "player2BreedingArea"
     );
+    private static final int MAX_EFFECT_TIMING_LENGTH = 80;
+    private static final int MAX_EFFECT_TEXT_LENGTH = 2000;
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -72,6 +79,8 @@ public class GameWebSocket extends TextWebSocketHandler {
                 }
             }
         }
+
+        eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
     }
 
     @Override
@@ -91,6 +100,11 @@ public class GameWebSocket extends TextWebSocketHandler {
         GameRoom gameRoom = findGameRoomById(gameId);
 
         if (gameRoom == null || !gameRoom.getSessions().contains(session)) return;
+
+        if (roomMessage.equals("/surrender")) {
+            handleSurrender(gameRoom, session);
+            return;
+        }
 
         if(roomMessage.startsWith("/mulligan:")) {
             boolean currentPlayerDecision = roomMessage.split(":")[1].equals("true");
@@ -154,6 +168,11 @@ public class GameWebSocket extends TextWebSocketHandler {
             return;
         }
 
+        if (roomMessage.startsWith("/effectTarget:")) {
+            handleEffectTarget(gameRoom, session, roomMessage);
+            return;
+        }
+
         if (roomMessage.startsWith("/createToken:")) {
             handleCreateToken(gameRoom, session, roomMessage);
             return;
@@ -201,10 +220,142 @@ public class GameWebSocket extends TextWebSocketHandler {
         }
     }
 
+    private void handleEffectTarget(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
+        try {
+            EffectTargetPayload payload = objectMapper.readValue(
+                    roomMessage.substring("/effectTarget:".length()),
+                    EffectTargetPayload.class
+            );
+            String username = Objects.requireNonNull(session.getPrincipal()).getName();
+
+            if (!isValidEffectTargetPayload(payload)) {
+                rejectEffectTarget(gameRoom, session);
+                return;
+            }
+
+            BoardState boardState = gameRoom.getBoardState();
+            if (boardState == null) {
+                rejectEffectTarget(gameRoom, session);
+                return;
+            }
+
+            String sourceField = mapEffectLocationToServer(payload.sourceLocation(), username, gameRoom);
+            String targetField = mapEffectLocationToServer(payload.targetLocation(), username, gameRoom);
+            if (!boardState.hasField(sourceField) || !boardState.hasField(targetField)) {
+                rejectEffectTarget(gameRoom, session);
+                return;
+            }
+
+            GameCard sourceCard = findCardInField(boardState, sourceField, payload.sourceCardId());
+            GameCard targetCard = findCardInField(boardState, targetField, payload.targetCardId());
+            if (sourceCard == null || targetCard == null) {
+                rejectEffectTarget(gameRoom, session);
+                return;
+            }
+            GameCard effectSourceCard = null;
+            if (!isBlank(payload.effectSourceCardId())) {
+                effectSourceCard = findCardInField(boardState, sourceField, payload.effectSourceCardId());
+                if (effectSourceCard == null) {
+                    rejectEffectTarget(gameRoom, session);
+                    return;
+                }
+            }
+
+            EffectTargetEvent event = new EffectTargetEvent(
+                    username,
+                    payload.sourceCardId(),
+                    payload.effectSourceCardId(),
+                    payload.targetCardId(),
+                    payload.sourceLocation(),
+                    payload.targetLocation(),
+                    getFieldOwner(sourceField, gameRoom),
+                    getFieldOwner(targetField, gameRoom),
+                    sourceCard.getName(),
+                    effectSourceCard == null ? null : effectSourceCard.getName(),
+                    targetCard.getName(),
+                    payload.timing().trim(),
+                    payload.effectText().trim()
+            );
+            String eventJson = objectMapper.writeValueAsString(event);
+
+            storeChatMessage(gameRoom, username + "﹕[EFFECT_TARGET]≔" + eventJson);
+            gameRoom.sendMessagesToAll("[EFFECT_TARGET]:" + eventJson);
+        } catch (Exception ignored) {
+            rejectEffectTarget(gameRoom, session);
+        }
+    }
+
+    private boolean isValidEffectTargetPayload(EffectTargetPayload payload) {
+        if (payload == null ||
+                isBlank(payload.sourceCardId()) ||
+                isBlank(payload.targetCardId()) ||
+                isBlank(payload.sourceLocation()) ||
+                isBlank(payload.targetLocation()) ||
+                isBlank(payload.timing()) ||
+                isBlank(payload.effectText())) {
+            return false;
+        }
+        if (payload.timing().length() > MAX_EFFECT_TIMING_LENGTH ||
+                payload.effectText().length() > MAX_EFFECT_TEXT_LENGTH ||
+                !isOwnEffectField(payload.sourceLocation()) ||
+                !isEffectField(payload.targetLocation())) {
+            return false;
+        }
+        try {
+            UUID.fromString(payload.sourceCardId());
+            UUID.fromString(payload.targetCardId());
+            if (!isBlank(payload.effectSourceCardId())) {
+                UUID.fromString(payload.effectSourceCardId());
+            }
+            return true;
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private boolean isOwnEffectField(String location) {
+        return location.equals("myBreedingArea") || location.matches("myDigi(?:[1-9]|1\\d|2[01])");
+    }
+
+    private boolean isEffectField(String location) {
+        return location.matches("(?:my|opponent)Digi(?:[1-9]|1\\d|2[01])") ||
+                location.matches("(?:my|opponent)BreedingArea");
+    }
+
+    private String mapEffectLocationToServer(String location, String username, GameRoom gameRoom) {
+        boolean senderIsPlayer1 = gameRoom.getPlayer1().username().equals(username);
+        boolean senderSide = location.startsWith("my");
+        int playerNumber = senderSide == senderIsPlayer1 ? 1 : 2;
+        String suffix = location.startsWith("opponent")
+                ? location.substring("opponent".length())
+                : location.substring("my".length());
+        return "player" + playerNumber + suffix;
+    }
+
+    private GameCard findCardInField(BoardState boardState, String field, String cardId) {
+        return boardState.getFieldByName(field).stream()
+                .filter(card -> card.getId() != null && card.getId().toString().equals(cardId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String getFieldOwner(String field, GameRoom gameRoom) {
+        return field.startsWith("player1")
+                ? gameRoom.getPlayer1().username()
+                : gameRoom.getPlayer2().username();
+    }
+
+    private void rejectEffectTarget(GameRoom gameRoom, WebSocketSession session) {
+        gameRoom.sendMessage(session, "[COMMAND_REJECTED]:effectTarget");
+    }
+
     /* These actions do not alter the board state, therefore do not need a separate handler */
     private String convertCommand(String command) {
         return switch (command) {
-            case "/surrender" -> "[SURRENDER]";
             case "/restartRequestAsFirst" -> "[RESTART_AS_FIRST]";
             case "/restartRequestAsSecond" -> "[RESTART_AS_SECOND]";
             case "/acceptRestart" -> "[ACCEPT_RESTART]";
@@ -239,6 +390,21 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     private GameRoom findGameRoomById(String gameId) {
         return gameRooms.get(gameId);
+    }
+
+    public void prepareGame(String gameId) {
+        blockedReconnectGameIds.remove(gameId);
+    }
+
+    private void handleSurrender(GameRoom gameRoom, WebSocketSession surrenderingSession) {
+        String gameId = gameRoom.getRoomId();
+        blockedReconnectGameIds.add(gameId);
+        gameRoom.sendMessageToOtherSessions(surrenderingSession, "[SURRENDER]");
+
+        if (gameRooms.remove(gameId, gameRoom)) {
+            gameRoom.cancelAllScheduledTasks();
+            roomIdBySessionId.entrySet().removeIf(entry -> gameId.equals(entry.getValue()));
+        }
     }
 
     public Optional<GameRoom> findGameRoomBySession(WebSocketSession session) {
@@ -479,6 +645,8 @@ public class GameWebSocket extends TextWebSocketHandler {
         boolean shouldStartScheduledTasks = false;
 
         if (gameRoom == null) {
+            if (blockedReconnectGameIds.contains(gameId)) return;
+
             String[] usernames = gameId.split("‗");
             String joiningUsername = session.getPrincipal() == null ? null : session.getPrincipal().getName();
             if (usernames.length != 2 || joiningUsername == null || Arrays.stream(usernames).noneMatch(joiningUsername::equals)) {
@@ -535,6 +703,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
+        eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency
 
