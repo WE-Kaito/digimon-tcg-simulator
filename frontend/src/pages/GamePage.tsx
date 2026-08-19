@@ -33,6 +33,7 @@ import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
+import EffectTargetCursor from "../components/game/EffectTargetCursor.tsx";
 
 /**
  * To be used in Game components to send messages to multiplayer opponent through WebSocket
@@ -238,6 +239,7 @@ export default function GamePage() {
             <GameBackground />
             <ContextMenus wsUtils={wsUtils} />
             <AttackArrows />
+            <EffectTargetCursor />
             <TokenModal wsUtils={wsUtils} />
             <EndModal />
             <RestartPromptModal wsUtils={wsUtils} />
