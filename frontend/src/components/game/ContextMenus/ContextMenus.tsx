@@ -15,9 +15,9 @@ import {
     PreviewRounded as StreamerModeIcon,
     LabelImportant as MarkerIcon,
 } from "@mui/icons-material";
-import { CSSProperties } from "react";
+import { CSSProperties, useCallback, useEffect, useRef } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
-import { convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
+import { cardTypesWithModifiers, convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useSound } from "../../../hooks/useSound.ts";
@@ -27,6 +27,25 @@ import { WSUtils } from "../../../pages/GamePage.tsx";
 import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
+    const previousPageOverflow = useRef<{ body: string; document: string } | null>(null);
+
+    const setPageScrollLocked = useCallback((isLocked: boolean) => {
+        if (isLocked && !previousPageOverflow.current) {
+            previousPageOverflow.current = {
+                body: document.body.style.overflow,
+                document: document.documentElement.style.overflow,
+            };
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
+        } else if (!isLocked && previousPageOverflow.current) {
+            document.body.style.overflow = previousPageOverflow.current.body;
+            document.documentElement.style.overflow = previousPageOverflow.current.document;
+            previousPageOverflow.current = null;
+        }
+    }, []);
+
+    useEffect(() => () => setPageScrollLocked(false), [setPageScrollLocked]);
+
     const { sendMessage, sendChatMessage, sendSfx, matchInfo, sendMoveCard } = wsUtils ?? {};
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
@@ -67,7 +86,8 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
 
     const hasModifierMenu =
-        contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
+        cardTypesWithModifiers.includes(String(contextCard?.cardType)) ||
+        numbersWithModifiers.includes(String(contextCard?.cardNumber));
     const isTamer = contextCard?.cardType.includes("Tamer") ?? false;
     const isStunned = contextCard?.modifiers.keywords.includes("SICK") ?? false;
     const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute" };
@@ -244,7 +264,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                 </Item>
             </StyledMenu>
 
-            <StyledMenu id={"fieldCardMenu"} theme="dark">
+            <StyledMenu id={"fieldCardMenu"} theme="dark" onVisibilityChange={setPageScrollLocked}>
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />

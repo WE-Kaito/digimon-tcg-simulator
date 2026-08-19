@@ -2,8 +2,89 @@ import styled from "@emotion/styled";
 import KeywordTooltip from "./KeywordTooltip.tsx";
 import { JSX } from "react";
 import { uid } from "uid";
+import { useLocation } from "react-router-dom";
+import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
+import { tamerLocations, useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
+import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import {
+    EFFECT_TIMINGS,
+    EffectTimingGroup,
+    parseEffectTimingGroups,
+} from "../../utils/effectTiming.ts";
+import type { CardTypeGame } from "../../utils/types.ts";
 
-export default function HighlightedKeyWords({ text }: { text: string }): JSX.Element | JSX.Element[] {
+const EMPTY_SOURCE_CARDS: CardTypeGame[] = [];
+
+export default function HighlightedKeyWords({
+    text,
+    effectSourceCardId,
+}: {
+    text: string;
+    effectSourceCardId?: string;
+}): JSX.Element | JSX.Element[] {
+    const location = useLocation();
+    const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const hoverCard = useGeneralStates((state) => state.hoverCard);
+    const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
+    const effectTargeting = useGameUIStates((state) => state.effectTargeting);
+    const startEffectTargeting = useGameUIStates((state) => state.startEffectTargeting);
+    const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+
+    const sourceLocation = getCardLocationById(selectedCard?.id ?? "");
+    const sourceCards = useGameBoardStates(
+        (state) =>
+            (sourceLocation
+                ? (state[sourceLocation as keyof typeof state] as unknown)
+                : EMPTY_SOURCE_CARDS) as CardTypeGame[]
+    );
+    const sourceIsTamer = tamerLocations.includes(sourceLocation);
+    const sourceIsTopCard =
+        selectedCard?.id === (sourceIsTamer ? sourceCards.at(0)?.id : sourceCards.at(-1)?.id);
+    const sourceIsFaceUp = Boolean(selectedCard && "isFaceUp" in selectedCard && selectedCard.isFaceUp);
+    const sourceIsOnMyField = sourceLocation === "myBreedingArea" || /^myDigi(?:[1-9]|1\d|2[01])$/.test(sourceLocation);
+    const detailsMatchSelection = !hoverCard || hoverCard.id === selectedCard?.id;
+    const canStartTargeting =
+        location.pathname === "/game" &&
+        Boolean(selectedCard) &&
+        sourceIsFaceUp &&
+        sourceIsTopCard &&
+        sourceIsOnMyField &&
+        detailsMatchSelection;
+
+    const effectGroups = parseEffectTimingGroups(text);
+    const timingGroupAt = (index: number) =>
+        effectGroups.find((group) => group.timingTokens.some((token) => token.start === index && token.actionable));
+
+    function handleTimingSelection(group: EffectTimingGroup, timing: string) {
+        if (!canStartTargeting || !selectedCard) return;
+        const effectSourceCard = effectSourceCardId
+            ? sourceCards.find((card) => card.id === effectSourceCardId && card.isFaceUp)
+            : sourceCards.find(
+                  (card) =>
+                      card.id !== selectedCard.id &&
+                      card.isFaceUp &&
+                      card.inheritedEffect === text
+              );
+
+        if (
+            effectTargeting?.sourceCardId === selectedCard.id &&
+            effectTargeting.timing === timing &&
+            effectTargeting.effectText === group.effectText
+        ) {
+            cancelEffectTargeting();
+            return;
+        }
+
+        startEffectTargeting({
+            sourceCardId: selectedCard.id,
+            effectSourceCardId: effectSourceCard?.id,
+            sourceLocation,
+            sourceName: selectedCard.name,
+            timing,
+            effectText: group.effectText,
+        });
+    }
+
     let highlightedText = text;
 
     if (text.startsWith("[DNA Digivolve]"))
@@ -36,6 +117,17 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
             // [keywords]
 
             if (timings.includes(match[2])) {
+                const timingLabel = match[2];
+                const effectGroup = timingGroupAt(match.index);
+                const clickable = Boolean(effectGroup && canStartTargeting);
+                const active =
+                    effectTargeting?.sourceCardId === selectedCard?.id &&
+                    effectTargeting?.timing === timingLabel &&
+                    effectTargeting?.effectText === effectGroup?.effectText;
+                const selectTiming = () => {
+                    if (effectGroup) handleTimingSelection(effectGroup, timingLabel);
+                };
+
                 highlightedParts.push(
                     <HighlightedSquare
                         // workaround for BT19-100
@@ -47,6 +139,30 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
                                 : match[2]
                         }
                         key={id}
+                        $clickable={clickable}
+                        $active={active}
+                        data-effect-timing={clickable ? timingLabel : undefined}
+                        role={clickable ? "button" : undefined}
+                        tabIndex={clickable ? 0 : undefined}
+                        title={clickable ? `Target a card with ${timingLabel}` : undefined}
+                        onClick={
+                            clickable
+                                ? (event) => {
+                                      event.stopPropagation();
+                                      selectTiming();
+                                  }
+                                : undefined
+                        }
+                        onKeyDown={
+                            clickable
+                                ? (event) => {
+                                      if (event.key === "Enter" || event.key === " ") {
+                                          event.preventDefault();
+                                          selectTiming();
+                                      }
+                                  }
+                                : undefined
+                        }
                     >
                         {match[2]}
                     </HighlightedSquare>
@@ -95,7 +211,7 @@ export default function HighlightedKeyWords({ text }: { text: string }): JSX.Ele
     });
 }
 
-const HighlightedSquare = styled.span<{ word: string }>`
+const HighlightedSquare = styled.span<{ word: string; $clickable?: boolean; $active?: boolean }>`
     color: ghostwhite;
     background: ${({ word }) =>
         word === "Hand" || word.includes("Per Turn") || word === "Breeding" || word === "Trash"
@@ -104,6 +220,15 @@ const HighlightedSquare = styled.span<{ word: string }>`
     border-radius: 3px;
     padding: 4px 3px 2px 3px;
     margin-right: 2px;
+    cursor: ${({ $clickable }) => ($clickable ? "crosshair" : "inherit")};
+    outline: ${({ $active }) => ($active ? "2px solid #ff5252" : "none")};
+    outline-offset: 2px;
+    filter: ${({ $active }) => ($active ? "drop-shadow(0 0 4px #ff1744)" : "none")};
+
+    &:hover {
+        filter: ${({ $clickable, $active }) =>
+            $clickable || $active ? "brightness(1.2) drop-shadow(0 0 4px #ff5252)" : "none"};
+    }
 `;
 
 const HighlightedAngle = styled.span`
@@ -174,32 +299,7 @@ const specialEffects = [
 
 const evolutionEffects = ["Digivolve", "App Fusion", "Arts Digivolve"];
 
-const timings = [
-    "On Play",
-    "When Digivolving",
-    "When Attacking",
-    "When Linking",
-    "End of Attack",
-    "On Deletion",
-    "Your Turn",
-    "All Turns",
-    "Opponent's Turn",
-    "End of Opponent's Turn",
-    "Start of Your Turn",
-    "End of Your Turn",
-    "Enf of Opponent's Turn",
-    "Security",
-    "Main",
-    "Start of Your Main Phase",
-    "Start of Opponent's Main Phase",
-    "Once Per Turn",
-    "Twice Per Turn",
-    "Trash",
-    "Hand",
-    "Breeding",
-    "Counter",
-    "End of All Turns",
-];
+const timings: readonly string[] = EFFECT_TIMINGS;
 
 function isTrait(trait: string) {
     switch (trait) {

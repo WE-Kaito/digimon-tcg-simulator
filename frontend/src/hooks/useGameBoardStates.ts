@@ -192,7 +192,7 @@ export type State = BoardState & {
      * Should be refactored.
      */
     cardToSend: { card: CardTypeGame; location: string } | null;
-    inheritCardInfo: string[];
+    inheritCardInfo: InheritedCardInfo[];
     linkCardInfo: { dp: number; effect: string }[];
     setLinkCardInfo: (linkCardInfo: { dp: number; effect: string }[]) => void;
     getLinkCardsForLocation: (location: string) => CardTypeGame[];
@@ -254,7 +254,7 @@ export type State = BoardState & {
     setCardToSend: (cardToSend: { card: CardTypeGame; location: string } | null) => void;
     setBootStage: (phase: BootStage) => void;
     setGameId: (gameId: string) => void;
-    setInheritCardInfo: (inheritedEffects: string[]) => void;
+    setInheritCardInfo: (inheritedEffects: InheritedCardInfo[]) => void;
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;
     getCardLocationById: (id: string) => string;
     toggleIsHandHidden: () => void;
@@ -269,6 +269,13 @@ export type State = BoardState & {
 
     markedCard: string;
     setMarkedCard: (cardId: string) => void;
+};
+
+export type InheritedCardInfo = {
+    id: string;
+    name: string;
+    level?: number;
+    effect: string;
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -934,7 +941,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setBootStage: (stage) => set({ bootStage: stage }),
 
     setGameId: (gameId) => {
-        localStorage.setItem("gameId", gameId);
+        if (gameId) localStorage.setItem("gameId", gameId);
+        else localStorage.removeItem("gameId");
         set({ gameId });
     },
 
