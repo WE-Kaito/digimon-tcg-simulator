@@ -21,10 +21,12 @@ import { useEffect, useRef, useState } from "react";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { notifyError } from "../../../utils/toasts.ts";
+import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
 
 export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const gameLobbyRoomId = useGameBoardStates((state) => state.gameLobbyRoomId);
+    const endedBySurrender = useGameUIStates((state) => state.endedBySurrender);
 
     const [restartRequestModal, setRestartRequestModal] = useState<boolean>(false);
     const [surrenderModal, setSurrenderModal] = useState<boolean>(false);
@@ -88,10 +90,17 @@ export default function OpponentBoardSide({ wsUtils }: { wsUtils?: WSUtils }) {
                     )}
                     <PanelButton
                         className={"button"}
-                        onClick={() => setRestartRequestModal(true)}
+                        aria-disabled={endedBySurrender}
+                        onClick={() => {
+                            if (!endedBySurrender) setRestartRequestModal(true);
+                        }}
+                        $disabled={endedBySurrender}
                         style={{ gridArea: "restart", transform: `translate(-4px, -${iconWidth / 5}px)` }}
                     >
-                        <RestartIcon className={"button"} sx={{ fontSize: iconWidth - 5, color: "mediumaquamarine" }} />
+                        <RestartIcon
+                            className={"button"}
+                            sx={{ fontSize: iconWidth - 5, color: endedBySurrender ? "grey" : "mediumaquamarine" }}
+                        />
                     </PanelButton>
                 </>
             )}
@@ -140,7 +149,7 @@ const OpponentFieldNavigationContainer = styled.div`
     padding: 2px;
 `;
 
-const PanelButton = styled.div`
+const PanelButton = styled.div<{ $disabled?: boolean }>`
     width: 100%;
     height: 80%;
     background: rgba(12, 21, 16, 0.25);
@@ -153,8 +162,11 @@ const PanelButton = styled.div`
     justify-content: center;
     align-items: center;
     z-index: 1;
+    cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
+    opacity: ${({ $disabled }) => ($disabled ? 0.45 : 1)};
 
     &:hover {
-        background: rgba(26, 179, 201, 0.35);
+        background: ${({ $disabled }) =>
+            $disabled ? "rgba(12, 21, 16, 0.25)" : "rgba(26, 179, 201, 0.35)"};
     }
 `;

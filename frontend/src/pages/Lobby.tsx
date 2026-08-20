@@ -49,6 +49,7 @@ import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 import { AppNotification, NotificationBell } from "./MainMenu.tsx";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import OnlinePlayerListItem from "../components/lobby/OnlinePlayerListItem.tsx";
 import { handleReconnectStatus } from "../utils/reconnectStatus.ts";
 
 function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
@@ -79,6 +80,11 @@ type LobbyPlayer = {
     name: string;
     avatarName: string;
     ready: boolean;
+};
+
+type OnlinePlayer = {
+    name: string;
+    status: string;
 };
 
 type Room = {
@@ -120,7 +126,7 @@ export default function Lobby() {
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
-    const [lobbyPlayers, setLobbyPlayers] = useState<string[]>([]);
+    const [lobbyPlayers, setLobbyPlayers] = useState<OnlinePlayer[]>([]);
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState<HTMLButtonElement | null>(null);
     const [isPlayerSearchOpen, setIsPlayerSearchOpen] = useState(false);
     const [playerSearch, setPlayerSearch] = useState("");
@@ -201,7 +207,7 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[LOBBY_PLAYERS]:")) {
-                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as string[]);
+                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as OnlinePlayer[]);
                 }
 
                 if (event.data.startsWith("[ROOMS]:")) {
@@ -447,7 +453,7 @@ export default function Lobby() {
 
     const isMobile = useMediaQuery("(max-width:499px)");
     const filteredLobbyPlayers = lobbyPlayers.filter((player) =>
-        player.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
+        player.name.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
     );
     const notifications: AppNotification[] = incomingGameInvites.map((inviter) => ({
         id: `game-invite:${inviter}`,
@@ -590,7 +596,7 @@ export default function Lobby() {
                         </LobbyPlayerListHeading>
                         {filteredLobbyPlayers.length ? (
                             filteredLobbyPlayers.map((player) => (
-                                <LobbyPlayerListItem key={player}>{player}</LobbyPlayerListItem>
+                                <OnlinePlayerListItem key={player.name} name={player.name} status={player.status} />
                             ))
                         ) : (
                             <LobbyPlayerListItem>

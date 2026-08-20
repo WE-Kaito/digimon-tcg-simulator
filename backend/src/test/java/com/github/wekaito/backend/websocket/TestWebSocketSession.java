@@ -17,14 +17,20 @@ import java.util.Map;
 public class TestWebSocketSession implements WebSocketSession {
     private final String id;
     private final Principal principal;
+    private final URI uri;
     private final List<String> messages = new ArrayList<>();
     private boolean open = true;
     private int textMessageSizeLimit;
     private int binaryMessageSizeLimit;
 
     public TestWebSocketSession(String id, String username) {
+        this(id, username, URI.create("ws://localhost/api/ws/lobby"));
+    }
+
+    public TestWebSocketSession(String id, String username, URI uri) {
         this.id = id;
         this.principal = () -> username;
+        this.uri = uri;
     }
 
     public List<String> getMessages() {
@@ -38,7 +44,7 @@ public class TestWebSocketSession implements WebSocketSession {
 
     @Override
     public URI getUri() {
-        return URI.create("ws://localhost/test");
+        return uri;
     }
 
     @Override

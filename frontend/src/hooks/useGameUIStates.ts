@@ -44,6 +44,9 @@ type State = {
     isRematch: boolean;
     setIsRematch: (isRematch: boolean) => void;
 
+    endedBySurrender: boolean;
+    setEndedBySurrender: (endedBySurrender: boolean) => void;
+
     isEndDialogOpen: boolean; // TODO: Refactor to one dialog state like openedCardDialog, to avoid multiple dialogs
     setIsEndDialogOpen: (open: boolean) => void;
 
@@ -112,6 +115,9 @@ export const useGameUIStates = create<State>((set) => ({
 
     isRematch: false,
     setIsRematch: (isRematch) => set({ isRematch }),
+
+    endedBySurrender: false,
+    setEndedBySurrender: (endedBySurrender) => set({ endedBySurrender }),
 
     isEndDialogOpen: false,
     setIsEndDialogOpen: (open) => set({ isEndDialogOpen: open }),
