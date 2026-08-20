@@ -24,7 +24,8 @@ class GameWebSocketTest {
         gameWebSocket = new GameWebSocket(
                 mock(MongoUserDetailsService.class),
                 mock(DeckService.class),
-                mock(CardJsonConverter.class)
+                mock(CardJsonConverter.class),
+                event -> { }
         );
     }
 

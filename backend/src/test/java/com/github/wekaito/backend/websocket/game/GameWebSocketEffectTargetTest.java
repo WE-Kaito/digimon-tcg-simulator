@@ -37,7 +37,7 @@ class GameWebSocketEffectTargetTest {
 
     @BeforeEach
     void setUp() {
-        gameWebSocket = new GameWebSocket(null, null, null);
+        gameWebSocket = new GameWebSocket(null, null, null, event -> { });
         gameRoom = new GameRoom(
                 ROOM_ID,
                 new Player("player1", "", "", ""),
