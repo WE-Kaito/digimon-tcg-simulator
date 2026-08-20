@@ -30,6 +30,16 @@ describe("parseEffectTimingGroups", () => {
         expect(group.effectText).toBe("By placing 1 card, Draw 1.");
     });
 
+    it.each(["When Attacking", "On Play", "When Digivolving"])(
+        "treats [%s] as an actionable targeting timing",
+        (timing) => {
+            const [group] = parseEffectTimingGroups(`[${timing}] Select 1 of your opponent's Digimon.`);
+
+            expect(group.timings).toEqual([timing]);
+            expect(group.timingTokens[0].actionable).toBe(true);
+        }
+    );
+
     it("does not create a group from a standalone frequency label", () => {
         expect(parseEffectTimingGroups("[Once Per Turn] Do something.")).toEqual([]);
     });
