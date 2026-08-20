@@ -11,8 +11,11 @@ import { useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton.tsx";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
 import SectionHeadline from "../components/SectionHeadline.tsx";
+import usePlayerPresence from "../hooks/usePlayerPresence.ts";
 
 export default function Decks() {
+    usePlayerPresence("DECKBUILDING");
+
     const loadOrderedDecks = useDeckStates((state) => state.loadOrderedDecks);
     const deckIdOrder = useDeckStates((state) => state.deckIdOrder);
     const setDeckIdOrder = useDeckStates((state) => state.setDeckIdOrder);
@@ -41,7 +44,9 @@ export default function Decks() {
     }
 
     const stableLoadOrderedDecks = useCallback(() => loadOrderedDecks(setOrderedDecks), [loadOrderedDecks]);
-    useLayoutEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
+    useLayoutEffect(() => {
+        stableLoadOrderedDecks();
+    }, [stableLoadOrderedDecks]);
 
     useLayoutEffect(() => {
         if (!isLoading && orderedDecks.length < 16) setRenderAddButton(true);

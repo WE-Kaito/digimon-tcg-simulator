@@ -33,8 +33,11 @@ import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useNavigate } from "react-router-dom";
 import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
 import axios from "axios";
+import usePlayerPresence from "../hooks/usePlayerPresence.ts";
 
 export default function DeckTest() {
+    usePlayerPresence("TESTING");
+
     const selectCard = useGeneralStates((state) => state.selectCard);
     const selectedCard = useGeneralStates((state) => state.selectedCard);
     const hoverCard = useGeneralStates((state) => state.hoverCard);

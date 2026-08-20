@@ -42,6 +42,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private final CardService cardService;
 
     private final Set<WebSocketSession> globalActiveSessions = ConcurrentHashMap.newKeySet();
+    private final Map<WebSocketSession, PlayerStatus> playerStatuses = new ConcurrentHashMap<>();
     private final Set<Room> rooms = ConcurrentHashMap.newKeySet();
     private final Set<PendingGameInvite> pendingGameInvites = ConcurrentHashMap.newKeySet();
 
@@ -70,6 +71,13 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         lastHeartbeatTimestamps.put(session, System.currentTimeMillis());
 
         String username = principal.getName();
+        PlayerStatus initialStatus = getRequestedPlayerStatus(session);
+
+        if (initialStatus != PlayerStatus.LOBBY) {
+            registerActiveSession(session, username, initialStatus);
+            broadcastUserCount();
+            return;
+        }
 
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
         if (activeDeck.isEmpty() || deckService.getDeckById(activeDeck) == null) {
@@ -84,8 +92,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             return;
         }
 
-        globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
-        globalActiveSessions.add(session);
+        registerActiveSession(session, username, PlayerStatus.LOBBY);
         broadcastUserCount();
         if (tryReconnectToRoom(session)) return; // Try to reconnect first
 
@@ -133,6 +140,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         quickPlayQueue.remove(session);
 
         globalActiveSessions.remove(session);
+        playerStatuses.remove(session);
         broadcastUserCount();
     }
 
@@ -143,6 +151,11 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (payload.equals("/heartbeat/")) {
             lastHeartbeatTimestamps.put(session, System.currentTimeMillis());
+            return;
+        }
+
+        if (payload.startsWith("/setPlayerStatus:")) {
+            setPlayerStatus(session, payload.substring("/setPlayerStatus:".length()));
             return;
         }
 
@@ -467,14 +480,30 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private void broadcastUserCount() throws IOException {
-        List<String> lobbyPlayers = globalActiveSessions.stream()
-                .map(WebSocketSession::getPrincipal)
-                .filter(Objects::nonNull)
-                .map(Principal::getName)
-                .distinct()
-                .sorted(String.CASE_INSENSITIVE_ORDER)
+        Map<String, PlayerStatus> onlinePlayerStatuses = new HashMap<>();
+
+        globalActiveSessions.stream()
+                .filter(session -> session.getPrincipal() != null)
+                .forEach(session -> onlinePlayerStatuses.put(
+                        Objects.requireNonNull(session.getPrincipal()).getName(),
+                        playerStatuses.getOrDefault(session, PlayerStatus.LOBBY)
+                ));
+
+        rooms.stream()
+                .filter(room -> room.getPlayers().size() >= 2)
+                .flatMap(room -> room.getPlayers().stream())
+                .forEach(player -> onlinePlayerStatuses.put(player.getName(), PlayerStatus.GAME_ROOM));
+
+        gameWebSocket.gameRooms.values().forEach(gameRoom -> {
+            onlinePlayerStatuses.put(gameRoom.getPlayer1().username(), PlayerStatus.MATCH);
+            onlinePlayerStatuses.put(gameRoom.getPlayer2().username(), PlayerStatus.MATCH);
+        });
+
+        List<OnlinePlayerDTO> onlinePlayers = onlinePlayerStatuses.entrySet().stream()
+                .map(entry -> new OnlinePlayerDTO(entry.getKey(), entry.getValue().displayText))
+                .sorted(Comparator.comparing(OnlinePlayerDTO::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
-        String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(lobbyPlayers);
+        String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(onlinePlayers);
         String userCountMessage = "[USER_COUNT]:" + getTotalSessionCount();
         String quickPlayCountMessage = "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size();
 
@@ -482,6 +511,60 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             sendTextMessage(session, userCountMessage);
             sendTextMessage(session, quickPlayCountMessage);
             sendTextMessage(session, lobbyPlayersMessage);
+        }
+    }
+
+    private void setPlayerStatus(WebSocketSession session, String requestedStatus) throws IOException {
+        try {
+            PlayerStatus status = PlayerStatus.valueOf(requestedStatus);
+            if (status == PlayerStatus.MATCH || status == PlayerStatus.GAME_ROOM) return;
+            playerStatuses.put(session, status);
+            broadcastUserCount();
+        } catch (IllegalArgumentException ignored) {
+            // Ignore unknown client-provided statuses.
+        }
+    }
+
+    private void registerActiveSession(WebSocketSession session, String username, PlayerStatus status) {
+        globalActiveSessions.removeIf(existingSession -> {
+            boolean belongsToUser = existingSession.getPrincipal() != null &&
+                    Objects.equals(existingSession.getPrincipal().getName(), username);
+            if (belongsToUser) playerStatuses.remove(existingSession);
+            return belongsToUser;
+        });
+        playerStatuses.put(session, status);
+        globalActiveSessions.add(session);
+    }
+
+    private PlayerStatus getRequestedPlayerStatus(WebSocketSession session) {
+        if (session.getUri() == null || session.getUri().getQuery() == null) return PlayerStatus.LOBBY;
+
+        return Arrays.stream(session.getUri().getQuery().split("&"))
+                .filter(parameter -> parameter.startsWith("status="))
+                .map(parameter -> parameter.substring("status=".length()))
+                .map(status -> {
+                    try {
+                        PlayerStatus parsedStatus = PlayerStatus.valueOf(status);
+                        return parsedStatus == PlayerStatus.MATCH ? PlayerStatus.LOBBY : parsedStatus;
+                    } catch (IllegalArgumentException ignored) {
+                        return PlayerStatus.LOBBY;
+                    }
+                })
+                .findFirst()
+                .orElse(PlayerStatus.LOBBY);
+    }
+
+    private enum PlayerStatus {
+        LOBBY("In lobby"),
+        GAME_ROOM("In Game Room"),
+        MATCH("In a match"),
+        DECKBUILDING("Deck building"),
+        TESTING("Testing");
+
+        private final String displayText;
+
+        PlayerStatus(String displayText) {
+            this.displayText = displayText;
         }
     }
 
@@ -587,7 +670,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             sendRoomUpdate(room, true);
         }
 
-            broadcastRooms();
+        broadcastRooms();
+        broadcastUserCount();
     }
 
     private void handleJoinRoomAttempt(WebSocketSession session, String roomId) throws IOException {
@@ -674,6 +758,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         sendGlobalChatHistory(session);
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have left the room " + room.getName() + ".");
         broadcastRooms();
+        broadcastUserCount();
     }
 
     private void toggleReady(WebSocketSession session, String roomId) throws IOException {
@@ -731,6 +816,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have kicked " + userName + ".");
 
         broadcastRooms();
+        broadcastUserCount();
     }
 
     private void handleChatMessage(WebSocketSession session, String payload) throws IOException {

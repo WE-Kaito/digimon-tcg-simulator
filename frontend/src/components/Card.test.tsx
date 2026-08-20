@@ -29,7 +29,23 @@ function makeCard(keywords: string[]): CardTypeGame {
 
 function renderCard(card: CardTypeGame) {
     useGameBoardStates.setState({ [LOCATION]: [card] } as never);
+    return renderCardView(card);
+}
+
+function renderCardView(card: CardTypeGame) {
     return render(
+        <DndProvider backend={HTML5Backend}>
+            <Card card={card} location={LOCATION} index={0} />
+        </DndProvider>
+    );
+}
+
+function getStoredCard() {
+    return (useGameBoardStates.getState()[LOCATION] as CardTypeGame[])[0];
+}
+
+function cardView(card: CardTypeGame) {
+    return (
         <DndProvider backend={HTML5Backend}>
             <Card card={card} location={LOCATION} index={0} />
         </DndProvider>
@@ -70,7 +86,7 @@ describe("Card keyword animations", () => {
 
     it("clears the SICK animation when the keyword is removed", () => {
         const card = makeCard(["SICK"]);
-        renderCard(card);
+        const view = renderCard(card);
         expect(screen.getByAltText("suspended")).toBeInTheDocument();
 
         act(() => {
@@ -79,13 +95,14 @@ describe("Card keyword animations", () => {
                 keywords: [],
             });
         });
+        view.rerender(cardView(getStoredCard()));
 
         expect(screen.queryByAltText("suspended")).not.toBeInTheDocument();
     });
 
     it("clears the TAUNT animation when the keyword is removed", () => {
         const card = makeCard(["TAUNT"]);
-        renderCard(card);
+        const view = renderCard(card);
         expect(screen.getByTestId("taunt-pulse-overlay")).toBeInTheDocument();
 
         act(() => {
@@ -94,6 +111,7 @@ describe("Card keyword animations", () => {
                 keywords: [],
             });
         });
+        view.rerender(cardView(getStoredCard()));
 
         expect(screen.queryByTestId("taunt-pulse-overlay")).not.toBeInTheDocument();
     });
@@ -115,7 +133,7 @@ describe("Card keyword animations", () => {
 
     it("switches from the SICK animation to the TAUNT animation when keywords change", () => {
         const card = makeCard(["SICK"]);
-        renderCard(card);
+        const view = renderCard(card);
         expect(screen.getByAltText("suspended")).toBeInTheDocument();
 
         act(() => {
@@ -124,6 +142,7 @@ describe("Card keyword animations", () => {
                 keywords: ["TAUNT"],
             });
         });
+        view.rerender(cardView(getStoredCard()));
 
         expect(screen.queryByAltText("suspended")).not.toBeInTheDocument();
         expect(screen.getByTestId("taunt-pulse-overlay")).toBeInTheDocument();

@@ -45,7 +45,7 @@ class LobbyWebSocketTest {
         lobbyWebSocket.afterConnectionEstablished(session);
 
         assertThat(session.getMessages())
-                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[\"Aaron\"]");
+                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[{\"name\":\"Aaron\",\"status\":\"In lobby\"}]");
     }
 
     @Test
@@ -73,7 +73,7 @@ class LobbyWebSocketTest {
         lobbyWebSocket.afterConnectionClosed(leavingSession, CloseStatus.NORMAL);
 
         assertThat(remainingSession.getMessages())
-                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[\"Beatrice\"]");
+                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[{\"name\":\"Beatrice\",\"status\":\"In lobby\"}]");
     }
 
     @Test
