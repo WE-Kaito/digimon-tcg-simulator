@@ -53,6 +53,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
     const isRematch = useGameUIStates((state) => state.isRematch);
     const setIsRematch = useGameUIStates((state) => state.setIsRematch);
+    const setEndedBySurrender = useGameUIStates((state) => state.setEndedBySurrender);
     const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
     const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
@@ -127,6 +128,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
 
         onMessage: (event) => {
             if (event.data === "[START_GAME]") {
+                setEndedBySurrender(false);
                 setStartingPlayer("");
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
@@ -456,6 +458,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[SURRENDER]": {
+                    setEndedBySurrender(true);
+                    setRestartPromptModal(false);
                     setGameId("");
                     setIsEndDialogOpen(true);
                     setEndDialogText("🎉 Your opponent surrendered!");
