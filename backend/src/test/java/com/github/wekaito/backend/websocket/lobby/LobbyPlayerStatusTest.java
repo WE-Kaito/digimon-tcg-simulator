@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.TextMessage;
 
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +19,9 @@ class LobbyPlayerStatusTest {
     private GameWebSocket gameWebSocket;
 
     @BeforeEach
-    void setUp() throws Exception {
-        lobbyWebSocket = new LobbyWebSocket(null, null, null);
+    void setUp() {
         gameWebSocket = new GameWebSocket(null, null, null, event -> { });
-
-        Field gameWebSocketField = LobbyWebSocket.class.getDeclaredField("gameWebSocket");
-        gameWebSocketField.setAccessible(true);
-        gameWebSocketField.set(lobbyWebSocket, gameWebSocket);
+        lobbyWebSocket = new LobbyWebSocket(null, null, null, gameWebSocket);
     }
 
     @Test

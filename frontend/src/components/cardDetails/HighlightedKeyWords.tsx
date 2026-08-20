@@ -202,10 +202,11 @@ export default function HighlightedKeyWords({
     return highlightedParts.flatMap((item) => {
         if (typeof item === "string") {
             const lines = item.split("\n");
-            return lines.flatMap((line, index) => [
-                <span key={uid()}>{line}</span>,
-                index !== lines.length - 1 ? <br key={uid()} /> : <></>,
-            ]);
+            return lines.flatMap((line, index) => {
+                const lineParts = [<span key={uid()}>{line}</span>];
+                if (index !== lines.length - 1) lineParts.push(<br key={uid()} />);
+                return lineParts;
+            });
         }
         return [item];
     });

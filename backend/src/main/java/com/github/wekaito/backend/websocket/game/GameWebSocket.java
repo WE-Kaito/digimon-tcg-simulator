@@ -37,9 +37,11 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     public final ConcurrentHashMap<String, GameRoom> gameRooms = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> roomIdBySessionId = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ScheduledFuture<?>> disconnectCleanupTasks = new ConcurrentHashMap<>();
     private final Set<String> blockedReconnectGameIds = ConcurrentHashMap.newKeySet();
     
     private static final ScheduledExecutorService SHARED_SCHEDULER = Executors.newScheduledThreadPool(10);
+    private static final long RECONNECT_WINDOW_MINUTES = 2;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,16 +70,10 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (gameRoom != null) {
             gameRoom.removeSession(session);
             if (!gameRoom.hasOpenSessionFor(principal.getName())) {
-                gameRoom.sendMessageToOtherSessions(session, "[OPPONENT_DISCONNECTED]");
+                long reconnectDeadline = scheduleDisconnectCleanup(gameRoom, principal.getName());
+                gameRoom.sendMessageToOtherSessions(session, "[OPPONENT_DISCONNECTED]:" + reconnectDeadline);
             }
 
-            // Use isEmpty method that checks for actually open sessions
-            if (gameRoom.isEmpty()) {
-                GameRoom removed = gameRooms.remove(gameRoom.getRoomId());
-                if (removed != null) {
-                    removed.cancelAllScheduledTasks();
-                }
-            }
         }
 
         eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
@@ -90,7 +86,7 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (parts.length < 2) return;
 
         if (parts[0].equals("/joinGame")) {
-            computeGameRoom(session, parts[1]);
+            joinGameRoom(session, parts[1]);
             return;
         }
 
@@ -98,6 +94,12 @@ public class GameWebSocket extends TextWebSocketHandler {
         String roomMessage = parts[1];
 
         GameRoom gameRoom = findGameRoomById(gameId);
+
+        if (roomMessage.equals("/returnToLobby") &&
+                (gameRoom == null || !gameRoom.getSessions().contains(session))) {
+            session.sendMessage(new TextMessage("[RETURN_TO_LOBBY]"));
+            return;
+        }
 
         if (gameRoom == null || !gameRoom.getSessions().contains(session)) return;
 
@@ -125,6 +127,31 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.startsWith("/heartbeat")) {
             gameRoom.updateLastHearBeat(session);
+            return;
+        }
+
+        if (roomMessage.equals("/surrender")) {
+            destroyGameRoom(gameRoom, session);
+            return;
+        }
+
+        if (roomMessage.equals("/returnToLobby")) {
+            String username = Objects.requireNonNull(session.getPrincipal()).getName();
+            Set<String> disconnectedUsernames = Set.of(
+                            gameRoom.getPlayer1().username(),
+                            gameRoom.getPlayer2().username()
+                    ).stream()
+                    .filter(player -> !player.equals(username))
+                    .filter(player -> !gameRoom.hasOpenSessionFor(player))
+                    .collect(java.util.stream.Collectors.toSet());
+
+            eventPublisher.publishEvent(new GameLobbyReturnEvent(username, disconnectedUsernames));
+
+            String returnMessage = username + " has returned to the lobby.";
+            gameRoom.sendMessagesToAll("[CHAT_MESSAGE]:【SERVER】﹕" + returnMessage);
+            gameRoom.sendMessageToOtherSessions(session, "[PLAYER_RETURNED_TO_LOBBY]:" + username);
+            gameRoom.sendMessage(session, "[RETURN_TO_LOBBY]");
+            removeGameRoom(gameRoom);
             return;
         }
 
@@ -186,10 +213,51 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (command.equals("/updatePhase")) {
             synchronized (gameRoom.getMutationLock()) {
                 gameRoom.progressPhase();
+                broadcastAuthoritativeBoardState(gameRoom);
             }
+            return;
         }
         String convertedCommand = convertCommand(command);
         if (!convertedCommand.isEmpty()) gameRoom.sendMessageToOtherSessions(session, convertedCommand);
+    }
+
+    private void destroyGameRoom(GameRoom gameRoom, WebSocketSession returningSession) {
+        if (returningSession == null) gameRoom.sendMessagesToAll("[SURRENDER]");
+        else gameRoom.sendMessageToOtherSessions(returningSession, "[SURRENDER]");
+
+        removeGameRoom(gameRoom);
+    }
+
+    private void removeGameRoom(GameRoom gameRoom) {
+        if (gameRooms.remove(gameRoom.getRoomId(), gameRoom)) {
+            gameRoom.cancelAllScheduledTasks();
+        }
+        roomIdBySessionId.entrySet().removeIf(entry -> entry.getValue().equals(gameRoom.getRoomId()));
+        disconnectCleanupTasks.entrySet().removeIf(entry -> {
+            if (!entry.getKey().startsWith(gameRoom.getRoomId() + ":")) return false;
+            entry.getValue().cancel(false);
+            return true;
+        });
+    }
+
+    private long scheduleDisconnectCleanup(GameRoom gameRoom, String username) {
+        String cleanupKey = gameRoom.getRoomId() + ":" + username;
+        long reconnectDeadline = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(RECONNECT_WINDOW_MINUTES);
+        ScheduledFuture<?> cleanupTask = SHARED_SCHEDULER.schedule(() -> {
+            disconnectCleanupTasks.remove(cleanupKey);
+            if (gameRooms.get(gameRoom.getRoomId()) == gameRoom && !gameRoom.hasOpenSessionFor(username)) {
+                destroyGameRoom(gameRoom, null);
+            }
+        }, RECONNECT_WINDOW_MINUTES, TimeUnit.MINUTES);
+
+        ScheduledFuture<?> previousTask = disconnectCleanupTasks.put(cleanupKey, cleanupTask);
+        if (previousTask != null) previousTask.cancel(false);
+        return reconnectDeadline;
+    }
+
+    private void cancelDisconnectCleanup(String gameId, String username) {
+        ScheduledFuture<?> cleanupTask = disconnectCleanupTasks.remove(gameId + ":" + username);
+        if (cleanupTask != null) cleanupTask.cancel(false);
     }
 
     private void sendChatMessage(GameRoom gameRoom, WebSocketSession session, String roomMessage) {
@@ -412,6 +480,13 @@ public class GameWebSocket extends TextWebSocketHandler {
         return gameRooms.values().stream().filter(room ->
                 room.getPlayer1().username().equals(username) || room.getPlayer2().username().equals(username)
         ).findFirst();
+    }
+
+    public Optional<GameRoom> findReconnectableGameRoomBySession(WebSocketSession session) {
+        String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        return findGameRoomBySession(session).filter(room ->
+                disconnectCleanupTasks.containsKey(room.getRoomId() + ":" + username)
+        );
     }
     
     private String mapClientToServer(String clientPosition, String username, GameRoom gameRoom) {
@@ -640,69 +715,72 @@ public class GameWebSocket extends TextWebSocketHandler {
                toServer.equals("player1Trash") || toServer.equals("player2Trash");
     }
 
-    private void computeGameRoom(WebSocketSession session, String gameId) throws IOException {
-        GameRoom gameRoom = gameRooms.get(gameId);
-        boolean shouldStartScheduledTasks = false;
-
-        if (gameRoom == null) {
-            if (blockedReconnectGameIds.contains(gameId)) return;
-
-            String[] usernames = gameId.split("‗");
-            String joiningUsername = session.getPrincipal() == null ? null : session.getPrincipal().getName();
-            if (usernames.length != 2 || joiningUsername == null || Arrays.stream(usernames).noneMatch(joiningUsername::equals)) {
-                return;
-            }
-
-            try {
-                String avatar1 = mongoUserDetailsService.getAvatar(usernames[0]);
-                String avatar2 = mongoUserDetailsService.getAvatar(usernames[1]);
-
-                String deckId1 = mongoUserDetailsService.getActiveDeck(usernames[0]);
-                String deckId2 = mongoUserDetailsService.getActiveDeck(usernames[1]);
-
-                String mainSleeve1 = deckService.getDeckSleeveById(deckId1);
-                String mainSleeve2 = deckService.getDeckSleeveById(deckId2);
-
-                String eggSleeve1 = deckService.getEggDeckSleeveById(deckId1);
-                String eggSleeve2 = deckService.getEggDeckSleeveById(deckId2);
-
-                Player player1 = new Player(usernames[0], avatar1, mainSleeve1, eggSleeve1);
-                Player player2 = new Player(usernames[1], avatar2, mainSleeve2, eggSleeve2);
-
-                List<Card> player1MainDeck = deckService.getMainDeckCardsById(deckId1);
-                List<Card> player1EggDeck = deckService.getEggDeckCardsById(deckId1);
-
-                List<Card> player2MainDeck = deckService.getMainDeckCardsById(deckId2);
-                List<Card> player2EggDeck = deckService.getEggDeckCardsById(deckId2);
-
-                GameRoom newGameRoom = new GameRoom(gameId, player1, player1MainDeck, player1EggDeck, player2, player2MainDeck, player2EggDeck);
-                newGameRoom.setChat(new String[0]);
-
-                GameRoom existingRoom = gameRooms.putIfAbsent(gameId, newGameRoom);
-                if (existingRoom == null) {
-                    gameRoom = newGameRoom;
-                    shouldStartScheduledTasks = true;
-                } else {
-                    gameRoom = existingRoom; // Another thread created it first
-                }
-            } catch (Exception e) {
-                return;
-            }
+    public boolean createGameRoom(String gameId, String username1, String username2) {
+        if (gameId == null || gameId.isBlank() || username1 == null || username2 == null || username1.equals(username2)) {
+            return false;
         }
 
-        if (shouldStartScheduledTasks) {
+        try {
+            String avatar1 = mongoUserDetailsService.getAvatar(username1);
+            String avatar2 = mongoUserDetailsService.getAvatar(username2);
+
+            String deckId1 = mongoUserDetailsService.getActiveDeck(username1);
+            String deckId2 = mongoUserDetailsService.getActiveDeck(username2);
+
+            String mainSleeve1 = deckService.getDeckSleeveById(deckId1);
+            String mainSleeve2 = deckService.getDeckSleeveById(deckId2);
+
+            String eggSleeve1 = deckService.getEggDeckSleeveById(deckId1);
+            String eggSleeve2 = deckService.getEggDeckSleeveById(deckId2);
+
+            Player player1 = new Player(username1, avatar1, mainSleeve1, eggSleeve1);
+            Player player2 = new Player(username2, avatar2, mainSleeve2, eggSleeve2);
+
+            List<Card> player1MainDeck = deckService.getMainDeckCardsById(deckId1);
+            List<Card> player1EggDeck = deckService.getEggDeckCardsById(deckId1);
+
+            List<Card> player2MainDeck = deckService.getMainDeckCardsById(deckId2);
+            List<Card> player2EggDeck = deckService.getEggDeckCardsById(deckId2);
+
+            GameRoom gameRoom = new GameRoom(
+                    gameId,
+                    player1,
+                    player1MainDeck,
+                    player1EggDeck,
+                    player2,
+                    player2MainDeck,
+                    player2EggDeck
+            );
+            gameRoom.setChat(new String[0]);
+
+            if (gameRooms.putIfAbsent(gameId, gameRoom) != null) return false;
             startGameRoomScheduledTasks(gameRoom);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Unable to create game room " + gameId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    private void joinGameRoom(WebSocketSession session, String gameId) throws IOException {
+        GameRoom gameRoom = gameRooms.get(gameId);
+        if (gameRoom == null) {
+            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
+            return;
         }
 
         String joiningUsername = session.getPrincipal() == null ? null : session.getPrincipal().getName();
         if (joiningUsername == null ||
                 (!gameRoom.getPlayer1().username().equals(joiningUsername) &&
                  !gameRoom.getPlayer2().username().equals(joiningUsername))) {
+            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
             return;
         }
 
+        cancelDisconnectCleanup(gameId, joiningUsername);
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
+        session.sendMessage(new TextMessage("[GAME_JOINED]"));
         eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency
@@ -802,9 +880,26 @@ public class GameWebSocket extends TextWebSocketHandler {
         // Add memory values
         completeBoardState.put("player1Memory", boardState.getPlayer1Memory());
         completeBoardState.put("player2Memory", boardState.getPlayer2Memory());
+        completeBoardState.put("phase", gameRoom.getPhase());
+        completeBoardState.put("usernameTurn", gameRoom.getUsernameTurn());
+        completeBoardState.put("bootStage", gameRoom.getBootStage());
 
         String boardStateJson = objectMapper.writeValueAsString(completeBoardState);
         gameRoom.sendMessage(session, "[BOARD_STATE]:" + boardStateJson);
+    }
+
+    private void broadcastAuthoritativeBoardState(GameRoom gameRoom) {
+        BoardState boardState = gameRoom.getBoardState();
+        if (boardState == null) return;
+
+        for (WebSocketSession connectedSession : gameRoom.getSessions()) {
+            if (!connectedSession.isOpen()) continue;
+            try {
+                distributeBoardStateCards(gameRoom, boardState, connectedSession);
+            } catch (IOException e) {
+                System.err.println("Failed to broadcast board state for room " + gameRoom.getRoomId() + ": " + e.getMessage());
+            }
+        }
     }
 
     private void handleAttack(GameRoom gameRoom, WebSocketSession session, String message) {
@@ -835,8 +930,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                 return;
             }
 
-            gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD]:" + cardId + ":" + getOppositePosition(from) + ":" + getOppositePosition(to));
-            gameRoom.sendMessage(session, "[MOVE_CARD_CONFIRMED]:" + cardId + ":" + from + ":" + to);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -849,7 +943,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         synchronized (gameRoom.getMutationLock()) {
             updateCardModifiers(session, gameRoom, cardId, location, modifiersJson);
-            gameRoom.sendMessageToOtherSessions(session, "[SET_MODIFIERS]:" + cardId + ":" + getOppositePosition(location) + ":" + modifiersJson);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -874,8 +968,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                 return;
             }
 
-            gameRoom.sendMessageToOtherSessions(session, "[MOVE_CARD_TO_STACK]:" + topOrBottom + ":" + cardId + ":" + getOppositePosition(from) + ":" + getOppositePosition(to) + ":" + facing);
-            gameRoom.sendMessage(session, "[MOVE_CARD_TO_STACK_CONFIRMED]:" + topOrBottom + ":" + cardId + ":" + from + ":" + to + ":" + facing);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -896,7 +989,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         synchronized (gameRoom.getMutationLock()) {
             updateCardTiltStatus(session, gameRoom, cardId, location);
-            gameRoom.sendMessageToOtherSessions(session, "[TILT_CARD]:" + cardId + ":" + getOppositePosition(location));
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -908,7 +1001,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         synchronized (gameRoom.getMutationLock()) {
             updateCardFaceStatus(session, gameRoom, cardId, location);
-            gameRoom.sendMessageToOtherSessions(session, "[FLIP_CARD]:" + cardId + ":" + getOppositePosition(location));
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
 
@@ -961,7 +1054,7 @@ public class GameWebSocket extends TextWebSocketHandler {
     private void handleUnsuspendAll(GameRoom gameRoom, WebSocketSession session) {
         synchronized (gameRoom.getMutationLock()) {
             unsuspendAllCardsInBoardState(gameRoom, session);
-            gameRoom.sendMessageToOtherSessions(session, "[UNSUSPEND_ALL]");
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
     
@@ -1021,8 +1114,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                     currentList.add(card);
                     boardState.setFieldByName(serverPosition, currentList);
 
-                    gameRoom.sendMessageToOtherSessions(session,
-                        "[CREATE_TOKEN]:" + card.getId() + ":" + card.getName() + ":" + getOppositePosition(targetPosition));
+                    broadcastAuthoritativeBoardState(gameRoom);
                 }
                     
             } catch (Exception e) {
@@ -1053,7 +1145,7 @@ public class GameWebSocket extends TextWebSocketHandler {
                     boardState.setPlayer2Memory(newMemory);
                 }
             }
-            gameRoom.sendMessageToOtherSessions(session, "[UPDATE_MEMORY]:" + memory);
+            broadcastAuthoritativeBoardState(gameRoom);
         }
     }
     }
@@ -1093,7 +1185,9 @@ public class GameWebSocket extends TextWebSocketHandler {
                 return; // Early exit if room no longer exists
             }
             try {
-                if (gameRoom.isEmpty()) {
+                boolean reconnectPending = disconnectCleanupTasks.keySet().stream()
+                        .anyMatch(key -> key.startsWith(gameRoom.getRoomId() + ":"));
+                if (gameRoom.isEmpty() && !reconnectPending) {
                     GameRoom removed = gameRooms.remove(gameRoom.getRoomId());
                     if (removed != null) {
                         removed.cancelAllScheduledTasks();

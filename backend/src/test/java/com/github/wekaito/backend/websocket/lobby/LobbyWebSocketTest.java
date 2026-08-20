@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,14 +27,10 @@ class LobbyWebSocketTest {
     private TestUserDetailsService userDetailsService;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         userDetailsService = new TestUserDetailsService();
-        lobbyWebSocket = new LobbyWebSocket(userDetailsService, new TestDeckService(), null);
         gameWebSocket = new GameWebSocket(null, null, null, event -> { });
-
-        Field gameWebSocketField = LobbyWebSocket.class.getDeclaredField("gameWebSocket");
-        gameWebSocketField.setAccessible(true);
-        gameWebSocketField.set(lobbyWebSocket, gameWebSocket);
+        lobbyWebSocket = new LobbyWebSocket(userDetailsService, new TestDeckService(), null, gameWebSocket);
     }
 
     @Test

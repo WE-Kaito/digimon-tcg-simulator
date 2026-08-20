@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import ModalDialog from "./ModalDialog.tsx";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { returnToLobby } from "../../../utils/returnToLobby.ts";
 
 export default function EndModal() {
     const isEndDialogOpen = useGameUIStates((state) => state.isEndDialogOpen);
@@ -12,10 +13,7 @@ export default function EndModal() {
     const buttonProps = [
         {
             text: "EXIT",
-            onClick: () => {
-                setIsEndDialogOpen(false);
-                navigate("/lobby");
-            },
+            onClick: () => returnToLobby(navigate),
             color: "#FCCB0B",
         },
         { text: "CLOSE DIALOG", onClick: () => setIsEndDialogOpen(false), color: "#FCCB0B" },

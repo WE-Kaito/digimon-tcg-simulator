@@ -112,6 +112,7 @@ export default function Lobby() {
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
+    const setGameLobbyRoomId = useGameBoardStates((state) => state.setGameLobbyRoomId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
 
@@ -165,10 +166,10 @@ export default function Lobby() {
 
     const navigate = useNavigate();
 
-    function handleReconnect() {
+    function handleReturnToGame() {
         setIsOpponentOnline(true);
         setIsLoading(false);
-        navigate("/game");
+        navigate("/game", { state: { gameEntryConfirmed: true } });
     }
 
     function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
@@ -240,6 +241,7 @@ export default function Lobby() {
 
                 if (event.data === "[LEAVE_ROOM]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     setIsLoading(false);
                     playJoinSfx(); // new sound?
@@ -247,6 +249,7 @@ export default function Lobby() {
 
                 if (event.data === "[KICKED]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     playKickSfx();
                 }
@@ -264,6 +267,15 @@ export default function Lobby() {
                     localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
                     localStorage.removeItem("boardStore");
                     const gameId = event.data.substring("[COMPUTE_GAME]:".length);
+                    setGameLobbyRoomId("");
+                    startGameSequence(gameId);
+                }
+
+                if (event.data.startsWith("[COMPUTE_ROOM_GAME]:")) {
+                    localStorage.setItem("isReported", JSON.stringify(false));
+                    localStorage.removeItem("boardStore");
+                    const [gameId, roomId] = event.data.substring("[COMPUTE_ROOM_GAME]:".length).split(":", 2);
+                    setGameLobbyRoomId(roomId);
                     startGameSequence(gameId);
                 }
 
@@ -379,7 +391,7 @@ export default function Lobby() {
             clearBoard();
             setIsLoading(false);
             setJoinedRoom(null);
-            navigate("/game");
+            navigate("/game", { state: { gameEntryConfirmed: true } });
         }, 3150);
         return () => clearTimeout(timer);
     }
@@ -432,7 +444,9 @@ export default function Lobby() {
     const initialFetch = useCallback(() => {
         getActiveDeck();
     }, [getActiveDeck]);
-    useEffect(() => initialFetch(), [initialFetch]);
+    useEffect(() => {
+        initialFetch();
+    }, [initialFetch]);
 
     useEffect(() => {
         const timeout = window.setTimeout(() => setDebouncedPlayerSearch(playerSearch), 250);
@@ -445,7 +459,10 @@ export default function Lobby() {
 
     useEffect(() => {
         if (!activeDeckId || activeDeckId.includes("<html")) return;
-        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
+        axios
+            .get(`/api/profile/decks/${activeDeckId}`)
+            .then((res) => setDeckObject(res.data as DeckType))
+            .catch(console.error);
     }, [activeDeckId]);
 
     useEffect(() => {
@@ -545,8 +562,6 @@ export default function Lobby() {
                 <SoundBar opened />
 
                 {/*TODO: Add own name plate here*/}
-
-                {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
 
                 <OnlineUsers
                     type="button"
@@ -674,7 +689,9 @@ export default function Lobby() {
                             <CardTitle style={{ marginBottom: 0 }}>{joinedRoom?.name ?? "Room"}</CardTitle>
                             <CardTitle style={{ color: "var(--lobby-accent)" }}>{joinedRoom ? "" : "Host"}</CardTitle>
                             <CardTitle style={{ gridColumn: "span 2" }}>{joinedRoom ? "" : "Settings"}</CardTitle>
-                            {joinedRoom ? (
+                            {isRejoinable ? (
+                                <Button onClick={handleReturnToGame}>RETURN TO GAME</Button>
+                            ) : joinedRoom ? (
                                 user === joinedRoom.hostName ? (
                                     <Button disabled={startGameDisabled} onClick={handleStartGame}>
                                         START GAME
