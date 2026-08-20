@@ -4,8 +4,10 @@ import { useState, useEffect, FormEvent } from "react";
 import axios from "axios";
 import { Button } from "../Button.tsx";
 import { notifyError } from "../../utils/toasts.ts";
+import { useGeneralStates } from "../../hooks/useGeneralStates.ts";
 
 export default function BlockedUsers() {
+    const user = useGeneralStates((state) => state.user);
     const [newUsername, setNewUsername] = useState("");
     const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
@@ -53,7 +55,7 @@ export default function BlockedUsers() {
         event.preventDefault();
         const trimmedUsername = newUsername.trim();
 
-        if (!trimmedUsername) return;
+        if (!trimmedUsername || trimmedUsername.toLowerCase() === user.toLowerCase()) return;
 
         if (blockedUsers.includes(trimmedUsername)) {
             alert("User is already blocked");
@@ -64,6 +66,8 @@ export default function BlockedUsers() {
         addBlockedUser(trimmedUsername);
         setNewUsername("");
     };
+
+    const isOwnUsername = newUsername.trim().toLowerCase() === user.toLowerCase();
 
     const handleRemoveUser = (usernameToRemove: string) => {
         removeBlockedUser(usernameToRemove);
@@ -82,7 +86,12 @@ export default function BlockedUsers() {
                     />
                     <Button
                         type="submit"
-                        disabled={loading || !newUsername.trim() || blockedUsers.includes(newUsername.trim())}
+                        disabled={
+                            loading ||
+                            !newUsername.trim() ||
+                            isOwnUsername ||
+                            blockedUsers.includes(newUsername.trim())
+                        }
                     >
                         ADD
                     </Button>

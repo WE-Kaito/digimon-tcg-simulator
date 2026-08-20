@@ -105,7 +105,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         List<RoomDTO> openRoomsDTO = openRooms.stream().map(this::getRoomDTO).toList();
 
         sendTextMessage(session, "[ROOMS]:" + objectMapper.writeValueAsString(openRoomsDTO));
-        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
+        sendGlobalChatHistory(session);
     }
 
     @Override
@@ -755,7 +755,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         sendTextMessage(session, "[LEAVE_ROOM]");
-        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
+        sendGlobalChatHistory(session);
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have left the room " + room.getName() + ".");
         broadcastRooms();
         broadcastUserCount();
@@ -809,7 +809,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         sendRoomUpdate(room);
 
         sendTextMessage(player.getSession(), "[KICKED]");
-        sendTextMessage(player.getSession(), "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
+        sendGlobalChatHistory(player.getSession());
         sendTextMessage(player.getSession(), "[CHAT_MESSAGE]:【SERVER】: You have been kicked from the room " + room.getName() + ".");
 
         sendTextMessage(session, "[SUCCESS]");
@@ -835,7 +835,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (globalChatMessages.size() > 500) globalChatMessages.removeFirst();
 
         for (WebSocketSession webSocketSession : globalActiveSessions) {
-            sendTextMessage(webSocketSession, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(chatMessage));
+            if (canReceiveChatMessage(webSocketSession, chatMessage)) {
+                sendTextMessage(webSocketSession, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(chatMessage));
+            }
         }
     }
 
@@ -854,8 +856,27 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         ChatMessage chatMessage = new ChatMessage(messageContent, userName);
 
         for (LobbyPlayer player : room.getPlayers()) {
-            sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + objectMapper.writeValueAsString(chatMessage));
+            if (canReceiveChatMessage(player.getSession(), chatMessage)) {
+                sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + objectMapper.writeValueAsString(chatMessage));
+            }
         }
+    }
+
+    private void sendGlobalChatHistory(WebSocketSession session) throws IOException {
+        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(getVisibleGlobalChatMessages(session)));
+    }
+
+    List<ChatMessage> getVisibleGlobalChatMessages(WebSocketSession session) {
+        return globalChatMessages.stream()
+                .filter(message -> canReceiveChatMessage(session, message))
+                .toList();
+    }
+
+    private boolean canReceiveChatMessage(WebSocketSession recipient, ChatMessage message) {
+        Principal principal = recipient.getPrincipal();
+        if (principal == null || "【SERVER】".equals(message.author())) return true;
+
+        return !mongoUserDetailsService.getBlockedAccounts(principal.getName()).contains(message.author());
     }
 
     private Room getRoomById(String roomId) {
