@@ -49,7 +49,7 @@ import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 import { AppNotification, NotificationBell } from "./MainMenu.tsx";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
-import OnlinePlayerListItem from "../components/lobby/OnlinePlayerListItem.tsx";
+import useInviteCooldowns from "../hooks/useInviteCooldowns.ts";
 import { handleReconnectStatus } from "../utils/reconnectStatus.ts";
 
 function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
@@ -142,6 +142,12 @@ export default function Lobby() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [incomingGameInvites, setIncomingGameInvites] = useState<string[]>([]);
     const [pendingGameInvites, setPendingGameInvites] = useState<Set<string>>(() => new Set());
+    const {
+        getInviteCooldownSeconds,
+        inviteCooldownPlayers,
+        isInviteCoolingDown,
+        startInviteCooldown,
+    } = useInviteCooldowns();
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
@@ -289,6 +295,11 @@ export default function Lobby() {
                     });
                 }
 
+                if (event.data.startsWith("[GAME_INVITE_CANCELLED]:")) {
+                    const inviter = event.data.substring("[GAME_INVITE_CANCELLED]:".length);
+                    setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
+                }
+
                 handleReconnectStatus(event.data, gameId, setIsRejoinable, setGameId);
 
                 if (event.data === "[SESSION_ALREADY_CONNECTED]") {
@@ -401,6 +412,28 @@ export default function Lobby() {
 
     function handleInviteSent(player: string) {
         setPendingGameInvites((players) => new Set(players).add(player));
+    }
+
+    function handleInviteCancelled(player: string) {
+        setPendingGameInvites((players) => {
+            const nextPlayers = new Set(players);
+            nextPlayers.delete(player);
+            return nextPlayers;
+        });
+        startInviteCooldown(player);
+    }
+
+    function handlePlayerInvite(player: string) {
+        if (pendingGameInvites.has(player)) {
+            websocket.sendMessage(`/cancelGameInvite:${player}`);
+            handleInviteCancelled(player);
+            return;
+        }
+
+        if (isInviteCoolingDown(player)) return;
+
+        websocket.sendMessage(`/inviteToGame:${player}`);
+        handleInviteSent(player);
     }
 
     function handleGameInviteResponse(inviter: string, accepted: boolean) {
@@ -596,7 +629,26 @@ export default function Lobby() {
                         </LobbyPlayerListHeading>
                         {filteredLobbyPlayers.length ? (
                             filteredLobbyPlayers.map((player) => (
-                                <OnlinePlayerListItem key={player.name} name={player.name} status={player.status} />
+                                <LobbyPlayerListItem key={player.name}>
+                                    <PlayerIdentity>
+                                        <span>{player.name}</span>
+                                        <PlayerStatus>{player.status}</PlayerStatus>
+                                    </PlayerIdentity>
+                                    {player.name !== user && (
+                                        <PlayerInviteButton
+                                            type="button"
+                                            pending={pendingGameInvites.has(player.name)}
+                                            disabled={isInviteCoolingDown(player.name)}
+                                            onClick={() => handlePlayerInvite(player.name)}
+                                        >
+                                            {pendingGameInvites.has(player.name)
+                                                ? "cancel invite"
+                                                : isInviteCoolingDown(player.name)
+                                                  ? `invite in ${getInviteCooldownSeconds(player.name)}s`
+                                                  : "invite to play"}
+                                        </PlayerInviteButton>
+                                    )}
+                                </LobbyPlayerListItem>
                             ))
                         ) : (
                             <LobbyPlayerListItem>
@@ -887,7 +939,9 @@ export default function Lobby() {
                 isAdmin={!!isAdmin}
                 sendMessage={websocket.sendMessage}
                 onInviteSent={handleInviteSent}
+                onInviteCancelled={handleInviteCancelled}
                 pendingGameInvites={pendingGameInvites}
+                inviteCooldownPlayers={inviteCooldownPlayers}
             />
         </MenuBackgroundWrapper>
     );
@@ -984,9 +1038,54 @@ const PlayerSearchInput = styled(InputBase)`
 `;
 
 const LobbyPlayerListItem = styled.li`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     padding: 9px 16px;
     color: ghostwhite;
     font-size: 17px;
+`;
+
+const PlayerIdentity = styled.span`
+    min-width: 0;
+`;
+
+const PlayerStatus = styled.span`
+    display: block;
+    margin-right: 6px;
+    color: rgba(255, 239, 213, 0.62);
+    font-family: "Cousine", monospace;
+    font-size: 0.6em;
+    white-space: nowrap;
+`;
+
+const PlayerInviteButton = styled.button<{ pending: boolean }>`
+    flex-shrink: 0;
+    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    background: var(${({ pending }) => (pending ? "--orange-button-bg" : "--blue-button-bg")});
+    color: ghostwhite;
+    font: 600 12px/1 "League Spartan", sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-hover" : "--blue-button-bg-hover")});
+        outline: none;
+    }
+
+    &:active {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-active" : "--blue-button-bg-active")});
+    }
+
+    &:disabled {
+        filter: grayscale(0.65);
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
 `;
 
 const LeftColumn = styled.div`
