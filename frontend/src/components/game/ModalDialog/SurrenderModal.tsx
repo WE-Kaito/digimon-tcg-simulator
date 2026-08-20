@@ -2,6 +2,7 @@ import { WSUtils } from "../../../pages/GamePage.tsx";
 import { Dispatch, SetStateAction } from "react";
 import ModalDialog from "./ModalDialog.tsx";
 import { useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 
 type Props = {
     setSurrenderModal: Dispatch<SetStateAction<boolean>>;
@@ -16,12 +17,18 @@ export default function SurrenderModal({ setSurrenderModal, wsUtils }: Props) {
 
     const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
     const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
+    const setEndedBySurrender = useGameUIStates((state) => state.setEndedBySurrender);
+    const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
 
     function handleSurrender() {
         setSurrenderModal(false);
+        setRestartPromptModal(false);
+        setEndedBySurrender(true);
         setIsEndDialogOpen(true);
         setEndDialogText("🏳️ You surrendered.");
         sendMessage(`${gameId}:/surrender`);
+        setGameId("");
         // if (onlineCheckTimeoutRef.current !== null) {
         //   clearTimeout(onlineCheckTimeoutRef.current);
         //   onlineCheckTimeoutRef.current = null;

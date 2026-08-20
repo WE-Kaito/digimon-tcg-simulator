@@ -50,6 +50,7 @@ import { AppNotification, NotificationBell } from "./MainMenu.tsx";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import useInviteCooldowns from "../hooks/useInviteCooldowns.ts";
+import { handleReconnectStatus } from "../utils/reconnectStatus.ts";
 
 function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
     return {
@@ -79,6 +80,11 @@ type LobbyPlayer = {
     name: string;
     avatarName: string;
     ready: boolean;
+};
+
+type OnlinePlayer = {
+    name: string;
+    status: string;
 };
 
 type Room = {
@@ -119,7 +125,7 @@ export default function Lobby() {
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
-    const [lobbyPlayers, setLobbyPlayers] = useState<string[]>([]);
+    const [lobbyPlayers, setLobbyPlayers] = useState<OnlinePlayer[]>([]);
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState<HTMLButtonElement | null>(null);
     const [isPlayerSearchOpen, setIsPlayerSearchOpen] = useState(false);
     const [playerSearch, setPlayerSearch] = useState("");
@@ -206,7 +212,7 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[LOBBY_PLAYERS]:")) {
-                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as string[]);
+                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as OnlinePlayer[]);
                 }
 
                 if (event.data.startsWith("[ROOMS]:")) {
@@ -282,15 +288,7 @@ export default function Lobby() {
                     setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
                 }
 
-                if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
-                    const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
-                    setIsRejoinable(matchingRoomId === gameId);
-                    // gameId could be set to older matching room id here, but not sure if this makes sense
-                }
-
-                if (event.data === "[RECONNECT_DISABLED]") {
-                    setIsRejoinable(false);
-                }
+                handleReconnectStatus(event.data, gameId, setIsRejoinable, setGameId);
 
                 if (event.data === "[SESSION_ALREADY_CONNECTED]") {
                     setIsAlreadyOpenedInOtherTab(true);
@@ -442,6 +440,11 @@ export default function Lobby() {
     }, [playerSearch]);
 
     useEffect(() => {
+        if (!gameId) setIsRejoinable(false);
+    }, [gameId]);
+
+    useEffect(() => {
+        if (!activeDeckId || activeDeckId.includes("<html")) return;
         axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
     }, [activeDeckId]);
 
@@ -466,7 +469,7 @@ export default function Lobby() {
 
     const isMobile = useMediaQuery("(max-width:499px)");
     const filteredLobbyPlayers = lobbyPlayers.filter((player) =>
-        player.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
+        player.name.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
     );
     const notifications: AppNotification[] = incomingGameInvites.map((inviter) => ({
         id: `game-invite:${inviter}`,
@@ -611,19 +614,22 @@ export default function Lobby() {
                         </LobbyPlayerListHeading>
                         {filteredLobbyPlayers.length ? (
                             filteredLobbyPlayers.map((player) => (
-                                <LobbyPlayerListItem key={player}>
-                                    <span>{player}</span>
-                                    {player !== user && (
+                                <LobbyPlayerListItem key={player.name}>
+                                    <PlayerIdentity>
+                                        <span>{player.name}</span>
+                                        <PlayerStatus>{player.status}</PlayerStatus>
+                                    </PlayerIdentity>
+                                    {player.name !== user && (
                                         <PlayerInviteButton
                                             type="button"
-                                            pending={pendingGameInvites.has(player)}
-                                            disabled={isInviteCoolingDown(player)}
-                                            onClick={() => handlePlayerInvite(player)}
+                                            pending={pendingGameInvites.has(player.name)}
+                                            disabled={isInviteCoolingDown(player.name)}
+                                            onClick={() => handlePlayerInvite(player.name)}
                                         >
-                                            {pendingGameInvites.has(player)
+                                            {pendingGameInvites.has(player.name)
                                                 ? "cancel invite"
-                                                : isInviteCoolingDown(player)
-                                                  ? `invite in ${getInviteCooldownSeconds(player)}s`
+                                                : isInviteCoolingDown(player.name)
+                                                  ? `invite in ${getInviteCooldownSeconds(player.name)}s`
                                                   : "invite to play"}
                                         </PlayerInviteButton>
                                     )}
@@ -1022,6 +1028,19 @@ const LobbyPlayerListItem = styled.li`
     padding: 9px 16px;
     color: ghostwhite;
     font-size: 17px;
+`;
+
+const PlayerIdentity = styled.span`
+    min-width: 0;
+`;
+
+const PlayerStatus = styled.span`
+    display: block;
+    margin-right: 6px;
+    color: rgba(255, 239, 213, 0.62);
+    font-family: "Cousine", monospace;
+    font-size: 0.6em;
+    white-space: nowrap;
 `;
 
 const PlayerInviteButton = styled.button<{ pending: boolean }>`

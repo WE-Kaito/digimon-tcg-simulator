@@ -6,11 +6,13 @@ import com.github.wekaito.backend.models.ChatMessage;
 import com.github.wekaito.backend.CardService;
 import com.github.wekaito.backend.DeckService;
 import com.github.wekaito.backend.security.MongoUserDetailsService;
+import com.github.wekaito.backend.websocket.OnlinePlayerCountChangedEvent;
 import com.github.wekaito.backend.websocket.game.GameWebSocket;
 import com.github.wekaito.backend.websocket.game.models.GameRoom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
@@ -40,6 +42,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private final CardService cardService;
 
     private final Set<WebSocketSession> globalActiveSessions = ConcurrentHashMap.newKeySet();
+    private final Map<WebSocketSession, PlayerStatus> playerStatuses = new ConcurrentHashMap<>();
     private final Set<Room> rooms = ConcurrentHashMap.newKeySet();
     private final Set<PendingGameInvite> pendingGameInvites = ConcurrentHashMap.newKeySet();
     private final Map<PendingGameInvite, Long> gameInviteCooldowns = new ConcurrentHashMap<>();
@@ -71,6 +74,13 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         lastHeartbeatTimestamps.put(session, System.currentTimeMillis());
 
         String username = principal.getName();
+        PlayerStatus initialStatus = getRequestedPlayerStatus(session);
+
+        if (initialStatus != PlayerStatus.LOBBY) {
+            registerActiveSession(session, username, initialStatus);
+            broadcastUserCount();
+            return;
+        }
 
         String activeDeck = mongoUserDetailsService.getActiveDeck(username);
         if (activeDeck.isEmpty() || deckService.getDeckById(activeDeck) == null) {
@@ -85,7 +95,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             return;
         }
 
-        globalActiveSessions.removeIf(s -> Objects.equals(Objects.requireNonNull(s.getPrincipal()).getName(), username));
+        registerActiveSession(session, username, PlayerStatus.LOBBY);
+        broadcastUserCount();
         if (tryReconnectToRoom(session)) return; // Try to reconnect first
 
         List<String> userBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(username);
@@ -97,10 +108,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         List<RoomDTO> openRoomsDTO = openRooms.stream().map(this::getRoomDTO).toList();
 
         sendTextMessage(session, "[ROOMS]:" + objectMapper.writeValueAsString(openRoomsDTO));
-        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
-        sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
-
-        globalActiveSessions.add(session);
+        sendGlobalChatHistory(session);
     }
 
     @Override
@@ -135,6 +143,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         quickPlayQueue.remove(session);
 
         globalActiveSessions.remove(session);
+        playerStatuses.remove(session);
+        broadcastUserCount();
     }
 
 
@@ -144,6 +154,16 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (payload.equals("/heartbeat/")) {
             lastHeartbeatTimestamps.put(session, System.currentTimeMillis());
+            return;
+        }
+
+        if (payload.startsWith("/setPlayerStatus:")) {
+            setPlayerStatus(session, payload.substring("/setPlayerStatus:".length()));
+            return;
+        }
+
+        if (payload.equals("/requestUserCount")) {
+            broadcastUserCount();
             return;
         }
 
@@ -258,6 +278,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         if (accepted) {
             String gameId = inviter + "‗" + invitedPlayer;
+            gameWebSocket.prepareGame(gameId);
             sendTextMessage(inviterSession, "[COMPUTE_GAME]:" + gameId);
             sendTextMessage(session, "[COMPUTE_GAME]:" + gameId);
             lastPlayerRooms.remove(inviterSession);
@@ -311,6 +332,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         Room room = getRoomById(roomId);
         if (room == null) return;
 
+        gameWebSocket.prepareGame(gameId);
+
         for (LobbyPlayer player : room.getPlayers()) {
             sendTextMessage(player.getSession(), "[COMPUTE_GAME]:" + gameId);
             lastPlayerRooms.remove(player.getSession());
@@ -323,9 +346,13 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private void shortIntervalOperations() throws IOException {
         long now = System.currentTimeMillis();
         gameInviteCooldowns.entrySet().removeIf(entry -> entry.getValue() <= now);
-        broadcastUserCount();
         checkForRejoinableGameRoom();
         broadcastRooms();
+    }
+
+    @Scheduled(fixedRate = 5000) // fallback in case a WebSocket lifecycle event is missed
+    private void userCountFallback() throws IOException {
+        broadcastUserCount();
     }
 
     @Scheduled(fixedRate = 30000) // 30 seconds
@@ -396,6 +423,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             }
 
             String newGameId = username1 + "‗" + username2;
+            gameWebSocket.prepareGame(newGameId);
 
             quickPlayQueue.remove(p1);
             quickPlayQueue.remove(p2);
@@ -485,18 +513,100 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private void broadcastUserCount() throws IOException {
-        List<String> lobbyPlayers = globalActiveSessions.stream()
-                .map(WebSocketSession::getPrincipal)
-                .filter(Objects::nonNull)
-                .map(Principal::getName)
-                .sorted(String.CASE_INSENSITIVE_ORDER)
+        Map<String, PlayerStatus> onlinePlayerStatuses = new HashMap<>();
+
+        globalActiveSessions.stream()
+                .filter(session -> session.getPrincipal() != null)
+                .forEach(session -> onlinePlayerStatuses.put(
+                        Objects.requireNonNull(session.getPrincipal()).getName(),
+                        playerStatuses.getOrDefault(session, PlayerStatus.LOBBY)
+                ));
+
+        rooms.stream()
+                .filter(room -> room.getPlayers().size() >= 2)
+                .flatMap(room -> room.getPlayers().stream())
+                .forEach(player -> onlinePlayerStatuses.put(player.getName(), PlayerStatus.GAME_ROOM));
+
+        gameWebSocket.gameRooms.values().forEach(gameRoom -> {
+            onlinePlayerStatuses.put(gameRoom.getPlayer1().username(), PlayerStatus.MATCH);
+            onlinePlayerStatuses.put(gameRoom.getPlayer2().username(), PlayerStatus.MATCH);
+        });
+
+        List<OnlinePlayerDTO> onlinePlayers = onlinePlayerStatuses.entrySet().stream()
+                .map(entry -> new OnlinePlayerDTO(entry.getKey(), entry.getValue().displayText))
+                .sorted(Comparator.comparing(OnlinePlayerDTO::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
-        String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(lobbyPlayers);
+        String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(onlinePlayers);
+        String userCountMessage = "[USER_COUNT]:" + getTotalSessionCount();
+        String quickPlayCountMessage = "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size();
 
         for (WebSocketSession session : globalActiveSessions) {
-            sendTextMessage(session, "[USER_COUNT]:" + getTotalSessionCount());
-            sendTextMessage(session, "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size());
+            sendTextMessage(session, userCountMessage);
+            sendTextMessage(session, quickPlayCountMessage);
             sendTextMessage(session, lobbyPlayersMessage);
+        }
+    }
+
+    private void setPlayerStatus(WebSocketSession session, String requestedStatus) throws IOException {
+        try {
+            PlayerStatus status = PlayerStatus.valueOf(requestedStatus);
+            if (status == PlayerStatus.MATCH || status == PlayerStatus.GAME_ROOM) return;
+            playerStatuses.put(session, status);
+            broadcastUserCount();
+        } catch (IllegalArgumentException ignored) {
+            // Ignore unknown client-provided statuses.
+        }
+    }
+
+    private void registerActiveSession(WebSocketSession session, String username, PlayerStatus status) {
+        globalActiveSessions.removeIf(existingSession -> {
+            boolean belongsToUser = existingSession.getPrincipal() != null &&
+                    Objects.equals(existingSession.getPrincipal().getName(), username);
+            if (belongsToUser) playerStatuses.remove(existingSession);
+            return belongsToUser;
+        });
+        playerStatuses.put(session, status);
+        globalActiveSessions.add(session);
+    }
+
+    private PlayerStatus getRequestedPlayerStatus(WebSocketSession session) {
+        if (session.getUri() == null || session.getUri().getQuery() == null) return PlayerStatus.LOBBY;
+
+        return Arrays.stream(session.getUri().getQuery().split("&"))
+                .filter(parameter -> parameter.startsWith("status="))
+                .map(parameter -> parameter.substring("status=".length()))
+                .map(status -> {
+                    try {
+                        PlayerStatus parsedStatus = PlayerStatus.valueOf(status);
+                        return parsedStatus == PlayerStatus.MATCH ? PlayerStatus.LOBBY : parsedStatus;
+                    } catch (IllegalArgumentException ignored) {
+                        return PlayerStatus.LOBBY;
+                    }
+                })
+                .findFirst()
+                .orElse(PlayerStatus.LOBBY);
+    }
+
+    private enum PlayerStatus {
+        LOBBY("In lobby"),
+        GAME_ROOM("In Game Room"),
+        MATCH("In a match"),
+        DECKBUILDING("Deck building"),
+        TESTING("Testing");
+
+        private final String displayText;
+
+        PlayerStatus(String displayText) {
+            this.displayText = displayText;
+        }
+    }
+
+    @EventListener
+    public void handleOnlinePlayerCountChanged(OnlinePlayerCountChangedEvent ignored) {
+        try {
+            broadcastUserCount();
+        } catch (IOException e) {
+            System.err.println("Failed to broadcast online player count: " + e.getMessage());
         }
     }
 
@@ -509,8 +619,23 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private int getTotalSessionCount() {
-        int inGameSessionCount = gameWebSocket.gameRooms.size() * 2;
-        return globalActiveSessions.size() + inGameSessionCount;
+        Set<String> activePlayerNames = new HashSet<>();
+
+        globalActiveSessions.stream()
+                .map(WebSocketSession::getPrincipal)
+                .filter(Objects::nonNull)
+                .map(Principal::getName)
+                .forEach(activePlayerNames::add);
+
+        gameWebSocket.gameRooms.values().stream()
+                .flatMap(gameRoom -> gameRoom.getSessions().stream())
+                .filter(WebSocketSession::isOpen)
+                .map(WebSocketSession::getPrincipal)
+                .filter(Objects::nonNull)
+                .map(Principal::getName)
+                .forEach(activePlayerNames::add);
+
+        return activePlayerNames.size();
     }
 
     private RoomDTO getRoomDTO(Room room) {
@@ -578,7 +703,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             sendRoomUpdate(room, true);
         }
 
-            broadcastRooms();
+        broadcastRooms();
+        broadcastUserCount();
     }
 
     private void handleJoinRoomAttempt(WebSocketSession session, String roomId) throws IOException {
@@ -662,9 +788,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         sendTextMessage(session, "[LEAVE_ROOM]");
-        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
+        sendGlobalChatHistory(session);
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have left the room " + room.getName() + ".");
         broadcastRooms();
+        broadcastUserCount();
     }
 
     private void toggleReady(WebSocketSession session, String roomId) throws IOException {
@@ -715,13 +842,14 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         sendRoomUpdate(room);
 
         sendTextMessage(player.getSession(), "[KICKED]");
-        sendTextMessage(player.getSession(), "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(globalChatMessages));
+        sendGlobalChatHistory(player.getSession());
         sendTextMessage(player.getSession(), "[CHAT_MESSAGE]:【SERVER】: You have been kicked from the room " + room.getName() + ".");
 
         sendTextMessage(session, "[SUCCESS]");
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have kicked " + userName + ".");
 
         broadcastRooms();
+        broadcastUserCount();
     }
 
     private void handleChatMessage(WebSocketSession session, String payload) throws IOException {
@@ -740,7 +868,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (globalChatMessages.size() > 500) globalChatMessages.removeFirst();
 
         for (WebSocketSession webSocketSession : globalActiveSessions) {
-            sendTextMessage(webSocketSession, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(chatMessage));
+            if (canReceiveChatMessage(webSocketSession, chatMessage)) {
+                sendTextMessage(webSocketSession, "[CHAT_MESSAGE]:" + objectMapper.writeValueAsString(chatMessage));
+            }
         }
     }
 
@@ -759,8 +889,27 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         ChatMessage chatMessage = new ChatMessage(messageContent, userName);
 
         for (LobbyPlayer player : room.getPlayers()) {
-            sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + objectMapper.writeValueAsString(chatMessage));
+            if (canReceiveChatMessage(player.getSession(), chatMessage)) {
+                sendTextMessage(player.getSession(), "[CHAT_MESSAGE_ROOM]:" + objectMapper.writeValueAsString(chatMessage));
+            }
         }
+    }
+
+    private void sendGlobalChatHistory(WebSocketSession session) throws IOException {
+        sendTextMessage(session, "[GLOBAL_CHAT]:" + objectMapper.writeValueAsString(getVisibleGlobalChatMessages(session)));
+    }
+
+    List<ChatMessage> getVisibleGlobalChatMessages(WebSocketSession session) {
+        return globalChatMessages.stream()
+                .filter(message -> canReceiveChatMessage(session, message))
+                .toList();
+    }
+
+    private boolean canReceiveChatMessage(WebSocketSession recipient, ChatMessage message) {
+        Principal principal = recipient.getPrincipal();
+        if (principal == null || "【SERVER】".equals(message.author())) return true;
+
+        return !mongoUserDetailsService.getBlockedAccounts(principal.getName()).contains(message.author());
     }
 
     private Room getRoomById(String roomId) {

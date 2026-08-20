@@ -182,7 +182,10 @@ export const useDeckStates = create<State>((set, get) => ({
         axios
             .get("/api/profile/decks")
             .then((res) => res.data)
-            .catch(console.error)
+            .catch((error) => {
+                console.error(error);
+                return [];
+            })
             .then((data) => {
                 set({ decks: data });
             })
