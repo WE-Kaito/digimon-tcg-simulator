@@ -212,6 +212,14 @@ export default function Lobby() {
                     setUserCountQuickPlay(parseInt(event.data.substring("[USER_COUNT_QUICK_PLAY]:".length)));
                 }
 
+                if (event.data === "[QUICK_PLAY_QUEUED]") {
+                    setIsSearchingGame(true);
+                }
+
+                if (event.data === "[QUICK_PLAY_CANCELLED]") {
+                    setIsSearchingGame(false);
+                }
+
                 if (event.data.startsWith("[LOBBY_PLAYERS]:")) {
                     setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as OnlinePlayer[]);
                 }
@@ -397,7 +405,6 @@ export default function Lobby() {
     }
 
     function cancelQuickPlayQueue() {
-        setIsSearchingGame(false);
         websocket.sendMessage("/cancelQuickPlay");
     }
 
@@ -405,7 +412,6 @@ export default function Lobby() {
         if (isSearchingGame) {
             cancelQuickPlayQueue();
         } else {
-            setIsSearchingGame(true);
             websocket.sendMessage("/quickPlay");
         }
     }
