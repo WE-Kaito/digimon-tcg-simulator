@@ -49,6 +49,8 @@ import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
 import { AppNotification, NotificationBell } from "./MainMenu.tsx";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import useInviteCooldowns from "../hooks/useInviteCooldowns.ts";
+import { handleReconnectStatus } from "../utils/reconnectStatus.ts";
 
 function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
     return {
@@ -80,6 +82,11 @@ type LobbyPlayer = {
     ready: boolean;
 };
 
+type OnlinePlayer = {
+    name: string;
+    status: string;
+};
+
 type Room = {
     id: string;
     name: string;
@@ -105,6 +112,7 @@ export default function Lobby() {
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
+    const setGameLobbyRoomId = useGameBoardStates((state) => state.setGameLobbyRoomId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
 
@@ -118,7 +126,7 @@ export default function Lobby() {
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
-    const [lobbyPlayers, setLobbyPlayers] = useState<string[]>([]);
+    const [lobbyPlayers, setLobbyPlayers] = useState<OnlinePlayer[]>([]);
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState<HTMLButtonElement | null>(null);
     const [isPlayerSearchOpen, setIsPlayerSearchOpen] = useState(false);
     const [playerSearch, setPlayerSearch] = useState("");
@@ -134,6 +142,12 @@ export default function Lobby() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [incomingGameInvites, setIncomingGameInvites] = useState<string[]>([]);
     const [pendingGameInvites, setPendingGameInvites] = useState<Set<string>>(() => new Set());
+    const {
+        getInviteCooldownSeconds,
+        inviteCooldownPlayers,
+        isInviteCoolingDown,
+        startInviteCooldown,
+    } = useInviteCooldowns();
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
@@ -152,10 +166,10 @@ export default function Lobby() {
 
     const navigate = useNavigate();
 
-    function handleReconnect() {
+    function handleReturnToGame() {
         setIsOpponentOnline(true);
         setIsLoading(false);
-        navigate("/game");
+        navigate("/game", { state: { gameEntryConfirmed: true } });
     }
 
     function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
@@ -198,8 +212,16 @@ export default function Lobby() {
                     setUserCountQuickPlay(parseInt(event.data.substring("[USER_COUNT_QUICK_PLAY]:".length)));
                 }
 
+                if (event.data === "[QUICK_PLAY_QUEUED]") {
+                    setIsSearchingGame(true);
+                }
+
+                if (event.data === "[QUICK_PLAY_CANCELLED]") {
+                    setIsSearchingGame(false);
+                }
+
                 if (event.data.startsWith("[LOBBY_PLAYERS]:")) {
-                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as string[]);
+                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as OnlinePlayer[]);
                 }
 
                 if (event.data.startsWith("[ROOMS]:")) {
@@ -227,6 +249,7 @@ export default function Lobby() {
 
                 if (event.data === "[LEAVE_ROOM]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     setIsLoading(false);
                     playJoinSfx(); // new sound?
@@ -234,6 +257,7 @@ export default function Lobby() {
 
                 if (event.data === "[KICKED]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     playKickSfx();
                 }
@@ -251,6 +275,15 @@ export default function Lobby() {
                     localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
                     localStorage.removeItem("boardStore");
                     const gameId = event.data.substring("[COMPUTE_GAME]:".length);
+                    setGameLobbyRoomId("");
+                    startGameSequence(gameId);
+                }
+
+                if (event.data.startsWith("[COMPUTE_ROOM_GAME]:")) {
+                    localStorage.setItem("isReported", JSON.stringify(false));
+                    localStorage.removeItem("boardStore");
+                    const [gameId, roomId] = event.data.substring("[COMPUTE_ROOM_GAME]:".length).split(":", 2);
+                    setGameLobbyRoomId(roomId);
                     startGameSequence(gameId);
                 }
 
@@ -270,15 +303,12 @@ export default function Lobby() {
                     });
                 }
 
-                if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
-                    const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
-                    setIsRejoinable(matchingRoomId === gameId);
-                    // gameId could be set to older matching room id here, but not sure if this makes sense
+                if (event.data.startsWith("[GAME_INVITE_CANCELLED]:")) {
+                    const inviter = event.data.substring("[GAME_INVITE_CANCELLED]:".length);
+                    setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
                 }
 
-                if (event.data === "[RECONNECT_DISABLED]") {
-                    setIsRejoinable(false);
-                }
+                handleReconnectStatus(event.data, gameId, setIsRejoinable, setGameId);
 
                 if (event.data === "[SESSION_ALREADY_CONNECTED]") {
                     setIsAlreadyOpenedInOtherTab(true);
@@ -369,13 +399,12 @@ export default function Lobby() {
             clearBoard();
             setIsLoading(false);
             setJoinedRoom(null);
-            navigate("/game");
+            navigate("/game", { state: { gameEntryConfirmed: true } });
         }, 3150);
         return () => clearTimeout(timer);
     }
 
     function cancelQuickPlayQueue() {
-        setIsSearchingGame(false);
         websocket.sendMessage("/cancelQuickPlay");
     }
 
@@ -383,13 +412,34 @@ export default function Lobby() {
         if (isSearchingGame) {
             cancelQuickPlayQueue();
         } else {
-            setIsSearchingGame(true);
             websocket.sendMessage("/quickPlay");
         }
     }
 
     function handleInviteSent(player: string) {
         setPendingGameInvites((players) => new Set(players).add(player));
+    }
+
+    function handleInviteCancelled(player: string) {
+        setPendingGameInvites((players) => {
+            const nextPlayers = new Set(players);
+            nextPlayers.delete(player);
+            return nextPlayers;
+        });
+        startInviteCooldown(player);
+    }
+
+    function handlePlayerInvite(player: string) {
+        if (pendingGameInvites.has(player)) {
+            websocket.sendMessage(`/cancelGameInvite:${player}`);
+            handleInviteCancelled(player);
+            return;
+        }
+
+        if (isInviteCoolingDown(player)) return;
+
+        websocket.sendMessage(`/inviteToGame:${player}`);
+        handleInviteSent(player);
     }
 
     function handleGameInviteResponse(inviter: string, accepted: boolean) {
@@ -400,7 +450,9 @@ export default function Lobby() {
     const initialFetch = useCallback(() => {
         getActiveDeck();
     }, [getActiveDeck]);
-    useEffect(() => initialFetch(), [initialFetch]);
+    useEffect(() => {
+        initialFetch();
+    }, [initialFetch]);
 
     useEffect(() => {
         const timeout = window.setTimeout(() => setDebouncedPlayerSearch(playerSearch), 250);
@@ -408,7 +460,15 @@ export default function Lobby() {
     }, [playerSearch]);
 
     useEffect(() => {
-        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
+        if (!gameId) setIsRejoinable(false);
+    }, [gameId]);
+
+    useEffect(() => {
+        if (!activeDeckId || activeDeckId.includes("<html")) return;
+        axios
+            .get(`/api/profile/decks/${activeDeckId}`)
+            .then((res) => setDeckObject(res.data as DeckType))
+            .catch(console.error);
     }, [activeDeckId]);
 
     useEffect(() => {
@@ -432,7 +492,7 @@ export default function Lobby() {
 
     const isMobile = useMediaQuery("(max-width:499px)");
     const filteredLobbyPlayers = lobbyPlayers.filter((player) =>
-        player.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
+        player.name.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
     );
     const notifications: AppNotification[] = incomingGameInvites.map((inviter) => ({
         id: `game-invite:${inviter}`,
@@ -509,8 +569,6 @@ export default function Lobby() {
 
                 {/*TODO: Add own name plate here*/}
 
-                {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
-
                 <OnlineUsers
                     type="button"
                     onClick={handleOnlineUsersClick}
@@ -577,7 +635,26 @@ export default function Lobby() {
                         </LobbyPlayerListHeading>
                         {filteredLobbyPlayers.length ? (
                             filteredLobbyPlayers.map((player) => (
-                                <LobbyPlayerListItem key={player}>{player}</LobbyPlayerListItem>
+                                <LobbyPlayerListItem key={player.name}>
+                                    <PlayerIdentity>
+                                        <span>{player.name}</span>
+                                        <PlayerStatus>{player.status}</PlayerStatus>
+                                    </PlayerIdentity>
+                                    {player.name !== user && (
+                                        <PlayerInviteButton
+                                            type="button"
+                                            pending={pendingGameInvites.has(player.name)}
+                                            disabled={isInviteCoolingDown(player.name)}
+                                            onClick={() => handlePlayerInvite(player.name)}
+                                        >
+                                            {pendingGameInvites.has(player.name)
+                                                ? "cancel invite"
+                                                : isInviteCoolingDown(player.name)
+                                                  ? `invite in ${getInviteCooldownSeconds(player.name)}s`
+                                                  : "invite to play"}
+                                        </PlayerInviteButton>
+                                    )}
+                                </LobbyPlayerListItem>
                             ))
                         ) : (
                             <LobbyPlayerListItem>
@@ -618,7 +695,9 @@ export default function Lobby() {
                             <CardTitle style={{ marginBottom: 0 }}>{joinedRoom?.name ?? "Room"}</CardTitle>
                             <CardTitle style={{ color: "var(--lobby-accent)" }}>{joinedRoom ? "" : "Host"}</CardTitle>
                             <CardTitle style={{ gridColumn: "span 2" }}>{joinedRoom ? "" : "Settings"}</CardTitle>
-                            {joinedRoom ? (
+                            {isRejoinable ? (
+                                <Button onClick={handleReturnToGame}>RETURN TO GAME</Button>
+                            ) : joinedRoom ? (
                                 user === joinedRoom.hostName ? (
                                     <Button disabled={startGameDisabled} onClick={handleStartGame}>
                                         START GAME
@@ -866,7 +945,9 @@ export default function Lobby() {
                 isAdmin={!!isAdmin}
                 sendMessage={websocket.sendMessage}
                 onInviteSent={handleInviteSent}
+                onInviteCancelled={handleInviteCancelled}
                 pendingGameInvites={pendingGameInvites}
+                inviteCooldownPlayers={inviteCooldownPlayers}
             />
         </MenuBackgroundWrapper>
     );
@@ -963,9 +1044,54 @@ const PlayerSearchInput = styled(InputBase)`
 `;
 
 const LobbyPlayerListItem = styled.li`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     padding: 9px 16px;
     color: ghostwhite;
     font-size: 17px;
+`;
+
+const PlayerIdentity = styled.span`
+    min-width: 0;
+`;
+
+const PlayerStatus = styled.span`
+    display: block;
+    margin-right: 6px;
+    color: rgba(255, 239, 213, 0.62);
+    font-family: "Cousine", monospace;
+    font-size: 0.6em;
+    white-space: nowrap;
+`;
+
+const PlayerInviteButton = styled.button<{ pending: boolean }>`
+    flex-shrink: 0;
+    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    background: var(${({ pending }) => (pending ? "--orange-button-bg" : "--blue-button-bg")});
+    color: ghostwhite;
+    font: 600 12px/1 "League Spartan", sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-hover" : "--blue-button-bg-hover")});
+        outline: none;
+    }
+
+    &:active {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-active" : "--blue-button-bg-active")});
+    }
+
+    &:disabled {
+        filter: grayscale(0.65);
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
 `;
 
 const LeftColumn = styled.div`

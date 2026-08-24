@@ -26,6 +26,7 @@ export default function OpponentHand() {
         <Container cardCount={opponentHand.length}>
             {opponentHand.map((card, index) => (
                 <div
+                    key={card.id}
                     onContextMenu={(e) =>
                         showOpponentHandCardMenu({
                             event: e,
@@ -40,7 +41,6 @@ export default function OpponentHand() {
                     style={{ position: "absolute", left: offset + index * effectiveSpacing }}
                 >
                     <Card
-                        key={card.id}
                         card={card}
                         location={"opponentHand"}
                         style={{

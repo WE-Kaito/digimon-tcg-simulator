@@ -413,20 +413,24 @@ export default function CardDetails() {
                     <LinkEffectCard linkCardInfo={linkCardInfo} key={`${cardNumber}_linkedEffect`} />
                 )}
 
-                {inheritCardInfo[0]?.length > 0 && (
+                {inheritCardInfo.length > 0 && (
                     <EffectCard
                         variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS}
                         key={`${cardNumber}_inherited`}
                     >
                         <Stack gap={1}>
-                            {inheritCardInfo.map(
-                                (text, index) =>
-                                    !!text && (
-                                        <span key={`${cardNumber}_inherited_from_material_${index}`}>
-                                            <HighlightedKeyWords text={text} />
-                                        </span>
-                                    )
-                            )}
+                            {inheritCardInfo.map((source) => (
+                                <InheritedSourceEffect key={source.id}>
+                                    <InheritedSourceIdentifier>
+                                        {source.name}
+                                        {source.level ? ` • Lv.${source.level}` : ""}
+                                    </InheritedSourceIdentifier>
+                                    <HighlightedKeyWords
+                                        text={source.effect}
+                                        effectSourceCardId={source.id}
+                                    />
+                                </InheritedSourceEffect>
+                            ))}
                         </Stack>
                     </EffectCard>
                 )}
@@ -488,6 +492,22 @@ export default function CardDetails() {
         </Wrapper>
     );
 }
+
+const InheritedSourceEffect = styled.div`
+    padding: 7px 8px 8px;
+    border: 1px solid rgba(185, 202, 216, 0.38);
+    border-radius: 4px;
+    background: rgba(8, 18, 30, 0.28);
+    box-shadow: inset 0 0 12px rgba(145, 190, 220, 0.06);
+`;
+
+const InheritedSourceIdentifier = styled.div`
+    margin-bottom: 6px;
+    color: rgba(205, 211, 218, 0.72);
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.035em;
+`;
 
 const Wrapper = styled.div<{ inGame: boolean }>`
     grid-area: details;

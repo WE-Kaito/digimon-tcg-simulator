@@ -181,6 +181,7 @@ type GameDistribution = {
 
 export type State = BoardState & {
     gameId: string;
+    gameLobbyRoomId: string;
 
     cardIdWithEffect: string;
     cardIdWithTarget: string;
@@ -192,7 +193,7 @@ export type State = BoardState & {
      * Should be refactored.
      */
     cardToSend: { card: CardTypeGame; location: string } | null;
-    inheritCardInfo: string[];
+    inheritCardInfo: InheritedCardInfo[];
     linkCardInfo: { dp: number; effect: string }[];
     setLinkCardInfo: (linkCardInfo: { dp: number; effect: string }[]) => void;
     getLinkCardsForLocation: (location: string) => CardTypeGame[];
@@ -213,6 +214,7 @@ export type State = BoardState & {
     setAllMessages: (messages: string[]) => void;
     stackSliceIndex: number;
     isOpponentOnline: boolean;
+    opponentReconnectDeadline: number | null;
     startingPlayer: string;
 
     // --------------------------------------------------------
@@ -254,12 +256,14 @@ export type State = BoardState & {
     setCardToSend: (cardToSend: { card: CardTypeGame; location: string } | null) => void;
     setBootStage: (phase: BootStage) => void;
     setGameId: (gameId: string) => void;
-    setInheritCardInfo: (inheritedEffects: string[]) => void;
+    setGameLobbyRoomId: (roomId: string) => void;
+    setInheritCardInfo: (inheritedEffects: InheritedCardInfo[]) => void;
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;
     getCardLocationById: (id: string) => string;
     toggleIsHandHidden: () => void;
     setStackSliceIndex: (index: number) => void;
     setIsOpponentOnline: (isOpponentOnline: boolean) => void;
+    setOpponentReconnectDeadline: (deadline: number | null) => void;
     setStartingPlayer: (side: SIDE | "") => void;
 
     flipCard: (cardId: string, location: string) => void;
@@ -269,6 +273,13 @@ export type State = BoardState & {
 
     markedCard: string;
     setMarkedCard: (cardId: string) => void;
+};
+
+export type InheritedCardInfo = {
+    id: string;
+    name: string;
+    level?: number;
+    effect: string;
 };
 
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
@@ -418,6 +429,7 @@ const fieldDefaultValues = {
 
 export const useGameBoardStates = create<State>()((set, get) => ({
     gameId: localStorage.getItem("gameId") || "",
+    gameLobbyRoomId: localStorage.getItem("gameLobbyRoomId") || "",
 
     cardIdWithEffect: "",
     cardIdWithTarget: "",
@@ -443,6 +455,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     messages: [],
     stackSliceIndex: 0,
     isOpponentOnline: true,
+    opponentReconnectDeadline: null,
     startingPlayer: "",
 
     hasDecidedMulligan: false,
@@ -465,6 +478,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             myAttackPhase: false,
             bootStage: BootStage.CLEAR,
             isOpponentOnline: true,
+            opponentReconnectDeadline: null,
             hasDecidedMulligan: false,
             messages: [],
             player1: { avatarName: "", mainSleeveName: "", eggSleeveName: "", username: "" },
@@ -579,6 +593,9 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                 // Set memory values
                 myMemory: isPlayer1 ? boardState.player1Memory : boardState.player2Memory,
                 opponentMemory: isPlayer1 ? boardState.player2Memory : boardState.player1Memory,
+                ...(boardState.phase && { phase: boardState.phase }),
+                ...(boardState.usernameTurn && { usernameTurn: boardState.usernameTurn }),
+                ...(boardState.bootStage !== undefined && { bootStage: boardState.bootStage }),
             });
         } else {
             // Handle GameStart format (initial distribution)
@@ -934,8 +951,15 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setBootStage: (stage) => set({ bootStage: stage }),
 
     setGameId: (gameId) => {
-        localStorage.setItem("gameId", gameId);
+        if (gameId) localStorage.setItem("gameId", gameId);
+        else localStorage.removeItem("gameId");
         set({ gameId });
+    },
+
+    setGameLobbyRoomId: (roomId) => {
+        if (roomId) localStorage.setItem("gameLobbyRoomId", roomId);
+        else localStorage.removeItem("gameLobbyRoomId");
+        set({ gameLobbyRoomId: roomId });
     },
 
     setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
@@ -975,6 +999,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
 
     setIsOpponentOnline: (isOpponentOnline) => set({ isOpponentOnline }),
+
+    setOpponentReconnectDeadline: (opponentReconnectDeadline) => set({ opponentReconnectDeadline }),
 
     setStartingPlayer: (startingPlayer) => set({ startingPlayer }),
 

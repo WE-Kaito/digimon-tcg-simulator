@@ -16,6 +16,15 @@ export enum Emote {
     BAFFLED = "baffled",
 }
 
+export type EffectTargeting = {
+    sourceCardId: string;
+    effectSourceCardId?: string;
+    sourceLocation: string;
+    sourceName: string;
+    timing: string;
+    effectText: string;
+};
+
 type State = {
     isStackDragMode: boolean;
     setIsStackDragMode: (isStackDragMode: boolean) => void;
@@ -34,6 +43,9 @@ type State = {
 
     isRematch: boolean;
     setIsRematch: (isRematch: boolean) => void;
+
+    endedBySurrender: boolean;
+    setEndedBySurrender: (endedBySurrender: boolean) => void;
 
     isEndDialogOpen: boolean; // TODO: Refactor to one dialog state like openedCardDialog, to avoid multiple dialogs
     setIsEndDialogOpen: (open: boolean) => void;
@@ -79,6 +91,10 @@ type State = {
 
     showSecuritySendButtons: boolean;
     setShowSecuritySendButtons: (show: boolean) => void;
+
+    effectTargeting: EffectTargeting | null;
+    startEffectTargeting: (targeting: EffectTargeting) => void;
+    cancelEffectTargeting: () => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
@@ -99,6 +115,9 @@ export const useGameUIStates = create<State>((set) => ({
 
     isRematch: false,
     setIsRematch: (isRematch) => set({ isRematch }),
+
+    endedBySurrender: false,
+    setEndedBySurrender: (endedBySurrender) => set({ endedBySurrender }),
 
     isEndDialogOpen: false,
     setIsEndDialogOpen: (open) => set({ isEndDialogOpen: open }),
@@ -144,4 +163,8 @@ export const useGameUIStates = create<State>((set) => ({
 
     showSecuritySendButtons: false,
     setShowSecuritySendButtons: (showSecuritySendButtons) => set({ showSecuritySendButtons }),
+
+    effectTargeting: null,
+    startEffectTargeting: (effectTargeting) => set({ effectTargeting }),
+    cancelEffectTargeting: () => set({ effectTargeting: null }),
 }));

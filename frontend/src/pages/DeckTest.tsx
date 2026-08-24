@@ -33,8 +33,11 @@ import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useNavigate } from "react-router-dom";
 import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
 import axios from "axios";
+import usePlayerPresence from "../hooks/usePlayerPresence.ts";
 
 export default function DeckTest() {
+    usePlayerPresence("TESTING");
+
     const selectCard = useGeneralStates((state) => state.selectCard);
     const selectedCard = useGeneralStates((state) => state.selectedCard);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
@@ -586,7 +589,9 @@ export default function DeckTest() {
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
-    useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
+    useEffect(() => {
+        window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0);
+    }, []);
 
     // Determine backend based on touch capability
     const backend = "ontouchstart" in window ? TouchBackend : HTML5Backend;
