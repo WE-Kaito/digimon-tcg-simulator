@@ -57,7 +57,9 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
                 }}
                 hasChildren={hasChildren}
             >
-                {isOpponentOnline && !myEmote && (
+                {isResolvingEffects ? (
+                    <ResolvingEffectsStatus>Resolving Effects</ResolvingEffectsStatus>
+                ) : isOpponentOnline && !myEmote ? (
                     <>
                         {emotesOpen ? (
                             <EmoteButtonContainer>
@@ -100,8 +102,9 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
                             </>
                         )}
                     </>
+                ) : (
+                    myEmote && <EmoteRender emote={myEmote} />
                 )}
-                {myEmote && <EmoteRender emote={myEmote} />}
             </Container>
             <ActionButtons>
                 <PanelButton
@@ -187,6 +190,17 @@ const Container = styled.div<{ hasChildren: boolean }>`
             box-shadow: inset 0 0 3px 1px rgba(146, 255, 245, 0.15);
         }
     }
+`;
+
+const ResolvingEffectsStatus = styled.span`
+    color: lightcyan;
+    font-family: "League Spartan", sans-serif;
+    font-size: clamp(11px, 1vw, 18px);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    text-align: center;
+    text-transform: uppercase;
 `;
 
 const PanelButton = styled.div<{ disabled?: boolean }>`
