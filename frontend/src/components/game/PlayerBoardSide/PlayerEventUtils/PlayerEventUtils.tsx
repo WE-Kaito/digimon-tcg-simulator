@@ -43,9 +43,14 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     }
 
     function toggleResolvingEffects() {
+        if (!wsUtils) return;
         const nextValue = !isResolvingEffects;
+        setMyEmote(null);
+        if (nextValue) {
+            setEmotesOpen(false);
+        }
         setIsResolvingEffects(nextValue);
-        wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/resolvingEffects:${nextValue}`);
+        wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/resolvingEffects:${nextValue}`);
     }
 
     return (
@@ -123,9 +128,9 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
                     )}
                 </PanelButton>
                 <PanelButton
-                    disabled={!!myEmote}
+                    disabled={!!myEmote || isResolvingEffects}
                     className="button"
-                    onClick={() => setEmotesOpen(!emotesOpen)}
+                    onClick={() => !isResolvingEffects && setEmotesOpen(!emotesOpen)}
                 >
                     <EmoteIcon className="button" sx={{ fontSize: iconWidth * 0.8, color: "lightcyan", opacity: 0.75 }} />
                 </PanelButton>

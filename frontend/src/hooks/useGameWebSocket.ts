@@ -6,6 +6,7 @@ import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
+import { useEffect } from "react";
 
 const currentPort = window.location.port;
 const currentUrl = window.location.origin.replace("https://", "");
@@ -259,7 +260,9 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
 
             if (event.data.startsWith("[RESOLVING_EFFECTS]:")) {
-                setIsOpponentResolvingEffects(event.data.substring("[RESOLVING_EFFECTS]:".length) === "true");
+                const resolvingEffects = event.data.substring("[RESOLVING_EFFECTS]:".length) === "true";
+                if (!resolvingEffects) setOpponentEmote(null);
+                setIsOpponentResolvingEffects(resolvingEffects);
                 return;
             }
 
@@ -429,6 +432,13 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
         },
     });
+
+    useEffect(
+        () => () => {
+            setIsResolvingEffects(false);
+            setIsOpponentResolvingEffects(false);
+        }, [setIsOpponentResolvingEffects, setIsResolvingEffects]
+    );
 
     return { sendMessage: websocket.sendMessage };
 }
