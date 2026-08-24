@@ -263,6 +263,11 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
+            if (event.data.startsWith("[MY_RESOLVING_EFFECTS]:")) {
+                setIsResolvingEffects(event.data.substring("[MY_RESOLVING_EFFECTS]:".length) === "true");
+                return;
+            }
+
             if (event.data.startsWith("[ATTACK]:")) {
                 const parts = event.data.substring("[ATTACK]:".length).split(":");
                 if (parts.length < 3) return;

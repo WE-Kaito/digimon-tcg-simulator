@@ -522,6 +522,7 @@ public class GameWebSocket extends TextWebSocketHandler {
         gameRoom.sendMessagesToAll("[SET_BOOT_STAGE]:" + gameRoom.getBootStage());
         gameRoom.sendMessagesToAll("[SET_PHASE]:" + gameRoom.getPhase());
         gameRoom.sendMessagesToAll("[SET_TURN]:" + gameRoom.getUsernameTurn());
+        gameRoom.broadcastResolvingEffectsState();
     }
     
     private void distributeChatHistory(GameRoom gameRoom) {
@@ -809,6 +810,9 @@ public class GameWebSocket extends TextWebSocketHandler {
         String[] parts = roomMessage.split(":", 2);
         String command = parts[0];
         String id = parts.length > 1 ? parts[1] : "";
+        if (command.equals("/resolvingEffects") && (id.equals("true") || id.equals("false"))) {
+            gameRoom.setResolvingEffectsForSession(session, Boolean.parseBoolean(id));
+        }
         gameRoom.sendMessageToOtherSessions(session, convertCommand(command) + ":" + id);
     }
     
