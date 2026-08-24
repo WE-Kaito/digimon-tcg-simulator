@@ -37,7 +37,9 @@ public class GameWebSocket extends TextWebSocketHandler {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String[] simpleIdCommands = {"/updateAttackPhase", "/activateEffect", "/activateTarget", "/emote"};
+    private static final String[] simpleIdCommands = {
+            "/updateAttackPhase", "/activateEffect", "/activateTarget", "/emote", "/resolvingEffects"
+    };
     
     private static final Set<String> DESTROY_TOKEN_LOCATIONS = Set.of(
         "player1Hand", "player1Deck", "player1EggDeck", "player1Trash", "player1Security", "player1BreedingArea",
@@ -195,6 +197,7 @@ public class GameWebSocket extends TextWebSocketHandler {
             case "/activateEffect" -> "[ACTIVATE_EFFECT]";
             case "/updateAttackPhase" -> "[OPPONENT_ATTACK_PHASE]";
             case "/emote" -> "[EMOTE]";
+            case "/resolvingEffects" -> "[RESOLVING_EFFECTS]";
             default -> "";
         };
     }

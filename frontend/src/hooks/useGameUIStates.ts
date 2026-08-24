@@ -71,6 +71,12 @@ type State = {
     opponentEmote: Emote | null;
     setOpponentEmote: (emote: Emote | null) => void;
 
+    isResolvingEffects: boolean;
+    setIsResolvingEffects: (isResolvingEffects: boolean) => void;
+
+    isOpponentResolvingEffects: boolean;
+    setIsOpponentResolvingEffects: (isOpponentResolvingEffects: boolean) => void;
+
     fieldOffset: number;
     setFieldOffset: (offset: number) => void;
 
@@ -135,6 +141,12 @@ export const useGameUIStates = create<State>((set) => ({
         set({ opponentEmote: emote });
         setTimeout(() => set({ opponentEmote: null }), 5000);
     },
+
+    isResolvingEffects: false,
+    setIsResolvingEffects: (isResolvingEffects) => set({ isResolvingEffects }),
+
+    isOpponentResolvingEffects: false,
+    setIsOpponentResolvingEffects: (isOpponentResolvingEffects) => set({ isOpponentResolvingEffects }),
 
     fieldOffset: 0,
     setFieldOffset: (offset) => set({ fieldOffset: Math.max(0, Math.min(8, offset)) }),

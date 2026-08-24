@@ -11,7 +11,9 @@ const currentPort = window.location.port;
 const currentUrl = window.location.origin.replace("https://", "");
 // TODO: using www.project-drasil.online as the domain is not working, need a fix
 const websocketURL =
-    currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/game" : "wss://" + currentUrl + "/api/ws/game";
+    currentPort === "5173"
+        ? `ws://${window.location.hostname}:8080/api/ws/game`
+        : "wss://" + currentUrl + "/api/ws/game";
 
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;
@@ -58,6 +60,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
     const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
+    const setIsResolvingEffects = useGameUIStates((state) => state.setIsResolvingEffects);
+    const setIsOpponentResolvingEffects = useGameUIStates((state) => state.setIsOpponentResolvingEffects);
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
@@ -128,6 +132,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 setStartingPlayer("");
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
+                setIsResolvingEffects(false);
+                setIsOpponentResolvingEffects(false);
                 return;
             }
 
@@ -249,6 +255,11 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[EMOTE]:")) {
                 const emote = event.data.substring("[EMOTE]:".length);
                 setOpponentEmote(emote);
+                return;
+            }
+
+            if (event.data.startsWith("[RESOLVING_EFFECTS]:")) {
+                setIsOpponentResolvingEffects(event.data.substring("[RESOLVING_EFFECTS]:".length) === "true");
                 return;
             }
 
@@ -400,6 +411,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 }
                 case "[OPPONENT_DISCONNECTED]": {
                     setIsOpponentOnline(false);
+                    setIsOpponentResolvingEffects(false);
                     break;
                 }
                 case "[OPPONENT_RECONNECTED]": {

@@ -15,6 +15,7 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const startingPlayer = useGameBoardStates((state) => state.startingPlayer);
 
     const opponentEmote = useGameUIStates((state) => state.opponentEmote);
+    const isOpponentResolvingEffects = useGameUIStates((state) => state.isOpponentResolvingEffects);
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.opponentName;
 
@@ -28,7 +29,9 @@ export default function OpponentEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
             }}
             hasChildren={hasChildren}
         >
-            {opponentEmote ? (
+            {isOpponentResolvingEffects ? (
+                <ResolvingEffectsStatus>Resolving Effects</ResolvingEffectsStatus>
+            ) : opponentEmote ? (
                 <EmoteRender emote={opponentEmote} />
             ) : (
                 <>
@@ -109,4 +112,15 @@ const Container = styled.div<{ hasChildren: boolean }>`
             box-shadow: inset 0 0 3px 1px rgba(146, 255, 245, 0.15);
         }
     }
+`;
+
+const ResolvingEffectsStatus = styled.span`
+    color: lightcyan;
+    font-family: "League Spartan", sans-serif;
+    font-size: clamp(11px, 1vw, 18px);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    text-align: center;
+    text-transform: uppercase;
 `;

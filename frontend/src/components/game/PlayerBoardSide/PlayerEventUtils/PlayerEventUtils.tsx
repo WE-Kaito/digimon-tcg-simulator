@@ -17,6 +17,8 @@ import { useGeneralStates } from "../../../../hooks/useGeneralStates.ts";
 import { useState } from "react";
 import { Emote, useGameUIStates } from "../../../../hooks/useGameUIStates.ts";
 import EmoteRender from "../../EmoteRender.tsx";
+import AccessTimeFilledTwoToneIcon from "@mui/icons-material/AccessTimeFilledTwoTone";
+import TaskAltTwoToneIcon from "@mui/icons-material/TaskAltTwoTone";
 
 export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const bootStage = useGameBoardStates((state) => state.bootStage);
@@ -25,6 +27,8 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
     const iconWidth = useGeneralStates((state) => state.cardWidth * 0.45);
     const myEmote = useGameUIStates((state) => state.myEmote);
     const setMyEmote = useGameUIStates((state) => state.setMyEmote);
+    const isResolvingEffects = useGameUIStates((state) => state.isResolvingEffects);
+    const setIsResolvingEffects = useGameUIStates((state) => state.setIsResolvingEffects);
 
     const isFirst = startingPlayer === wsUtils?.matchInfo.user;
 
@@ -36,6 +40,12 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
         setMyEmote(emote);
         setEmotesOpen(false);
         wsUtils?.sendMessage(`${wsUtils?.matchInfo.gameId}:/emote:${emote}`);
+    }
+
+    function toggleResolvingEffects() {
+        const nextValue = !isResolvingEffects;
+        setIsResolvingEffects(nextValue);
+        wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/resolvingEffects:${nextValue}`);
     }
 
     return (
@@ -93,14 +103,30 @@ export default function PlayerEventUtils({ wsUtils }: { wsUtils?: WSUtils }) {
                 )}
                 {myEmote && <EmoteRender emote={myEmote} />}
             </Container>
-            <PanelButton
-                disabled={!!myEmote}
-                className={"button"}
-                onClick={() => setEmotesOpen(!emotesOpen)}
-                style={{ gridArea: "emote", transform: `translate(-4px, 5px)` }}
-            >
-                <EmoteIcon className={"button"} sx={{ fontSize: iconWidth * 0.8, color: "lightcyan", opacity: 0.75 }} />
-            </PanelButton>
+            <ActionButtons>
+                <PanelButton
+                    role="button"
+                    aria-label={isResolvingEffects ? "Finish resolving effects" : "Start resolving effects"}
+                    title={isResolvingEffects ? "Done resolving effects" : "Resolving effects"}
+                    className="button"
+                    onClick={toggleResolvingEffects}
+                >
+                    {isResolvingEffects ? (
+                        <TaskAltTwoToneIcon sx={{ fontSize: iconWidth * 0.8, color: "mediumaquamarine" }} />
+                    ) : (
+                        <AccessTimeFilledTwoToneIcon
+                            sx={{ fontSize: iconWidth * 0.8, color: "lightcyan", opacity: 0.75 }}
+                        />
+                    )}
+                </PanelButton>
+                <PanelButton
+                    disabled={!!myEmote}
+                    className="button"
+                    onClick={() => setEmotesOpen(!emotesOpen)}
+                >
+                    <EmoteIcon className="button" sx={{ fontSize: iconWidth * 0.8, color: "lightcyan", opacity: 0.75 }} />
+                </PanelButton>
+            </ActionButtons>
         </>
     );
 }
@@ -109,7 +135,8 @@ const Container = styled.div<{ hasChildren: boolean }>`
     grid-area: event-utils;
     height: 95%;
     width: 99%;
-    margin: 2.5% 0 2.5% 0;
+    margin: 0;
+    align-self: center;
     display: flex;
     position: relative;
     justify-content: center;
@@ -164,7 +191,8 @@ const Container = styled.div<{ hasChildren: boolean }>`
 
 const PanelButton = styled.div<{ disabled?: boolean }>`
     width: 100%;
-    height: 80%;
+    height: 100%;
+    min-height: 0;
     background: rgba(12, 21, 16, 0.25);
     border: 1px solid rgba(124, 124, 118, 0.4);
     border-left: none;
@@ -180,6 +208,17 @@ const PanelButton = styled.div<{ disabled?: boolean }>`
     &:hover {
         background: rgba(26, 179, 201, 0.35);
     }
+`;
+
+const ActionButtons = styled.div`
+    grid-area: event-actions;
+    width: 100%;
+    height: 95%;
+    margin: 0;
+    align-self: center;
+    display: grid;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 1px;
 `;
 
 const EmoteButtonContainer = styled.div`
