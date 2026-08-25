@@ -54,6 +54,12 @@ public class GameWebSocket extends TextWebSocketHandler {
     private static final int MAX_EFFECT_TIMING_LENGTH = 80;
     private static final int MAX_EFFECT_TEXT_LENGTH = 2000;
 
+    private void sendSessionMessage(WebSocketSession session, String message) throws IOException {
+        synchronized (session) {
+            if (session.isOpen()) session.sendMessage(new TextMessage(message));
+        }
+    }
+
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         // do nothing
@@ -97,7 +103,7 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.equals("/returnToLobby") &&
                 (gameRoom == null || !gameRoom.getSessions().contains(session))) {
-            session.sendMessage(new TextMessage("[RETURN_TO_LOBBY]"));
+            sendSessionMessage(session, "[RETURN_TO_LOBBY]");
             return;
         }
 
@@ -320,6 +326,10 @@ public class GameWebSocket extends TextWebSocketHandler {
                 rejectEffectTarget(gameRoom, session);
                 return;
             }
+            if (sourceField.endsWith("Hand") && !Boolean.TRUE.equals(sourceCard.getIsFaceUp())) {
+                rejectEffectTarget(gameRoom, session);
+                return;
+            }
             GameCard effectSourceCard = null;
             if (!isBlank(payload.effectSourceCardId())) {
                 effectSourceCard = findCardInField(boardState, sourceField, payload.effectSourceCardId());
@@ -386,7 +396,9 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private boolean isOwnEffectField(String location) {
-        return location.equals("myBreedingArea") || location.matches("myDigi(?:[1-9]|1\\d|2[01])");
+        return location.equals("myHand") ||
+                location.equals("myBreedingArea") ||
+                location.matches("myDigi(?:[1-9]|1\\d|2[01])");
     }
 
     private boolean isEffectField(String location) {
@@ -765,7 +777,7 @@ public class GameWebSocket extends TextWebSocketHandler {
     private void joinGameRoom(WebSocketSession session, String gameId) throws IOException {
         GameRoom gameRoom = gameRooms.get(gameId);
         if (gameRoom == null) {
-            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
+            sendSessionMessage(session, "[GAME_JOIN_REJECTED]");
             return;
         }
 
@@ -773,14 +785,14 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (joiningUsername == null ||
                 (!gameRoom.getPlayer1().username().equals(joiningUsername) &&
                  !gameRoom.getPlayer2().username().equals(joiningUsername))) {
-            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
+            sendSessionMessage(session, "[GAME_JOIN_REJECTED]");
             return;
         }
 
         cancelDisconnectCleanup(gameId, joiningUsername);
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
-        session.sendMessage(new TextMessage("[GAME_JOINED]"));
+        sendSessionMessage(session, "[GAME_JOINED]");
         eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency

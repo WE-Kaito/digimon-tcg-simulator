@@ -1,25 +1,107 @@
 import { Global } from "@emotion/react";
 import styled from "@emotion/styled";
 import ModeStandbyIcon from "@mui/icons-material/ModeStandby";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
+import type { WSUtils } from "../../pages/GamePage.tsx";
+import { findOptionPlacementField } from "../../utils/effectTargeting.ts";
+import type { CardTypeGame } from "../../utils/types.ts";
 
-export default function EffectTargetCursor() {
+export default function EffectTargetCursor({ wsUtils }: { wsUtils?: WSUtils }) {
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+    const handCardPlacement = useGameUIStates((state) => state.handCardPlacement);
+    const cancelHandCardPlacement = useGameUIStates((state) => state.cancelHandCardPlacement);
+    const startHandCardPlacement = useGameUIStates((state) => state.startHandCardPlacement);
+    const myHand = useGameBoardStates((state) => state.myHand);
+    const flipCard = useGameBoardStates((state) => state.flipCard);
     const [position, setPosition] = useState({ x: -100, y: -100 });
+    const previousTargeting = useRef(effectTargeting);
 
     useEffect(() => {
-        if (!effectTargeting) return;
+        const previous = previousTargeting.current;
+        if (
+            !effectTargeting &&
+            !handCardPlacement &&
+            previous?.sourceLocation === "myHand" &&
+            myHand.some((card) => card.id === previous.sourceCardId && card.isFaceUp)
+        ) {
+            flipCard(previous.sourceCardId, "myHand");
+            wsUtils?.sendMessage(`${wsUtils.matchInfo.gameId}:/flipCard:${previous.sourceCardId}:myHand`);
+        }
+        previousTargeting.current = effectTargeting;
+    }, [effectTargeting, flipCard, handCardPlacement, myHand, wsUtils]);
+
+    useEffect(() => {
+        if (!effectTargeting && !handCardPlacement) return;
+
+        const finishTargeting = () => {
+            if (!effectTargeting) return;
+            if (
+                effectTargeting.sourceLocation === "myHand" &&
+                myHand.some((card) => card.id === effectTargeting.sourceCardId && card.isFaceUp)
+            ) {
+                flipCard(effectTargeting.sourceCardId, "myHand");
+                wsUtils?.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/flipCard:${effectTargeting.sourceCardId}:myHand`
+                );
+            }
+            cancelEffectTargeting();
+        };
+        const finishPlacement = () => {
+            if (
+                handCardPlacement &&
+                myHand.some((card) => card.id === handCardPlacement.cardId && card.isFaceUp)
+            ) {
+                flipCard(handCardPlacement.cardId, "myHand");
+                wsUtils?.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/flipCard:${handCardPlacement.cardId}:myHand`
+                );
+            }
+            cancelHandCardPlacement();
+        };
 
         const handlePointerMove = (event: PointerEvent) => setPosition({ x: event.clientX, y: event.clientY });
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") cancelEffectTargeting();
+            if (event.key === "Escape") {
+                if (handCardPlacement) finishPlacement();
+                else finishTargeting();
+            }
+            if (event.key === "Enter" && effectTargeting?.sourceLocation === "myHand" && wsUtils) {
+                event.preventDefault();
+                const board = useGameBoardStates.getState();
+                const sourceCard = board.myHand.find((card) => card.id === effectTargeting.sourceCardId);
+                if (!sourceCard) return;
+
+                wsUtils.sendChatMessage(
+                    `${wsUtils.matchInfo.user} is activating ${effectTargeting.sourceName} ` +
+                        `[${effectTargeting.timing}]: ${effectTargeting.effectText}`
+                );
+
+                if (sourceCard.cardType.includes("Option")) {
+                    const placementField = findOptionPlacementField(
+                        sourceCard,
+                        (field) => board[field as keyof typeof board] as CardTypeGame[]
+                    );
+                    if (placementField) {
+                        board.moveCard(sourceCard.id, "myHand", placementField);
+                        wsUtils.sendMoveCard(sourceCard.id, "myHand", placementField);
+                        wsUtils.sendChatMessage(
+                            `[FIELD_UPDATE]≔【${sourceCard.name}】﹕Hand ➟ Tamer/Option Area`
+                        );
+                    } else {
+                        startHandCardPlacement({ cardId: sourceCard.id, cardName: sourceCard.name });
+                    }
+                }
+                cancelEffectTargeting();
+            }
         };
         const handleContextMenu = (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            cancelEffectTargeting();
+            if (handCardPlacement) finishPlacement();
+            else finishTargeting();
         };
 
         window.addEventListener("pointermove", handlePointerMove);
@@ -31,9 +113,9 @@ export default function EffectTargetCursor() {
             window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("contextmenu", handleContextMenu, true);
         };
-    }, [cancelEffectTargeting, effectTargeting]);
+    }, [cancelEffectTargeting, cancelHandCardPlacement, effectTargeting, flipCard, handCardPlacement, myHand, startHandCardPlacement, wsUtils]);
 
-    if (!effectTargeting) return null;
+    if (!effectTargeting && !handCardPlacement) return null;
 
     return (
         <>
@@ -41,8 +123,9 @@ export default function EffectTargetCursor() {
             <CursorOverlay style={{ transform: `translate(${position.x + 7}px, ${position.y + 7}px)` }}>
                 <ModeStandbyIcon />
                 <Instruction>
-                    Select a target for [{effectTargeting.timing}]
+                    {handCardPlacement ? "Place card on area" : `Select a target for [${effectTargeting!.timing}]`}
                     <small>Esc or right-click to cancel</small>
+                    {!handCardPlacement && <small>Enter to Activate Effect</small>}
                 </Instruction>
             </CursorOverlay>
         </>

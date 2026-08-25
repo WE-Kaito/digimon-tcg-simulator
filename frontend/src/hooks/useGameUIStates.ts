@@ -25,6 +25,11 @@ export type EffectTargeting = {
     effectText: string;
 };
 
+export type HandCardPlacement = {
+    cardId: string;
+    cardName: string;
+};
+
 type State = {
     isStackDragMode: boolean;
     setIsStackDragMode: (isStackDragMode: boolean) => void;
@@ -95,6 +100,9 @@ type State = {
     effectTargeting: EffectTargeting | null;
     startEffectTargeting: (targeting: EffectTargeting) => void;
     cancelEffectTargeting: () => void;
+    handCardPlacement: HandCardPlacement | null;
+    startHandCardPlacement: (placement: HandCardPlacement) => void;
+    cancelHandCardPlacement: () => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
@@ -167,4 +175,7 @@ export const useGameUIStates = create<State>((set) => ({
     effectTargeting: null,
     startEffectTargeting: (effectTargeting) => set({ effectTargeting }),
     cancelEffectTargeting: () => set({ effectTargeting: null }),
+    handCardPlacement: null,
+    startHandCardPlacement: (handCardPlacement) => set({ handCardPlacement }),
+    cancelHandCardPlacement: () => set({ handCardPlacement: null }),
 }));
