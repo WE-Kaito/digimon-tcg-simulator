@@ -286,7 +286,9 @@ const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
 
 const resetModifierLocations = [
     ...modifierLocations,
+    "mySecurity",
     "opponentHand",
+    "opponentSecurity",
     "opponentDeckField",
     "opponentEggDeck",
     "opponentTrash",
@@ -647,7 +649,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                 card.isTilted = !tamerLocations.includes(to);
             } else card.isTilted = false;
 
-            if (card.modifiers && prevTopCard.modifiers) {
+            if (!resetModifierLocations.includes(to) && card.modifiers && prevTopCard.modifiers) {
                 if (!card.modifiers.plusDp) {
                     card.modifiers.plusDp = prevTopCard.modifiers.plusDp || 0;
                     prevTopCard.modifiers.plusDp = 0;
