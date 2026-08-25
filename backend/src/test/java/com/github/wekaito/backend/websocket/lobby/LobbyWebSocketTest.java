@@ -101,6 +101,7 @@ class LobbyWebSocketTest {
 
         assertThat(visibleMessages).extracting(ChatMessage::author)
                 .containsExactly("other-user", "【SERVER】");
+        assertThat(userDetailsService.getBlockedAccountLookupCount()).isEqualTo(1);
     }
 
     @Test
@@ -205,6 +206,7 @@ class LobbyWebSocketTest {
 
     private static class TestUserDetailsService extends MongoUserDetailsService {
         private final Map<String, List<String>> blockedAccounts = new HashMap<>();
+        private int blockedAccountLookupCount;
 
         TestUserDetailsService() {
             super(null, (StarterDeckService) null);
@@ -212,6 +214,10 @@ class LobbyWebSocketTest {
 
         void block(String username, String blockedUsername) {
             blockedAccounts.put(username, List.of(blockedUsername));
+        }
+
+        int getBlockedAccountLookupCount() {
+            return blockedAccountLookupCount;
         }
 
         @Override
@@ -226,6 +232,7 @@ class LobbyWebSocketTest {
 
         @Override
         public List<String> getBlockedAccounts(String username) {
+            blockedAccountLookupCount++;
             return blockedAccounts.getOrDefault(username, List.of());
         }
 
