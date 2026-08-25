@@ -959,19 +959,28 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private void leaveRoom(WebSocketSession session, String payload) throws IOException {
-        String[] parts = payload.split(":");
+        String[] parts = payload.split(":", 4);
+        if (parts.length < 2) return;
+
         String roomId = parts[1];
-        String userName = parts[2];
-        String shouldCleanLastRoom = parts[3];
+        String shouldCleanLastRoom = parts.length >= 4 ? parts[3] : "true";
 
         if (shouldCleanLastRoom.equals("false")) return;
 
+        Principal principal = session.getPrincipal();
+        String userName = principal != null
+                ? principal.getName()
+                : parts.length >= 3 ? parts[2] : null;
+
         lastPlayerRooms.remove(session);
-        gameLobbyRoomByUsername.remove(userName);
+        if (userName != null) gameLobbyRoomByUsername.remove(userName);
 
         Room room = getRoomById(roomId);
         if (room == null) {
-            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
+            sendTextMessage(session, "[LEAVE_ROOM]");
+            sendGlobalChatHistory(session);
+            broadcastRooms();
+            broadcastUserCount();
             return;
         }
 
@@ -990,12 +999,19 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             if (roomIsEmpty) {
                 emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
                 rooms.remove(room);
-            } else {
-                sendRoomUpdate(room);
             }
         }
 
+        // A leave is complete once server state is updated. A stale remaining
+        // player's socket must not prevent the leaving client from exiting.
         sendTextMessage(session, "[LEAVE_ROOM]");
+        if (!roomIsEmpty) {
+            try {
+                sendRoomUpdate(room);
+            } catch (IOException e) {
+                System.err.println("Unable to broadcast room update after leave for room " + roomId + ": " + e.getMessage());
+            }
+        }
         sendGlobalChatHistory(session);
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have left the room " + room.getName() + ".");
         broadcastRooms();
