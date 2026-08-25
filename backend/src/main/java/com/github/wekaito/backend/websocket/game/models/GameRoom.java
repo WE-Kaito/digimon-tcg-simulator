@@ -109,9 +109,13 @@ public class GameRoom {
     }
 
     public void sendMessage(WebSocketSession session, String message) {
-        if (!session.isOpen()) return;
         try {
+            // Tomcat's remote endpoint does not permit concurrent writes. The
+            // game can emit several updates for one action (chat, target,
+            // movement, animation), so check and write under one per-session
+            // lock to prevent TEXT_PARTIAL_WRITING and dropped messages.
             synchronized (session) {
+                if (!session.isOpen()) return;
                 session.sendMessage(new TextMessage(message));
             }
         } catch (Exception e) {

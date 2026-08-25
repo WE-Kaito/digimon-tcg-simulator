@@ -347,6 +347,17 @@ export default function Card(props: CardProps) {
         if (effectTargeting) {
             event.stopPropagation();
             if (isEffectTargetCandidate && wsUtils) {
+                // Hand activations need an explicit chat entry when the effect
+                // targets an occupied card. Empty-field placement sends this
+                // message from DigimonField, but the occupied-card path used
+                // to only send the targeting command, making the activation
+                // appear silent.
+                if (effectTargeting.sourceLocation === "myHand") {
+                    wsUtils.sendChatMessage(
+                        `${wsUtils.matchInfo.user} is activating ${effectTargeting.sourceName} ` +
+                            `[${effectTargeting.timing}]: ${effectTargeting.effectText}`
+                    );
+                }
                 const payload: EffectTargetPayload = {
                     sourceCardId: effectTargeting.sourceCardId,
                     effectSourceCardId: effectTargeting.effectSourceCardId,

@@ -192,23 +192,35 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         setHoverCard(null);
         activateEffectAnimation(params);
 
-        const effectTexts = contextCard.cardType.includes("Option")
+        const isOptionCard = contextCard.cardType.includes("Option");
+        const isDualDigimonOption = isOptionCard && contextCard.cardType.includes("Digimon");
+        // Normal Option cards from older card data store their rules text in
+        // mainEffect, while dual Digimon/Option cards use optionCardEffect for
+        // the Option half. Keep the dual-card restriction, but support both
+        // representations for regular Options.
+        const effectTexts = isDualDigimonOption
             ? [contextCard.optionCardEffect]
-            : [contextCard.mainEffect, contextCard.dualEffect];
+            : isOptionCard
+              ? [contextCard.optionCardEffect, contextCard.mainEffect]
+              : [contextCard.mainEffect, contextCard.dualEffect];
         const effect = effectTexts
             .filter((text): text is string => Boolean(text))
             .flatMap(parseEffectTimingGroups)
             .find((group) => group.timings.length > 0);
 
-        if (effect) {
-            startEffectTargeting({
-                sourceCardId: contextCard.id,
-                sourceLocation: "myHand",
-                sourceName: contextCard.name,
-                timing: effect.timings[0],
-                effectText: effect.effectText,
-            });
-        }
+        // Some imported cards use full-width timing brackets or omit the
+        // timing marker entirely. Activation should still enter targeting
+        // mode rather than silently doing nothing; use Main as the neutral
+        // fallback for those cards.
+        const rawEffect = effectTexts.find((text): text is string => Boolean(text));
+        if (!rawEffect && !effect) return;
+        startEffectTargeting({
+            sourceCardId: contextCard.id,
+            sourceLocation: "myHand",
+            sourceName: contextCard.name,
+            timing: effect?.timings[0] ?? "Main",
+            effectText: effect?.effectText ?? rawEffect!.replace(/＜|＞/g, "").trim(),
+        });
     }
 
     function activateTargetAnimation({ props }: ItemParams<FieldCardContextMenuItemProps>) {
