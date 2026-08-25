@@ -25,6 +25,7 @@ import { CardModifiers, CardTypeGame, FieldCardContextMenuItemProps } from "../.
 import "react-contexify/dist/ReactContexify.css";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { parseEffectTimingGroups } from "../../../utils/effectTiming.ts";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const previousPageOverflow = useRef<{ body: string; document: string } | null>(null);
@@ -49,10 +50,13 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const { sendMessage, sendChatMessage, sendSfx, matchInfo, sendMoveCard } = wsUtils ?? {};
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const selectCard = useGeneralStates((state) => state.selectCard);
+    const setHoverCard = useGeneralStates((state) => state.setHoverCard);
 
     const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
     const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
     const setStackDialog = useGameUIStates((state) => state.setStackDialog);
+    const startEffectTargeting = useGameUIStates((state) => state.startEffectTargeting);
 
     const cardToSend = useGameBoardStates((state) => state.cardToSend);
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
@@ -179,6 +183,34 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         return () => clearTimeout(timer);
     }
 
+    function activateEffectFromHand(params: ItemParams<FieldCardContextMenuItemProps>) {
+        const { props } = params;
+        if (!props || !contextCard || props.location !== "myHand") return;
+
+        if (!contextCard.isFaceUp) handleFlipCard(params);
+        selectCard(contextCard);
+        setHoverCard(null);
+        activateEffectAnimation(params);
+
+        const effectTexts = contextCard.cardType.includes("Option")
+            ? [contextCard.optionCardEffect]
+            : [contextCard.mainEffect, contextCard.dualEffect];
+        const effect = effectTexts
+            .filter((text): text is string => Boolean(text))
+            .flatMap(parseEffectTimingGroups)
+            .find((group) => group.timings.length > 0);
+
+        if (effect) {
+            startEffectTargeting({
+                sourceCardId: contextCard.id,
+                sourceLocation: "myHand",
+                sourceName: contextCard.name,
+                timing: effect.timings[0],
+                effectText: effect.effectText,
+            });
+        }
+    }
+
     function activateTargetAnimation({ props }: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
         const { name, id, location } = props;
@@ -249,6 +281,12 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"handCardMenu"} theme="dark">
+                <Item onClick={activateEffectFromHand}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Activate Effect</span> <EffectIcon />
+                    </div>
+                </Item>
+                <Separator />
                 <Item onClick={handleFlipCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>{contextCard?.isFaceUp ? "Stop Showing Card" : "Show Card"}</span>{" "}

@@ -320,6 +320,10 @@ public class GameWebSocket extends TextWebSocketHandler {
                 rejectEffectTarget(gameRoom, session);
                 return;
             }
+            if (sourceField.endsWith("Hand") && !Boolean.TRUE.equals(sourceCard.getIsFaceUp())) {
+                rejectEffectTarget(gameRoom, session);
+                return;
+            }
             GameCard effectSourceCard = null;
             if (!isBlank(payload.effectSourceCardId())) {
                 effectSourceCard = findCardInField(boardState, sourceField, payload.effectSourceCardId());
@@ -386,7 +390,9 @@ public class GameWebSocket extends TextWebSocketHandler {
     }
 
     private boolean isOwnEffectField(String location) {
-        return location.equals("myBreedingArea") || location.matches("myDigi(?:[1-9]|1\\d|2[01])");
+        return location.equals("myHand") ||
+                location.equals("myBreedingArea") ||
+                location.matches("myDigi(?:[1-9]|1\\d|2[01])");
     }
 
     private boolean isEffectField(String location) {

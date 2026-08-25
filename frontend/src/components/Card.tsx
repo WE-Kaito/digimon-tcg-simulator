@@ -24,7 +24,7 @@ import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
 import { extractStandaloneEffectKeywords } from "../utils/effectKeywords.ts";
-import { EffectTargetPayload } from "../utils/effectTargeting.ts";
+import { EffectTargetPayload, findOptionPlacementField } from "../utils/effectTargeting.ts";
 
 const myDigimonLocations = [
     "myDigi1",
@@ -241,6 +241,7 @@ export default function Card(props: CardProps) {
     const setStackDraggedLocation = useGameUIStates((state) => state.setStackDraggedLocation);
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+    const startHandCardPlacement = useGameUIStates((state) => state.startHandCardPlacement);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -358,6 +359,27 @@ export default function Card(props: CardProps) {
                 wsUtils.sendMessage(
                     `${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`
                 );
+
+                if (effectTargeting.sourceLocation === "myHand") {
+                    const board = useGameBoardStates.getState();
+                    const sourceCard = board.myHand.find((handCard) => handCard.id === effectTargeting.sourceCardId);
+                    if (sourceCard?.cardType.includes("Option")) {
+                        const placementField = findOptionPlacementField(
+                            sourceCard,
+                            (field) => board[field as keyof typeof board] as CardTypeGame[]
+                        );
+
+                        if (placementField) {
+                            board.moveCard(sourceCard.id, "myHand", placementField);
+                            wsUtils.sendMoveCard(sourceCard.id, "myHand", placementField);
+                            wsUtils.sendChatMessage(
+                                `[FIELD_UPDATE]≔【${sourceCard.name}】﹕Hand ➟ Tamer/Option Area`
+                            );
+                        } else {
+                            startHandCardPlacement({ cardId: sourceCard.id, cardName: sourceCard.name });
+                        }
+                    }
+                }
                 cancelEffectTargeting();
             }
             return;

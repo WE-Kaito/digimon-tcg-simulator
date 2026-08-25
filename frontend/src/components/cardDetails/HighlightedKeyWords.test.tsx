@@ -60,4 +60,18 @@ describe("HighlightedKeyWords effect targeting", () => {
             });
         }
     );
+
+    it("starts targeting from a revealed card in hand", () => {
+        useGameBoardStates.setState({ myDigi1: [], myHand: [sourceCard] } as never);
+        renderTiming("Main", "/game");
+
+        fireEvent.click(screen.getByRole("button", { name: "Main" }));
+
+        expect(useGameUIStates.getState().effectTargeting).toMatchObject({
+            sourceCardId: sourceCard.id,
+            sourceLocation: "myHand",
+            timing: "Main",
+            effectText: "Choose 1 of your opponent's Digimon.",
+        });
+    });
 });
