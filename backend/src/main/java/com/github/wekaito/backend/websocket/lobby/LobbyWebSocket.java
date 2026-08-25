@@ -49,6 +49,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private final Map<PendingGameInvite, Long> gameInviteCooldowns = new ConcurrentHashMap<>();
 
     private static final long GAME_INVITE_COOLDOWN_MS = 10_000;
+    private static final long ABANDONED_ROOM_GRACE_PERIOD_MS = 30_000;
 
     private final Map<String, Long> emptyRoomTimestamps = new ConcurrentHashMap<>();
     private final Map<WebSocketSession, String> lastPlayerRooms = new ConcurrentHashMap<>(); // username -> roomId
@@ -165,6 +166,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         synchronized (quickPlayLock) {
             if (quickPlayQueue.remove(session)) broadcastQuickPlayCount();
         }
+        broadcastRooms();
         broadcastUserCount();
     }
 
@@ -439,6 +441,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         roomsWithActiveGames.add(roomId);
+        emptyRoomTimestamps.remove(roomId);
     }
 
     @Scheduled(fixedRate = 5000) // 5 seconds
@@ -614,21 +617,52 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     @Scheduled(fixedRate = 10000) // 10 seconds
     private void cleanUpEmptyRooms() throws IOException {
-        long currentTime = System.currentTimeMillis();
-        List<String> roomsToRemove = new ArrayList<>();
+        reconcileAbandonedRooms(System.currentTimeMillis());
 
-        for (Map.Entry<String, Long> entry : emptyRoomTimestamps.entrySet()) {
-            if (currentTime - entry.getValue() > 30000) { // 30 seconds
-                roomsToRemove.add(entry.getKey());
+        broadcastRooms();
+    }
+
+    void reconcileAbandonedRooms(long currentTime) {
+        for (Room room : rooms) {
+            if (roomsWithActiveGames.contains(room.getId())) {
+                emptyRoomTimestamps.remove(room.getId());
+                continue;
+            }
+
+            if (isAbandonedRoom(room)) {
+                emptyRoomTimestamps.putIfAbsent(room.getId(), currentTime);
+            } else {
+                emptyRoomTimestamps.remove(room.getId());
             }
         }
 
+        List<String> roomsToRemove = emptyRoomTimestamps.entrySet().stream()
+                .filter(entry -> currentTime - entry.getValue() > ABANDONED_ROOM_GRACE_PERIOD_MS)
+                .map(Map.Entry::getKey)
+                .toList();
+
         for (String roomId : roomsToRemove) {
             emptyRoomTimestamps.remove(roomId);
+            roomsWithActiveGames.remove(roomId);
             rooms.removeIf(room -> room.getId().equals(roomId));
+            gameLobbyRoomByUsername.entrySet().removeIf(entry -> entry.getValue().equals(roomId));
+            lastPlayerRooms.entrySet().removeIf(entry -> entry.getValue().equals(roomId));
         }
+    }
 
-        broadcastRooms();
+    private boolean isAbandonedRoom(Room room) {
+        if (room.getPlayers().isEmpty()) return true;
+        if (room.getPlayers().size() != 1) return false;
+        return !hasActiveLobbySession(room.getHostName());
+    }
+
+    private boolean hasActiveLobbySession(String username) {
+        return globalActiveSessions.stream().anyMatch(session ->
+                session.isOpen() &&
+                session.getPrincipal() != null &&
+                session.getPrincipal().getName().equals(username) &&
+                playerStatuses.getOrDefault(session, PlayerStatus.LOBBY) == PlayerStatus.LOBBY
+        );
     }
 
     private void createRoom(WebSocketSession session, String payload) throws IOException {
@@ -659,6 +693,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         roomsWithOnlyHosts = rooms.stream()
                 .filter(r -> r.getPlayers().size() == 1)
+                .filter(r -> !roomsWithActiveGames.contains(r.getId()))
+                .filter(r -> hasActiveLobbySession(r.getHostName()))
                 .toList();
 
 
