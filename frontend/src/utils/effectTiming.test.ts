@@ -47,6 +47,16 @@ describe("parseEffectTimingGroups", () => {
     it("returns an empty list for effects without a timing", () => {
         expect(parseEffectTimingGroups("Delete 1 of your opponent's Digimon.")).toEqual([]);
     });
+
+    it("does not treat timing labels inside prose as separate triggers", () => {
+        const groups = parseEffectTimingGroups(
+            "[End of Your Turn] By suspending this Tamer, you may activate 1 [On Play] or [When Digivolving] effect."
+        );
+
+        expect(groups).toHaveLength(1);
+        expect(groups[0].timings).toEqual(["End of Your Turn"]);
+        expect(groups[0].timingTokens.filter((token) => token.actionable)).toHaveLength(1);
+    });
 });
 
 describe("cleanEffectText", () => {
