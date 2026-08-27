@@ -23,7 +23,7 @@ import { OpenedCardDialog, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
-import { extractStandaloneEffectKeywords } from "../utils/effectKeywords.ts";
+import { extractStandaloneEffectKeywords, supportsAutoDetectedEffectKeywords } from "../utils/effectKeywords.ts";
 import { EffectTargetPayload } from "../utils/effectTargeting.ts";
 
 const myDigimonLocations = [
@@ -414,12 +414,15 @@ export default function Card(props: CardProps) {
     }
 
     const isTamerWithDP = numbersWithModifiers.includes(card.cardNumber);
+    const autoDetectEffectKeywords = supportsAutoDetectedEffectKeywords(card.cardType);
 
     const isModifiersAllowed =
         [...myBALocations, ...opponentBALocations].includes(location) &&
         (card.cardType.includes("Digimon") || isTamerWithDP);
     const modifiers = isModifiersAllowed ? card.modifiers : undefined;
     const inheritedKeywords = useMemo(() => {
+        if (!autoDetectEffectKeywords) return [];
+
         const isTopStackCard = index === locationCards.length - 1;
         if (!isTopStackCard || !locationsWithInheritedInfo.includes(location)) return [];
 
@@ -427,16 +430,16 @@ export default function Card(props: CardProps) {
             .slice(0, -1)
             .filter((sourceCard) => sourceCard.isFaceUp)
             .flatMap((sourceCard) => extractStandaloneEffectKeywords(sourceCard.inheritedEffect));
-    }, [index, location, locationCards]);
+    }, [autoDetectEffectKeywords, index, location, locationCards]);
     const displayedKeywords = useMemo(
         () => [
             ...new Set([
-                ...extractStandaloneEffectKeywords(card.mainEffect),
+                ...(autoDetectEffectKeywords ? extractStandaloneEffectKeywords(card.mainEffect) : []),
                 ...inheritedKeywords,
                 ...(modifiers?.keywords ?? []),
             ]),
         ],
-        [card.mainEffect, inheritedKeywords, modifiers?.keywords]
+        [autoDetectEffectKeywords, card.mainEffect, inheritedKeywords, modifiers?.keywords]
     );
 
     const linkDP = linkCardsForLocation.reduce((sum, card) => sum + (card.linkDP ?? 0), 0);
