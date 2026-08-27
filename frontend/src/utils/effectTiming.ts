@@ -55,6 +55,20 @@ export function cleanEffectText(text: string): string {
         .trim();
 }
 
+function isTopLevelTiming(text: string, start: number): boolean {
+    const before = text.slice(0, start);
+    const boundary = Math.max(
+        before.lastIndexOf("\n"),
+        before.lastIndexOf("."),
+        before.lastIndexOf("!"),
+        before.lastIndexOf("?")
+    );
+    const context = before.slice(boundary + 1).trim();
+    // Timing labels immediately following another timing label are grouped;
+    // labels following ordinary prose are references to another effect.
+    return context.length === 0 || context.endsWith("]");
+}
+
 export function parseEffectTimingGroups(text: string): EffectTimingGroup[] {
     const timingTokens: EffectTimingToken[] = [];
     const bracketPattern = /\[([^\]]+)]/g;
@@ -67,7 +81,7 @@ export function parseEffectTimingGroups(text: string): EffectTimingGroup[] {
             label,
             start: match.index,
             end: bracketPattern.lastIndex,
-            actionable: isActionableEffectTiming(label),
+            actionable: isActionableEffectTiming(label) && isTopLevelTiming(text, match.index),
         });
     }
 
