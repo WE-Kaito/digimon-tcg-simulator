@@ -1109,8 +1109,15 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     List<ChatMessage> getVisibleGlobalChatMessages(WebSocketSession session) {
+        Principal principal = session.getPrincipal();
+        if (principal == null) return List.copyOf(globalChatMessages);
+
+        Set<String> blockedAccounts = new HashSet<>(
+                mongoUserDetailsService.getBlockedAccounts(principal.getName())
+        );
+
         return globalChatMessages.stream()
-                .filter(message -> canReceiveChatMessage(session, message))
+                .filter(message -> "【SERVER】".equals(message.author()) || !blockedAccounts.contains(message.author()))
                 .toList();
     }
 
