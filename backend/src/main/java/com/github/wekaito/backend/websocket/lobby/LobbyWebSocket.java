@@ -985,27 +985,44 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
 
         boolean roomIsEmpty;
+        boolean hostLeaving;
+        List<LobbyPlayer> playersToNotify = List.of();
         synchronized (room) {
-            room.getPlayers().removeIf(p -> p.getName().equals(userName));
-
-            if (room.getHostName().equals(userName) && !room.getPlayers().isEmpty()) {
-                LobbyPlayer remainingPlayer = room.getPlayers().get(0);
-                room.setHostName(remainingPlayer.getName());
-                remainingPlayer.setReady(true);
-            }
-
-            roomIsEmpty = room.getPlayers().isEmpty();
-
-            if (roomIsEmpty) {
-                emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
+            hostLeaving = room.getHostName().equals(userName);
+            if (hostLeaving) {
+                // A host leaving ends the custom room for everyone instead of
+                // transferring ownership to a stale/remaining player.
+                playersToNotify = new ArrayList<>(room.getPlayers());
+                room.getPlayers().clear();
+                roomIsEmpty = true;
                 rooms.remove(room);
+                emptyRoomTimestamps.remove(room.getId());
+                roomsWithActiveGames.remove(room.getId());
+            } else {
+                room.getPlayers().removeIf(p -> p.getName().equals(userName));
+                roomIsEmpty = room.getPlayers().isEmpty();
+
+                if (roomIsEmpty) {
+                    emptyRoomTimestamps.remove(room.getId());
+                    rooms.remove(room);
+                }
             }
         }
 
-        // A leave is complete once server state is updated. A stale remaining
-        // player's socket must not prevent the leaving client from exiting.
-        sendTextMessage(session, "[LEAVE_ROOM]");
-        if (!roomIsEmpty) {
+        if (hostLeaving) {
+            for (LobbyPlayer player : playersToNotify) {
+                gameLobbyRoomByUsername.remove(player.getName(), roomId);
+                lastPlayerRooms.remove(player.getSession());
+                sendTextMessage(player.getSession(), "[LEAVE_ROOM]");
+                sendGlobalChatHistory(player.getSession());
+            }
+        } else {
+            // A leave is complete once server state is updated. A stale
+            // remaining player's socket must not prevent the leaving client
+            // from exiting.
+            sendTextMessage(session, "[LEAVE_ROOM]");
+        }
+        if (!roomIsEmpty && !hostLeaving) {
             try {
                 sendRoomUpdate(room);
             } catch (IOException e) {

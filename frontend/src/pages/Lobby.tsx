@@ -382,8 +382,17 @@ export default function Lobby() {
     }
 
     function handleLeaveRoom() {
-        setIsLoadingWithDebounce();
-        websocket.sendMessage("/leave:" + joinedRoom?.id + ":" + user + ":true");
+        const roomId = joinedRoom?.id;
+        if (!roomId) return;
+
+        // Leave the room view immediately. The websocket command still lets the
+        // server remove the room and notify any remaining players.
+        setJoinedRoom(null);
+        setGameLobbyRoomId("");
+        setPrivateMessages([]);
+        setIsLoading(false);
+        navigate("/", { replace: true });
+        websocket.sendMessage("/leave:" + roomId + ":" + user + ":true");
     }
 
     function handleKickPlayer(userName: string) {

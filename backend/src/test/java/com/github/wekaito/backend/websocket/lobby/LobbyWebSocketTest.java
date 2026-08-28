@@ -116,18 +116,18 @@ class LobbyWebSocketTest {
     }
 
     @Test
-    void leavingUsesTheAuthenticatedPlayerInsteadOfThePayloadUsername() throws Exception {
-        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Aaron");
-        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Beatrice");
+    void hostLeavingDestroysTheRoomAndNotifiesAllPlayers() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
         Room room = new Room(
                 "room-id",
                 "Custom Room",
-                "Aaron",
+                "Test",
                 false,
                 "",
                 new ArrayList<>(List.of(
-                        new LobbyPlayer(host, "Aaron", true),
-                        new LobbyPlayer(guest, "Beatrice", false)
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
                 ))
         );
         lobbyWebSocket.getRooms().add(room);
@@ -136,8 +136,9 @@ class LobbyWebSocketTest {
         lobbyWebSocket.handleTextMessage(host, new TextMessage("/leave:room-id:Beatrice:true"));
 
         assertThat(host.getMessages()).contains("[LEAVE_ROOM]");
-        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Beatrice");
-        assertThat(room.getHostName()).isEqualTo("Beatrice");
+        assertThat(guest.getMessages()).contains("[LEAVE_ROOM]");
+        assertThat(room.getPlayers()).isEmpty();
+        assertThat(lobbyWebSocket.getRooms()).doesNotContain(room);
     }
 
     @Test
