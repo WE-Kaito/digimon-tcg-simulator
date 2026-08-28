@@ -166,7 +166,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[BOARD_STATE]:")) {
                 const boardStateJson = event.data.substring("[BOARD_STATE]:".length);
                 distributeCards(user, boardStateJson, () => undefined);
-                setOpenedCardDialog(false);
                 return;
             }
 
