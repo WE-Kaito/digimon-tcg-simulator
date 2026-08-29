@@ -107,12 +107,25 @@ class LobbyWebSocketTest {
 
     @Test
     void leavingAnAlreadyRemovedRoomStillAcknowledgesTheClient() throws Exception {
-        TestWebSocketSession player = new TestWebSocketSession("lobby-1", "Aaron");
+        TestWebSocketSession player = new TestWebSocketSession("lobby-1", "test");
         lobbyWebSocket.getGlobalActiveSessions().add(player);
 
-        lobbyWebSocket.handleTextMessage(player, new TextMessage("/leave:missing-room:Aaron:true"));
+        lobbyWebSocket.handleTextMessage(player, new TextMessage("/leave:missing-room:test:true"));
 
         assertThat(player.getMessages()).contains("[LEAVE_ROOM]");
+    }
+
+    @Test
+    void passwordAttemptForRemovedRoomClosesWithAnInformativeMessage() throws Exception {
+        TestWebSocketSession player = new TestWebSocketSession("lobby-1", "test");
+        lobbyWebSocket.getGlobalActiveSessions().add(player);
+
+        lobbyWebSocket.handleTextMessage(player, new TextMessage("/password:missing-room:secret"));
+
+        assertThat(player.getMessages()).contains(
+                "[ROOM_NOT_FOUND]",
+                "[CHAT_MESSAGE]:【SERVER】: The room you are attempting to join no longer exists."
+        );
     }
 
     @Test

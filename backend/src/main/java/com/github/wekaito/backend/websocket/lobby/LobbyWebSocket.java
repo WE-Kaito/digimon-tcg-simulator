@@ -944,7 +944,8 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
         Room room = getRoomById(roomId);
         if (room == null) {
-            sendTextMessage(session, "[SUCCESS]");
+            sendTextMessage(session, "[ROOM_NOT_FOUND]");
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: The room you are attempting to join no longer exists.");
             return;
         }
         

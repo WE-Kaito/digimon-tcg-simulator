@@ -96,6 +96,8 @@ type Room = {
     players: LobbyPlayer[];
 };
 
+const ROOM_NOT_FOUND_MESSAGE = "The room you are attempting to join no longer exists.";
+
 export default function Lobby() {
     const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/lobby`;
@@ -225,7 +227,35 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[ROOMS]:")) {
-                    setRooms(JSON.parse(event.data.substring("[ROOMS]:".length)));
+                    const nextRooms = JSON.parse(event.data.substring("[ROOMS]:".length)) as Room[];
+                    setRooms(nextRooms);
+
+                    // A host can destroy a room while its password dialog is
+                    // still open. Close the stale dialog immediately instead
+                    // of waiting for a password response that may no longer
+                    // be associated with a live room.
+                    if (isPasswordDialogOpen && roomToJoinId && !nextRooms.some((room) => room.id === roomToJoinId)) {
+                        setIsPasswordDialogOpen(false);
+                        setIsLoading(false);
+                        setIsWrongPassword(false);
+                        setPassword("");
+                        setRoomToJoinId("");
+                        setMessages((messages) =>
+                            messages.some(
+                                (message) => message.author === "【SERVER】" && message.message === ROOM_NOT_FOUND_MESSAGE
+                            )
+                                ? messages
+                                : [
+                                      ...messages,
+                                      {
+                                          id: `room-not-found-${Date.now()}`,
+                                          author: "【SERVER】",
+                                          message: ROOM_NOT_FOUND_MESSAGE,
+                                          timestamp: new Date().toISOString(),
+                                      },
+                                  ]
+                        );
+                    }
                 }
 
                 if (event.data === "[PROMPT_PASSWORD]") {
@@ -270,6 +300,14 @@ export default function Lobby() {
                 if (event.data === "[WRONG_PASSWORD]") {
                     setIsLoading(false);
                     setIsWrongPassword(true);
+                }
+
+                if (event.data === "[ROOM_NOT_FOUND]") {
+                    setIsPasswordDialogOpen(false);
+                    setIsLoading(false);
+                    setIsWrongPassword(false);
+                    setPassword("");
+                    setRoomToJoinId("");
                 }
 
                 if (event.data.startsWith("[COMPUTE_GAME]:")) {
@@ -323,7 +361,14 @@ export default function Lobby() {
                 if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE]:".length);
                     const chatMessage = parseChatMessage(messageJson);
-                    setMessages((messages) => [...messages, chatMessage]);
+                    setMessages((messages) =>
+                        chatMessage.author === "【SERVER】" && chatMessage.message === ROOM_NOT_FOUND_MESSAGE &&
+                        messages.some(
+                            (message) => message.author === chatMessage.author && message.message === chatMessage.message
+                        )
+                            ? messages
+                            : [...messages, chatMessage]
+                    );
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
