@@ -129,7 +129,7 @@ class LobbyWebSocketTest {
     }
 
     @Test
-    void hostLeavingDestroysTheRoomAndNotifiesAllPlayers() throws Exception {
+    void explicitlyLeavingDestroysTheRoomAndNotifiesAllPlayers() throws Exception {
         TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
         TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
         Room room = new Room(
@@ -152,6 +152,64 @@ class LobbyWebSocketTest {
         assertThat(guest.getMessages()).contains("[LEAVE_ROOM]");
         assertThat(room.getPlayers()).isEmpty();
         assertThat(lobbyWebSocket.getRooms()).doesNotContain(room);
+        assertThat(lobbyWebSocket.getEmptyRoomTimestamps()).doesNotContainKey(room.getId());
+    }
+
+    @Test
+    void guestLeavingKeepsTheRoomAndOnlyRemovesTheGuest() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(host, guest));
+
+        lobbyWebSocket.handleTextMessage(guest, new TextMessage("/leave:room-id:Test2:true"));
+
+        assertThat(guest.getMessages()).contains("[LEAVE_ROOM]");
+        assertThat(host.getMessages()).doesNotContain("[LEAVE_ROOM]");
+        assertThat(host.getMessages()).anyMatch(message -> message.startsWith("[ROOM_UPDATE]:"));
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test");
+        assertThat(lobbyWebSocket.getRooms()).contains(room);
+        assertThat(lobbyWebSocket.getEmptyRoomTimestamps()).doesNotContainKey(room.getId());
+    }
+
+    @Test
+    void roomLinkCanReviveAnEmptyRoomDuringTheGracePeriod() throws Exception {
+        TestWebSocketSession oldHostSession = new TestWebSocketSession("lobby-old", "Aaron");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Aaron",
+                false,
+                "",
+                new ArrayList<>(List.of(new LobbyPlayer(oldHostSession, "Aaron", true)))
+        );
+        lobbyWebSocket.getRooms().add(room);
+        TestWebSocketSession linkVisitor = new TestWebSocketSession("lobby-new", "Beatrice");
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(oldHostSession, linkVisitor));
+
+        lobbyWebSocket.afterConnectionClosed(oldHostSession, CloseStatus.NORMAL);
+        assertThat(room.getPlayers()).isEmpty();
+        assertThat(lobbyWebSocket.getEmptyRoomTimestamps()).containsKey(room.getId());
+        assertThat(linkVisitor.getMessages()).anyMatch(message ->
+                message.startsWith("[ROOMS]:") && message.contains("\"id\":\"room-id\""));
+
+        lobbyWebSocket.handleTextMessage(linkVisitor, new TextMessage("/joinRoom:room-id"));
+
+        assertThat(linkVisitor.getMessages()).anyMatch(message -> message.startsWith("[JOIN_ROOM]:"));
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Beatrice");
+        assertThat(room.getHostName()).isEqualTo("Beatrice");
+        assertThat(lobbyWebSocket.getEmptyRoomTimestamps()).doesNotContainKey(room.getId());
     }
 
     @Test

@@ -46,6 +46,7 @@ function App() {
             <Routes>
                 <Route element={<ProtectedRoutes />}>
                     <Route path="/" element={<Lobby />} />
+                    <Route path="/game_room/:roomId" element={<Lobby />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/decks" element={<Decks />} />
                     <Route path="/deckbuilder" element={<Deckbuilder />} />

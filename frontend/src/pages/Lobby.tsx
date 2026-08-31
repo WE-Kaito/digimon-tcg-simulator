@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ChangeEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
     ErrorRounded as WarningIcon,
     HttpsOutlined as PrivateIcon,
@@ -10,11 +10,11 @@ import {
 } from "@mui/icons-material";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import { DeckReadySate, useGeneralStates } from "../hooks/useGeneralStates.ts";
-import useWebSocket from "react-use-websocket";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 import { notifyWarning } from "../utils/toasts.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { useSound } from "../hooks/useSound.ts";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SoundBar from "../components/SoundBar.tsx";
 import { DeckType } from "../utils/types.ts";
 import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
@@ -99,6 +99,7 @@ type Room = {
 const ROOM_NOT_FOUND_MESSAGE = "The room you are attempting to join no longer exists.";
 
 export default function Lobby() {
+    const { roomId: linkedRoomId } = useParams<{ roomId: string }>();
     const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/lobby`;
 
@@ -161,6 +162,8 @@ export default function Lobby() {
     const [isWrongPassword, setIsWrongPassword] = useState<boolean>(false);
 
     const [joinedRoom, setJoinedRoom] = useState<Room | null>(null);
+    const attemptedLinkedRoom = useRef<string | null>(null);
+    const leavingRoom = useRef<string | null>(null);
 
     const [isSearchingGame, setIsSearchingGame] = useState<boolean>(false);
 
@@ -266,7 +269,12 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[JOIN_ROOM]:")) {
-                    setJoinedRoom(JSON.parse(event.data.substring("[JOIN_ROOM]:".length)));
+                    const room = JSON.parse(event.data.substring("[JOIN_ROOM]:".length)) as Room;
+                    if (leavingRoom.current === room.id) return;
+
+                    leavingRoom.current = null;
+                    setJoinedRoom(room);
+                    navigate(`/game_room/${room.id}`, { replace: true });
                     setIsLoading(false);
                     setNewRoomName("");
                     setNewRoomPassword("");
@@ -279,18 +287,22 @@ export default function Lobby() {
                 }
 
                 if (event.data === "[LEAVE_ROOM]") {
+                    leavingRoom.current = null;
                     setJoinedRoom(null);
                     setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     setIsLoading(false);
                     playJoinSfx(); // new sound?
+                    navigate("/", { replace: true });
                 }
 
                 if (event.data === "[KICKED]") {
+                    leavingRoom.current = null;
                     setJoinedRoom(null);
                     setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     playKickSfx();
+                    navigate("/", { replace: true });
                 }
 
                 if (event.data === "[PLAYER_JOINED]") {
@@ -308,6 +320,7 @@ export default function Lobby() {
                     setIsWrongPassword(false);
                     setPassword("");
                     setRoomToJoinId("");
+                    if (linkedRoomId) navigate("/", { replace: true });
                 }
 
                 if (event.data.startsWith("[COMPUTE_GAME]:")) {
@@ -387,6 +400,23 @@ export default function Lobby() {
         !isFetchingIsBanned && !isBanned // connect only when not banned
     );
 
+    useEffect(() => {
+        if (websocket.readyState !== ReadyState.OPEN) {
+            attemptedLinkedRoom.current = null;
+            return;
+        }
+        if (!linkedRoomId) {
+            attemptedLinkedRoom.current = null;
+            return;
+        }
+        if (leavingRoom.current === linkedRoomId) return;
+        if (joinedRoom?.id === linkedRoomId || attemptedLinkedRoom.current === linkedRoomId) return;
+
+        attemptedLinkedRoom.current = linkedRoomId;
+        setRoomToJoinId(linkedRoomId);
+        websocket.sendMessage("/joinRoom:" + linkedRoomId);
+    }, [joinedRoom?.id, linkedRoomId, websocket.readyState, websocket.sendMessage]);
+
     function handleDeckChange(event: ChangeEvent<HTMLSelectElement>) {
         setActiveDeck(String(event.target.value)); // TODO: check if backend checks validity on each change:
     }
@@ -430,14 +460,16 @@ export default function Lobby() {
         const roomId = joinedRoom?.id;
         if (!roomId) return;
 
-        // Leave the room view immediately. The websocket command still lets the
-        // server remove the room and notify any remaining players.
+        // Prevent the deep-link effect from rejoining while the route transitions
+        // from /game_room/:id back to the public lobby.
+        leavingRoom.current = roomId;
+        attemptedLinkedRoom.current = roomId;
+        websocket.sendMessage("/leave:" + roomId + ":" + user + ":true");
         setJoinedRoom(null);
         setGameLobbyRoomId("");
         setPrivateMessages([]);
         setIsLoading(false);
         navigate("/", { replace: true });
-        websocket.sendMessage("/leave:" + roomId + ":" + user + ":true");
     }
 
     function handleKickPlayer(userName: string) {
