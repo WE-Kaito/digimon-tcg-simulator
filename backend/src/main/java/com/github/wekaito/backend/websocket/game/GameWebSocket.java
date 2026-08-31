@@ -97,7 +97,11 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.equals("/returnToLobby") &&
                 (gameRoom == null || !gameRoom.getSessions().contains(session))) {
-            session.sendMessage(new TextMessage("[RETURN_TO_LOBBY]"));
+            Principal principal = session.getPrincipal();
+            if (principal != null) {
+                eventPublisher.publishEvent(new GameLobbyReturnEvent(principal.getName(), Set.of()));
+            }
+            sendDirectMessage(session, "[RETURN_TO_LOBBY]");
             return;
         }
 
@@ -238,6 +242,18 @@ public class GameWebSocket extends TextWebSocketHandler {
             entry.getValue().cancel(false);
             return true;
         });
+    }
+
+    public void discardGameRoom(String gameId) {
+        GameRoom gameRoom = gameRooms.get(gameId);
+        if (gameRoom != null) removeGameRoom(gameRoom);
+    }
+
+    public void discardGameRoomIfInactive(String gameId) {
+        GameRoom gameRoom = gameRooms.get(gameId);
+        if (gameRoom != null && gameRoom.getSessions().stream().noneMatch(WebSocketSession::isOpen)) {
+            removeGameRoom(gameRoom);
+        }
     }
 
     private long scheduleDisconnectCleanup(GameRoom gameRoom, String username) {
@@ -765,7 +781,7 @@ public class GameWebSocket extends TextWebSocketHandler {
     private void joinGameRoom(WebSocketSession session, String gameId) throws IOException {
         GameRoom gameRoom = gameRooms.get(gameId);
         if (gameRoom == null) {
-            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
+            sendDirectMessage(session, "[GAME_JOIN_REJECTED]");
             return;
         }
 
@@ -773,14 +789,14 @@ public class GameWebSocket extends TextWebSocketHandler {
         if (joiningUsername == null ||
                 (!gameRoom.getPlayer1().username().equals(joiningUsername) &&
                  !gameRoom.getPlayer2().username().equals(joiningUsername))) {
-            session.sendMessage(new TextMessage("[GAME_JOIN_REJECTED]"));
+            sendDirectMessage(session, "[GAME_JOIN_REJECTED]");
             return;
         }
 
         cancelDisconnectCleanup(gameId, joiningUsername);
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
-        session.sendMessage(new TextMessage("[GAME_JOINED]"));
+        sendDirectMessage(session, "[GAME_JOINED]");
         eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency
@@ -798,6 +814,12 @@ public class GameWebSocket extends TextWebSocketHandler {
                 } catch (Exception e) {
                     System.err.println("Error in initial game setup for room " + gameRoomFromMap.getRoomId() + ": " + e.getMessage());
                 }
+        }
+    }
+
+    private void sendDirectMessage(WebSocketSession session, String message) throws IOException {
+        synchronized (session) {
+            if (session.isOpen()) session.sendMessage(new TextMessage(message));
         }
     }
 

@@ -165,6 +165,8 @@ export default function Lobby() {
     const [joinedRoom, setJoinedRoom] = useState<Room | null>(null);
     const attemptedLinkedRoom = useRef<string | null>(null);
     const leavingRoom = useRef<string | null>(null);
+    const transitioningGameId = useRef<string | null>(null);
+    const countdownTimer = useRef<number | null>(null);
 
     const [isSearchingGame, setIsSearchingGame] = useState<boolean>(false);
 
@@ -198,6 +200,11 @@ export default function Lobby() {
             onMessage: (event) => {
                 if (event.data === "[SUCCESS]") {
                     setIsLoading(false);
+                }
+
+                if (event.data === "[START_GAME_REJECTED]") {
+                    setIsLoading(false);
+                    clearGameStartTransition();
                 }
 
                 if (event.data === "[NO_ACTIVE_DECK]") {
@@ -333,7 +340,10 @@ export default function Lobby() {
                     setIsWrongPassword(false);
                     setPassword("");
                     setRoomToJoinId("");
-                    if (linkedRoomId) navigate("/", { replace: true });
+                    if (linkedRoomId) {
+                        setGameLobbyRoomId("");
+                        navigate("/", { replace: true });
+                    }
                 }
 
                 if (event.data.startsWith("[COMPUTE_GAME]:")) {
@@ -499,9 +509,14 @@ export default function Lobby() {
     }
 
     function startGameSequence(gameId: string) {
+        if (transitioningGameId.current !== null) return;
+
+        transitioningGameId.current = gameId;
         playCountdownSfx();
         setShowCountdown(true);
-        const timer = setTimeout(() => {
+        countdownTimer.current = window.setTimeout(() => {
+            countdownTimer.current = null;
+            setShowCountdown(false);
             setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
             setIsRematch(false);
             clearBoard();
@@ -509,7 +524,15 @@ export default function Lobby() {
             setJoinedRoom(null);
             navigate("/game", { state: { gameEntryConfirmed: true } });
         }, 3150);
-        return () => clearTimeout(timer);
+    }
+
+    function clearGameStartTransition() {
+        if (countdownTimer.current !== null) {
+            window.clearTimeout(countdownTimer.current);
+            countdownTimer.current = null;
+        }
+        transitioningGameId.current = null;
+        setShowCountdown(false);
     }
 
     function cancelQuickPlayQueue() {
@@ -570,6 +593,14 @@ export default function Lobby() {
     useEffect(() => {
         if (!gameId) setIsRejoinable(false);
     }, [gameId]);
+
+    useEffect(() => {
+        return () => {
+            if (countdownTimer.current !== null) window.clearTimeout(countdownTimer.current);
+            countdownTimer.current = null;
+            transitioningGameId.current = null;
+        };
+    }, []);
 
     useEffect(() => {
         if (!activeDeckId || activeDeckId.includes("<html")) return;
