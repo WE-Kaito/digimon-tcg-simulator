@@ -287,6 +287,62 @@ class LobbyWebSocketTest {
     }
 
     @Test
+    void thirdUserCannotJoinFullRoomByLink() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
+        TestWebSocketSession thirdUser = new TestWebSocketSession("lobby-3", "Test3");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+
+        lobbyWebSocket.handleTextMessage(thirdUser, new TextMessage("/joinRoom:room-id"));
+
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test", "Test2");
+        assertThat(thirdUser.getMessages()).contains(
+                "[ROOM_JOIN_REJECTED]",
+                "[CHAT_MESSAGE]:【SERVER】: Room is full."
+        );
+        assertThat(thirdUser.getMessages()).noneMatch(message -> message.startsWith("[JOIN_ROOM]:"));
+    }
+
+    @Test
+    void guestReconnectCanReplaceOwnSessionInFullRoom() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession oldGuest = new TestWebSocketSession("lobby-old", "Test2");
+        TestWebSocketSession newGuest = new TestWebSocketSession("lobby-new", "Test2");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(oldGuest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+
+        lobbyWebSocket.handleTextMessage(newGuest, new TextMessage("/joinRoom:room-id"));
+
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactlyInAnyOrder("Test", "Test2");
+        assertThat(room.getPlayers()).filteredOn(player -> player.getName().equals("Test2"))
+                .singleElement()
+                .extracting(LobbyPlayer::getSession)
+                .isSameAs(newGuest);
+        assertThat(newGuest.getMessages()).anyMatch(message -> message.startsWith("[JOIN_ROOM]:"));
+    }
+
+    @Test
     void nonHostCannotKickAnotherPlayer() throws Exception {
         TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
         TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");

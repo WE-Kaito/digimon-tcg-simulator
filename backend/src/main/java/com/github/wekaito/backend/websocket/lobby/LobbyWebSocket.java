@@ -1122,14 +1122,20 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         
         synchronized (room) {
             boolean returningHost = Objects.equals(room.getHostName(), username);
+            boolean existingMember = room.getPlayers().stream()
+                    .anyMatch(player -> Objects.equals(player.getName(), username));
 
             // Membership is unique by authenticated username. A join from a new
             // browser session replaces the stale session before capacity is checked.
             room.getPlayers().removeIf(player -> Objects.equals(player.getName(), username));
             removePlayerReconnectDeadline(roomId, username);
 
-            if (room.getPlayers().size() >= 3) {
-                sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room is full.");
+            Set<String> occupiedUsernames = room.getPlayers().stream()
+                    .map(LobbyPlayer::getName)
+                    .collect(java.util.stream.Collectors.toSet());
+            occupiedUsernames.add(room.getHostName());
+            if (!existingMember && !returningHost && occupiedUsernames.size() >= 2) {
+                rejectFullRoom(session);
                 return;
             }
             if (room.getPlayers().isEmpty() && !hostReconnectDeadlines.containsKey(roomId)) {
@@ -1173,6 +1179,17 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             sendTextMessage(session, KICKED_REJOIN_MESSAGE);
             return;
         }
+
+        synchronized (targetRoom) {
+            Set<String> occupiedUsernames = targetRoom.getPlayers().stream()
+                    .map(LobbyPlayer::getName)
+                    .collect(java.util.stream.Collectors.toSet());
+            occupiedUsernames.add(targetRoom.getHostName());
+            if (!occupiedUsernames.contains(username) && occupiedUsernames.size() >= 2) {
+                rejectFullRoom(session);
+                return;
+            }
+        }
         
         String hostUsername = targetRoom.getHostName();
         List<String> hostBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(hostUsername);
@@ -1186,6 +1203,11 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         String password = targetRoom.getPassword();
         if (password != null && !password.isEmpty()) sendTextMessage(session, "[PROMPT_PASSWORD]");
         else joinRoom(session, roomId, false);
+    }
+
+    private void rejectFullRoom(WebSocketSession session) throws IOException {
+        sendTextMessage(session, "[ROOM_JOIN_REJECTED]");
+        sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room is full.");
     }
 
     private void handlePasswordAttempt(WebSocketSession session, String payload) throws IOException {
