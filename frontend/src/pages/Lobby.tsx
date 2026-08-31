@@ -93,6 +93,7 @@ type Room = {
     hostName: string;
     hasPassword: boolean;
     restrictionsApplied: boolean;
+    hostReconnectDeadline: number | null;
     players: LobbyPlayer[];
 };
 
@@ -836,6 +837,13 @@ export default function Lobby() {
                         <ScrollArea>
                             {joinedRoom ? (
                                 <RoomList>
+                                    {joinedRoom.hostReconnectDeadline !== null &&
+                                        !joinedRoom.players.some((player) => player.name === joinedRoom.hostName) && (
+                                            <HostReconnectNotice
+                                                hostName={joinedRoom.hostName}
+                                                deadline={joinedRoom.hostReconnectDeadline}
+                                            />
+                                        )}
                                     {joinedRoom.players.map((player) => {
                                         const me = player.name === user;
                                         const host = player.name === joinedRoom.hostName;
@@ -1385,6 +1393,40 @@ const StyledSpan = styled.span`
     color: ghostwhite;
     display: flex;
     align-items: center;
+`;
+
+function HostReconnectNotice({ hostName, deadline }: { hostName: string; deadline: number }) {
+    const [now, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        setNow(Date.now());
+        const interval = window.setInterval(() => setNow(Date.now()), 250);
+        return () => window.clearInterval(interval);
+    }, [deadline]);
+
+    const remainingSeconds = Math.max(0, Math.ceil((deadline - now) / 1000));
+    const reconnectTime = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
+
+    return (
+        <Tile>
+            <div />
+            <StyledSpan>{hostName}</StyledSpan>
+            <HostReconnectStatus>
+                <OfflineIcon color="error" />
+                <span>Waiting for host to reconnect {reconnectTime}</span>
+            </HostReconnectStatus>
+        </Tile>
+    );
+}
+
+const HostReconnectStatus = styled.div`
+    grid-column: span 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: papayawhip;
+    font-family: Cousine, sans-serif;
+    font-size: clamp(12px, 1.1vw, 18px);
 `;
 
 const ListCard = styled(Card)`

@@ -58,6 +58,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private final Map<String, String> gameLobbyRoomByUsername = new ConcurrentHashMap<>();
     private final Set<String> roomsWithActiveGames = ConcurrentHashMap.newKeySet();
     private final Map<String, Set<String>> kickedPlayersByRoomId = new ConcurrentHashMap<>();
+    private final Map<String, Long> hostReconnectDeadlines = new ConcurrentHashMap<>();
     private final Object roomCreationLock = new Object();
 
     private static final String KICKED_REJOIN_MESSAGE =
@@ -184,21 +185,29 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 synchronized (playerRoom) {
                     boolean hostDisconnected = playerRoom.getHostName().equals(username);
                     playerRoom.getPlayers().removeIf(player -> player.getSession().equals(session));
-                    if (hostDisconnected && !playerRoom.getPlayers().isEmpty()) {
-                        LobbyPlayer nextHost = playerRoom.getPlayers().get(0);
-                        playerRoom.setHostName(nextHost.getName());
-                        nextHost.setReady(true);
+                    if (hostDisconnected) {
+                        long reconnectDeadline = System.currentTimeMillis() + ABANDONED_ROOM_GRACE_PERIOD_MS;
+                        hostReconnectDeadlines.put(playerRoom.getId(), reconnectDeadline);
+                        lastPlayerRooms.put(username, playerRoom.getId());
+                        if (playerRoom.getPlayers().isEmpty()) {
+                            emptyRoomTimestamps.put(playerRoom.getId(), System.currentTimeMillis());
+                        }
                     }
                     sendRoomUpdate(playerRoom);
 
-                    if (playerRoom.getPlayers().isEmpty()) {
+                    if (hostDisconnected) {
+                        persistRoom(
+                                playerRoom,
+                                Instant.ofEpochMilli(hostReconnectDeadlines.get(playerRoom.getId()))
+                        );
+                    } else if (playerRoom.getPlayers().isEmpty()) {
                         emptyRoomTimestamps.put(playerRoom.getId(), System.currentTimeMillis());
                         persistRoom(
                                 playerRoom,
                                 Instant.now().plusMillis(ABANDONED_ROOM_GRACE_PERIOD_MS)
                         );
                     } else {
-                        persistRoom(playerRoom, null);
+                        persistCurrentRoomLifecycle(playerRoom);
                     }
                 }
             }
@@ -388,7 +397,10 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private boolean tryReconnectToRoom(WebSocketSession session) throws IOException {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
 
-        String gameLobbyRoomId = gameLobbyRoomByUsername.get(username);
+        String activeGameLobbyRoomId = gameLobbyRoomByUsername.get(username);
+        String gameLobbyRoomId = activeGameLobbyRoomId != null
+                ? activeGameLobbyRoomId
+                : lastPlayerRooms.get(username);
         if (gameLobbyRoomId != null) {
             Room gameLobbyRoom = getRoomById(gameLobbyRoomId);
             if (gameLobbyRoom != null) {
@@ -398,6 +410,13 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 synchronized (gameLobbyRoom) {
                     gameLobbyRoom.getPlayers().removeIf(player -> player.getName().equals(username));
                     gameLobbyRoom.getPlayers().add(new LobbyPlayer(session, username, returningPlayerIsHost));
+
+                    if (returningPlayerIsHost) {
+                        hostReconnectDeadlines.remove(gameLobbyRoomId);
+                        emptyRoomTimestamps.remove(gameLobbyRoomId);
+                        lastPlayerRooms.remove(username, gameLobbyRoomId);
+                        persistRoom(gameLobbyRoom, null);
+                    }
 
                     if (returningPlayerIsHost && !gameIsActive) {
                         List<LobbyPlayer> disconnectedPlayers = gameLobbyRoom.getPlayers().stream()
@@ -651,19 +670,36 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             }
         }
 
-        List<String> roomsToRemove = emptyRoomTimestamps.entrySet().stream()
+        Set<String> roomsToRemove = new HashSet<>(emptyRoomTimestamps.entrySet().stream()
                 .filter(entry -> currentTime - entry.getValue() > ABANDONED_ROOM_GRACE_PERIOD_MS)
                 .map(Map.Entry::getKey)
-                .toList();
+                .toList());
+        hostReconnectDeadlines.entrySet().stream()
+                .filter(entry -> currentTime >= entry.getValue())
+                .map(Map.Entry::getKey)
+                .forEach(roomsToRemove::add);
 
         for (String roomId : roomsToRemove) {
+            Room expiredRoom = getRoomById(roomId);
+            List<LobbyPlayer> occupants = expiredRoom == null
+                    ? List.of()
+                    : new ArrayList<>(expiredRoom.getPlayers());
             emptyRoomTimestamps.remove(roomId);
+            hostReconnectDeadlines.remove(roomId);
             roomsWithActiveGames.remove(roomId);
             kickedPlayersByRoomId.remove(roomId);
             rooms.removeIf(room -> room.getId().equals(roomId));
             gameLobbyRoomByUsername.entrySet().removeIf(entry -> entry.getValue().equals(roomId));
             lastPlayerRooms.entrySet().removeIf(entry -> entry.getValue().equals(roomId));
             deletePersistedRoom(roomId);
+            for (LobbyPlayer occupant : occupants) {
+                try {
+                    sendTextMessage(occupant.getSession(), "[LEAVE_ROOM]");
+                    sendGlobalChatHistory(occupant.getSession());
+                } catch (IOException ignored) {
+                    // The room is already expired; a closed occupant session needs no notification.
+                }
+            }
         }
     }
 
@@ -703,7 +739,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
             rooms.add(room);
             joinRoom(session, room.getId(), true);
-            persistRoom(room, null);
+            persistCurrentRoomLifecycle(room);
         }
         broadcastRooms();
     }
@@ -718,6 +754,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             emptyRoomTimestamps.remove(roomId);
             roomsWithActiveGames.remove(roomId);
             kickedPlayersByRoomId.remove(roomId);
+            hostReconnectDeadlines.remove(roomId);
             gameLobbyRoomByUsername.entrySet().removeIf(entry -> Objects.equals(entry.getValue(), roomId));
             lastPlayerRooms.entrySet().removeIf(entry -> Objects.equals(entry.getValue(), roomId));
             deletePersistedRoom(roomId);
@@ -893,6 +930,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 room.getHostName(),
                 room.isRestrictionsApplied(),
                 !room.getPassword().isEmpty(),
+                hostReconnectDeadlines.get(room.getId()),
                 room.getPlayers().stream().map(p -> new LobbyPlayerDTO(
                         p.getName(),
                         mongoUserDetailsService.getAvatar(p.getName()),
@@ -939,13 +977,24 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         }
         
         synchronized (room) {
+            boolean returningHost = Objects.equals(room.getHostName(), username);
+
+            // Membership is unique by authenticated username. A join from a new
+            // browser session replaces the stale session before capacity is checked.
+            room.getPlayers().removeIf(player -> Objects.equals(player.getName(), username));
+
             if (room.getPlayers().size() >= 3) {
                 sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room is full.");
                 return;
             }
-            if (room.getPlayers().isEmpty()) {
+            if (room.getPlayers().isEmpty() && !hostReconnectDeadlines.containsKey(roomId)) {
                 room.setHostName(username);
                 host = true;
+            }
+            if (returningHost) {
+                host = true;
+                hostReconnectDeadlines.remove(roomId);
+                lastPlayerRooms.remove(username, roomId);
             }
 
             LobbyPlayer player = new LobbyPlayer(session, username, host);
@@ -955,7 +1004,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have joined the room " + room.getName() + ".");
             room.getPlayers().add(player);
             emptyRoomTimestamps.remove(roomId);
-            persistRoom(room, null);
+            persistCurrentRoomLifecycle(room);
 
             sendRoomUpdate(room, true);
         }
@@ -1053,6 +1102,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 emptyRoomTimestamps.remove(room.getId());
                 roomsWithActiveGames.remove(room.getId());
                 kickedPlayersByRoomId.remove(room.getId());
+                hostReconnectDeadlines.remove(room.getId());
                 deletePersistedRoom(room.getId());
             } else {
                 room.getPlayers().removeIf(player ->
@@ -1061,7 +1111,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                     emptyRoomTimestamps.put(room.getId(), System.currentTimeMillis());
                     persistRoom(room, Instant.now().plusMillis(ABANDONED_ROOM_GRACE_PERIOD_MS));
                 } else {
-                    persistRoom(room, null);
+                    persistCurrentRoomLifecycle(room);
                 }
             }
         }
@@ -1098,6 +1148,14 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (roomSnapshotRepository != null) {
             roomSnapshotRepository.save(RoomSnapshot.from(room, expiresAt));
         }
+    }
+
+    private void persistCurrentRoomLifecycle(Room room) {
+        Long hostReconnectDeadline = hostReconnectDeadlines.get(room.getId());
+        Instant expiresAt = hostReconnectDeadline == null
+                ? null
+                : Instant.ofEpochMilli(hostReconnectDeadline);
+        persistRoom(room, expiresAt);
     }
 
     private void deletePersistedRoom(String roomId) {
@@ -1164,7 +1222,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             kickedPlayersByRoomId.computeIfAbsent(roomId, ignored -> ConcurrentHashMap.newKeySet()).add(userName);
             lastPlayerRooms.remove(userName);
             gameLobbyRoomByUsername.remove(userName);
-            persistRoom(room, null);
+            persistCurrentRoomLifecycle(room);
         }
 
         sendRoomUpdate(room);

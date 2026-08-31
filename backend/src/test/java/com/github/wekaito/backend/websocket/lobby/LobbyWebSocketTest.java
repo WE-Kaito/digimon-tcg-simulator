@@ -185,6 +185,74 @@ class LobbyWebSocketTest {
     }
 
     @Test
+    void hostDisconnectStartsReconnectDeadlineWithoutPromotingGuest() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(host, guest));
+
+        lobbyWebSocket.afterConnectionClosed(host, CloseStatus.NORMAL);
+
+        assertThat(room.getHostName()).isEqualTo("Test");
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test2");
+        assertThat(lobbyWebSocket.getHostReconnectDeadlines()).containsKey(room.getId());
+        assertThat(guest.getMessages()).anyMatch(message ->
+                message.startsWith("[ROOM_UPDATE]:") && message.contains("\"hostReconnectDeadline\":"));
+
+        long deadline = lobbyWebSocket.getHostReconnectDeadlines().get(room.getId());
+        lobbyWebSocket.reconcileAbandonedRooms(deadline);
+
+        assertThat(lobbyWebSocket.getRooms()).doesNotContain(room);
+        assertThat(guest.getMessages()).contains("[LEAVE_ROOM]");
+    }
+
+    @Test
+    void newestHostSessionReplacesOldSessionBeforeOldConnectionCloses() throws Exception {
+        TestWebSocketSession oldHostSession = new TestWebSocketSession("lobby-old", "Test");
+        TestWebSocketSession newHostSession = new TestWebSocketSession("lobby-new", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-guest", "Test2");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(oldHostSession, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(oldHostSession, newHostSession, guest));
+
+        // The replacement connection arrives before afterConnectionClosed for
+        // the old browser session, matching the refresh race seen in production.
+        lobbyWebSocket.handleTextMessage(newHostSession, new TextMessage("/joinRoom:room-id"));
+        lobbyWebSocket.afterConnectionClosed(oldHostSession, CloseStatus.NORMAL);
+
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactlyInAnyOrder("Test", "Test2");
+        assertThat(room.getPlayers()).filteredOn(player -> player.getName().equals("Test")).hasSize(1);
+        assertThat(room.getPlayers().stream()
+                .filter(player -> player.getName().equals("Test"))
+                .findFirst()
+                .orElseThrow()
+                .getSession()).isSameAs(newHostSession);
+        assertThat(room.getHostName()).isEqualTo("Test");
+        assertThat(lobbyWebSocket.getHostReconnectDeadlines()).doesNotContainKey(room.getId());
+    }
+
+    @Test
     void kickedGuestCannotRejoinTheRoom() throws Exception {
         TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
         TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
@@ -320,7 +388,7 @@ class LobbyWebSocketTest {
 
         assertThat(linkVisitor.getMessages()).anyMatch(message -> message.startsWith("[JOIN_ROOM]:"));
         assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Beatrice");
-        assertThat(room.getHostName()).isEqualTo("Beatrice");
+        assertThat(room.getHostName()).isEqualTo("Aaron");
         assertThat(lobbyWebSocket.getEmptyRoomTimestamps()).doesNotContainKey(room.getId());
     }
 
