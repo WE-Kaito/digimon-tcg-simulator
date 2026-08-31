@@ -57,6 +57,11 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private final Map<String, String> lastPlayerRooms = new ConcurrentHashMap<>(); // username -> roomId
     private final Map<String, String> gameLobbyRoomByUsername = new ConcurrentHashMap<>();
     private final Set<String> roomsWithActiveGames = ConcurrentHashMap.newKeySet();
+    private final Map<String, Set<String>> kickedPlayersByRoomId = new ConcurrentHashMap<>();
+
+    private static final String KICKED_REJOIN_MESSAGE =
+            "[CHAT_MESSAGE]:【SERVER】: You have been removed from the Game Room. " +
+                    "You will not be able to rejoin the Game Room at this time.";
 
     private final Object quickPlayLock = new Object();
 
@@ -653,6 +658,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         for (String roomId : roomsToRemove) {
             emptyRoomTimestamps.remove(roomId);
             roomsWithActiveGames.remove(roomId);
+            kickedPlayersByRoomId.remove(roomId);
             rooms.removeIf(room -> room.getId().equals(roomId));
             gameLobbyRoomByUsername.entrySet().removeIf(entry -> entry.getValue().equals(roomId));
             lastPlayerRooms.entrySet().removeIf(entry -> entry.getValue().equals(roomId));
@@ -887,6 +893,12 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
         String hostUsername = room.getHostName();
 
+        if (!host && kickedPlayersByRoomId.getOrDefault(roomId, Set.of()).contains(username)) {
+            sendTextMessage(session, "[ROOM_JOIN_REJECTED]");
+            sendTextMessage(session, KICKED_REJOIN_MESSAGE);
+            return;
+        }
+
         // Check blocking OUTSIDE synchronized block to avoid deadlock
         if (!host && !hostUsername.equals(username)) {
             List<String> hostBlockedAccounts = mongoUserDetailsService.getBlockedAccounts(hostUsername);
@@ -929,6 +941,12 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         if (targetRoom == null) {
             sendTextMessage(session, "[ROOM_NOT_FOUND]");
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
+            return;
+        }
+
+        if (kickedPlayersByRoomId.getOrDefault(roomId, Set.of()).contains(username)) {
+            sendTextMessage(session, "[ROOM_JOIN_REJECTED]");
+            sendTextMessage(session, KICKED_REJOIN_MESSAGE);
             return;
         }
         
@@ -1004,6 +1022,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 rooms.remove(room);
                 emptyRoomTimestamps.remove(room.getId());
                 roomsWithActiveGames.remove(room.getId());
+                kickedPlayersByRoomId.remove(room.getId());
                 deletePersistedRoom(room.getId());
             } else {
                 room.getPlayers().removeIf(player ->
@@ -1081,13 +1100,22 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private void kickPlayer(WebSocketSession session, String payload) throws IOException {
-        String[] parts = payload.split(":");
+        String[] parts = payload.split(":", 3);
+        if (parts.length < 3) return;
+
         String roomId = parts[1];
         String userName = parts[2];
 
         Room room = getRoomById(roomId);
         if (room == null) {
             sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Room not found.");
+            sendTextMessage(session, "[SUCCESS]");
+            return;
+        }
+
+        String requester = getUsername(session);
+        if (!Objects.equals(room.getHostName(), requester) || Objects.equals(requester, userName)) {
+            sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: Only the room host can kick another player.");
             sendTextMessage(session, "[SUCCESS]");
             return;
         }
@@ -1103,15 +1131,17 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             }
 
             room.getPlayers().remove(player);
+            kickedPlayersByRoomId.computeIfAbsent(roomId, ignored -> ConcurrentHashMap.newKeySet()).add(userName);
             lastPlayerRooms.remove(userName);
             gameLobbyRoomByUsername.remove(userName);
+            persistRoom(room, null);
         }
 
         sendRoomUpdate(room);
 
         sendTextMessage(player.getSession(), "[KICKED]");
         sendGlobalChatHistory(player.getSession());
-        sendTextMessage(player.getSession(), "[CHAT_MESSAGE]:【SERVER】: You have been kicked from the room " + room.getName() + ".");
+        sendTextMessage(player.getSession(), KICKED_REJOIN_MESSAGE);
 
         sendTextMessage(session, "[SUCCESS]");
         sendTextMessage(session, "[CHAT_MESSAGE]:【SERVER】: You have kicked " + userName + ".");

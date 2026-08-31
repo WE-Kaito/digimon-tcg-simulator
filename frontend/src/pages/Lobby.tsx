@@ -297,11 +297,23 @@ export default function Lobby() {
                 }
 
                 if (event.data === "[KICKED]") {
-                    leavingRoom.current = null;
+                    leavingRoom.current = linkedRoomId ?? joinedRoom?.id ?? null;
                     setJoinedRoom(null);
                     setGameLobbyRoomId("");
                     setPrivateMessages([]);
+                    setIsLoading(false);
                     playKickSfx();
+                    navigate("/", { replace: true });
+                }
+
+                if (event.data === "[ROOM_JOIN_REJECTED]") {
+                    leavingRoom.current = (linkedRoomId ?? roomToJoinId) || null;
+                    setJoinedRoom(null);
+                    setGameLobbyRoomId("");
+                    setPrivateMessages([]);
+                    setIsLoading(false);
+                    setIsPasswordDialogOpen(false);
+                    setPassword("");
                     navigate("/", { replace: true });
                 }
 

@@ -184,6 +184,63 @@ class LobbyWebSocketTest {
     }
 
     @Test
+    void kickedGuestCannotRejoinTheRoom() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(host, guest));
+
+        lobbyWebSocket.handleTextMessage(host, new TextMessage("/kick:room-id:Test2"));
+
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test");
+        assertThat(guest.getMessages()).contains(
+                "[KICKED]",
+                "[CHAT_MESSAGE]:【SERVER】: You have been removed from the Game Room. " +
+                        "You will not be able to rejoin the Game Room at this time."
+        );
+
+        lobbyWebSocket.handleTextMessage(guest, new TextMessage("/joinRoom:room-id"));
+
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test");
+        assertThat(guest.getMessages()).contains("[ROOM_JOIN_REJECTED]");
+        assertThat(guest.getMessages()).noneMatch(message -> message.startsWith("[JOIN_ROOM]:"));
+    }
+
+    @Test
+    void nonHostCannotKickAnotherPlayer() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+
+        lobbyWebSocket.handleTextMessage(guest, new TextMessage("/kick:room-id:Test"));
+
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test", "Test2");
+        assertThat(host.getMessages()).doesNotContain("[KICKED]");
+    }
+
+    @Test
     void roomLinkCanReviveAnEmptyRoomDuringTheGracePeriod() throws Exception {
         TestWebSocketSession oldHostSession = new TestWebSocketSession("lobby-old", "Aaron");
         Room room = new Room(
