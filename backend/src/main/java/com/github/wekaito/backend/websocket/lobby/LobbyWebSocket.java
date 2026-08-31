@@ -58,6 +58,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     private final Map<String, String> gameLobbyRoomByUsername = new ConcurrentHashMap<>();
     private final Set<String> roomsWithActiveGames = ConcurrentHashMap.newKeySet();
     private final Map<String, Set<String>> kickedPlayersByRoomId = new ConcurrentHashMap<>();
+    private final Object roomCreationLock = new Object();
 
     private static final String KICKED_REJOIN_MESSAGE =
             "[CHAT_MESSAGE]:【SERVER】: You have been removed from the Game Room. " +
@@ -684,19 +685,48 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         String roomPassword = parts[2];
         boolean restrictionsApplied = Objects.equals(parts[3], "true");
 
-        Room room = new Room(
-                UUID.randomUUID().toString(),
-                roomName,
-                username,
-                restrictionsApplied,
-                roomPassword,
-                new ArrayList<>());
+        synchronized (roomCreationLock) {
+            List<Room> previouslyHostedRooms = rooms.stream()
+                    .filter(room -> Objects.equals(room.getHostName(), username))
+                    .toList();
+            for (Room previouslyHostedRoom : previouslyHostedRooms) {
+                destroyReplacedHostedRoom(previouslyHostedRoom);
+            }
 
-        rooms.add(room);
+            Room room = new Room(
+                    UUID.randomUUID().toString(),
+                    roomName,
+                    username,
+                    restrictionsApplied,
+                    roomPassword,
+                    new ArrayList<>());
 
-        joinRoom(session, room.getId(), true);
-        persistRoom(room, null);
+            rooms.add(room);
+            joinRoom(session, room.getId(), true);
+            persistRoom(room, null);
+        }
         broadcastRooms();
+    }
+
+    private void destroyReplacedHostedRoom(Room room) throws IOException {
+        String roomId = room.getId();
+        List<LobbyPlayer> occupants;
+        synchronized (room) {
+            occupants = new ArrayList<>(room.getPlayers());
+            room.getPlayers().clear();
+            rooms.remove(room);
+            emptyRoomTimestamps.remove(roomId);
+            roomsWithActiveGames.remove(roomId);
+            kickedPlayersByRoomId.remove(roomId);
+            gameLobbyRoomByUsername.entrySet().removeIf(entry -> Objects.equals(entry.getValue(), roomId));
+            lastPlayerRooms.entrySet().removeIf(entry -> Objects.equals(entry.getValue(), roomId));
+            deletePersistedRoom(roomId);
+        }
+
+        for (LobbyPlayer occupant : occupants) {
+            sendTextMessage(occupant.getSession(), "[LEAVE_ROOM]");
+            sendGlobalChatHistory(occupant.getSession());
+        }
     }
 
     private void broadcastRooms() throws IOException {

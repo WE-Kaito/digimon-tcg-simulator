@@ -16,6 +16,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -238,6 +239,60 @@ class LobbyWebSocketTest {
 
         assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test", "Test2");
         assertThat(host.getMessages()).doesNotContain("[KICKED]");
+    }
+
+    @Test
+    void creatingANewRoomDestroysTheHostsPreviousRoom() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Test");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Test2");
+        Room oldRoom = new Room(
+                "old-room-id",
+                "Old Room",
+                "Test",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Test", true),
+                        new LobbyPlayer(guest, "Test2", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(oldRoom);
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(host, guest));
+        lobbyWebSocket.getEmptyRoomTimestamps().put(oldRoom.getId(), 1L);
+        lobbyWebSocket.getRoomsWithActiveGames().add(oldRoom.getId());
+        lobbyWebSocket.getKickedPlayersByRoomId().put(oldRoom.getId(), java.util.Set.of("kicked-user"));
+        lobbyWebSocket.getLastPlayerRooms().put("Test2", oldRoom.getId());
+        lobbyWebSocket.getGameLobbyRoomByUsername().put("Test2", oldRoom.getId());
+        List<String> deletedRoomIds = new ArrayList<>();
+        RoomSnapshotRepository repository = (RoomSnapshotRepository) Proxy.newProxyInstance(
+                RoomSnapshotRepository.class.getClassLoader(),
+                new Class<?>[]{RoomSnapshotRepository.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "save" -> args[0];
+                    case "deleteById" -> {
+                        deletedRoomIds.add((String) args[0]);
+                        yield null;
+                    }
+                    case "toString" -> "RoomSnapshotRepositoryStub";
+                    default -> throw new UnsupportedOperationException(method.getName());
+                }
+        );
+        lobbyWebSocket.setRoomSnapshotRepositoryForTesting(repository);
+
+        lobbyWebSocket.handleTextMessage(host, new TextMessage("/createRoom:New Room::false"));
+
+        assertThat(guest.getMessages()).contains("[LEAVE_ROOM]");
+        assertThat(lobbyWebSocket.getRooms()).hasSize(1);
+        Room replacement = lobbyWebSocket.getRooms().iterator().next();
+        assertThat(replacement.getId()).isNotEqualTo(oldRoom.getId());
+        assertThat(replacement.getHostName()).isEqualTo("Test");
+        assertThat(replacement.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Test");
+        assertThat(lobbyWebSocket.getEmptyRoomTimestamps()).doesNotContainKey(oldRoom.getId());
+        assertThat(lobbyWebSocket.getRoomsWithActiveGames()).doesNotContain(oldRoom.getId());
+        assertThat(lobbyWebSocket.getKickedPlayersByRoomId()).doesNotContainKey(oldRoom.getId());
+        assertThat(lobbyWebSocket.getLastPlayerRooms()).doesNotContainValue(oldRoom.getId());
+        assertThat(lobbyWebSocket.getGameLobbyRoomByUsername()).doesNotContainValue(oldRoom.getId());
+        assertThat(deletedRoomIds).containsExactly(oldRoom.getId());
     }
 
     @Test
