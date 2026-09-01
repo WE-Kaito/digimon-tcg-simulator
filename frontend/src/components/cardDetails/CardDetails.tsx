@@ -11,6 +11,7 @@ import ColorSpan from "./ColorSpan.tsx";
 import { styled as muiStyled } from "@mui/material/styles";
 import { indigo } from "@mui/material/colors";
 import { DetailsView, useSettingStates } from "../../hooks/useSettingStates.ts";
+import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 import { EffectVariant } from "./EffectVariant.ts";
 import virusImage from "../../assets/attribute_icons/virus.png";
 import dataImage from "../../assets/attribute_icons/data.png";
@@ -78,8 +79,11 @@ export default function CardDetails() {
     const location = useLocation();
     const inGame = location.pathname === "/game" || location.pathname === "/test";
 
-    const selectedCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.selectedCard);
-    const hoverCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.hoverCard);
+    const storedSelectedCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.selectedCard);
+    const storedHoverCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.hoverCard);
+    const attackSource = useGameUIStates((state) => state.attackSource);
+    const selectedCard = attackSource?.card ?? storedSelectedCard;
+    const hoverCard = attackSource ? null : storedHoverCard;
     const inheritCardInfo = useGameBoardStates((state) => state.inheritCardInfo);
     const linkCardInfo = useGameBoardStates((state) => state.linkCardInfo);
     const details = useSettingStates((state) => state.details);

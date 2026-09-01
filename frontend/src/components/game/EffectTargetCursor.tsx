@@ -7,7 +7,10 @@ import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 export default function EffectTargetCursor() {
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+    const clearEffectTargetingQueue = useGameUIStates((state) => state.clearEffectTargetingQueue);
     const [position, setPosition] = useState({ x: -100, y: -100 });
+
+    useEffect(() => () => clearEffectTargetingQueue(), [clearEffectTargetingQueue]);
 
     useEffect(() => {
         if (!effectTargeting) return;

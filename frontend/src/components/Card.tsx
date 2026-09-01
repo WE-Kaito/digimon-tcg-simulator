@@ -241,6 +241,7 @@ export default function Card(props: CardProps) {
     const setStackDraggedLocation = useGameUIStates((state) => state.setStackDraggedLocation);
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+    const attackSource = useGameUIStates((state) => state.attackSource);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -276,16 +277,31 @@ export default function Card(props: CardProps) {
     const [{ isDragging }, dragRef, preview] = useDrag(
         () => ({
             type: "card",
-            item: {
-                type: "card",
-                content: { location, card },
+            item: () => {
+                const board = useGameBoardStates.getState();
+                return {
+                    type: "card",
+                    content: {
+                        location,
+                        card,
+                        attackSnapshot: {
+                            sourceCardId: card.id,
+                            sourceLocation: location,
+                            isMyTurn: board.getIsMyTurn(username),
+                            phase: board.phase,
+                            cardType: card.cardType || board.getCardType(location),
+                            isSuspended: card.isTilted || board.areCardsSuspended(location),
+                            digimonNumber: board.getDigimonNumber(location),
+                        },
+                    },
+                };
             },
             canDrag: !opponentFieldLocations.includes(location) && gameHasStarted,
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
         }),
-        [location, card, opponentFieldLocations, gameHasStarted]
+        [location, card, opponentFieldLocations, gameHasStarted, username]
     );
 
     // Separate drag logic for stack icon - always drags as card-stack
@@ -372,6 +388,7 @@ export default function Card(props: CardProps) {
     }
 
     function handleHover() {
+        if (attackSource) return;
         if (index !== undefined && isStackDragMode) setStackSliceIndex(index);
         if (isCardFaceDown) setHoveredId(card.id);
         if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;

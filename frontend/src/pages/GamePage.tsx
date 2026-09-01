@@ -2,7 +2,7 @@ import GameBackground from "../components/game/GameBackground.tsx";
 import styled from "@emotion/styled";
 import { IconButton } from "@mui/material";
 import carbackSrc from "../assets/cardBack.jpg";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import PlayerBoardSide from "../components/game/PlayerBoardSide/PlayerBoardSide.tsx";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
 import { useContextMenu } from "react-contexify";
@@ -18,6 +18,7 @@ import { TouchBackend } from "react-dnd-touch-backend";
 import useDropZoneReactDnd from "../hooks/useDropZoneReactDnd.ts";
 import AttackArrows from "../components/game/AttackArrows.tsx";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
+import { AttackPhase } from "../utils/types.ts";
 import { SendMessage } from "react-use-websocket";
 import RestartPromptModal from "../components/game/ModalDialog/RestartPromptModal.tsx";
 import EndModal from "../components/game/ModalDialog/EndModal.tsx";
@@ -70,6 +71,15 @@ export default function GamePage() {
     const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
     const stackDialog = useGameUIStates((state) => state.stackDialog);
     const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
+    const attackSource = useGameUIStates((state) => state.attackSource);
+    const clearAttackSource = useGameUIStates((state) => state.clearAttackSource);
+    const myAttackPhase = useGameBoardStates((state) => state.myAttackPhase);
+
+    useEffect(() => {
+        if (attackSource && myAttackPhase !== AttackPhase.WHEN_ATTACKING) clearAttackSource();
+    }, [attackSource, clearAttackSource, myAttackPhase]);
+
+    useEffect(() => () => clearAttackSource(), [clearAttackSource]);
 
     const details = useSettingStates((state) => state.details);
 
@@ -120,6 +130,11 @@ export default function GamePage() {
         restartAttackAnimation,
         clearAttackAnimation,
     });
+    const createDropHandlerRef = useRef(createDropHandler);
+
+    useLayoutEffect(() => {
+        createDropHandlerRef.current = createDropHandler;
+    }, [createDropHandler]);
 
     // Handle react-dnd drop events
     useLayoutEffect(() => {
@@ -128,7 +143,7 @@ export default function GamePage() {
             const isBottom = targetId.includes("_bottom");
             const actualTargetId = isBottom ? targetId.replace("_bottom", "") : targetId;
 
-            const dropHandler = createDropHandler(actualTargetId, { bottom: isBottom });
+            const dropHandler = createDropHandlerRef.current(actualTargetId, { bottom: isBottom });
             if (dropHandler?.drop) {
                 dropHandler.drop(item);
             }
@@ -136,7 +151,7 @@ export default function GamePage() {
 
         window.addEventListener("reactDndDrop", handleReactDndDrop as EventListener);
         return () => window.removeEventListener("reactDndDrop", handleReactDndDrop as EventListener);
-    }, [createDropHandler]);
+    }, []);
 
     function sendPhaseUpdate() {
         sendMessage(`${gameId}:/updatePhase`);
@@ -253,7 +268,7 @@ export default function GamePage() {
             <DetailsContainer height={height} style={{ minHeight: window.innerHeight }}>
                 {details !== DetailsView.NO_IMAGE && (
                     <CardImg
-                        src={hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc}
+                        src={attackSource?.card.imgUrl ?? hoverCard?.imgUrl ?? selectedCard?.imgUrl ?? carbackSrc}
                         alt={"cardImg"}
                         onContextMenu={(e) => showDetailsImageMenu({ event: e })}
                         onClick={() => selectCard(null)}

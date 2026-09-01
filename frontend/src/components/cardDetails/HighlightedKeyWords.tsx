@@ -23,14 +23,17 @@ export default function HighlightedKeyWords({
     effectSourceCardId?: string;
 }): JSX.Element | JSX.Element[] {
     const location = useLocation();
-    const selectedCard = useGeneralStates((state) => state.selectedCard);
-    const hoverCard = useGeneralStates((state) => state.hoverCard);
+    const storedSelectedCard = useGeneralStates((state) => state.selectedCard);
+    const storedHoverCard = useGeneralStates((state) => state.hoverCard);
+    const attackSource = useGameUIStates((state) => state.attackSource);
+    const selectedCard = attackSource?.card ?? storedSelectedCard;
+    const hoverCard = attackSource ? null : storedHoverCard;
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const startEffectTargeting = useGameUIStates((state) => state.startEffectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
 
-    const sourceLocation = getCardLocationById(selectedCard?.id ?? "");
+    const sourceLocation = attackSource?.location ?? getCardLocationById(selectedCard?.id ?? "");
     const sourceCards = useGameBoardStates(
         (state) =>
             (sourceLocation
