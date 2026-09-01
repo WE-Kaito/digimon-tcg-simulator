@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ChangeEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
     ErrorRounded as WarningIcon,
     HttpsOutlined as PrivateIcon,
@@ -10,11 +10,11 @@ import {
 } from "@mui/icons-material";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
 import { DeckReadySate, useGeneralStates } from "../hooks/useGeneralStates.ts";
-import useWebSocket from "react-use-websocket";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 import { notifyWarning } from "../utils/toasts.ts";
 import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { useSound } from "../hooks/useSound.ts";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SoundBar from "../components/SoundBar.tsx";
 import { DeckType } from "../utils/types.ts";
 import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
@@ -93,10 +93,14 @@ type Room = {
     hostName: string;
     hasPassword: boolean;
     restrictionsApplied: boolean;
+    hostReconnectDeadline: number | null;
     players: LobbyPlayer[];
 };
 
+const ROOM_NOT_FOUND_MESSAGE = "The room you are attempting to join no longer exists.";
+
 export default function Lobby() {
+    const { roomId: linkedRoomId } = useParams<{ roomId: string }>();
     const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/lobby`;
 
@@ -159,6 +163,10 @@ export default function Lobby() {
     const [isWrongPassword, setIsWrongPassword] = useState<boolean>(false);
 
     const [joinedRoom, setJoinedRoom] = useState<Room | null>(null);
+    const attemptedLinkedRoom = useRef<string | null>(null);
+    const leavingRoom = useRef<string | null>(null);
+    const transitioningGameId = useRef<string | null>(null);
+    const countdownTimer = useRef<number | null>(null);
 
     const [isSearchingGame, setIsSearchingGame] = useState<boolean>(false);
 
@@ -169,7 +177,7 @@ export default function Lobby() {
     function handleReturnToGame() {
         setIsOpponentOnline(true);
         setIsLoading(false);
-        navigate("/game", { state: { gameEntryConfirmed: true } });
+        if (gameId) navigate(`/game/${gameId}`);
     }
 
     function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
@@ -192,6 +200,11 @@ export default function Lobby() {
             onMessage: (event) => {
                 if (event.data === "[SUCCESS]") {
                     setIsLoading(false);
+                }
+
+                if (event.data === "[START_GAME_REJECTED]") {
+                    setIsLoading(false);
+                    clearGameStartTransition();
                 }
 
                 if (event.data === "[NO_ACTIVE_DECK]") {
@@ -225,7 +238,35 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[ROOMS]:")) {
-                    setRooms(JSON.parse(event.data.substring("[ROOMS]:".length)));
+                    const nextRooms = JSON.parse(event.data.substring("[ROOMS]:".length)) as Room[];
+                    setRooms(nextRooms);
+
+                    // A host can destroy a room while its password dialog is
+                    // still open. Close the stale dialog immediately instead
+                    // of waiting for a password response that may no longer
+                    // be associated with a live room.
+                    if (isPasswordDialogOpen && roomToJoinId && !nextRooms.some((room) => room.id === roomToJoinId)) {
+                        setIsPasswordDialogOpen(false);
+                        setIsLoading(false);
+                        setIsWrongPassword(false);
+                        setPassword("");
+                        setRoomToJoinId("");
+                        setMessages((messages) =>
+                            messages.some(
+                                (message) => message.author === "【SERVER】" && message.message === ROOM_NOT_FOUND_MESSAGE
+                            )
+                                ? messages
+                                : [
+                                      ...messages,
+                                      {
+                                          id: `room-not-found-${Date.now()}`,
+                                          author: "【SERVER】",
+                                          message: ROOM_NOT_FOUND_MESSAGE,
+                                          timestamp: new Date().toISOString(),
+                                      },
+                                  ]
+                        );
+                    }
                 }
 
                 if (event.data === "[PROMPT_PASSWORD]") {
@@ -236,7 +277,16 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[JOIN_ROOM]:")) {
-                    setJoinedRoom(JSON.parse(event.data.substring("[JOIN_ROOM]:".length)));
+                    // A delayed join response must not pull this client back to
+                    // the lobby after the game transition has begun.
+                    if (transitioningGameId.current !== null) return;
+
+                    const room = JSON.parse(event.data.substring("[JOIN_ROOM]:".length)) as Room;
+                    if (leavingRoom.current === room.id) return;
+
+                    leavingRoom.current = null;
+                    setJoinedRoom(room);
+                    navigate(`/game_room/${room.id}`, { replace: true });
                     setIsLoading(false);
                     setNewRoomName("");
                     setNewRoomPassword("");
@@ -245,22 +295,42 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[ROOM_UPDATE]:")) {
+                    // Ignore stale lobby state while the countdown/navigation
+                    // transition owns the client.
+                    if (transitioningGameId.current !== null) return;
+
                     setJoinedRoom(JSON.parse(event.data.substring("[ROOM_UPDATE]:".length)));
                 }
 
                 if (event.data === "[LEAVE_ROOM]") {
+                    leavingRoom.current = null;
                     setJoinedRoom(null);
                     setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     setIsLoading(false);
                     playJoinSfx(); // new sound?
+                    navigate("/", { replace: true });
                 }
 
                 if (event.data === "[KICKED]") {
+                    leavingRoom.current = linkedRoomId ?? joinedRoom?.id ?? null;
                     setJoinedRoom(null);
                     setGameLobbyRoomId("");
                     setPrivateMessages([]);
+                    setIsLoading(false);
                     playKickSfx();
+                    navigate("/", { replace: true });
+                }
+
+                if (event.data === "[ROOM_JOIN_REJECTED]") {
+                    leavingRoom.current = (linkedRoomId ?? roomToJoinId) || null;
+                    setJoinedRoom(null);
+                    setGameLobbyRoomId("");
+                    setPrivateMessages([]);
+                    setIsLoading(false);
+                    setIsPasswordDialogOpen(false);
+                    setPassword("");
+                    navigate("/", { replace: true });
                 }
 
                 if (event.data === "[PLAYER_JOINED]") {
@@ -270,6 +340,18 @@ export default function Lobby() {
                 if (event.data === "[WRONG_PASSWORD]") {
                     setIsLoading(false);
                     setIsWrongPassword(true);
+                }
+
+                if (event.data === "[ROOM_NOT_FOUND]") {
+                    setIsPasswordDialogOpen(false);
+                    setIsLoading(false);
+                    setIsWrongPassword(false);
+                    setPassword("");
+                    setRoomToJoinId("");
+                    if (linkedRoomId) {
+                        setGameLobbyRoomId("");
+                        navigate("/", { replace: true });
+                    }
                 }
 
                 if (event.data.startsWith("[COMPUTE_GAME]:")) {
@@ -323,7 +405,14 @@ export default function Lobby() {
                 if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE]:".length);
                     const chatMessage = parseChatMessage(messageJson);
-                    setMessages((messages) => [...messages, chatMessage]);
+                    setMessages((messages) =>
+                        chatMessage.author === "【SERVER】" && chatMessage.message === ROOM_NOT_FOUND_MESSAGE &&
+                        messages.some(
+                            (message) => message.author === chatMessage.author && message.message === chatMessage.message
+                        )
+                            ? messages
+                            : [...messages, chatMessage]
+                    );
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
@@ -341,6 +430,24 @@ export default function Lobby() {
         },
         !isFetchingIsBanned && !isBanned // connect only when not banned
     );
+
+    useEffect(() => {
+        if (websocket.readyState !== ReadyState.OPEN) {
+            attemptedLinkedRoom.current = null;
+            return;
+        }
+        if (!linkedRoomId) {
+            attemptedLinkedRoom.current = null;
+            return;
+        }
+        if (transitioningGameId.current !== null) return;
+        if (leavingRoom.current === linkedRoomId) return;
+        if (joinedRoom?.id === linkedRoomId || attemptedLinkedRoom.current === linkedRoomId) return;
+
+        attemptedLinkedRoom.current = linkedRoomId;
+        setRoomToJoinId(linkedRoomId);
+        websocket.sendMessage("/joinRoom:" + linkedRoomId);
+    }, [joinedRoom?.id, linkedRoomId, websocket.readyState, websocket.sendMessage]);
 
     function handleDeckChange(event: ChangeEvent<HTMLSelectElement>) {
         setActiveDeck(String(event.target.value)); // TODO: check if backend checks validity on each change:
@@ -382,8 +489,19 @@ export default function Lobby() {
     }
 
     function handleLeaveRoom() {
-        setIsLoadingWithDebounce();
-        websocket.sendMessage("/leave:" + joinedRoom?.id + ":" + user + ":true");
+        const roomId = joinedRoom?.id;
+        if (!roomId) return;
+
+        // Prevent the deep-link effect from rejoining while the route transitions
+        // from /game_room/:id back to the public lobby.
+        leavingRoom.current = roomId;
+        attemptedLinkedRoom.current = roomId;
+        websocket.sendMessage("/leave:" + roomId + ":" + user + ":true");
+        setJoinedRoom(null);
+        setGameLobbyRoomId("");
+        setPrivateMessages([]);
+        setIsLoading(false);
+        navigate("/", { replace: true });
     }
 
     function handleKickPlayer(userName: string) {
@@ -395,22 +513,33 @@ export default function Lobby() {
     function handleStartGame() {
         setIsLoadingWithDebounce();
         cancelQuickPlayQueue();
-        const newGameID = user + "‗" + joinedRoom?.players.find((p) => p.name !== user)?.name;
-        websocket.sendMessage("/startGame:" + joinedRoom?.id + ":" + newGameID);
+        websocket.sendMessage("/startGame:" + joinedRoom?.id);
     }
 
     function startGameSequence(gameId: string) {
+        if (transitioningGameId.current !== null) return;
+
+        transitioningGameId.current = gameId;
         playCountdownSfx();
         setShowCountdown(true);
-        const timer = setTimeout(() => {
+        countdownTimer.current = window.setTimeout(() => {
+            countdownTimer.current = null;
+            setShowCountdown(false);
             setGameId(gameId); // maybe use the lobby id (at least when displayName != accountName)?
             setIsRematch(false);
             clearBoard();
             setIsLoading(false);
-            setJoinedRoom(null);
-            navigate("/game", { state: { gameEntryConfirmed: true } });
+            navigate(`/game/${gameId}`);
         }, 3150);
-        return () => clearTimeout(timer);
+    }
+
+    function clearGameStartTransition() {
+        if (countdownTimer.current !== null) {
+            window.clearTimeout(countdownTimer.current);
+            countdownTimer.current = null;
+        }
+        transitioningGameId.current = null;
+        setShowCountdown(false);
     }
 
     function cancelQuickPlayQueue() {
@@ -471,6 +600,14 @@ export default function Lobby() {
     useEffect(() => {
         if (!gameId) setIsRejoinable(false);
     }, [gameId]);
+
+    useEffect(() => {
+        return () => {
+            if (countdownTimer.current !== null) window.clearTimeout(countdownTimer.current);
+            countdownTimer.current = null;
+            transitioningGameId.current = null;
+        };
+    }, []);
 
     useEffect(() => {
         if (!activeDeckId || activeDeckId.includes("<html")) return;
@@ -738,6 +875,13 @@ export default function Lobby() {
                         <ScrollArea>
                             {joinedRoom ? (
                                 <RoomList>
+                                    {joinedRoom.hostReconnectDeadline !== null &&
+                                        !joinedRoom.players.some((player) => player.name === joinedRoom.hostName) && (
+                                            <HostReconnectNotice
+                                                hostName={joinedRoom.hostName}
+                                                deadline={joinedRoom.hostReconnectDeadline}
+                                            />
+                                        )}
                                     {joinedRoom.players.map((player) => {
                                         const me = player.name === user;
                                         const host = player.name === joinedRoom.hostName;
@@ -1287,6 +1431,40 @@ const StyledSpan = styled.span`
     color: ghostwhite;
     display: flex;
     align-items: center;
+`;
+
+function HostReconnectNotice({ hostName, deadline }: { hostName: string; deadline: number }) {
+    const [now, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        setNow(Date.now());
+        const interval = window.setInterval(() => setNow(Date.now()), 250);
+        return () => window.clearInterval(interval);
+    }, [deadline]);
+
+    const remainingSeconds = Math.max(0, Math.ceil((deadline - now) / 1000));
+    const reconnectTime = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
+
+    return (
+        <Tile>
+            <div />
+            <StyledSpan>{hostName}</StyledSpan>
+            <HostReconnectStatus>
+                <OfflineIcon color="error" />
+                <span>Waiting for host to reconnect {reconnectTime}</span>
+            </HostReconnectStatus>
+        </Tile>
+    );
+}
+
+const HostReconnectStatus = styled.div`
+    grid-column: span 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: papayawhip;
+    font-family: Cousine, sans-serif;
+    font-size: clamp(12px, 1.1vw, 18px);
 `;
 
 const ListCard = styled(Card)`

@@ -44,7 +44,7 @@ export default function HighlightedKeyWords({
     const sourceIsOnMyField = sourceLocation === "myBreedingArea" || /^myDigi(?:[1-9]|1\d|2[01])$/.test(sourceLocation);
     const detailsMatchSelection = !hoverCard || hoverCard.id === selectedCard?.id;
     const canStartTargeting =
-        (location.pathname === "/game" || location.pathname === "/test") &&
+        (location.pathname.startsWith("/game") || location.pathname === "/test") &&
         Boolean(selectedCard) &&
         sourceIsFaceUp &&
         sourceIsTopCard &&
