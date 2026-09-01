@@ -215,6 +215,10 @@ class LobbyWebSocketTest {
 
         assertThat(lobbyWebSocket.getRooms()).doesNotContain(room);
         assertThat(guest.getMessages()).contains("[LEAVE_ROOM]");
+        assertThat(lobbyWebSocket.getHostReconnectDeadlines()).doesNotContainKey(room.getId());
+        assertThat(lobbyWebSocket.getGameLobbyRoomByUsername()).doesNotContainValue(room.getId());
+        assertThat(lobbyWebSocket.getLastPlayerRooms()).doesNotContainValue(room.getId());
+        assertThat(lobbyWebSocket.getKickedPlayersByRoomId()).doesNotContainKey(room.getId());
     }
 
     @Test

@@ -770,7 +770,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         return principal == null ? null : principal.getName();
     }
 
-    @Scheduled(fixedRate = 10000) // 10 seconds
+    // Keep server-side expiry aligned with the second-resolution countdown shown
+    // by clients. The server remains authoritative and notifies every occupant.
+    @Scheduled(fixedRate = 1000)
     private void cleanUpEmptyRooms() throws IOException {
         reconcileAbandonedRooms(System.currentTimeMillis());
 
