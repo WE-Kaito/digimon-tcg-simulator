@@ -7,8 +7,11 @@ import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 
-const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
+const currentPort = window.location.port;
+const currentUrl = window.location.origin.replace("https://", "");
+// TODO: using www.project-drasil.online as the domain is not working, need a fix
+const websocketURL =
+    currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://" + currentUrl + "/api/ws/game";
 
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;
@@ -57,6 +60,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
 
     const gameId = useGameBoardStates((state) => state.gameId);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
     const setBootStage = useGameBoardStates((state) => state.setBootStage);
     const setPlayers = useGameBoardStates((state) => state.setPlayers);
     const setPhase = useGameBoardStates((state) => state.setPhase);
@@ -388,6 +392,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[SURRENDER]": {
+                    setGameId("");
                     setIsEndDialogOpen(true);
                     setEndDialogText("🎉 Your opponent surrendered!");
                     break;

@@ -22,6 +22,7 @@ type NotificationAction = {
     ariaLabel?: string;
     icon?: ReactNode;
     variant?: "primary" | "secondary" | "danger";
+    disabled?: boolean;
     onClick: () => void;
 };
 
@@ -92,6 +93,7 @@ export function NotificationBell({ notifications }: NotificationBellProps) {
                                                     key={action.label}
                                                     type="button"
                                                     variant={action.variant}
+                                                    disabled={action.disabled}
                                                     aria-label={action.ariaLabel ?? action.label}
                                                     title={action.ariaLabel ?? action.label}
                                                     onClick={action.onClick}
@@ -294,6 +296,13 @@ const NotificationActionButton = styled.button<{ variant?: "primary" | "secondar
     &:focus-visible {
         outline: 2px solid var(--lobby-accent);
         outline-offset: 2px;
+    }
+
+    &:disabled {
+        background: #505050;
+        color: #aaa;
+        cursor: not-allowed;
+        opacity: 0.65;
     }
 `;
 

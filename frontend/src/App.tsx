@@ -24,12 +24,16 @@ function App() {
     const fetchDecks = useDeckStates((state) => state.fetchDecks);
     const setParticlesInitialized = useGeneralStates((state) => state.setParticlesInitialized);
 
-    useEffect(() => me(), [me]);
-
-    useEffect(() => fetchCards(), [fetchCards]);
+    useEffect(() => {
+        void me();
+    }, [me]);
 
     useEffect(() => {
-        if (user.length && user !== "anonymousUser") fetchDecks();
+        void fetchCards();
+    }, [fetchCards]);
+
+    useEffect(() => {
+        if (user.length && user !== "anonymousUser") void fetchDecks();
     }, [fetchDecks, user]);
 
     useEffect(() => {

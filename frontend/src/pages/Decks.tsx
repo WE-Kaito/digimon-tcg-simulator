@@ -41,7 +41,9 @@ export default function Decks() {
     }
 
     const stableLoadOrderedDecks = useCallback(() => loadOrderedDecks(setOrderedDecks), [loadOrderedDecks]);
-    useLayoutEffect(() => stableLoadOrderedDecks(), [stableLoadOrderedDecks]);
+    useLayoutEffect(() => {
+        void stableLoadOrderedDecks();
+    }, [stableLoadOrderedDecks]);
 
     useLayoutEffect(() => {
         if (!isLoading && orderedDecks.length < 16) setRenderAddButton(true);

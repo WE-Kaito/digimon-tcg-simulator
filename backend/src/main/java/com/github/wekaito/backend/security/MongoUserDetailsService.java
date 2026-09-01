@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     private final MongoUserRepository mongoUserRepository;
     private final StarterDeckService starterDeckService;
+    private final Map<String, List<String>> blockedAccountsCache = new ConcurrentHashMap<>();
 
     private static final String[] badWords = {"abuse", "analsex", "ballsack", "bastard", "bestiality", "biatch", "bitch", "blowjob", "fuck", "fuuck", "rape", "whore", "nigger", "nazi", "jews"};
 
@@ -91,19 +93,10 @@ public class MongoUserDetailsService implements UserDetailsService {
     }
 
     public void setActiveDeck(String deckId) {
-        MongoUser mongoUser = getCurrentUser();
-        MongoUser updatedUser = new MongoUser(
-                mongoUser.id(),
-                mongoUser.username(),
-                mongoUser.password(),
-                mongoUser.question(),
-                mongoUser.answer(),
-                deckId,
-                mongoUser.avatarName(),
-                mongoUser.blockedAccounts(),
-                mongoUser.role()
-        );
-        mongoUserRepository.save(updatedUser);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (mongoUserRepository.updateActiveDeckIdByUsername(username, deckId) == 0) {
+            throw new UsernameNotFoundException("User " + username + exceptionMessage);
+        }
     }
 
     public String getActiveDeck() { return getCurrentUser().activeDeckId(); }
@@ -210,12 +203,14 @@ public class MongoUserDetailsService implements UserDetailsService {
                 mongoUser.role()
         );
         mongoUserRepository.save(updatedUser);
+        blockedAccountsCache.put(mongoUser.username(), List.copyOf(blockedAccounts));
     }
 
     public List<String> getBlockedAccounts(String username) {
-        MongoUser user = getUserByUsername(username);
-        List<String> blockedAccounts = user.blockedAccounts();
-        return blockedAccounts != null ? blockedAccounts : Collections.emptyList();
+        return blockedAccountsCache.computeIfAbsent(username, key -> {
+            List<String> blockedAccounts = getUserByUsername(key).blockedAccounts();
+            return blockedAccounts == null ? List.of() : List.copyOf(blockedAccounts);
+        });
     }
 
     public boolean checkBlockedByWebSocketSessions(WebSocketSession player1, WebSocketSession player2) {
@@ -230,11 +225,8 @@ public class MongoUserDetailsService implements UserDetailsService {
             return false;
         }
 
-        MongoUser user1 = getUserByUsername(player1Username);
-        MongoUser user2 = getUserByUsername(player2Username);
-
-        List<String> user1BlockedAccounts = user1.blockedAccounts() != null ? user1.blockedAccounts() : Collections.emptyList();
-        List<String> user2BlockedAccounts = user2.blockedAccounts() != null ? user2.blockedAccounts() : Collections.emptyList();
+        List<String> user1BlockedAccounts = getBlockedAccounts(player1Username);
+        List<String> user2BlockedAccounts = getBlockedAccounts(player2Username);
 
         return user1BlockedAccounts.contains(player2Username) || user2BlockedAccounts.contains(player1Username);
     }
