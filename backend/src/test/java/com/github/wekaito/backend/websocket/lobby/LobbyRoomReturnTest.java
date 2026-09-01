@@ -59,8 +59,10 @@ class LobbyRoomReturnTest {
         assertTrue(lobbyWebSocket.getRoomsWithActiveGames().contains("room-id"));
         assertEquals("room-id", lobbyWebSocket.getGameLobbyRoomByUsername().get("host"));
         assertEquals("room-id", lobbyWebSocket.getGameLobbyRoomByUsername().get("guest"));
-        assertTrue(host.messages().contains("[COMPUTE_ROOM_GAME]:host‗guest:room-id"));
-        assertTrue(guest.messages().contains("[COMPUTE_ROOM_GAME]:host‗guest:room-id"));
+        assertTrue(host.messages().stream().anyMatch(message -> message.matches(
+                "\\[COMPUTE_ROOM_GAME]:[0-9a-f-]{36}:room-id")));
+        assertTrue(guest.messages().stream().anyMatch(message -> message.matches(
+                "\\[COMPUTE_ROOM_GAME]:[0-9a-f-]{36}:room-id")));
     }
 
     @Test
@@ -103,8 +105,10 @@ class LobbyRoomReturnTest {
 
         assertEquals(List.of("host", "guest"), room.getPlayers().stream().map(LobbyPlayer::getName).toList());
         assertEquals(newestHost.session(), room.getPlayers().get(0).getSession());
-        assertTrue(newestHost.messages().contains("[COMPUTE_ROOM_GAME]:host‗guest:room-id"));
-        assertTrue(guest.messages().contains("[COMPUTE_ROOM_GAME]:host‗guest:room-id"));
+        assertTrue(newestHost.messages().stream().anyMatch(message -> message.matches(
+                "\\[COMPUTE_ROOM_GAME]:[0-9a-f-]{36}:room-id")));
+        assertTrue(guest.messages().stream().anyMatch(message -> message.matches(
+                "\\[COMPUTE_ROOM_GAME]:[0-9a-f-]{36}:room-id")));
     }
 
     @Test

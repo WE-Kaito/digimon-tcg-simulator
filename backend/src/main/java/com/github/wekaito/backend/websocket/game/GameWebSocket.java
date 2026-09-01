@@ -796,7 +796,10 @@ public class GameWebSocket extends TextWebSocketHandler {
         cancelDisconnectCleanup(gameId, joiningUsername);
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
-        sendDirectMessage(session, "[GAME_JOINED]");
+        String opponentUsername = gameRoom.getPlayer1().username().equals(joiningUsername)
+                ? gameRoom.getPlayer2().username()
+                : gameRoom.getPlayer1().username();
+        sendDirectMessage(session, "[GAME_JOINED]:" + opponentUsername);
         eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency

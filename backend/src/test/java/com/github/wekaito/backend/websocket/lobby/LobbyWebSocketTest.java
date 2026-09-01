@@ -464,11 +464,9 @@ class LobbyWebSocketTest {
 
         assertThat(lobbyWebSocket.getQuickPlayQueue()).isEmpty();
         assertThat(playerOne.getMessages()).anyMatch(message ->
-                message.equals("[COMPUTE_GAME]:player-one‗player-two") ||
-                        message.equals("[COMPUTE_GAME]:player-two‗player-one"));
+                message.matches("\\[COMPUTE_GAME]:[0-9a-f-]{36}"));
         assertThat(playerTwo.getMessages()).anyMatch(message ->
-                message.equals("[COMPUTE_GAME]:player-one‗player-two") ||
-                        message.equals("[COMPUTE_GAME]:player-two‗player-one"));
+                message.matches("\\[COMPUTE_GAME]:[0-9a-f-]{36}"));
     }
 
     @Test
@@ -531,9 +529,10 @@ class LobbyWebSocketTest {
     }
 
     private boolean hasGameWith(TestWebSocketSession player, String opponent) {
-        return player.getMessages().stream()
-                .filter(message -> message.startsWith("[COMPUTE_GAME]:"))
-                .anyMatch(message -> message.contains(opponent));
+        String username = player.getPrincipal().getName();
+        return gameWebSocket.getGameRooms().values().stream().anyMatch(room ->
+                java.util.Set.of(room.getPlayer1().username(), room.getPlayer2().username())
+                        .equals(java.util.Set.of(username, opponent)));
     }
 
     private GameRoom gameRoom(String playerOne, String playerTwo) {

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { useDeckStates } from "./hooks/useDeckStates.ts";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import Profile from "./pages/Profile.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import RecoveryPage from "./pages/RecoveryPage.tsx";
@@ -16,6 +16,7 @@ import Decks from "./pages/Decks.tsx";
 import Deckbuilder from "./pages/Deckbuilder.tsx";
 import DeckTest from "./pages/DeckTest.tsx";
 import Administration from "./pages/Administration.tsx";
+import { useGameBoardStates } from "./hooks/useGameBoardStates.ts";
 
 function App() {
     const me = useGeneralStates((state) => state.me);
@@ -51,7 +52,7 @@ function App() {
                     <Route path="/decks" element={<Decks />} />
                     <Route path="/deckbuilder" element={<Deckbuilder />} />
                     <Route path="/deckbuilder/:id" element={<Deckbuilder />} />
-                    <Route path="/game" element={<GameRoute />} />
+                    <Route path="/game/:gameId" element={<GameRoute />} />
                     <Route path="/test" element={<DeckTest />} />
                     <Route path="/administration" element={<Administration />} />
                     <Route path="/*" element={<Navigate to="/" />} />
@@ -65,10 +66,17 @@ function App() {
 }
 
 function GameRoute() {
-    const location = useLocation();
-    const gameEntryConfirmed = (location.state as { gameEntryConfirmed?: boolean } | null)?.gameEntryConfirmed;
+    const { gameId } = useParams<{ gameId: string }>();
+    const storedGameId = useGameBoardStates((state) => state.gameId);
+    const setGameId = useGameBoardStates((state) => state.setGameId);
 
-    return gameEntryConfirmed ? <GamePage /> : <Navigate to="/" replace />;
+    useEffect(() => {
+        if (gameId && storedGameId !== gameId) setGameId(gameId);
+    }, [gameId, setGameId, storedGameId]);
+
+    if (!gameId) return <Navigate to="/" replace />;
+    if (storedGameId !== gameId) return null;
+    return <GamePage />;
 }
 
 export default App;

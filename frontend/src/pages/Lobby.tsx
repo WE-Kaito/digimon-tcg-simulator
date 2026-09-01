@@ -177,7 +177,7 @@ export default function Lobby() {
     function handleReturnToGame() {
         setIsOpponentOnline(true);
         setIsLoading(false);
-        navigate("/game", { state: { gameEntryConfirmed: true } });
+        if (gameId) navigate(`/game/${gameId}`);
     }
 
     function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
@@ -277,6 +277,10 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[JOIN_ROOM]:")) {
+                    // A delayed join response must not pull this client back to
+                    // the lobby after the game transition has begun.
+                    if (transitioningGameId.current !== null) return;
+
                     const room = JSON.parse(event.data.substring("[JOIN_ROOM]:".length)) as Room;
                     if (leavingRoom.current === room.id) return;
 
@@ -291,6 +295,10 @@ export default function Lobby() {
                 }
 
                 if (event.data.startsWith("[ROOM_UPDATE]:")) {
+                    // Ignore stale lobby state while the countdown/navigation
+                    // transition owns the client.
+                    if (transitioningGameId.current !== null) return;
+
                     setJoinedRoom(JSON.parse(event.data.substring("[ROOM_UPDATE]:".length)));
                 }
 
@@ -432,6 +440,7 @@ export default function Lobby() {
             attemptedLinkedRoom.current = null;
             return;
         }
+        if (transitioningGameId.current !== null) return;
         if (leavingRoom.current === linkedRoomId) return;
         if (joinedRoom?.id === linkedRoomId || attemptedLinkedRoom.current === linkedRoomId) return;
 
@@ -504,8 +513,7 @@ export default function Lobby() {
     function handleStartGame() {
         setIsLoadingWithDebounce();
         cancelQuickPlayQueue();
-        const newGameID = user + "‗" + joinedRoom?.players.find((p) => p.name !== user)?.name;
-        websocket.sendMessage("/startGame:" + joinedRoom?.id + ":" + newGameID);
+        websocket.sendMessage("/startGame:" + joinedRoom?.id);
     }
 
     function startGameSequence(gameId: string) {
@@ -521,8 +529,7 @@ export default function Lobby() {
             setIsRematch(false);
             clearBoard();
             setIsLoading(false);
-            setJoinedRoom(null);
-            navigate("/game", { state: { gameEntryConfirmed: true } });
+            navigate(`/game/${gameId}`);
         }, 3150);
     }
 

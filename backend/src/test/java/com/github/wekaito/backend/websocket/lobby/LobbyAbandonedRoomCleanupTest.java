@@ -33,7 +33,7 @@ class LobbyAbandonedRoomCleanupTest {
     void removesAnAbandonedHostOnlyRoomAfterTheReconnectGracePeriod() {
         TestWebSocketSession staleHost = new TestWebSocketSession("stale-session", "host");
         Room room = roomWithHost(staleHost);
-        room.getPlayers().clear();
+        room.clearPlayers();
         lobbyWebSocket.getRooms().add(room);
         lobbyWebSocket.getGameLobbyRoomByUsername().put("host", room.getId());
 
@@ -85,8 +85,8 @@ class LobbyAbandonedRoomCleanupTest {
 
         TestWebSocketSession reconnectedHost = new TestWebSocketSession("new-session", "host");
         lobbyWebSocket.getGlobalActiveSessions().add(reconnectedHost);
-        room.getPlayers().clear();
-        room.getPlayers().add(new LobbyPlayer(reconnectedHost, "host", true));
+        room.clearPlayers();
+        room.replacePlayer(reconnectedHost, "host", true);
         lobbyWebSocket.reconcileAbandonedRooms(20_000L);
         lobbyWebSocket.reconcileAbandonedRooms(60_000L);
 
