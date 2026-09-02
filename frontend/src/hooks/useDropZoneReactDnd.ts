@@ -27,7 +27,6 @@ export default function useDropZoneReactDnd(props: Props) {
     const getDigimonNumber = useGameBoardStates((state) => state.getDigimonNumber);
     const getCardType = useGameBoardStates((state) => state.getCardType);
     const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
-    const phase = useGameBoardStates((state) => state.phase);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
 
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
@@ -168,16 +167,30 @@ export default function useDropZoneReactDnd(props: Props) {
         if (!from || !to) return;
 
         const snapshot = item.attackSnapshot;
-        const attackState =
-            snapshot ?? {
-                sourceCardId: item.card.id,
-                sourceLocation: from,
-                isMyTurn: getIsMyTurn(user),
-                phase,
-                cardType: item.card.cardType || getCardType(from),
-                isSuspended: item.card.isTilted || areCardsSuspended(from),
-                digimonNumber: item.card.cardNumber || getDigimonNumber(from),
-            };
+        const board = useGameBoardStates.getState();
+        const sourceLocation = snapshot?.sourceLocation ?? from;
+        const sourceCards = board[sourceLocation as keyof typeof board];
+        const currentSourceCard = Array.isArray(sourceCards)
+            ? (sourceCards as CardTypeGame[]).find((card) => card.id === (snapshot?.sourceCardId ?? item.card.id))
+            : undefined;
+        const attackState = {
+            sourceCardId: snapshot?.sourceCardId ?? item.card.id,
+            sourceLocation,
+            // Preserve drag identity, but read eligibility from current board
+            // state. A card can be suspended/re-rendered after drag begins;
+            // freezing these values at drag start misclassifies the attack as
+            // an effect drop.
+            isMyTurn: board.getIsMyTurn(user),
+            phase: board.phase,
+            cardType: currentSourceCard?.cardType || snapshot?.cardType || item.card.cardType || getCardType(from),
+            isSuspended:
+                currentSourceCard?.isTilted ?? snapshot?.isSuspended ?? item.card.isTilted ?? areCardsSuspended(from),
+            digimonNumber:
+                currentSourceCard?.cardNumber ||
+                snapshot?.digimonNumber ||
+                item.card.cardNumber ||
+                getDigimonNumber(from),
+        };
         const isAttack = isAttackIntent(attackState);
         const isEffect = !isAttack;
         clearAttackAnimation?.();
@@ -187,8 +200,12 @@ export default function useDropZoneReactDnd(props: Props) {
         sendAttackArrows(from, to, isEffect);
         restartAttackAnimation(isEffect);
         if (isAttack) {
-            pinAttackSource({ card: item.card, location: attackState.sourceLocation });
             initiateAttack(attackState.phase);
+            // Set WHEN_ATTACKING before publishing the pinned source. GamePage
+            // clears sources outside that phase, so publishing in the opposite
+            // order creates an observable intermediate state that can erase the
+            // source before its timing controls render.
+            pinAttackSource({ card: item.card, location: attackState.sourceLocation });
         }
     }
 

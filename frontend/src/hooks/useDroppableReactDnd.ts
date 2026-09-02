@@ -14,7 +14,9 @@ export function useDroppableReactDnd(config: DropConfig) {
     const [{ isOver, canDrop }, dropRef] = useDrop(
         () => ({
             accept: data?.accept || ["card", "card-stack"],
-            drop: (item) => {
+            drop: (item, monitor) => {
+                if (monitor.didDrop()) return;
+
                 // Dispatch a custom event with the drop data
                 const dropEvent = new CustomEvent("reactDndDrop", {
                     detail: { item, targetId: id },

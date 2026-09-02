@@ -74,9 +74,19 @@ export default function GamePage() {
     const attackSource = useGameUIStates((state) => state.attackSource);
     const clearAttackSource = useGameUIStates((state) => state.clearAttackSource);
     const myAttackPhase = useGameBoardStates((state) => state.myAttackPhase);
+    const previousAttackPhaseRef = useRef(myAttackPhase);
 
     useEffect(() => {
-        if (attackSource && myAttackPhase !== AttackPhase.WHEN_ATTACKING) clearAttackSource();
+        const previousAttackPhase = previousAttackPhaseRef.current;
+        previousAttackPhaseRef.current = myAttackPhase;
+
+        if (
+            attackSource &&
+            previousAttackPhase === AttackPhase.WHEN_ATTACKING &&
+            myAttackPhase !== AttackPhase.WHEN_ATTACKING
+        ) {
+            clearAttackSource();
+        }
     }, [attackSource, clearAttackSource, myAttackPhase]);
 
     useEffect(() => () => clearAttackSource(), [clearAttackSource]);
