@@ -1,11 +1,7 @@
 import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
-import {
-    InheritedCardInfo,
-    tamerLocations,
-    useGameBoardStates,
-} from "../hooks/useGameBoardStates.ts";
+import { InheritedCardInfo, tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import Lottie from "lottie-react";
@@ -23,7 +19,11 @@ import { OpenedCardDialog, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
-import { extractStandaloneEffectKeywords, supportsAutoDetectedEffectKeywords } from "../utils/effectKeywords.ts";
+import {
+    extractStandaloneEffectKeywords,
+    extractStandaloneSecurityAttackModifier,
+    supportsAutoDetectedEffectKeywords,
+} from "../utils/effectKeywords.ts";
 import { EffectTargetPayload } from "../utils/effectTargeting.ts";
 
 const myDigimonLocations = [
@@ -329,9 +329,7 @@ export default function Card(props: CardProps) {
 
     const inheritedEffects = topCardInfo(locationCards ?? []);
     const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
-    const isTopFieldCard = tamerLocations.includes(location)
-        ? index === 0
-        : index === locationCards.length - 1;
+    const isTopFieldCard = tamerLocations.includes(location) ? index === 0 : index === locationCards.length - 1;
     const isEffectTargetCandidate =
         Boolean(effectTargeting) &&
         isTopFieldCard &&
@@ -355,9 +353,7 @@ export default function Card(props: CardProps) {
                     timing: effectTargeting.timing,
                     effectText: effectTargeting.effectText,
                 };
-                wsUtils.sendMessage(
-                    `${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`
-                );
+                wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`);
                 cancelEffectTargeting();
             }
             return;
@@ -431,6 +427,24 @@ export default function Card(props: CardProps) {
             .filter((sourceCard) => sourceCard.isFaceUp)
             .flatMap((sourceCard) => extractStandaloneEffectKeywords(sourceCard.inheritedEffect));
     }, [autoDetectEffectKeywords, index, location, locationCards]);
+    const autoDetectedSecurityAttackModifier = useMemo(() => {
+        if (!autoDetectEffectKeywords) return 0;
+
+        const isTopStackCard = index === locationCards.length - 1;
+        const inheritedModifier =
+            isTopStackCard && locationsWithInheritedInfo.includes(location)
+                ? locationCards
+                      .slice(0, -1)
+                      .filter((sourceCard) => sourceCard.isFaceUp)
+                      .reduce(
+                          (total, sourceCard) =>
+                              total + extractStandaloneSecurityAttackModifier(sourceCard.inheritedEffect),
+                          0
+                      )
+                : 0;
+
+        return extractStandaloneSecurityAttackModifier(card.mainEffect) + inheritedModifier;
+    }, [autoDetectEffectKeywords, card.mainEffect, index, location, locationCards]);
     const displayedKeywords = useMemo(
         () => [
             ...new Set([
@@ -446,7 +460,9 @@ export default function Card(props: CardProps) {
 
     const finalDp = card.dp || isTamerWithDP ? Math.max(0, (card.dp ?? 0) + linkDP + (modifiers?.plusDp ?? 0)) : 0;
 
-    const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
+    const secAtkString = modifiers
+        ? getNumericModifier(modifiers.plusSecurityAttacks + autoDetectedSecurityAttackModifier)
+        : "";
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
     const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);
