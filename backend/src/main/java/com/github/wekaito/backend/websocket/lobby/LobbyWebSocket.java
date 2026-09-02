@@ -141,6 +141,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                     lastHeartbeatTimestamps.remove(session);
                     quickPlayQueue.remove(session);
                     globalActiveSessions.remove(session);
+                    playerStatuses.remove(session);
                     return;
                 }
 
@@ -452,7 +453,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         broadcastRooms();
     }
 
-    @Scheduled(fixedRate = 5000) // fallback in case a WebSocket lifecycle event is missed
+    @Scheduled(fixedRate = 30000) // reconcile presence even when a lifecycle event is missed
     private void userCountFallback() throws IOException {
         broadcastUserCount();
     }
@@ -716,31 +717,15 @@ public class LobbyWebSocket extends TextWebSocketHandler {
     }
 
     private void broadcastUserCount() throws IOException {
-        Map<String, PlayerStatus> onlinePlayerStatuses = new HashMap<>();
-
-        globalActiveSessions.stream()
-                .filter(session -> session.getPrincipal() != null)
-                .forEach(session -> onlinePlayerStatuses.put(
-                        Objects.requireNonNull(session.getPrincipal()).getName(),
-                        playerStatuses.getOrDefault(session, PlayerStatus.LOBBY)
-                ));
-
-        rooms.stream()
-                .filter(room -> room.getPlayers().size() >= 2)
-                .flatMap(room -> room.getPlayers().stream())
-                .forEach(player -> onlinePlayerStatuses.put(player.getName(), PlayerStatus.GAME_ROOM));
-
-        gameWebSocket.gameRooms.values().forEach(gameRoom -> {
-            onlinePlayerStatuses.put(gameRoom.getPlayer1().username(), PlayerStatus.MATCH);
-            onlinePlayerStatuses.put(gameRoom.getPlayer2().username(), PlayerStatus.MATCH);
-        });
+        Map<String, PlayerStatus> onlinePlayerStatuses = getOnlinePlayerStatusSnapshot();
 
         List<OnlinePlayerDTO> onlinePlayers = onlinePlayerStatuses.entrySet().stream()
                 .map(entry -> new OnlinePlayerDTO(entry.getKey(), entry.getValue().displayText))
                 .sorted(Comparator.comparing(OnlinePlayerDTO::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
         String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(onlinePlayers);
-        String userCountMessage = "[USER_COUNT]:" + getTotalSessionCount();
+        int currentCount = onlinePlayerStatuses.size();
+        String userCountMessage = "[USER_COUNT]:" + currentCount;
         String quickPlayCountMessage = "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size();
 
         for (WebSocketSession session : globalActiveSessions) {
@@ -748,6 +733,44 @@ public class LobbyWebSocket extends TextWebSocketHandler {
             sendTextMessage(session, quickPlayCountMessage);
             sendTextMessage(session, lobbyPlayersMessage);
         }
+    }
+
+    private Map<String, PlayerStatus> getOnlinePlayerStatusSnapshot() {
+        Map<String, PlayerStatus> onlinePlayerStatuses = new HashMap<>();
+
+        // Open authenticated sessions are the canonical source of presence.
+        // Room/game collections only enrich status; they cannot resurrect a
+        // disconnected username in the public player list or count.
+        globalActiveSessions.stream()
+                .filter(WebSocketSession::isOpen)
+                .filter(session -> session.getPrincipal() != null)
+                .forEach(session -> onlinePlayerStatuses.put(
+                        Objects.requireNonNull(session.getPrincipal()).getName(),
+                        playerStatuses.getOrDefault(session, PlayerStatus.LOBBY)
+                ));
+
+        gameWebSocket.gameRooms.values().stream()
+                .flatMap(gameRoom -> gameRoom.getSessions().stream())
+                .filter(WebSocketSession::isOpen)
+                .filter(session -> session.getPrincipal() != null)
+                .forEach(session -> onlinePlayerStatuses.put(
+                        Objects.requireNonNull(session.getPrincipal()).getName(),
+                        PlayerStatus.MATCH
+                ));
+
+        rooms.stream()
+                .filter(room -> room.getPlayers().size() >= 2)
+                .flatMap(room -> room.getPlayers().stream())
+                .map(LobbyPlayer::getName)
+                .filter(onlinePlayerStatuses::containsKey)
+                .forEach(username -> onlinePlayerStatuses.put(username, PlayerStatus.GAME_ROOM));
+
+        gameWebSocket.gameRooms.values().forEach(gameRoom -> {
+            onlinePlayerStatuses.computeIfPresent(gameRoom.getPlayer1().username(), (ignored, status) -> PlayerStatus.MATCH);
+            onlinePlayerStatuses.computeIfPresent(gameRoom.getPlayer2().username(), (ignored, status) -> PlayerStatus.MATCH);
+        });
+
+        return Map.copyOf(onlinePlayerStatuses);
     }
 
     private void setPlayerStatus(WebSocketSession session, String requestedStatus) throws IOException {
@@ -765,7 +788,9 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         globalActiveSessions.removeIf(existingSession -> {
             boolean belongsToUser = existingSession.getPrincipal() != null &&
                     Objects.equals(existingSession.getPrincipal().getName(), username);
-            if (belongsToUser) playerStatuses.remove(existingSession);
+            if (belongsToUser) {
+                playerStatuses.remove(existingSession);
+            }
             return belongsToUser;
         });
         playerStatuses.put(session, status);
@@ -823,26 +848,6 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         Optional<GameRoom> room = gameWebSocket.findReconnectableGameRoomBySession(session);
         if (room.isPresent()) sendTextMessage(session, "[RECONNECT_ENABLED]:" + room.get().getRoomId());
         else sendTextMessage(session, "[RECONNECT_DISABLED]");
-    }
-
-    private int getTotalSessionCount() {
-        Set<String> activePlayerNames = new HashSet<>();
-
-        globalActiveSessions.stream()
-                .map(WebSocketSession::getPrincipal)
-                .filter(Objects::nonNull)
-                .map(Principal::getName)
-                .forEach(activePlayerNames::add);
-
-        gameWebSocket.gameRooms.values().stream()
-                .flatMap(gameRoom -> gameRoom.getSessions().stream())
-                .filter(WebSocketSession::isOpen)
-                .map(WebSocketSession::getPrincipal)
-                .filter(Objects::nonNull)
-                .map(Principal::getName)
-                .forEach(activePlayerNames::add);
-
-        return activePlayerNames.size();
     }
 
     private RoomDTO getRoomDTO(Room room) {

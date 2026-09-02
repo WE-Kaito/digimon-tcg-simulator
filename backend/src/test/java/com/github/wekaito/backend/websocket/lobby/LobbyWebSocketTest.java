@@ -75,6 +75,19 @@ class LobbyWebSocketTest {
     }
 
     @Test
+    void staleClosedSessionIsExcludedFromBothPlayerListAndCount() throws Exception {
+        TestWebSocketSession observer = new TestWebSocketSession("lobby-1", "Aaron");
+        TestWebSocketSession staleSession = new TestWebSocketSession("lobby-2", "Beatrice");
+        staleSession.close();
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(observer, staleSession));
+
+        lobbyWebSocket.handleTextMessage(observer, new TextMessage("/requestUserCount"));
+
+        assertThat(observer.getMessages())
+                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[{\"name\":\"Aaron\",\"status\":\"In lobby\"}]");
+    }
+
+    @Test
     void blockedAuthorsAreMutedForTheBlockingUserOnly() throws Exception {
         TestWebSocketSession author = new TestWebSocketSession("lobby-1", "blocked-user");
         TestWebSocketSession blocker = new TestWebSocketSession("lobby-2", "blocking-user");
