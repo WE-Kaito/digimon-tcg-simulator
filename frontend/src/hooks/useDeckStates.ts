@@ -288,10 +288,12 @@ export const useDeckStates = create<State>((set, get) => ({
         if (cardType) filteredData = filteredData.filter((card) => card.cardType.includes(cardType));
         if (stage) filteredData = filteredData.filter((card) => card.stage === stage);
         if (attribute) filteredData = filteredData.filter((card) => card.attribute === attribute);
-        if (digiType)
+        if (digiType) {
+            const normalizedDigiType = digiType.trim().toUpperCase();
             filteredData = filteredData.filter((card) =>
-                card.digiType?.join(" ").toUpperCase().includes(digiType.toUpperCase())
+                card.digiType?.some((trait) => trait.trim().toUpperCase() === normalizedDigiType)
             );
+        }
         if (dp) filteredData = filteredData.filter((card) => card.dp === dp);
         if (playCost) filteredData = filteredData.filter((card) => card.playCost === playCost);
         if (digivolutionCost)
