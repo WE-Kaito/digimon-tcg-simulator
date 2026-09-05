@@ -25,11 +25,16 @@ export default function UpdateDeckButtons(props: AddDeckButtonProps) {
     const updateDeck = useDeckStates((state) => state.updateDeck);
     const navigate = useNavigate();
 
+    async function handleUpdateDeck() {
+        if (!id) return;
+        await updateDeck(id, deckName);
+    }
+
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
     return id ? (
         <>
-            <Button onClick={() => id && updateDeck(id, deckName)}>
+            <Button disabled={isSaving} onClick={handleUpdateDeck}>
                 <StyledSpanSaveDeck>SAVE CHANGES</StyledSpanSaveDeck>
             </Button>
             {decks.length > 1 && (
