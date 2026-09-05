@@ -39,7 +39,7 @@ type State = {
     deleteFromDeck: (id: string) => void;
     saveDeck: (name: string) => void;
     fetchDecks: () => void;
-    updateDeck: (id: string, name: string) => void;
+    updateDeck: (id: string, name: string) => Promise<boolean>;
     deleteDeck: (id: string, navigate: NavigateFunction) => void;
     clearDeck: () => void;
 
@@ -452,7 +452,7 @@ export const useDeckStates = create<State>((set, get) => ({
         set({ deckName: deck.name, mainDeckCards, eggDeckCards, isSettingDeck: false });
     },
 
-    updateDeck: (id, name) => {
+    updateDeck: async (id, name) => {
         const mainDeckCards = get().mainDeckCards;
         const eggDeckCards = get().eggDeckCards;
 
@@ -464,16 +464,36 @@ export const useDeckStates = create<State>((set, get) => ({
             eggDeckList: sortedEggDeck.map((card) => card.uniqueCardNumber),
         };
 
-        axios
-            .put(`/api/profile/decks/${id}`, deckWithoutId)
-            .then((res) => res.data)
-            .catch((error) => {
-                console.warn(error);
-                notifyError(error.response.data.errors[0]?.defaultMessage || "Could not be saved");
-                set({ isSaving: false });
-                throw error;
-            })
-            .then(() => notifySuccess("Deck updated!"));
+        set({ isSaving: true });
+
+        try {
+            await axios.put(`/api/profile/decks/${id}`, deckWithoutId);
+
+            set((state) => ({
+                decks: state.decks.map((deck) =>
+                    deck.id === id
+                        ? {
+                              ...deck,
+                              name,
+                              mainDeckList: deckWithoutId.mainDeckList,
+                              eggDeckList: deckWithoutId.eggDeckList,
+                          }
+                        : deck
+                ),
+            }));
+            notifySuccess("Deck updated!");
+            return true;
+        } catch (error) {
+            console.warn(error);
+            if (axios.isAxiosError(error)) {
+                notifyError(error.response?.data?.errors?.[0]?.defaultMessage || "Could not be saved");
+            } else {
+                notifyError("Could not be saved");
+            }
+            return false;
+        } finally {
+            set({ isSaving: false });
+        }
     },
 
     importDeck: (decklist, format) => {
