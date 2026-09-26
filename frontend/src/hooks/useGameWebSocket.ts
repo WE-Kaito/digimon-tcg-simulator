@@ -24,6 +24,7 @@ type UseGameWebSocketProps = {
 type UseGameWebSocketReturn = {
     sendMessage: SendMessage;
     isGameReady: boolean;
+    opponentName: string;
 };
 
 function getValidOffset(fieldNumber: number, currentOffset: number) {
@@ -53,6 +54,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const { clearAttackAnimation, restartAttackAnimation } = props;
     const navigate = useNavigate();
     const [isGameReady, setIsGameReady] = useState(false);
+    const [opponentName, setOpponentName] = useState("");
 
     const user = useGeneralStates((state) => state.user);
 
@@ -104,8 +106,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setFieldOffset = useGameUIStates((state) => state.setFieldOffset);
     const setOpponentFieldOffset = useGameUIStates((state) => state.setOpponentFieldOffset);
 
-    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
-
     const playCoinFlipSfx = useSound((state) => state.playCoinFlipSfx);
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
     const playDrawCardSfx = useSound((state) => state.playDrawCardSfx);
@@ -138,7 +138,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         onOpen: () => websocket.sendMessage("/joinGame:" + gameId),
 
         onMessage: (event) => {
-            if (event.data === "[GAME_JOINED]") {
+            if (event.data.startsWith("[GAME_JOINED]:")) {
+                setOpponentName(event.data.substring("[GAME_JOINED]:".length));
                 setIsGameReady(true);
                 return;
             }
@@ -574,5 +575,5 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         }, [setIsOpponentResolvingEffects, setIsResolvingEffects]
     );
 
-    return { sendMessage: websocket.sendMessage, isGameReady };
+    return { sendMessage: websocket.sendMessage, isGameReady, opponentName };
 }

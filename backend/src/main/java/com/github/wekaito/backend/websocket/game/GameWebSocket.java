@@ -105,6 +105,10 @@ public class GameWebSocket extends TextWebSocketHandler {
 
         if (roomMessage.equals("/returnToLobby") &&
                 (gameRoom == null || !gameRoom.getSessions().contains(session))) {
+            Principal principal = session.getPrincipal();
+            if (principal != null) {
+                eventPublisher.publishEvent(new GameLobbyReturnEvent(principal.getName(), Set.of()));
+            }
             sendSessionMessage(session, "[RETURN_TO_LOBBY]");
             return;
         }
@@ -246,6 +250,18 @@ public class GameWebSocket extends TextWebSocketHandler {
             entry.getValue().cancel(false);
             return true;
         });
+    }
+
+    public void discardGameRoom(String gameId) {
+        GameRoom gameRoom = gameRooms.get(gameId);
+        if (gameRoom != null) removeGameRoom(gameRoom);
+    }
+
+    public void discardGameRoomIfInactive(String gameId) {
+        GameRoom gameRoom = gameRooms.get(gameId);
+        if (gameRoom != null && gameRoom.getSessions().stream().noneMatch(WebSocketSession::isOpen)) {
+            removeGameRoom(gameRoom);
+        }
     }
 
     private long scheduleDisconnectCleanup(GameRoom gameRoom, String username) {
@@ -795,7 +811,10 @@ public class GameWebSocket extends TextWebSocketHandler {
         cancelDisconnectCleanup(gameId, joiningUsername);
         gameRoom.addSession(session);
         roomIdBySessionId.put(session.getId(), gameId);
-        sendSessionMessage(session, "[GAME_JOINED]");
+        String opponentUsername = gameRoom.getPlayer1().username().equals(joiningUsername)
+                ? gameRoom.getPlayer2().username()
+                : gameRoom.getPlayer1().username();
+        sendSessionMessage(session, "[GAME_JOINED]:" + opponentUsername);
         eventPublisher.publishEvent(new OnlinePlayerCountChangedEvent());
 
         GameRoom gameRoomFromMap = gameRooms.get(gameId); // Retrieve again to ensure consistency
