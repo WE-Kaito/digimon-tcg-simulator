@@ -513,6 +513,11 @@ export default function DeckTest() {
         restartAttackAnimation,
         clearAttackAnimation,
     });
+    const createDropHandlerRef = useRef(createDropHandler);
+
+    useLayoutEffect(() => {
+        createDropHandlerRef.current = createDropHandler;
+    }, [createDropHandler]);
 
     // Handle react-dnd drop events
     useLayoutEffect(() => {
@@ -521,7 +526,7 @@ export default function DeckTest() {
             const isBottom = targetId.includes("_bottom");
             const actualTargetId = isBottom ? targetId.replace("_bottom", "") : targetId;
 
-            const dropHandler = createDropHandler(actualTargetId, { bottom: isBottom });
+            const dropHandler = createDropHandlerRef.current(actualTargetId, { bottom: isBottom });
             if (dropHandler?.drop) {
                 dropHandler.drop(item);
             }
@@ -529,7 +534,7 @@ export default function DeckTest() {
 
         window.addEventListener("reactDndDrop", handleReactDndDrop as EventListener);
         return () => window.removeEventListener("reactDndDrop", handleReactDndDrop as EventListener);
-    }, [createDropHandler]);
+    }, []);
 
     // Local phase change
     function nextPhase() {

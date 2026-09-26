@@ -1,11 +1,7 @@
 import { BootStage, CardTypeGame } from "../utils/types.ts";
 import styled from "@emotion/styled";
 import { useGeneralStates } from "../hooks/useGeneralStates.ts";
-import {
-    InheritedCardInfo,
-    tamerLocations,
-    useGameBoardStates,
-} from "../hooks/useGameBoardStates.ts";
+import { InheritedCardInfo, tamerLocations, useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { getNumericModifier, numbersWithModifiers } from "../utils/functions.ts";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import Lottie from "lottie-react";
@@ -23,8 +19,12 @@ import { OpenedCardDialog, useGameUIStates } from "../hooks/useGameUIStates.ts";
 import { useLongPress } from "../hooks/useLongPress.ts";
 import { useSettingStates } from "../hooks/useSettingStates.ts";
 import { useImageCache } from "../hooks/useImageCache.ts";
-import { extractStandaloneEffectKeywords, supportsAutoDetectedEffectKeywords } from "../utils/effectKeywords.ts";
-import { EffectTargetPayload } from "../utils/effectTargeting.ts";
+import {
+    extractStandaloneEffectKeywords,
+    extractStandaloneSecurityAttackModifier,
+    supportsAutoDetectedEffectKeywords,
+} from "../utils/effectKeywords.ts";
+import { EffectTargetPayload, findOptionPlacementField } from "../utils/effectTargeting.ts";
 
 const myDigimonLocations = [
     "myDigi1",
@@ -241,6 +241,8 @@ export default function Card(props: CardProps) {
     const setStackDraggedLocation = useGameUIStates((state) => state.setStackDraggedLocation);
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+    const startHandCardPlacement = useGameUIStates((state) => state.startHandCardPlacement);
+    const attackSource = useGameUIStates((state) => state.attackSource);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -276,16 +278,31 @@ export default function Card(props: CardProps) {
     const [{ isDragging }, dragRef, preview] = useDrag(
         () => ({
             type: "card",
-            item: {
-                type: "card",
-                content: { location, card },
+            item: () => {
+                const board = useGameBoardStates.getState();
+                return {
+                    type: "card",
+                    content: {
+                        location,
+                        card,
+                        attackSnapshot: {
+                            sourceCardId: card.id,
+                            sourceLocation: location,
+                            isMyTurn: board.getIsMyTurn(username),
+                            phase: board.phase,
+                            cardType: card.cardType || board.getCardType(location),
+                            isSuspended: card.isTilted || board.areCardsSuspended(location),
+                            digimonNumber: board.getDigimonNumber(location),
+                        },
+                    },
+                };
             },
             canDrag: !opponentFieldLocations.includes(location) && gameHasStarted,
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
         }),
-        [location, card, opponentFieldLocations, gameHasStarted]
+        [location, card, opponentFieldLocations, gameHasStarted, username]
     );
 
     // Separate drag logic for stack icon - always drags as card-stack
@@ -329,9 +346,7 @@ export default function Card(props: CardProps) {
 
     const inheritedEffects = topCardInfo(locationCards ?? []);
     const inheritAllowed = index === locationCards?.length - 1 && locationsWithInheritedInfo.includes(location);
-    const isTopFieldCard = tamerLocations.includes(location)
-        ? index === 0
-        : index === locationCards.length - 1;
+    const isTopFieldCard = tamerLocations.includes(location) ? index === 0 : index === locationCards.length - 1;
     const isEffectTargetCandidate =
         Boolean(effectTargeting) &&
         isTopFieldCard &&
@@ -346,6 +361,17 @@ export default function Card(props: CardProps) {
         if (effectTargeting) {
             event.stopPropagation();
             if (isEffectTargetCandidate && wsUtils) {
+                // Hand activations need an explicit chat entry when the effect
+                // targets an occupied card. Empty-field placement sends this
+                // message from DigimonField, but the occupied-card path used
+                // to only send the targeting command, making the activation
+                // appear silent.
+                if (effectTargeting.sourceLocation === "myHand") {
+                    wsUtils.sendChatMessage(
+                        `${wsUtils.matchInfo.user} is activating ${effectTargeting.sourceName} ` +
+                            `[${effectTargeting.timing}]: ${effectTargeting.effectText}`
+                    );
+                }
                 const payload: EffectTargetPayload = {
                     sourceCardId: effectTargeting.sourceCardId,
                     effectSourceCardId: effectTargeting.effectSourceCardId,
@@ -358,6 +384,27 @@ export default function Card(props: CardProps) {
                 wsUtils.sendMessage(
                     `${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`
                 );
+
+                if (effectTargeting.sourceLocation === "myHand") {
+                    const board = useGameBoardStates.getState();
+                    const sourceCard = board.myHand.find((handCard) => handCard.id === effectTargeting.sourceCardId);
+                    if (sourceCard?.cardType.includes("Option")) {
+                        const placementField = findOptionPlacementField(
+                            sourceCard,
+                            (field) => board[field as keyof typeof board] as CardTypeGame[]
+                        );
+
+                        if (placementField) {
+                            board.moveCard(sourceCard.id, "myHand", placementField);
+                            wsUtils.sendMoveCard(sourceCard.id, "myHand", placementField);
+                            wsUtils.sendChatMessage(
+                                `[FIELD_UPDATE]≔【${sourceCard.name}】﹕Hand ➟ Tamer/Option Area`
+                            );
+                        } else {
+                            startHandCardPlacement({ cardId: sourceCard.id, cardName: sourceCard.name });
+                        }
+                    }
+                }
                 cancelEffectTargeting();
             }
             return;
@@ -372,6 +419,7 @@ export default function Card(props: CardProps) {
     }
 
     function handleHover() {
+        if (attackSource) return;
         if (index !== undefined && isStackDragMode) setStackSliceIndex(index);
         if (isCardFaceDown) setHoveredId(card.id);
         if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;
@@ -431,6 +479,24 @@ export default function Card(props: CardProps) {
             .filter((sourceCard) => sourceCard.isFaceUp)
             .flatMap((sourceCard) => extractStandaloneEffectKeywords(sourceCard.inheritedEffect));
     }, [autoDetectEffectKeywords, index, location, locationCards]);
+    const autoDetectedSecurityAttackModifier = useMemo(() => {
+        if (!autoDetectEffectKeywords) return 0;
+
+        const isTopStackCard = index === locationCards.length - 1;
+        const inheritedModifier =
+            isTopStackCard && locationsWithInheritedInfo.includes(location)
+                ? locationCards
+                      .slice(0, -1)
+                      .filter((sourceCard) => sourceCard.isFaceUp)
+                      .reduce(
+                          (total, sourceCard) =>
+                              total + extractStandaloneSecurityAttackModifier(sourceCard.inheritedEffect),
+                          0
+                      )
+                : 0;
+
+        return extractStandaloneSecurityAttackModifier(card.mainEffect) + inheritedModifier;
+    }, [autoDetectEffectKeywords, card.mainEffect, index, location, locationCards]);
     const displayedKeywords = useMemo(
         () => [
             ...new Set([
@@ -446,7 +512,9 @@ export default function Card(props: CardProps) {
 
     const finalDp = card.dp || isTamerWithDP ? Math.max(0, (card.dp ?? 0) + linkDP + (modifiers?.plusDp ?? 0)) : 0;
 
-    const secAtkString = modifiers ? getNumericModifier(modifiers.plusSecurityAttacks) : "";
+    const secAtkString = modifiers
+        ? getNumericModifier(modifiers.plusSecurityAttacks + autoDetectedSecurityAttackModifier)
+        : "";
     const aceIndex = card.aceEffect?.indexOf("-") ?? -1;
     const aceOverflow = card.aceEffect ? card.aceEffect[aceIndex + 1] : null;
     const showColors = modifiers?.colors && !arraysEqualUnordered(modifiers?.colors, card.color);

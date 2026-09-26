@@ -17,6 +17,20 @@ export type EffectTargetEvent = EffectTargetPayload & {
     targetName: string;
 };
 
+const MY_TAMER_OPTION_FIELDS = ["myDigi17", "myDigi18", "myDigi19", "myDigi20", "myDigi21"];
+
+export function findOptionPlacementField(
+    sourceCard: { cardNumber: string },
+    getFieldCards: (field: string) => Array<{ cardType: string; cardNumber: string }>
+): string | undefined {
+    const matchingField = MY_TAMER_OPTION_FIELDS.find((field) =>
+        getFieldCards(field).some(
+            (fieldCard) => fieldCard.cardType.includes("Option") && fieldCard.cardNumber === sourceCard.cardNumber
+        )
+    );
+    return matchingField ?? MY_TAMER_OPTION_FIELDS.find((field) => getFieldCards(field).length === 0);
+}
+
 export function flipEffectLocation(location: string): string {
     if (location.startsWith("my")) return location.replace(/^my/, "opponent");
     if (location.startsWith("opponent")) return location.replace(/^opponent/, "my");
@@ -57,5 +71,8 @@ export function formatEffectTargetMessage(event: EffectTargetEvent): string {
     const action = event.effectSourceName
         ? `is using ${event.effectSourceName} to target`
         : "is targeting";
+    if (event.sourceLocation === "myHand") {
+        return `${event.sourceOwner} is using ${event.sourceName} from hand to target ${target} with [${event.timing}]: ${event.effectText}`;
+    }
     return `${event.sourceOwner}'s ${event.sourceName} ${action} ${target} with [${event.timing}]: ${event.effectText}`;
 }
