@@ -46,6 +46,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     private final Set<WebSocketSession> globalActiveSessions = ConcurrentHashMap.newKeySet();
     private final Map<WebSocketSession, PlayerStatus> playerStatuses = new ConcurrentHashMap<>();
+    private final Map<String, String> lastPresencePayloadBySessionId = new ConcurrentHashMap<>();
     private final Set<Room> rooms = ConcurrentHashMap.newKeySet();
     private final Set<PendingGameInvite> pendingGameInvites = ConcurrentHashMap.newKeySet();
     private final Map<PendingGameInvite, Long> gameInviteCooldowns = new ConcurrentHashMap<>();
@@ -187,6 +188,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                     quickPlayQueue.remove(session);
                     globalActiveSessions.remove(session);
                     playerStatuses.remove(session);
+                    lastPresencePayloadBySessionId.remove(session.getId());
                     return;
                 }
 
@@ -230,6 +232,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
         lastHeartbeatTimestamps.remove(session);
         globalActiveSessions.remove(session);
         playerStatuses.remove(session);
+        lastPresencePayloadBySessionId.remove(session.getId());
 
         synchronized (quickPlayLock) {
             if (quickPlayQueue.remove(session)) broadcastQuickPlayCount();
@@ -615,19 +618,22 @@ public class LobbyWebSocket extends TextWebSocketHandler {
 
     @Scheduled(fixedRate = 30000) // 30 seconds
     private void longIntervalOperations() throws IOException {
-        checkConnectionAndCleanup();
+        closeTimedOutSessions(System.currentTimeMillis());
         reconcileQuickPlayQueue();
     }
 
-    private void checkConnectionAndCleanup() throws IOException {
-        long now = System.currentTimeMillis();
-
-        for (Map.Entry<WebSocketSession, Long> entry : lastHeartbeatTimestamps.entrySet()) {
+    void closeTimedOutSessions(long now) {
+        for (Map.Entry<WebSocketSession, Long> entry : List.copyOf(lastHeartbeatTimestamps.entrySet())) {
             WebSocketSession session = entry.getKey();
             long lastHeartbeat = entry.getValue();
 
             if (now - lastHeartbeat > 30000) { // 30 seconds timeout
-                afterConnectionClosed(session, CloseStatus.SESSION_NOT_RELIABLE);
+                if (!lastHeartbeatTimestamps.remove(session, lastHeartbeat)) continue;
+                try {
+                    if (session.isOpen()) session.close(CloseStatus.SESSION_NOT_RELIABLE);
+                } catch (IOException e) {
+                    System.err.println("Failed to close timed-out lobby session " + session.getId() + ": " + e.getMessage());
+                }
             }
         }
     }
@@ -950,14 +956,17 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                 .sorted(Comparator.comparing(OnlinePlayerDTO::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
         String lobbyPlayersMessage = "[LOBBY_PLAYERS]:" + objectMapper.writeValueAsString(onlinePlayers);
-        int currentCount = onlinePlayerStatuses.size();
-        String userCountMessage = "[USER_COUNT]:" + currentCount;
+        String userCountMessage = "[USER_COUNT]:" + onlinePlayerStatuses.size();
         String quickPlayCountMessage = "[USER_COUNT_QUICK_PLAY]:" + quickPlayQueue.size();
+        String presencePayload = userCountMessage + '\n' + quickPlayCountMessage + '\n' + lobbyPlayersMessage;
 
-        for (WebSocketSession session : globalActiveSessions) {
-            sendTextMessage(session, userCountMessage);
-            sendTextMessage(session, quickPlayCountMessage);
-            sendTextMessage(session, lobbyPlayersMessage);
+        for (WebSocketSession session : globalActiveSessions.stream().filter(WebSocketSession::isOpen).toList()) {
+            if (!presencePayload.equals(lastPresencePayloadBySessionId.get(session.getId()))) {
+                sendTextMessage(session, userCountMessage);
+                sendTextMessage(session, quickPlayCountMessage);
+                sendTextMessage(session, lobbyPlayersMessage);
+                lastPresencePayloadBySessionId.put(session.getId(), presencePayload);
+            }
         }
     }
 
@@ -1016,6 +1025,7 @@ public class LobbyWebSocket extends TextWebSocketHandler {
                     Objects.equals(existingSession.getPrincipal().getName(), username);
             if (belongsToUser) {
                 playerStatuses.remove(existingSession);
+                lastPresencePayloadBySessionId.remove(existingSession.getId());
             }
             return belongsToUser;
         });

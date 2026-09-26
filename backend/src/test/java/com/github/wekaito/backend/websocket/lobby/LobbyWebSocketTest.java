@@ -89,6 +89,30 @@ class LobbyWebSocketTest {
     }
 
     @Test
+    void closedSessionsAreExcludedFromPlayerListAndCount() throws Exception {
+        TestWebSocketSession closedSession = new TestWebSocketSession("lobby-1", "Aaron");
+        TestWebSocketSession openSession = new TestWebSocketSession("lobby-2", "Beatrice");
+        closedSession.close();
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(closedSession, openSession));
+
+        lobbyWebSocket.handleTextMessage(openSession, new TextMessage("/requestUserCount"));
+
+        assertThat(openSession.getMessages())
+                .contains("[USER_COUNT]:1", "[LOBBY_PLAYERS]:[{\"name\":\"Beatrice\",\"status\":\"In lobby\"}]");
+    }
+
+    @Test
+    void heartbeatTimeoutClosesTheActualSocket() {
+        TestWebSocketSession timedOutSession = new TestWebSocketSession("lobby-1", "Aaron");
+        lobbyWebSocket.getLastHeartbeatTimestamps().put(timedOutSession, 1_000L);
+
+        lobbyWebSocket.closeTimedOutSessions(31_001L);
+
+        assertThat(timedOutSession.isOpen()).isFalse();
+        assertThat(lobbyWebSocket.getLastHeartbeatTimestamps()).doesNotContainKey(timedOutSession);
+    }
+
+    @Test
     void blockedAuthorsAreMutedForTheBlockingUserOnly() throws Exception {
         TestWebSocketSession author = new TestWebSocketSession("lobby-1", "blocked-user");
         TestWebSocketSession blocker = new TestWebSocketSession("lobby-2", "blocking-user");

@@ -144,12 +144,8 @@ export default function Lobby() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [incomingGameInvites, setIncomingGameInvites] = useState<string[]>([]);
     const [pendingGameInvites, setPendingGameInvites] = useState<Set<string>>(() => new Set());
-    const {
-        getInviteCooldownSeconds,
-        inviteCooldownPlayers,
-        isInviteCoolingDown,
-        startInviteCooldown,
-    } = useInviteCooldowns();
+    const { getInviteCooldownSeconds, inviteCooldownPlayers, isInviteCoolingDown, startInviteCooldown } =
+        useInviteCooldowns();
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
@@ -216,7 +212,6 @@ export default function Lobby() {
 
                 if (event.data.startsWith("[USER_COUNT]:")) {
                     setUserCount(parseInt(event.data.substring("[USER_COUNT]:".length)));
-                    websocket.sendMessage("/heartbeat/");
                 }
 
                 if (event.data.startsWith("[USER_COUNT_QUICK_PLAY]:")) {
@@ -446,6 +441,14 @@ export default function Lobby() {
         setRoomToJoinId(linkedRoomId);
         websocket.sendMessage("/joinRoom:" + linkedRoomId);
     }, [joinedRoom?.id, linkedRoomId, websocket.readyState, websocket.sendMessage]);
+
+    useEffect(() => {
+        if (websocket.readyState !== WebSocket.OPEN) return;
+
+        websocket.sendMessage("/heartbeat/");
+        const heartbeatInterval = window.setInterval(() => websocket.sendMessage("/heartbeat/"), 10_000);
+        return () => window.clearInterval(heartbeatInterval);
+    }, [websocket.readyState, websocket.sendMessage]);
 
     function handleDeckChange(event: ChangeEvent<HTMLSelectElement>) {
         void setActiveDeck(String(event.target.value));
@@ -1231,7 +1234,9 @@ const PlayerInviteButton = styled.button<{ pending: boolean }>`
     border-radius: 3px;
     background: var(${({ pending }) => (pending ? "--orange-button-bg" : "--blue-button-bg")});
     color: ghostwhite;
-    font: 600 12px/1 "League Spartan", sans-serif;
+    font:
+        600 12px/1 "League Spartan",
+        sans-serif;
     text-transform: uppercase;
     cursor: pointer;
 

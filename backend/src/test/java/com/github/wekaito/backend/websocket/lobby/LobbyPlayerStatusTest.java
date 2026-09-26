@@ -109,6 +109,8 @@ class LobbyPlayerStatusTest {
                 List.of(),
                 List.of()
         );
+        gameRoom.addSession(new TestWebSocketSession("game-1", "Aaron"));
+        gameRoom.addSession(new TestWebSocketSession("game-2", "Beatrice"));
         gameWebSocket.getGameRooms().put(gameRoom.getRoomId(), gameRoom);
 
         requestStatusBroadcast(host);
