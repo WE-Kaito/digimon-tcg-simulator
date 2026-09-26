@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     EffectTargetEvent,
+    findOptionPlacementField,
     flipEffectLocation,
     formatEffectTargetMessage,
     getSameSideDirection,
@@ -86,5 +87,53 @@ describe("effect target multiplayer helpers", () => {
             "Test's Titamon + SkullBaluchimon is using Koromon to target Test2's ClearAgumon with [On Play]: " +
                 "Delete all of your opponent's Digimon with the lowest level."
         );
+    });
+
+    it("formats an effect activated from hand", () => {
+        expect(formatEffectTargetMessage({ ...event, sourceLocation: "myHand", sourceName: "Gaia Force" })).toBe(
+            "Test is using Gaia Force from hand to target Test2's ClearAgumon with [On Play]: " +
+                "Delete all of your opponent's Digimon with the lowest level."
+        );
+    });
+
+    it("stacks an activated option with the same card before using an empty field", () => {
+        const fields: Record<string, Array<{ cardType: string; cardNumber: string }>> = {
+            myDigi17: [],
+            myDigi18: [{ cardType: "Option", cardNumber: "BT1-001" }],
+        };
+
+        expect(findOptionPlacementField({ cardNumber: "BT1-001" }, (field) => fields[field] ?? [])).toBe(
+            "myDigi18"
+        );
+    });
+
+    it("treats a matching Digimon/Option card as an option placement stack", () => {
+        const fields: Record<string, Array<{ cardType: string; cardNumber: string }>> = {
+            myDigi17: [],
+            myDigi19: [{ cardType: "Digimon/Option", cardNumber: "EX9-001" }],
+        };
+
+        expect(findOptionPlacementField({ cardNumber: "EX9-001" }, (field) => fields[field] ?? [])).toBe(
+            "myDigi19"
+        );
+    });
+
+    it("uses the first empty option field when no matching card exists", () => {
+        const fields: Record<string, Array<{ cardType: string; cardNumber: string }>> = {
+            myDigi17: [{ cardType: "Tamer", cardNumber: "BT1-002" }],
+            myDigi18: [],
+        };
+
+        expect(findOptionPlacementField({ cardNumber: "BT1-001" }, (field) => fields[field] ?? [])).toBe(
+            "myDigi18"
+        );
+    });
+
+    it("requires manual placement when every option field is occupied without a match", () => {
+        expect(
+            findOptionPlacementField({ cardNumber: "BT1-001" }, () => [
+                { cardType: "Tamer", cardNumber: "BT1-002" },
+            ])
+        ).toBeUndefined();
     });
 });

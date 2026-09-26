@@ -26,6 +26,11 @@ export type EffectTargeting = {
     effectText: string;
 };
 
+export type HandCardPlacement = {
+    cardId: string;
+    cardName: string;
+};
+
 export type AttackSource = {
     card: CardTypeGame;
     location: string;
@@ -89,6 +94,12 @@ type State = {
     opponentEmote: Emote | null;
     setOpponentEmote: (emote: Emote | null) => void;
 
+    isResolvingEffects: boolean;
+    setIsResolvingEffects: (isResolvingEffects: boolean) => void;
+
+    isOpponentResolvingEffects: boolean;
+    setIsOpponentResolvingEffects: (isOpponentResolvingEffects: boolean) => void;
+
     fieldOffset: number;
     setFieldOffset: (offset: number) => void;
 
@@ -106,6 +117,9 @@ type State = {
     effectTargetingQueue: EffectTargeting[];
     startEffectTargeting: (targeting: EffectTargeting) => void;
     cancelEffectTargeting: () => void;
+    handCardPlacement: HandCardPlacement | null;
+    startHandCardPlacement: (placement: HandCardPlacement) => void;
+    cancelHandCardPlacement: () => void;
     clearEffectTargetingQueue: () => void;
 };
 
@@ -177,6 +191,12 @@ export const useGameUIStates = create<State>((set) => ({
         setTimeout(() => set({ opponentEmote: null }), 5000);
     },
 
+    isResolvingEffects: false,
+    setIsResolvingEffects: (isResolvingEffects) => set({ isResolvingEffects }),
+
+    isOpponentResolvingEffects: false,
+    setIsOpponentResolvingEffects: (isOpponentResolvingEffects) => set({ isOpponentResolvingEffects }),
+
     fieldOffset: 0,
     setFieldOffset: (offset) => set({ fieldOffset: Math.max(0, Math.min(8, offset)) }),
 
@@ -191,6 +211,9 @@ export const useGameUIStates = create<State>((set) => ({
     clearAttackSource: () => set({ attackSource: null }),
 
     effectTargeting: null,
+    handCardPlacement: null,
+    startHandCardPlacement: (handCardPlacement) => set({ handCardPlacement }),
+    cancelHandCardPlacement: () => set({ handCardPlacement: null }),
     effectTargetingQueue: [],
     startEffectTargeting: (targeting) =>
         set((state) => {

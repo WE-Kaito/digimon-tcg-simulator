@@ -57,8 +57,6 @@ export default function GamePage() {
     const user = useGeneralStates((state) => state.user);
 
     const gameId = useGameBoardStates((state) => state.gameId);
-    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
-
     const playAttackSfx = useSound((state) => state.playAttackSfx);
     const playEffectAttackSfx = useSound((state) => state.playEffectAttackSfx);
     const playNextPhaseSfx = useSound((state) => state.playNextPhaseSfx);
@@ -130,7 +128,7 @@ export default function GamePage() {
         [playAttackSfx, playEffectAttackSfx]
     );
 
-    const { sendMessage, isGameReady } = useGameWebSocket({
+    const { sendMessage, isGameReady, opponentName } = useGameWebSocket({
         clearAttackAnimation,
         restartAttackAnimation,
     });
@@ -270,7 +268,7 @@ export default function GamePage() {
             <GameBackground />
             <ContextMenus wsUtils={wsUtils} />
             <AttackArrows />
-            <EffectTargetCursor />
+            <EffectTargetCursor wsUtils={wsUtils} />
             <TokenModal wsUtils={wsUtils} />
             <EndModal />
             <RestartPromptModal wsUtils={wsUtils} />

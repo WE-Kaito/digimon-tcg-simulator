@@ -77,7 +77,7 @@ function getAttributeImage(attribute: string | null | undefined) {
 
 export default function CardDetails() {
     const location = useLocation();
-    const inGame = location.pathname === "/game" || location.pathname === "/test";
+    const inGame = location.pathname.startsWith("/game") || location.pathname === "/test";
 
     const storedSelectedCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.selectedCard);
     const storedHoverCard: CardTypeWithId | CardTypeGame | null = useGeneralStates((state) => state.hoverCard);

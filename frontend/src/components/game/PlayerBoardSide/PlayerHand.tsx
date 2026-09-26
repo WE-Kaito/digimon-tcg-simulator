@@ -30,7 +30,7 @@ export default function PlayerHand() {
     return (
         <Container ref={setNodeRef as any}>
             {myHand.map((card, index) => (
-                <div style={{ position: "absolute", left: offset + index * effectiveSpacing, top: "3%" }}>
+                <div key={card.id} style={{ position: "absolute", left: offset + index * effectiveSpacing, top: "3%" }}>
                     {card.isFaceUp && (
                         <EyeIcon
                             sx={{
@@ -47,7 +47,6 @@ export default function PlayerHand() {
                         />
                     )}
                     <Card
-                        key={card.id}
                         card={card}
                         location={"myHand"}
                         style={{
