@@ -33,6 +33,7 @@ import CardDetails from "../components/cardDetails/CardDetails.tsx";
 import PhaseIndicator from "../components/game/PhaseIndicator.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
+import EffectTargetCursor from "../components/game/EffectTargetCursor.tsx";
 
 /**
  * To be used in Game components to send messages to multiplayer opponent through WebSocket
@@ -109,7 +110,7 @@ export default function GamePage() {
         [playAttackSfx, playEffectAttackSfx]
     );
 
-    const { sendMessage } = useGameWebSocket({
+    const { sendMessage, isGameReady } = useGameWebSocket({
         clearAttackAnimation,
         restartAttackAnimation,
     });
@@ -184,7 +185,9 @@ export default function GamePage() {
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
-    useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
+    useLayoutEffect(() => {
+        window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0);
+    }, []);
 
     // Determine backend based on touch capability
     const backend = "ontouchstart" in window ? TouchBackend : HTML5Backend;
@@ -233,11 +236,16 @@ export default function GamePage() {
         </BoardLayout>
     );
 
+    if (!isGameReady) {
+        return <GameLoadingScreen>Confirming your active game…</GameLoadingScreen>;
+    }
+
     return (
         <Container ref={boardContainerRef}>
             <GameBackground />
             <ContextMenus wsUtils={wsUtils} />
             <AttackArrows />
+            <EffectTargetCursor />
             <TokenModal wsUtils={wsUtils} />
             <EndModal />
             <RestartPromptModal wsUtils={wsUtils} />
@@ -266,6 +274,15 @@ export default function GamePage() {
         </Container>
     );
 }
+
+const GameLoadingScreen = styled.div`
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    background: #080b12;
+    color: white;
+    font-size: 1.1rem;
+`;
 
 const Container = styled.div`
     display: flex;

@@ -1,0 +1,6 @@
+.git
+.idea
+.vscode
+backend/target
+frontend
+ai

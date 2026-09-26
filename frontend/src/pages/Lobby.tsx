@@ -1,10 +1,11 @@
 import styled from "@emotion/styled";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useState } from "react";
 import {
     ErrorRounded as WarningIcon,
     HttpsOutlined as PrivateIcon,
     Rule as RestrictionsAppliedIcon,
     PeopleAlt as PopulationIcon,
+    Search as SearchIcon,
     WifiOffRounded as OfflineIcon,
 } from "@mui/icons-material";
 import MenuBackgroundWrapper from "../components/MenuBackgroundWrapper.tsx";
@@ -21,7 +22,16 @@ import axios from "axios";
 import MenuDialog from "../components/MenuDialog.tsx";
 import Chat, { ChatMessage } from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
-import { Checkbox, Dialog, DialogContent, FormControlLabel, useMediaQuery } from "@mui/material";
+import {
+    Checkbox,
+    Dialog,
+    DialogContent,
+    FormControlLabel,
+    IconButton,
+    InputBase,
+    Popover,
+    useMediaQuery,
+} from "@mui/material";
 import crownSrc from "../assets/crown.webp";
 import countdownAnimation from "../assets/lotties/countdown.json";
 import DeckIcon from "@mui/icons-material/StyleTwoTone";
@@ -36,11 +46,45 @@ import { Button } from "../components/Button.tsx";
 import useQuery from "../hooks/useQuery.ts";
 import PatchnotesLink from "../components/PatchnotesLink.tsx";
 import ChatContextMenu from "../components/lobby/ChatContextMenu.tsx";
+import { AppNotification, NotificationBell } from "./MainMenu.tsx";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+import useInviteCooldowns from "../hooks/useInviteCooldowns.ts";
+import { handleReconnectStatus } from "../utils/reconnectStatus.ts";
+
+function ensureChatTimestamp(chatMessage: ChatMessage): ChatMessage {
+    return {
+        ...chatMessage,
+        timestamp: chatMessage.timestamp ?? new Date().toISOString(),
+    };
+}
+
+function parseChatMessage(messageJson: string): ChatMessage {
+    try {
+        return ensureChatTimestamp(JSON.parse(messageJson) as ChatMessage);
+    } catch {
+        const separatorIndex = messageJson.indexOf(":");
+        const author = separatorIndex >= 0 ? messageJson.substring(0, separatorIndex) : "【SERVER】";
+        const message = separatorIndex >= 0 ? messageJson.substring(separatorIndex + 1).trimStart() : messageJson;
+
+        return {
+            id: `${Date.now()}-${Math.random()}`,
+            author,
+            message,
+            timestamp: new Date().toISOString(),
+        };
+    }
+}
 
 type LobbyPlayer = {
     name: string;
     avatarName: string;
     ready: boolean;
+};
+
+type OnlinePlayer = {
+    name: string;
+    status: string;
 };
 
 type Room = {
@@ -53,11 +97,8 @@ type Room = {
 };
 
 export default function Lobby() {
-    const currentPort = window.location.port;
-    const currentUrl = window.location.origin.replace("https://", "");
-    //TODO: using www.project-drasil.online as the domain is not working, need a fix
-    const websocketURL =
-        currentPort === "5173" ? "ws://192.168.0.26:8080/api/ws/lobby" : "wss://" + currentUrl + "/api/ws/lobby";
+    const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/lobby`;
 
     const user = useGeneralStates((state) => state.user);
     const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
@@ -71,6 +112,7 @@ export default function Lobby() {
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
+    const setGameLobbyRoomId = useGameBoardStates((state) => state.setGameLobbyRoomId);
     const clearBoard = useGameBoardStates((state) => state.clearBoard);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
 
@@ -84,6 +126,11 @@ export default function Lobby() {
     const [isAlreadyOpenedInOtherTab, setIsAlreadyOpenedInOtherTab] = useState<boolean>(false);
 
     const [userCount, setUserCount] = useState<number>(0);
+    const [lobbyPlayers, setLobbyPlayers] = useState<OnlinePlayer[]>([]);
+    const [onlineUsersAnchor, setOnlineUsersAnchor] = useState<HTMLButtonElement | null>(null);
+    const [isPlayerSearchOpen, setIsPlayerSearchOpen] = useState(false);
+    const [playerSearch, setPlayerSearch] = useState("");
+    const [debouncedPlayerSearch, setDebouncedPlayerSearch] = useState("");
     const [userCountQuickPlay, setUserCountQuickPlay] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -93,6 +140,14 @@ export default function Lobby() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<ChatMessage[]>([]);
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [incomingGameInvites, setIncomingGameInvites] = useState<string[]>([]);
+    const [pendingGameInvites, setPendingGameInvites] = useState<Set<string>>(() => new Set());
+    const {
+        getInviteCooldownSeconds,
+        inviteCooldownPlayers,
+        isInviteCoolingDown,
+        startInviteCooldown,
+    } = useInviteCooldowns();
 
     const [newRoomName, setNewRoomName] = useState<string>("");
     const [newRoomPassword, setNewRoomPassword] = useState<string>("");
@@ -111,10 +166,15 @@ export default function Lobby() {
 
     const navigate = useNavigate();
 
-    function handleReconnect() {
+    function handleReturnToGame() {
         setIsOpponentOnline(true);
         setIsLoading(false);
-        navigate("/game");
+        navigate("/game", { state: { gameEntryConfirmed: true } });
+    }
+
+    function handleOnlineUsersClick(event: ReactMouseEvent<HTMLButtonElement>) {
+        const button = event.currentTarget;
+        setOnlineUsersAnchor((anchor) => (anchor ? null : button));
     }
 
     function setIsLoadingWithDebounce() {
@@ -152,11 +212,24 @@ export default function Lobby() {
                     setUserCountQuickPlay(parseInt(event.data.substring("[USER_COUNT_QUICK_PLAY]:".length)));
                 }
 
+                if (event.data === "[QUICK_PLAY_QUEUED]") {
+                    setIsSearchingGame(true);
+                }
+
+                if (event.data === "[QUICK_PLAY_CANCELLED]") {
+                    setIsSearchingGame(false);
+                }
+
+                if (event.data.startsWith("[LOBBY_PLAYERS]:")) {
+                    setLobbyPlayers(JSON.parse(event.data.substring("[LOBBY_PLAYERS]:".length)) as OnlinePlayer[]);
+                }
+
                 if (event.data.startsWith("[ROOMS]:")) {
                     setRooms(JSON.parse(event.data.substring("[ROOMS]:".length)));
                 }
 
                 if (event.data === "[PROMPT_PASSWORD]") {
+                    setIsLoading(false);
                     setIsWrongPassword(false);
                     setPassword("");
                     setIsPasswordDialogOpen(true);
@@ -177,6 +250,7 @@ export default function Lobby() {
 
                 if (event.data === "[LEAVE_ROOM]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     setIsLoading(false);
                     playJoinSfx(); // new sound?
@@ -184,6 +258,7 @@ export default function Lobby() {
 
                 if (event.data === "[KICKED]") {
                     setJoinedRoom(null);
+                    setGameLobbyRoomId("");
                     setPrivateMessages([]);
                     playKickSfx();
                 }
@@ -201,18 +276,40 @@ export default function Lobby() {
                     localStorage.setItem("isReported", JSON.stringify(false)); // see ReportButton.tsx
                     localStorage.removeItem("boardStore");
                     const gameId = event.data.substring("[COMPUTE_GAME]:".length);
+                    setGameLobbyRoomId("");
                     startGameSequence(gameId);
                 }
 
-                if (event.data.startsWith("[RECONNECT_ENABLED]:")) {
-                    const matchingRoomId = event.data.substring("[RECONNECT_ENABLED]:".length);
-                    setIsRejoinable(matchingRoomId === gameId);
-                    // gameId could be set to older matching room id here, but not sure if this makes sense
+                if (event.data.startsWith("[COMPUTE_ROOM_GAME]:")) {
+                    localStorage.setItem("isReported", JSON.stringify(false));
+                    localStorage.removeItem("boardStore");
+                    const [gameId, roomId] = event.data.substring("[COMPUTE_ROOM_GAME]:".length).split(":", 2);
+                    setGameLobbyRoomId(roomId);
+                    startGameSequence(gameId);
                 }
 
-                if (event.data === "[RECONNECT_DISABLED]") {
-                    setIsRejoinable(false);
+                if (event.data.startsWith("[GAME_INVITE]:")) {
+                    const inviter = event.data.substring("[GAME_INVITE]:".length);
+                    setIncomingGameInvites((inviters) =>
+                        inviters.includes(inviter) ? inviters : [...inviters, inviter]
+                    );
                 }
+
+                if (event.data.startsWith("[GAME_INVITE_RESPONSE]:")) {
+                    const [, invitedPlayer] = event.data.split(":");
+                    setPendingGameInvites((players) => {
+                        const nextPlayers = new Set(players);
+                        nextPlayers.delete(invitedPlayer);
+                        return nextPlayers;
+                    });
+                }
+
+                if (event.data.startsWith("[GAME_INVITE_CANCELLED]:")) {
+                    const inviter = event.data.substring("[GAME_INVITE_CANCELLED]:".length);
+                    setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
+                }
+
+                handleReconnectStatus(event.data, gameId, setIsRejoinable, setGameId);
 
                 if (event.data === "[SESSION_ALREADY_CONNECTED]") {
                     setIsAlreadyOpenedInOtherTab(true);
@@ -220,18 +317,18 @@ export default function Lobby() {
 
                 if (event.data.startsWith("[GLOBAL_CHAT]:")) {
                     const messagesArray = JSON.parse(event.data.substring("[GLOBAL_CHAT]:".length)) as ChatMessage[];
-                    setMessages(messagesArray);
+                    setMessages(messagesArray.map(ensureChatTimestamp));
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE]:") && !joinedRoom) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE]:".length);
-                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    const chatMessage = parseChatMessage(messageJson);
                     setMessages((messages) => [...messages, chatMessage]);
                 }
 
                 if (event.data.startsWith("[CHAT_MESSAGE_ROOM]:")) {
                     const messageJson = event.data.substring("[CHAT_MESSAGE_ROOM]:".length);
-                    const chatMessage = JSON.parse(messageJson) as ChatMessage;
+                    const chatMessage = parseChatMessage(messageJson);
                     setPrivateMessages((messages) => [...messages, chatMessage]);
                 }
 
@@ -271,6 +368,14 @@ export default function Lobby() {
         websocket.sendMessage("/password:" + roomToJoinId + ":" + password);
     }
 
+    function handlePasswordDialogClose() {
+        setIsPasswordDialogOpen(false);
+        setIsLoading(false);
+        setIsWrongPassword(false);
+        setPassword("");
+        setRoomToJoinId("");
+    }
+
     function handleToggleReady() {
         setIsLoadingWithDebounce();
         websocket.sendMessage("/toggleReady:" + joinedRoom?.id);
@@ -303,13 +408,12 @@ export default function Lobby() {
             clearBoard();
             setIsLoading(false);
             setJoinedRoom(null);
-            navigate("/game");
+            navigate("/game", { state: { gameEntryConfirmed: true } });
         }, 3150);
         return () => clearTimeout(timer);
     }
 
     function cancelQuickPlayQueue() {
-        setIsSearchingGame(false);
         websocket.sendMessage("/cancelQuickPlay");
     }
 
@@ -317,18 +421,63 @@ export default function Lobby() {
         if (isSearchingGame) {
             cancelQuickPlayQueue();
         } else {
-            setIsSearchingGame(true);
             websocket.sendMessage("/quickPlay");
         }
+    }
+
+    function handleInviteSent(player: string) {
+        setPendingGameInvites((players) => new Set(players).add(player));
+    }
+
+    function handleInviteCancelled(player: string) {
+        setPendingGameInvites((players) => {
+            const nextPlayers = new Set(players);
+            nextPlayers.delete(player);
+            return nextPlayers;
+        });
+        startInviteCooldown(player);
+    }
+
+    function handlePlayerInvite(player: string) {
+        if (pendingGameInvites.has(player)) {
+            websocket.sendMessage(`/cancelGameInvite:${player}`);
+            handleInviteCancelled(player);
+            return;
+        }
+
+        if (isInviteCoolingDown(player)) return;
+
+        websocket.sendMessage(`/inviteToGame:${player}`);
+        handleInviteSent(player);
+    }
+
+    function handleGameInviteResponse(inviter: string, accepted: boolean) {
+        websocket.sendMessage(`/gameInviteResponse:${inviter}:${accepted}`);
+        setIncomingGameInvites((inviters) => inviters.filter((name) => name !== inviter));
     }
 
     const initialFetch = useCallback(() => {
         getActiveDeck();
     }, [getActiveDeck]);
-    useEffect(() => initialFetch(), [initialFetch]);
+    useEffect(() => {
+        initialFetch();
+    }, [initialFetch]);
 
     useEffect(() => {
-        axios.get(`/api/profile/decks/${activeDeckId}`).then((res) => setDeckObject(res.data as DeckType));
+        const timeout = window.setTimeout(() => setDebouncedPlayerSearch(playerSearch), 250);
+        return () => window.clearTimeout(timeout);
+    }, [playerSearch]);
+
+    useEffect(() => {
+        if (!gameId) setIsRejoinable(false);
+    }, [gameId]);
+
+    useEffect(() => {
+        if (!activeDeckId || activeDeckId.includes("<html")) return;
+        axios
+            .get(`/api/profile/decks/${activeDeckId}`)
+            .then((res) => setDeckObject(res.data as DeckType))
+            .catch(console.error);
     }, [activeDeckId]);
 
     useEffect(() => {
@@ -351,6 +500,30 @@ export default function Lobby() {
                 (joinedRoom.restrictionsApplied && activeDeckReadyState === DeckReadySate.VIOLATES_RESTRICTIONS)));
 
     const isMobile = useMediaQuery("(max-width:499px)");
+    const filteredLobbyPlayers = lobbyPlayers.filter((player) =>
+        player.name.toLowerCase().includes(debouncedPlayerSearch.trim().toLowerCase())
+    );
+    const notifications: AppNotification[] = incomingGameInvites.map((inviter) => ({
+        id: `game-invite:${inviter}`,
+        title: inviter,
+        message: `${inviter} is requesting for a match.`,
+        actions: [
+            {
+                label: "Accept",
+                ariaLabel: `Accept match request from ${inviter}`,
+                icon: <CheckIcon fontSize="small" />,
+                variant: "primary",
+                onClick: () => handleGameInviteResponse(inviter, true),
+            },
+            {
+                label: "Decline",
+                ariaLabel: `Decline match request from ${inviter}`,
+                icon: <CloseIcon fontSize="small" />,
+                variant: "danger",
+                onClick: () => handleGameInviteResponse(inviter, false),
+            },
+        ],
+    }));
 
     return (
         <MenuBackgroundWrapper>
@@ -364,7 +537,7 @@ export default function Lobby() {
                 </Dialog>
             )}
 
-            <MenuDialog onClose={() => setIsPasswordDialogOpen(false)} open={isPasswordDialogOpen}>
+            <MenuDialog onClose={handlePasswordDialogClose} open={isPasswordDialogOpen}>
                 <DialogContent>
                     <div
                         style={{
@@ -405,35 +578,123 @@ export default function Lobby() {
 
                 {/*TODO: Add own name plate here*/}
 
-                {isRejoinable && <Button onClick={handleReconnect}>RECONNECT</Button>}
-
-                <OnlineUsers>
+                <OnlineUsers
+                    type="button"
+                    onClick={handleOnlineUsersClick}
+                    aria-haspopup="true"
+                    aria-expanded={!!onlineUsersAnchor}
+                >
                     {isAlreadyOpenedInOtherTab && <WarningIcon fontSize={"large"} color={"warning"} />}
                     {[0, 3].includes(websocket.readyState) && <OfflineIcon fontSize={"large"} color={"error"} />}
                     <PopulationIcon sx={{ color: "whitesmoke", opacity: 0.8 }} fontSize={"large"} />
                     <span style={{ color: "whitesmoke", opacity: 0.8, lineHeight: 1 }}>{userCount}</span>
                 </OnlineUsers>
+                <Popover
+                    open={!!onlineUsersAnchor}
+                    anchorEl={onlineUsersAnchor}
+                    onClose={() => {
+                        setOnlineUsersAnchor(null);
+                        setIsPlayerSearchOpen(false);
+                        setPlayerSearch("");
+                        setDebouncedPlayerSearch("");
+                    }}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                    transformOrigin={{ vertical: "top", horizontal: "center" }}
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                mt: 1,
+                                minWidth: 220,
+                                maxHeight: 320,
+                                background: "#111",
+                                border: "1px solid rgba(124, 124, 118, 0.45)",
+                                color: "ghostwhite",
+                            },
+                        },
+                    }}
+                >
+                    <LobbyPlayerList aria-label="Players Online">
+                        <LobbyPlayerListHeading>
+                            <span>Players Online</span>
+                            <IconButton
+                                size="small"
+                                color="inherit"
+                                aria-label={isPlayerSearchOpen ? "Close player search" : "Search players"}
+                                aria-expanded={isPlayerSearchOpen}
+                                onClick={() => {
+                                    setIsPlayerSearchOpen((open) => !open);
+                                    if (isPlayerSearchOpen) {
+                                        setPlayerSearch("");
+                                        setDebouncedPlayerSearch("");
+                                    }
+                                }}
+                            >
+                                <SearchIcon fontSize="small" />
+                            </IconButton>
+                            {isPlayerSearchOpen && (
+                                <PlayerSearchInput
+                                    autoFocus
+                                    fullWidth
+                                    value={playerSearch}
+                                    placeholder="Search username"
+                                    inputProps={{ "aria-label": "Search username" }}
+                                    onChange={(event) => setPlayerSearch(event.target.value)}
+                                />
+                            )}
+                        </LobbyPlayerListHeading>
+                        {filteredLobbyPlayers.length ? (
+                            filteredLobbyPlayers.map((player) => (
+                                <LobbyPlayerListItem key={player.name}>
+                                    <PlayerIdentity>
+                                        <span>{player.name}</span>
+                                        <PlayerStatus>{player.status}</PlayerStatus>
+                                    </PlayerIdentity>
+                                    {player.name !== user && (
+                                        <PlayerInviteButton
+                                            type="button"
+                                            pending={pendingGameInvites.has(player.name)}
+                                            disabled={isInviteCoolingDown(player.name)}
+                                            onClick={() => handlePlayerInvite(player.name)}
+                                        >
+                                            {pendingGameInvites.has(player.name)
+                                                ? "cancel invite"
+                                                : isInviteCoolingDown(player.name)
+                                                  ? `invite in ${getInviteCooldownSeconds(player.name)}s`
+                                                  : "invite to play"}
+                                        </PlayerInviteButton>
+                                    )}
+                                </LobbyPlayerListItem>
+                            ))
+                        ) : (
+                            <LobbyPlayerListItem>
+                                {lobbyPlayers.length ? "No matching players" : "No players online"}
+                            </LobbyPlayerListItem>
+                        )}
+                    </LobbyPlayerList>
+                </Popover>
 
-                {!isFetchingIsAdmin && isAdmin && (
-                    <ButtonCard
-                        style={{
-                            width: "fit-content",
-                            height: "38px",
-                            padding: "0 1px 1px 6px",
-                            fontSize: "22px",
-                            fontFamily: "Pixel Digivolve, sans-serif",
-                        }}
-                        onClick={() => {
-                            navigate("/administration");
-                            setJoinedRoom(null);
-                        }}
-                        className={"button"}
-                    >
-                        <span>ADMIN⚙️</span>
-                    </ButtonCard>
-                )}
-
-                <LogoutButton />
+                <HeaderActions>
+                    {!isFetchingIsAdmin && isAdmin && (
+                        <ButtonCard
+                            style={{
+                                width: "fit-content",
+                                height: "38px",
+                                padding: "0 1px 1px 6px",
+                                fontSize: "22px",
+                                fontFamily: "Pixel Digivolve, sans-serif",
+                            }}
+                            onClick={() => {
+                                navigate("/administration");
+                                setJoinedRoom(null);
+                            }}
+                            className={"button"}
+                        >
+                            <span>ADMIN⚙️</span>
+                        </ButtonCard>
+                    )}
+                    <NotificationBell notifications={notifications} />
+                    <LogoutButton />
+                </HeaderActions>
             </Header>
 
             <ContentDiv>
@@ -443,7 +704,9 @@ export default function Lobby() {
                             <CardTitle style={{ marginBottom: 0 }}>{joinedRoom?.name ?? "Room"}</CardTitle>
                             <CardTitle style={{ color: "var(--lobby-accent)" }}>{joinedRoom ? "" : "Host"}</CardTitle>
                             <CardTitle style={{ gridColumn: "span 2" }}>{joinedRoom ? "" : "Settings"}</CardTitle>
-                            {joinedRoom ? (
+                            {isRejoinable ? (
+                                <Button onClick={handleReturnToGame}>RETURN TO GAME</Button>
+                            ) : joinedRoom ? (
                                 user === joinedRoom.hostName ? (
                                     <Button disabled={startGameDisabled} onClick={handleStartGame}>
                                         START GAME
@@ -603,7 +866,6 @@ export default function Lobby() {
                         )}
 
                         <Card style={isMobile ? { order: 99, width: "100%" } : {}}>
-                            {/*<CardTitle>Deck Selection</CardTitle>*/}
                             <Select
                                 value={activeDeckId}
                                 onChange={handleDeckChange}
@@ -688,7 +950,14 @@ export default function Lobby() {
                 />
             </ContentDiv>
             <PatchnotesLink />
-            <ChatContextMenu isAdmin={!!isAdmin} />
+            <ChatContextMenu
+                isAdmin={!!isAdmin}
+                sendMessage={websocket.sendMessage}
+                onInviteSent={handleInviteSent}
+                onInviteCancelled={handleInviteCancelled}
+                pendingGameInvites={pendingGameInvites}
+                inviteCooldownPlayers={inviteCooldownPlayers}
+            />
         </MenuBackgroundWrapper>
     );
 }
@@ -700,6 +969,12 @@ const Header = styled.header`
     align-items: center;
     flex-wrap: wrap;
     padding: 16px;
+`;
+
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
 `;
 
 const ContentDiv = styled.div`
@@ -721,15 +996,111 @@ const ContentDiv = styled.div`
     }
 `;
 
-const OnlineUsers = styled.div`
+const OnlineUsers = styled.button`
     display: flex;
     align-items: flex-end;
     gap: 0.5rem;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
     color: ghostwhite;
     font-size: 28px;
     font-family:
         League Spartan,
         sans-serif;
+
+    &:hover,
+    &:focus-visible {
+        border-color: rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.06);
+        outline: none;
+    }
+`;
+
+const LobbyPlayerList = styled.ul`
+    min-width: 220px;
+    margin: 0;
+    padding: 8px 0;
+    list-style: none;
+    font-family: "League Spartan", sans-serif;
+`;
+
+const LobbyPlayerListHeading = styled.li`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 16px 10px;
+    border-bottom: 1px solid rgba(124, 124, 118, 0.3);
+    color: var(--lobby-accent);
+    font-size: 19px;
+`;
+
+const PlayerSearchInput = styled(InputBase)`
+    flex-basis: 100%;
+    margin-top: 6px;
+    padding: 2px 8px;
+    border: 1px solid rgba(124, 124, 118, 0.5);
+    border-radius: 3px;
+    color: ghostwhite;
+    font-size: 15px;
+
+    &.Mui-focused {
+        border-color: var(--lobby-accent);
+    }
+`;
+
+const LobbyPlayerListItem = styled.li`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 16px;
+    color: ghostwhite;
+    font-size: 17px;
+`;
+
+const PlayerIdentity = styled.span`
+    min-width: 0;
+`;
+
+const PlayerStatus = styled.span`
+    display: block;
+    margin-right: 6px;
+    color: rgba(255, 239, 213, 0.62);
+    font-family: "Cousine", monospace;
+    font-size: 0.6em;
+    white-space: nowrap;
+`;
+
+const PlayerInviteButton = styled.button<{ pending: boolean }>`
+    flex-shrink: 0;
+    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    background: var(${({ pending }) => (pending ? "--orange-button-bg" : "--blue-button-bg")});
+    color: ghostwhite;
+    font: 600 12px/1 "League Spartan", sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-hover" : "--blue-button-bg-hover")});
+        outline: none;
+    }
+
+    &:active {
+        background: var(${({ pending }) => (pending ? "--orange-button-bg-active" : "--blue-button-bg-active")});
+    }
+
+    &:disabled {
+        filter: grayscale(0.65);
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
 `;
 
 const LeftColumn = styled.div`

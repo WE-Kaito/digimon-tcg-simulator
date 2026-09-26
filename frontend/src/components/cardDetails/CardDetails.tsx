@@ -106,7 +106,11 @@ export default function CardDetails() {
     const linkDP = hoverCard?.linkDP ?? (!hoverCard ? (selectedCard?.linkDP ?? 0) : 0);
     const linkEffectText = hoverCard?.linkEffect ?? (!hoverCard ? (selectedCard?.linkEffect ?? "") : "");
     const linkRequirementText = hoverCard?.linkRequirement ?? (!hoverCard ? (selectedCard?.linkRequirement ?? "") : "");
-    const assemblyEffectText = hoverCard?.assemblyEffect ?? (!hoverCard ? (selectedCard?.assemblyEffect ?? "") : "");
+    const assemblyEffectText = hoverCard?.assembly ?? (!hoverCard ? (selectedCard?.assembly ?? "") : "");
+    const dualEffectText = hoverCard?.dualEffect ?? (!hoverCard ? (selectedCard?.dualEffect ?? "") : "");
+    const optionCardColorRequirementText =
+        hoverCard?.optionCardColorRequirement ?? (!hoverCard ? (selectedCard?.optionCardColorRequirement ?? "") : "");
+    const optionCardEffectText = hoverCard?.optionCardEffect ?? (!hoverCard ? (selectedCard?.optionCardEffect ?? "") : "");
 
     // details
     const aceEffect = hoverCard?.aceEffect ?? (!hoverCard ? selectedCard?.aceEffect : null);
@@ -212,7 +216,7 @@ export default function CardDetails() {
                                 alignItems: "center",
                             }}
                         >
-                            {["Digimon", "Digi-Egg"].includes(String(cardType)) && (
+                            {["Digimon", "Digi-Egg", "Digimon/Option"].includes(String(cardType)) && (
                                 <DetailText>
                                     Lv.
                                     <DetailMetric>{level}</DetailMetric>
@@ -256,7 +260,7 @@ export default function CardDetails() {
                         >
                             {cardType !== "Digi-Egg" && (
                                 <DetailText>
-                                    {cardType === "Option" ? "Use: " : "Play: "}
+                                    {["Option", "Digimon/Option"].includes(String(cardType)) ? "Use: " : "Play: "}
                                     <DetailMetric>{playCost}</DetailMetric>
                                 </DetailText>
                             )}
@@ -317,9 +321,40 @@ export default function CardDetails() {
                             </EffectCard>
                         )}
 
+                        {dualEffectText && (
+                            <EffectText inGame={inGame} style={{ width: "99.25%" }} key={`${cardNumber}_dual`}>
+                                <HighlightedKeyWords text={dualEffectText} />
+                            </EffectText>
+                        )}
+
                         {mainEffectText && (
                             <EffectCard variant={EffectVariant.MAIN} key={`${cardNumber}_main`}>
                                 <HighlightedKeyWords text={mainEffectText} />
+                            </EffectCard>
+                        )}
+
+                        {(optionCardEffectText || optionCardColorRequirementText) && (
+                            <EffectCard variant={EffectVariant.SPECIAL} key={`${cardNumber}_optionCard`}>
+                                <div style={{ display: "flex", width: "100%", flexDirection: "column" }}>
+                                    {optionCardColorRequirementText && (
+                                        <EffectText
+                                            style={{
+                                                borderBottom: "1px dotted rgba(255, 255, 255, 0.35)",
+                                                paddingBottom: "0.4em",
+                                                marginBottom: "0.25em",
+                                            }}
+                                        >
+                                            <HighlightedKeyWords
+                                                text={`Option Color: ${optionCardColorRequirementText}`}
+                                            />
+                                        </EffectText>
+                                    )}
+                                    {optionCardEffectText && (
+                                        <EffectText>
+                                            <HighlightedKeyWords text={optionCardEffectText} />
+                                        </EffectText>
+                                    )}
+                                </div>
                             </EffectCard>
                         )}
 
@@ -378,20 +413,24 @@ export default function CardDetails() {
                     <LinkEffectCard linkCardInfo={linkCardInfo} key={`${cardNumber}_linkedEffect`} />
                 )}
 
-                {inheritCardInfo[0]?.length > 0 && (
+                {inheritCardInfo.length > 0 && (
                     <EffectCard
                         variant={EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS}
                         key={`${cardNumber}_inherited`}
                     >
                         <Stack gap={1}>
-                            {inheritCardInfo.map(
-                                (text, index) =>
-                                    !!text && (
-                                        <span key={`${cardNumber}_inherited_from_material_${index}`}>
-                                            <HighlightedKeyWords text={text} />
-                                        </span>
-                                    )
-                            )}
+                            {inheritCardInfo.map((source) => (
+                                <InheritedSourceEffect key={source.id}>
+                                    <InheritedSourceIdentifier>
+                                        {source.name}
+                                        {source.level ? ` • Lv.${source.level}` : ""}
+                                    </InheritedSourceIdentifier>
+                                    <HighlightedKeyWords
+                                        text={source.effect}
+                                        effectSourceCardId={source.id}
+                                    />
+                                </InheritedSourceEffect>
+                            ))}
                         </Stack>
                     </EffectCard>
                 )}
@@ -453,6 +492,22 @@ export default function CardDetails() {
         </Wrapper>
     );
 }
+
+const InheritedSourceEffect = styled.div`
+    padding: 7px 8px 8px;
+    border: 1px solid rgba(185, 202, 216, 0.38);
+    border-radius: 4px;
+    background: rgba(8, 18, 30, 0.28);
+    box-shadow: inset 0 0 12px rgba(145, 190, 220, 0.06);
+`;
+
+const InheritedSourceIdentifier = styled.div`
+    margin-bottom: 6px;
+    color: rgba(205, 211, 218, 0.72);
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.035em;
+`;
 
 const Wrapper = styled.div<{ inGame: boolean }>`
     grid-area: details;

@@ -49,6 +49,9 @@ const battleAreaLocations = [
 
 export const digimonLocations = ["myBreedingArea", "opponentBreedingArea", ...battleAreaLocations];
 
+const isSickStack = (cards: CardTypeGame[]) =>
+    cards.at(-1)?.modifiers?.keywords?.includes("SICK") ?? false;
+
 export const tamerLocations = [
     "myDigi17",
     "myDigi18",
@@ -178,6 +181,7 @@ type GameDistribution = {
 
 export type State = BoardState & {
     gameId: string;
+    gameLobbyRoomId: string;
 
     cardIdWithEffect: string;
     cardIdWithTarget: string;
@@ -189,7 +193,7 @@ export type State = BoardState & {
      * Should be refactored.
      */
     cardToSend: { card: CardTypeGame; location: string } | null;
-    inheritCardInfo: string[];
+    inheritCardInfo: InheritedCardInfo[];
     linkCardInfo: { dp: number; effect: string }[];
     setLinkCardInfo: (linkCardInfo: { dp: number; effect: string }[]) => void;
     getLinkCardsForLocation: (location: string) => CardTypeGame[];
@@ -210,6 +214,7 @@ export type State = BoardState & {
     setAllMessages: (messages: string[]) => void;
     stackSliceIndex: number;
     isOpponentOnline: boolean;
+    opponentReconnectDeadline: number | null;
     startingPlayer: string;
 
     // --------------------------------------------------------
@@ -251,12 +256,14 @@ export type State = BoardState & {
     setCardToSend: (cardToSend: { card: CardTypeGame; location: string } | null) => void;
     setBootStage: (phase: BootStage) => void;
     setGameId: (gameId: string) => void;
-    setInheritCardInfo: (inheritedEffects: string[]) => void;
+    setGameLobbyRoomId: (roomId: string) => void;
+    setInheritCardInfo: (inheritedEffects: InheritedCardInfo[]) => void;
     setModifiers: (cardId: string, location: string, modifiers: CardModifiers) => void;
     getCardLocationById: (id: string) => string;
     toggleIsHandHidden: () => void;
     setStackSliceIndex: (index: number) => void;
     setIsOpponentOnline: (isOpponentOnline: boolean) => void;
+    setOpponentReconnectDeadline: (deadline: number | null) => void;
     setStartingPlayer: (side: SIDE | "") => void;
 
     flipCard: (cardId: string, location: string) => void;
@@ -268,11 +275,20 @@ export type State = BoardState & {
     setMarkedCard: (cardId: string) => void;
 };
 
+export type InheritedCardInfo = {
+    id: string;
+    name: string;
+    level?: number;
+    effect: string;
+};
+
 const modifierLocations = ["myHand", "myDeckField", "myEggDeck", "myTrash"];
 
 const resetModifierLocations = [
     ...modifierLocations,
+    "mySecurity",
     "opponentHand",
+    "opponentSecurity",
     "opponentDeckField",
     "opponentEggDeck",
     "opponentTrash",
@@ -415,6 +431,7 @@ const fieldDefaultValues = {
 
 export const useGameBoardStates = create<State>()((set, get) => ({
     gameId: localStorage.getItem("gameId") || "",
+    gameLobbyRoomId: localStorage.getItem("gameLobbyRoomId") || "",
 
     cardIdWithEffect: "",
     cardIdWithTarget: "",
@@ -440,6 +457,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     messages: [],
     stackSliceIndex: 0,
     isOpponentOnline: true,
+    opponentReconnectDeadline: null,
     startingPlayer: "",
 
     hasDecidedMulligan: false,
@@ -462,6 +480,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
             myAttackPhase: false,
             bootStage: BootStage.CLEAR,
             isOpponentOnline: true,
+            opponentReconnectDeadline: null,
             hasDecidedMulligan: false,
             messages: [],
             player1: { avatarName: "", mainSleeveName: "", eggSleeveName: "", username: "" },
@@ -576,6 +595,9 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                 // Set memory values
                 myMemory: isPlayer1 ? boardState.player1Memory : boardState.player2Memory,
                 opponentMemory: isPlayer1 ? boardState.player2Memory : boardState.player1Memory,
+                ...(boardState.phase && { phase: boardState.phase }),
+                ...(boardState.usernameTurn && { usernameTurn: boardState.usernameTurn }),
+                ...(boardState.bootStage !== undefined && { bootStage: boardState.bootStage }),
             });
         } else {
             // Handle GameStart format (initial distribution)
@@ -627,7 +649,7 @@ export const useGameBoardStates = create<State>()((set, get) => ({
                 card.isTilted = !tamerLocations.includes(to);
             } else card.isTilted = false;
 
-            if (card.modifiers && prevTopCard.modifiers) {
+            if (!resetModifierLocations.includes(to) && card.modifiers && prevTopCard.modifiers) {
                 if (!card.modifiers.plusDp) {
                     card.modifiers.plusDp = prevTopCard.modifiers.plusDp || 0;
                     prevTopCard.modifiers.plusDp = 0;
@@ -871,20 +893,29 @@ export const useGameBoardStates = create<State>()((set, get) => ({
         for (let i = 1; i <= 21; i++) {
             set((state) => {
                 const digiKey = `${side}Digi${i}` as keyof State;
+                const cards = state[digiKey] as CardTypeGame[];
                 return {
-                    [digiKey]: (state[digiKey] as CardTypeGame[]).map((card) => {
-                        card.isTilted = false;
-                        return card;
-                    }),
+                    [digiKey]: isSickStack(cards)
+                        ? cards
+                        : cards.map((card) => ({
+                              ...card,
+                              isTilted: false,
+                          })),
                 };
             });
         }
-        set((state) => ({
-            myBreedingArea: (state.myBreedingArea as CardTypeGame[]).map((card) => ({
-                ...card,
-                isTilted: false,
-            })),
-        }));
+        set((state) => {
+            const breedingAreaKey = `${side}BreedingArea` as keyof State;
+            const cards = state[breedingAreaKey] as CardTypeGame[];
+            return {
+                [breedingAreaKey]: isSickStack(cards)
+                    ? cards
+                    : cards.map((card) => ({
+                          ...card,
+                          isTilted: false,
+                      })),
+            };
+        });
     },
 
     getIsMyTurn: (username) => get().usernameTurn === username,
@@ -922,8 +953,15 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setBootStage: (stage) => set({ bootStage: stage }),
 
     setGameId: (gameId) => {
-        localStorage.setItem("gameId", gameId);
+        if (gameId) localStorage.setItem("gameId", gameId);
+        else localStorage.removeItem("gameId");
         set({ gameId });
+    },
+
+    setGameLobbyRoomId: (roomId) => {
+        if (roomId) localStorage.setItem("gameLobbyRoomId", roomId);
+        else localStorage.removeItem("gameLobbyRoomId");
+        set({ gameLobbyRoomId: roomId });
     },
 
     setInheritCardInfo: (inheritedEffects) => set({ inheritCardInfo: inheritedEffects }),
@@ -951,10 +989,9 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setModifiers: (cardId, location, modifiers) => {
         set((state) => {
             return {
-                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) => {
-                    if (card.id === cardId) card.modifiers = modifiers;
-                    return card;
-                }),
+                [location]: (state[location as keyof State] as CardTypeGame[]).map((card: CardTypeGame) =>
+                    card.id === cardId ? { ...card, modifiers } : card
+                ),
             };
         });
     },
@@ -964,6 +1001,8 @@ export const useGameBoardStates = create<State>()((set, get) => ({
     setStackSliceIndex: (index) => set({ stackSliceIndex: index }),
 
     setIsOpponentOnline: (isOpponentOnline) => set({ isOpponentOnline }),
+
+    setOpponentReconnectDeadline: (opponentReconnectDeadline) => set({ opponentReconnectDeadline }),
 
     setStartingPlayer: (startingPlayer) => set({ startingPlayer }),
 

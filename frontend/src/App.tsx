@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { useDeckStates } from "./hooks/useDeckStates.ts";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Profile from "./pages/Profile.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import RecoveryPage from "./pages/RecoveryPage.tsx";
@@ -24,9 +24,13 @@ function App() {
     const fetchDecks = useDeckStates((state) => state.fetchDecks);
     const setParticlesInitialized = useGeneralStates((state) => state.setParticlesInitialized);
 
-    useEffect(() => me(), [me]);
+    useEffect(() => {
+        me();
+    }, [me]);
 
-    useEffect(() => fetchCards(), [fetchCards]);
+    useEffect(() => {
+        fetchCards();
+    }, [fetchCards]);
 
     useEffect(() => {
         if (user.length && user !== "anonymousUser") fetchDecks();
@@ -46,7 +50,7 @@ function App() {
                     <Route path="/decks" element={<Decks />} />
                     <Route path="/deckbuilder" element={<Deckbuilder />} />
                     <Route path="/deckbuilder/:id" element={<Deckbuilder />} />
-                    <Route path="/game" element={<GamePage />} />
+                    <Route path="/game" element={<GameRoute />} />
                     <Route path="/test" element={<DeckTest />} />
                     <Route path="/administration" element={<Administration />} />
                     <Route path="/*" element={<Navigate to="/" />} />
@@ -57,6 +61,13 @@ function App() {
             </Routes>
         </>
     );
+}
+
+function GameRoute() {
+    const location = useLocation();
+    const gameEntryConfirmed = (location.state as { gameEntryConfirmed?: boolean } | null)?.gameEntryConfirmed;
+
+    return gameEntryConfirmed ? <GamePage /> : <Navigate to="/" replace />;
 }
 
 export default App;

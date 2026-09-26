@@ -7,9 +7,6 @@ import { DeckReadySate, useGeneralStates } from "../../hooks/useGeneralStates.ts
 const bannedCards = new Set(["BT5-109", "BT2-090", "EX5-065"]);
 
 const limitedToOne = new Set([
-    "BT1-090",
-    "BT6-104",
-    "BT13-110",
     "BT16-011",
     "EX3-057",
     "EX4-006",
@@ -36,7 +33,6 @@ const limitedToOne = new Set([
     "EX5-018",
     "EX5-062",
     "BT13-012",
-    "EX4-019",
     "BT2-069",
     "BT7-069",
     "BT3-054",
@@ -45,7 +41,6 @@ const limitedToOne = new Set([
     "P-025",
     "BT11-064",
     "BT7-107",
-    "BT9-099",
     "BT10-009",
     "BT7-038",
     "BT7-064",
@@ -54,6 +49,14 @@ const limitedToOne = new Set([
     "BT6-100",
     "EX1-068",
     "BT7-072",
+    "BT3-092",
+    "BT23-032",
+    "BT10-080",
+    "EX5-059",
+    "EX5-061",
+    "BT1-090",
+    "BT6-104",
+    "BT13-110",
 ]);
 
 function normalize(card: string) {

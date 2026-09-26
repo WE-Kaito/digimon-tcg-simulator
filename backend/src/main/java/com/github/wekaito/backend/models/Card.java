@@ -28,7 +28,10 @@ public record Card(
         Integer linkDP,
         String linkEffect,
         String linkRequirement,
-        String assemblyEffect,
+        String assembly,
+        String dualEffect,
+        String optionCardColorRequirement,
+        String optionCardEffect,
         Restrictions restrictions,
         String illustrator
 

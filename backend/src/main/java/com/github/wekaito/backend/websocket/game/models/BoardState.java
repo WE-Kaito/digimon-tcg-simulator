@@ -113,6 +113,14 @@ public class BoardState {
     private List<GameCard> player2Link15 = new ArrayList<>();
     private List<GameCard> player2Link16 = new ArrayList<>();
 
+    public boolean hasField(String name) {
+        try {
+            return List.class.isAssignableFrom(this.getClass().getDeclaredField(name).getType());
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
+    }
+
     public List<GameCard> getFieldByName(String name) {
         try {
             Field field = this.getClass().getDeclaredField(name);

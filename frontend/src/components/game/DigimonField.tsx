@@ -56,7 +56,8 @@ export default function DigimonField(props: DigimonFieldProps) {
         props: { index: -1, location: "", id: "" },
     });
 
-    const iconSize = useGeneralStates((state) => state.cardWidth / 1.5);
+    const cardWidth = useGeneralStates((state) => state.cardWidth);
+    const iconSize = cardWidth / 1.5;
 
     const [isHoveringOverField, setIsHoveringOverField] = useState(false);
 
@@ -120,6 +121,10 @@ export default function DigimonField(props: DigimonFieldProps) {
             onClick={() => stackOpened && setStackDialog(false)}
             className={stackOpened ? "button" : undefined}
         >
+            <EffectArrowAnchor
+                id={`${location}-effect-anchor`}
+                style={{ width: cardWidth }}
+            />
             {memoizedField}
         </Container>
     );
@@ -150,6 +155,15 @@ const StyledDetailsIcon = styled(DetailsIcon)`
     transform: translate(-50%, -50%);
     opacity: 0.5;
     font-size: 3em;
+`;
+
+const EffectArrowAnchor = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: 1px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
 `;
 
 const StyledCloseDetailsIcon = styled(CloseDetailsIcon)`

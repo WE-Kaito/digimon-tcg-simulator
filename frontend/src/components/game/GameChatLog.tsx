@@ -3,6 +3,11 @@ import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import styled from "@emotion/styled";
 import sendIcon from "../../assets/sendIcon.svg";
 import { WSUtils } from "../../pages/GamePage.tsx";
+import {
+    EffectTargetEvent,
+    formatEffectTargetMessage,
+    isSameSideEffectTarget,
+} from "../../utils/effectTargeting.ts";
 
 export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUtils>) {
     const messages = useGameBoardStates((state) => state.messages);
@@ -22,7 +27,7 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUt
                 {messages.map((message, index) => {
                     if (message.startsWith("[STARTING_PLAYER]≔")) {
                         return (
-                            <UpdateMessage style={{ background: "rgba(255, 215, 0, 0.25)" }}>
+                            <UpdateMessage key={`starting-player-${index}`} style={{ background: "rgba(255, 215, 0, 0.25)" }}>
                                 <p>FIRST TURN: {message.split("≔")[1]}</p>
                             </UpdateMessage>
                         );
@@ -73,6 +78,25 @@ export default function GameChatLog({ matchInfo, sendChatMessage }: Partial<WSUt
                                 </p>
                             </UpdateMessage>
                         );
+                    }
+
+                    if (chatMessage?.startsWith("[EFFECT_TARGET]≔")) {
+                        try {
+                            const effectTargetEvent: EffectTargetEvent = JSON.parse(
+                                chatMessage.substring("[EFFECT_TARGET]≔".length)
+                            );
+                            return (
+                                <EffectTargetMessage
+                                    isMyMessage={isMyMessage}
+                                    sameSide={isSameSideEffectTarget(effectTargetEvent)}
+                                    key={"msx_" + index}
+                                >
+                                    <p>{formatEffectTargetMessage(effectTargetEvent)}</p>
+                                </EffectTargetMessage>
+                            );
+                        } catch {
+                            return null;
+                        }
                     }
 
                     return (
@@ -130,6 +154,15 @@ const Message = styled.div<{ isMyMessage: boolean }>`
         max-width: 100%;
         word-break: break-word;
     }
+`;
+
+const EffectTargetMessage = styled(Message, {
+    shouldForwardProp: (prop) => prop !== "sameSide",
+})<{ sameSide: boolean }>`
+    max-width: 96%;
+    background: ${({ sameSide }) => (sameSide ? "rgba(12, 100, 48, 0.42)" : "rgba(100, 12, 30, 0.42)")};
+    border-color: ${({ sameSide }) => (sameSide ? "rgba(76, 220, 120, 0.8)" : "rgba(255, 82, 82, 0.8)")};
+    box-shadow: inset 3px 0 0 ${({ sameSide }) => (sameSide ? "#24c96b" : "#ff1744")};
 `;
 
 const History = styled.div`

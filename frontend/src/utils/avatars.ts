@@ -129,6 +129,8 @@ import velgrmon from "../assets/profile_pictures/Velgrmon.png";
 import warGreymonX from "../assets/profile_pictures/WarGreymon_X.png";
 import yatagaramon2006 from "../assets/profile_pictures/Yatagaramon_2006.png";
 import gekkomon from "../assets/profile_pictures/GEKKOMON.png";
+import pristimon from "../assets/profile_pictures/PRISTIMON.png";
+import chiropmon from "../assets/profile_pictures/CHIROPMON.png";
 
 export const avatars: Picture[] = [
     { name: "AncientIrismon", imagePath: ancientIrismon, artist: "Tortoiseshel" },
@@ -256,10 +258,12 @@ export const avatars: Picture[] = [
     { name: "Shoemon", imagePath: shoemonSrc, artist: "Drak" },
     { name: "Namakemon", imagePath: namakemonSrc, artist: "Drak" },
     { name: "Pteromon", imagePath: pteromonSrc, artist: "Drak" },
-    { name: "Gekkomon", imagePath: gekkomon, artist: "Drak" },
     { name: "Mother", imagePath: motherSrc, artist: "Drak" },
     { name: "Searcher", imagePath: searcherSrc, artist: "Ruki" },
     { name: "Eater", imagePath: eaterSrc, artist: "Ruki" },
+    { name: "Gekkomon", imagePath: gekkomon, artist: "Drak" },
+    { name: "Chiropmon", imagePath: chiropmon, artist: "Drak" },
+    { name: "Pristimon", imagePath: pristimon, artist: "Drak" },
 ];
 
 export function profilePicture(avatarName: string): string {

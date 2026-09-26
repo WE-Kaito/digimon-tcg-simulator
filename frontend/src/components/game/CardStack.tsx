@@ -141,6 +141,7 @@ export default function CardStack(props: CardStackProps) {
                           style={{ width: tamerWidth }}
                           card={card}
                           location={location}
+                          wsUtils={wsUtils}
                           index={index}
                           onContextMenu={(e) =>
                               showOpponentCardMenu?.({
@@ -184,6 +185,7 @@ export default function CardStack(props: CardStackProps) {
                               style={{ width: cardWidth, height: cardWidth * 1.4 }}
                               card={card}
                               location={location}
+                              wsUtils={wsUtils}
                               index={index}
                               onContextMenu={(e) =>
                                   showOpponentCardMenu?.({

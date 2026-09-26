@@ -27,14 +27,18 @@ import StackDialog from "../components/game/StackDialog.tsx";
 import DragLayerCustom from "../components/game/DragLayerCustom.tsx";
 import CardDialog from "../components/game/CardDialog.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import EffectTargetCursor from "../components/game/EffectTargetCursor.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
 import { useNavigate } from "react-router-dom";
 import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
 import axios from "axios";
+import usePlayerPresence from "../hooks/usePlayerPresence.ts";
 
 export default function DeckTest() {
+    usePlayerPresence("TESTING");
+
     const selectCard = useGeneralStates((state) => state.selectCard);
     const selectedCard = useGeneralStates((state) => state.selectedCard);
     const hoverCard = useGeneralStates((state) => state.hoverCard);
@@ -586,7 +590,9 @@ export default function DeckTest() {
     const boardContainerRef = useRef<HTMLDivElement>(null);
     const height = boardContainerRef.current ? Math.max(window.outerHeight - 148, 800) : undefined;
 
-    useLayoutEffect(() => window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0), []);
+    useEffect(() => {
+        window.scrollTo(document.documentElement.scrollWidth - window.innerWidth, 0);
+    }, []);
 
     // Determine backend based on touch capability
     const backend = "ontouchstart" in window ? TouchBackend : HTML5Backend;
@@ -668,6 +674,7 @@ export default function DeckTest() {
             <ContextMenus wsUtils={mockWSUtils} />
             <TokenModal wsUtils={mockWSUtils} />
             <EndModal />
+            <EffectTargetCursor />
 
             <DetailsContainer height={height} style={{ minHeight: window.innerHeight }}>
                 {details !== DetailsView.NO_IMAGE && (
