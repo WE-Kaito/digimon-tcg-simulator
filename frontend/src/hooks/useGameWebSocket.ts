@@ -7,12 +7,14 @@ import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { returnToLobby } from "../utils/returnToLobby.ts";
 import { EffectTargetEvent, isSelfEffectTarget, orientEffectLocation } from "../utils/effectTargeting.ts";
 
 const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
+const websocketURL = import.meta.env.DEV
+    ? `${websocketProtocol}//${window.location.hostname}:8080/api/ws/game`
+    : `${websocketProtocol}//${window.location.host}/api/ws/game`;
 
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;
@@ -65,6 +67,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
     const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
+    const setIsResolvingEffects = useGameUIStates((state) => state.setIsResolvingEffects);
+    const setIsOpponentResolvingEffects = useGameUIStates((state) => state.setIsOpponentResolvingEffects);
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
@@ -154,6 +158,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 setStartingPlayer("");
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
+                setIsResolvingEffects(false);
+                setIsOpponentResolvingEffects(false);
                 return;
             }
 
@@ -167,7 +173,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[BOARD_STATE]:")) {
                 const boardStateJson = event.data.substring("[BOARD_STATE]:".length);
                 distributeCards(user, boardStateJson, () => undefined);
-                setOpenedCardDialog(false);
                 return;
             }
 
@@ -373,6 +378,18 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
+            if (event.data.startsWith("[RESOLVING_EFFECTS]:")) {
+                const resolvingEffects = event.data.substring("[RESOLVING_EFFECTS]:".length) === "true";
+                if (!resolvingEffects) setOpponentEmote(null);
+                setIsOpponentResolvingEffects(resolvingEffects);
+                return;
+            }
+
+            if (event.data.startsWith("[MY_RESOLVING_EFFECTS]:")) {
+                setIsResolvingEffects(event.data.substring("[MY_RESOLVING_EFFECTS]:".length) === "true");
+                return;
+            }
+
             if (event.data.startsWith("[ATTACK]:")) {
                 const parts = event.data.substring("[ATTACK]:".length).split(":");
                 if (parts.length < 3) return;
@@ -535,6 +552,7 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     if (event.data.startsWith("[OPPONENT_DISCONNECTED]")) {
                         const deadline = Number(event.data.split(":", 2)[1]);
                         setIsOpponentOnline(false);
+                        setIsOpponentResolvingEffects(false);
                         setOpponentReconnectDeadline(
                             Number.isFinite(deadline) ? deadline : Date.now() + 2 * 60 * 1000
                         );
@@ -549,6 +567,13 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             }
         },
     });
+
+    useEffect(
+        () => () => {
+            setIsResolvingEffects(false);
+            setIsOpponentResolvingEffects(false);
+        }, [setIsOpponentResolvingEffects, setIsResolvingEffects]
+    );
 
     return { sendMessage: websocket.sendMessage, isGameReady, opponentName };
 }

@@ -243,7 +243,7 @@ export default function GamePage() {
             <GameBackground />
             <ContextMenus wsUtils={wsUtils} />
             <AttackArrows />
-            <EffectTargetCursor />
+            <EffectTargetCursor wsUtils={wsUtils} />
             <TokenModal wsUtils={wsUtils} />
             <EndModal />
             <RestartPromptModal wsUtils={wsUtils} />
