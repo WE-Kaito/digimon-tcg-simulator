@@ -16,6 +16,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +102,42 @@ class LobbyWebSocketTest {
 
         assertThat(visibleMessages).extracting(ChatMessage::author)
                 .containsExactly("other-user", "【SERVER】");
+        assertThat(userDetailsService.getBlockedAccountLookupCount()).isEqualTo(1);
+    }
+
+    @Test
+    void leavingAnAlreadyRemovedRoomStillAcknowledgesTheClient() throws Exception {
+        TestWebSocketSession player = new TestWebSocketSession("lobby-1", "Aaron");
+        lobbyWebSocket.getGlobalActiveSessions().add(player);
+
+        lobbyWebSocket.handleTextMessage(player, new TextMessage("/leave:missing-room:Aaron:true"));
+
+        assertThat(player.getMessages()).contains("[LEAVE_ROOM]");
+    }
+
+    @Test
+    void leavingUsesTheAuthenticatedPlayerInsteadOfThePayloadUsername() throws Exception {
+        TestWebSocketSession host = new TestWebSocketSession("lobby-1", "Aaron");
+        TestWebSocketSession guest = new TestWebSocketSession("lobby-2", "Beatrice");
+        Room room = new Room(
+                "room-id",
+                "Custom Room",
+                "Aaron",
+                false,
+                "",
+                new ArrayList<>(List.of(
+                        new LobbyPlayer(host, "Aaron", true),
+                        new LobbyPlayer(guest, "Beatrice", false)
+                ))
+        );
+        lobbyWebSocket.getRooms().add(room);
+        lobbyWebSocket.getGlobalActiveSessions().addAll(List.of(host, guest));
+
+        lobbyWebSocket.handleTextMessage(host, new TextMessage("/leave:room-id:Beatrice:true"));
+
+        assertThat(host.getMessages()).contains("[LEAVE_ROOM]");
+        assertThat(room.getPlayers()).extracting(LobbyPlayer::getName).containsExactly("Beatrice");
+        assertThat(room.getHostName()).isEqualTo("Beatrice");
     }
 
     @Test
@@ -205,6 +242,7 @@ class LobbyWebSocketTest {
 
     private static class TestUserDetailsService extends MongoUserDetailsService {
         private final Map<String, List<String>> blockedAccounts = new HashMap<>();
+        private int blockedAccountLookupCount;
 
         TestUserDetailsService() {
             super(null, (StarterDeckService) null);
@@ -212,6 +250,10 @@ class LobbyWebSocketTest {
 
         void block(String username, String blockedUsername) {
             blockedAccounts.put(username, List.of(blockedUsername));
+        }
+
+        int getBlockedAccountLookupCount() {
+            return blockedAccountLookupCount;
         }
 
         @Override
@@ -226,6 +268,7 @@ class LobbyWebSocketTest {
 
         @Override
         public List<String> getBlockedAccounts(String username) {
+            blockedAccountLookupCount++;
             return blockedAccounts.getOrDefault(username, List.of());
         }
 

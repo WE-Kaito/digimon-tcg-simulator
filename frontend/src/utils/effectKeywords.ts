@@ -1,8 +1,13 @@
 const standaloneKeywordLine = /^\s*(?:＜[^＞\r\n]+＞[\s.,;:]*)+$/;
 const keywordTag = /＜([^＞\r\n]+)＞/g;
 
+export function supportsAutoDetectedEffectKeywords(cardType: string): boolean {
+    return cardType.split("/", 1)[0].trim() === "Digimon";
+}
+
 function getFieldKeywordLabel(keyword: string): string {
     if (/^Decode(?:\s|\(|$)/i.test(keyword)) return "Decode";
+    if (/^Succession(?:\s|\(|$)/i.test(keyword)) return "Succession";
     return keyword;
 }
 

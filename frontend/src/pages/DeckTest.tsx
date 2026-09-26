@@ -27,6 +27,7 @@ import StackDialog from "../components/game/StackDialog.tsx";
 import DragLayerCustom from "../components/game/DragLayerCustom.tsx";
 import CardDialog from "../components/game/CardDialog.tsx";
 import CardDetails from "../components/cardDetails/CardDetails.tsx";
+import EffectTargetCursor from "../components/game/EffectTargetCursor.tsx";
 import SettingsMenuButton from "../components/game/SettingsMenuButton.tsx";
 import { DetailsView, useSettingStates } from "../hooks/useSettingStates.ts";
 import { useDeckStates } from "../hooks/useDeckStates.ts";
@@ -673,6 +674,7 @@ export default function DeckTest() {
             <ContextMenus wsUtils={mockWSUtils} />
             <TokenModal wsUtils={mockWSUtils} />
             <EndModal />
+            <EffectTargetCursor />
 
             <DetailsContainer height={height} style={{ minHeight: window.innerHeight }}>
                 {details !== DetailsView.NO_IMAGE && (

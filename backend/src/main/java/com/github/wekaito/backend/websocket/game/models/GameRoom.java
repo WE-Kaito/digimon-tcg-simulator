@@ -10,6 +10,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.CloseStatus;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.*;
@@ -39,6 +40,8 @@ public class GameRoom {
 
     private Boolean player1Mulligan;
     private Boolean player2Mulligan;
+    private volatile boolean player1ResolvingEffects;
+    private volatile boolean player2ResolvingEffects;
 
     private volatile long lastHeartBeatReceivedPlayer1 = System.currentTimeMillis();
     private volatile long lastHeartBeatReceivedPlayer2 = System.currentTimeMillis();
@@ -222,6 +225,8 @@ public class GameRoom {
         this.boardState = null;
         this.player1Mulligan = null;
         this.player2Mulligan = null;
+        this.player1ResolvingEffects = false;
+        this.player2ResolvingEffects = false;
         this.bootStage = 1;
         this.phase = Phase.BREEDING;
         this.usernameTurn = null;
@@ -341,6 +346,34 @@ public class GameRoom {
         }
         if (this.player1Mulligan != null && this.player2Mulligan != null) {
             redistributeCardsAfterMulligan();
+        }
+    }
+
+    public void setResolvingEffectsForSession(WebSocketSession session, boolean resolvingEffects) {
+        Principal principal = session.getPrincipal();
+        if (principal == null) return;
+
+        if (principal.getName().equals(player1.username())) {
+            player1ResolvingEffects = resolvingEffects;
+        } else if (principal.getName().equals(player2.username())) {
+            player2ResolvingEffects = resolvingEffects;
+        }
+    }
+
+    public void broadcastResolvingEffectsState() {
+        for (WebSocketSession session : sessions) {
+            if (!session.isOpen() || session.getPrincipal() == null) continue;
+
+            boolean sessionIsPlayer1 = session.getPrincipal().getName().equals(player1.username());
+            boolean myResolvingEffects = sessionIsPlayer1 ? player1ResolvingEffects : player2ResolvingEffects;
+            boolean opponentResolvingEffects = sessionIsPlayer1 ? player2ResolvingEffects : player1ResolvingEffects;
+
+            try {
+                session.sendMessage(new TextMessage("[MY_RESOLVING_EFFECTS]:" + myResolvingEffects));
+                session.sendMessage(new TextMessage("[RESOLVING_EFFECTS]:" + opponentResolvingEffects));
+            } catch (IOException e) {
+                // Session is broken, will be cleaned up by the cleanup scheduler
+            }
         }
     }
 

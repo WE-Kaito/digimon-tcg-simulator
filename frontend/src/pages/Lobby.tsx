@@ -229,6 +229,7 @@ export default function Lobby() {
                 }
 
                 if (event.data === "[PROMPT_PASSWORD]") {
+                    setIsLoading(false);
                     setIsWrongPassword(false);
                     setPassword("");
                     setIsPasswordDialogOpen(true);
@@ -365,6 +366,14 @@ export default function Lobby() {
     function handleJoinRoomWithPassword() {
         setIsLoadingWithDebounce();
         websocket.sendMessage("/password:" + roomToJoinId + ":" + password);
+    }
+
+    function handlePasswordDialogClose() {
+        setIsPasswordDialogOpen(false);
+        setIsLoading(false);
+        setIsWrongPassword(false);
+        setPassword("");
+        setRoomToJoinId("");
     }
 
     function handleToggleReady() {
@@ -528,7 +537,7 @@ export default function Lobby() {
                 </Dialog>
             )}
 
-            <MenuDialog onClose={() => setIsPasswordDialogOpen(false)} open={isPasswordDialogOpen}>
+            <MenuDialog onClose={handlePasswordDialogClose} open={isPasswordDialogOpen}>
                 <DialogContent>
                     <div
                         style={{
