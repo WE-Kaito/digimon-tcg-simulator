@@ -26,15 +26,15 @@ function App() {
     const setParticlesInitialized = useGeneralStates((state) => state.setParticlesInitialized);
 
     useEffect(() => {
-        me();
+        void me();
     }, [me]);
 
     useEffect(() => {
-        fetchCards();
+        void fetchCards();
     }, [fetchCards]);
 
     useEffect(() => {
-        if (user.length && user !== "anonymousUser") fetchDecks();
+        if (user.length && user !== "anonymousUser") void fetchDecks();
     }, [fetchDecks, user]);
 
     useEffect(() => {

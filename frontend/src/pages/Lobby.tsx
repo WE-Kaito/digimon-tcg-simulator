@@ -16,9 +16,7 @@ import { useGameBoardStates } from "../hooks/useGameBoardStates.ts";
 import { useSound } from "../hooks/useSound.ts";
 import { useNavigate, useParams } from "react-router-dom";
 import SoundBar from "../components/SoundBar.tsx";
-import { DeckType } from "../utils/types.ts";
 import DeckPanel from "../components/deckPanel/DeckPanel.tsx";
-import axios from "axios";
 import MenuDialog from "../components/MenuDialog.tsx";
 import Chat, { ChatMessage } from "../components/lobby/Chat.tsx";
 import { profilePicture } from "../utils/avatars.ts";
@@ -108,6 +106,8 @@ export default function Lobby() {
     const setActiveDeck = useGeneralStates((state) => state.setActiveDeck);
     const activeDeckId = useGeneralStates((state) => state.activeDeckId);
     const getActiveDeck = useGeneralStates((state) => state.getActiveDeck);
+    const isActiveDeckLoaded = useGeneralStates((state) => state.isActiveDeckLoaded);
+    const isActiveDeckChanging = useGeneralStates((state) => state.isActiveDeckChanging);
     const activeDeckReadyState = useGeneralStates((state) => state.activeDeckReadyState);
 
     const setIsRematch = useGameUIStates((state) => state.setIsRematch);
@@ -138,8 +138,6 @@ export default function Lobby() {
     const [userCountQuickPlay, setUserCountQuickPlay] = useState<number>(0);
     const [isRejoinable, setIsRejoinable] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
-    const [deckObject, setDeckObject] = useState<DeckType | null>(null);
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<ChatMessage[]>([]);
@@ -450,7 +448,7 @@ export default function Lobby() {
     }, [joinedRoom?.id, linkedRoomId, websocket.readyState, websocket.sendMessage]);
 
     function handleDeckChange(event: ChangeEvent<HTMLSelectElement>) {
-        setActiveDeck(String(event.target.value)); // TODO: check if backend checks validity on each change:
+        void setActiveDeck(String(event.target.value));
     }
 
     function handleCreateRoom() {
@@ -589,7 +587,7 @@ export default function Lobby() {
         getActiveDeck();
     }, [getActiveDeck]);
     useEffect(() => {
-        initialFetch();
+        void initialFetch();
     }, [initialFetch]);
 
     useEffect(() => {
@@ -610,14 +608,6 @@ export default function Lobby() {
     }, []);
 
     useEffect(() => {
-        if (!activeDeckId || activeDeckId.includes("<html")) return;
-        axios
-            .get(`/api/profile/decks/${activeDeckId}`)
-            .then((res) => setDeckObject(res.data as DeckType))
-            .catch(console.error);
-    }, [activeDeckId]);
-
-    useEffect(() => {
         const handleBeforeUnload = () => {
             if (joinedRoom) websocket.sendMessage("/leave:" + joinedRoom.id + ":" + user + ":false");
         };
@@ -627,6 +617,8 @@ export default function Lobby() {
     }, [joinedRoom, user, websocket]);
 
     const meInRoom = joinedRoom?.players.find((p) => p.name === user);
+    const deckObject = decks.find((deck) => deck.id === activeDeckId) ?? null;
+    const isActiveDeckConfirmed = isActiveDeckLoaded && !isActiveDeckChanging && deckObject !== null;
     // Todo: add restriction to room creation and disable here if it matches
     const startGameDisabled =
         activeDeckReadyState === DeckReadySate.NOT_FULL ||
@@ -651,6 +643,7 @@ export default function Lobby() {
                 icon: <CheckIcon fontSize="small" />,
                 variant: "primary",
                 onClick: () => handleGameInviteResponse(inviter, true),
+                disabled: !isActiveDeckConfirmed,
             },
             {
                 label: "Decline",
@@ -700,7 +693,7 @@ export default function Lobby() {
                             }}
                         />
                         <Button
-                            disabled={!password}
+                            disabled={!password || !isActiveDeckConfirmed}
                             onClick={handleJoinRoomWithPassword}
                             style={{ width: "50%", minWidth: 100, background: "#1C7540FF" }}
                         >
@@ -845,7 +838,7 @@ export default function Lobby() {
                                 <Button onClick={handleReturnToGame}>RETURN TO GAME</Button>
                             ) : joinedRoom ? (
                                 user === joinedRoom.hostName ? (
-                                    <Button disabled={startGameDisabled} onClick={handleStartGame}>
+                                    <Button disabled={startGameDisabled || !isActiveDeckConfirmed} onClick={handleStartGame}>
                                         START GAME
                                     </Button>
                                 ) : (
@@ -853,6 +846,7 @@ export default function Lobby() {
                                         // Todo: incorporate restriction check to disabled
                                         disabled={
                                             activeDeckReadyState === DeckReadySate.NOT_FULL ||
+                                            !isActiveDeckConfirmed ||
                                             (joinedRoom.restrictionsApplied &&
                                                 activeDeckReadyState === DeckReadySate.VIOLATES_RESTRICTIONS)
                                         }
@@ -864,7 +858,11 @@ export default function Lobby() {
                                 )
                             ) : (
                                 <QuickPlayButton
-                                    disabled={isLoading || activeDeckReadyState === DeckReadySate.NOT_FULL}
+                                    disabled={
+                                        isLoading ||
+                                        !isActiveDeckConfirmed ||
+                                        activeDeckReadyState === DeckReadySate.NOT_FULL
+                                    }
                                     onClick={handleQuickPlay}
                                     isSearchingGame={isSearchingGame}
                                 >
@@ -955,7 +953,10 @@ export default function Lobby() {
                                                 </StyledSpan>
                                                 {room.restrictionsApplied ? <RestrictionsAppliedIcon /> : <div />}
                                                 {room.hasPassword ? <PrivateIcon /> : <div />}
-                                                <Button disabled={isLoading} onClick={() => handleJoinRoom(room.id)}>
+                                                <Button
+                                                    disabled={isLoading || !isActiveDeckConfirmed}
+                                                    onClick={() => handleJoinRoom(room.id)}
+                                                >
                                                     Join
                                                 </Button>
                                             </RoomTile>
@@ -1013,7 +1014,11 @@ export default function Lobby() {
                             <Select
                                 value={activeDeckId}
                                 onChange={handleDeckChange}
-                                disabled={(!!meInRoom?.ready && joinedRoom?.hostName !== user) || isSearchingGame}
+                                disabled={
+                                    isActiveDeckChanging ||
+                                    (!!meInRoom?.ready && joinedRoom?.hostName !== user) ||
+                                    isSearchingGame
+                                }
                             >
                                 {decks.map((deck) => (
                                     <option value={deck.id} key={deck.id}>
@@ -1399,6 +1404,10 @@ const QuickPlayButton = styled(Button)<{ isSearchingGame: boolean }>`
         background: var(
             ${({ isSearchingGame }) => (isSearchingGame ? "--orange-button-bg-active" : "--blue-button-bg-active")}
         );
+    }
+
+    &:disabled {
+        background: #27292d;
     }
 
     @media (max-width: 499px) {

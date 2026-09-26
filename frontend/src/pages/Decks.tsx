@@ -45,7 +45,7 @@ export default function Decks() {
 
     const stableLoadOrderedDecks = useCallback(() => loadOrderedDecks(setOrderedDecks), [loadOrderedDecks]);
     useLayoutEffect(() => {
-        stableLoadOrderedDecks();
+        void stableLoadOrderedDecks();
     }, [stableLoadOrderedDecks]);
 
     useLayoutEffect(() => {
