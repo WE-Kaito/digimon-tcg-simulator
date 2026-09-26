@@ -12,7 +12,9 @@ import { returnToLobby } from "../utils/returnToLobby.ts";
 import { EffectTargetEvent, isSelfEffectTarget, orientEffectLocation } from "../utils/effectTargeting.ts";
 
 const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-const websocketURL = `${websocketProtocol}//${window.location.host}/api/ws/game`;
+const websocketURL = import.meta.env.DEV
+    ? `${websocketProtocol}//${window.location.hostname}:8080/api/ws/game`
+    : `${websocketProtocol}//${window.location.host}/api/ws/game`;
 
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;

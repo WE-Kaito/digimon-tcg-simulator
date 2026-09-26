@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { useGameBoardStates } from "../../hooks/useGameBoardStates.ts";
 import { useGameUIStates } from "../../hooks/useGameUIStates.ts";
 import EffectTargetCursor from "./EffectTargetCursor.tsx";
 
@@ -41,4 +42,29 @@ describe("EffectTargetCursor", () => {
 
         expect(useGameUIStates.getState().effectTargeting).toBeNull();
     });
+
+    it("conceals a revealed hand source when targeting is cancelled", () => {
+        useGameBoardStates.setState({
+            myHand: [{ id: "source-card", name: "Agumon", isFaceUp: true }],
+        } as never);
+        useGameUIStates.getState().startEffectTargeting({
+            sourceCardId: "source-card",
+            sourceLocation: "myHand",
+            sourceName: "Agumon",
+            timing: "On Play",
+            effectText: "Select another card.",
+        });
+        const sendMessage = vi.fn();
+        render(
+            <EffectTargetCursor
+                wsUtils={{ matchInfo: { gameId: "game", user: "test", opponentName: "Chrome" }, sendMessage } as never}
+            />
+        );
+
+        act(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
+
+        expect(useGameBoardStates.getState().myHand[0].isFaceUp).toBe(false);
+        expect(sendMessage).toHaveBeenCalledWith("game:/flipCard:source-card:myHand");
+    });
+
 });

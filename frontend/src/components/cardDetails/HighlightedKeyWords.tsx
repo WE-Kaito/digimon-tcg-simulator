@@ -38,10 +38,13 @@ export default function HighlightedKeyWords({
                 : EMPTY_SOURCE_CARDS) as CardTypeGame[]
     );
     const sourceIsTamer = tamerLocations.includes(sourceLocation);
-    const sourceIsTopCard =
-        selectedCard?.id === (sourceIsTamer ? sourceCards.at(0)?.id : sourceCards.at(-1)?.id);
+    const sourceIsInHand = sourceLocation === "myHand";
+    const sourceIsTopCard = sourceIsInHand
+        ? sourceCards.some((card) => card.id === selectedCard?.id)
+        : selectedCard?.id === (sourceIsTamer ? sourceCards.at(0)?.id : sourceCards.at(-1)?.id);
     const sourceIsFaceUp = Boolean(selectedCard && "isFaceUp" in selectedCard && selectedCard.isFaceUp);
-    const sourceIsOnMyField = sourceLocation === "myBreedingArea" || /^myDigi(?:[1-9]|1\d|2[01])$/.test(sourceLocation);
+    const sourceIsOnMyField =
+        sourceIsInHand || sourceLocation === "myBreedingArea" || /^myDigi(?:[1-9]|1\d|2[01])$/.test(sourceLocation);
     const detailsMatchSelection = !hoverCard || hoverCard.id === selectedCard?.id;
     const canStartTargeting =
         (location.pathname === "/game" || location.pathname === "/test") &&
