@@ -12,7 +12,7 @@ type Props = {
 
 export function EffectCard({ children, variant }: Props) {
     const location = useLocation();
-    const inGame = location.pathname === "/game";
+    const inGame = location.pathname.startsWith("/game");
     const isInheritCardInfo = variant === EffectVariant.INHERITED_FROM_DIGIVOLUTION_CARDS;
 
     return (
@@ -57,7 +57,7 @@ export function EffectCard({ children, variant }: Props) {
 }
 
 export function RuleEffectCard({ ruleText }: { ruleText: string }) {
-    const inGame = location.pathname === "/game";
+    const inGame = location.pathname.startsWith("/game");
 
     return (
         <Wrapper style={{ background: "rgba(255, 255, 255, 0.675)" }}>

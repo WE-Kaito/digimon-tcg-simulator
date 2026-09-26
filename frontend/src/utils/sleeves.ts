@@ -75,6 +75,8 @@ import jijimon from "../assets/sleeves/main/BT11_056_JIJIMON_ARTIST_SHOWDOWN.png
 import darkknightmon from "../assets/sleeves/main/BT7_063_DARKKNIGHTMON.png";
 import hanimon from "../assets/sleeves/main/EX9_024_HANIMON.png";
 import gomamon from "../assets/sleeves/main/BT7_018_GOMAMON.png";
+import wankomon from "../assets/sleeves/main/EX12_009_WANKOMON.png";
+import pristimon from "../assets/sleeves/main/ST23_10_PRISTIMON.png";
 import justimon from "../assets/sleeves/main/justimon.png";
 import sanzomon from "../assets/sleeves/main/sanzomon.png";
 import vemmon from "../assets/sleeves/main/vemmon.png";
@@ -221,6 +223,8 @@ export const sleeves: Picture[] = [
     { name: "Darkknightmon", imagePath: darkknightmon, artist: "Drak" },
     { name: "Hanimon", imagePath: hanimon, artist: "Drak" },
     { name: "Gomamon", imagePath: gomamon, artist: "Drak" },
+    { name: "Wankomon", imagePath: wankomon, artist: "Drak" },
+    { name: "Pristimon 2", imagePath: pristimon, artist: "Drak" },
     { name: "Deputymon", imagePath: deputymon, artist: "TicoSanchezz" },
     { name: "Justimon", imagePath: justimon, artist: "TicoSanchezz" },
     { name: "Sanzomon", imagePath: sanzomon, artist: "TicoSanchezz" },
@@ -240,7 +244,7 @@ export const sleeves: Picture[] = [
     { name: "Elecmon", imagePath: elecmon, artist: "Drak" },
     { name: "Pillomon", imagePath: pillomon, artist: "Drak" },
     { name: "AlturBallistamon", imagePath: alturBallistamon8bit, artist: "gigadrillx" },
-    { name: "Jellymon", imagePath: jellymon8bit, artist: "gigadrillx" },
+    { name: "Jellymon 2", imagePath: jellymon8bit, artist: "gigadrillx" },
     { name: "Kakamon", imagePath: kakamon8bit, artist: "gigadrillx" },
     { name: "Minervamon", imagePath: minervamon8bit, artist: "gigadrillx" },
     { name: "Parasaurmon", imagePath: parasaurmon8bit, artist: "gigadrillx" },

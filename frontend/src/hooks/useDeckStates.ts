@@ -182,10 +182,14 @@ export const useDeckStates = create<State>((set, get) => ({
         axios
             .get("/api/profile/decks")
             .then((res) => res.data)
-            .catch(console.error)
+            .catch((error) => {
+                console.error(error);
+                return [];
+            })
             .then((data) => {
                 set({ decks: data });
             })
+            .catch(console.error)
             .finally(() => set({ isLoading: false }));
     },
 
@@ -193,15 +197,15 @@ export const useDeckStates = create<State>((set, get) => ({
         set({ isLoading: true });
         axios
             .get("/api/profile/cards")
-            .then((res) => res.data)
-            .catch(console.error)
-            .then((data) => set({ fetchedCards: data.map((card: CardType) => ({ ...card, id: uid() })) }))
+            .then((res) => {
+                if (!Array.isArray(res.data)) throw new Error("Card API returned a non-array response");
+                set({ fetchedCards: res.data.map((card: CardType) => ({ ...card, id: uid() })) });
+            })
             .then(() =>
-                axios
-                    .get("/api/profile/decks")
-                    .then((res) => res.data)
-                    .catch(console.error)
-                    .then((data) => set({ decks: data }))
+                axios.get("/api/profile/decks").then((res) => {
+                    if (!Array.isArray(res.data)) throw new Error("Deck API returned a non-array response");
+                    set({ decks: res.data });
+                })
             )
             .then(() => {
                 const savedDeckIdOrder: string[] | null = JSON.parse(localStorage.getItem("deckIdOrder") ?? "null");
@@ -220,6 +224,7 @@ export const useDeckStates = create<State>((set, get) => ({
 
                 setOrderedDecks([...orderedDecks, ...newDecks]);
             })
+            .catch(console.error)
             .finally(() => set({ isLoading: false }));
     },
 
@@ -238,10 +243,9 @@ export const useDeckStates = create<State>((set, get) => ({
         set({ isLoading: true });
         axios
             .get("/api/profile/cards")
-            .then((res) => res.data)
-            .catch(console.error)
-            .then((data) => {
-                const cardsWithId: CardTypeWithId[] = data.map((card: CardType) => ({
+            .then((res) => {
+                if (!Array.isArray(res.data)) throw new Error("Card API returned a non-array response");
+                const cardsWithId: CardTypeWithId[] = res.data.map((card: CardType) => ({
                     ...card,
                     id: uid(),
                 }));
@@ -250,6 +254,7 @@ export const useDeckStates = create<State>((set, get) => ({
                     filteredCards: cardsWithId,
                 });
             })
+            .catch(console.error)
             .finally(() => set({ isLoading: false }));
     },
 

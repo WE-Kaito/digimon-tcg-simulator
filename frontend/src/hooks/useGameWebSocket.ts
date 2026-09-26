@@ -6,12 +6,15 @@ import { useGameBoardStates } from "./useGameBoardStates.ts";
 import { useGeneralStates } from "./useGeneralStates.ts";
 import { useSound } from "./useSound.ts";
 import { useGameUIStates } from "./useGameUIStates.ts";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { returnToLobby } from "../utils/returnToLobby.ts";
+import { EffectTargetEvent, isSelfEffectTarget, orientEffectLocation } from "../utils/effectTargeting.ts";
 
-const currentPort = window.location.port;
-const currentUrl = window.location.origin.replace("https://", "");
-// TODO: using www.project-drasil.online as the domain is not working, need a fix
-const websocketURL =
-    currentPort === "5173" ? "ws://localhost:8080/api/ws/game" : "wss://" + currentUrl + "/api/ws/game";
+const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+const websocketURL = import.meta.env.DEV
+    ? `${websocketProtocol}//${window.location.hostname}:8080/api/ws/game`
+    : `${websocketProtocol}//${window.location.host}/api/ws/game`;
 
 type UseGameWebSocketProps = {
     clearAttackAnimation: (() => void) | null;
@@ -20,6 +23,8 @@ type UseGameWebSocketProps = {
 
 type UseGameWebSocketReturn = {
     sendMessage: SendMessage;
+    isGameReady: boolean;
+    opponentName: string;
 };
 
 function getValidOffset(fieldNumber: number, currentOffset: number) {
@@ -47,6 +52,9 @@ function getValidOffset(fieldNumber: number, currentOffset: number) {
  */
 export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameWebSocketReturn {
     const { clearAttackAnimation, restartAttackAnimation } = props;
+    const navigate = useNavigate();
+    const [isGameReady, setIsGameReady] = useState(false);
+    const [opponentName, setOpponentName] = useState("");
 
     const user = useGeneralStates((state) => state.user);
 
@@ -55,9 +63,12 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const setRestartPromptModal = useGameUIStates((state) => state.setRestartPromptModal);
     const isRematch = useGameUIStates((state) => state.isRematch);
     const setIsRematch = useGameUIStates((state) => state.setIsRematch);
+    const setEndedBySurrender = useGameUIStates((state) => state.setEndedBySurrender);
     const setIsEndDialogOpen = useGameUIStates((state) => state.setIsEndDialogOpen);
     const setEndDialogText = useGameUIStates((state) => state.setEndDialogText);
     const setOpponentEmote = useGameUIStates((state) => state.setOpponentEmote);
+    const setIsResolvingEffects = useGameUIStates((state) => state.setIsResolvingEffects);
+    const setIsOpponentResolvingEffects = useGameUIStates((state) => state.setIsOpponentResolvingEffects);
 
     const gameId = useGameBoardStates((state) => state.gameId);
     const setGameId = useGameBoardStates((state) => state.setGameId);
@@ -84,16 +95,16 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const unsuspendAll = useGameBoardStates((state) => state.unsuspendAll);
     const setStartingPlayer = useGameBoardStates((state) => state.setStartingPlayer);
     const setIsOpponentOnline = useGameBoardStates((state) => state.setIsOpponentOnline);
+    const setOpponentReconnectDeadline = useGameBoardStates((state) => state.setOpponentReconnectDeadline);
     const flipCard = useGameBoardStates((state) => state.flipCard);
 
     const setArrowFrom = useGameUIStates((state) => state.setArrowFrom);
     const setArrowTo = useGameUIStates((state) => state.setArrowTo);
     const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
     const fieldOffset = useGameUIStates((state) => state.fieldOffset);
+    const opponentFieldOffset = useGameUIStates((state) => state.opponentFieldOffset);
     const setFieldOffset = useGameUIStates((state) => state.setFieldOffset);
     const setOpponentFieldOffset = useGameUIStates((state) => state.setOpponentFieldOffset);
-
-    const opponentName = gameId.split("‗").filter((username) => username !== user)[0];
 
     const playCoinFlipSfx = useSound((state) => state.playCoinFlipSfx);
     const playButtonClickSfx = useSound((state) => state.playButtonClickSfx);
@@ -108,6 +119,8 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
     const playTrashCardSfx = useSound((state) => state.playTrashCardSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
     const playRematchSfx = useSound((state) => state.playRematchSfx);
+    const playActivateEffectSfx = useSound((state) => state.playActivateEffectSfx);
+    const playTargetCardSfx = useSound((state) => state.playTargetCardSfx);
 
     function clearCardEffect() {
         const timer = setTimeout(() => setCardIdWithEffect(""), 2600);
@@ -125,10 +138,28 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
         onOpen: () => websocket.sendMessage("/joinGame:" + gameId),
 
         onMessage: (event) => {
+            if (event.data.startsWith("[GAME_JOINED]:")) {
+                setOpponentName(event.data.substring("[GAME_JOINED]:".length));
+                setIsGameReady(true);
+                return;
+            }
+
+            if (event.data === "[GAME_JOIN_REJECTED]") {
+                setIsGameReady(false);
+                clearBoard();
+                setGameId("");
+                notifyInfo("That game is no longer available. Return to the lobby to start or rejoin a match.");
+                navigate("/", { replace: true });
+                return;
+            }
+
             if (event.data === "[START_GAME]") {
+                setEndedBySurrender(false);
                 setStartingPlayer("");
                 setMyAttackPhase(false);
                 setOpponentAttackPhase(false);
+                setIsResolvingEffects(false);
+                setIsOpponentResolvingEffects(false);
                 return;
             }
 
@@ -142,7 +173,6 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[BOARD_STATE]:")) {
                 const boardStateJson = event.data.substring("[BOARD_STATE]:".length);
                 distributeCards(user, boardStateJson, () => undefined);
-                setOpenedCardDialog(false);
                 return;
             }
 
@@ -256,6 +286,69 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                 return;
             }
 
+            if (event.data.startsWith("[EFFECT_TARGET]:")) {
+                try {
+                    const effectTargetEvent: EffectTargetEvent = JSON.parse(
+                        event.data.substring("[EFFECT_TARGET]:".length)
+                    );
+                    const sourceLocation = orientEffectLocation(
+                        effectTargetEvent.sourceLocation,
+                        effectTargetEvent.sender,
+                        user
+                    );
+                    const targetLocation = orientEffectLocation(
+                        effectTargetEvent.targetLocation,
+                        effectTargetEvent.sender,
+                        user
+                    );
+
+                    setCardIdWithEffect(effectTargetEvent.sourceCardId);
+                    setCardIdWithTarget(effectTargetEvent.targetCardId);
+                    clearCardEffect();
+                    clearCardTarget();
+                    playActivateEffectSfx();
+                    playTargetCardSfx();
+
+                    clearAttackAnimation?.();
+                    if (isSelfEffectTarget(effectTargetEvent)) {
+                        setArrowFrom("");
+                        setArrowTo("");
+                        setIsEffectArrow(false);
+                    } else {
+                        setArrowFrom(sourceLocation);
+                        setArrowTo(targetLocation);
+                        setIsEffectArrow(true);
+                        restartAttackAnimation(true);
+                    }
+
+                    const sourceMatch = sourceLocation.match(/\d+/);
+                    const targetMatch = targetLocation.match(/\d+/);
+                    if (sourceMatch?.[0]) {
+                        const sourceField = Number(sourceMatch[0]);
+                        if (sourceLocation.startsWith("opponent")) {
+                            setOpponentFieldOffset(getValidOffset(sourceField, opponentFieldOffset));
+                        } else {
+                            setFieldOffset(getValidOffset(sourceField, fieldOffset));
+                        }
+                    }
+                    if (targetMatch?.[0]) {
+                        const targetField = Number(targetMatch[0]);
+                        if (targetLocation.startsWith("opponent")) {
+                            setOpponentFieldOffset(getValidOffset(targetField, opponentFieldOffset));
+                        } else {
+                            setFieldOffset(getValidOffset(targetField, fieldOffset));
+                        }
+                    }
+
+                    setMessages(
+                        `${effectTargetEvent.sender}﹕[EFFECT_TARGET]≔${JSON.stringify(effectTargetEvent)}`
+                    );
+                } catch (error) {
+                    console.warn("Failed to parse effect target event:", error);
+                }
+                return;
+            }
+
             if (event.data.startsWith("[UPDATE_MEMORY]:")) {
                 const newMemory = event.data.substring("[UPDATE_MEMORY]:".length);
                 setMemory(parseInt(newMemory));
@@ -282,6 +375,18 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
             if (event.data.startsWith("[EMOTE]:")) {
                 const emote = event.data.substring("[EMOTE]:".length);
                 setOpponentEmote(emote);
+                return;
+            }
+
+            if (event.data.startsWith("[RESOLVING_EFFECTS]:")) {
+                const resolvingEffects = event.data.substring("[RESOLVING_EFFECTS]:".length) === "true";
+                if (!resolvingEffects) setOpponentEmote(null);
+                setIsOpponentResolvingEffects(resolvingEffects);
+                return;
+            }
+
+            if (event.data.startsWith("[MY_RESOLVING_EFFECTS]:")) {
+                setIsResolvingEffects(event.data.substring("[MY_RESOLVING_EFFECTS]:".length) === "true");
                 return;
             }
 
@@ -392,9 +497,15 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     break;
                 }
                 case "[SURRENDER]": {
+                    setEndedBySurrender(true);
+                    setRestartPromptModal(false);
                     setGameId("");
                     setIsEndDialogOpen(true);
                     setEndDialogText("🎉 Your opponent surrendered!");
+                    break;
+                }
+                case "[RETURN_TO_LOBBY]": {
+                    returnToLobby(navigate);
                     break;
                 }
                 case "[SECURITY_VIEWED]": {
@@ -432,20 +543,37 @@ export default function useGameWebSocket(props: UseGameWebSocketProps): UseGameW
                     unsuspendAll(SIDE.OPPONENT);
                     break;
                 }
-                case "[OPPONENT_DISCONNECTED]": {
-                    setIsOpponentOnline(false);
-                    break;
-                }
                 case "[OPPONENT_RECONNECTED]": {
                     setIsOpponentOnline(true);
+                    setOpponentReconnectDeadline(null);
                     break;
                 }
                 default: {
+                    if (event.data.startsWith("[OPPONENT_DISCONNECTED]")) {
+                        const deadline = Number(event.data.split(":", 2)[1]);
+                        setIsOpponentOnline(false);
+                        setIsOpponentResolvingEffects(false);
+                        setOpponentReconnectDeadline(
+                            Number.isFinite(deadline) ? deadline : Date.now() + 2 * 60 * 1000
+                        );
+                    }
+                    if (event.data.startsWith("[PLAYER_RETURNED_TO_LOBBY]:")) {
+                        const player = event.data.substring("[PLAYER_RETURNED_TO_LOBBY]:".length);
+                        setIsEndDialogOpen(true);
+                        setEndDialogText(`${player} has returned to the lobby.`);
+                    }
                     break;
                 }
             }
         },
     });
 
-    return { sendMessage: websocket.sendMessage };
+    useEffect(
+        () => () => {
+            setIsResolvingEffects(false);
+            setIsOpponentResolvingEffects(false);
+        }, [setIsOpponentResolvingEffects, setIsResolvingEffects]
+    );
+
+    return { sendMessage: websocket.sendMessage, isGameReady, opponentName };
 }

@@ -16,6 +16,20 @@ export enum Emote {
     BAFFLED = "baffled",
 }
 
+export type EffectTargeting = {
+    sourceCardId: string;
+    effectSourceCardId?: string;
+    sourceLocation: string;
+    sourceName: string;
+    timing: string;
+    effectText: string;
+};
+
+export type HandCardPlacement = {
+    cardId: string;
+    cardName: string;
+};
+
 type State = {
     isStackDragMode: boolean;
     setIsStackDragMode: (isStackDragMode: boolean) => void;
@@ -34,6 +48,9 @@ type State = {
 
     isRematch: boolean;
     setIsRematch: (isRematch: boolean) => void;
+
+    endedBySurrender: boolean;
+    setEndedBySurrender: (endedBySurrender: boolean) => void;
 
     isEndDialogOpen: boolean; // TODO: Refactor to one dialog state like openedCardDialog, to avoid multiple dialogs
     setIsEndDialogOpen: (open: boolean) => void;
@@ -71,6 +88,12 @@ type State = {
     opponentEmote: Emote | null;
     setOpponentEmote: (emote: Emote | null) => void;
 
+    isResolvingEffects: boolean;
+    setIsResolvingEffects: (isResolvingEffects: boolean) => void;
+
+    isOpponentResolvingEffects: boolean;
+    setIsOpponentResolvingEffects: (isOpponentResolvingEffects: boolean) => void;
+
     fieldOffset: number;
     setFieldOffset: (offset: number) => void;
 
@@ -79,6 +102,13 @@ type State = {
 
     showSecuritySendButtons: boolean;
     setShowSecuritySendButtons: (show: boolean) => void;
+
+    effectTargeting: EffectTargeting | null;
+    startEffectTargeting: (targeting: EffectTargeting) => void;
+    cancelEffectTargeting: () => void;
+    handCardPlacement: HandCardPlacement | null;
+    startHandCardPlacement: (placement: HandCardPlacement) => void;
+    cancelHandCardPlacement: () => void;
 };
 
 export const useGameUIStates = create<State>((set) => ({
@@ -99,6 +129,9 @@ export const useGameUIStates = create<State>((set) => ({
 
     isRematch: false,
     setIsRematch: (isRematch) => set({ isRematch }),
+
+    endedBySurrender: false,
+    setEndedBySurrender: (endedBySurrender) => set({ endedBySurrender }),
 
     isEndDialogOpen: false,
     setIsEndDialogOpen: (open) => set({ isEndDialogOpen: open }),
@@ -136,6 +169,12 @@ export const useGameUIStates = create<State>((set) => ({
         setTimeout(() => set({ opponentEmote: null }), 5000);
     },
 
+    isResolvingEffects: false,
+    setIsResolvingEffects: (isResolvingEffects) => set({ isResolvingEffects }),
+
+    isOpponentResolvingEffects: false,
+    setIsOpponentResolvingEffects: (isOpponentResolvingEffects) => set({ isOpponentResolvingEffects }),
+
     fieldOffset: 0,
     setFieldOffset: (offset) => set({ fieldOffset: Math.max(0, Math.min(8, offset)) }),
 
@@ -144,4 +183,11 @@ export const useGameUIStates = create<State>((set) => ({
 
     showSecuritySendButtons: false,
     setShowSecuritySendButtons: (showSecuritySendButtons) => set({ showSecuritySendButtons }),
+
+    effectTargeting: null,
+    startEffectTargeting: (effectTargeting) => set({ effectTargeting }),
+    cancelEffectTargeting: () => set({ effectTargeting: null }),
+    handCardPlacement: null,
+    startHandCardPlacement: (handCardPlacement) => set({ handCardPlacement }),
+    cancelHandCardPlacement: () => set({ handCardPlacement: null }),
 }));

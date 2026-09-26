@@ -15,9 +15,9 @@ import {
     PreviewRounded as StreamerModeIcon,
     LabelImportant as MarkerIcon,
 } from "@mui/icons-material";
-import { CSSProperties } from "react";
+import { CSSProperties, useCallback, useEffect, useRef } from "react";
 import ModifierMenu from "./ModifierMenu.tsx";
-import { convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
+import { cardTypesWithModifiers, convertForLog, numbersWithModifiers } from "../../../utils/functions.ts";
 import { useGeneralStates } from "../../../hooks/useGeneralStates.ts";
 import { tamerLocations, useGameBoardStates } from "../../../hooks/useGameBoardStates.ts";
 import { useSound } from "../../../hooks/useSound.ts";
@@ -25,15 +25,38 @@ import { CardModifiers, CardTypeGame, FieldCardContextMenuItemProps } from "../.
 import "react-contexify/dist/ReactContexify.css";
 import { WSUtils } from "../../../pages/GamePage.tsx";
 import { OpenedCardDialog, useGameUIStates } from "../../../hooks/useGameUIStates.ts";
+import { parseEffectTimingGroups } from "../../../utils/effectTiming.ts";
 
 export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
+    const previousPageOverflow = useRef<{ body: string; document: string } | null>(null);
+
+    const setPageScrollLocked = useCallback((isLocked: boolean) => {
+        if (isLocked && !previousPageOverflow.current) {
+            previousPageOverflow.current = {
+                body: document.body.style.overflow,
+                document: document.documentElement.style.overflow,
+            };
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
+        } else if (!isLocked && previousPageOverflow.current) {
+            document.body.style.overflow = previousPageOverflow.current.body;
+            document.documentElement.style.overflow = previousPageOverflow.current.document;
+            previousPageOverflow.current = null;
+        }
+    }, []);
+
+    useEffect(() => () => setPageScrollLocked(false), [setPageScrollLocked]);
+
     const { sendMessage, sendChatMessage, sendSfx, matchInfo, sendMoveCard } = wsUtils ?? {};
 
     const selectedCard = useGeneralStates((state) => state.selectedCard);
+    const selectCard = useGeneralStates((state) => state.selectCard);
+    const setHoverCard = useGeneralStates((state) => state.setHoverCard);
 
     const openedCardDialog = useGameUIStates((state) => state.openedCardDialog);
     const setOpenedCardDialog = useGameUIStates((state) => state.setOpenedCardDialog);
     const setStackDialog = useGameUIStates((state) => state.setStackDialog);
+    const startEffectTargeting = useGameUIStates((state) => state.startEffectTargeting);
 
     const cardToSend = useGameBoardStates((state) => state.cardToSend);
     const mySecurity = useGameBoardStates((state) => state.mySecurity);
@@ -67,7 +90,8 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
     const playModifyCardSfx = useSound((state) => state.playModifyCardSfx);
 
     const hasModifierMenu =
-        contextCard?.cardType === "Digimon" || numbersWithModifiers.includes(String(contextCard?.cardNumber));
+        cardTypesWithModifiers.includes(String(contextCard?.cardType)) ||
+        numbersWithModifiers.includes(String(contextCard?.cardNumber));
     const isTamer = contextCard?.cardType.includes("Tamer") ?? false;
     const isStunned = contextCard?.modifiers.keywords.includes("SICK") ?? false;
     const hideMenuItemStyle = hasModifierMenu ? {} : { visibility: "hidden", position: "absolute" };
@@ -159,6 +183,46 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
         return () => clearTimeout(timer);
     }
 
+    function activateEffectFromHand(params: ItemParams<FieldCardContextMenuItemProps>) {
+        const { props } = params;
+        if (!props || !contextCard || props.location !== "myHand") return;
+
+        if (!contextCard.isFaceUp) handleFlipCard(params);
+        selectCard(contextCard);
+        setHoverCard(null);
+        activateEffectAnimation(params);
+
+        const isOptionCard = contextCard.cardType.includes("Option");
+        const isDualDigimonOption = isOptionCard && contextCard.cardType.includes("Digimon");
+        // Normal Option cards from older card data store their rules text in
+        // mainEffect, while dual Digimon/Option cards use optionCardEffect for
+        // the Option half. Keep the dual-card restriction, but support both
+        // representations for regular Options.
+        const effectTexts = isDualDigimonOption
+            ? [contextCard.optionCardEffect]
+            : isOptionCard
+              ? [contextCard.optionCardEffect, contextCard.mainEffect]
+              : [contextCard.mainEffect, contextCard.dualEffect];
+        const effect = effectTexts
+            .filter((text): text is string => Boolean(text))
+            .flatMap(parseEffectTimingGroups)
+            .find((group) => group.timings.length > 0);
+
+        // Some imported cards use full-width timing brackets or omit the
+        // timing marker entirely. Activation should still enter targeting
+        // mode rather than silently doing nothing; use Main as the neutral
+        // fallback for those cards.
+        const rawEffect = effectTexts.find((text): text is string => Boolean(text));
+        if (!rawEffect && !effect) return;
+        startEffectTargeting({
+            sourceCardId: contextCard.id,
+            sourceLocation: "myHand",
+            sourceName: contextCard.name,
+            timing: effect?.timings[0] ?? "Main",
+            effectText: effect?.effectText ?? rawEffect!.replace(/＜|＞/g, "").trim(),
+        });
+    }
+
     function activateTargetAnimation({ props }: ItemParams<FieldCardContextMenuItemProps>) {
         if (props === undefined) return;
         const { name, id, location } = props;
@@ -229,6 +293,12 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
             </StyledMenu>
 
             <StyledMenu id={"handCardMenu"} theme="dark">
+                <Item onClick={activateEffectFromHand}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span>Activate Effect</span> <EffectIcon />
+                    </div>
+                </Item>
+                <Separator />
                 <Item onClick={handleFlipCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>{contextCard?.isFaceUp ? "Stop Showing Card" : "Show Card"}</span>{" "}
@@ -244,7 +314,7 @@ export default function ContextMenus({ wsUtils }: { wsUtils?: WSUtils }) {
                 </Item>
             </StyledMenu>
 
-            <StyledMenu id={"fieldCardMenu"} theme="dark">
+            <StyledMenu id={"fieldCardMenu"} theme="dark" onVisibilityChange={setPageScrollLocked}>
                 <Item onClick={activateEffectAnimation}>
                     <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                         <span>Activate Effect</span> <EffectIcon />
