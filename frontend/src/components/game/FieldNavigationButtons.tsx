@@ -87,8 +87,8 @@ export default function FieldNavigationButtons({ side }: FieldNavigationButtonsP
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "2px",
-                transform: "translateY(-2px)",
+                gap: "0.14cqw",
+                transform: "translateY(-0.14cqw)",
             }}
         >
             {isOpponent && (
@@ -106,7 +106,7 @@ export default function FieldNavigationButtons({ side }: FieldNavigationButtonsP
                     hasCards={leftButtonCards}
                     isOpponent={isOpponent}
                 >
-                    <FirstPage sx={{ fontSize: 14 }} />
+                    <FirstPage sx={{ fontSize: "1cqw" }} />
                 </NavigationButton>
 
                 <NavigationButton
@@ -117,7 +117,7 @@ export default function FieldNavigationButtons({ side }: FieldNavigationButtonsP
                     hasCards={leftButtonCards}
                     isOpponent={isOpponent}
                 >
-                    <ChevronLeft sx={{ fontSize: 16 }} />
+                    <ChevronLeft sx={{ fontSize: "1.14cqw" }} />
                 </NavigationButton>
 
                 <NavigationButton
@@ -128,7 +128,7 @@ export default function FieldNavigationButtons({ side }: FieldNavigationButtonsP
                     hasCards={rightButtonCards}
                     isOpponent={isOpponent}
                 >
-                    <ChevronRight sx={{ fontSize: 16 }} />
+                    <ChevronRight sx={{ fontSize: "1.14cqw" }} />
                 </NavigationButton>
 
                 <NavigationButton
@@ -139,7 +139,7 @@ export default function FieldNavigationButtons({ side }: FieldNavigationButtonsP
                     hasCards={rightButtonCards}
                     isOpponent={isOpponent}
                 >
-                    <LastPage sx={{ fontSize: 14 }} />
+                    <LastPage sx={{ fontSize: "1cqw" }} />
                 </NavigationButton>
                 {/*<OffsetIndicator>8</OffsetIndicator>*/}
             </Container>
@@ -155,7 +155,7 @@ export default function FieldNavigationButtons({ side }: FieldNavigationButtonsP
 const Container = styled.div`
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 0.14cqw;
     height: 100%;
     width: 100%;
     justify-content: center;
@@ -182,9 +182,10 @@ const NavigationButton = styled.button<{
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2px;
-    min-width: 20px;
-    height: 20px;
+    padding: 0;
+    min-width: 0;
+    width: 1.2cqw;
+    height: 1.4cqw;
     opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 
     &:hover:not(:disabled) {
@@ -205,10 +206,10 @@ const NavigationButton = styled.button<{
 
 const FieldRangeIndicator = styled.div`
     color: blanchedalmond;
-    font-size: 11px;
+    font-size: 0.78cqw;
     font-weight: bold;
     text-align: center;
-    min-width: 30px;
+    min-width: 0;
     opacity: 0.8;
 `;
 //

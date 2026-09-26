@@ -6,15 +6,23 @@ export default function GameBackground() {
     const colors = useSettingStates((state) => state.backgroundColors);
 
     return (
-        <>
+        <BackgroundFrame>
             <BackGroundPattern />
             <BackGround color1={colors.color1} color2={colors.color2} color3={colors.color3} />
-        </>
+        </BackgroundFrame>
     );
 }
 
-const BackGround = styled.div<{ color1: string; color2: string; color3: string }>`
+const BackgroundFrame = styled.div`
     position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: -1;
+`;
+
+const BackGround = styled.div<{ color1: string; color2: string; color3: string }>`
+    position: absolute;
     top: 0;
     left: 0;
     z-index: -10;
@@ -77,7 +85,7 @@ const BackGround = styled.div<{ color1: string; color2: string; color3: string }
 `;
 
 const BackGroundPattern = styled.div`
-    position: fixed;
+    position: absolute;
     top: -50vh;
     left: -50vw;
     width: 200vw;

@@ -170,7 +170,8 @@ const History = styled.div`
     flex-direction: column-reverse;
     align-items: flex-start;
     justify-content: flex-start;
-    height: 96%;
+    flex: 1;
+    min-height: 0;
     width: 98%;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -197,19 +198,20 @@ const History = styled.div`
 const StyledButton = styled.button`
     padding: 0 2px 2px 0;
     cursor: pointer;
-    width: 32px;
-    height: 32px;
+    flex: 0 0 2.3cqw;
+    width: 2.3cqw;
+    height: 2.3cqw;
     border-radius: 2px 5px 5px 2px;
     background: rgba(14, 252, 252, 0.59);
-    font-size: 24px;
+    font-size: 1.7cqw;
     color: #0e0e0e;
     box-shadow: 2px 2px 2px 0 #262626;
     transition: all 0.15s ease;
 
     img {
         transform: translateY(1px);
-        width: 24px;
-        height: 24px;
+        width: 1.7cqw;
+        height: 1.7cqw;
         pointer-events: none;
     }
 
@@ -234,9 +236,11 @@ const StyledButton = styled.button`
 `;
 
 const StyledInput = styled.input`
-    width: 90%;
+    flex: 1;
+    min-width: 0;
+    width: 0;
     overflow-y: clip;
-    height: 30px;
+    height: 2.15cqw;
     font-family: Frutiger, sans-serif;
     border: none;
     font-size: 1.05em;
@@ -255,6 +259,7 @@ const InputContainer = styled.form`
     width: 98%;
     padding: 1%;
     margin-bottom: 1%;
+    flex-shrink: 0;
     height: fit-content;
     display: flex;
     align-items: flex-end;

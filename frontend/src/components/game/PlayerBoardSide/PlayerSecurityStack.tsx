@@ -299,6 +299,8 @@ const SecuritySpan = styled.span`
 `;
 
 const SecurityAnimationImg = styled.img`
+    max-height: 94%;
+    object-fit: contain;
     width: 85%;
     position: absolute;
     left: 50%;
