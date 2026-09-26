@@ -30,6 +30,8 @@ type State = {
 
     user: string;
     activeDeckId: string;
+    isActiveDeckLoaded: boolean;
+    isActiveDeckChanging: boolean;
     avatarName: string;
 
     login: (userName: string, password: string, navigate: NavigateFunction) => void;
@@ -42,8 +44,8 @@ type State = {
         setRegisterPage: (state: boolean) => void,
         navigate: NavigateFunction
     ) => void;
-    setActiveDeck: (deckId: string) => void;
-    getActiveDeck: () => string;
+    setActiveDeck: (deckId: string) => Promise<boolean>;
+    getActiveDeck: () => Promise<string>;
     setAvatar: (avatarName: string) => void;
     getAvatar: () => string;
 
@@ -64,6 +66,8 @@ export const useGeneralStates = create<State>((set, get) => ({
 
     user: "",
     activeDeckId: "",
+    isActiveDeckLoaded: false,
+    isActiveDeckChanging: false,
     avatarName: "",
     gameId: "",
     usernameForRecovery: "",
@@ -127,23 +131,33 @@ export const useGeneralStates = create<State>((set, get) => ({
         });
     },
 
-    setActiveDeck: (deckId) => {
-        axios
-            .put(`/api/user/active-deck/${deckId}`, null)
-            .catch(console.error)
-            .finally(() => set({ activeDeckId: deckId }));
+    setActiveDeck: async (deckId) => {
+        const previousDeckId = get().activeDeckId;
+        set({ activeDeckId: deckId, isActiveDeckChanging: true });
+
+        try {
+            await axios.put(`/api/user/active-deck/${deckId}`, null);
+            set({ isActiveDeckChanging: false, isActiveDeckLoaded: true });
+            return true;
+        } catch (error) {
+            console.error(error);
+            set({ activeDeckId: previousDeckId, isActiveDeckChanging: false });
+            notifyError("Could not change active deck. Please try again.");
+            return false;
+        }
     },
 
-    getActiveDeck: () => {
-        let activeDeck = "";
-        axios
-            .get("/api/user/active-deck")
-            .then((response) => {
-                set({ activeDeckId: response.data });
-                activeDeck = response.data;
-            })
-            .catch(console.error);
-        return activeDeck;
+    getActiveDeck: async () => {
+        set({ isActiveDeckLoaded: false });
+        try {
+            const response = await axios.get<string>("/api/user/active-deck");
+            set({ activeDeckId: response.data, isActiveDeckLoaded: true });
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            set({ isActiveDeckLoaded: false });
+            return "";
+        }
     },
 
     setAvatar: (avatarName) => {

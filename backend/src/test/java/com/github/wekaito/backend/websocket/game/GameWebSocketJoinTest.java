@@ -41,6 +41,31 @@ class GameWebSocketJoinTest {
     }
 
     @Test
+    void authenticatedThirdUserCannotJoinExistingGameById() throws Exception {
+        GameWebSocket gameWebSocket = new GameWebSocket(null, null, null, event -> {});
+        List<String> messages = new ArrayList<>();
+        WebSocketSession thirdUser = createSession("intruder", messages);
+        GameRoom room = new GameRoom(
+                "550e8400-e29b-41d4-a716-446655440000",
+                new Player("player", "", "", ""),
+                List.of(),
+                List.of(),
+                new Player("opponent", "", "", ""),
+                List.of(),
+                List.of()
+        );
+        gameWebSocket.getGameRooms().put(room.getRoomId(), room);
+
+        gameWebSocket.handleTextMessage(
+                thirdUser,
+                new TextMessage("/joinGame:550e8400-e29b-41d4-a716-446655440000")
+        );
+
+        assertEquals(List.of("[GAME_JOIN_REJECTED]"), messages);
+        assertTrue(room.getSessions().isEmpty());
+    }
+
+    @Test
     void surrenderDestroysGameAndNotifiesOpponent() throws Exception {
         GameWebSocket gameWebSocket = new GameWebSocket(null, null, null, event -> {});
         List<String> surrenderingPlayerMessages = new ArrayList<>();

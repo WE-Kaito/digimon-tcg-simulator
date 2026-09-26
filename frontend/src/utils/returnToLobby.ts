@@ -4,12 +4,12 @@ import { useGameUIStates } from "../hooks/useGameUIStates.ts";
 
 export function returnToLobby(navigate: NavigateFunction) {
     const boardState = useGameBoardStates.getState();
+    const gameLobbyRoomId = boardState.gameLobbyRoomId;
 
     boardState.clearBoard();
     boardState.setGameId("");
-    boardState.setGameLobbyRoomId("");
     useGameUIStates.getState().setIsEndDialogOpen(false);
     localStorage.removeItem("boardStore");
 
-    navigate("/", { replace: true });
+    navigate(gameLobbyRoomId ? `/game_room/${gameLobbyRoomId}` : "/", { replace: true });
 }

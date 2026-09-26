@@ -24,7 +24,7 @@ import {
     extractStandaloneSecurityAttackModifier,
     supportsAutoDetectedEffectKeywords,
 } from "../utils/effectKeywords.ts";
-import { EffectTargetPayload } from "../utils/effectTargeting.ts";
+import { EffectTargetPayload, findOptionPlacementField } from "../utils/effectTargeting.ts";
 
 const myDigimonLocations = [
     "myDigi1",
@@ -241,6 +241,8 @@ export default function Card(props: CardProps) {
     const setStackDraggedLocation = useGameUIStates((state) => state.setStackDraggedLocation);
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+    const startHandCardPlacement = useGameUIStates((state) => state.startHandCardPlacement);
+    const attackSource = useGameUIStates((state) => state.attackSource);
 
     const playSuspendSfx = useSound((state) => state.playSuspendSfx);
     const playUnsuspendSfx = useSound((state) => state.playUnsuspendSfx);
@@ -276,16 +278,31 @@ export default function Card(props: CardProps) {
     const [{ isDragging }, dragRef, preview] = useDrag(
         () => ({
             type: "card",
-            item: {
-                type: "card",
-                content: { location, card },
+            item: () => {
+                const board = useGameBoardStates.getState();
+                return {
+                    type: "card",
+                    content: {
+                        location,
+                        card,
+                        attackSnapshot: {
+                            sourceCardId: card.id,
+                            sourceLocation: location,
+                            isMyTurn: board.getIsMyTurn(username),
+                            phase: board.phase,
+                            cardType: card.cardType || board.getCardType(location),
+                            isSuspended: card.isTilted || board.areCardsSuspended(location),
+                            digimonNumber: board.getDigimonNumber(location),
+                        },
+                    },
+                };
             },
             canDrag: !opponentFieldLocations.includes(location) && gameHasStarted,
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
         }),
-        [location, card, opponentFieldLocations, gameHasStarted]
+        [location, card, opponentFieldLocations, gameHasStarted, username]
     );
 
     // Separate drag logic for stack icon - always drags as card-stack
@@ -344,6 +361,17 @@ export default function Card(props: CardProps) {
         if (effectTargeting) {
             event.stopPropagation();
             if (isEffectTargetCandidate && wsUtils) {
+                // Hand activations need an explicit chat entry when the effect
+                // targets an occupied card. Empty-field placement sends this
+                // message from DigimonField, but the occupied-card path used
+                // to only send the targeting command, making the activation
+                // appear silent.
+                if (effectTargeting.sourceLocation === "myHand") {
+                    wsUtils.sendChatMessage(
+                        `${wsUtils.matchInfo.user} is activating ${effectTargeting.sourceName} ` +
+                            `[${effectTargeting.timing}]: ${effectTargeting.effectText}`
+                    );
+                }
                 const payload: EffectTargetPayload = {
                     sourceCardId: effectTargeting.sourceCardId,
                     effectSourceCardId: effectTargeting.effectSourceCardId,
@@ -353,7 +381,30 @@ export default function Card(props: CardProps) {
                     timing: effectTargeting.timing,
                     effectText: effectTargeting.effectText,
                 };
-                wsUtils.sendMessage(`${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`);
+                wsUtils.sendMessage(
+                    `${wsUtils.matchInfo.gameId}:/effectTarget:${JSON.stringify(payload)}`
+                );
+
+                if (effectTargeting.sourceLocation === "myHand") {
+                    const board = useGameBoardStates.getState();
+                    const sourceCard = board.myHand.find((handCard) => handCard.id === effectTargeting.sourceCardId);
+                    if (sourceCard?.cardType.includes("Option")) {
+                        const placementField = findOptionPlacementField(
+                            sourceCard,
+                            (field) => board[field as keyof typeof board] as CardTypeGame[]
+                        );
+
+                        if (placementField) {
+                            board.moveCard(sourceCard.id, "myHand", placementField);
+                            wsUtils.sendMoveCard(sourceCard.id, "myHand", placementField);
+                            wsUtils.sendChatMessage(
+                                `[FIELD_UPDATE]≔【${sourceCard.name}】﹕Hand ➟ Tamer/Option Area`
+                            );
+                        } else {
+                            startHandCardPlacement({ cardId: sourceCard.id, cardName: sourceCard.name });
+                        }
+                    }
+                }
                 cancelEffectTargeting();
             }
             return;
@@ -368,6 +419,7 @@ export default function Card(props: CardProps) {
     }
 
     function handleHover() {
+        if (attackSource) return;
         if (index !== undefined && isStackDragMode) setStackSliceIndex(index);
         if (isCardFaceDown) setHoveredId(card.id);
         if ((isCardFaceDown && location === "mySecurity") || (isCardFaceDown && !location.includes("my"))) return;

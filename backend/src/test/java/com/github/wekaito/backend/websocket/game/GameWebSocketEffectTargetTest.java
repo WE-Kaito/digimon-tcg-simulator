@@ -183,6 +183,56 @@ class GameWebSocketEffectTargetTest {
     }
 
     @Test
+    void acceptsARevealedEffectSourceFromThePlayersHand() throws Exception {
+        GameCard handCard = gameCard("Gaia Force");
+        gameRoom.getBoardState().setPlayer1Hand(List.of(handCard));
+        EffectTargetPayload payload = new EffectTargetPayload(
+                handCard.getId().toString(),
+                null,
+                targetCard.getId().toString(),
+                "myHand",
+                "opponentDigi2",
+                "On Play",
+                "Delete 1 of your opponent's Digimon."
+        );
+
+        gameWebSocket.handleTextMessage(
+                player1Session,
+                new TextMessage(ROOM_ID + ":/effectTarget:" + OBJECT_MAPPER.writeValueAsString(payload))
+        );
+
+        assertThat(player1Messages).singleElement().satisfies(message -> assertThat(message)
+                .startsWith("[EFFECT_TARGET]:")
+                .contains("\"sourceLocation\":\"myHand\"")
+                .contains("\"sourceName\":\"Gaia Force\""));
+        assertThat(player2Messages).hasSize(1);
+    }
+
+    @Test
+    void rejectsAConcealedEffectSourceFromThePlayersHand() throws Exception {
+        GameCard handCard = gameCard("Gaia Force");
+        handCard.setIsFaceUp(false);
+        gameRoom.getBoardState().setPlayer1Hand(List.of(handCard));
+        EffectTargetPayload payload = new EffectTargetPayload(
+                handCard.getId().toString(),
+                null,
+                targetCard.getId().toString(),
+                "myHand",
+                "opponentDigi2",
+                "On Play",
+                "Delete 1 of your opponent's Digimon."
+        );
+
+        gameWebSocket.handleTextMessage(
+                player1Session,
+                new TextMessage(ROOM_ID + ":/effectTarget:" + OBJECT_MAPPER.writeValueAsString(payload))
+        );
+
+        assertThat(player1Messages).containsExactly("[COMMAND_REJECTED]:effectTarget");
+        assertThat(player2Messages).isEmpty();
+    }
+
+    @Test
     void rejectsMalformedPayload() throws Exception {
         gameWebSocket.handleTextMessage(
                 player1Session,
