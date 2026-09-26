@@ -16,8 +16,11 @@ export default function EffectTargetCursor({ wsUtils }: { wsUtils?: WSUtils }) {
     const startHandCardPlacement = useGameUIStates((state) => state.startHandCardPlacement);
     const myHand = useGameBoardStates((state) => state.myHand);
     const flipCard = useGameBoardStates((state) => state.flipCard);
+    const clearEffectTargetingQueue = useGameUIStates((state) => state.clearEffectTargetingQueue);
     const [position, setPosition] = useState({ x: -100, y: -100 });
     const previousTargeting = useRef(effectTargeting);
+
+    useEffect(() => () => clearEffectTargetingQueue(), [clearEffectTargetingQueue]);
 
     useEffect(() => {
         const previous = previousTargeting.current;

@@ -6,6 +6,7 @@ import { SendMessage } from "react-use-websocket";
 import { useGeneralStates } from "./useGeneralStates.ts";
 import { useState } from "react";
 import { useGameUIStates } from "./useGameUIStates.ts";
+import { isAttackIntent } from "../utils/attackIntent.ts";
 
 type Props = {
     sendMessage: SendMessage;
@@ -26,7 +27,6 @@ export default function useDropZoneReactDnd(props: Props) {
     const getDigimonNumber = useGameBoardStates((state) => state.getDigimonNumber);
     const getCardType = useGameBoardStates((state) => state.getCardType);
     const getIsMyTurn = useGameBoardStates((state) => state.getIsMyTurn);
-    const phase = useGameBoardStates((state) => state.phase);
     const moveCardToStack = useGameBoardStates((state) => state.moveCardToStack);
 
     const setCardToSend = useGameBoardStates((state) => state.setCardToSend);
@@ -52,6 +52,7 @@ export default function useDropZoneReactDnd(props: Props) {
     const setIsEffectArrow = useGameUIStates((state) => state.setIsEffectArrow);
     const setStackDragIcon = useGameUIStates((state) => state.setStackDragIcon);
     const setShowSecuritySendButtons = useGameUIStates((state) => state.setShowSecuritySendButtons);
+    const pinAttackSource = useGameUIStates((state) => state.pinAttackSource);
 
     const [phaseLoading, setPhaseLoading] = useState(false);
 
@@ -107,8 +108,8 @@ export default function useDropZoneReactDnd(props: Props) {
         sendMessage(`${gameId}:/moveCard:${cardId}:${from}:${to}`);
     }
 
-    function initiateAttack() {
-        if (phase === Phase.MAIN) {
+    function initiateAttack(attackPhase: Phase) {
+        if (attackPhase === Phase.MAIN) {
             setMyAttackPhase(AttackPhase.WHEN_ATTACKING);
             sendAttackPhaseUpdate(AttackPhase.WHEN_ATTACKING);
         }
@@ -161,21 +162,51 @@ export default function useDropZoneReactDnd(props: Props) {
         playPlaceCardSfx();
     }
 
-    function handleDropToOpponent(from: string, to: string) {
+    function handleDropToOpponent(item: DraggedItem, to: string) {
+        const from = item.location;
         if (!from || !to) return;
 
-        const myTurn = getIsMyTurn(user);
-        const type = getCardType(from);
-        const isEffect =
-            !myTurn || type !== "Digimon" || phase !== Phase.MAIN || (type === "Digimon" && !areCardsSuspended(from));
-        const attackAllowed = areCardsSuspended(from) || getDigimonNumber(from) === "BT12-083";
+        const snapshot = item.attackSnapshot;
+        const board = useGameBoardStates.getState();
+        const sourceLocation = snapshot?.sourceLocation ?? from;
+        const sourceCards = board[sourceLocation as keyof typeof board];
+        const currentSourceCard = Array.isArray(sourceCards)
+            ? (sourceCards as CardTypeGame[]).find((card) => card.id === (snapshot?.sourceCardId ?? item.card.id))
+            : undefined;
+        const attackState = {
+            sourceCardId: snapshot?.sourceCardId ?? item.card.id,
+            sourceLocation,
+            // Preserve drag identity, but read eligibility from current board
+            // state. A card can be suspended/re-rendered after drag begins;
+            // freezing these values at drag start misclassifies the attack as
+            // an effect drop.
+            isMyTurn: board.getIsMyTurn(user),
+            phase: board.phase,
+            cardType: currentSourceCard?.cardType || snapshot?.cardType || item.card.cardType || getCardType(from),
+            isSuspended:
+                currentSourceCard?.isTilted ?? snapshot?.isSuspended ?? item.card.isTilted ?? areCardsSuspended(from),
+            digimonNumber:
+                currentSourceCard?.cardNumber ||
+                snapshot?.digimonNumber ||
+                item.card.cardNumber ||
+                getDigimonNumber(from),
+        };
+        const isAttack = isAttackIntent(attackState);
+        const isEffect = !isAttack;
         clearAttackAnimation?.();
         setArrowFrom(from);
         setArrowTo(to);
         if (isEffect) setIsEffectArrow(true);
         sendAttackArrows(from, to, isEffect);
         restartAttackAnimation(isEffect);
-        if (!isEffect && attackAllowed) initiateAttack();
+        if (isAttack) {
+            initiateAttack(attackState.phase);
+            // Set WHEN_ATTACKING before publishing the pinned source. GamePage
+            // clears sources outside that phase, so publishing in the opposite
+            // order creates an observable intermediate state that can erase the
+            // source before its timing controls render.
+            pinAttackSource({ card: item.card, location: attackState.sourceLocation });
+        }
     }
 
     function handleDropToHand(item: DraggedItem) {
@@ -253,7 +284,7 @@ export default function useDropZoneReactDnd(props: Props) {
                 ) {
                     dropCardOrStack(item.content, targetField);
                 } else if (targetField.startsWith("opponentDigi") || ["opponentSecurity"].includes(targetField)) {
-                    handleDropToOpponent(draggedItem.location, targetField);
+                    handleDropToOpponent(draggedItem, targetField);
                 } else if (targetField === "mySecurity") handleDropToSecurity(draggedItem);
                 else if (targetField === "myHand") handleDropToHand(draggedItem);
                 else if (targetField === "myDeckField") dropCardToDeck(draggedItem, "Top");

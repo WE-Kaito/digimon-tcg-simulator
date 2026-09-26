@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { digimonLocations } from "./useGameBoardStates.ts";
+import type { CardTypeGame } from "../utils/types.ts";
 
 type DigimonLocation = (typeof digimonLocations)[number];
 
@@ -28,6 +29,11 @@ export type EffectTargeting = {
 export type HandCardPlacement = {
     cardId: string;
     cardName: string;
+};
+
+export type AttackSource = {
+    card: CardTypeGame;
+    location: string;
 };
 
 type State = {
@@ -103,13 +109,29 @@ type State = {
     showSecuritySendButtons: boolean;
     setShowSecuritySendButtons: (show: boolean) => void;
 
+    attackSource: AttackSource | null;
+    pinAttackSource: (source: AttackSource) => void;
+    clearAttackSource: () => void;
+
     effectTargeting: EffectTargeting | null;
+    effectTargetingQueue: EffectTargeting[];
     startEffectTargeting: (targeting: EffectTargeting) => void;
     cancelEffectTargeting: () => void;
     handCardPlacement: HandCardPlacement | null;
     startHandCardPlacement: (placement: HandCardPlacement) => void;
     cancelHandCardPlacement: () => void;
+    clearEffectTargetingQueue: () => void;
 };
+
+function isSameEffectTargeting(left: EffectTargeting, right: EffectTargeting) {
+    return (
+        left.sourceCardId === right.sourceCardId &&
+        left.effectSourceCardId === right.effectSourceCardId &&
+        left.sourceLocation === right.sourceLocation &&
+        left.timing === right.timing &&
+        left.effectText === right.effectText
+    );
+}
 
 export const useGameUIStates = create<State>((set) => ({
     isStackDragMode: false,
@@ -184,10 +206,30 @@ export const useGameUIStates = create<State>((set) => ({
     showSecuritySendButtons: false,
     setShowSecuritySendButtons: (showSecuritySendButtons) => set({ showSecuritySendButtons }),
 
+    attackSource: null,
+    pinAttackSource: (attackSource) => set({ attackSource }),
+    clearAttackSource: () => set({ attackSource: null }),
+
     effectTargeting: null,
-    startEffectTargeting: (effectTargeting) => set({ effectTargeting }),
-    cancelEffectTargeting: () => set({ effectTargeting: null }),
     handCardPlacement: null,
     startHandCardPlacement: (handCardPlacement) => set({ handCardPlacement }),
     cancelHandCardPlacement: () => set({ handCardPlacement: null }),
+    effectTargetingQueue: [],
+    startEffectTargeting: (targeting) =>
+        set((state) => {
+            if (!state.effectTargeting) return { effectTargeting: targeting };
+            if (
+                isSameEffectTargeting(state.effectTargeting, targeting) ||
+                state.effectTargetingQueue.some((queued) => isSameEffectTargeting(queued, targeting))
+            ) {
+                return state;
+            }
+            return { effectTargetingQueue: [...state.effectTargetingQueue, targeting] };
+        }),
+    cancelEffectTargeting: () =>
+        set((state) => ({
+            effectTargeting: state.effectTargetingQueue[0] ?? null,
+            effectTargetingQueue: state.effectTargetingQueue.slice(1),
+        })),
+    clearEffectTargetingQueue: () => set({ effectTargeting: null, effectTargetingQueue: [] }),
 }));
