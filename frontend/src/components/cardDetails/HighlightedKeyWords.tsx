@@ -23,14 +23,17 @@ export default function HighlightedKeyWords({
     effectSourceCardId?: string;
 }): JSX.Element | JSX.Element[] {
     const location = useLocation();
-    const selectedCard = useGeneralStates((state) => state.selectedCard);
-    const hoverCard = useGeneralStates((state) => state.hoverCard);
+    const storedSelectedCard = useGeneralStates((state) => state.selectedCard);
+    const storedHoverCard = useGeneralStates((state) => state.hoverCard);
+    const attackSource = useGameUIStates((state) => state.attackSource);
+    const selectedCard = attackSource?.card ?? storedSelectedCard;
+    const hoverCard = attackSource ? null : storedHoverCard;
     const getCardLocationById = useGameBoardStates((state) => state.getCardLocationById);
     const effectTargeting = useGameUIStates((state) => state.effectTargeting);
     const startEffectTargeting = useGameUIStates((state) => state.startEffectTargeting);
     const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
 
-    const sourceLocation = getCardLocationById(selectedCard?.id ?? "");
+    const sourceLocation = attackSource?.location ?? getCardLocationById(selectedCard?.id ?? "");
     const sourceCards = useGameBoardStates(
         (state) =>
             (sourceLocation
@@ -38,13 +41,16 @@ export default function HighlightedKeyWords({
                 : EMPTY_SOURCE_CARDS) as CardTypeGame[]
     );
     const sourceIsTamer = tamerLocations.includes(sourceLocation);
-    const sourceIsTopCard =
-        selectedCard?.id === (sourceIsTamer ? sourceCards.at(0)?.id : sourceCards.at(-1)?.id);
+    const sourceIsInHand = sourceLocation === "myHand";
+    const sourceIsTopCard = sourceIsInHand
+        ? sourceCards.some((card) => card.id === selectedCard?.id)
+        : selectedCard?.id === (sourceIsTamer ? sourceCards.at(0)?.id : sourceCards.at(-1)?.id);
     const sourceIsFaceUp = Boolean(selectedCard && "isFaceUp" in selectedCard && selectedCard.isFaceUp);
-    const sourceIsOnMyField = sourceLocation === "myBreedingArea" || /^myDigi(?:[1-9]|1\d|2[01])$/.test(sourceLocation);
+    const sourceIsOnMyField =
+        sourceIsInHand || sourceLocation === "myBreedingArea" || /^myDigi(?:[1-9]|1\d|2[01])$/.test(sourceLocation);
     const detailsMatchSelection = !hoverCard || hoverCard.id === selectedCard?.id;
     const canStartTargeting =
-        (location.pathname === "/game" || location.pathname === "/test") &&
+        (location.pathname.startsWith("/game") || location.pathname === "/test") &&
         Boolean(selectedCard) &&
         sourceIsFaceUp &&
         sourceIsTopCard &&

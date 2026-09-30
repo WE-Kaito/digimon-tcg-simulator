@@ -288,7 +288,13 @@ export const generalToken: CardType = {
     illustrator: "",
 };
 
+export const blankToken: CardType = {
+    ...generalToken,
+    name: "_BLANK",
+};
+
 export const tokenCollection = [
+    blankToken,
     amonToken,
     athoreneporToken,
     diaboromonToken,

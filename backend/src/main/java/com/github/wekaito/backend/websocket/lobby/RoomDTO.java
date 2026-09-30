@@ -13,6 +13,8 @@ public record RoomDTO(
 
         boolean hasPassword,
 
+        Long hostReconnectDeadline,
+
         List<LobbyPlayerDTO> players
 ) {
 }

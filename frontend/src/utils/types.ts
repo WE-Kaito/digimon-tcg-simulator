@@ -93,9 +93,20 @@ export type Player = {
     eggSleeveName: string;
 };
 
+export type AttackDragSnapshot = {
+    sourceCardId: string;
+    sourceLocation: string;
+    isMyTurn: boolean;
+    phase: Phase;
+    cardType: string;
+    isSuspended: boolean;
+    digimonNumber: string;
+};
+
 export type DraggedItem = {
     location: string;
     card: CardTypeGame;
+    attackSnapshot?: AttackDragSnapshot;
 };
 
 export type DraggedStack = {

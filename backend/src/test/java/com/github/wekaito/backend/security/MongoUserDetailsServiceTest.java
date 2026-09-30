@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -16,6 +18,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class MongoUserDetailsServiceTest {
@@ -32,7 +36,7 @@ class MongoUserDetailsServiceTest {
     @BeforeEach
     void setUp() {
         mongoUserDetailsService = new MongoUserDetailsService(mongoUserRepository, starterDeckService);
-        when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon", Collections.emptyList(), Role.ROLE_USER)));
+        lenient().when(mongoUserRepository.findByUsername("testUser1")).thenReturn(Optional.of(new MongoUser("123", "testUser1", "password", "question?", "answer!", "12345", "AncientIrismon", Collections.emptyList(), Role.ROLE_USER)));
     }
 
     @Test
@@ -79,5 +83,30 @@ class MongoUserDetailsServiceTest {
         assertThrows(UsernameNotFoundException.class, () -> {
             mongoUserDetailsService.getUserIdByUsername("notExistingUser");
         });
+    }
+
+    @Test
+    void setActiveDeckUpdatesOnlyTheActiveDeckField() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("testUser1", "password")
+        );
+        when(mongoUserRepository.updateActiveDeckIdByUsername("testUser1", "deck-two")).thenReturn(1L);
+
+        mongoUserDetailsService.setActiveDeck("deck-two");
+
+        verify(mongoUserRepository).updateActiveDeckIdByUsername("testUser1", "deck-two");
+    }
+
+    @Test
+    void blockedAccountsAreCached() {
+        when(mongoUserRepository.findByUsername("blocked-list-owner")).thenReturn(Optional.of(
+                new MongoUser("456", "blocked-list-owner", "password", "question?", "answer!", "deck-one",
+                        "AncientIrismon", java.util.List.of("blocked-user"), Role.ROLE_USER)
+        ));
+
+        assertThat(mongoUserDetailsService.getBlockedAccounts("blocked-list-owner")).containsExactly("blocked-user");
+        assertThat(mongoUserDetailsService.getBlockedAccounts("blocked-list-owner")).containsExactly("blocked-user");
+
+        verify(mongoUserRepository).findByUsername("blocked-list-owner");
     }
 }

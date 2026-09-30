@@ -43,7 +43,12 @@ export default function DigimonField(props: DigimonFieldProps) {
 
     const stackDialog = useGameUIStates((state) => state.stackDialog);
     const setStackDialog = useGameUIStates((state) => state.setStackDialog);
+    const effectTargeting = useGameUIStates((state) => state.effectTargeting);
+    const cancelEffectTargeting = useGameUIStates((state) => state.cancelEffectTargeting);
+    const handCardPlacement = useGameUIStates((state) => state.handCardPlacement);
+    const cancelHandCardPlacement = useGameUIStates((state) => state.cancelHandCardPlacement);
     const locationCards = useGameBoardStates((state) => state[location as keyof typeof state] as CardTypeGame[]);
+    const moveCard = useGameBoardStates((state) => state.moveCard);
 
     const stackOpened = stackDialog === location;
 
@@ -60,6 +65,47 @@ export default function DigimonField(props: DigimonFieldProps) {
     const iconSize = cardWidth / 1.5;
 
     const [isHoveringOverField, setIsHoveringOverField] = useState(false);
+
+    function handleFieldClick() {
+        if (stackOpened) {
+            setStackDialog(false);
+            return;
+        }
+        if (
+            handCardPlacement &&
+            side === SIDE.MY &&
+            num > 8 &&
+            locationCards.length === 0 &&
+            wsUtils
+        ) {
+            moveCard(handCardPlacement.cardId, "myHand", location);
+            wsUtils.sendMoveCard(handCardPlacement.cardId, "myHand", location);
+            wsUtils.sendChatMessage(
+                `[FIELD_UPDATE]≔【${handCardPlacement.cardName}】﹕Hand ➟ Tamer/Option Area`
+            );
+            cancelHandCardPlacement();
+            return;
+        }
+        if (
+            side !== SIDE.MY ||
+            locationCards.length !== 0 ||
+            effectTargeting?.sourceLocation !== "myHand" ||
+            !wsUtils
+        ) {
+            return;
+        }
+
+        moveCard(effectTargeting.sourceCardId, "myHand", location);
+        wsUtils.sendMoveCard(effectTargeting.sourceCardId, "myHand", location);
+        wsUtils.sendChatMessage(
+            `${wsUtils.matchInfo.user} is activating ${effectTargeting.sourceName} ` +
+                `[${effectTargeting.timing}]: ${effectTargeting.effectText}`
+        );
+        wsUtils.sendChatMessage(
+            `[FIELD_UPDATE]≔【${effectTargeting.sourceName}】﹕Hand ➟ Battle Area`
+        );
+        cancelEffectTargeting();
+    }
 
     const memoizedField = useMemo(
         () => (
@@ -118,8 +164,14 @@ export default function DigimonField(props: DigimonFieldProps) {
             stackOpened={stackOpened}
             onMouseEnter={() => stackOpened && setIsHoveringOverField(true)}
             onMouseLeave={() => stackOpened && setIsHoveringOverField(false)}
-            onClick={() => stackOpened && setStackDialog(false)}
-            className={stackOpened ? "button" : undefined}
+            onClick={handleFieldClick}
+            className={
+                stackOpened ||
+                (side === SIDE.MY && !locationCards.length && effectTargeting) ||
+                (side === SIDE.MY && num > 8 && !locationCards.length && handCardPlacement)
+                    ? "button"
+                    : undefined
+            }
         >
             <EffectArrowAnchor
                 id={`${location}-effect-anchor`}
