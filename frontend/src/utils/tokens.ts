@@ -291,6 +291,7 @@ export const generalToken: CardType = {
 export const blankToken: CardType = {
     ...generalToken,
     name: "_BLANK",
+    dp: 0,
 };
 
 export const tokenCollection = [
