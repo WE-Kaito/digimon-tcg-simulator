@@ -26,7 +26,11 @@ import java.util.List;
 @Slf4j
 public class CardService {
 
+    // card list (JSON) is still fetched from the GitHub repo
     private static final String BASE_URL = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/";
+    private static final String LEGACY_IMAGE_BASE_URL = BASE_URL + "assets/images/cards/";
+    // card images are hosted separately: <IMAGE_BASE_URL><cardCode>.webp
+    private static final String IMAGE_BASE_URL = "https://web-garage.takaotaku.de/";
 
     private final CardRepo cardRepo;
 
@@ -112,6 +116,62 @@ public class CardService {
         }
     }
 
+    /**
+     * Builds the image URL for a card from the new image host.
+     * The fetched data contains paths like "assets/images/cards/AD1-001.webp";
+     * only the file name (card code + .webp) is needed behind {@link #IMAGE_BASE_URL}.
+     */
+    static String buildImageUrl(String cardImage, String cardId) {
+        String fileName = (cardImage == null) ? "" : cardImage.trim();
+        int lastSlash = fileName.lastIndexOf('/');
+        if (lastSlash >= 0) fileName = fileName.substring(lastSlash + 1);
+        if (fileName.isEmpty()) fileName = cardId;
+        int dot = fileName.lastIndexOf('.');
+        if (dot > 0) fileName = fileName.substring(0, dot);
+        return IMAGE_BASE_URL + fileName + ".webp";
+    }
+
+    /**
+     * Rewrites image URLs of cards persisted with the old GitHub image host.
+     */
+    private static Card withCurrentImageHost(Card card) {
+        String imgUrl = card.imgUrl();
+        if (imgUrl == null || !imgUrl.startsWith(LEGACY_IMAGE_BASE_URL)) return card;
+        return new Card(
+                card.uniqueCardNumber(),
+                card.name(),
+                buildImageUrl(imgUrl, card.uniqueCardNumber()),
+                card.cardType(),
+                card.color(),
+                card.attribute(),
+                card.cardNumber(),
+                card.digivolveConditions(),
+                card.specialDigivolve(),
+                card.stage(),
+                card.digiType(),
+                card.dp(),
+                card.playCost(),
+                card.level(),
+                card.mainEffect(),
+                card.inheritedEffect(),
+                card.aceEffect(),
+                card.burstDigivolve(),
+                card.digiXros(),
+                card.dnaDigivolve(),
+                card.securityEffect(),
+                card.rule(),
+                card.linkDP(),
+                card.linkEffect(),
+                card.linkRequirement(),
+                card.assembly(),
+                card.dualEffect(),
+                card.optionCardColorRequirement(),
+                card.optionCardEffect(),
+                card.restrictions(),
+                card.illustrator()
+        );
+    }
+
     @Scheduled(fixedRate = 86400000) // 24 hours
     void fetchCards() {
         String responseBody = webClient.get()
@@ -143,7 +203,7 @@ public class CardService {
                 cards.add(new Card(
                         card.id(),
                         card.name().english(),
-                        BASE_URL + card.cardImage(),
+                        buildImageUrl(card.cardImage(), card.id()),
                         card.cardType(),
                         colors,
                         (card.attribute().equals("-")) ? null : card.attribute(),
@@ -179,7 +239,7 @@ public class CardService {
         for (Card repoCard : this.cardRepo.findAll()) {
             if(!repoCard.name().equals("[[:Category:|]]")) {
                 if (cards.stream().noneMatch(card -> card.uniqueCardNumber().equals(repoCard.uniqueCardNumber()))) {
-                    cards.add(repoCard);
+                    cards.add(withCurrentImageHost(repoCard));
                 }
             }
         }

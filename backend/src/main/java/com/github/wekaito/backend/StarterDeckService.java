@@ -259,7 +259,7 @@ public class StarterDeckService {
                 "[STARTER] Gallantmon",
                 GALLANTMON_MAIN,
                 GALLANTMON_EGGS,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST7-09.webp",
+                "https://web-garage.takaotaku.de/ST7-09.webp",
                 "Guilmon",
                 "Default",
                 userId
@@ -270,7 +270,7 @@ public class StarterDeckService {
                 "[STARTER] Beelzemon",
                 BEELZEMON_MAIN,
                 BEELZEMON_EGGS,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST14-10.webp",
+                "https://web-garage.takaotaku.de/ST14-10.webp",
                 "Impmon",
                 "Default",
                 userId
@@ -281,7 +281,7 @@ public class StarterDeckService {
                 "[STARTER] Dragon Of Courage",
                 DRAGON_OF_COURAGE_MAIN,
                 DRAGON_OF_COURAGE_EGGS,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/ST15-12.webp",
+                "https://web-garage.takaotaku.de/ST15-12.webp",
                 "Agumon",
                 "Default",
                 userId
@@ -292,7 +292,7 @@ public class StarterDeckService {
                 "[STARTER] Vortex Warriors",
                 VORTEX_WARRIORS_MAIN,
                 VORTEX_WARRIORS_EGGS,
-                "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/P-038_P4-J.webp",
+                "https://web-garage.takaotaku.de/P-038_P4-J.webp",
                 "Pteromon",
                 "Default",
                 userId
