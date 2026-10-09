@@ -510,7 +510,8 @@ export default function Card(props: CardProps) {
 
     const linkDP = linkCardsForLocation.reduce((sum, card) => sum + (card.linkDP ?? 0), 0);
 
-    const finalDp = card.dp || isTamerWithDP ? Math.max(0, (card.dp ?? 0) + linkDP + (modifiers?.plusDp ?? 0)) : 0;
+    const finalDp =
+        card.dp != null || isTamerWithDP ? Math.max(0, (card.dp ?? 0) + linkDP + (modifiers?.plusDp ?? 0)) : 0;
 
     const secAtkString = modifiers
         ? getNumericModifier(modifiers.plusSecurityAttacks + autoDetectedSecurityAttackModifier)
